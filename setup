@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker is not installed."
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "Docker daemon is not running. Start Docker Desktop first."
+  exit 1
+fi
+
+if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+  cp .env.example .env
+  echo "Created .env from .env.example"
+fi
+
+run_rebuild() {
+  docker compose down
+  docker compose up -d --build
+}
+
+run_up() {
+  docker compose up -d --build
+}
+
+run_down() {
+  docker compose down
+}
+
+run_logs() {
+  echo "Watching web logs (save a .tsx/.css file to see 'Compiled in ...')"
+  docker compose logs -f web
+}
+
+show_menu() {
+  echo "Choose option:"
+  echo "1) rebuild (down + up -d --build)"
+  echo "2) up -d --build"
+  echo "3) down"
+  echo "4) logs (web watch)"
+  printf "Select [1-4]: "
+  read -r choice
+
+  case "${choice}" in
+    1) run_rebuild ;;
+    2) run_up ;;
+    3) run_down ;;
+    4) run_logs ;;
+    *) echo "Invalid option."; exit 1 ;;
+  esac
+}
+
+case "${1:-menu}" in
+  rebuild) run_rebuild ;;
+  up) run_up ;;
+  down) run_down ;;
+  logs) run_logs ;;
+  menu) show_menu ;;
+  *) echo "Usage: ./setup [rebuild|up|down|logs]"; exit 1 ;;
+esac

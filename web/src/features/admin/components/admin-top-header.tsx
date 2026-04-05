@@ -1,0 +1,45 @@
+"use client";
+
+import { useMemo } from"react";
+import { usePathname } from"next/navigation";
+
+type AdminTopHeaderProps = {
+ username: string;
+};
+
+function getPageTitle(pathname: string): string {
+ if (pathname.startsWith("/admin/dashboard")) return"Dashboard";
+ if (pathname.startsWith("/admin/user")) return"User";
+ if (pathname.startsWith("/admin/settings")) return"Settings";
+ if (pathname.startsWith("/admin/media")) return"Media";
+ if (pathname ==="/admin") return"Dashboard";
+ return"Admin";
+}
+
+export function AdminTopHeader({ username }: AdminTopHeaderProps) {
+ const pathname = usePathname();
+ const pageTitle = useMemo(() => getPageTitle(pathname), [pathname]);
+
+ return (
+ <header
+  id="admin-top-header"
+  data-slot="admin-top-header"
+  className="admin-top-header fixed top-0 right-0 left-0 z-50 h-14 border-b border-border bg-background text-foreground md:left-64"
+ >
+  <div className="flex h-full w-full items-center justify-between px-6 md:px-8">
+  <div className="flex items-center gap-3">
+   <span className="text-muted-foreground">|</span>
+   <p className="font-medium">{pageTitle}</p>
+  </div>
+  <div className="flex items-center gap-3">
+   <span className="text-muted-foreground">{username}</span>
+   <form action="/api/auth/logout" method="POST">
+   <button type="submit" className="text-foreground hover:underline">
+    Logout
+   </button>
+   </form>
+  </div>
+  </div>
+ </header>
+ );
+}
