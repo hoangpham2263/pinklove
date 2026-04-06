@@ -7,8 +7,8 @@ alwaysApply: true
 
 Apply these conventions for this repository:
 
-- `@docs/CONVENTIONS.md` is the single source of truth for project conventions.
-- Whenever adding/changing a convention, update `@docs/CONVENTIONS.md` in the same task.
+- `docs/CONVENTIONS.md` is the single source of truth for project conventions.
+- Whenever adding/changing a convention, update `docs/CONVENTIONS.md` in the same task.
 - Keep route files in `web/src/app` only (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`).
 - Use route group `web/src/app/(client)` for public pages.
 - Keep admin pages under `web/src/app/(admin)/admin/*` for a cleaner tree.

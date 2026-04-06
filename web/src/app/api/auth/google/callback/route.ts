@@ -8,6 +8,7 @@ import {
  SESSION_COOKIE_NAME,
 } from"@/lib/auth";
 import { exchangeCodeForGoogleUser } from"@/lib/google-oauth";
+import { ROUTES } from "@/lib/routes";
 
 export const runtime ="nodejs";
 
@@ -18,13 +19,13 @@ export async function GET(request: Request) {
  const code = url.searchParams.get("code");
  const state = url.searchParams.get("state");
  if (!code || !state) {
- return NextResponse.redirect(new URL("/user/login?error=google_callback_invalid", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=google_callback_invalid` } });
  }
 
  const cookieStore = await cookies();
  const expectedState = cookieStore.get(GOOGLE_OAUTH_STATE_COOKIE)?.value;
  if (!expectedState || expectedState !== state) {
- return NextResponse.redirect(new URL("/user/login?error=google_state_invalid", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=google_state_invalid` } });
  }
 
  try {
@@ -36,12 +37,12 @@ export async function GET(request: Request) {
  });
 
  if (appUser.role !=="user") {
-  return NextResponse.redirect(new URL("/user/login?error=invalid_credentials", request.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  const token = await createSession(appUser.id);
- const target ="/user/dashboard";
- const response = NextResponse.redirect(new URL(target, request.url), 303);
+ const target =ROUTES.USER.DASHBOARD;
+ const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE,"", {
   httpOnly: true,
@@ -52,6 +53,6 @@ export async function GET(request: Request) {
  });
  return response;
  } catch {
- return NextResponse.redirect(new URL("/user/login?error=google_login_failed", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=google_login_failed` } });
  }
 }

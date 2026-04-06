@@ -8,11 +8,8 @@ type AdminSettingsPageProps = {
 };
 
 const THEME_PRESETS: { id: ThemePreset; name: string; color: string }[] = [
- { id:"pink", name:"Pink (Default)", color:"bg-pink-500" },
- { id:"blue", name:"Ocean Blue", color:"bg-blue-500" },
- { id:"gray", name:"Modern Gray", color:"bg-slate-500" },
- { id:"green", name:"Nature Green", color:"bg-emerald-500" },
- { id:"yellow", name:"Sun Yellow", color:"bg-amber-500" },
+  { id: "black", name: "Đen huyền bí", color: "bg-black" },
+  { id: "pink", name: "Hồng quyến rũ", color: "bg-pink-500" },
 ];
 
 export default async function AdminSettingsPage({ searchParams }: AdminSettingsPageProps) {
@@ -27,7 +24,7 @@ export default async function AdminSettingsPage({ searchParams }: AdminSettingsP
 
   <CardHeader>
 
-  <CardTitle>Appearance</CardTitle>
+  <CardTitle>Giao diện</CardTitle>
 
   </CardHeader>
 
@@ -37,7 +34,7 @@ export default async function AdminSettingsPage({ searchParams }: AdminSettingsP
 
   <div className="space-y-4">
 
-  <h3>Theme Presets</h3>
+  <h3>Tùy chọn màu sắc</h3>
 
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 

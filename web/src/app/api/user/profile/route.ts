@@ -1,6 +1,7 @@
 import { NextResponse } from"next/server";
 
 import { getCurrentUserFromRequest, setUserProfile } from"@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
 export const runtime ="nodejs";
 
@@ -11,14 +12,14 @@ export async function POST(request: Request) {
  if (wantsJson) {
   return NextResponse.json({ error:"Please login first." }, { status: 401 });
  }
- return NextResponse.redirect(new URL("/user/login", request.url), 303);
+ return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.url), 303);
  }
 
  if (user.role ==="admin") {
  if (wantsJson) {
   return NextResponse.json({ error:"Admin cannot update user profile here." }, { status: 403 });
  }
- return NextResponse.redirect(new URL("/admin/dashboard", request.url), 303);
+ return NextResponse.redirect(new URL(ROUTES.ADMIN.DASHBOARD, request.url), 303);
  }
 
  const formData = await request.formData();

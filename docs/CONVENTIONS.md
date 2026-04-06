@@ -2,7 +2,7 @@
 
 ## 0) Convention source of truth
 
-- `@docs/CONVENTIONS.md` is the single source of truth for project conventions.
+- `docs/CONVENTIONS.md` is the single source of truth for project conventions.
 - **Directory Note:** The Next.js application is located in the `web/` directory. All paths mentioned in this document (e.g., `src/`, `public/`, `storage/`, `tsconfig.json`) are relative to the `web/` directory unless otherwise specified.
 - Any new or updated standard must be written here in the same change.
 - If code and this document conflict, update this file first, then align code.
@@ -14,8 +14,14 @@
 - Keep admin pages directly under `src/app/admin/*` for cleaner tree and stable URLs.
 - Keep business/domain code in `src/features/<feature-name>`.
 - Keep shared UI in `src/components/ui` and shared app widgets in `src/components/common`.
-- Keep cross-cutting helpers in `src/lib` (`env`, `db`, `auth`, `utils`, constants).
+- Keep cross-cutting helpers in `src/lib` (`env`, `db`, `auth`, `utils`, `routes`, constants).
 - Keep reusable types in `src/types`.
+
+## 1.1) Centralized Routing
+
+- All internal links (e.g., `<Link href="...">`) and redirects (e.g., `redirect(...)`, `NextResponse.redirect(...)`) MUST use the centralized `ROUTES` object.
+- The source of truth for all application paths is `src/lib/routes.ts`.
+- Do not hardcode paths like `"/user/login"` or `"/admin/dashboard"` anywhere in the codebase. Use `ROUTES.AUTH.LOGIN` or `ROUTES.ADMIN.DASHBOARD` instead.
 
 ## 2) Naming convention
 
@@ -190,7 +196,7 @@ Recommended inside `src/features/<feature-name>/`:
 
 - Profile update API lives at `src/app/api/user/profile/route.ts` (`POST`).
 
-- Use server-side auth guard: `requireAppUser("/user/login")`.
+- Use server-side auth guard: `requireAppUser(ROUTES.AUTH.LOGIN)`.
 
 
 
@@ -198,11 +204,27 @@ Recommended inside `src/features/<feature-name>/`:
 
 
 
+
+
+
+
 - Page management UI: `src/app/(admin)/admin/(protected)/pages/page.tsx` and `src/app/(admin)/admin/(protected)/pages/[slug]/page.tsx`.
+
+
 
 - CMS data is stored in `cms_pages`.
 
+
+
 - Normalization: Slug format should be normalized as lowercase kebab-case before saving.
+
+
+
+- **Custom Fields (ACF-style):** Templates can define their own specific custom fields (like `heading`, `sideImage`, etc.) in `src/features/client/templates/index.ts`. These fields are automatically rendered in the Admin Page Editor and saved as JSONB in `cms_pages.custom_fields`.
+
+
+
+- **Special Pages:** Pages like `login` and `register` also act as CMS pages to allow admin to edit their custom fields visually without touching code.
 
 
 

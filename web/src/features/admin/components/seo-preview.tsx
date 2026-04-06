@@ -24,8 +24,7 @@ export function SeoPreview({ title, description, slug, baseUrl ="https://yourdom
   </CardHeader>
   <CardContent className="space-y-1">
   <div className="flex items-center gap-2 text-[14px] text-[#202124] mb-1">
-   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white border shadow-sm">
-   <Globe className="h-4 w-4 text-slate-400" />
+         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white border">   <Globe className="h-4 w-4 text-slate-400" />
    </div>
    <div className="flex flex-col">
    <span className="text-[14px] leading-[20px]">Your Site</span>

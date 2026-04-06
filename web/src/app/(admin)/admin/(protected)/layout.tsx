@@ -12,6 +12,7 @@ import {
 import { AdminTopHeader } from"@/features/admin/components/admin-top-header";
 
 import { requireAdmin } from"@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
 
 
@@ -40,7 +41,7 @@ export default async function AdminLayout({
 
    <p className="px-3 uppercase tracking-widest mb-2">Tổng quan</p>
 
-   <Link href="/admin/dashboard" className={navItemClasses}>
+   <Link href={ROUTES.ADMIN.DASHBOARD} className={navItemClasses}>
 
     <LayoutDashboard className="h-5 w-5" />
 
@@ -138,7 +139,7 @@ export default async function AdminLayout({
 
    <nav className="flex gap-4 overflow-x-auto py-1">
 
-    <Link href="/admin/dashboard" className="flex items-center gap-1.5 whitespace-nowrap">
+    <Link href={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
 
     <LayoutDashboard className="h-4 w-4" />
 

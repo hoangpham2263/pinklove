@@ -6,8 +6,9 @@ import { LayoutDashboard,
 
 import { UserTopHeader } from"@/features/user/components/user-top-header";
 import { requireAppUser } from"@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
-export default async function UserLayout({ children, }: Readonly<{ children:React.ReactNode }>) { const user = await requireAppUser("/user/login");
+export default async function UserLayout({ children, }: Readonly<{ children:React.ReactNode }>) { const user = await requireAppUser(ROUTES.AUTH.LOGIN);
 
  const navItemClasses ="flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted";
 
@@ -22,7 +23,7 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <nav className="flex flex-col gap-6">
  <div className="space-y-1">
  <p className="px-3 uppercase tracking-widest mb-2">Tài khoản</p>
- <Link href="/user/dashboard" className={navItemClasses }>
+ <Link href={ROUTES.USER.DASHBOARD} className={navItemClasses }>
  <LayoutDashboard className="h-5 w-5" />
  Bảng điều khiển
  </Link>
@@ -55,7 +56,7 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <section className="min-h-screen pt-14">
  <section className="md:hidden border-b bg-background px-4 py-2">
  <nav className="flex gap-4 overflow-x-auto py-1">
- <Link href="/user/dashboard" className="flex items-center gap-1.5 whitespace-nowrap">
+ <Link href={ROUTES.USER.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
  <LayoutDashboard className="h-4 w-4" />
  Bảng điều khiển
  </Link>

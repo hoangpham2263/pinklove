@@ -167,55 +167,48 @@ async function ensureAppSettingsMigration() {
  const pool = getPool();
 
  await pool.query(`
- CREATE TABLE IF NOT EXISTS app_settings (
+  CREATE TABLE IF NOT EXISTS app_settings (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   theme TEXT NOT NULL DEFAULT 'pink',
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT app_settings_theme_check
-  CHECK (theme IN ('pink', 'blue', 'gray', 'green', 'yellow'))
- );
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
  `);
 
  await pool.query(`
- ALTER TABLE app_settings
- DROP CONSTRAINT IF EXISTS app_settings_theme_check;
- `);
-
- await pool.query(`
- UPDATE app_settings
- SET theme = CASE
-  WHEN theme = 'rose' THEN 'pink'
-  WHEN theme = 'default' THEN 'pink'
-  WHEN theme = 'slate' THEN 'blue'
-  WHEN theme = 'zinc' THEN 'gray'
-  WHEN theme = 'emerald' THEN 'green'
-  WHEN theme = 'amber' THEN 'yellow'
-  ELSE theme
- END;
- `);
-
- await pool.query(`
- ALTER TABLE app_settings
- ALTER COLUMN theme SET DEFAULT 'pink';
- `);
-
- await pool.query(`
- DO $$
- BEGIN
   ALTER TABLE app_settings
-  ADD CONSTRAINT app_settings_theme_check
-  CHECK (theme IN ('pink', 'blue', 'gray', 'green', 'yellow'));
- EXCEPTION
-  WHEN duplicate_object THEN
-  NULL;
- END
- $$;
+  DROP CONSTRAINT IF EXISTS app_settings_theme_check;
  `);
 
  await pool.query(`
- INSERT INTO app_settings (id, theme)
- VALUES (1, 'pink')
- ON CONFLICT (id) DO NOTHING;
+  UPDATE app_settings
+  SET theme = 'pink'
+  WHERE theme NOT IN ('pink', 'black');
+ `);
+
+ await pool.query(`
+  ALTER TABLE app_settings
+  ALTER COLUMN theme SET DEFAULT 'pink';
+ `);
+
+ await pool.query(`
+  DO $$
+  BEGIN
+  IF NOT EXISTS (
+   SELECT 1
+   FROM pg_constraint
+   WHERE conname = 'app_settings_theme_check'
+  ) THEN
+   ALTER TABLE app_settings
+   ADD CONSTRAINT app_settings_theme_check CHECK (theme IN ('pink', 'black'));
+  END IF;
+  END
+  $$;
+ `);
+
+ await pool.query(`
+  INSERT INTO app_settings (id, theme)
+  VALUES (1, 'pink')
+  ON CONFLICT (id) DO NOTHING;
  `);
 }
 
@@ -235,36 +228,70 @@ async function ensureOauthAccountsMigration() {
  `);
 }
 
+async function ensureCmsPagesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cms_pages (
+      id BIGSERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      title TEXT,
+      excerpt TEXT,
+      body TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      template TEXT NOT NULL DEFAULT 'default',
+      seo_title TEXT,
+      seo_description TEXT,
+      seo_keywords TEXT,
+      canonical_url TEXT,
+      og_title TEXT,
+      og_description TEXT,
+      og_image TEXT,
+      noindex BOOLEAN NOT NULL DEFAULT false,
+      nofollow BOOLEAN NOT NULL DEFAULT false,
+      custom_fields JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+}
+
 export async function ensureDb() {
- if (!globalForDb.initPromise) {
- globalForDb.initPromise = initSchema();
- }
- await globalForDb.initPromise;
+  if (!globalForDb.initPromise) {
+    globalForDb.initPromise = initSchema();
+  }
+  await globalForDb.initPromise;
 
- if (!globalForDb.roleMigrationDone) {
- await ensureUsersRoleMigration();
- globalForDb.roleMigrationDone = true;
- }
+  if (!globalForDb.roleMigrationDone) {
+    await ensureUsersRoleMigration();
+    globalForDb.roleMigrationDone = true;
+  }
 
- if (!globalForDb.userProfilesMigrationDone) {
- await ensureUserProfilesMigration();
- globalForDb.userProfilesMigrationDone = true;
- }
+  if (!globalForDb.userProfilesMigrationDone) {
+    await ensureUserProfilesMigration();
+    globalForDb.userProfilesMigrationDone = true;
+  }
 
- if (!globalForDb.userSettingsDensityMigrationDone) {
- await ensureUserSettingsDensityMigration();
- globalForDb.userSettingsDensityMigrationDone = true;
- }
+  if (!globalForDb.userSettingsDensityMigrationDone) {
+    await ensureUserSettingsDensityMigration();
+    globalForDb.userSettingsDensityMigrationDone = true;
+  }
 
- if (!globalForDb.appSettingsMigrationDone) {
- await ensureAppSettingsMigration();
- globalForDb.appSettingsMigrationDone = true;
- }
+  if (!globalForDb.appSettingsMigrationDone) {
+    await ensureAppSettingsMigration();
+    globalForDb.appSettingsMigrationDone = true;
+  }
 
- if (!globalForDb.oauthAccountsMigrationDone) {
- await ensureOauthAccountsMigration();
- globalForDb.oauthAccountsMigrationDone = true;
- }
+  if (!globalForDb.oauthAccountsMigrationDone) {
+    await ensureOauthAccountsMigration();
+    globalForDb.oauthAccountsMigrationDone = true;
+  }
+
+  if (!(globalForDb as Record<string, unknown>).cmsPagesMigrationDone) {
+    await ensureCmsPagesMigration();
+    (globalForDb as Record<string, unknown>).cmsPagesMigrationDone = true;
+  }
 }
 
 export async function query<T extends import("pg").QueryResultRow>(text: string, values?: unknown[]) {

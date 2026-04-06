@@ -60,6 +60,7 @@ Stores content for dynamic website pages.
 - **SEO Fields:** `seo_title`, `seo_description`, `seo_keywords`, `canonical_url`.
 - **Open Graph:** `og_title`, `og_description`, `og_image`.
 - **Indexing:** `noindex`, `nofollow` (BOOLEAN).
+- `custom_fields` (JSONB): Dynamic page template properties (similar to ACF).
 - `created_at`, `updated_at` (TIMESTAMPTZ).
 
 ### `cms_menus`
@@ -85,5 +86,5 @@ Individual links within a menu.
 ### `app_settings`
 Global website configuration.
 - `id` (INTEGER): Primary key, restricted to `1` (single row).
-- `theme` (TEXT): Global theme preset (`pink`, `blue`, `gray`, `green`, `yellow`).
+- `theme` (TEXT): Global theme preset (`pink`, `black`).
 - `updated_at` (TIMESTAMPTZ).

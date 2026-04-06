@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { query } from "@/lib/db";
+import { ROUTES } from "@/lib/routes";
 
 export const SESSION_COOKIE_NAME = "pinklove_session";
 const SESSION_DURATION_DAYS = 7;
@@ -275,28 +276,50 @@ export async function getCurrentUserFromRequest(
  return getUserByToken(token);
 }
 
-export async function requireUser(redirectTo ="/user/login"): Promise<AuthUser> {
- const user = await getCurrentUser();
- if (!user) {
- redirect(redirectTo);
- }
- return user;
+export async function requireUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+
+    redirect(redirectTo);
+
+  }
+
+  return user;
+
 }
 
-export async function requireAdmin(redirectTo ="/admin/login"): Promise<AuthUser> {
- const user = await requireUser(redirectTo);
- if (user.role !=="admin") {
- redirect("/user/dashboard");
- }
- return user;
+
+
+export async function requireAdmin(redirectTo = ROUTES.ADMIN.LOGIN): Promise<AuthUser> {
+
+  const user = await requireUser(redirectTo);
+
+  if (user.role !== "admin") {
+
+    redirect(ROUTES.USER.DASHBOARD);
+
+  }
+
+  return user;
+
 }
 
-export async function requireAppUser(redirectTo ="/user/login"): Promise<AuthUser> {
- const user = await requireUser(redirectTo);
- if (user.role ==="admin") {
- redirect("/admin/dashboard");
- }
- return user;
+
+
+export async function requireAppUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
+
+  const user = await requireUser(redirectTo);
+
+  if (user.role === "admin") {
+
+    redirect(ROUTES.ADMIN.DASHBOARD);
+
+  }
+
+  return user;
+
 }
 
 export async function getUserSettings(userId: number): Promise<UserSettings> {

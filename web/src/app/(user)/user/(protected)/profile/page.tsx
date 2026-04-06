@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { ProfileForm } from"@/features/user/components/profile-form";
 import { getUserProfile, requireAppUser } from"@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
-export default async function UserProfilePage() { const user = await requireAppUser("/user/login");
+export default async function UserProfilePage() { const user = await requireAppUser(ROUTES.AUTH.LOGIN);
  const profile = await getUserProfile(user.id);
 
  return (

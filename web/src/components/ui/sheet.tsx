@@ -31,8 +31,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName ="SheetOverlay"
 
 const sheetVariants = cva(
-"fixed z-50 gap-4 bg-background p-6 shadow-lg",
- {
+      "fixed z-50 gap-4 bg-background p-6 border", {
  variants: {
   side: {
   top:"inset-x-0 top-0 border-b",

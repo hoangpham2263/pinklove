@@ -2,13 +2,14 @@
 
 import { useMemo } from"react";
 import { usePathname } from"next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 type AdminTopHeaderProps = {
  username: string;
 };
 
 function getPageTitle(pathname: string): string {
- if (pathname.startsWith("/admin/dashboard")) return"Dashboard";
+ if (pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return"Dashboard";
  if (pathname.startsWith("/admin/user")) return"User";
  if (pathname.startsWith("/admin/settings")) return"Settings";
  if (pathname.startsWith("/admin/media")) return"Media";

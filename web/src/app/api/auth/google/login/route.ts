@@ -2,6 +2,7 @@ import { randomBytes } from"node:crypto";
 import { NextResponse } from"next/server";
 
 import { buildGoogleAuthUrl } from"@/lib/google-oauth";
+import { ROUTES } from "@/lib/routes";
 
 export const runtime ="nodejs";
 
@@ -23,6 +24,6 @@ export async function GET(request: Request) {
 
  return response;
  } catch {
- return NextResponse.redirect(new URL("/user/login?error=google_not_configured", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=google_not_configured` } });
  }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from"next/server";
+import { ROUTES } from "@/lib/routes";
 
 import {
  authenticateUser,
@@ -15,21 +16,21 @@ export async function POST(request: Request) {
  const password = String(formData.get("password") ??"");
 
  if (!username || !password) {
- return NextResponse.redirect(new URL("/user/login?error=missing_fields", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=missing_fields` } });
  }
 
  const user = await authenticateUser(username, password);
  if (!user) {
- return NextResponse.redirect(new URL("/user/login?error=invalid_credentials", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  if (user.role !=="user") {
- return NextResponse.redirect(new URL("/user/login?error=invalid_credentials", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  const token = await createSession(user.id);
- const target ="/user/dashboard";
- const response = NextResponse.redirect(new URL(target, request.url), 303);
+ const target =ROUTES.USER.DASHBOARD;
+ const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
 }

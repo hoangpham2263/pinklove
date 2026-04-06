@@ -1,12 +1,13 @@
-import Link from"next/link";
-import { getCurrentUser } from"@/lib/auth";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
 export default async function ClientLayout({
- children,
+  children,
 }: Readonly<{ children: React.ReactNode }>) {
- const user = await getCurrentUser();
- const dashboardHref = user?.role ==="admin" ?"/admin/dashboard" :"/user/dashboard";
- const settingsHref = user?.role ==="admin" ?"/admin/settings" :"/user/settings";
+  const user = await getCurrentUser();
+  const dashboardHref = user?.role === "admin" ? ROUTES.ADMIN.DASHBOARD : ROUTES.USER.DASHBOARD;
+  const settingsHref = user?.role === "admin" ? ROUTES.ADMIN.SETTINGS : ROUTES.USER.SETTINGS;
 
  return (
  <div className="flex min-h-full flex-1 flex-col">
@@ -29,8 +30,7 @@ export default async function ClientLayout({
     <summary className="list-none cursor-pointer text-muted-foreground hover:text-foreground">
     {user ? user.username :"Login"}
     </summary>
-    <div className="absolute right-0 top-8 z-50 min-w-48 rounded-lg border bg-background p-2 shadow-md">
-    {user ? (
+                    <div className="absolute right-0 top-8 z-50 min-w-48 rounded-lg border bg-background p-2">    {user ? (
      <div className="flex flex-col gap-1">
      <p className="px-2 py-1 text-muted-foreground">
       {user.username} ({user.role})
@@ -38,13 +38,12 @@ export default async function ClientLayout({
      <Link href={dashboardHref} className="rounded-md px-2 py-1 hover:bg-muted">
       {user.role ==="admin" ?"Quản lý Admin" :"Trang người dùng"}
      </Link>
-     <Link href={settingsHref} className="rounded-md px-2 py-1 hover:bg-muted">
-      Cài đặt tài khoản
-     </Link>
-     <form action="/api/auth/logout" method="POST">
-      <button
-      type="submit"
-      className="w-full rounded-md px-2 py-1 text-left text-destructive hover:bg-muted"
+                       <Link href={settingsHref} className="rounded-md px-2 py-1 hover:bg-muted">
+                         Cài đặt tài khoản
+                       </Link>
+                       <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+                         <button
+                           type="submit"      className="w-full rounded-md px-2 py-1 text-left text-destructive hover:bg-muted"
       >
       Đăng xuất
       </button>
@@ -52,13 +51,12 @@ export default async function ClientLayout({
      </div>
     ) : (
      <div className="flex flex-col gap-1">
-     <Link href="/user/login" className="rounded-md px-2 py-1 hover:bg-muted">
-      Đăng nhập
-     </Link>
-     <Link href="/user/register" className="rounded-md px-2 py-1 hover:bg-muted">
-      Đăng ký
-     </Link>
-     </div>
+                       <Link href={ROUTES.AUTH.LOGIN} className="rounded-md px-2 py-1 hover:bg-muted">
+                         Đăng nhập
+                       </Link>
+                       <Link href={ROUTES.AUTH.REGISTER} className="rounded-md px-2 py-1 hover:bg-muted">
+                         Đăng ký
+                       </Link>     </div>
     )}
     </div>
    </details>

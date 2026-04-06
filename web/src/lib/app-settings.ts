@@ -2,7 +2,7 @@ import"server-only";
 
 import { query } from"@/lib/db";
 
-export type ThemePreset ="pink" |"blue" |"gray" |"green" |"yellow";
+export type ThemePreset = "pink" | "black";
 
 export async function getAppTheme(): Promise<ThemePreset> {
  const result = await query<{ theme: ThemePreset }>(

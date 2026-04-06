@@ -1,16 +1,17 @@
 import { NextResponse } from"next/server";
 
 import { adminDeleteAccount, getCurrentUserFromRequest } from"@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
 export const runtime ="nodejs";
 
 export async function POST(request: Request) {
  const actor = await getCurrentUserFromRequest(request);
  if (!actor) {
- return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
  }
  if (actor.role !=="admin") {
- return NextResponse.redirect(new URL("/user/dashboard", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: ROUTES.USER.DASHBOARD } });
  }
 
  const formData = await request.formData();
@@ -18,23 +19,23 @@ export async function POST(request: Request) {
  const userId = Number(userIdRaw);
 
  if (!Number.isFinite(userId) || userId <= 0) {
- return NextResponse.redirect(new URL("/admin/user?error=invalid_user", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=invalid_user" } });
  }
 
  try {
  await adminDeleteAccount(actor.id, userId);
- return NextResponse.redirect(new URL("/admin/user?saved=deleted", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?saved=deleted" } });
  } catch (error) {
  const message = error instanceof Error ? error.message :"";
  if (message ==="USER_NOT_FOUND") {
-  return NextResponse.redirect(new URL("/admin/user?error=user_not_found", request.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=user_not_found" } });
  }
  if (message ==="CANNOT_DELETE_SELF") {
-  return NextResponse.redirect(new URL("/admin/user?error=cannot_delete_self", request.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=cannot_delete_self" } });
  }
  if (message ==="LAST_ADMIN_PROTECTED") {
-  return NextResponse.redirect(new URL("/admin/user?error=last_admin_protected", request.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=last_admin_protected" } });
  }
- return NextResponse.redirect(new URL("/admin/user?error=delete_failed", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=delete_failed" } });
  }
 }

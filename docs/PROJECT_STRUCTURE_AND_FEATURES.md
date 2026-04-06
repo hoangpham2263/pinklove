@@ -66,13 +66,19 @@ web/
         types.ts
       client/
         PageRenderer.tsx
-        templates.tsx
+        templates/
+          index.ts
+          HomeTemplate.tsx
+          AboutTemplate.tsx
+          ContactTemplate.tsx
+          DefaultTemplate.tsx
     lib/
       auth.ts
       db.ts
       cms.ts
       menu.ts
       google-oauth.ts
+      routes.ts
       server-utils.ts
       utils.ts
 ```
@@ -92,7 +98,7 @@ web/
 - Dashboard (`/admin/dashboard`).
 - User management (`/admin/user`): CRUD for accounts and roles.
 - Content management:
-  - **Pages** (`/admin/pages`): Manage CMS pages and SEO metadata.
+  - **Pages** (`/admin/pages`): Manage CMS pages, SEO metadata, and ACF-style Custom Fields per template.
   - **Menus** (`/admin/menus`): WordPress-like menu management for Header/Footer.
   - **Media library** (`/admin/media`): Auto-upload, preview modal, grid view, pagination (100-1000 items).
 - Settings (`/admin/settings`):

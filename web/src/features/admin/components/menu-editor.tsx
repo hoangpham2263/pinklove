@@ -81,7 +81,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  <select
  value={newType }
  onChange={(e) => setNewType(e.target.value as MenuItemType) }
- className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background file:border-0 file:bg-transparent placeholder:focus-visible: outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+ className="h-10 w-full"
  >
  <option value="page">Existing Page</option>
  <option value="custom">Custom Link</option>
@@ -103,7 +103,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  <select
  value={newPageSlug }
  onChange={(e) => handlePageChange(e.target.value) }
- className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background file:border-0 file:bg-transparent placeholder:focus-visible: outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+ className="h-10 w-full"
  >
  <option value="" disabled>Select a page...</option>
  {availablePages.map((p) => (
@@ -156,11 +156,10 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  {items.length === 0 ? (
  <p className="text-muted-foreground italic">No items added yet.</p>
  ): (
- <ul className="space-y-2">
- {items.map((item, index) => (
- <li key={index } className="flex items-center justify-between rounded-md border p-3 bg-card shadow-sm">
- <div className="flex items-center gap-3 overflow-hidden">
- <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab shrink-0" />
+               <ul className="space-y-2">
+                 {items.map((item, index) => (
+                   <li key={index} className="flex items-center justify-between rounded-md border p-3 bg-card">
+                     <div className="flex items-center gap-3 overflow-hidden"> <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab shrink-0" />
  <div className="truncate">
  <p className="font-medium truncate">{item.label }</p>
  <p className="opacity-70 truncate">
@@ -206,7 +205,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  </div>
 
  <div className="pt-6 border-t mt-6">
- <Button type="submit" className="w-full lg:w-auto px-10">
+ <Button type="submit" className="w-full lg:w-auto 0">
  Save Menu
  </Button>
  </div>

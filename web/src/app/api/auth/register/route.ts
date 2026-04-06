@@ -1,4 +1,5 @@
 import { NextResponse } from"next/server";
+import { ROUTES } from "@/lib/routes";
 
 import {
  countUsers,
@@ -16,11 +17,11 @@ export async function POST(request: Request) {
  const password = String(formData.get("password") ??"");
 
  if (!username || !password) {
- return NextResponse.redirect(new URL("/user/register?error=missing_fields", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=missing_fields" } });
  }
 
  if (password.length < 6) {
- return NextResponse.redirect(new URL("/user/register?error=weak_password", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=weak_password" } });
  }
 
  try {
@@ -28,16 +29,16 @@ export async function POST(request: Request) {
  const role = totalUsers === 0 ?"admin" :"user";
  const user = await registerUser(username, password, role);
  const token = await createSession(user.id);
- const target = user.role ==="admin" ?"/admin/dashboard" :"/user/dashboard";
- const response = NextResponse.redirect(new URL(target, request.url), 303);
+ const target = user.role ==="admin" ?ROUTES.ADMIN.DASHBOARD :ROUTES.USER.DASHBOARD;
+ const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
  } catch (error) {
  const message = error instanceof Error ? error.message :"";
  if (message.includes("duplicate key value")) {
-  return NextResponse.redirect(new URL("/user/register?error=username_taken", request.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=username_taken" } });
  }
 
- return NextResponse.redirect(new URL("/user/register?error=register_failed", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=register_failed" } });
  }
 }
