@@ -12,14 +12,14 @@ export async function POST(request: Request) {
  if (wantsJson) {
   return NextResponse.json({ error:"Please login first." }, { status: 401 });
  }
- return NextResponse.redirect(new URL(ROUTES.AUTH.LOGIN, request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: ROUTES.AUTH.LOGIN } });
  }
 
  if (user.role ==="admin") {
  if (wantsJson) {
   return NextResponse.json({ error:"Admin cannot update user profile here." }, { status: 403 });
  }
- return NextResponse.redirect(new URL(ROUTES.ADMIN.DASHBOARD, request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.DASHBOARD } });
  }
 
  const formData = await request.formData();
@@ -32,5 +32,5 @@ export async function POST(request: Request) {
  if (wantsJson) {
  return NextResponse.json({ success: true });
  }
- return NextResponse.redirect(new URL("/user/profile?saved=1", request.url), 303);
+ return new NextResponse(null, { status: 303, headers: { Location: "/user/profile?saved=1" } });
 }

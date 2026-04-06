@@ -8,7 +8,7 @@ export const runtime ="nodejs";
 
 const GOOGLE_OAUTH_STATE_COOKIE ="pinklove_google_oauth_state";
 
-export async function GET(request: Request) {
+export async function GET() {
  try {
  const state = randomBytes(24).toString("hex");
  const authUrl = buildGoogleAuthUrl(state);

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) {
-    return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
   }
 
   const formData = await request.formData();
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   let slug = String(formData.get("slug") ?? "");
 
   if (!name) {
-    return NextResponse.redirect(new URL(`${ROUTES.ADMIN.DASHBOARD}/pages?error=missing_name`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.DASHBOARD}/pages?error=missing_name` } });
   }
 
   // Normalize slug if missing or dirty
@@ -32,9 +32,9 @@ export async function POST(request: Request) {
       template: "default",
     });
 
-    return NextResponse.redirect(new URL(`/admin/pages/${slug}`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${slug}` } });
   } catch (error) {
     console.error("Failed to create page:", error);
-    return NextResponse.redirect(new URL(`/admin/pages?error=creation_failed`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: "/admin/pages?error=creation_failed" } });
   }
 }

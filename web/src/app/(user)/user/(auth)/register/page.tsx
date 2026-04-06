@@ -5,11 +5,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getCmsPageBySlug } from "@/lib/cms";
 
-export default async function RegisterPage() { 
+export default async function RegisterPage() {
   const user = await getCurrentUser();
-  if (user) { 
-    const target = user.role === "admin" ? ROUTES.ADMIN.DASHBOARD : ROUTES.USER.DASHBOARD;
-    redirect(target); 
+
+  if (user?.role === "user") {
+    redirect(ROUTES.USER.DASHBOARD);
   }
 
   const page = await getCmsPageBySlug("register");

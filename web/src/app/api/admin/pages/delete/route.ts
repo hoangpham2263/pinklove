@@ -8,30 +8,30 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) {
-    return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
   }
 
   const formData = await request.formData();
   const slug = String(formData.get("slug") ?? "");
 
   if (!slug) {
-    return NextResponse.redirect(new URL(`${ROUTES.ADMIN.DASHBOARD}/pages?error=missing_slug`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.DASHBOARD}/pages?error=missing_slug` } });
   }
 
   // Prevent deleting protected pages
   if (["login", "register", "home"].includes(slug)) {
-    return NextResponse.redirect(new URL(`${ROUTES.ADMIN.DASHBOARD}/pages?error=cannot_delete_protected_page`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.DASHBOARD}/pages?error=cannot_delete_protected_page` } });
   }
 
   try {
     const deleted = await deleteCmsPage(slug);
     if (!deleted) {
-      return NextResponse.redirect(new URL(`${ROUTES.ADMIN.DASHBOARD}/pages?error=page_not_found`, request.url), 303);
+      return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.DASHBOARD}/pages?error=page_not_found` } });
     }
 
-    return NextResponse.redirect(new URL(`/admin/pages?saved=deleted`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: "/admin/pages?saved=deleted" } });
   } catch (error) {
     console.error("Failed to delete page:", error);
-    return NextResponse.redirect(new URL(`/admin/pages?error=delete_failed`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: "/admin/pages?error=delete_failed" } });
   }
 }

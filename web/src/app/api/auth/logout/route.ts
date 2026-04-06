@@ -9,7 +9,7 @@ import {
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request) {
+export async function POST() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 

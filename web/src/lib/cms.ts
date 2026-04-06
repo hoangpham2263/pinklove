@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { query } from "@/lib/db";
+import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 export type CmsPage = {
   id?: string | number;
@@ -66,6 +67,21 @@ function mapRowToPage(row: CmsPageRow): CmsPage {
   };
 }
 
+async function ensureSystemCmsPages() {
+  const systemEntries = Object.entries(SYSTEM_PAGES);
+
+  for (const [slug, config] of systemEntries) {
+    await query(
+      `
+      INSERT INTO cms_pages (slug, name, title, status, template, custom_fields)
+      VALUES ($1, $2, $3, 'draft', $4, '{}'::jsonb)
+      ON CONFLICT (slug) DO NOTHING
+      `,
+      [slug, config.name, config.name, config.template]
+    );
+  }
+}
+
 export function normalizeSlug(slug?: string | string[]): string {
   if (!slug || slug.length === 0) {
     return "home";
@@ -77,19 +93,20 @@ export function normalizeSlug(slug?: string | string[]): string {
 }
 
 export async function listCmsPages(): Promise<CmsPage[]> {
+  await ensureSystemCmsPages();
+
   const result = await query<CmsPageRow>(`
     SELECT * FROM cms_pages ORDER BY updated_at DESC
   `);
-  
-  if (result.rows.length === 0) {
-    // Return some default pages if db is empty (for onboarding)
-    return [];
-  }
-  
+
   return result.rows.map(mapRowToPage);
 }
 
 export async function getCmsPageBySlug(slug: string): Promise<CmsPage | null> {
+  if (SYSTEM_PAGES[slug]) {
+    await ensureSystemCmsPages();
+  }
+
   const result = await query<CmsPageRow>(
     "SELECT * FROM cms_pages WHERE slug = $1 LIMIT 1",
     [slug]
@@ -107,6 +124,8 @@ export async function getPublishedCmsPageBySlug(slug: string): Promise<CmsPage |
 }
 
 export async function createCmsPage(data: CmsPage): Promise<CmsPage> {
+  const normalizedTitle = data.title?.trim() || data.name;
+
   const result = await query<CmsPageRow>(
     `
     INSERT INTO cms_pages (
@@ -118,7 +137,7 @@ export async function createCmsPage(data: CmsPage): Promise<CmsPage> {
     ) RETURNING *
     `,
     [
-      data.slug, data.name, data.title || null, data.excerpt || null, data.body || null,
+      data.slug, data.name, normalizedTitle, data.excerpt || null, data.body || null,
       data.status || 'draft', data.template || 'default',
       data.seoTitle || null, data.seoDescription || null, data.seoKeywords || null, data.canonicalUrl || null,
       data.ogTitle || null, data.ogDescription || null, data.ogImage || null,
@@ -131,6 +150,10 @@ export async function createCmsPage(data: CmsPage): Promise<CmsPage> {
 export async function updateCmsPage(slug: string, data: Partial<CmsPage>): Promise<CmsPage | null> {
   const existing = await getCmsPageBySlug(slug);
   if (!existing) return null;
+  const normalizedTitle =
+    data.title !== undefined
+      ? data.title?.trim() || data.name?.trim() || existing.name
+      : existing.title || data.name?.trim() || existing.name;
 
   const result = await query<CmsPageRow>(
     `
@@ -158,7 +181,7 @@ export async function updateCmsPage(slug: string, data: Partial<CmsPage>): Promi
     `,
     [
       data.name, 
-      data.title !== undefined ? data.title : existing.title,
+      normalizedTitle,
       data.excerpt !== undefined ? data.excerpt : existing.excerpt,
       data.body !== undefined ? data.body : existing.body,
       data.status, data.template,

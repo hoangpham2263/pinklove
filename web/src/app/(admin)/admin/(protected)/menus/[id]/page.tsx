@@ -19,9 +19,7 @@ export default async function AdminMenuEdit({ params, searchParams }: AdminMenuE
  if (!menu) return notFound();
 
  const pages = await listCmsPages();
- const query = (await searchParams) ?? { };
- const saved = typeof query.saved ==="string" ? query.saved:"";
- const error = typeof query.error ==="string" ? query.error:"";
+ await searchParams;
 
  return (
  <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

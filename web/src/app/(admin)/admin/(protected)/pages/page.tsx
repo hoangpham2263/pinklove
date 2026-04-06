@@ -1,91 +1,12 @@
 import { QuickCreatePageForm } from "@/features/admin/components/quick-create-page-form";
-import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DeletePageButton } from "@/features/admin/components/delete-page-button";
+import { AdminPagesTable } from "@/features/admin/components/admin-pages-table";
 import { requireAdmin } from "@/lib/auth";
-import { listCmsPages, CmsPage } from "@/lib/cms";
-import { CMS_TEMPLATES, SYSTEM_PAGES } from "@/features/client/templates";
+import { listCmsPages } from "@/lib/cms";
+import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 type AdminPagesIndexProps = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
-
-function PageTable({ pages, isSystem }: { pages: (CmsPage & { isStub?: boolean })[], isSystem?: boolean }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[300px]">Tiêu đề</TableHead>
-          <TableHead>Slug (Đường dẫn)</TableHead>
-          <TableHead>Trạng thái</TableHead>
-          <TableHead>Template</TableHead>
-          <TableHead className="text-right">Hành động</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {pages.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center">
-              {isSystem ? "Không có trang hệ thống nào được định nghĩa." : "Chưa có trang nào. Hãy tạo trang đầu tiên của bạn."}
-            </TableCell>
-          </TableRow>
-        ) : (
-          pages.map((page) => {
-            const isProtectedSlug = !!SYSTEM_PAGES[page.slug];
-            const targetUrl = page.slug === "home" ? "/" : (page.slug === "login" || page.slug === "register" ? `/user/${page.slug}` : `/${page.slug}`);
-            
-            return (
-              <TableRow key={page.id}>
-                <TableCell className="font-medium">
-                  <div>
-                    <p className="font-semibold">{page.name}</p>
-                    {page.title && <p className="text-muted-foreground text-xs">{page.title}</p>}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                    /{page.slug}
-                  </code>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={page.status === "published" ? "default" : "secondary"}>
-                    {page.isStub ? "Chưa kích hoạt" : (page.status || "draft")}
-                  </Badge>
-                </TableCell>
-                <TableCell className="capitalize text-muted-foreground text-sm">
-                  {CMS_TEMPLATES[page.template as keyof typeof CMS_TEMPLATES]?.label || page.template}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {!page.isStub && (
-                      <Link
-                        href={targetUrl}
-                        target="_blank"
-                        className="inline-flex h-8 items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
-                      >
-                        Xem
-                      </Link>
-                    )}
-                    <Link
-                      href={`/admin/pages/${page.slug}`}
-                      className={`inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium text-primary-foreground ${page.isStub ? "bg-amber-600 hover:bg-amber-600/90" : "bg-primary hover:bg-primary/90"}`}
-                    >
-                      {page.isStub ? "Kích hoạt" : "Sửa"}
-                    </Link>
-                    {!isProtectedSlug && (
-                      <DeletePageButton slug={page.slug} name={page.name} />
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })
-        )}
-      </TableBody>
-    </Table>
-  );
-}
 
 export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexProps) {
   await requireAdmin();
@@ -94,18 +15,9 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
 
   const createdPages = allPages.filter((page) => !SYSTEM_PAGES[page.slug]);
   
-  const systemPagesList = Object.entries(SYSTEM_PAGES).map(([slug, config]) => {
-    const existing = allPages.find((p) => p.slug === slug);
-    if (existing) return existing;
-    return {
-      id: `stub-${slug}`,
-      slug,
-      name: config.name,
-      status: "draft",
-      template: config.template,
-      isStub: true,
-    } as CmsPage & { isStub: boolean };
-  });
+  const systemPagesList = Object.keys(SYSTEM_PAGES)
+    .map((slug) => allPages.find((page) => page.slug === slug))
+    .filter((page): page is NonNullable<typeof page> => page !== undefined);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-8 p-4 md:p-8">
@@ -122,7 +34,10 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
               <CardTitle>Danh sách Trang đã tạo</CardTitle>
             </CardHeader>
             <CardContent>
-              <PageTable pages={createdPages} />
+              <AdminPagesTable
+                pages={createdPages}
+                emptyMessage="Chưa có trang nào. Hãy tạo trang đầu tiên của bạn."
+              />
             </CardContent>
           </Card>
 
@@ -132,7 +47,10 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
               <CardTitle className="text-muted-foreground">Danh sách Trang hệ thống</CardTitle>
             </CardHeader>
             <CardContent>
-              <PageTable pages={systemPagesList} isSystem />
+              <AdminPagesTable
+                pages={systemPagesList}
+                emptyMessage="Không có trang hệ thống nào được định nghĩa."
+              />
             </CardContent>
           </Card>
         </div>

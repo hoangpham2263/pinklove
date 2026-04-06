@@ -23,9 +23,7 @@ export default async function EditUserPage({ params, searchParams }: EditUserPag
  if (!user) return notFound();
 
  const profile = await getUserProfile(userId);
- const query = await searchParams;
- const isSaved = query.saved ==="updated";
- const error = query.error;
+ await searchParams;
 
  return (
  <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

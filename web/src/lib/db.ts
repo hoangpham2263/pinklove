@@ -8,7 +8,6 @@ const globalForDb = globalThis as unknown as {
  roleMigrationDone?: boolean;
  userProfilesMigrationDone?: boolean;
  userSettingsDensityMigrationDone?: boolean;
- appSettingsMigrationDone?: boolean;
  oauthAccountsMigrationDone?: boolean;
 };
 
@@ -163,55 +162,6 @@ async function ensureUserSettingsDensityMigration() {
  `);
 }
 
-async function ensureAppSettingsMigration() {
- const pool = getPool();
-
- await pool.query(`
-  CREATE TABLE IF NOT EXISTS app_settings (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  theme TEXT NOT NULL DEFAULT 'pink',
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  );
- `);
-
- await pool.query(`
-  ALTER TABLE app_settings
-  DROP CONSTRAINT IF EXISTS app_settings_theme_check;
- `);
-
- await pool.query(`
-  UPDATE app_settings
-  SET theme = 'pink'
-  WHERE theme NOT IN ('pink', 'black');
- `);
-
- await pool.query(`
-  ALTER TABLE app_settings
-  ALTER COLUMN theme SET DEFAULT 'pink';
- `);
-
- await pool.query(`
-  DO $$
-  BEGIN
-  IF NOT EXISTS (
-   SELECT 1
-   FROM pg_constraint
-   WHERE conname = 'app_settings_theme_check'
-  ) THEN
-   ALTER TABLE app_settings
-   ADD CONSTRAINT app_settings_theme_check CHECK (theme IN ('pink', 'black'));
-  END IF;
-  END
-  $$;
- `);
-
- await pool.query(`
-  INSERT INTO app_settings (id, theme)
-  VALUES (1, 'pink')
-  ON CONFLICT (id) DO NOTHING;
- `);
-}
-
 async function ensureOauthAccountsMigration() {
  const pool = getPool();
 
@@ -255,6 +205,49 @@ async function ensureCmsPagesMigration() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await pool.query(`
+    ALTER TABLE cms_pages
+    ADD COLUMN IF NOT EXISTS title TEXT,
+    ADD COLUMN IF NOT EXISTS excerpt TEXT,
+    ADD COLUMN IF NOT EXISTS body TEXT,
+    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft',
+    ADD COLUMN IF NOT EXISTS template TEXT DEFAULT 'default',
+    ADD COLUMN IF NOT EXISTS seo_title TEXT,
+    ADD COLUMN IF NOT EXISTS seo_description TEXT,
+    ADD COLUMN IF NOT EXISTS seo_keywords TEXT,
+    ADD COLUMN IF NOT EXISTS canonical_url TEXT,
+    ADD COLUMN IF NOT EXISTS og_title TEXT,
+    ADD COLUMN IF NOT EXISTS og_description TEXT,
+    ADD COLUMN IF NOT EXISTS og_image TEXT,
+    ADD COLUMN IF NOT EXISTS noindex BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS nofollow BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS custom_fields JSONB,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    UPDATE cms_pages
+    SET
+      status = COALESCE(status, 'draft'),
+      template = COALESCE(template, 'default'),
+      noindex = COALESCE(noindex, false),
+      nofollow = COALESCE(nofollow, false),
+      custom_fields = COALESCE(custom_fields, '{}'::jsonb),
+      created_at = COALESCE(created_at, NOW()),
+      updated_at = COALESCE(updated_at, NOW());
+  `);
+
+  await pool.query(`
+    ALTER TABLE cms_pages
+    ALTER COLUMN status SET DEFAULT 'draft',
+    ALTER COLUMN template SET DEFAULT 'default',
+    ALTER COLUMN noindex SET DEFAULT false,
+    ALTER COLUMN nofollow SET DEFAULT false,
+    ALTER COLUMN created_at SET DEFAULT NOW(),
+    ALTER COLUMN updated_at SET DEFAULT NOW();
+  `);
 }
 
 export async function ensureDb() {
@@ -278,19 +271,14 @@ export async function ensureDb() {
     globalForDb.userSettingsDensityMigrationDone = true;
   }
 
-  if (!globalForDb.appSettingsMigrationDone) {
-    await ensureAppSettingsMigration();
-    globalForDb.appSettingsMigrationDone = true;
-  }
-
   if (!globalForDb.oauthAccountsMigrationDone) {
     await ensureOauthAccountsMigration();
     globalForDb.oauthAccountsMigrationDone = true;
   }
 
-  if (!(globalForDb as Record<string, unknown>).cmsPagesMigrationDone) {
+  if (!(globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done) {
     await ensureCmsPagesMigration();
-    (globalForDb as Record<string, unknown>).cmsPagesMigrationDone = true;
+    (globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done = true;
   }
 }
 

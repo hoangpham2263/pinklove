@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from"react";
 import { useDropzone } from"react-dropzone";
-import { Image as ImageIcon, Upload, X, Search, CheckCircle2 } from"lucide-react";
+import { Image as ImageIcon, Upload, Search, CheckCircle2 } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import {
@@ -17,10 +17,9 @@ import type { MediaAsset } from"../types";
 type MediaSelectorProps = {
  value: string;
  onChange: (url: string) => void;
- label?: string;
 };
 
-export function MediaSelector({ value, onChange, label ="Featured Image" }: MediaSelectorProps) {
+export function MediaSelector({ value, onChange }: MediaSelectorProps) {
  const [isOpen, setIsOpen] = useState(false);
  const [items, setItems] = useState<MediaAsset[]>([]);
  const [loading, setLoading] = useState(false);
@@ -153,8 +152,8 @@ export function MediaSelector({ value, onChange, label ="Featured Image" }: Medi
      {filteredItems.map((item) => (
      <div
       key={item.id}
-      className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border transition-all hover:ring-2 hover:ring-primary ${
-      value === item.url ?"ring-2 ring-primary" :""
+      className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border transition-all hover:ring-1 hover:ring-primary ${
+      value === item.url ?"ring-1 ring-primary" :""
       }`}
       onClick={() => {
       onChange(item.url);

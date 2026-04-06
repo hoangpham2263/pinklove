@@ -13,7 +13,7 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  const navItemClasses ="flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted";
 
  return (
- <>
+ <div>
   <aside className="fixed top-0 left-0 hidden h-screen w-64 border-r bg-background p-5 md:flex md:flex-col md:gap-3">
   <div className="flex items-center gap-2 mb-6 px-3">
    <div className="h-6 w-6 rounded-bg bg-primary" />
@@ -73,7 +73,7 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
    <section className="min-h-screen">
    <div>{children }</div>
    </section>
-  </section>
+ </section>
   </main>
- </>
+ </div>
  ); }

@@ -53,7 +53,6 @@ services:
     volumes:
       - ./web:/app
       - web-node-modules:/app/node_modules
-      - web-next:/app/.next
 
 networks:
   app-network:
@@ -62,4 +61,3 @@ networks:
 volumes:
   postgres-data:
   web-node-modules:
-  web-next:

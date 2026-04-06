@@ -1,90 +1,133 @@
 # Database Schema
 
-This document describes the PostgreSQL database tables used in the PinkLove project.
+This document describes the tables the current code uses or expects.
 
-## 1) Core Identity & Sessions
+## 1) Auto-created by `src/lib/db.ts`
+
+These tables are created automatically on first query.
 
 ### `users`
-Stores the main user account information.
-- `id` (BIGSERIAL): Primary key.
-- `username` (TEXT): Unique login name.
-- `password_hash` (TEXT): Hashed password (scrypt).
-- `role` (TEXT): User role (`admin` or `user`). Default is `user`.
-- `created_at` (TIMESTAMPTZ): Timestamp of account creation.
+
+- `id` (`BIGSERIAL`): primary key
+- `username` (`TEXT`): unique login name
+- `password_hash` (`TEXT`): scrypt hash
+- `role` (`TEXT`): `admin` or `user`
+- `created_at` (`TIMESTAMPTZ`)
+
+Notes:
+
+- Existing users with `NULL` role are migrated.
+- Current migration sets old null roles to `admin`.
 
 ### `user_sessions`
-Manages active login sessions.
-- `id` (TEXT): Primary key (random UUID/ID).
-- `user_id` (BIGINT): FK to `users.id`.
-- `token_hash` (TEXT): Unique SHA-256 hash of the session token.
-- `expires_at` (TIMESTAMPTZ): When the session becomes invalid.
-- `created_at` (TIMESTAMPTZ): When the session was created.
 
-### `user_oauth_accounts`
-Links local users to external providers.
-- `id` (BIGSERIAL): Primary key.
-- `user_id` (BIGINT): FK to `users.id`.
-- `provider` (TEXT): Provider name (e.g., `google`).
-- `provider_user_id` (TEXT): Unique ID from the provider.
-- `email` (TEXT): Verified email from the provider.
-- `created_at` (TIMESTAMPTZ): When the link was established.
+- `id` (`TEXT`): primary key
+- `user_id` (`BIGINT`): FK to `users.id`
+- `token_hash` (`TEXT`): unique SHA-256 token hash
+- `expires_at` (`TIMESTAMPTZ`)
+- `created_at` (`TIMESTAMPTZ`)
 
-## 2) User Profile
+Index:
 
-### `user_profiles`
-Extended profile information.
-- `user_id` (BIGINT): Primary key, FK to `users.id`.
-- `full_name` (TEXT): User's real name.
-- `display_name` (TEXT): Publicly visible name.
-- `phone` (TEXT): Contact number.
-- `bio` (TEXT): Short biography.
-- `updated_at` (TIMESTAMPTZ): Last update timestamp.
+- `user_sessions_token_hash_idx` on `token_hash`
 
 ### `user_settings`
-User-specific application settings.
-- `user_id` (BIGINT): Primary key, FK to `users.id` (ON DELETE CASCADE).
-- `ui_density` (TEXT): UI density preference (`small`, `medium`, `large`). Default is `medium`.
-- `updated_at` (TIMESTAMPTZ): Last update timestamp.
 
-## 3) CMS & Navigation
+- `user_id` (`BIGINT`): primary key, FK to `users.id`
+- `ui_density` (`TEXT`): `small`, `medium`, or `large`
+- `updated_at` (`TIMESTAMPTZ`)
+
+### `user_profiles`
+
+- `user_id` (`BIGINT`): primary key, FK to `users.id`
+- `full_name` (`TEXT`)
+- `display_name` (`TEXT`)
+- `phone` (`TEXT`)
+- `bio` (`TEXT`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+### `user_oauth_accounts`
+
+- `id` (`BIGSERIAL`): primary key
+- `user_id` (`BIGINT`): FK to `users.id`
+- `provider` (`TEXT`)
+- `provider_user_id` (`TEXT`)
+- `email` (`TEXT`)
+- `created_at` (`TIMESTAMPTZ`)
+
+Constraint:
+
+- unique `(provider, provider_user_id)`
 
 ### `cms_pages`
-Stores content for dynamic website pages.
-- `id` (BIGSERIAL): Primary key.
-- `slug` (TEXT): Unique URL identifier (e.g., `about-us`).
-- `name` (TEXT): Internal label for admin.
-- `title` (TEXT): Main page heading.
-- `excerpt` (TEXT): Short summary.
-- `body` (TEXT): Full page content (HTML/Markdown).
-- `status` (TEXT): Visibility (`draft` or `published`).
-- **SEO Fields:** `seo_title`, `seo_description`, `seo_keywords`, `canonical_url`.
-- **Open Graph:** `og_title`, `og_description`, `og_image`.
-- **Indexing:** `noindex`, `nofollow` (BOOLEAN).
-- `custom_fields` (JSONB): Dynamic page template properties (similar to ACF).
-- `created_at`, `updated_at` (TIMESTAMPTZ).
+
+- `id` (`BIGSERIAL`): primary key
+- `slug` (`TEXT`): unique slug
+- `name` (`TEXT`): internal/admin page name
+- `title` (`TEXT`)
+- `excerpt` (`TEXT`)
+- `body` (`TEXT`)
+- `status` (`TEXT`): typically `draft` or `published`
+- `template` (`TEXT`)
+- `seo_title` (`TEXT`)
+- `seo_description` (`TEXT`)
+- `seo_keywords` (`TEXT`)
+- `canonical_url` (`TEXT`)
+- `og_title` (`TEXT`)
+- `og_description` (`TEXT`)
+- `og_image` (`TEXT`)
+- `noindex` (`BOOLEAN`)
+- `nofollow` (`BOOLEAN`)
+- `custom_fields` (`JSONB`)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+Notes:
+
+- The CMS layer ensures the built-in `home`, `login`, and `register` rows exist if missing.
+
+## 2) Expected by current code, but not auto-created
+
+The menu feature expects these tables to exist, but `src/lib/db.ts` does not currently create them.
 
 ### `cms_menus`
-Defines navigation menu containers (Header, Footer, etc.).
-- `id` (BIGSERIAL): Primary key.
-- `name` (TEXT): Unique system identifier (e.g., `header`).
-- `label` (TEXT): Display name for admin.
-- `created_at`, `updated_at` (TIMESTAMPTZ).
+
+- `id` (`BIGSERIAL`): primary key
+- `name` (`TEXT`): unique internal identifier such as `header` or `footer`
+- `label` (`TEXT`): admin-facing display name
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
 
 ### `cms_menu_items`
-Individual links within a menu.
-- `id` (BIGSERIAL): Primary key.
-- `menu_id` (BIGINT): FK to `cms_menus.id`.
-- `label` (TEXT): Link text visible to users.
-- `type` (TEXT): Link source (`page` or `custom`).
-- `page_slug` (TEXT): Slug of the linked CMS page (if type is `page`).
-- `url` (TEXT): Manual URL (if type is `custom`).
-- `position` (INT): Sorting order.
-- `created_at`, `updated_at` (TIMESTAMPTZ).
 
-## 4) System Configuration
+- `id` (`BIGSERIAL`): primary key
+- `menu_id` (`BIGINT`): FK to `cms_menus.id`
+- `label` (`TEXT`)
+- `type` (`TEXT`): `page` or `custom`
+- `page_slug` (`TEXT`, nullable)
+- `url` (`TEXT`, nullable)
+- `position` (`INT`)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
 
-### `app_settings`
-Global website configuration.
-- `id` (INTEGER): Primary key, restricted to `1` (single row).
-- `theme` (TEXT): Global theme preset (`pink`, `black`).
-- `updated_at` (TIMESTAMPTZ).
+## 3) Non-database storage used by the project
+
+The media library stores files outside PostgreSQL.
+
+### Uploaded files
+
+- Directory: `web/public/uploads/YYYY/MM`
+
+### Media metadata
+
+- File: `web/storage/media.json`
+
+Stored metadata fields include:
+
+- `id`
+- `url`
+- `fileName`
+- `originalName`
+- `mimeType`
+- `sizeBytes`
+- `createdAt`

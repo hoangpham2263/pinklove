@@ -312,12 +312,6 @@ export async function requireAppUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<Au
 
   const user = await requireUser(redirectTo);
 
-  if (user.role === "admin") {
-
-    redirect(ROUTES.ADMIN.DASHBOARD);
-
-  }
-
   return user;
 
 }

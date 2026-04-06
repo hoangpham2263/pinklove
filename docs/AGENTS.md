@@ -1,23 +1,44 @@
 # AI Agent Instructions
 
-This document provides context for AI agents working on the PinkLove project.
+This file summarizes repo-specific facts for coding agents.
 
-## Core Mandates
+## Core mandates
 
-1. **Next.js 15+ & React 19:** This project uses the latest Next.js with App Router. Adhere to React 19 standards (e.g., use `use client` strictly, handle form submissions with `NativeForm`).
-2. **Unified Styling:** Do not use `text-muted-foreground` or other explicit color variants for text. Use the global default `foreground` color.
-3. **Database-First:** Always check `web/src/lib/db.ts` for schema migrations before adding new tables. Use the sequential migration pattern established there.
-4. **WordPress-style CMS:** Maintain the WordPress-like feel for Pages and Menus. Keep SEO metadata fields consistent.
-5. **No Chitchat:** (Inherited from project rules) Be direct and concise in terminal interactions.
+1. The web app lives in `web/`.
+2. The project currently uses Next.js `16.2.2` and React `19.2.4`.
+3. Check `web/src/lib/db.ts` before introducing new database tables or migrations.
+4. Use `NativeForm` for POST forms that should follow browser redirects normally.
+5. Treat the current docs as describing the repository as-is, including incomplete features.
 
-## Key Components
+## Important repo facts
 
-- **`NativeForm`:** Use this for any form that performs a redirect after submission to avoid fetch-based redirection issues in Docker.
-- Media Store: Currently uses `web/storage/media.json`. Do not move to DB without explicit instruction.
+- Database access is raw SQL through `web/src/lib/db.ts`.
+- Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, and CMS pages.
+- Menu tables are expected by the code but are not auto-created by `db.ts`.
+- Media metadata is stored in `web/storage/media.json`.
+- Uploaded files are stored in `web/public/uploads/...`.
 
+## Current product behavior to remember
 
-## Development Workflow
+- Public page routing is CMS-driven through `web/src/app/(client)/[[...slug]]/page.tsx`.
+- `home`, `login`, and `register` are CMS-backed system pages and are auto-created if missing.
+- `login` and `register` use dedicated page components, but their editable content still comes from CMS custom fields.
+- Public header links are currently hardcoded in `web/src/app/(client)/layout.tsx`.
+- Admins are allowed to access public pages and user pages.
+- The media API currently returns the full list of media items; UI pagination is only partial.
 
-- Script: `./setup`
-- Port: `3001` (Host)
-- Database: PostgreSQL on port `5433` (Host)
+## Development workflow
+
+- Start dev stack: `./setup up`
+- Rebuild: `./setup rebuild`
+- View logs: `./setup logs`
+- Stop stack: `./setup down`
+
+Default values from `.env.example`:
+
+- web port: `3000`
+- postgres port: `5433`
+
+Docker note:
+
+- The dev stack bind-mounts `web/` and does not keep a dedicated `.next` volume.

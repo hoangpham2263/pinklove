@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,7 @@ type PageEditorFormProps = {
   hasError?: boolean;
 };
 
-export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps) {
+export function PageEditorForm({ page }: PageEditorFormProps) {
   const [ogImage, setOgImage] = useState(page.ogImage || "");
   
   // SEO Preview States
@@ -128,7 +127,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                 id="excerpt"
                 name="excerpt"
                 defaultValue={page.excerpt}
-                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="Brief summary"
               />
             </div>
@@ -141,7 +140,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                 id="body"
                 name="body"
                 defaultValue={page.body}
-                className="min-h-[400px] w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="min-h-[400px] w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="Enter page content here..."
               />
             </div>
@@ -149,9 +148,9 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
         </Card>
 
         {templateFields.length > 0 && (
-          <Card className="border-pink-200">
-            <CardHeader className="bg-pink-50/50 pb-4">
-              <CardTitle className="text-pink-700">Template Custom Fields</CardTitle>
+          <Card>
+            <CardHeader className="bg-muted/30 pb-4">
+              <CardTitle>Template Custom Fields</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {templateFields.map((field) => (
@@ -170,7 +169,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                     <textarea
                       value={customFields[field.name] || ""}
                       onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
-                      className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                       placeholder={field.label}
                     />
                   )}
@@ -227,7 +226,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                   name="seoDescription"
                   value={seoDescription}
                   onChange={(e) => setSeoDescription(e.target.value)}
-                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   placeholder="Search engine description"
                 />
                 <p className="text-[10px] text-muted-foreground italic">Tip: A good description increases click-through rate.</p>
@@ -267,18 +266,18 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                   id="ogDescription"
                   name="ogDescription"
                   defaultValue={page.ogDescription}
-                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   placeholder="Facebook/Twitter description"
                 />
               </div>
 
               <div className="flex flex-wrap gap-6 pt-2">
                 <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-gray-300 text-primary focus:ring-primary" />
+                  <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
                   <span className="font-medium">Noindex</span> (Hide from search engines)
                 </label>
                 <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-gray-300 text-primary focus:ring-primary" />
+                  <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
                   <span className="font-medium">Nofollow</span> (Don&apos;t follow links)
                 </label>
               </div>
@@ -302,7 +301,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                 id="status"
                 name="status"
                 defaultValue={page.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -331,7 +330,7 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
                 name="template"
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
-                className={`h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${isProtectedSlug ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring ${isProtectedSlug ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={isProtectedSlug}
               >
                 {Object.entries(CMS_TEMPLATES).map(([key, { label }]) => (

@@ -96,7 +96,7 @@ export function ContactTemplate({ page }: { page: CmsPage }) {
               <label htmlFor="contact-message" className="font-medium text-sm">Message</label>
               <textarea 
                 id="contact-message"
-                className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="How can we help you?"
               />
             </div>

@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { updateCmsPage, createCmsPage, getCmsPageBySlug } from "@/lib/cms";
+import { updateCmsPage, getCmsPageBySlug } from "@/lib/cms";
 import { ROUTES } from "@/lib/routes";
-import { SYSTEM_PAGES } from "@/features/client/templates";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) {
-    return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
   }
 
   const formData = await request.formData();
@@ -39,67 +38,45 @@ export async function POST(request: Request) {
   if (customFieldsRaw) {
     try {
       customFields = JSON.parse(String(customFieldsRaw));
-    } catch (e) {
+    } catch {
       console.warn("Invalid customFields JSON");
     }
   }
 
   if (!originalSlug || !name || !slug) {
-    return NextResponse.redirect(new URL(`/admin/pages/${originalSlug || slug}?error=missing_fields`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${originalSlug || slug}?error=missing_fields` } });
   }
 
   try {
     const existing = await getCmsPageBySlug(originalSlug);
 
     if (!existing) {
-      if (SYSTEM_PAGES[originalSlug]) {
-        await createCmsPage({
-          slug,
-          name,
-          title,
-          excerpt,
-          body,
-          status,
-          template,
-          seoTitle,
-          seoDescription,
-          seoKeywords,
-          canonicalUrl,
-          ogTitle,
-          ogDescription,
-          ogImage,
-          noindex,
-          nofollow,
-          customFields,
-        });
-      } else {
-        return NextResponse.redirect(new URL(`/admin/pages?error=page_not_found`, request.url), 303);
-      }
-    } else {
-      await updateCmsPage(originalSlug, {
-        slug,
-        name,
-        title,
-        excerpt,
-        body,
-        status,
-        template,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
-        canonicalUrl,
-        ogTitle,
-        ogDescription,
-        ogImage,
-        noindex,
-        nofollow,
-        customFields,
-      });
+      return new NextResponse(null, { status: 303, headers: { Location: "/admin/pages?error=page_not_found" } });
     }
 
-    return NextResponse.redirect(new URL(`/admin/pages/${slug}?saved=1`, request.url), 303);
+    await updateCmsPage(originalSlug, {
+      slug,
+      name,
+      title,
+      excerpt,
+      body,
+      status,
+      template,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      canonicalUrl,
+      ogTitle,
+      ogDescription,
+      ogImage,
+      noindex,
+      nofollow,
+      customFields,
+    });
+
+    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${slug}?saved=1` } });
   } catch (error) {
     console.error("Failed to update page:", error);
-    return NextResponse.redirect(new URL(`/admin/pages/${originalSlug}?error=update_failed`, request.url), 303);
+    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${originalSlug}?error=update_failed` } });
   }
 }

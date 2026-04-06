@@ -28,7 +28,7 @@ export default async function AdminLayout({
 
 
  return (
- <>
+ <div>
   <aside className="fixed top-0 left-0 hidden h-screen w-64 border-r bg-background p-5 md:flex md:flex-col md:gap-3">
   <div className="flex items-center gap-2 mb-6 px-3">
    <div className="h-6 w-6 rounded-bg bg-primary" />
@@ -127,7 +127,7 @@ export default async function AdminLayout({
 
 
 
-    <main className="md:ml-64 min-h-screen bg-muted/30" data-theme="black">
+    <main className="md:ml-64 min-h-screen bg-muted/30">
 
 
 
@@ -209,6 +209,6 @@ export default async function AdminLayout({
    </section>
   </section>
   </main>
- </>
+ </div>
  );
 }

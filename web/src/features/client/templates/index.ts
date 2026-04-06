@@ -3,6 +3,7 @@ import { DefaultTemplate } from "./DefaultTemplate";
 import { ContactTemplate } from "./ContactTemplate";
 import { HomeTemplate } from "./HomeTemplate";
 import { AboutTemplate } from "./AboutTemplate";
+export { SYSTEM_PAGES } from "@/lib/system-pages";
 
 // We don't render Login/Register inside PageRenderer yet, but they act as templates for CMS Custom Fields.
 const DummyTemplate = () => null;
@@ -84,12 +85,3 @@ export const CMS_TEMPLATES: Record<string, TemplateConfig> = {
 };
 
 export type TemplateKey = keyof typeof CMS_TEMPLATES;
-
-/**
- * Danh sách các trang hệ thống. Các trang này luôn tồn tại và không thể xoá.
- */
-export const SYSTEM_PAGES: Record<string, { name: string; template: string }> = {
-  home: { name: "Home Page", template: "home" },
-  login: { name: "User Login", template: "login" },
-  register: { name: "User Register", template: "register" },
-};

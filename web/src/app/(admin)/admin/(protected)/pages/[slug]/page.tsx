@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
-import { getCmsPageBySlug, CmsPage } from "@/lib/cms";
+import { getCmsPageBySlug } from "@/lib/cms";
 import { PageEditorForm } from "@/features/admin/components/page-editor-form";
-import { SYSTEM_PAGES } from "@/features/client/templates";
 
 type AdminPageEditorProps = {
   params: Promise<{ slug: string }>;
@@ -13,20 +12,10 @@ type AdminPageEditorProps = {
 export default async function AdminPageEditor({ params, searchParams }: AdminPageEditorProps) {
   await requireAdmin();
   const { slug } = await params;
-  let page = await getCmsPageBySlug(slug);
+  const page = await getCmsPageBySlug(slug);
 
-  // If page doesn't exist but it's a system page, provide a stub for editing
   if (!page) {
-    if (SYSTEM_PAGES[slug]) {
-      page = {
-        slug,
-        name: SYSTEM_PAGES[slug].name,
-        template: SYSTEM_PAGES[slug].template,
-        status: "draft",
-      } as CmsPage;
-    } else {
-      notFound();
-    }
+    notFound();
   }
 
   const query = (await searchParams) ?? {};
@@ -45,8 +34,16 @@ export default async function AdminPageEditor({ params, searchParams }: AdminPag
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">Edit Page: {page.name}</h1>
         </div>
-        {isSaved && <span className="text-green-600 font-medium">Changes saved!</span>}
-        {hasError && <span className="text-red-600 font-medium">Error saving changes!</span>}
+        {isSaved && (
+          <span className="rounded-md border bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
+            Changes saved!
+          </span>
+        )}
+        {hasError && (
+          <span className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
+            Error saving changes!
+          </span>
+        )}
       </div>
 
       <PageEditorForm page={page} isSaved={isSaved} hasError={hasError} />
