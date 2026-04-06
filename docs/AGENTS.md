@@ -13,12 +13,13 @@ This file summarizes repo-specific facts for coding agents.
 ## Important repo facts
 
 - Database access is raw SQL through `web/src/lib/db.ts`.
-- Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, and CMS pages.
+- Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, CMS pages, menus, and affiliate tables.
 - Menu tables are also auto-created by `db.ts`.
 - Media metadata is stored in `web/storage/media.json`.
 - Uploaded files are stored in `web/public/uploads/...`.
 - Public page-template config lives in `web/src/features/pages/registry.ts`.
 - System-page config and auth system-page loaders/views live in `web/src/features/system-pages/`.
+- Affiliate foundation lives in `web/src/lib/affiliate.ts` plus `web/src/features/affiliate/`.
 
 ## Current product behavior to remember
 
@@ -31,6 +32,8 @@ This file summarizes repo-specific facts for coding agents.
 - Public header links are currently hardcoded in `web/src/app/(client)/layout.tsx`.
 - Current roles are only `admin` and `user`; the first registered account becomes `admin`.
 - Admins are allowed to access public pages and user pages.
+- Affiliate account application, admin approval, referral-link generation, click logging, and referral cookies are implemented.
+- Affiliate conversion attribution and payout settlement are not implemented yet because the repo still has no product/order flow.
 - The media API currently returns the full list of media items; UI pagination is only partial.
 
 ## Development workflow

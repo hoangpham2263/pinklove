@@ -1,6 +1,7 @@
 import Link from"next/link";
 import { LayoutDashboard, 
  User as UserIcon, 
+ BadgePercent,
  Settings, 
  ExternalLink } from"lucide-react";
 
@@ -30,6 +31,10 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <Link href="/user/profile" className={navItemClasses }>
  <UserIcon className="h-5 w-5" />
  Hồ sơ cá nhân
+ </Link>
+ <Link href={ROUTES.USER.AFFILIATE} className={navItemClasses }>
+ <BadgePercent className="h-5 w-5" />
+ Affiliate
  </Link>
  </div>
 
@@ -63,6 +68,10 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <Link href="/user/profile" className="flex items-center gap-1.5 whitespace-nowrap">
  <UserIcon className="h-4 w-4" />
  Hồ sơ
+ </Link>
+ <Link href={ROUTES.USER.AFFILIATE} className="flex items-center gap-1.5 whitespace-nowrap">
+ <BadgePercent className="h-4 w-4" />
+ Affiliate
  </Link>
  <Link href="/user/settings" className="flex items-center gap-1.5 whitespace-nowrap">
  <Settings className="h-4 w-4" />

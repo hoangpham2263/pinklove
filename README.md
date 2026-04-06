@@ -17,6 +17,8 @@ Current notable behavior:
 - Public page templates live in `web/src/features/pages/registry.ts`
 - System-page config and auth system-page views live in `web/src/features/system-pages/`
 - Account roles are currently only `admin` and `user`; the first registered account becomes `admin`
+- Affiliate foundation is implemented: users can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
+- Product checkout, conversion attribution, and payout settlement are intentionally not implemented yet because the repo does not have a commerce flow
 
 ## Getting Started
 

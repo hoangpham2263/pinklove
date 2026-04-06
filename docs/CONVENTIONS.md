@@ -121,6 +121,25 @@
   - `image/gif`
 - Maximum upload size: `5MB`
 
+## 10.1) Affiliate conventions
+
+- Affiliate logic lives in `src/lib/affiliate.ts`.
+- Affiliate UI lives under:
+  - `src/features/affiliate/*`
+  - `src/app/(user)/user/(protected)/affiliate/page.tsx`
+  - `src/app/(admin)/admin/(protected)/affiliates/page.tsx`
+- Affiliate tracking API lives at `src/app/api/affiliate/track/route.ts`.
+- User application API lives at `src/app/api/user/affiliate/apply/route.ts`.
+- Admin approval/update API lives at `src/app/api/admin/affiliates/update/route.ts`.
+- Affiliate is currently a program layered on top of normal accounts, not a third user role.
+- Current statuses are:
+  - `pending`
+  - `active`
+  - `rejected`
+  - `blocked`
+- Tracking currently covers referral links, click logging, and referral cookies.
+- Conversion attribution and payout settlement are intentionally not wired yet because the project does not currently have products, checkout, or order completion.
+
 ## 11) Styling conventions
 
 - Global styles live in `src/app/globals.css`.

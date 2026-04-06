@@ -107,6 +107,55 @@ Notes:
 - `created_at` (`TIMESTAMPTZ`)
 - `updated_at` (`TIMESTAMPTZ`)
 
+### `affiliate_accounts`
+
+- `user_id` (`BIGINT`): primary key, FK to `users.id`
+- `code` (`TEXT`): unique affiliate code
+- `status` (`TEXT`): `pending`, `active`, `rejected`, or `blocked`
+- `commission_type` (`TEXT`): `percent` or `fixed`
+- `commission_value` (`NUMERIC(12,2)`)
+- `notes` (`TEXT`, nullable)
+- `approved_by` (`BIGINT`, nullable): FK to `users.id`
+- `approved_at` (`TIMESTAMPTZ`, nullable)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+### `affiliate_clicks`
+
+- `id` (`BIGSERIAL`): primary key
+- `affiliate_user_id` (`BIGINT`): FK to `affiliate_accounts.user_id`
+- `affiliate_code` (`TEXT`)
+- `landing_path` (`TEXT`)
+- `referrer` (`TEXT`, nullable)
+- `visitor_token` (`TEXT`, nullable)
+- `user_agent` (`TEXT`, nullable)
+- `created_at` (`TIMESTAMPTZ`)
+
+Index:
+
+- `affiliate_clicks_affiliate_user_id_idx` on `affiliate_user_id`
+
+### `affiliate_conversions`
+
+- `id` (`BIGSERIAL`): primary key
+- `affiliate_user_id` (`BIGINT`): FK to `affiliate_accounts.user_id`
+- `affiliate_code` (`TEXT`)
+- `external_order_ref` (`TEXT`, nullable, unique)
+- `order_value` (`NUMERIC(12,2)`)
+- `commission_amount` (`NUMERIC(12,2)`)
+- `status` (`TEXT`): `pending`, `approved`, `rejected`, or `paid`
+- `metadata` (`JSONB`)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+Index:
+
+- `affiliate_conversions_affiliate_user_id_idx` on `affiliate_user_id`
+
+Notes:
+
+- `affiliate_conversions` is schema-ready, but the current repo does not yet create conversion rows automatically because there is no product/order flow.
+
 ## 2) Non-database storage used by the project
 
 The media library stores files outside PostgreSQL.

@@ -22,6 +22,7 @@ web/
           (protected)/
             layout.tsx
             dashboard/page.tsx
+            affiliates/page.tsx
             media/page.tsx
             menus/page.tsx
             menus/[id]/page.tsx
@@ -40,26 +41,31 @@ web/
           (protected)/
             layout.tsx
             dashboard/page.tsx
+            affiliate/page.tsx
             profile/page.tsx
             settings/page.tsx
       api/
         admin/
+          affiliates/update/route.ts
           auth/login/route.ts
           menus/update/route.ts
           pages/{create,delete,update}/route.ts
           users/{create,delete,role,update}/route.ts
+        affiliate/track/route.ts
         auth/
           login/route.ts
           logout/route.ts
           register/route.ts
           google/{login,callback}/route.ts
         media/route.ts
+        user/affiliate/apply/route.ts
         user/profile/route.ts
     components/
       common/
       ui/
     features/
       admin/components/
+      affiliate/components/
       auth/components/
       client/
         PageRenderer.tsx
@@ -202,6 +208,10 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
   - Preview images
   - Delete images
   - Copy asset URLs
+- Affiliates
+  - List affiliate applications/accounts
+  - Approve, reject, block, or reactivate an affiliate
+  - Configure commission mode and value
 - Settings
   - Page exists, but currently only displays static explanatory content
 
@@ -216,6 +226,11 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 ### Current user features
 
 - Dashboard page exists but is effectively empty.
+- Affiliate page is implemented and supports:
+  - applying for affiliate status
+  - viewing personal referral code and referral link
+  - reviewing recent click activity
+  - seeing placeholder conversion state for future commerce integration
 - Profile page is implemented and saves:
   - `fullName`
   - `displayName`
@@ -227,6 +242,28 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 
 - `/api/user/profile` is now aligned with the current access rules and no longer blocks admins.
 - Route naming inside the user/admin areas is functional but not fully normalized yet.
+
+## 6.1) Affiliate foundation
+
+The repository now includes an affiliate foundation even though product sales do not exist yet.
+
+Current implemented pieces:
+
+- affiliate account application flow for logged-in users
+- admin approval and commission configuration
+- per-user referral code
+- referral link generation
+- click tracking through `/api/affiliate/track`
+- referral cookies for future attribution
+
+Current intentional gaps:
+
+- there is no product catalog
+- there is no checkout/order flow
+- there is no automatic conversion attribution yet
+- there is no payout workflow yet
+
+This means the affiliate feature is structurally ready, but commercial attribution still needs a real commerce layer.
 
 ## 7) CMS
 
@@ -334,6 +371,9 @@ Important current behavior:
 - `cms_pages`
 - `cms_menus`
 - `cms_menu_items`
+- `affiliate_accounts`
+- `affiliate_clicks`
+- `affiliate_conversions`
 
 It does not currently auto-create:
 - no additional app tables beyond what the current code depends on

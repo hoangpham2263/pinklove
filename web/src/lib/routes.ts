@@ -13,6 +13,7 @@ export const ROUTES = {
     DASHBOARD: "/user/dashboard",
     PROFILE: "/user/profile",
     SETTINGS: "/user/settings",
+    AFFILIATE: "/user/affiliate",
   },
   ADMIN: {
     LOGIN: "/admin/login",
@@ -20,5 +21,6 @@ export const ROUTES = {
     SETTINGS: "/admin/settings",
     USER: "/admin/user",
     MEDIA: "/admin/media",
+    AFFILIATES: "/admin/affiliates",
   },
 } as const;

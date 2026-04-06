@@ -11,6 +11,7 @@ const globalForDb = globalThis as unknown as {
  userSettingsDensityMigrationDone?: boolean;
  oauthAccountsMigrationDone?: boolean;
  menuTablesMigrationDone?: boolean;
+ affiliateTablesMigrationDone?: boolean;
  systemPagesSeedDone?: boolean;
 };
 
@@ -287,6 +288,66 @@ async function ensureMenuTablesMigration() {
   `);
 }
 
+async function ensureAffiliateTablesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS affiliate_accounts (
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      code TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'pending',
+      commission_type TEXT NOT NULL DEFAULT 'percent',
+      commission_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      notes TEXT,
+      approved_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      approved_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT affiliate_accounts_status_check CHECK (status IN ('pending', 'active', 'rejected', 'blocked')),
+      CONSTRAINT affiliate_accounts_commission_type_check CHECK (commission_type IN ('percent', 'fixed'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS affiliate_clicks (
+      id BIGSERIAL PRIMARY KEY,
+      affiliate_user_id BIGINT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
+      affiliate_code TEXT NOT NULL,
+      landing_path TEXT NOT NULL,
+      referrer TEXT,
+      visitor_token TEXT,
+      user_agent TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS affiliate_clicks_affiliate_user_id_idx
+    ON affiliate_clicks(affiliate_user_id);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS affiliate_conversions (
+      id BIGSERIAL PRIMARY KEY,
+      affiliate_user_id BIGINT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
+      affiliate_code TEXT NOT NULL,
+      external_order_ref TEXT UNIQUE,
+      order_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      commission_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT affiliate_conversions_status_check CHECK (status IN ('pending', 'approved', 'rejected', 'paid'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS affiliate_conversions_affiliate_user_id_idx
+    ON affiliate_conversions(affiliate_user_id);
+  `);
+}
+
 async function ensureSystemPagesSeed() {
   const pool = getPool();
 
@@ -340,6 +401,11 @@ export async function ensureDb() {
   if (!globalForDb.menuTablesMigrationDone) {
     await ensureMenuTablesMigration();
     globalForDb.menuTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.affiliateTablesMigrationDone) {
+    await ensureAffiliateTablesMigration();
+    globalForDb.affiliateTablesMigrationDone = true;
   }
 
   if (!globalForDb.systemPagesSeedDone) {

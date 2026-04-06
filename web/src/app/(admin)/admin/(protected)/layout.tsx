@@ -5,6 +5,7 @@ import {
  Menu as MenuIcon,
  Image as ImageIcon,
  Users,
+ BadgePercent,
  Settings,
  ExternalLink
 } from"lucide-react";
@@ -94,6 +95,14 @@ export default async function AdminLayout({
     <Users className="h-5 w-5" />
 
     Thành viên
+
+   </Link>
+
+   <Link href={ROUTES.ADMIN.AFFILIATES} className={navItemClasses}>
+
+    <BadgePercent className="h-5 w-5" />
+
+    Affiliate
 
    </Link>
 
@@ -190,6 +199,14 @@ export default async function AdminLayout({
     <Users className="h-4 w-4" />
 
     Thành viên
+
+    </Link>
+
+    <Link href={ROUTES.ADMIN.AFFILIATES} className="flex items-center gap-1.5 whitespace-nowrap">
+
+    <BadgePercent className="h-4 w-4" />
+
+    Affiliate
 
     </Link>
 
