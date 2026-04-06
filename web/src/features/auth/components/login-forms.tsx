@@ -113,7 +113,7 @@ export function LoginForm({ heading, subheading, sideImage, quote, quoteAuthor }
               <p className="text-muted-foreground">{subheading || "Chào mừng trở lại! Vui lòng đăng nhập để tiếp tục."}</p>
             </div>
 
-            <Card className="w-full shadow-none border-0 md:border">
+            <Card className="w-full border-0 md:border">
               <CardHeader>
                 <CardTitle>Login</CardTitle>
               </CardHeader>
@@ -204,7 +204,7 @@ export function RegisterForm({ heading, subheading, sideImage, quote, quoteAutho
               </p>
             </div>
 
-            <Card className="w-full shadow-none border-0 md:border">
+            <Card className="w-full border-0 md:border">
               <CardHeader>
                 <CardTitle>Tạo tài khoản của bạn</CardTitle>
               </CardHeader>

@@ -15,13 +15,6 @@ export async function POST(request: Request) {
  return new NextResponse(null, { status: 303, headers: { Location: ROUTES.AUTH.LOGIN } });
  }
 
- if (user.role ==="admin") {
- if (wantsJson) {
-  return NextResponse.json({ error:"Admin cannot update user profile here." }, { status: 403 });
- }
- return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.DASHBOARD } });
- }
-
  const formData = await request.formData();
  const fullName = String(formData.get("fullName") ??"");
  const displayName = String(formData.get("displayName") ??"");

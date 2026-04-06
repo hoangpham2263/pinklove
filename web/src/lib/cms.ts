@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { query } from "@/lib/db";
-import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 export type CmsPage = {
   id?: string | number;
@@ -67,21 +66,6 @@ function mapRowToPage(row: CmsPageRow): CmsPage {
   };
 }
 
-async function ensureSystemCmsPages() {
-  const systemEntries = Object.entries(SYSTEM_PAGES);
-
-  for (const [slug, config] of systemEntries) {
-    await query(
-      `
-      INSERT INTO cms_pages (slug, name, title, status, template, custom_fields)
-      VALUES ($1, $2, $3, 'draft', $4, '{}'::jsonb)
-      ON CONFLICT (slug) DO NOTHING
-      `,
-      [slug, config.name, config.name, config.template]
-    );
-  }
-}
-
 export function normalizeSlug(slug?: string | string[]): string {
   if (!slug || slug.length === 0) {
     return "home";
@@ -93,8 +77,6 @@ export function normalizeSlug(slug?: string | string[]): string {
 }
 
 export async function listCmsPages(): Promise<CmsPage[]> {
-  await ensureSystemCmsPages();
-
   const result = await query<CmsPageRow>(`
     SELECT * FROM cms_pages ORDER BY updated_at DESC
   `);
@@ -103,10 +85,6 @@ export async function listCmsPages(): Promise<CmsPage[]> {
 }
 
 export async function getCmsPageBySlug(slug: string): Promise<CmsPage | null> {
-  if (SYSTEM_PAGES[slug]) {
-    await ensureSystemCmsPages();
-  }
-
   const result = await query<CmsPageRow>(
     "SELECT * FROM cms_pages WHERE slug = $1 LIMIT 1",
     [slug]

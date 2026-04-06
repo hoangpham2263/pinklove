@@ -89,6 +89,25 @@ web/
 - `db.ts` also performs a limited set of auto-migrations on first use.
 - Media files are stored on disk, not in PostgreSQL.
 
+## 2.1) Structure review
+
+Overall, the repository is reasonably organized for its current size:
+
+- `src/app` contains routing, layouts, and API entry points
+- `src/features` contains feature-specific UI and behavior
+- `src/lib` contains shared server/helpers and low-level app services
+- `src/components` contains shared UI building blocks
+
+The main structure is good enough to keep, but it is not fully normalized yet.
+
+Current cleanup opportunities:
+
+- There is still some route naming asymmetry such as singular `user` and `page` path segments alongside plural `users` and `pages` API groups.
+- Some areas are placeholders rather than full features, especially admin settings and parts of the user area.
+- There are a few leftover empty directories under `src/app/api`, such as `admin/settings/theme` and `api/test-url`, which make the route tree look more complete than it really is.
+- Menu persistence lives in `src/lib/menu.ts`, but the underlying menu tables are still not auto-created by `src/lib/db.ts`.
+- The public shell still uses hardcoded navigation links even though menu management exists in admin.
+
 ## 3) Public site
 
 - The public website uses the `(client)` route group.
@@ -177,6 +196,7 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
 
 - Admin settings do not currently expose working runtime configuration.
 - Menu management code exists, but menu tables are not auto-created by `src/lib/db.ts`.
+- The route tree still contains a few leftover empty API directories that should eventually be removed or implemented.
 
 ## 6) User area
 
@@ -196,6 +216,7 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 
 - `/api/user/profile` rejects admins.
 - There is a UI-density API route, but it currently only allows admins and is not wired into the UI shells.
+- Route naming inside the user/admin areas is functional but not fully normalized yet.
 
 ## 7) CMS
 
@@ -309,3 +330,14 @@ It does not currently auto-create:
 - Dev stack bind-mounts `./web` into `/app`.
 - Dev stack does not keep a dedicated `/app/.next` volume.
 - Production build uses Next.js `output: "standalone"`.
+
+## 12) Recommended structural direction
+
+If the project is cleaned up further, the best next steps are:
+
+- remove empty route directories that no longer have handlers
+- normalize naming between page routes and API groups where practical
+- either wire menu data into the public shell or clearly keep it as admin-only tooling
+- either implement the settings area or keep it explicitly documented as placeholder-only
+
+None of those are blockers for the current codebase, but they are the main places where the structure still feels partially transitional.

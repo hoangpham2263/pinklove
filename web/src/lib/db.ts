@@ -1,6 +1,7 @@
 import"server-only";
 
 import { Pool } from"pg";
+import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
@@ -9,6 +10,8 @@ const globalForDb = globalThis as unknown as {
  userProfilesMigrationDone?: boolean;
  userSettingsDensityMigrationDone?: boolean;
  oauthAccountsMigrationDone?: boolean;
+ menuTablesMigrationDone?: boolean;
+ systemPagesSeedDone?: boolean;
 };
 
 function getDatabaseUrlOrThrow(): string {
@@ -250,6 +253,55 @@ async function ensureCmsPagesMigration() {
   `);
 }
 
+async function ensureMenuTablesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cms_menus (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cms_menu_items (
+      id BIGSERIAL PRIMARY KEY,
+      menu_id BIGINT NOT NULL REFERENCES cms_menus(id) ON DELETE CASCADE,
+      label TEXT NOT NULL,
+      type TEXT NOT NULL,
+      page_slug TEXT,
+      url TEXT,
+      position INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT cms_menu_items_type_check CHECK (type IN ('page', 'custom'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS cms_menu_items_menu_id_idx
+    ON cms_menu_items(menu_id);
+  `);
+}
+
+async function ensureSystemPagesSeed() {
+  const pool = getPool();
+
+  for (const [slug, config] of Object.entries(SYSTEM_PAGES)) {
+    await pool.query(
+      `
+      INSERT INTO cms_pages (slug, name, title, status, template, custom_fields)
+      VALUES ($1, $2, $3, 'draft', $4, '{}'::jsonb)
+      ON CONFLICT (slug) DO NOTHING
+      `,
+      [slug, config.name, config.name, config.template]
+    );
+  }
+}
+
 export async function ensureDb() {
   if (!globalForDb.initPromise) {
     globalForDb.initPromise = initSchema();
@@ -279,6 +331,16 @@ export async function ensureDb() {
   if (!(globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done) {
     await ensureCmsPagesMigration();
     (globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done = true;
+  }
+
+  if (!globalForDb.menuTablesMigrationDone) {
+    await ensureMenuTablesMigration();
+    globalForDb.menuTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.systemPagesSeedDone) {
+    await ensureSystemPagesSeed();
+    globalForDb.systemPagesSeedDone = true;
   }
 }
 

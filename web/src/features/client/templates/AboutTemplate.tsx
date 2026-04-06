@@ -36,7 +36,7 @@ export function AboutTemplate({ page }: { page: CmsPage }) {
       <section className="mx-auto max-w-4xl py-12 px-6">
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-8">
-            <Card className="border-none shadow-none bg-transparent">
+            <Card className="border-none bg-transparent">
               <CardContent className="p-0 space-y-6">
                 {fields.introHeading && (
                   <h2 className="text-3xl font-bold">{fields.introHeading}</h2>

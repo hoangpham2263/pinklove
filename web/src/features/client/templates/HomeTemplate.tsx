@@ -57,7 +57,7 @@ export function HomeTemplate({ page }: { page: CmsPage }) {
               { title: "Turnkey Solutions", desc: "Ensuring high quality and timely completion." },
               { title: "Maintenance", desc: "Always by your side throughout the journey." },
             ].map((feature, i) => (
-              <div key={i} className="rounded-xl border bg-card p-8 transition-shadow">
+              <div key={i} className="rounded-xl border bg-card p-8 transition-colors">
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.desc}</p>
               </div>
