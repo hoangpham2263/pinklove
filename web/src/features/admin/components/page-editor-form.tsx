@@ -149,9 +149,9 @@ export function PageEditorForm({ page, isSaved, hasError }: PageEditorFormProps)
         </Card>
 
         {templateFields.length > 0 && (
-          <Card className="border-blue-200">
-            <CardHeader className="bg-blue-50/50 pb-4">
-              <CardTitle className="text-blue-700">Template Custom Fields</CardTitle>
+          <Card className="border-pink-200">
+            <CardHeader className="bg-pink-50/50 pb-4">
+              <CardTitle className="text-pink-700">Template Custom Fields</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {templateFields.map((field) => (

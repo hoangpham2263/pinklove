@@ -123,17 +123,17 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
   {uploadState ==="uploading" ? (
   <>
    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-   <p>Uploading images...</p>
+   <p>Đang tải ảnh lên...</p>
   </>
   ) : (
   <>
    <p>
    {isDragActive
-   ?"Drop images here..."
-   :"Drag images here, or click to select files"}
+   ?"Thả ảnh vào đây..."
+   :"Kéo thả ảnh vào đây, hoặc click để chọn file"}
    </p>
    <p className="opacity-70">
-   Support JPEG, PNG, WEBP, GIF
+   Hỗ trợ JPEG, PNG, WEBP, GIF
    </p>
   </>
   )}
@@ -147,10 +147,10 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
  <Card>
  <CardHeader className="flex flex-row items-center justify-between space-y-0">
-  <CardTitle>Library ({total})</CardTitle>
+  <CardTitle>Thư viện ({total})</CardTitle>
   <div className="flex items-center gap-4">
   <div className="flex items-center gap-2">
-  <span>Show:</span>
+  <span>Hiển thị:</span>
   <select 
   value={limit} 
   onChange={(e) => handleLimitChange(Number(e.target.value))}
@@ -166,7 +166,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
  </CardHeader>
  <CardContent>
   {items.length === 0 ? (
-  <p>No media uploaded yet.</p>
+  <p>Chưa có ảnh nào được tải lên.</p>
   ) : (
   <>
   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -195,7 +195,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
     onClick={async (e) => {
     e.stopPropagation();
     await navigator.clipboard.writeText(item.url);
-    alert("URL copied!");
+    alert("Đã sao chép URL!");
     }}
    >
     <Copy className="h-4 w-4" />
@@ -225,11 +225,11 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
    disabled={page === 1}
    className="flex items-center gap-1"
    >
-   <ChevronLeft className="h-4 w-4" /> Prev
+   <ChevronLeft className="h-4 w-4" /> Trước
    </Button>
    
    <div>
-   Page {page} of {totalPages}
+   Trang {page} / {totalPages}
    </div>
 
    <Button
@@ -238,7 +238,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
    disabled={page === totalPages}
    className="flex items-center gap-1"
    >
-   Next <ChevronRight className="h-4 w-4" />
+   Tiếp <ChevronRight className="h-4 w-4" />
    </Button>
   </div>
   )}

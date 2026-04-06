@@ -127,9 +127,11 @@ export default async function AdminLayout({
 
 
 
-  <main className="md:ml-64 min-h-screen bg-muted/30">
+    <main className="md:ml-64 min-h-screen bg-muted/30" data-theme="black">
 
-  <AdminTopHeader username={user.username} />
+
+
+    <AdminTopHeader username={user.username} />
 
 
 
