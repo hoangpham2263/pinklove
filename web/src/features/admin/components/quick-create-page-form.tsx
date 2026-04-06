@@ -4,8 +4,8 @@ import { useState } from "react";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { listPageTemplateOptions } from "@/features/pages/registry";
 import { slugify } from "@/lib/utils";
-import { CMS_TEMPLATES } from "@/features/client/templates";
 
 export function QuickCreatePageForm() {
   const [name, setName] = useState("");
@@ -91,9 +91,9 @@ export function QuickCreatePageForm() {
           defaultValue="default"
           className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
-          {Object.entries(CMS_TEMPLATES).map(([key, { label }]) => (
-            <option key={key} value={key}>
-              {label}
+          {listPageTemplateOptions().map((template) => (
+            <option key={template.value} value={template.value}>
+              {template.label}
             </option>
           ))}
         </select>

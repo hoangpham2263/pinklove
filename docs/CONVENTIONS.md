@@ -60,22 +60,43 @@
   - `src/app/api/admin/auth/*`
 - Session cookie name: `pinklove_session`
 - Roles: `admin` and `user`
+- The first registered account becomes `admin`.
 - Admins are allowed to access public pages and user pages.
 - Logged-in non-admin users should be redirected away from `user` auth pages back to the user dashboard.
 - Logged-in admins should only be redirected away from the admin login page, not from normal public/user pages.
+- Non-admin users must not access the admin area.
 
 ## 8) CMS conventions
 
 - CMS pages are stored in `cms_pages`.
 - Public rendering is CMS-driven through `src/app/(client)/[[...slug]]/page.tsx`.
-- Page template registry lives in `src/features/client/templates/index.ts`.
-- System page registry lives in `src/lib/system-pages.ts`.
+- Public page template registry lives in `src/features/pages/registry.ts`.
+- System-page registry lives in `src/features/system-pages/registry.ts`.
 - Template-specific fields are stored in `cms_pages.custom_fields`.
+- Use `getFields(page)` from `src/lib/cms-fields.ts` when a page object is already available.
+- Use `getFieldsBySlug(slug)` from `src/lib/cms.ts` only in server routes/pages that need to load fields by slug.
 - Protected/system slugs currently include:
   - `home`
   - `login`
   - `register`
-- These system pages are auto-created by the CMS layer if missing.
+- These system pages are seeded by `src/lib/db.ts` if missing.
+- User-facing system-page route controllers should stay in `src/app/**/page.tsx`, but their loading/render logic should live in `src/features/system-pages/**`.
+- `login` and `register` only keep the auth fields currently used by the UI:
+  - `heading`
+  - `subheading`
+  - `sideImage`
+- Auth field definitions live in `src/features/auth/fields.ts`.
+- System-page status must still be respected publicly: `draft` pages are only previewable by admins.
+
+## 8.1) ACF layout conventions
+
+- In the admin page editor, `Template Custom Fields` use a two-column grid by default on `md+`.
+- Standard text/media fields stay in one grid column.
+- `textarea` fields span both columns.
+- Media fields should be laid out by grid column rules, not by width hacks.
+- Media preview should fill the media field container itself, while the field still occupies a normal grid column unless intentionally spanned.
+- Media field values should be resolved through `resolveMediaUrl()` from `src/lib/media.ts` before rendering on the site.
+- `SEO Settings` in the page editor should be collapsible and default closed.
 
 ## 9) Menu conventions
 
@@ -83,6 +104,7 @@
   - `src/app/(admin)/admin/(protected)/menus/page.tsx`
   - `src/app/(admin)/admin/(protected)/menus/[id]/page.tsx`
 - Menu code expects `cms_menus` and `cms_menu_items`.
+- Menu tables are auto-created by `src/lib/db.ts`.
 - Current public client layout is still hardcoded and does not yet render DB menus.
 
 ## 10) Media conventions
@@ -106,7 +128,7 @@
 - Global spacing, text sizes, container widths, and breakpoints are defined from px tokens in `src/app/globals.css`.
 - The app uses the root design tokens defined in `src/app/globals.css`.
 - Current defaults follow the repo's shadcn-style `rose` token palette rather than per-layout runtime theme switching.
-- Global select styling and UI-density utility rules are defined in `globals.css`.
+- Global select styling is defined in `globals.css`.
 
 ## 12) Runtime and startup
 
@@ -124,4 +146,4 @@
 
 - Check `src/lib/db.ts` before adding schema changes.
 - Follow the existing sequential migration/helper pattern if extending the bootstrap logic.
-- Note that menu tables are not currently created by the bootstrap code.
+- CMS system pages and menu tables are currently bootstrapped from `src/lib/db.ts`.

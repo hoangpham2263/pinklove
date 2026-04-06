@@ -43,10 +43,6 @@ type OAuthAccountRow = {
   user_id: string;
 };
 
-type UserSettings = {
-  uiDensity: "small" | "medium" | "large";
-};
-
 function hashPassword(password: string): string {
  const salt = randomBytes(16).toString("hex");
  const hash = scryptSync(password, salt, 64).toString("hex");
@@ -316,18 +312,6 @@ export async function requireAppUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<Au
 
 }
 
-export async function getUserSettings(userId: number): Promise<UserSettings> {
- const result = await query<{ ui_density:"small" |"medium" |"large" }>(
-"SELECT ui_density FROM user_settings WHERE user_id = $1 LIMIT 1",
- [userId]
- );
-
- const row = result.rows[0];
- return {
- uiDensity: row?.ui_density ??"medium",
- };
-}
-
 export async function getUserProfile(userId: number): Promise<UserProfile> {
  const result = await query<{
  full_name: string | null;
@@ -378,21 +362,6 @@ export async function setUserProfile(userId: number, profile: UserProfile): Prom
   phone.length > 0 ? phone : null,
   bio.length > 0 ? bio : null,
  ]
- );
-}
-
-export async function setUserDensity(
- userId: number,
- uiDensity:"small" |"medium" |"large"
-): Promise<void> {
- await query(
- `
-  INSERT INTO user_settings (user_id, ui_density)
-  VALUES ($1, $2)
-  ON CONFLICT (user_id)
-  DO UPDATE SET ui_density = EXCLUDED.ui_density, updated_at = NOW()
- `,
- [userId, uiDensity]
  );
 }
 

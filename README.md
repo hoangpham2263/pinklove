@@ -10,9 +10,13 @@ PinkLove is a Docker-first Next.js application with:
 
 Current notable behavior:
 
-- `home`, `login`, and `register` are system CMS pages and are auto-created if missing
+- `home`, `login`, and `register` are system CMS pages and are seeded by `db.ts` if missing
 - `login` and `register` use dedicated auth page components, but their editable content still comes from CMS custom fields
 - Admin users can access public pages and user pages for management and preview flows
+- ACF/custom fields are read through shared CMS helpers and media fields are resolved through a shared media URL helper
+- Public page templates live in `web/src/features/pages/registry.ts`
+- System-page config and auth system-page views live in `web/src/features/system-pages/`
+- Account roles are currently only `admin` and `user`; the first registered account becomes `admin`
 
 ## Getting Started
 

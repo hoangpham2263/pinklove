@@ -1,7 +1,7 @@
 import"server-only";
 
 import { Pool } from"pg";
-import { SYSTEM_PAGES } from "@/lib/system-pages";
+import { SYSTEM_PAGES } from "@/features/system-pages/registry";
 
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
@@ -295,7 +295,11 @@ async function ensureSystemPagesSeed() {
       `
       INSERT INTO cms_pages (slug, name, title, status, template, custom_fields)
       VALUES ($1, $2, $3, 'draft', $4, '{}'::jsonb)
-      ON CONFLICT (slug) DO NOTHING
+      ON CONFLICT (slug) DO UPDATE
+      SET
+        name = EXCLUDED.name,
+        template = EXCLUDED.template,
+        updated_at = NOW()
       `,
       [slug, config.name, config.name, config.template]
     );

@@ -1,10 +1,18 @@
-import { CmsPage } from "@/lib/cms";
+import type { CmsPage } from "@/lib/cms";
+import { getFields } from "@/lib/cms-fields";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
 
 export function HomeTemplate({ page }: { page: CmsPage }) {
-  const fields = page.customFields || {};
+  const fields = getFields<{
+    heroTitle?: string;
+    heroDescription?: string;
+    heroButtonText?: string;
+    heroButtonLink?: string;
+    secondaryButtonText?: string;
+    secondaryButtonLink?: string;
+  }>(page);
 
   return (
     <div className="flex-1">

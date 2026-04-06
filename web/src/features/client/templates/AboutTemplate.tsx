@@ -1,9 +1,14 @@
-import { CmsPage } from "@/lib/cms";
+import type { CmsPage } from "@/lib/cms";
+import { getFields } from "@/lib/cms-fields";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
 export function AboutTemplate({ page }: { page: CmsPage }) {
-  const fields = page.customFields || {};
+  const fields = getFields<{
+    bannerImage?: string;
+    introHeading?: string;
+    introText?: string;
+  }>(page);
 
   return (
     <div className="flex-1">

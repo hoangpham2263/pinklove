@@ -16,8 +16,6 @@ export type AuthFormProps = {
   heading?: string;
   subheading?: string;
   sideImage?: string;
-  quote?: string;
-  quoteAuthor?: string;
 };
 
 function getErrorMessage(error: string | null): string | null {
@@ -98,7 +96,7 @@ export function AdminLoginForm() {
   );
 }
 
-export function LoginForm({ heading, subheading, sideImage, quote, quoteAuthor }: AuthFormProps = {}) {
+export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -165,21 +163,15 @@ export function LoginForm({ heading, subheading, sideImage, quote, quoteAuthor }
                 src={sideImage} 
                 alt="Login visual" 
                 fill 
-                className="object-cover opacity-80 mix-blend-overlay"
+                className="object-cover"
                 priority
               />
             )}
-            <div className="relative z-10 text-center max-w-sm">
-              {quote && (
-                <blockquote className="space-y-4">
-                  <p className="text-2xl font-medium leading-relaxed bg-background/50 p-4 rounded backdrop-blur-sm">&quot;{quote}&quot;</p>
-                  {quoteAuthor && <footer className="text-foreground font-medium bg-background/50 inline-block px-2 py-1 rounded backdrop-blur-sm">— {quoteAuthor}</footer>}
-                </blockquote>
-              )}
-              {!quote && !sideImage && (
+            {!sideImage && (
+              <div className="relative z-10 text-center max-w-sm">
                 <div className="w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </SectionContainer>
@@ -187,7 +179,7 @@ export function LoginForm({ heading, subheading, sideImage, quote, quoteAuthor }
   );
 }
 
-export function RegisterForm({ heading, subheading, sideImage, quote, quoteAuthor }: AuthFormProps = {}) {
+export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
@@ -249,21 +241,15 @@ export function RegisterForm({ heading, subheading, sideImage, quote, quoteAutho
                 src={sideImage} 
                 alt="Register visual" 
                 fill 
-                className="object-cover opacity-80 mix-blend-overlay"
+                className="object-cover"
                 priority
               />
             )}
-            <div className="relative z-10 text-center max-w-sm">
-              {quote && (
-                <blockquote className="space-y-4">
-                  <p className="text-2xl font-medium leading-relaxed bg-background/50 p-4 rounded backdrop-blur-sm">&quot;{quote}&quot;</p>
-                  {quoteAuthor && <footer className="text-foreground font-medium bg-background/50 inline-block px-2 py-1 rounded backdrop-blur-sm">— {quoteAuthor}</footer>}
-                </blockquote>
-              )}
-              {!quote && !sideImage && (
+            {!sideImage && (
+              <div className="relative z-10 text-center max-w-sm">
                 <div className="w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </SectionContainer>

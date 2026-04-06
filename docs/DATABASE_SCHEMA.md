@@ -84,11 +84,8 @@ Constraint:
 
 Notes:
 
-- The CMS layer ensures the built-in `home`, `login`, and `register` rows exist if missing.
-
-## 2) Expected by current code, but not auto-created
-
-The menu feature expects these tables to exist, but `src/lib/db.ts` does not currently create them.
+- `src/lib/db.ts` seeds the built-in `home`, `login`, and `register` rows if missing.
+- `custom_fields` is the backing store for template-specific fields.
 
 ### `cms_menus`
 
@@ -110,7 +107,7 @@ The menu feature expects these tables to exist, but `src/lib/db.ts` does not cur
 - `created_at` (`TIMESTAMPTZ`)
 - `updated_at` (`TIMESTAMPTZ`)
 
-## 3) Non-database storage used by the project
+## 2) Non-database storage used by the project
 
 The media library stores files outside PostgreSQL.
 

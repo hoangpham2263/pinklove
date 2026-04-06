@@ -5,8 +5,13 @@ import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  getPageTemplateFields,
+  getPageTemplateLabel,
+  listPageTemplateOptions,
+} from "@/features/pages/registry";
 import { MediaSelector } from "@/features/media/components/media-selector";
-import { CMS_TEMPLATES, TemplateField } from "@/features/client/templates";
+import { isSystemPageSlug, SYSTEM_PAGES } from "@/features/system-pages/registry";
 import { SeoPreview } from "./seo-preview";
 import type { CmsPage } from "@/lib/cms";
 import { slugify } from "@/lib/utils";
@@ -30,7 +35,9 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(!!page.title);
 
   // Template and Custom Fields
-  const [selectedTemplate, setSelectedTemplate] = useState(page.template || "default");
+  const systemTemplate = SYSTEM_PAGES[page.slug]?.template;
+  const initialTemplate = systemTemplate || page.template || "default";
+  const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate);
   const [customFields, setCustomFields] = useState<Record<string, unknown>>(page.customFields || {});
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,15 +65,15 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
     setCustomFields(prev => ({ ...prev, [name]: value }));
   };
 
-  const isProtectedSlug = page.slug === "login" || page.slug === "register" || page.slug === "home";
-  const currentTemplateConfig = CMS_TEMPLATES[selectedTemplate];
-  const templateFields: TemplateField[] = currentTemplateConfig?.fields || [];
+  const isProtectedSlug = isSystemPageSlug(page.slug);
+  const templateFields = getPageTemplateFields(selectedTemplate);
 
   return (
     <NativeForm action="/api/admin/pages/update" method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <input type="hidden" name="originalSlug" value={page.slug} />
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
+      {isProtectedSlug && <input type="hidden" name="template" value={initialTemplate} />}
 
       {/* Left Column: Main Content & SEO (9/12) */}
       <div className="lg:col-span-9 space-y-6">
@@ -152,9 +159,12 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
             <CardHeader className="bg-muted/30 pb-4">
               <CardTitle>Template Custom Fields</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-4">
+            <CardContent className="grid gap-4 pt-4 md:grid-cols-2">
               {templateFields.map((field) => (
-                <div key={field.name} className="space-y-2">
+                <div
+                  key={field.name}
+                  className={`space-y-2 ${field.type === "textarea" ? "md:col-span-2" : ""}`}
+                >
                   <label className="font-medium">
                     {field.label}
                   </label>
@@ -185,104 +195,107 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
           </Card>
         )}
 
-        <Card className="">
-          <CardHeader>
-            <CardTitle>SEO Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <SeoPreview 
-              title={seoTitle || pageTitle} 
-              description={seoDescription} 
-              slug={slug} 
-            />
+        <Card>
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-4">
+              <CardTitle>SEO Settings</CardTitle>
+              <span className="text-sm text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+            </summary>
+            <CardContent className="space-y-6 border-t pt-4">
+              <SeoPreview 
+                title={seoTitle || pageTitle} 
+                description={seoDescription} 
+                slug={slug} 
+              />
 
-            <div className="space-y-4 pt-4 border-t">
-              <div className="space-y-2">
-                <label htmlFor="seoTitle" className="font-medium flex justify-between">
-                  <span>SEO Title</span>
-                  <span className={`text-[10px] ${(seoTitle || pageTitle).length > 60 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                    {(seoTitle || pageTitle).length} / 60 chars
-                  </span>
-                </label>
-                <Input 
-                  id="seoTitle" 
-                  name="seoTitle" 
-                  value={seoTitle} 
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                  placeholder="Search engine title" 
-                />
-                <p className="text-[10px] text-muted-foreground italic">Tip: Use your main keyword at the beginning of the title.</p>
+              <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <label htmlFor="seoTitle" className="font-medium flex justify-between">
+                    <span>SEO Title</span>
+                    <span className={`text-[10px] ${(seoTitle || pageTitle).length > 60 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                      {(seoTitle || pageTitle).length} / 60 chars
+                    </span>
+                  </label>
+                  <Input 
+                    id="seoTitle" 
+                    name="seoTitle" 
+                    value={seoTitle} 
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                    placeholder="Search engine title" 
+                  />
+                  <p className="text-[10px] text-muted-foreground italic">Tip: Use your main keyword at the beginning of the title.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="seoDescription" className="font-medium flex justify-between">
+                    <span>SEO Description</span>
+                    <span className={`text-[10px] ${seoDescription.length > 160 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                      {seoDescription.length} / 160 chars
+                    </span>
+                  </label>
+                  <textarea
+                    id="seoDescription"
+                    name="seoDescription"
+                    value={seoDescription}
+                    onChange={(e) => setSeoDescription(e.target.value)}
+                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="Search engine description"
+                  />
+                  <p className="text-[10px] text-muted-foreground italic">Tip: A good description increases click-through rate.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="seoKeywords" className="font-medium">
+                    SEO Keywords
+                  </label>
+                  <Input id="seoKeywords" name="seoKeywords" defaultValue={page.seoKeywords} placeholder="comma, separated, keywords" />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="canonicalUrl" className="font-medium">
+                    Canonical URL
+                  </label>
+                  <Input id="canonicalUrl" name="canonicalUrl" defaultValue={page.canonicalUrl} placeholder="https://example.com/page" />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="seoDescription" className="font-medium flex justify-between">
-                  <span>SEO Description</span>
-                  <span className={`text-[10px] ${seoDescription.length > 160 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                    {seoDescription.length} / 160 chars
-                  </span>
-                </label>
-                <textarea
-                  id="seoDescription"
-                  name="seoDescription"
-                  value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)}
-                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  placeholder="Search engine description"
-                />
-                <p className="text-[10px] text-muted-foreground italic">Tip: A good description increases click-through rate.</p>
-              </div>
+              <hr className="my-4" />
 
-              <div className="space-y-2">
-                <label htmlFor="seoKeywords" className="font-medium">
-                  SEO Keywords
-                </label>
-                <Input id="seoKeywords" name="seoKeywords" defaultValue={page.seoKeywords} placeholder="comma, separated, keywords" />
-              </div>
+              <div className="space-y-4">
+                <h3 className="font-semibold uppercase tracking-wider text-muted-foreground">Open Graph (Social)</h3>
+                <div className="space-y-2">
+                  <label htmlFor="ogTitle" className="font-medium">
+                    OG Title
+                  </label>
+                  <Input id="ogTitle" name="ogTitle" defaultValue={page.ogTitle} placeholder="Facebook/Twitter title" />
+                </div>
 
-              <div className="space-y-2">
-                <label htmlFor="canonicalUrl" className="font-medium">
-                  Canonical URL
-                </label>
-                <Input id="canonicalUrl" name="canonicalUrl" defaultValue={page.canonicalUrl} placeholder="https://example.com/page" />
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <label htmlFor="ogDescription" className="font-medium">
+                    OG Description
+                  </label>
+                  <textarea
+                    id="ogDescription"
+                    name="ogDescription"
+                    defaultValue={page.ogDescription}
+                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="Facebook/Twitter description"
+                  />
+                </div>
 
-            <hr className="my-4" />
-
-            <div className="space-y-4">
-              <h3 className="font-semibold uppercase tracking-wider text-muted-foreground">Open Graph (Social)</h3>
-              <div className="space-y-2">
-                <label htmlFor="ogTitle" className="font-medium">
-                  OG Title
-                </label>
-                <Input id="ogTitle" name="ogTitle" defaultValue={page.ogTitle} placeholder="Facebook/Twitter title" />
+                <div className="flex flex-wrap gap-6 pt-2">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
+                    <span className="font-medium">Noindex</span> (Hide from search engines)
+                  </label>
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
+                    <span className="font-medium">Nofollow</span> (Don&apos;t follow links)
+                  </label>
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <label htmlFor="ogDescription" className="font-medium">
-                  OG Description
-                </label>
-                <textarea
-                  id="ogDescription"
-                  name="ogDescription"
-                  defaultValue={page.ogDescription}
-                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  placeholder="Facebook/Twitter description"
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-6 pt-2">
-                <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
-                  <span className="font-medium">Noindex</span> (Hide from search engines)
-                </label>
-                <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
-                  <span className="font-medium">Nofollow</span> (Don&apos;t follow links)
-                </label>
-              </div>
-            </div>
-          </CardContent>
+            </CardContent>
+          </details>
         </Card>
       </div>
 
@@ -327,19 +340,23 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
               </label>
               <select
                 id="template"
-                name="template"
+                name={isProtectedSlug ? undefined : "template"}
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
                 className={`h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring ${isProtectedSlug ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={isProtectedSlug}
               >
-                {Object.entries(CMS_TEMPLATES).map(([key, { label }]) => (
-                  <option key={key} value={key}>
-                    {label}
+                {listPageTemplateOptions().map((template) => (
+                  <option key={template.value} value={template.value}>
+                    {template.label}
                   </option>
                 ))}
               </select>
-              <p className="text-muted-foreground text-xs mt-1">Select a layout template for this page.</p>
+              <p className="text-muted-foreground text-xs mt-1">
+                {isProtectedSlug
+                  ? `Trang hệ thống này dùng template cố định: ${getPageTemplateLabel(initialTemplate)}.`
+                  : "Chọn khuôn mặc định cho trang. Các khác biệt nội dung nên đi qua custom fields."}
+              </p>
             </div>
           </CardContent>
         </Card>

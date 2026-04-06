@@ -14,16 +14,22 @@ This file summarizes repo-specific facts for coding agents.
 
 - Database access is raw SQL through `web/src/lib/db.ts`.
 - Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, and CMS pages.
-- Menu tables are expected by the code but are not auto-created by `db.ts`.
+- Menu tables are also auto-created by `db.ts`.
 - Media metadata is stored in `web/storage/media.json`.
 - Uploaded files are stored in `web/public/uploads/...`.
+- Public page-template config lives in `web/src/features/pages/registry.ts`.
+- System-page config and auth system-page loaders/views live in `web/src/features/system-pages/`.
 
 ## Current product behavior to remember
 
 - Public page routing is CMS-driven through `web/src/app/(client)/[[...slug]]/page.tsx`.
 - `home`, `login`, and `register` are CMS-backed system pages and are auto-created if missing.
+- `home`, `login`, and `register` are seeded from `web/src/lib/db.ts`, not lazily created during read operations.
 - `login` and `register` use dedicated page components, but their editable content still comes from CMS custom fields.
+- `login` and `register` only keep the auth fields currently used by the UI: heading, subheading, and side image.
+- Use `web/src/lib/cms-fields.ts` for `getFields(page)` and `web/src/lib/media.ts` for resolving media field values.
 - Public header links are currently hardcoded in `web/src/app/(client)/layout.tsx`.
+- Current roles are only `admin` and `user`; the first registered account becomes `admin`.
 - Admins are allowed to access public pages and user pages.
 - The media API currently returns the full list of media items; UI pagination is only partial.
 

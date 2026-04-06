@@ -3,11 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CmsPage } from "@/lib/cms";
+import type { CmsPage } from "@/lib/cms";
+import { getFields } from "@/lib/cms-fields";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 export function ContactTemplate({ page }: { page: CmsPage }) {
-  const fields = page.customFields || {};
+  const fields = getFields<{
+    contactEmail?: string;
+    contactPhone?: string;
+    contactAddress?: string;
+    googleMapsEmbed?: string;
+  }>(page);
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 p-6 md:p-10 lg:flex-row">

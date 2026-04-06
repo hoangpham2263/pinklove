@@ -54,7 +54,6 @@ web/
           register/route.ts
           google/{login,callback}/route.ts
         media/route.ts
-        settings/ui-density/route.ts
         user/profile/route.ts
     components/
       common/
@@ -65,6 +64,16 @@ web/
       client/
         PageRenderer.tsx
         templates/
+      pages/
+        registry.ts
+        types.ts
+      system-pages/
+        registry.ts
+        types.ts
+        auth/
+          login-page.tsx
+          register-page.tsx
+          page-loader.ts
       media/
         components/
         server/
@@ -73,9 +82,10 @@ web/
     lib/
       auth.ts
       cms.ts
+      cms-fields.ts
       db.ts
       google-oauth.ts
-      system-pages.ts
+      media.ts
       menu.ts
       routes.ts
       utils.ts
@@ -98,14 +108,12 @@ Overall, the repository is reasonably organized for its current size:
 - `src/lib` contains shared server/helpers and low-level app services
 - `src/components` contains shared UI building blocks
 
-The main structure is good enough to keep, but it is not fully normalized yet.
+The main structure is now reasonably clear and is good enough to keep.
 
 Current cleanup opportunities:
 
 - There is still some route naming asymmetry such as singular `user` and `page` path segments alongside plural `users` and `pages` API groups.
 - Some areas are placeholders rather than full features, especially admin settings and parts of the user area.
-- There are a few leftover empty directories under `src/app/api`, such as `admin/settings/theme` and `api/test-url`, which make the route tree look more complete than it really is.
-- Menu persistence lives in `src/lib/menu.ts`, but the underlying menu tables are still not auto-created by `src/lib/db.ts`.
 - The public shell still uses hardcoded navigation links even though menu management exists in admin.
 
 ## 3) Public site
@@ -114,7 +122,8 @@ Current cleanup opportunities:
 - Public page rendering is handled by `src/app/(client)/[[...slug]]/page.tsx`.
 - Missing slug resolves to `home` through `normalizeSlug()` in `src/lib/cms.ts`.
 - Only pages with `status = 'published'` render publicly.
-- `PageRenderer` selects a template from `src/features/client/templates`.
+- `PageRenderer` renders public pages, and template resolution comes from `src/features/pages/registry.ts`.
+- Special system pages such as `login` and `register` are handled through `src/features/system-pages/**`.
 
 ### Current public templates
 
@@ -131,9 +140,9 @@ These slugs are treated specially in admin:
 - `login`
 - `register`
 
-`home`, `login`, and `register` are guaranteed system pages. The CMS layer auto-creates them in the database if they are missing.
+`home`, `login`, and `register` are guaranteed system pages. `src/lib/db.ts` seeds them into the database if they are missing.
 
-`login` and `register` are editable CMS-backed system pages, but they are rendered by dedicated auth page components instead of `PageRenderer`.
+`login` and `register` are editable CMS-backed system pages, but they are rendered by dedicated auth system-page modules instead of `PageRenderer`.
 
 ## 4) Authentication and authorization
 
@@ -154,10 +163,13 @@ These slugs are treated specially in admin:
 ### Important current behavior
 
 - The first registered account becomes `admin`.
+- Later accounts default to `user`.
 - Admins are allowed to access public pages and user pages, including `/user/login` and `/user/register`.
 - The normal `/user/login` and `/user/register` flows redirect only logged-in non-admin users back to the user dashboard.
 - The `/admin/login` flow rejects non-admins.
+- In practice, `admin` is the full-access role and `user` is the normal application role.
 - Google OAuth currently signs users into the normal user area only.
+- `login` and `register` respect CMS `status`; when set to `draft`, only admins can preview them.
 
 ## 5) Admin area
 
@@ -179,6 +191,7 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
   - Quick-create page
   - Edit body, excerpt, SEO metadata, Open Graph data
   - Edit template-specific custom fields
+  - Preview the currently edited page from the editor header
   - Delete non-protected pages
 - Menus
   - List menus
@@ -195,8 +208,6 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
 ### Important current limitations
 
 - Admin settings do not currently expose working runtime configuration.
-- Menu management code exists, but menu tables are not auto-created by `src/lib/db.ts`.
-- The route tree still contains a few leftover empty API directories that should eventually be removed or implemented.
 
 ## 6) User area
 
@@ -214,15 +225,14 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 
 ### Important current behavior
 
-- `/api/user/profile` rejects admins.
-- There is a UI-density API route, but it currently only allows admins and is not wired into the UI shells.
+- `/api/user/profile` is now aligned with the current access rules and no longer blocks admins.
 - Route naming inside the user/admin areas is functional but not fully normalized yet.
 
 ## 7) CMS
 
 CMS page data is stored in `cms_pages`.
 
-The CMS layer ensures these built-in system pages exist before list/read operations:
+`src/lib/db.ts` ensures these built-in system pages exist during database bootstrap:
 
 - `home`
 - `login`
@@ -245,14 +255,30 @@ The CMS layer ensures these built-in system pages exist before list/read operati
 
 ### Template custom fields
 
-Template-specific fields are defined in `src/features/client/templates/index.ts` and rendered automatically in the admin page editor.
+Public page-template fields and labels are defined in `src/features/pages/registry.ts`.
+System-page schemas are defined in `src/features/system-pages/registry.ts`.
+Both are rendered automatically in the admin page editor.
+
+Field access conventions:
+
+- Use `getFields(page)` from `src/lib/cms-fields.ts` when rendering from a loaded `CmsPage`
+- Use `getFieldsBySlug(slug)` from `src/lib/cms.ts` only in server routes/pages
+- Resolve media-style field values through `resolveMediaUrl()` from `src/lib/media.ts`
+
+Admin editor conventions:
+
+- `Template Custom Fields` use a two-column grid on `md+`
+- regular text/media fields occupy one column
+- `textarea` fields span both columns
+- media preview fills its own field container, but the field itself still follows the grid column layout
+- `SEO Settings` are collapsed by default and opened on demand
 
 Examples:
 
 - `home`: hero title, descriptions, CTA labels/links
 - `about`: banner image, intro heading/text
 - `contact`: email, phone, address, Google Maps embed URL
-- `login` and `register`: heading, subheading, side image, quote content
+- `login` and `register`: heading, subheading, side image
 
 ## 8) Menus
 
@@ -271,7 +297,7 @@ Important current state:
 
 - The public client layout still uses hardcoded `Home`, `About Us`, and `Contact` links.
 - Menu data is currently used by admin tooling, but not rendered in the public shell.
-- `src/lib/db.ts` does not currently auto-create menu tables.
+- `src/lib/db.ts` auto-creates menu tables.
 
 ## 9) Media storage
 
@@ -306,11 +332,11 @@ Important current behavior:
 - `user_profiles`
 - `user_oauth_accounts`
 - `cms_pages`
-
-It does not currently auto-create:
-
 - `cms_menus`
 - `cms_menu_items`
+
+It does not currently auto-create:
+- no additional app tables beyond what the current code depends on
 
 ## 11) Runtime and startup
 

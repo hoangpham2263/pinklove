@@ -7,9 +7,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/data-table";
 import { DeletePageButton } from "@/features/admin/components/delete-page-button";
+import { getPageTemplateLabel } from "@/features/pages/registry";
+import { isSystemPageSlug } from "@/features/system-pages/registry";
 import type { CmsPage } from "@/lib/cms";
-import { CMS_TEMPLATES } from "@/features/client/templates";
-import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 type AdminPagesTableProps = {
   pages: CmsPage[];
@@ -56,10 +56,9 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
       accessorKey: "template",
       header: "Template",
       cell: ({ row }) => {
-        const templateKey = row.original.template as keyof typeof CMS_TEMPLATES;
         return (
           <span className="capitalize text-muted-foreground text-sm">
-            {CMS_TEMPLATES[templateKey]?.label || row.original.template}
+            {getPageTemplateLabel(row.original.template || "default")}
           </span>
         );
       },
@@ -69,7 +68,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
       header: () => <div className="text-right">Hành động</div>,
       cell: ({ row }) => {
         const page = row.original;
-        const isProtectedSlug = !!SYSTEM_PAGES[page.slug];
+        const isProtectedSlug = isSystemPageSlug(page.slug);
         const targetUrl =
           page.slug === "home"
             ? "/"

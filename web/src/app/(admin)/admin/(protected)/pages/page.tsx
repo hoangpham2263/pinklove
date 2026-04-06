@@ -2,9 +2,9 @@ import { QuickCreatePageForm } from "@/features/admin/components/quick-create-pa
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPagesTable } from "@/features/admin/components/admin-pages-table";
+import { SYSTEM_PAGES, isSystemPageSlug } from "@/features/system-pages/registry";
 import { requireAdmin } from "@/lib/auth";
 import { listCmsPages } from "@/lib/cms";
-import { SYSTEM_PAGES } from "@/lib/system-pages";
 
 type AdminPagesIndexProps = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 
@@ -13,7 +13,7 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
   const allPages = await listCmsPages();
   const query = (await searchParams) ?? {};
 
-  const createdPages = allPages.filter((page) => !SYSTEM_PAGES[page.slug]);
+  const createdPages = allPages.filter((page) => !isSystemPageSlug(page.slug));
   
   const systemPagesList = Object.keys(SYSTEM_PAGES)
     .map((slug) => allPages.find((page) => page.slug === slug))

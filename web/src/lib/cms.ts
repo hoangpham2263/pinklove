@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { query } from "@/lib/db";
+import { getFields, type CmsFields } from "@/lib/cms-fields";
 
 export type CmsPage = {
   id?: string | number;
@@ -91,6 +92,13 @@ export async function getCmsPageBySlug(slug: string): Promise<CmsPage | null> {
   );
   if (result.rows.length === 0) return null;
   return mapRowToPage(result.rows[0]);
+}
+
+export async function getFieldsBySlug<TFields extends CmsFields = CmsFields>(
+  slug: string
+): Promise<TFields> {
+  const page = await getCmsPageBySlug(slug);
+  return getFields<TFields>(page);
 }
 
 export async function getPublishedCmsPageBySlug(slug: string): Promise<CmsPage | null> {

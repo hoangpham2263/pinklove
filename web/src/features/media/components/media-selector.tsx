@@ -83,7 +83,7 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
   <Sheet open={isOpen} onOpenChange={setIsOpen}>
   <div className="flex flex-col gap-2">
    {value ? (
-   <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+   <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
     <img src={value} alt="Selected" className="h-full w-full object-cover" />
     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
     <div className="flex gap-2">
@@ -96,7 +96,7 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
    </div>
    ) : (
    <SheetTrigger render={
-    <button className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
+    <button className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
     <ImageIcon className="h-8 w-8 text-muted-foreground" />
     <span className="font-medium text-muted-foreground">Select or Upload Image</span>
     </button>
