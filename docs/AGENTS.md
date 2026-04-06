@@ -13,13 +13,20 @@ This file summarizes repo-specific facts for coding agents.
 ## Important repo facts
 
 - Database access is raw SQL through `web/src/lib/db.ts`.
-- Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, CMS pages, menus, and affiliate tables.
+- Auto-created tables currently cover users, sessions, profiles, settings, OAuth accounts, CMS pages, menus, affiliate tables, products, and wedding sites.
 - Menu tables are also auto-created by `db.ts`.
 - Media metadata is stored in `web/storage/media.json`.
 - Uploaded files are stored in `web/public/uploads/...`.
 - Public page-template config lives in `web/src/features/pages/registry.ts`.
 - System-page config and auth system-page loaders/views live in `web/src/features/system-pages/`.
 - Affiliate foundation lives in `web/src/lib/affiliate.ts` plus `web/src/features/affiliate/`.
+- Wedding product foundation lives in:
+  - `web/src/lib/products.ts`
+  - `web/src/lib/wedding-sites.ts`
+  - `web/src/features/products/`
+  - `web/src/features/wedding-sites/`
+- Wedding templates follow the same registry/schema-driven pattern as CMS page templates.
+- Builder uses `konva` + `react-konva`.
 
 ## Current product behavior to remember
 
@@ -33,7 +40,11 @@ This file summarizes repo-specific facts for coding agents.
 - Current roles are only `admin` and `user`; the first registered account becomes `admin`.
 - Admins are allowed to access public pages and user pages.
 - Affiliate account application, admin approval, referral-link generation, click logging, and referral cookies are implemented.
-- Affiliate conversion attribution and payout settlement are not implemented yet because the repo still has no product/order flow.
+- Wedding product catalog, user site creation, draft/published invitation rendering, and builder-template editing are implemented.
+- Builder-template editing now happens in the dedicated design route `web/src/app/(designer)/user/design/[id]/page.tsx`.
+- The current builder editor uses a top property/action card, a left asset library, a center live editor, and a right publish/settings sidebar.
+- Admin product create/edit/delete flow is implemented at the catalog level.
+- Checkout/payment, real orders, affiliate conversion attribution, and payout settlement are not implemented yet.
 - The media API currently returns the full list of media items; UI pagination is only partial.
 
 ## Development workflow

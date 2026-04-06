@@ -156,6 +156,52 @@ Notes:
 
 - `affiliate_conversions` is schema-ready, but the current repo does not yet create conversion rows automatically because there is no product/order flow.
 
+### `products`
+
+- `id` (`BIGSERIAL`): primary key
+- `slug` (`TEXT`): unique product slug
+- `name` (`TEXT`)
+- `excerpt` (`TEXT`, nullable)
+- `description` (`TEXT`, nullable)
+- `status` (`TEXT`): `draft` or `published`
+- `product_type` (`TEXT`): `coded_template` or `builder_template`
+- `template_key` (`TEXT`)
+- `thumbnail_url` (`TEXT`, nullable)
+- `price` (`NUMERIC(12,2)`)
+- `config` (`JSONB`)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+Notes:
+
+- This is the wedding invitation product catalog.
+- The current repo seeds starter entries for coded templates and builder starter products.
+- Admin can now create, update, and delete catalog entries through the basic product management UI.
+
+### `wedding_sites`
+
+- `id` (`BIGSERIAL`): primary key
+- `user_id` (`BIGINT`): FK to `users.id`
+- `product_id` (`BIGINT`, nullable): FK to `products.id`
+- `title` (`TEXT`)
+- `slug` (`TEXT`): unique public invitation slug
+- `site_type` (`TEXT`): `coded_template` or `builder_template`
+- `template_key` (`TEXT`)
+- `status` (`TEXT`): `draft` or `published`
+- `custom_data` (`JSONB`)
+- `created_at` (`TIMESTAMPTZ`)
+- `updated_at` (`TIMESTAMPTZ`)
+
+Index:
+
+- `wedding_sites_user_id_idx` on `user_id`
+
+Notes:
+
+- This is the per-customer invitation instance, not the catalog product itself.
+- The current repo creates `wedding_sites` directly from the selected product/starter so the content/edit/publish flow can be tested before checkout exists.
+- A later commerce phase should likely add an `orders` or entitlement layer between `products` and `wedding_sites`.
+
 ## 2) Non-database storage used by the project
 
 The media library stores files outside PostgreSQL.

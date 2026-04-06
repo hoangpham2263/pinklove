@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NativeForm } from "@/components/common/native-form";
+import { TemplateFieldsEditor } from "@/components/common/template-fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -159,38 +160,12 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
             <CardHeader className="bg-muted/30 pb-4">
               <CardTitle>Template Custom Fields</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 pt-4 md:grid-cols-2">
-              {templateFields.map((field) => (
-                <div
-                  key={field.name}
-                  className={`space-y-2 ${field.type === "textarea" ? "md:col-span-2" : ""}`}
-                >
-                  <label className="font-medium">
-                    {field.label}
-                  </label>
-                  {field.type === "text" && (
-                    <Input 
-                      value={customFields[field.name] || ""}
-                      onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
-                      placeholder={field.label}
-                    />
-                  )}
-                  {field.type === "textarea" && (
-                    <textarea
-                      value={customFields[field.name] || ""}
-                      onChange={(e) => handleCustomFieldChange(field.name, e.target.value)}
-                      className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      placeholder={field.label}
-                    />
-                  )}
-                  {field.type === "media" && (
-                    <MediaSelector 
-                      value={customFields[field.name] || ""}
-                      onChange={(val) => handleCustomFieldChange(field.name, val)}
-                    />
-                  )}
-                </div>
-              ))}
+            <CardContent>
+              <TemplateFieldsEditor
+                fields={templateFields}
+                values={customFields}
+                onChange={handleCustomFieldChange}
+              />
             </CardContent>
           </Card>
         )}

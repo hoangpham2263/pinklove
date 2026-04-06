@@ -138,7 +138,54 @@
   - `rejected`
   - `blocked`
 - Tracking currently covers referral links, click logging, and referral cookies.
-- Conversion attribution and payout settlement are intentionally not wired yet because the project does not currently have products, checkout, or order completion.
+- Conversion attribution and payout settlement are intentionally not wired yet because the current repo still does not have checkout or order completion.
+
+## 10.2) Wedding product conventions
+
+- Product catalog logic lives in `src/lib/products.ts`.
+- Per-customer invitation/site logic lives in `src/lib/wedding-sites.ts`.
+- Wedding template definitions live in:
+  - `src/features/wedding-sites/templates/registry.ts`
+  - `src/features/wedding-sites/templates/renderers.tsx`
+  - `src/features/wedding-sites/templates/index.ts`
+- Builder implementation lives under `src/features/wedding-sites/builder/*`.
+- `products` is the source catalog for invitation offerings.
+- `wedding_sites` is the per-user site instance created from a coded template or a builder starter.
+- Wedding templates should follow the same structural pattern used by CMS pages:
+  - registry definition
+  - field schema
+  - shared field rendering
+- Public catalog flows live at:
+  - `src/app/(client)/templates/page.tsx`
+  - `src/app/(client)/templates/[slug]/page.tsx`
+  - `src/app/(client)/builder/page.tsx`
+  - `src/app/(client)/builder/[slug]/page.tsx`
+- User site flows live at:
+  - `src/app/(user)/user/(protected)/sites/page.tsx`
+  - `src/app/(user)/user/(protected)/sites/[id]/page.tsx`
+  - `src/app/(designer)/user/design/[id]/page.tsx`
+- Admin product flows live at:
+  - `src/app/(admin)/admin/(protected)/products/page.tsx`
+  - `src/app/(admin)/admin/(protected)/products/[slug]/page.tsx`
+- Admin product APIs live at:
+  - `src/app/api/admin/products/create/route.ts`
+  - `src/app/api/admin/products/update/route.ts`
+  - `src/app/api/admin/products/delete/route.ts`
+- Public invitation rendering lives at `src/app/(client)/w/[slug]/page.tsx`.
+- Product/site types are currently:
+  - `coded_template`
+  - `builder_template`
+- `Thiếp mẫu sẵn` should point only to `coded_template` products.
+- `Tự tạo thiệp` should point only to `builder_template` products.
+- Builder editing now uses a Konva-backed visual editor for text, shape, and image blocks.
+- Builder-template sites should be edited through `src/app/(designer)/user/design/[id]/page.tsx`, not through the generic site form route.
+- The current builder editor layout is:
+  - top property/action controls
+  - left asset library
+  - center live editor
+  - right publish/settings sidebar
+- Full Canva-class features such as layers panel and advanced asset workflows are not implemented yet.
+- Current create flows bypass checkout and create draft `wedding_sites` directly so the product/site editing flow can be tested end to end.
 
 ## 11) Styling conventions
 
@@ -165,4 +212,4 @@
 
 - Check `src/lib/db.ts` before adding schema changes.
 - Follow the existing sequential migration/helper pattern if extending the bootstrap logic.
-- CMS system pages and menu tables are currently bootstrapped from `src/lib/db.ts`.
+- CMS system pages, menu tables, affiliate tables, product tables, and seeded starter products are currently bootstrapped from `src/lib/db.ts`.

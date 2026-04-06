@@ -13,6 +13,11 @@ web/
       (client)/
         layout.tsx
         [[...slug]]/page.tsx
+        builder/page.tsx
+        builder/[slug]/page.tsx
+        templates/page.tsx
+        templates/[slug]/page.tsx
+        w/[slug]/page.tsx
       (admin)/
         admin/
           page.tsx
@@ -28,24 +33,29 @@ web/
             menus/[id]/page.tsx
             pages/page.tsx
             pages/[slug]/page.tsx
+            products/page.tsx
             settings/page.tsx
             user/page.tsx
             user/[id]/page.tsx
       (user)/
         user/
           page.tsx
+          design/[id]/page.tsx
           (auth)/
             layout.tsx
             login/page.tsx
             register/page.tsx
           (protected)/
             layout.tsx
-            dashboard/page.tsx
             affiliate/page.tsx
+            dashboard/page.tsx
             profile/page.tsx
             settings/page.tsx
+            sites/page.tsx
+            sites/[id]/page.tsx
       api/
         admin/
+          products/{create,delete,update}/route.ts
           affiliates/update/route.ts
           auth/login/route.ts
           menus/update/route.ts
@@ -60,16 +70,22 @@ web/
         media/route.ts
         user/affiliate/apply/route.ts
         user/profile/route.ts
+        user/sites/create-builder/route.ts
+        user/sites/create-from-product/route.ts
+        user/sites/update/route.ts
     components/
       common/
       ui/
     features/
       admin/components/
+        product-editor-form.tsx
+        quick-create-product-form.tsx
       affiliate/components/
       auth/components/
       client/
         PageRenderer.tsx
         templates/
+      products/components/
       pages/
         registry.ts
         types.ts
@@ -85,7 +101,13 @@ web/
         server/
         types.ts
       user/components/
+      wedding-sites/
+        builder/
+        components/
+        templates/
+        types.ts
     lib/
+      affiliate.ts
       auth.ts
       cms.ts
       cms-fields.ts
@@ -93,8 +115,10 @@ web/
       google-oauth.ts
       media.ts
       menu.ts
+      products.ts
       routes.ts
       utils.ts
+      wedding-sites.ts
 ```
 
 ## 2) High-level architecture
@@ -121,6 +145,7 @@ Current cleanup opportunities:
 - There is still some route naming asymmetry such as singular `user` and `page` path segments alongside plural `users` and `pages` API groups.
 - Some areas are placeholders rather than full features, especially admin settings and parts of the user area.
 - The public shell still uses hardcoded navigation links even though menu management exists in admin.
+- Product management is editable at the basic catalog level in admin, but commerce and entitlement layers do not exist yet.
 
 ## 3) Public site
 
@@ -212,6 +237,11 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
   - List affiliate applications/accounts
   - Approve, reject, block, or reactivate an affiliate
   - Configure commission mode and value
+- Products
+  - List wedding invitation products
+  - Quick-create a new product
+  - Edit metadata, thumbnail, template key, and default site fields
+  - Delete a catalog entry
 - Settings
   - Page exists, but currently only displays static explanatory content
 
@@ -226,6 +256,13 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 ### Current user features
 
 - Dashboard page exists but is effectively empty.
+- Wedding sites page is implemented and supports:
+  - listing owned invitation sites
+  - creating from `Thiếp mẫu sẵn`
+  - creating from `Tự tạo thiệp`
+  - editing coded-template content
+  - editing builder-template content through a dedicated design route at `/user/design/[id]`
+  - previewing draft invitations through `/w/[slug]?preview=1`
 - Affiliate page is implemented and supports:
   - applying for affiliate status
   - viewing personal referral code and referral link
@@ -245,7 +282,7 @@ The user shell lives under `src/app/(user)/user/(protected)`.
 
 ## 6.1) Affiliate foundation
 
-The repository now includes an affiliate foundation even though product sales do not exist yet.
+The repository now includes an affiliate foundation, but the current wedding product flow still does not have checkout or real orders.
 
 Current implemented pieces:
 
@@ -258,12 +295,41 @@ Current implemented pieces:
 
 Current intentional gaps:
 
-- there is no product catalog
-- there is no checkout/order flow
+- there is no checkout/order flow yet
 - there is no automatic conversion attribution yet
 - there is no payout workflow yet
 
 This means the affiliate feature is structurally ready, but commercial attribution still needs a real commerce layer.
+
+## 6.2) Wedding product foundation
+
+The repository now includes the first foundation for selling online wedding invitation products.
+
+Implemented pieces:
+
+- `products` catalog seeded by `src/lib/db.ts`
+- public `Thiếp mẫu sẵn` listing at `/templates`
+- coded-template detail pages at `/templates/[slug]`
+- public `Tự tạo thiệp` listing at `/builder`
+- builder starter detail pages at `/builder/[slug]`
+- per-user `wedding_sites` instances created directly from a selected product/starter
+- user editor for coded templates
+- dedicated builder editor at `/user/design/[id]`
+- builder editor layout currently uses:
+  - a top property/action card
+  - a left asset library
+  - a center live editor/preview
+  - a right publish/settings sidebar
+- public invitation rendering at `/w/[slug]`
+- admin product CRUD foundation at `/admin/products`
+- wedding templates use the same registry/schema-driven pattern already used for CMS pages
+
+Intentional current gaps:
+
+- no checkout or payment integration yet
+- no `orders` or license/entitlement layer yet
+- no full Canva-class builder yet
+- no order-driven post-purchase provisioning yet
 
 ## 7) CMS
 
@@ -374,9 +440,8 @@ Important current behavior:
 - `affiliate_accounts`
 - `affiliate_clicks`
 - `affiliate_conversions`
-
-It does not currently auto-create:
-- no additional app tables beyond what the current code depends on
+- `products`
+- `wedding_sites`
 
 ## 11) Runtime and startup
 
@@ -405,5 +470,6 @@ If the project is cleaned up further, the best next steps are:
 - normalize naming between page routes and API groups where practical
 - either wire menu data into the public shell or clearly keep it as admin-only tooling
 - either implement the settings area or keep it explicitly documented as placeholder-only
+- add an order/license layer between `products` and `wedding_sites` when commerce starts
 
 None of those are blockers for the current codebase, but they are the main places where the structure still feels partially transitional.

@@ -1,0 +1,27 @@
+import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
+import { deleteProduct } from "@/lib/products";
+import { ROUTES } from "@/lib/routes";
+
+export const runtime = "nodejs";
+
+export async function POST(request: Request) {
+  await requireAdmin();
+
+  const formData = await request.formData();
+  const slug = String(formData.get("slug") ?? "").trim();
+
+  if (!slug) {
+    return new NextResponse(null, {
+      status: 303,
+      headers: { Location: `${ROUTES.ADMIN.PRODUCTS}?error=missing_slug` },
+    });
+  }
+
+  await deleteProduct(slug);
+
+  return new NextResponse(null, {
+    status: 303,
+    headers: { Location: `${ROUTES.ADMIN.PRODUCTS}?deleted=1` },
+  });
+}

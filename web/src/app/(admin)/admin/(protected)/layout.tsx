@@ -4,6 +4,7 @@ import {
  Files,
  Menu as MenuIcon,
  Image as ImageIcon,
+ ShoppingBag,
  Users,
  BadgePercent,
  Settings,
@@ -63,6 +64,14 @@ export default async function AdminLayout({
     <Files className="h-5 w-5" />
 
     Trang
+
+   </Link>
+
+   <Link href={ROUTES.ADMIN.PRODUCTS} className={navItemClasses}>
+
+    <ShoppingBag className="h-5 w-5" />
+
+    Sản phẩm
 
    </Link>
 
@@ -169,6 +178,14 @@ export default async function AdminLayout({
     <Files className="h-4 w-4" />
 
     Các trang
+
+    </Link>
+
+    <Link href={ROUTES.ADMIN.PRODUCTS} className="flex items-center gap-1.5 whitespace-nowrap">
+
+    <ShoppingBag className="h-4 w-4" />
+
+    Sản phẩm
 
     </Link>
 

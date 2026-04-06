@@ -48,10 +48,13 @@ function Button({
  size ="default",
  ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+ const isCustomRender = "render" in props && props.render !== undefined
+
  return (
  <ButtonPrimitive
   data-slot="button"
   className={cn(buttonVariants({ variant, size, className }))}
+  nativeButton={!isCustomRender}
   {...props}
  />
  )

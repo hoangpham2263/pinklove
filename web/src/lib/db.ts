@@ -12,6 +12,8 @@ const globalForDb = globalThis as unknown as {
  oauthAccountsMigrationDone?: boolean;
  menuTablesMigrationDone?: boolean;
  affiliateTablesMigrationDone?: boolean;
+ productTablesMigrationDone?: boolean;
+ productSeedDone?: boolean;
  systemPagesSeedDone?: boolean;
 };
 
@@ -348,6 +350,153 @@ async function ensureAffiliateTablesMigration() {
   `);
 }
 
+async function ensureProductTablesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS products (
+      id BIGSERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      excerpt TEXT,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      product_type TEXT NOT NULL,
+      template_key TEXT NOT NULL,
+      thumbnail_url TEXT,
+      price NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
+      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_sites (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id BIGINT REFERENCES products(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      site_type TEXT NOT NULL,
+      template_key TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT wedding_sites_type_check CHECK (site_type IN ('coded_template', 'builder_template')),
+      CONSTRAINT wedding_sites_status_check CHECK (status IN ('draft', 'published'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS wedding_sites_user_id_idx
+    ON wedding_sites(user_id);
+  `);
+}
+
+async function ensureProductSeed() {
+  const pool = getPool();
+
+  const seedProducts = [
+    {
+      slug: "romantic-bloom",
+      name: "Romantic Bloom",
+      excerpt: "Mẫu thiệp cưới phong cách nhẹ nhàng, hiện đại và dễ chỉnh sửa.",
+      description: "Template code sẵn dành cho các cặp đôi muốn triển khai nhanh với bố cục tinh tế và trang gallery đơn giản.",
+      productType: "coded_template",
+      templateKey: "romantic_bloom",
+      price: "990000",
+      config: {
+        siteDefaults: {
+          heroTitle: "Minh & Lan",
+          heroSubtitle: "Trân trọng kính mời bạn đến chung vui trong ngày trọng đại của chúng tôi.",
+          eventDate: "15.12.2026",
+          venue: "White Palace, TP.HCM",
+          storyTitle: "Chuyện của chúng mình",
+          storyBody: "Từ một lần gặp gỡ rất tình cờ, chúng mình đã cùng nhau đi qua nhiều kỷ niệm đẹp.",
+          gallery: [],
+        },
+      },
+    },
+    {
+      slug: "classic-garden",
+      name: "Classic Garden",
+      excerpt: "Mẫu thiệp cưới cân bằng giữa phong cách cổ điển và bố cục hiện đại.",
+      description: "Template code sẵn phù hợp với lễ cưới sang trọng, tối ưu cho phần lịch trình và album ảnh.",
+      productType: "coded_template",
+      templateKey: "classic_garden",
+      price: "1290000",
+      config: {
+        siteDefaults: {
+          heroTitle: "Huy & Trâm",
+          heroSubtitle: "Một lời mời ấm áp dành cho người thân yêu trong ngày cưới của chúng tôi.",
+          eventDate: "20.01.2027",
+          venue: "Garden Hall, Đà Lạt",
+          storyTitle: "Hành trình yêu thương",
+          storyBody: "Chúng mình mong được chia sẻ niềm vui này với tất cả bạn bè và người thân.",
+          gallery: [],
+        },
+      },
+    },
+    {
+      slug: "builder-starter",
+      name: "Builder Starter",
+      excerpt: "Bắt đầu từ bố cục section-based để tự tạo thiệp cưới theo ý muốn.",
+      description: "Sản phẩm nền tảng cho luồng tự tạo thiệp. Hiện đang ở mức section-based builder và sẵn sàng cho phase kéo-thả sau.",
+      productType: "builder_template",
+      templateKey: "freeform_sections",
+      price: "0",
+      config: {
+        siteDefaults: {
+          heroTitle: "Tự tạo thiệp cưới của bạn",
+          heroSubtitle: "Bắt đầu với bố cục section-based và tùy biến nội dung theo ý muốn.",
+          sectionOneTitle: "Giới thiệu",
+          sectionOneBody: "Chào mừng bạn đến với ngày đặc biệt của chúng tôi.",
+          sectionTwoTitle: "Lịch trình",
+          sectionTwoBody: "Lễ cưới sẽ diễn ra vào lúc 18:00 tại địa điểm được ghi bên dưới.",
+          sectionThreeTitle: "Lời nhắn",
+          sectionThreeBody: "Rất mong được gặp bạn trong ngày vui của chúng tôi.",
+        },
+      },
+    },
+  ] as const;
+
+  for (const product of seedProducts) {
+    await pool.query(
+      `
+        INSERT INTO products (
+          slug, name, excerpt, description, status, product_type, template_key, price, config
+        )
+        VALUES ($1, $2, $3, $4, 'published', $5, $6, $7, $8)
+        ON CONFLICT (slug) DO UPDATE
+        SET
+          name = EXCLUDED.name,
+          excerpt = EXCLUDED.excerpt,
+          description = EXCLUDED.description,
+          status = EXCLUDED.status,
+          product_type = EXCLUDED.product_type,
+          template_key = EXCLUDED.template_key,
+          price = EXCLUDED.price,
+          config = EXCLUDED.config,
+          updated_at = NOW()
+      `,
+      [
+        product.slug,
+        product.name,
+        product.excerpt,
+        product.description,
+        product.productType,
+        product.templateKey,
+        product.price,
+        product.config,
+      ]
+    );
+  }
+}
+
 async function ensureSystemPagesSeed() {
   const pool = getPool();
 
@@ -408,9 +557,19 @@ export async function ensureDb() {
     globalForDb.affiliateTablesMigrationDone = true;
   }
 
+  if (!globalForDb.productTablesMigrationDone) {
+    await ensureProductTablesMigration();
+    globalForDb.productTablesMigrationDone = true;
+  }
+
   if (!globalForDb.systemPagesSeedDone) {
     await ensureSystemPagesSeed();
     globalForDb.systemPagesSeedDone = true;
+  }
+
+  if (!globalForDb.productSeedDone) {
+    await ensureProductSeed();
+    globalForDb.productSeedDone = true;
   }
 }
 

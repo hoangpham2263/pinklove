@@ -20,6 +20,12 @@ export default async function ClientLayout({
    <Link href="/" className="text-muted-foreground hover:text-foreground">
     Home
    </Link>
+   <Link href={ROUTES.TEMPLATES} className="text-muted-foreground hover:text-foreground">
+    Thiếp mẫu sẵn
+   </Link>
+   <Link href={ROUTES.BUILDER} className="text-muted-foreground hover:text-foreground">
+    Tự tạo thiệp
+   </Link>
    <Link href="/about-us" className="text-muted-foreground hover:text-foreground">
     About Us
    </Link>
@@ -38,6 +44,9 @@ export default async function ClientLayout({
      <Link href={dashboardHref} className="rounded-md px-2 py-1 hover:bg-muted">
       {user.role ==="admin" ?"Quản lý Admin" :"Trang người dùng"}
      </Link>
+                       <Link href={ROUTES.USER.SITES} className="rounded-md px-2 py-1 hover:bg-muted">
+                         Thiệp của tôi
+                       </Link>
                        <Link href={settingsHref} className="rounded-md px-2 py-1 hover:bg-muted">
                          Cài đặt tài khoản
                        </Link>

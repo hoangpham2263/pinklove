@@ -16,9 +16,26 @@ Current notable behavior:
 - ACF/custom fields are read through shared CMS helpers and media fields are resolved through a shared media URL helper
 - Public page templates live in `web/src/features/pages/registry.ts`
 - System-page config and auth system-page views live in `web/src/features/system-pages/`
+- Wedding product catalog and wedding-site flow live in:
+  - `web/src/lib/products.ts`
+  - `web/src/lib/wedding-sites.ts`
+  - `web/src/features/products/`
+  - `web/src/features/wedding-sites/`
 - Account roles are currently only `admin` and `user`; the first registered account becomes `admin`
 - Affiliate foundation is implemented: users can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
-- Product checkout, conversion attribution, and payout settlement are intentionally not implemented yet because the repo does not have a commerce flow
+- Wedding invitation product foundation is implemented:
+  - `Thiếp mẫu sẵn` for coded templates
+  - `Tự tạo thiệp` for builder starters
+  - per-user `wedding_sites` drafts/published sites
+- Wedding invitation templates now follow the same registry/schema-driven pattern used by CMS page templates.
+- Admin product management now includes basic create/edit/delete flow.
+- Builder now uses `konva` + `react-konva` for direct visual editing of `builder_template` sites.
+- Builder-template sites are edited in a dedicated design route at `/user/design/[id]` with:
+  - top builder property controls
+  - left asset library
+  - center live editor
+  - right publish/settings sidebar
+- Checkout, real orders, conversion attribution, and payout settlement are intentionally not implemented yet
 
 ## Getting Started
 

@@ -1,5 +1,6 @@
 import Link from"next/link";
 import { LayoutDashboard, 
+ FolderHeart,
  User as UserIcon, 
  BadgePercent,
  Settings, 
@@ -27,6 +28,10 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <Link href={ROUTES.USER.DASHBOARD} className={navItemClasses }>
  <LayoutDashboard className="h-5 w-5" />
  Bảng điều khiển
+ </Link>
+ <Link href={ROUTES.USER.SITES} className={navItemClasses }>
+ <FolderHeart className="h-5 w-5" />
+ Thiệp của tôi
  </Link>
  <Link href="/user/profile" className={navItemClasses }>
  <UserIcon className="h-5 w-5" />
@@ -64,6 +69,10 @@ export default async function UserLayout({ children, }: Readonly<{ children:Reac
  <Link href={ROUTES.USER.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
  <LayoutDashboard className="h-4 w-4" />
  Bảng điều khiển
+ </Link>
+ <Link href={ROUTES.USER.SITES} className="flex items-center gap-1.5 whitespace-nowrap">
+ <FolderHeart className="h-4 w-4" />
+ Thiệp của tôi
  </Link>
  <Link href="/user/profile" className="flex items-center gap-1.5 whitespace-nowrap">
  <UserIcon className="h-4 w-4" />
