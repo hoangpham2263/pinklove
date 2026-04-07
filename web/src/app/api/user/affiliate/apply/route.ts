@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAppUser } from "@/lib/auth";
-import { applyForAffiliate } from "@/lib/affiliate";
+import { applyForAffiliate } from "@/features/affiliate/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

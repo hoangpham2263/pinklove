@@ -1,5 +1,14 @@
-import { LoginSystemPage } from "@/features/system-pages/auth/login-page";
+import { LoginForm } from "@/features/auth/components/login-forms";
+import { loadAuthPage } from "@/features/auth/page-loader";
 
 export default async function LoginPage() {
-  return <LoginSystemPage />;
+  const page = await loadAuthPage("login");
+
+  return (
+    <LoginForm
+      heading={page.heading}
+      subheading={page.subheading}
+      sideImage={page.sideImage}
+    />
+  );
 }

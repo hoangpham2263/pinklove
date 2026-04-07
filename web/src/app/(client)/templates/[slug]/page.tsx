@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NativeForm } from "@/components/common/native-form";
 import { getCurrentUser } from "@/lib/auth";
-import { getPublishedProductBySlugAndType } from "@/lib/products";
-import { getWeddingTemplateDefaults, getWeddingTemplateLabel } from "@/features/wedding-sites/templates";
+import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
+import { getWeddingTemplateDefaults, getWeddingTemplateLabel } from "@/features/sites/templates";
 import { ROUTES } from "@/lib/routes";
 
 type TemplateDetailPageProps = {

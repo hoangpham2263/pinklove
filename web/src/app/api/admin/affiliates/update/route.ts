@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import {
-  adminUpdateAffiliateAccount,
   type AffiliateCommissionType,
   type AffiliateStatus,
-} from "@/lib/affiliate";
+} from "@/features/affiliate/types";
+import { adminUpdateAffiliateAccount } from "@/features/affiliate/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

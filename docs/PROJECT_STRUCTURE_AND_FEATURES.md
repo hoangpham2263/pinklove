@@ -12,9 +12,11 @@ web/
       globals.css
       (client)/
         layout.tsx
-        [[...slug]]/page.tsx
+        page.tsx
+        about-us/page.tsx
         builder/page.tsx
         builder/[slug]/page.tsx
+        contact/page.tsx
         templates/page.tsx
         templates/[slug]/page.tsx
         w/[slug]/page.tsx
@@ -59,7 +61,7 @@ web/
           affiliates/update/route.ts
           auth/login/route.ts
           menus/update/route.ts
-          pages/{create,delete,update}/route.ts
+          pages/update/route.ts
           users/{create,delete,role,update}/route.ts
         affiliate/track/route.ts
         auth/
@@ -81,33 +83,30 @@ web/
         product-editor-form.tsx
         quick-create-product-form.tsx
       affiliate/components/
-      auth/components/
-      client/
-        PageRenderer.tsx
-        templates/
+      affiliate/server/
+      auth/
+        components/
+        fields.ts
+        page-loader.ts
+        page-registry.ts
       products/components/
+      products/server/
+      products/types.ts
       pages/
         registry.ts
-        types.ts
-      system-pages/
-        registry.ts
-        types.ts
-        auth/
-          login-page.tsx
-          register-page.tsx
-          page-loader.ts
+        schema.ts
       media/
         components/
         server/
         types.ts
       user/components/
-      wedding-sites/
+      sites/
         builder/
         components/
+        server/
         templates/
         types.ts
     lib/
-      affiliate.ts
       auth.ts
       cms.ts
       cms-fields.ts
@@ -115,16 +114,14 @@ web/
       google-oauth.ts
       media.ts
       menu.ts
-      products.ts
       routes.ts
       utils.ts
-      wedding-sites.ts
 ```
 
 ## 2) High-level architecture
 
 - The app is a monolithic Next.js application inside `web/`.
-- Route handlers and server components call helpers in `src/lib/*`.
+- Route handlers and server components call shared infra in `src/lib/*` and feature-owned server services in `src/features/*/server/*`.
 - Database access is raw SQL through `src/lib/db.ts`.
 - `db.ts` also performs a limited set of auto-migrations on first use.
 - Media files are stored on disk, not in PostgreSQL.
@@ -135,7 +132,7 @@ Overall, the repository is reasonably organized for its current size:
 
 - `src/app` contains routing, layouts, and API entry points
 - `src/features` contains feature-specific UI and behavior
-- `src/lib` contains shared server/helpers and low-level app services
+- `src/lib` contains shared infra/helpers such as auth, db, routes, and general utilities
 - `src/components` contains shared UI building blocks
 
 The main structure is now reasonably clear and is good enough to keep.
@@ -150,18 +147,14 @@ Current cleanup opportunities:
 ## 3) Public site
 
 - The public website uses the `(client)` route group.
-- Public page rendering is handled by `src/app/(client)/[[...slug]]/page.tsx`.
-- Missing slug resolves to `home` through `normalizeSlug()` in `src/lib/cms.ts`.
+- Public content pages are explicit route files in `src/app/(client)`.
+- Current managed content routes are:
+  - `src/app/(client)/page.tsx`
+  - `src/app/(client)/about-us/page.tsx`
+  - `src/app/(client)/contact/page.tsx`
 - Only pages with `status = 'published'` render publicly.
-- `PageRenderer` renders public pages, and template resolution comes from `src/features/pages/registry.ts`.
-- Special system pages such as `login` and `register` are handled through `src/features/system-pages/**`.
-
-### Current public templates
-
-- `default`
-- `home`
-- `about`
-- `contact`
+- Managed public pages render directly from route-local components under `src/app/(client)`.
+- Special auth pages such as `login` and `register` are handled through `src/features/auth/page-registry.ts` and `src/features/auth/page-loader.ts`.
 
 ### System pages
 
@@ -173,7 +166,7 @@ These slugs are treated specially in admin:
 
 `home`, `login`, and `register` are guaranteed system pages. `src/lib/db.ts` seeds them into the database if they are missing.
 
-`login` and `register` are editable CMS-backed system pages, but they are rendered by dedicated auth system-page modules instead of `PageRenderer`.
+`login` and `register` are editable CMS-backed system pages, but they are rendered by dedicated auth system-page modules instead of the normal content-page routes.
 
 ## 4) Authentication and authorization
 
@@ -218,12 +211,11 @@ The admin shell lives under `src/app/(admin)/admin/(protected)`.
   - Prevent deleting yourself
   - Prevent removing the last admin
 - Pages
-  - List CMS pages
-  - Quick-create page
+  - List managed content pages and system pages already registered in code
   - Edit body, excerpt, SEO metadata, Open Graph data
   - Edit template-specific custom fields
   - Preview the currently edited page from the editor header
-  - Delete non-protected pages
+  - Does not create/delete routes from admin
 - Menus
   - List menus
   - Edit menu label and items
@@ -358,8 +350,8 @@ CMS page data is stored in `cms_pages`.
 
 ### Template custom fields
 
-Public page-template fields and labels are defined in `src/features/pages/registry.ts`.
-System-page schemas are defined in `src/features/system-pages/registry.ts`.
+Public content-page fields and labels are defined in `src/features/pages/registry.ts`.
+Auth-page schemas are defined in `src/features/auth/page-registry.ts`.
 Both are rendered automatically in the admin page editor.
 
 Field access conventions:
@@ -445,9 +437,9 @@ Important current behavior:
 
 ## 11) Runtime and startup
 
-- Development stack is defined in `docker-compose.yml`.
-- Production-style stack is defined in `docker-compose.prod.yml`.
-- The helper script is `./setup`.
+- Development stack is defined in `docker/compose.yml`.
+- Production-style stack is defined in `docker/compose.prod.yml`.
+- The helper script is `./docker/setup`.
 
 ### Development defaults from the repo
 

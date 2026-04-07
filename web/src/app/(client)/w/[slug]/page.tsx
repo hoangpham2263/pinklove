@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getPublicWeddingSiteBySlug } from "@/lib/wedding-sites";
-import { renderWeddingSite } from "@/features/wedding-sites/templates";
+import { getPublicWeddingSiteBySlug } from "@/features/sites/server/service";
+import { renderWeddingSite } from "@/features/sites/templates";
 
 type WeddingSitePublicPageProps = {
   params: Promise<{ slug: string }>;

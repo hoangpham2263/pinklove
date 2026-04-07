@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { listContentPageSlugs } from "@/features/pages/registry";
+import { AUTH_PAGES } from "@/features/auth/page-registry";
 import { query } from "@/lib/db";
 import { getFields, type CmsFields } from "@/lib/cms-fields";
 
@@ -85,6 +87,15 @@ export async function listCmsPages(): Promise<CmsPage[]> {
   return result.rows.map(mapRowToPage);
 }
 
+export async function listManagedCmsPages(): Promise<CmsPage[]> {
+  const pages = await listCmsPages();
+  const managedSlugs = [...Object.keys(AUTH_PAGES), ...listContentPageSlugs()];
+
+  return managedSlugs
+    .map((slug) => pages.find((page) => page.slug === slug))
+    .filter((page): page is CmsPage => page !== undefined);
+}
+
 export async function getCmsPageBySlug(slug: string): Promise<CmsPage | null> {
   const result = await query<CmsPageRow>(
     "SELECT * FROM cms_pages WHERE slug = $1 LIMIT 1",
@@ -107,30 +118,6 @@ export async function getPublishedCmsPageBySlug(slug: string): Promise<CmsPage |
     return page;
   }
   return null;
-}
-
-export async function createCmsPage(data: CmsPage): Promise<CmsPage> {
-  const normalizedTitle = data.title?.trim() || data.name;
-
-  const result = await query<CmsPageRow>(
-    `
-    INSERT INTO cms_pages (
-      slug, name, title, excerpt, body, status, template,
-      seo_title, seo_description, seo_keywords, canonical_url,
-      og_title, og_description, og_image, noindex, nofollow, custom_fields
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
-    ) RETURNING *
-    `,
-    [
-      data.slug, data.name, normalizedTitle, data.excerpt || null, data.body || null,
-      data.status || 'draft', data.template || 'default',
-      data.seoTitle || null, data.seoDescription || null, data.seoKeywords || null, data.canonicalUrl || null,
-      data.ogTitle || null, data.ogDescription || null, data.ogImage || null,
-      data.noindex || false, data.nofollow || false, data.customFields || {}
-    ]
-  );
-  return mapRowToPage(result.rows[0]);
 }
 
 export async function updateCmsPage(slug: string, data: Partial<CmsPage>): Promise<CmsPage | null> {
@@ -186,18 +173,6 @@ export async function updateCmsPage(slug: string, data: Partial<CmsPage>): Promi
   );
   if (result.rows.length === 0) return null;
   return mapRowToPage(result.rows[0]);
-}
-
-export async function deleteCmsPage(slug: string): Promise<boolean> {
-  const existing = await getCmsPageBySlug(slug);
-  if (!existing) return false;
-
-  const result = await query(
-    "DELETE FROM cms_pages WHERE slug = $1 RETURNING id",
-    [slug]
-  );
-  
-  return result.rowCount !== null && result.rowCount > 0;
 }
 
 export function buildPageMetadata(page: CmsPage): Metadata {

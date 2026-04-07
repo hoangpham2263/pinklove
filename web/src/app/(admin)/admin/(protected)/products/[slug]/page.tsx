@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { getProductBySlug } from "@/lib/products";
-import { ProductEditorForm } from "@/features/admin/components/product-editor-form";
+import { getProductBySlug } from "@/features/products/server/service";
+import { ProductEditorForm } from "@/features/admin/components/products/product-editor-form";
 import { ROUTES } from "@/lib/routes";
 
 type AdminProductEditorPageProps = {

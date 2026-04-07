@@ -1,7 +1,8 @@
 import"server-only";
 
 import { Pool } from"pg";
-import { SYSTEM_PAGES } from "@/features/system-pages/registry";
+import { CONTENT_PAGES } from "@/features/pages/registry";
+import { AUTH_PAGES } from "@/features/auth/page-registry";
 
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
@@ -497,21 +498,34 @@ async function ensureProductSeed() {
   }
 }
 
-async function ensureSystemPagesSeed() {
+async function ensureManagedPagesSeed() {
   const pool = getPool();
 
-  for (const [slug, config] of Object.entries(SYSTEM_PAGES)) {
+  for (const [slug, config] of Object.entries(AUTH_PAGES)) {
     await pool.query(
       `
-      INSERT INTO cms_pages (slug, name, title, status, template, custom_fields)
-      VALUES ($1, $2, $3, 'draft', $4, '{}'::jsonb)
+      INSERT INTO cms_pages (slug, name, title, status, custom_fields)
+      VALUES ($1, $2, $3, 'draft', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
-        template = EXCLUDED.template,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name, config.template]
+      [slug, config.name, config.name]
+    );
+  }
+
+  for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
+    await pool.query(
+      `
+      INSERT INTO cms_pages (slug, name, title, status, custom_fields)
+      VALUES ($1, $2, $3, 'draft', '{}'::jsonb)
+      ON CONFLICT (slug) DO UPDATE
+      SET
+        name = EXCLUDED.name,
+        updated_at = NOW()
+      `,
+      [slug, config.name, config.name]
     );
   }
 }
@@ -563,7 +577,7 @@ export async function ensureDb() {
   }
 
   if (!globalForDb.systemPagesSeedDone) {
-    await ensureSystemPagesSeed();
+    await ensureManagedPagesSeed();
     globalForDb.systemPagesSeedDone = true;
   }
 

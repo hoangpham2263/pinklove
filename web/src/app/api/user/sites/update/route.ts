@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { buildWeddingSitePayload, updateWeddingSiteForUser } from "@/lib/wedding-sites";
+import { buildWeddingSitePayload, updateWeddingSiteForUser } from "@/features/sites/server/service";
 
 export const runtime = "nodejs";
 

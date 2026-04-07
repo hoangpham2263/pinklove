@@ -4,7 +4,7 @@ import {
   AFFILIATE_REF_COOKIE_NAME,
   AFFILIATE_VISITOR_COOKIE_NAME,
   recordAffiliateClick,
-} from "@/lib/affiliate";
+} from "@/features/affiliate/server/service";
 
 export const runtime = "nodejs";
 

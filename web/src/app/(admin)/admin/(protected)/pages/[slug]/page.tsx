@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getCmsPageBySlug } from "@/lib/cms";
-import { PageEditorForm } from "@/features/admin/components/page-editor-form";
+import { PageEditorForm } from "@/features/admin/components/pages/page-editor-form";
+import { isContentPageSlug } from "@/features/pages/registry";
+import { isAuthPageSlug } from "@/features/auth/page-registry";
 
 type AdminPageEditorProps = {
   params: Promise<{ slug: string }>;
@@ -13,6 +15,9 @@ type AdminPageEditorProps = {
 export default async function AdminPageEditor({ params, searchParams }: AdminPageEditorProps) {
   await requireAdmin();
   const { slug } = await params;
+  if (!isAuthPageSlug(slug) && !isContentPageSlug(slug)) {
+    notFound();
+  }
   const page = await getCmsPageBySlug(slug);
 
   if (!page) {

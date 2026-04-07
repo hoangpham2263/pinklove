@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { NativeForm } from "@/components/common/native-form";
-import { TemplateFieldsEditor } from "@/components/common/template-fields-editor";
+import { FieldsEditor } from "@/components/common/fields-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { getWeddingSiteByIdForUser } from "@/lib/wedding-sites";
-import { BuilderEditorLoader } from "@/features/wedding-sites/builder/editor-loader";
-import { getWeddingTemplateFields } from "@/features/wedding-sites/templates";
+import { getWeddingSiteByIdForUser } from "@/features/sites/server/service";
+import { BuilderEditorClient } from "@/features/sites/builder/editor-client";
+import { getWeddingTemplateFields } from "@/features/sites/templates";
 
 type WeddingSiteEditorPageProps = {
   params: Promise<{ id: string }>;
@@ -87,7 +87,7 @@ export default async function WeddingSiteEditorPage({ params, searchParams }: We
             </div>
 
             {site.siteType === "builder_template" ? (
-              <BuilderEditorLoader initialValue={data.builderDocument ?? data.builderCanvas} />
+              <BuilderEditorClient initialValue={data.builderDocument ?? data.builderCanvas} />
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
@@ -101,7 +101,7 @@ export default async function WeddingSiteEditorPage({ params, searchParams }: We
                 </div>
 
                 <div className="md:col-span-2">
-                  <TemplateFieldsEditor
+                  <FieldsEditor
                     fields={templateFields.filter((field) => !["heroTitle", "heroSubtitle"].includes(field.name))}
                     values={fieldValues}
                   />

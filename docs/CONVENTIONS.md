@@ -16,7 +16,8 @@
 - Keep domain logic in `src/features/<feature>`.
 - Keep shared UI in `src/components/ui`.
 - Keep shared app-level components in `src/components/common`.
-- Keep shared server/helpers in `src/lib`.
+- Keep shared infra/helpers in `src/lib`.
+- Prefer feature-owned `server/*` modules for domain services.
 
 ## 2) Routing
 
@@ -68,10 +69,11 @@
 
 ## 8) CMS conventions
 
-- CMS pages are stored in `cms_pages`.
-- Public rendering is CMS-driven through `src/app/(client)/[[...slug]]/page.tsx`.
-- Public page template registry lives in `src/features/pages/registry.ts`.
-- System-page registry lives in `src/features/system-pages/registry.ts`.
+- CMS page content is stored in `cms_pages`.
+- Public content routes are code-managed through explicit files under `src/app/(client)`.
+- Managed content-page config lives in `src/features/pages/registry.ts`.
+- Auth-page config lives in `src/features/auth/page-registry.ts`.
+- Public page UI should live with the route in `src/app/(client)` rather than behind a separate template layer.
 - Template-specific fields are stored in `cms_pages.custom_fields`.
 - Use `getFields(page)` from `src/lib/cms-fields.ts` when a page object is already available.
 - Use `getFieldsBySlug(slug)` from `src/lib/cms.ts` only in server routes/pages that need to load fields by slug.
@@ -79,14 +81,16 @@
   - `home`
   - `login`
   - `register`
+- Content pages such as `about-us` and `contact` are also code-managed and seeded if missing.
 - These system pages are seeded by `src/lib/db.ts` if missing.
-- User-facing system-page route controllers should stay in `src/app/**/page.tsx`, but their loading/render logic should live in `src/features/system-pages/**`.
+- User-facing auth-page route controllers should stay in `src/app/**/page.tsx`, but shared auth-page loading logic should live in `src/features/auth/page-loader.ts`.
 - `login` and `register` only keep the auth fields currently used by the UI:
   - `heading`
   - `subheading`
   - `sideImage`
 - Auth field definitions live in `src/features/auth/fields.ts`.
 - System-page status must still be respected publicly: `draft` pages are only previewable by admins.
+- Admin should edit only managed content/system pages that already exist in code; creating a new page means adding a new route file and registering it in the content-page registry.
 
 ## 8.1) ACF layout conventions
 
@@ -123,7 +127,7 @@
 
 ## 10.1) Affiliate conventions
 
-- Affiliate logic lives in `src/lib/affiliate.ts`.
+- Affiliate server logic lives in `src/features/affiliate/server/service.ts`.
 - Affiliate UI lives under:
   - `src/features/affiliate/*`
   - `src/app/(user)/user/(protected)/affiliate/page.tsx`
@@ -142,13 +146,13 @@
 
 ## 10.2) Wedding product conventions
 
-- Product catalog logic lives in `src/lib/products.ts`.
-- Per-customer invitation/site logic lives in `src/lib/wedding-sites.ts`.
+- Product catalog logic lives in `src/features/products/server/service.ts`.
+- Per-customer invitation/site logic lives in `src/features/sites/server/service.ts`.
 - Wedding template definitions live in:
-  - `src/features/wedding-sites/templates/registry.ts`
-  - `src/features/wedding-sites/templates/renderers.tsx`
-  - `src/features/wedding-sites/templates/index.ts`
-- Builder implementation lives under `src/features/wedding-sites/builder/*`.
+  - `src/features/sites/templates/registry.ts`
+  - `src/features/sites/templates/renderers.tsx`
+  - `src/features/sites/templates/index.ts`
+- Builder implementation lives under `src/features/sites/builder/*`.
 - `products` is the source catalog for invitation offerings.
 - `wedding_sites` is the per-user site instance created from a coded template or a builder starter.
 - Wedding templates should follow the same structural pattern used by CMS pages:
@@ -198,10 +202,10 @@
 
 ## 12) Runtime and startup
 
-- Use `./setup` at repo root for common Docker workflows.
-- `./setup` supports `up`, `rebuild`, `down`, and `logs`.
-- Development stack configuration lives in `docker-compose.yml`.
-- Production-style stack lives in `docker-compose.prod.yml`.
+- Use `./docker/setup` for common Docker workflows.
+- `./docker/setup` supports `up`, `rebuild`, `down`, and `logs`.
+- Development stack configuration lives in `docker/compose.yml`.
+- Production-style stack lives in `docker/compose.prod.yml`.
 - The dev web service bind-mounts `./web` into the container.
 - The dev stack does not keep a dedicated `.next` volume.
 - Default values in `.env.example` are currently:

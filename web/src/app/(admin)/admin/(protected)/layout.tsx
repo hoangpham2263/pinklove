@@ -11,7 +11,7 @@ import {
  ExternalLink
 } from"lucide-react";
 
-import { AdminTopHeader } from"@/features/admin/components/admin-top-header";
+import { AdminTopHeader } from"@/features/admin/components/layout/admin-top-header";
 
 import { requireAdmin } from"@/lib/auth";
 import { ROUTES } from "@/lib/routes";

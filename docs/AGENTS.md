@@ -17,20 +17,23 @@ This file summarizes repo-specific facts for coding agents.
 - Menu tables are also auto-created by `db.ts`.
 - Media metadata is stored in `web/storage/media.json`.
 - Uploaded files are stored in `web/public/uploads/...`.
-- Public page-template config lives in `web/src/features/pages/registry.ts`.
-- System-page config and auth system-page loaders/views live in `web/src/features/system-pages/`.
-- Affiliate foundation lives in `web/src/lib/affiliate.ts` plus `web/src/features/affiliate/`.
+- Public content-page config lives in `web/src/features/pages/registry.ts`.
+- Auth-page config and shared loading logic live in:
+  - `web/src/features/auth/page-registry.ts`
+  - `web/src/features/auth/page-loader.ts`
+- Affiliate foundation lives in `web/src/features/affiliate/`, with server logic in `web/src/features/affiliate/server/service.ts`.
 - Wedding product foundation lives in:
-  - `web/src/lib/products.ts`
-  - `web/src/lib/wedding-sites.ts`
   - `web/src/features/products/`
-  - `web/src/features/wedding-sites/`
-- Wedding templates follow the same registry/schema-driven pattern as CMS page templates.
+  - `web/src/features/sites/`
+  - `web/src/features/products/server/service.ts`
+  - `web/src/features/sites/server/service.ts`
+- Public content pages render from route-local UI under `web/src/app/(client)`, with slug-based field config in `web/src/features/pages/registry.ts`.
 - Builder uses `konva` + `react-konva`.
 
 ## Current product behavior to remember
 
-- Public page routing is CMS-driven through `web/src/app/(client)/[[...slug]]/page.tsx`.
+- Public content pages are code-managed route files under `web/src/app/(client)/`.
+- Admin `Pages` edits managed content/system pages that already exist in code, rather than creating arbitrary new routes.
 - `home`, `login`, and `register` are CMS-backed system pages and are auto-created if missing.
 - `home`, `login`, and `register` are seeded from `web/src/lib/db.ts`, not lazily created during read operations.
 - `login` and `register` use dedicated page components, but their editable content still comes from CMS custom fields.
@@ -49,10 +52,10 @@ This file summarizes repo-specific facts for coding agents.
 
 ## Development workflow
 
-- Start dev stack: `./setup up`
-- Rebuild: `./setup rebuild`
-- View logs: `./setup logs`
-- Stop stack: `./setup down`
+- Start dev stack: `./docker/setup up`
+- Rebuild: `./docker/setup rebuild`
+- View logs: `./docker/setup logs`
+- Stop stack: `./docker/setup down`
 
 Default values from `.env.example`:
 

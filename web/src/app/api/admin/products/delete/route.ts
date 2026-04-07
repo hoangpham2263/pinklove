@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { deleteProduct } from "@/lib/products";
+import { deleteProduct } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

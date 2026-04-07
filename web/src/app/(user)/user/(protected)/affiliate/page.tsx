@@ -10,7 +10,7 @@ import {
   getAffiliateAccountForUser,
   listAffiliateClicksForUser,
   listAffiliateConversionsForUser,
-} from "@/lib/affiliate";
+} from "@/features/affiliate/server/service";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 

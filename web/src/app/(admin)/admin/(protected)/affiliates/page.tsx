@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeForm } from "@/components/common/native-form";
-import { listAffiliateAccounts, getAffiliateProgramSummary } from "@/lib/affiliate";
+import { listAffiliateAccounts, getAffiliateProgramSummary } from "@/features/affiliate/server/service";
 import { requireAdmin } from "@/lib/auth";
 
 type AdminAffiliatesPageProps = {

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WeddingSiteCard } from "@/features/wedding-sites/components/site-card";
+import { WeddingSiteCard } from "@/features/sites/components/site-card";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { listWeddingSitesForUser } from "@/lib/wedding-sites";
+import { listWeddingSitesForUser } from "@/features/sites/server/service";
 
 export default async function UserSitesPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);

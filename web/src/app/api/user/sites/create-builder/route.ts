@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAppUser } from "@/lib/auth";
-import { getPublishedProductBySlugAndType } from "@/lib/products";
+import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
-import { createBuilderWeddingSite, createWeddingSiteFromProduct } from "@/lib/wedding-sites";
+import { createBuilderWeddingSite, createWeddingSiteFromProduct } from "@/features/sites/server/service";
 
 export const runtime = "nodejs";
 

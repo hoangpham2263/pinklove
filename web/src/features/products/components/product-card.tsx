@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/lib/products";
-import { getWeddingTemplateLabel } from "@/features/wedding-sites/templates";
+import type { Product } from "@/features/products/types";
+import { getWeddingTemplateLabel } from "@/features/sites/templates";
 import { ROUTES } from "@/lib/routes";
 
 export function ProductCard({

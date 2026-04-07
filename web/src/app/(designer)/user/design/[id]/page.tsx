@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { getWeddingSiteByIdForUser } from "@/lib/wedding-sites";
-import { BuilderEditorLoader } from "@/features/wedding-sites/builder/editor-loader";
+import { getWeddingSiteByIdForUser } from "@/features/sites/server/service";
+import { BuilderEditorClient } from "@/features/sites/builder/editor-client";
 
 type BuilderDesignPageProps = {
   params: Promise<{ id: string }>;
@@ -34,7 +34,7 @@ export default async function BuilderDesignPage({ params, searchParams }: Builde
         <div className="flex-1 px-5 py-5">
           <div className="grid gap-6 lg:grid-cols-12">
             <div className="lg:col-span-10">
-              <BuilderEditorLoader initialValue={data.builderDocument ?? data.builderCanvas} />
+              <BuilderEditorClient initialValue={data.builderDocument ?? data.builderCanvas} />
             </div>
 
             <div className="lg:col-span-2">

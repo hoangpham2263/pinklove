@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/features/products/components/product-card";
-import { listPublishedProductsByType } from "@/lib/products";
+import { listPublishedProductsByType } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export default async function BuilderLandingPage() {

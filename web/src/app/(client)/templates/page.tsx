@@ -1,5 +1,5 @@
 import { ProductCard } from "@/features/products/components/product-card";
-import { listPublishedProducts } from "@/lib/products";
+import { listPublishedProducts } from "@/features/products/server/service";
 
 export default async function TemplatesPage() {
   const products = await listPublishedProducts();

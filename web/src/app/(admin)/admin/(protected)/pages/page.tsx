@@ -1,23 +1,14 @@
-import { QuickCreatePageForm } from "@/features/admin/components/quick-create-page-form";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminPagesTable } from "@/features/admin/components/admin-pages-table";
-import { SYSTEM_PAGES, isSystemPageSlug } from "@/features/system-pages/registry";
+import { AdminPagesTable } from "@/features/admin/components/pages/admin-pages-table";
 import { requireAdmin } from "@/lib/auth";
-import { listCmsPages } from "@/lib/cms";
+import { listManagedCmsPages } from "@/lib/cms";
 
 type AdminPagesIndexProps = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 
 export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexProps) {
   await requireAdmin();
-  const allPages = await listCmsPages();
+  const pages = await listManagedCmsPages();
   const query = (await searchParams) ?? {};
-
-  const createdPages = allPages.filter((page) => !isSystemPageSlug(page.slug));
-  
-  const systemPagesList = Object.keys(SYSTEM_PAGES)
-    .map((slug) => allPages.find((page) => page.slug === slug))
-    .filter((page): page is NonNullable<typeof page> => page !== undefined);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-8 p-4 md:p-8">
@@ -31,25 +22,12 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
         <div className="lg:col-span-9 space-y-10">
           <Card>
             <CardHeader>
-              <CardTitle>Danh sách Trang đã tạo</CardTitle>
+              <CardTitle>Danh sách Trang</CardTitle>
             </CardHeader>
             <CardContent>
               <AdminPagesTable
-                pages={createdPages}
-                emptyMessage="Chưa có trang nào. Hãy tạo trang đầu tiên của bạn."
-              />
-            </CardContent>
-          </Card>
-
-          {/* System Pages Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-muted-foreground">Danh sách Trang hệ thống</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AdminPagesTable
-                pages={systemPagesList}
-                emptyMessage="Không có trang hệ thống nào được định nghĩa."
+                pages={pages}
+                emptyMessage="Không có trang nào được đăng ký trong code."
               />
             </CardContent>
           </Card>
@@ -60,10 +38,12 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
           <div className="sticky top-20 space-y-6">
             <Card className="border">
               <CardHeader className="pb-3 bg-muted/30">
-                <CardTitle className="font-bold">Tạo nhanh trang mới</CardTitle>
+                <CardTitle className="font-bold">Quản lý bằng code</CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
-                <QuickCreatePageForm />
+                <p className="text-sm text-muted-foreground">
+                  Trang mới không còn được tạo từ admin. Muốn thêm page mới, hãy tạo route/file mới trong code và đăng ký page đó vào registry nội dung.
+                </p>
               </CardContent>
             </Card>
           </div>

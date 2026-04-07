@@ -1,5 +1,14 @@
-import { RegisterSystemPage } from "@/features/system-pages/auth/register-page";
+import { RegisterForm } from "@/features/auth/components/login-forms";
+import { loadAuthPage } from "@/features/auth/page-loader";
 
 export default async function RegisterPage() {
-  return <RegisterSystemPage />;
+  const page = await loadAuthPage("register");
+
+  return (
+    <RegisterForm
+      heading={page.heading}
+      subheading={page.subheading}
+      sideImage={page.sideImage}
+    />
+  );
 }

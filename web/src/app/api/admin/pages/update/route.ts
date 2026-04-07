@@ -19,7 +19,6 @@ export async function POST(request: Request) {
   const excerpt = String(formData.get("excerpt") ?? "");
   const body = String(formData.get("body") ?? "");
   const status = String(formData.get("status") ?? "draft");
-  const template = String(formData.get("template") ?? "default");
   
   const seoTitle = String(formData.get("seoTitle") ?? "");
   const seoDescription = String(formData.get("seoDescription") ?? "");
@@ -61,7 +60,6 @@ export async function POST(request: Request) {
       excerpt,
       body,
       status,
-      template,
       seoTitle,
       seoDescription,
       seoKeywords,

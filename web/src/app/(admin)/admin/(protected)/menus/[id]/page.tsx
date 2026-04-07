@@ -1,7 +1,7 @@
 import { requireAdmin } from"@/lib/auth";
 import { getMenuById } from"@/lib/menu";
-import { listCmsPages } from"@/lib/cms";
-import { MenuEditor } from"@/features/admin/components/menu-editor";
+import { listManagedCmsPages } from"@/lib/cms";
+import { MenuEditor } from"@/features/admin/components/menus/menu-editor";
 import Link from"next/link";
 import { notFound } from"next/navigation";
 
@@ -18,7 +18,7 @@ export default async function AdminMenuEdit({ params, searchParams }: AdminMenuE
  const menu = await getMenuById(menuId);
  if (!menu) return notFound();
 
- const pages = await listCmsPages();
+ const pages = await listManagedCmsPages();
  await searchParams;
 
  return (

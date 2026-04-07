@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminMenusTable } from "@/features/admin/components/admin-menus-table";
+import { AdminMenusTable } from "@/features/admin/components/menus/admin-menus-table";
 import { requireAdmin } from "@/lib/auth";
 import { getMenus } from "@/lib/menu";
 

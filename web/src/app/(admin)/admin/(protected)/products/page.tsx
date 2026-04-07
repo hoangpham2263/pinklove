@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
-import { listAllProducts } from "@/lib/products";
+import { listAllProducts } from "@/features/products/server/service";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
-import { QuickCreateProductForm } from "@/features/admin/components/quick-create-product-form";
+import { QuickCreateProductForm } from "@/features/admin/components/products/quick-create-product-form";
 
 type AdminProductsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
