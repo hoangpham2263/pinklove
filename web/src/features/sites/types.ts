@@ -2,9 +2,9 @@ export type WeddingSiteType = "coded_template" | "builder_template";
 export type WeddingSiteStatus = "draft" | "published";
 
 export type WeddingSite = {
-  id: number;
-  userId: number;
-  productId?: number;
+  id: string;
+  userId: string;
+  productId?: string;
   productName?: string;
   title: string;
   slug: string;

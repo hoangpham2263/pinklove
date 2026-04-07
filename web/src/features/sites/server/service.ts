@@ -27,9 +27,9 @@ type WeddingSiteRow = {
 
 function mapWeddingSiteRow(row: WeddingSiteRow): WeddingSite {
   return {
-    id: Number(row.id),
-    userId: Number(row.user_id),
-    productId: row.product_id ? Number(row.product_id) : undefined,
+    id: row.id,
+    userId: row.user_id,
+    productId: row.product_id ?? undefined,
     productName: row.product_name ?? undefined,
     title: row.title,
     slug: row.slug,
@@ -42,7 +42,7 @@ function mapWeddingSiteRow(row: WeddingSiteRow): WeddingSite {
   };
 }
 
-async function ensureUniqueWeddingSiteSlug(base: string, ignoreId?: number) {
+async function ensureUniqueWeddingSiteSlug(base: string, ignoreId?: string) {
   const root = slugify(base) || "thiep-cuoi";
 
   for (let index = 0; index < 1000; index += 1) {
@@ -52,7 +52,7 @@ async function ensureUniqueWeddingSiteSlug(base: string, ignoreId?: number) {
         SELECT id
         FROM wedding_sites
         WHERE slug = $1
-          AND ($2::bigint IS NULL OR id <> $2)
+          AND ($2::text IS NULL OR id <> $2)
         LIMIT 1
       `,
       [candidate, ignoreId ?? null]
@@ -66,7 +66,7 @@ async function ensureUniqueWeddingSiteSlug(base: string, ignoreId?: number) {
   return `${root}-${Date.now()}`;
 }
 
-export async function listWeddingSitesForUser(userId: number): Promise<WeddingSite[]> {
+export async function listWeddingSitesForUser(userId: string): Promise<WeddingSite[]> {
   const result = await query<WeddingSiteRow>(
     `
       SELECT
@@ -93,7 +93,7 @@ export async function listWeddingSitesForUser(userId: number): Promise<WeddingSi
   return result.rows.map(mapWeddingSiteRow);
 }
 
-export async function getWeddingSiteByIdForUser(userId: number, siteId: number): Promise<WeddingSite | null> {
+export async function getWeddingSiteByIdForUser(userId: string, siteId: string): Promise<WeddingSite | null> {
   const result = await query<WeddingSiteRow>(
     `
       SELECT
@@ -125,7 +125,7 @@ export async function getWeddingSiteByIdForUser(userId: number, siteId: number):
   return mapWeddingSiteRow(result.rows[0]);
 }
 
-export async function getWeddingSiteById(siteId: number): Promise<WeddingSite | null> {
+export async function getWeddingSiteById(siteId: string): Promise<WeddingSite | null> {
   const result = await query<WeddingSiteRow>(
     `
       SELECT
@@ -188,7 +188,7 @@ export async function getPublicWeddingSiteBySlug(slug: string): Promise<WeddingS
 }
 
 export async function createWeddingSiteFromProduct(input: {
-  userId: number;
+  userId: string;
   product: Product;
 }): Promise<WeddingSite> {
   const defaults = {
@@ -232,7 +232,7 @@ export async function createWeddingSiteFromProduct(input: {
   return mapWeddingSiteRow(result.rows[0]);
 }
 
-export async function createBuilderWeddingSite(userId: number): Promise<WeddingSite> {
+export async function createBuilderWeddingSite(userId: string): Promise<WeddingSite> {
   const title = "Thiệp cưới tự tạo";
   const slug = await ensureUniqueWeddingSiteSlug(title);
   const defaults = getWeddingTemplateDefaults("freeform_sections");
@@ -279,8 +279,8 @@ function normalizeTemplateFieldValue(name: string, value: FormDataEntryValue | n
 }
 
 export async function updateWeddingSiteForUser(input: {
-  userId: number;
-  siteId: number;
+  userId: string;
+  siteId: string;
   title: string;
   slug: string;
   status: WeddingSiteStatus;

@@ -57,7 +57,7 @@ type AffiliateConversionRow = {
 
 function mapAffiliateAccountRow(row: AffiliateAccountRow): AffiliateAccount {
   return {
-    userId: Number(row.user_id),
+    userId: row.user_id,
     username: row.username,
     code: row.code,
     status: row.status,
@@ -76,8 +76,8 @@ function mapAffiliateAccountRow(row: AffiliateAccountRow): AffiliateAccount {
 
 function mapAffiliateClickRow(row: AffiliateClickRow): AffiliateClick {
   return {
-    id: Number(row.id),
-    affiliateUserId: Number(row.affiliate_user_id),
+    id: row.id,
+    affiliateUserId: row.affiliate_user_id,
     affiliateCode: row.affiliate_code,
     landingPath: row.landing_path,
     referrer: row.referrer ?? undefined,
@@ -89,8 +89,8 @@ function mapAffiliateClickRow(row: AffiliateClickRow): AffiliateClick {
 
 function mapAffiliateConversionRow(row: AffiliateConversionRow): AffiliateConversion {
   return {
-    id: Number(row.id),
-    affiliateUserId: Number(row.affiliate_user_id),
+    id: row.id,
+    affiliateUserId: row.affiliate_user_id,
     affiliateCode: row.affiliate_code,
     externalOrderRef: row.external_order_ref ?? undefined,
     orderValue: Number(row.order_value ?? "0"),
@@ -164,7 +164,7 @@ function getAffiliateAccountBaseQuery() {
   `;
 }
 
-export async function getAffiliateAccountForUser(userId: number): Promise<AffiliateAccount | null> {
+export async function getAffiliateAccountForUser(userId: string): Promise<AffiliateAccount | null> {
   const result = await query<AffiliateAccountRow>(
     `${getAffiliateAccountBaseQuery()} WHERE aa.user_id = $1 LIMIT 1`,
     [userId]
@@ -232,7 +232,7 @@ export async function getAffiliateProgramSummary() {
 }
 
 export async function applyForAffiliate(input: {
-  userId: number;
+  userId: string;
   username: string;
   preferredCode?: string;
 }): Promise<AffiliateAccount> {
@@ -278,8 +278,8 @@ export async function applyForAffiliate(input: {
 }
 
 export async function adminUpdateAffiliateAccount(input: {
-  actorId: number;
-  userId: number;
+  actorId: string;
+  userId: string;
   status: AffiliateStatus;
   commissionType: AffiliateCommissionType;
   commissionValue: number;
@@ -321,7 +321,7 @@ export async function adminUpdateAffiliateAccount(input: {
   );
 }
 
-export async function listAffiliateClicksForUser(userId: number, limit = 20): Promise<AffiliateClick[]> {
+export async function listAffiliateClicksForUser(userId: string, limit = 20): Promise<AffiliateClick[]> {
   const result = await query<AffiliateClickRow>(
     `
       SELECT id, affiliate_user_id, affiliate_code, landing_path, referrer, visitor_token, user_agent, created_at
@@ -337,7 +337,7 @@ export async function listAffiliateClicksForUser(userId: number, limit = 20): Pr
 }
 
 export async function listAffiliateConversionsForUser(
-  userId: number,
+  userId: string,
   limit = 20
 ): Promise<AffiliateConversion[]> {
   const result = await query<AffiliateConversionRow>(

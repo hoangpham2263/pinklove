@@ -43,8 +43,15 @@ async function initSchema() {
  const pool = getPool();
 
  await pool.query(`
+ CREATE OR REPLACE FUNCTION app_random_id()
+ RETURNS TEXT AS $$
+   SELECT md5(random()::text || clock_timestamp()::text || random()::text)
+ $$ LANGUAGE SQL;
+ `);
+
+ await pool.query(`
  CREATE TABLE IF NOT EXISTS users (
-  id BIGSERIAL PRIMARY KEY,
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
   username TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -54,7 +61,7 @@ async function initSchema() {
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_sessions (
   id TEXT PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token_hash TEXT NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -68,7 +75,7 @@ async function initSchema() {
 
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_settings (
-  user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   ui_density TEXT NOT NULL DEFAULT 'medium',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT user_settings_ui_density_check
@@ -123,7 +130,7 @@ async function ensureUserProfilesMigration() {
 
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_profiles (
-  user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   full_name TEXT,
   display_name TEXT,
   phone TEXT,
@@ -174,8 +181,8 @@ async function ensureOauthAccountsMigration() {
 
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_oauth_accounts (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   provider TEXT NOT NULL,
   provider_user_id TEXT NOT NULL,
   email TEXT,
@@ -190,7 +197,7 @@ async function ensureCmsPagesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS cms_pages (
-      id BIGSERIAL PRIMARY KEY,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       title TEXT,
@@ -262,7 +269,7 @@ async function ensureMenuTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS cms_menus (
-      id BIGSERIAL PRIMARY KEY,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
       name TEXT NOT NULL UNIQUE,
       label TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -272,8 +279,8 @@ async function ensureMenuTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS cms_menu_items (
-      id BIGSERIAL PRIMARY KEY,
-      menu_id BIGINT NOT NULL REFERENCES cms_menus(id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      menu_id TEXT NOT NULL REFERENCES cms_menus(id) ON DELETE CASCADE,
       label TEXT NOT NULL,
       type TEXT NOT NULL,
       page_slug TEXT,
@@ -296,13 +303,13 @@ async function ensureAffiliateTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS affiliate_accounts (
-      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       code TEXT NOT NULL UNIQUE,
       status TEXT NOT NULL DEFAULT 'pending',
       commission_type TEXT NOT NULL DEFAULT 'percent',
       commission_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
       notes TEXT,
-      approved_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by TEXT REFERENCES users(id) ON DELETE SET NULL,
       approved_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -313,8 +320,8 @@ async function ensureAffiliateTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS affiliate_clicks (
-      id BIGSERIAL PRIMARY KEY,
-      affiliate_user_id BIGINT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      affiliate_user_id TEXT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
       affiliate_code TEXT NOT NULL,
       landing_path TEXT NOT NULL,
       referrer TEXT,
@@ -331,8 +338,8 @@ async function ensureAffiliateTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS affiliate_conversions (
-      id BIGSERIAL PRIMARY KEY,
-      affiliate_user_id BIGINT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      affiliate_user_id TEXT NOT NULL REFERENCES affiliate_accounts(user_id) ON DELETE CASCADE,
       affiliate_code TEXT NOT NULL,
       external_order_ref TEXT UNIQUE,
       order_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
@@ -356,7 +363,7 @@ async function ensureProductTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
-      id BIGSERIAL PRIMARY KEY,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       excerpt TEXT,
@@ -376,9 +383,9 @@ async function ensureProductTablesMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_sites (
-      id BIGSERIAL PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      product_id BIGINT REFERENCES products(id) ON DELETE SET NULL,
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
       title TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
       site_type TEXT NOT NULL,

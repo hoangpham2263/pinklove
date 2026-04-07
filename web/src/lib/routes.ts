@@ -22,7 +22,7 @@ export const ROUTES = {
     SETTINGS: "/user/settings",
     AFFILIATE: "/user/affiliate",
     SITES: "/user/sites",
-    DESIGN: (id: number | string) => `/user/design/${id}`,
+    DESIGN: (id: string) => `/user/design/${id}`,
   },
   ADMIN: {
     LOGIN: "/admin/login",

@@ -18,9 +18,9 @@ export async function POST(request: Request) {
  const userIdRaw = String(formData.get("userId") ??"");
  const roleInput = String(formData.get("role") ??"user");
  const nextRole: UserRole = roleInput ==="admin" ?"admin" :"user";
- const userId = Number(userIdRaw);
+ const userId = userIdRaw.trim();
 
- if (!Number.isFinite(userId) || userId <= 0) {
+ if (!userId) {
  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=invalid_user" } });
  }
 

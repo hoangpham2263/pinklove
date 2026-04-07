@@ -13,7 +13,7 @@ const SESSION_DURATION_DAYS = 7;
 export type UserRole = "admin" | "user";
 
 export type AuthUser = {
-  id: number;
+  id: string;
   username: string;
   role: UserRole;
 };
@@ -26,7 +26,7 @@ export type UserProfile = {
 };
 
 export type AccountUser = {
-  id: number;
+  id: string;
   username: string;
   role: UserRole;
   createdAt: string;
@@ -112,7 +112,7 @@ export async function registerUser(
  );
 
  return {
- id: Number(result.rows[0].id),
+ id: result.rows[0].id,
  username: result.rows[0].username,
  role: result.rows[0].role,
  };
@@ -134,7 +134,7 @@ export async function authenticateUser(
  }
 
  return {
- id: Number(user.id),
+ id: user.id,
  username: user.username,
  role: user.role,
  };
@@ -182,9 +182,9 @@ export async function authenticateGoogleUser(input: {
 "SELECT id, username, role FROM users WHERE id = $1 LIMIT 1",
   [linked.rows[0].user_id]
  );
- const row = user.rows[0];
+  const row = user.rows[0];
  if (row) {
-  return { id: Number(row.id), username: row.username, role: row.role };
+  return { id: row.id, username: row.username, role: row.role };
  }
  }
 
@@ -208,7 +208,7 @@ export async function authenticateGoogleUser(input: {
  return created;
 }
 
-export async function createSession(userId: number): Promise<string> {
+export async function createSession(userId: string): Promise<string> {
  const rawToken = randomBytes(32).toString("hex");
  const tokenHash = hashSessionToken(rawToken);
  const sessionId = randomBytes(16).toString("hex");
@@ -249,7 +249,7 @@ async function getUserByToken(token: string): Promise<AuthUser | null> {
  if (!row) return null;
 
  return {
- id: Number(row.id),
+ id: row.id,
  username: row.username,
  role: row.role,
  };
@@ -312,7 +312,7 @@ export async function requireAppUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<Au
 
 }
 
-export async function getUserProfile(userId: number): Promise<UserProfile> {
+export async function getUserProfile(userId: string): Promise<UserProfile> {
  const result = await query<{
  full_name: string | null;
  display_name: string | null;
@@ -337,7 +337,7 @@ export async function getUserProfile(userId: number): Promise<UserProfile> {
  };
 }
 
-export async function setUserProfile(userId: number, profile: UserProfile): Promise<void> {
+export async function setUserProfile(userId: string, profile: UserProfile): Promise<void> {
  const fullName = profile.fullName.trim();
  const displayName = profile.displayName.trim();
  const phone = profile.phone.trim();
@@ -380,14 +380,14 @@ export async function listAccounts(): Promise<AccountUser[]> {
  );
 
  return result.rows.map((row) => ({
- id: Number(row.id),
+ id: row.id,
  username: row.username,
  role: row.role,
  createdAt: row.created_at,
  }));
 }
 
-export async function getUserAccount(id: number): Promise<AccountUser | null> {
+export async function getUserAccount(id: string): Promise<AccountUser | null> {
  const result = await query<{
  id: string;
  username: string;
@@ -406,7 +406,7 @@ export async function getUserAccount(id: number): Promise<AccountUser | null> {
  const row = result.rows[0];
  if (!row) return null;
  return {
- id: Number(row.id),
+ id: row.id,
  username: row.username,
  role: row.role,
  createdAt: row.created_at,
@@ -434,8 +434,8 @@ export async function adminCreateAccount(
 }
 
 export async function adminUpdateRole(
- actorId: number,
- targetUserId: number,
+ actorId: string,
+ targetUserId: string,
  nextRole: UserRole
 ): Promise<void> {
  const targetResult = await query<{ id: string; role: UserRole }>(
@@ -462,8 +462,8 @@ export async function adminUpdateRole(
 }
 
 export async function adminUpdateAccount(
- actorId: number,
- targetUserId: number,
+ actorId: string,
+ targetUserId: string,
  data: { username?: string; password?: string; role?: UserRole }
 ): Promise<void> {
  if (data.role) {
@@ -490,7 +490,7 @@ export async function adminUpdateAccount(
  }
 }
 
-export async function adminDeleteAccount(actorId: number, targetUserId: number): Promise<void> {
+export async function adminDeleteAccount(actorId: string, targetUserId: string): Promise<void> {
  const targetResult = await query<{ id: string; role: UserRole }>(
 "SELECT id, role FROM users WHERE id = $1 LIMIT 1",
  [targetUserId]

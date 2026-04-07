@@ -3,15 +3,15 @@ import { query } from"@/lib/db";
 
 export type MenuItemType ="page" |"custom";
 
-export type MenuItem = { id:number;
- menuId:number;
+export type MenuItem = { id:string;
+ menuId:string;
  label:string;
  type:MenuItemType;
  pageSlug:string | null;
  url:string | null;
  position:number; };
 
-export type Menu = { id:number;
+export type Menu = { id:string;
  name:string;
  label:string;
  items:MenuItem[]; };
@@ -19,11 +19,11 @@ export type Menu = { id:number;
 export async function getMenus(): Promise<Omit<Menu,"items">[]> { const result = await query<{ id:string; name:string; label:string }>(
  `SELECT id, name, label FROM cms_menus ORDER BY name ASC`
  );
- return result.rows.map((row) => ({ id:Number(row.id),
+ return result.rows.map((row) => ({ id:row.id,
  name:row.name,
  label:row.label, })); }
 
-export async function getMenuById(id:number): Promise<Menu | null> { const menuResult = await query<{ id:string; name:string; label:string }>(
+export async function getMenuById(id:string): Promise<Menu | null> { const menuResult = await query<{ id:string; name:string; label:string }>(
  `SELECT id, name, label FROM cms_menus WHERE id = $1 LIMIT 1`,
  [id]
  );
@@ -45,15 +45,15 @@ export async function getMenuById(id:number): Promise<Menu | null> { const menuR
  [id]
  );
 
- const items:MenuItem[] = itemsResult.rows.map((row) => ({ id:Number(row.id),
- menuId:Number(row.menu_id),
+ const items:MenuItem[] = itemsResult.rows.map((row) => ({ id:row.id,
+ menuId:row.menu_id,
  label:row.label,
  type:row.type,
  pageSlug:row.page_slug,
  url:row.url,
  position:row.position, }));
 
- return { id:Number(menuRow.id),
+ return { id:menuRow.id,
  name:menuRow.name,
  label:menuRow.label,
  items, }; }
@@ -66,9 +66,9 @@ export async function getMenuByName(name:string): Promise<Menu | null> { const m
  const menuRow = menuResult.rows[0];
  if (!menuRow) return null;
 
- return getMenuById(Number(menuRow.id)); }
+ return getMenuById(menuRow.id); }
 
-export async function updateMenu(id:number, label:string): Promise<void> { await query(
+export async function updateMenu(id:string, label:string): Promise<void> { await query(
  `UPDATE cms_menus SET label = $1, updated_at = NOW() WHERE id = $2`,
  [label, id]
  ); }
@@ -79,7 +79,7 @@ export type MenuItemInput = { label:string;
  url ?: string | null;
  position:number; };
 
-export async function updateMenuItems(menuId:number, items:MenuItemInput[]): Promise<void> { // We'll run this inside a primitive transaction-like block by doing it sequentially.
+export async function updateMenuItems(menuId:string, items:MenuItemInput[]): Promise<void> { // We'll run this inside a primitive transaction-like block by doing it sequentially.
  // Ideally this would be a real transaction, but for this scale sequential awaits are OK.
  
  // 1. Delete all existing items for this menu

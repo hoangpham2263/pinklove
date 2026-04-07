@@ -3,7 +3,7 @@ export type AffiliateCommissionType = "percent" | "fixed";
 export type AffiliateConversionStatus = "pending" | "approved" | "rejected" | "paid";
 
 export type AffiliateAccount = {
-  userId: number;
+  userId: string;
   username: string;
   code: string;
   status: AffiliateStatus;
@@ -20,8 +20,8 @@ export type AffiliateAccount = {
 };
 
 export type AffiliateClick = {
-  id: number;
-  affiliateUserId: number;
+  id: string;
+  affiliateUserId: string;
   affiliateCode: string;
   landingPath: string;
   referrer?: string;
@@ -31,8 +31,8 @@ export type AffiliateClick = {
 };
 
 export type AffiliateConversion = {
-  id: number;
-  affiliateUserId: number;
+  id: string;
+  affiliateUserId: string;
   affiliateCode: string;
   externalOrderRef?: string;
   orderValue: number;

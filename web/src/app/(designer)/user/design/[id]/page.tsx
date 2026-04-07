@@ -17,7 +17,7 @@ export default async function BuilderDesignPage({ params, searchParams }: Builde
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const { id } = await params;
   const query = (await searchParams) ?? {};
-  const site = await getWeddingSiteByIdForUser(user.id, Number(id));
+  const site = await getWeddingSiteByIdForUser(user.id, id);
 
   if (!site || site.siteType !== "builder_template") {
     notFound();

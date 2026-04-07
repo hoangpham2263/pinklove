@@ -15,10 +15,9 @@ export async function POST(request: Request) {
  }
 
  const formData = await request.formData();
- const userIdRaw = String(formData.get("userId") ??"");
- const userId = Number(userIdRaw);
+ const userId = String(formData.get("userId") ??"").trim();
 
- if (!Number.isFinite(userId) || userId <= 0) {
+ if (!userId) {
  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=invalid_user" } });
  }
 

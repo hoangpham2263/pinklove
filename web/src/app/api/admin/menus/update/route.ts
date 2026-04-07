@@ -11,9 +11,8 @@ export async function POST(request:Request) { const actor = await getCurrentUser
  if (actor.role !=="admin") { return new NextResponse(null, { status: 303, headers: { Location: ROUTES.USER.DASHBOARD } }); }
 
  const formData = await request.formData();
- const idRaw = formData.get("id");
- const menuId = Number(idRaw);
- if (isNaN(menuId) || menuId <= 0) { return new NextResponse(null, { status: 303, headers: { Location: "/admin/menus?error=invalid_id" } }); }
+ const menuId = String(formData.get("id") ?? "").trim();
+ if (!menuId) { return new NextResponse(null, { status: 303, headers: { Location: "/admin/menus?error=invalid_id" } }); }
 
  const label = String(formData.get("label") ??"").trim();
  if (!label) { return new NextResponse(null, { status: 303, headers: { Location: `/admin/menus/${menuId}?error=missing_label` } }); }

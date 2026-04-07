@@ -1,7 +1,7 @@
 export type ProductType = "coded_template" | "builder_template";
 
 export type Product = {
-  id: number;
+  id: string;
   slug: string;
   name: string;
   excerpt?: string;

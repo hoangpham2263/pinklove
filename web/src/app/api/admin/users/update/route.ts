@@ -26,8 +26,8 @@ export async function POST(request: Request) {
  const phone = String(formData.get("phone") ??"").trim();
  const bio = String(formData.get("bio") ??"").trim();
  
- const userId = Number(userIdRaw);
- if (!Number.isFinite(userId) || userId <= 0) {
+ const userId = userIdRaw.trim();
+ if (!userId) {
  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=invalid_user" } });
  }
 

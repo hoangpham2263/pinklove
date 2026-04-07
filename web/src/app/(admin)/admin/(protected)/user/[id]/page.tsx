@@ -15,9 +15,7 @@ type EditUserPageProps = {
 export default async function EditUserPage({ params, searchParams }: EditUserPageProps) {
  const actor = await requireAdmin();
  const { id } = await params;
- const userId = parseInt(id, 10);
- 
- if (isNaN(userId)) return notFound();
+ const userId = id;
 
  const user = await getUserAccount(userId);
  if (!user) return notFound();

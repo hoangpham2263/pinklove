@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   const formData = await request.formData();
-  const userId = Number(formData.get("userId") ?? "0");
+  const userId = String(formData.get("userId") ?? "").trim();
   const status = String(formData.get("status") ?? "pending") as AffiliateStatus;
   const commissionType = String(formData.get("commissionType") ?? "percent") as AffiliateCommissionType;
   const commissionValue = Number(formData.get("commissionValue") ?? "0");

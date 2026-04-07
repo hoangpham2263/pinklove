@@ -12,10 +12,7 @@ export default async function AdminMenuEdit({ params, searchParams }: AdminMenuE
 
  await requireAdmin();
  const { id } = await params;
- const menuId = parseInt(id, 10);
- if (isNaN(menuId)) return notFound();
-
- const menu = await getMenuById(menuId);
+ const menu = await getMenuById(id);
  if (!menu) return notFound();
 
  const pages = await listManagedCmsPages();

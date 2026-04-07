@@ -20,7 +20,7 @@ export default async function WeddingSiteEditorPage({ params, searchParams }: We
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const { id } = await params;
   const query = (await searchParams) ?? {};
-  const site = await getWeddingSiteByIdForUser(user.id, Number(id));
+  const site = await getWeddingSiteByIdForUser(user.id, id);
   if (!site) {
     notFound();
   }

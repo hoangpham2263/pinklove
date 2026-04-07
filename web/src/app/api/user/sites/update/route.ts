@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const formData = await request.formData();
-  const siteId = Number(formData.get("siteId") ?? "0");
+  const siteId = String(formData.get("siteId") ?? "");
   const title = String(formData.get("title") ?? "");
   const slug = String(formData.get("slug") ?? "");
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";

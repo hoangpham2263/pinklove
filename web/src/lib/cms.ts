@@ -5,7 +5,7 @@ import { query } from "@/lib/db";
 import { getFields, type CmsFields } from "@/lib/cms-fields";
 
 export type CmsPage = {
-  id?: string | number;
+  id?: string;
   name: string;
   slug: string;
   title?: string;
@@ -48,7 +48,7 @@ type CmsPageRow = {
 
 function mapRowToPage(row: CmsPageRow): CmsPage {
   return {
-    id: Number(row.id),
+    id: row.id,
     name: row.name,
     slug: row.slug,
     title: row.title ?? undefined,

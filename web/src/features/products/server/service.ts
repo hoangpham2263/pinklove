@@ -34,7 +34,7 @@ type ProductRow = {
 
 function mapProductRow(row: ProductRow): Product {
   return {
-    id: Number(row.id),
+    id: row.id,
     slug: row.slug,
     name: row.name,
     excerpt: row.excerpt ?? undefined,
