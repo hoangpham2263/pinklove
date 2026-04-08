@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientShell } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 
 type BlogPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -12,24 +12,21 @@ type BlogPageProps = {
 
 export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("blog")
-      : null
-    : await getPublishedCmsPageBySlug("blog");
+  const page = await getAccessibleCmsPageBySlug("blog", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("blog")
-      : null
-    : await getPublishedCmsPageBySlug("blog");
+  const page = await getAccessibleCmsPageBySlug("blog", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
   const [categories, posts] = await Promise.all([
     listPublishedBlogCategories(),
     listPublishedBlogPosts(),

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientPanel, ClientPanelBody, ClientPanelHeader, ClientPanelTitle, ClientShell, ClientLinkButton, ClientInput } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 import { ROUTES } from "@/lib/routes";
 
 type QrBuilderPageProps = {
@@ -11,24 +11,21 @@ type QrBuilderPageProps = {
 
 export async function generateMetadata({ searchParams }: QrBuilderPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools/qr-builder")
-      : null
-    : await getPublishedCmsPageBySlug("tools/qr-builder");
+  const page = await getAccessibleCmsPageBySlug("tools/qr-builder", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function QrBuilderPage({ searchParams }: QrBuilderPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools/qr-builder")
-      : null
-    : await getPublishedCmsPageBySlug("tools/qr-builder");
+  const page = await getAccessibleCmsPageBySlug("tools/qr-builder", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
 
   return (
     <ClientShell className="gap-10 py-12">

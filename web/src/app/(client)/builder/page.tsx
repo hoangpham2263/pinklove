@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { getCurrentUser } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import { ClientLinkButton, ClientShell } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { ProductCard } from "@/features/products/components/product-card";
 import { listPublishedProductsByType } from "@/features/products/server/service";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
+import { getCurrentUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 type BuilderLandingPageProps = {
@@ -13,12 +14,9 @@ type BuilderLandingPageProps = {
 
 export async function generateMetadata({ searchParams }: BuilderLandingPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("builder")
-      : null
-    : await getPublishedCmsPageBySlug("builder");
+  const page = await getAccessibleCmsPageBySlug("builder", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
@@ -26,12 +24,12 @@ export async function generateMetadata({ searchParams }: BuilderLandingPageProps
 export default async function BuilderLandingPage({ searchParams }: BuilderLandingPageProps) {
   const user = await getCurrentUser();
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? user?.role === "admin"
-      ? await getCmsPageBySlug("builder")
-      : null
-    : await getPublishedCmsPageBySlug("builder");
+  const page = await getAccessibleCmsPageBySlug("builder", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
   const builderProducts = await listPublishedProductsByType("builder_template");
 
   return (

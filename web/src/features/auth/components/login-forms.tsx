@@ -60,7 +60,7 @@ export function AdminLoginForm() {
           </CardHeader>
           <CardContent className="space-y-3">
             <NativeForm
-              action="/api/admin/auth/login"
+              action={ROUTES.API.ADMIN.AUTH.LOGIN}
               method="POST"
               className="space-y-3"
             >
@@ -118,7 +118,7 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
               </CardHeader>
               <CardContent className="space-y-3">
                 <NativeForm
-                  action="/api/auth/login"
+                  action={ROUTES.API.AUTH.LOGIN}
                   method="POST"
                   className="space-y-3"
                 >
@@ -142,7 +142,7 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
                     Login
                   </Button>
                 </NativeForm>
-                <Link href="/api/auth/google/login" className="block">
+                <Link href={ROUTES.API.AUTH.GOOGLE_LOGIN} className="block">
                   <Button type="button" variant="outline" className="w-full">
                     Tiếp tục với Google
                   </Button>
@@ -203,7 +203,7 @@ export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps =
               </CardHeader>
               <CardContent className="space-y-3">
                 <NativeForm
-                  action="/api/auth/register"
+                  action={ROUTES.API.AUTH.REGISTER}
                   method="POST"
                   className="space-y-3"
                 >

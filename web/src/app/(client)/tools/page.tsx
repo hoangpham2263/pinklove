@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientPanel, ClientPanelBody, ClientPanelHeader, ClientPanelTitle, ClientShell, ClientLinkButton } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 import { ROUTES } from "@/lib/routes";
 
 type ToolsPageProps = {
@@ -11,12 +11,9 @@ type ToolsPageProps = {
 
 export async function generateMetadata({ searchParams }: ToolsPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools")
-      : null
-    : await getPublishedCmsPageBySlug("tools");
+  const page = await getAccessibleCmsPageBySlug("tools", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
@@ -38,12 +35,12 @@ const tools = [
 
 export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools")
-      : null
-    : await getPublishedCmsPageBySlug("tools");
+  const page = await getAccessibleCmsPageBySlug("tools", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
 
   return (
     <ClientShell className="gap-10 py-12">

@@ -4,6 +4,8 @@
  */
 export const ROUTES = {
   HOME: "/",
+  ABOUT: "/about-us",
+  CONTACT: "/contact",
   TEMPLATES: "/templates",
   BUILDER: "/builder",
   SERVICES: "/services",
@@ -38,6 +40,9 @@ export const ROUTES = {
   ADMIN: {
     LOGIN: "/admin/login",
     DASHBOARD: "/admin/dashboard",
+    PAGES: "/admin/pages",
+    MENUS: "/admin/menus",
+    MENU: (id: string) => `/admin/menus/${id}`,
     SEO_GUIDE: "/admin/seo-guide",
     SETTINGS: "/admin/settings",
     PRODUCTS: "/admin/products",
@@ -48,19 +53,48 @@ export const ROUTES = {
     AFFILIATES: "/admin/affiliates",
   },
   API: {
-    USER: {
-      SITES: {
-        CREATE_FROM_PRODUCT: "/api/user/sites/create-from-product",
-        CREATE_BUILDER: "/api/user/sites/create-builder",
-        UPDATE: "/api/user/sites/update",
-      },
+    AUTH: {
+      LOGIN: "/api/auth/login",
+      REGISTER: "/api/auth/register",
+      GOOGLE_LOGIN: "/api/auth/google/login",
+      LOGOUT: "/api/auth/logout",
     },
     ADMIN: {
+      AUTH: {
+        LOGIN: "/api/admin/auth/login",
+      },
+      PAGES: {
+        UPDATE: "/api/admin/pages/update",
+      },
+      MENUS: {
+        UPDATE: "/api/admin/menus/update",
+      },
+      AFFILIATES: {
+        UPDATE: "/api/admin/affiliates/update",
+      },
+      USERS: {
+        CREATE: "/api/admin/users/create",
+        UPDATE: "/api/admin/users/update",
+        DELETE: "/api/admin/users/delete",
+        ROLE: "/api/admin/users/role",
+      },
       PRODUCTS: {
         CREATE: "/api/admin/products/create",
         UPDATE: "/api/admin/products/update",
         DELETE: "/api/admin/products/delete",
       },
     },
+    USER: {
+      PROFILE: "/api/user/profile",
+      AFFILIATE: {
+        APPLY: "/api/user/affiliate/apply",
+      },
+      SITES: {
+        CREATE_FROM_PRODUCT: "/api/user/sites/create-from-product",
+        CREATE_BUILDER: "/api/user/sites/create-builder",
+        UPDATE: "/api/user/sites/update",
+      },
+    },
+    MEDIA: "/api/media",
   },
 } as const;

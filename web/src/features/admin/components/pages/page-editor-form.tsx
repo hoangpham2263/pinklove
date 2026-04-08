@@ -10,6 +10,7 @@ import { getContentPageFields } from "@/features/pages/registry";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { getAuthPageFields, isAuthPageSlug, isManagedSitePageSlug } from "@/features/auth/page-registry";
 import { STRUCTURED_DATA_FIELD } from "@/lib/cms-fields";
+import { ROUTES } from "@/lib/routes";
 import { SeoPreview } from "./seo-preview";
 import type { CmsPage } from "@/lib/cms";
 import { slugify } from "@/lib/utils";
@@ -70,7 +71,7 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
     : getContentPageFields(page.slug);
 
   return (
-    <NativeForm action="/api/admin/pages/update" method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <input type="hidden" name="originalSlug" value={page.slug} />
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />

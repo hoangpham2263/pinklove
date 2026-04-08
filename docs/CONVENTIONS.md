@@ -72,6 +72,12 @@ This file is the repo-wide source of truth.
 - Template-specific fields are stored in `cms_pages.custom_fields`.
 - Use `getFields(page)` from `src/lib/cms-fields.ts` when a page object is already loaded.
 - Use `getFieldsBySlug(slug)` from `src/lib/cms.ts` only in server routes or pages that need to load by slug.
+- Public CMS-managed pages must load through `getAccessibleCmsPageBySlug()` from `src/lib/cms.ts`.
+- Do not use `getCmsPageBySlug()` directly in public route rendering for CMS-managed pages.
+- `draft` CMS pages must not render publicly.
+- Unpublished CMS pages are accessible only to logged-in admins.
+- For public preview links, require `?preview=1` and an authenticated admin session.
+- For auth system pages like `login` and `register`, draft access is allowed only for logged-in admins through the shared helper path.
 - Protected system slugs currently include `home`, `login`, and `register`.
 - System-page status must still be respected publicly. Draft pages are previewable only by admins.
 

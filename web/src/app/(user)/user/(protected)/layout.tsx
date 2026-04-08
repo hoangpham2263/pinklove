@@ -9,53 +9,79 @@ import {
 } from "lucide-react";
 
 import { UserTopHeader } from "@/features/user/components/user-top-header";
+import { UserSidebarGroup } from "@/features/user/components/user-sidebar-group";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
+
+type UserNavChild = {
+  label: string;
+  href: string;
+  iconName: "folder-heart" | "user" | "badge-percent" | "settings";
+};
+
+type UserNavGroup = {
+  label: string;
+  iconName: "folder-heart" | "user" | "badge-percent" | "settings";
+  children: UserNavChild[];
+  defaultOpen?: boolean;
+};
+
+const userNavGroups: UserNavGroup[] = [
+  {
+    label: "Site",
+    iconName: "folder-heart",
+    defaultOpen: false,
+    children: [{ label: "My Sites", href: ROUTES.USER.SITES, iconName: "folder-heart" }],
+  },
+  {
+    label: "User",
+    iconName: "user",
+    defaultOpen: false,
+    children: [
+      { label: "Profile", href: ROUTES.USER.PROFILE, iconName: "user" },
+      { label: "Affiliate", href: ROUTES.USER.AFFILIATE, iconName: "badge-percent" },
+    ],
+  },
+  {
+    label: "System",
+    iconName: "settings",
+    defaultOpen: false,
+    children: [{ label: "Settings", href: ROUTES.USER.SETTINGS, iconName: "settings" }],
+  },
+];
 
 export default async function UserLayout({ children, }: Readonly<{ children: React.ReactNode }>) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
 
-  const navItemClasses = "flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted";
-
   return (
     <div>
-      <aside className="fixed top-0 left-0 hidden h-screen w-64 border-r bg-background p-5 md:flex md:flex-col md:gap-3">
+      <aside className="admin-sidebar-scroll fixed top-0 left-0 hidden h-screen w-60 overflow-y-auto border-r bg-background p-5 md:flex md:flex-col md:gap-3">
         <div className="flex items-center gap-2 mb-6 px-3">
           <div className="h-6 w-6 rounded-bg bg-primary" />
           <h2 className="text-lg font-bold tracking-tight">PinkLove</h2>
         </div>
 
-        <nav className="flex flex-col gap-6">
-          <div className="space-y-1">
-            <p className="px-3 uppercase tracking-widest mb-2">Tài khoản</p>
-            <Link href={ROUTES.USER.DASHBOARD} className={navItemClasses}>
-              <LayoutDashboard className="h-5 w-5" />
-              Bảng điều khiển
-            </Link>
-            <Link href={ROUTES.USER.SITES} className={navItemClasses}>
-              <FolderHeart className="h-5 w-5" />
-              Thiệp của tôi
-            </Link>
-            <Link href="/user/profile" className={navItemClasses}>
-              <UserIcon className="h-5 w-5" />
-              Hồ sơ cá nhân
-            </Link>
-            <Link href={ROUTES.USER.AFFILIATE} className={navItemClasses}>
-              <BadgePercent className="h-5 w-5" />
-              Affiliate
-            </Link>
-          </div>
+        <nav className="flex flex-col gap-2.5">
+          <Link
+            href={ROUTES.USER.DASHBOARD}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Link>
 
-          <div className="space-y-1">
-            <p className="px-3 uppercase tracking-widest mb-2">Cấu hình</p>
-            <Link href="/user/settings" className={navItemClasses}>
-              <Settings className="h-5 w-5" />
-              Cài đặt tài khoản
-            </Link>
-          </div>
+          {userNavGroups.map((group) => (
+            <UserSidebarGroup
+              key={group.label}
+              label={group.label}
+              iconName={group.iconName}
+              children={group.children}
+              defaultOpen={group.defaultOpen}
+            />
+          ))}
 
           <div className="mt-auto pt-4 border-t">
-            <Link href="/" className={navItemClasses}>
+            <Link href={ROUTES.HOME} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
               <ExternalLink className="h-5 w-5" />
               Xem Website
             </Link>
@@ -63,7 +89,7 @@ export default async function UserLayout({ children, }: Readonly<{ children: Rea
         </nav>
       </aside>
 
-      <main className="md:ml-60 min-h-screen bg-muted/30">
+      <main className="md:ml-60 min-h-screen bg-muted/30 bg-[#f9f9f9]">
         <UserTopHeader username={user.username} />
 
         <section className="min-h-screen pt-14">
@@ -71,23 +97,23 @@ export default async function UserLayout({ children, }: Readonly<{ children: Rea
             <nav className="flex gap-4 overflow-x-auto py-1">
               <Link href={ROUTES.USER.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
                 <LayoutDashboard className="h-4 w-4" />
-                Bảng điều khiển
+                Dashboard
               </Link>
               <Link href={ROUTES.USER.SITES} className="flex items-center gap-1.5 whitespace-nowrap">
                 <FolderHeart className="h-4 w-4" />
-                Thiệp của tôi
+                My Sites
               </Link>
-              <Link href="/user/profile" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.USER.PROFILE} className="flex items-center gap-1.5 whitespace-nowrap">
                 <UserIcon className="h-4 w-4" />
-                Hồ sơ
+                Profile
               </Link>
               <Link href={ROUTES.USER.AFFILIATE} className="flex items-center gap-1.5 whitespace-nowrap">
                 <BadgePercent className="h-4 w-4" />
                 Affiliate
               </Link>
-              <Link href="/user/settings" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.USER.SETTINGS} className="flex items-center gap-1.5 whitespace-nowrap">
                 <Settings className="h-4 w-4" />
-                Cài đặt
+                Settings
               </Link>
             </nav>
           </section>

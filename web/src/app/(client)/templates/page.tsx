@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientShell } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { ProductCard } from "@/features/products/components/product-card";
 import { listPublishedProducts } from "@/features/products/server/service";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 import { ROUTES } from "@/lib/routes";
 
 type TemplatesPageProps = {
@@ -13,24 +13,21 @@ type TemplatesPageProps = {
 
 export async function generateMetadata({ searchParams }: TemplatesPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("templates")
-      : null
-    : await getPublishedCmsPageBySlug("templates");
+  const page = await getAccessibleCmsPageBySlug("templates", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
 
-export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
+export default async function Page({ searchParams }: TemplatesPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("templates")
-      : null
-    : await getPublishedCmsPageBySlug("templates");
+  const page = await getAccessibleCmsPageBySlug("templates", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
   const products = await listPublishedProducts();
   const codedTemplates = products.filter((product) => product.productType === "coded_template");
   const builderTemplates = products.filter((product) => product.productType === "builder_template");

@@ -1,24 +1,28 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { LoginForm } from "@/features/auth/components/login-forms";
 import { loadAuthPage } from "@/features/auth/auth-page-loader";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = (await getCurrentUser())?.role === "admin"
-    ? await getCmsPageBySlug("login")
-    : await getPublishedCmsPageBySlug("login");
+  const page = await getAccessibleCmsPageBySlug("login", {
+    allowAdminDraftAccess: true,
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function LoginPage() {
   const [page, authPage] = await Promise.all([
-    getCmsPageBySlug("login"),
+    getAccessibleCmsPageBySlug("login", { allowAdminDraftAccess: true }),
     loadAuthPage("login"),
   ]);
+
+  if (!page) {
+    notFound();
+  }
 
   return (
     <Suspense fallback={null}>

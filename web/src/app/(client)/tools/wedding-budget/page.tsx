@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientPanel, ClientPanelBody, ClientPanelHeader, ClientPanelTitle, ClientShell, ClientLinkButton, ClientInput } from "@/app/(client)/_components/client-ui";
 import { PageStructuredData } from "@/components/common/page-structured-data";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 import { ROUTES } from "@/lib/routes";
 
 type WeddingBudgetPageProps = {
@@ -11,12 +11,9 @@ type WeddingBudgetPageProps = {
 
 export async function generateMetadata({ searchParams }: WeddingBudgetPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools/wedding-budget")
-      : null
-    : await getPublishedCmsPageBySlug("tools/wedding-budget");
+  const page = await getAccessibleCmsPageBySlug("tools/wedding-budget", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
@@ -32,12 +29,12 @@ const categories = [
 
 export default async function WeddingBudgetPage({ searchParams }: WeddingBudgetPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("tools/wedding-budget")
-      : null
-    : await getPublishedCmsPageBySlug("tools/wedding-budget");
+  const page = await getAccessibleCmsPageBySlug("tools/wedding-budget", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
 
   return (
     <ClientShell className="gap-10 py-12">

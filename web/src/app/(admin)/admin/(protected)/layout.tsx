@@ -98,7 +98,7 @@ export default async function AdminLayout({
             <span>Dashboard</span>
           </Link>
 
-          <Link href="/admin/media" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
+          <Link href={ROUTES.ADMIN.MEDIA} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
             <ImageIcon className="h-5 w-5" />
             <span>Media</span>
           </Link>
@@ -117,7 +117,7 @@ export default async function AdminLayout({
 
           <div className="mt-auto pt-4 border-t">
 
-            <Link href="/" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
+            <Link href={ROUTES.HOME} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
 
               <ExternalLink className="h-5 w-5" />
 
@@ -161,7 +161,7 @@ export default async function AdminLayout({
 
 
 
-              <Link href="/admin/pages" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.PAGES} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <Files className="h-4 w-4" />
 
@@ -177,7 +177,7 @@ export default async function AdminLayout({
 
               </Link>
 
-              <Link href="/admin/menus" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.MENUS} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <MenuIcon className="h-4 w-4" />
 
@@ -185,7 +185,7 @@ export default async function AdminLayout({
 
               </Link>
 
-              <Link href="/admin/media" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.MEDIA} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <ImageIcon className="h-4 w-4" />
 
@@ -207,7 +207,7 @@ export default async function AdminLayout({
 
 
 
-              <Link href="/admin/user" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.USER} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <Users className="h-4 w-4" />
 
@@ -223,7 +223,7 @@ export default async function AdminLayout({
 
               </Link>
 
-              <Link href="/admin/settings" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.SETTINGS} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <Settings className="h-4 w-4" />
 
@@ -231,7 +231,7 @@ export default async function AdminLayout({
 
               </Link>
 
-              <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.HOME} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <ExternalLink className="h-4 w-4" />
 

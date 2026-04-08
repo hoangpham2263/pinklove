@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ContactContent } from "@/app/(client)/contact/_components/contact-content";
 import { PageStructuredData } from "@/components/common/page-structured-data";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
 
 type ContactPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -11,24 +10,18 @@ type ContactPageProps = {
 
 export async function generateMetadata({ searchParams }: ContactPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("contact")
-      : null
-    : await getPublishedCmsPageBySlug("contact");
+  const page = await getAccessibleCmsPageBySlug("contact", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("contact")
-      : null
-    : await getPublishedCmsPageBySlug("contact");
+  const page = await getAccessibleCmsPageBySlug("contact", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   if (!page) {
     notFound();

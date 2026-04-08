@@ -71,11 +71,12 @@
   --text-6xl--line-height: 64px;
   --text-7xl: 72px;
   --text-7xl--line-height: 76px;
+  --breakpoint-*: initial;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
+  --breakpoint-2xl: 1537px;
   --container-xs: 320px;
   --container-sm: 384px;
   --container-md: 448px;
@@ -87,6 +88,30 @@
   --container-5xl: 1024px;
   --container-6xl: 1152px;
   --container-7xl: 1280px;
+}
+
+@utility container {
+  width: 100%;
+
+  @variant sm {
+    max-width: 640px;
+  }
+
+  @variant md {
+    max-width: 768px;
+  }
+
+  @variant lg {
+    max-width: 1000px;
+  }
+
+  @variant xl {
+    max-width: 1200px;
+  }
+
+  @variant 2xl {
+    max-width: 1380px;
+  }
 }
 
 :root {
@@ -164,18 +189,21 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-size: 14px;
     line-height: 20px;
   }
+
   html {
     @apply font-sans;
   }
+
   label {
     display: block;
-    margin-bottom: 8px;
   }
+
   select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
@@ -186,6 +214,7 @@
     padding-left: 12px;
     @apply rounded-lg border border-input bg-background outline-none transition-colors;
   }
+
   select:focus {
     @apply ring-1 ring-ring;
   }
@@ -280,6 +309,7 @@
 .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklab, var(--foreground) 20%, var(--border));
 }
+
 [data-ui-density] [data-slot="card-content"],
 [data-ui-density] [data-slot="card-footer"] {
   padding-inline: calc(var(--ui-control-padding-x) + 6px) !important;

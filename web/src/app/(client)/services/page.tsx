@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import {
   ClientLinkButton,
@@ -8,8 +9,8 @@ import {
   ClientPanelTitle,
   ClientShell,
 } from "@/app/(client)/_components/client-ui";
-import { getCurrentUser } from "@/lib/auth";
-import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
+import { ROUTES } from "@/lib/routes";
 
 type ServicesPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -17,12 +18,9 @@ type ServicesPageProps = {
 
 export async function generateMetadata({ searchParams }: ServicesPageProps): Promise<Metadata> {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("services")
-      : null
-    : await getPublishedCmsPageBySlug("services");
+  const page = await getAccessibleCmsPageBySlug("services", {
+    preview: resolvedSearchParams.preview === "1",
+  });
 
   return page ? await buildPageMetadata(page) : {};
 }
@@ -65,12 +63,12 @@ const plans = [
 
 export default async function ServicesPage({ searchParams }: ServicesPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const preview = resolvedSearchParams.preview === "1";
-  const page = preview
-    ? (await getCurrentUser())?.role === "admin"
-      ? await getCmsPageBySlug("services")
-      : null
-    : await getPublishedCmsPageBySlug("services");
+  const page = await getAccessibleCmsPageBySlug("services", {
+    preview: resolvedSearchParams.preview === "1",
+  });
+  if (!page) {
+    notFound();
+  }
 
   return (
     <ClientShell className="gap-10 py-12">
@@ -104,7 +102,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
                 ))}
               </div>
               <div className="mt-auto">
-                <ClientLinkButton href="/contact" className="flex w-full justify-center">
+                <ClientLinkButton href={ROUTES.CONTACT ?? "/contact"} className="flex w-full justify-center">
                   Liên hệ tư vấn
                 </ClientLinkButton>
               </div>

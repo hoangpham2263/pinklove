@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { listContentPageSlugs } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
+import { getCurrentUser } from "@/lib/auth";
 import { query } from "@/lib/database";
 import { getFields, type CmsFields } from "@/lib/cms-fields";
 import { getSiteUrl } from "@/lib/seo";
@@ -119,6 +120,40 @@ export async function getPublishedCmsPageBySlug(slug: string): Promise<CmsPage |
   if (page && page.status === "published") {
     return page;
   }
+  return null;
+}
+
+type AccessibleCmsPageOptions = {
+  preview?: boolean;
+  allowAdminDraftAccess?: boolean;
+};
+
+export async function getAccessibleCmsPageBySlug(
+  slug: string,
+  options: AccessibleCmsPageOptions = {}
+): Promise<CmsPage | null> {
+  const { preview = false, allowAdminDraftAccess = false } = options;
+  const page = await getCmsPageBySlug(slug);
+
+  if (!page) {
+    return null;
+  }
+
+  if (page.status === "published") {
+    return page;
+  }
+
+  const user = await getCurrentUser();
+  const isAdmin = user?.role === "admin";
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  if (preview || allowAdminDraftAccess) {
+    return page;
+  }
+
   return null;
 }
 

@@ -13,8 +13,8 @@ export function HomeContent({ page }: { page: CmsPage }) {
   }>(page);
 
   return (
-    <div className="flex-1">
-      <section className="overflow-hidden border-b border-stone-200 bg-[linear-gradient(135deg,#f8f1ea_0%,#fffaf7_45%,#f1ebe4_100%)] pt-10 lg:pt-15 2xl:pt-20">
+    <div className="w-full bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_38%),linear-gradient(180deg,_#fff7fb_0%,_#ffffff_48%,_#fffaf2_100%)]">
+      <section className="overflow-hidden border-b border-stone-200 pt-10 lg:pt-15 2xl:pt-20">
         <div className="container mx-auto px-4 pb-16 pt-12 text-center lg:pb-24 lg:pt-20">
           <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-sm uppercase tracking-[0.4em] text-stone-500">pinklove client</p>
