@@ -1,5 +1,78 @@
+import type { ReactNode } from "react";
 import type { WeddingSite } from "../types";
+import type { BuilderNode } from "./types";
 import { ensureBuilderDocument } from "./utils";
+
+function renderNode(node: BuilderNode, offsetX = 0, offsetY = 0): ReactNode {
+  const x = offsetX + node.x;
+  const y = offsetY + node.y;
+
+  if (node.type === "group") {
+    return node.nodes.map((child) => renderNode(child, x, y));
+  }
+
+  if (node.type === "text") {
+    return (
+      <text
+        key={node.id}
+        x={x}
+        y={y}
+        fill={node.fill}
+        fontSize={node.fontSize}
+        fontFamily={node.fontFamily}
+        fontWeight={node.fontStyle === "bold" ? 700 : 400}
+        textAnchor={node.align === "left" ? "start" : node.align === "right" ? "end" : "middle"}
+        opacity={node.opacity}
+        transform={`rotate(${node.rotation} ${x + node.width / 2} ${y})`}
+      >
+        {node.text.split("\n").map((line, index) => (
+          <tspan
+            key={`${node.id}-${index}`}
+            x={node.align === "left" ? x : node.align === "right" ? x + node.width : x + node.width / 2}
+            dy={index === 0 ? 0 : node.fontSize * 1.35}
+          >
+            {line}
+          </tspan>
+        ))}
+      </text>
+    );
+  }
+
+  if (node.type === "shape") {
+    return (
+      <rect
+        key={node.id}
+        x={x}
+        y={y}
+        width={node.width}
+        height={node.height}
+        rx={node.cornerRadius}
+        ry={node.cornerRadius}
+        fill={node.fill}
+        opacity={node.opacity}
+        transform={`rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`}
+      />
+    );
+  }
+
+  if (!node.src) {
+    return null;
+  }
+
+  return (
+    <image
+      key={node.id}
+      href={node.src}
+      x={x}
+      y={y}
+      width={node.width}
+      height={node.height}
+      opacity={node.opacity}
+      preserveAspectRatio="xMidYMid slice"
+      transform={`rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`}
+    />
+  );
+}
 
 export function BuilderWeddingSiteTemplate({ site }: { site: WeddingSite }) {
   const data = site.customData;
@@ -18,69 +91,7 @@ export function BuilderWeddingSiteTemplate({ site }: { site: WeddingSite }) {
           aria-hidden="true"
         >
           <rect x="0" y="0" width={document.width} height={document.height} fill={document.background} />
-          {document.nodes.map((node) => {
-            if (node.type === "text") {
-              return (
-                <text
-                  key={node.id}
-                  x={node.x}
-                  y={node.y}
-                  fill={node.fill}
-                  fontSize={node.fontSize}
-                  fontFamily={node.fontFamily}
-                  fontWeight={node.fontStyle === "bold" ? 700 : 400}
-                  textAnchor={node.align === "left" ? "start" : node.align === "right" ? "end" : "middle"}
-                  opacity={node.opacity}
-                  transform={`rotate(${node.rotation} ${node.x + node.width / 2} ${node.y})`}
-                >
-                  {node.text.split("\n").map((line, index) => (
-                    <tspan
-                      key={`${node.id}-${index}`}
-                      x={node.align === "left" ? node.x : node.align === "right" ? node.x + node.width : node.x + node.width / 2}
-                      dy={index === 0 ? 0 : node.fontSize * 1.35}
-                    >
-                      {line}
-                    </tspan>
-                  ))}
-                </text>
-              );
-            }
-
-            if (node.type === "shape") {
-              return (
-                <rect
-                  key={node.id}
-                  x={node.x}
-                  y={node.y}
-                  width={node.width}
-                  height={node.height}
-                  rx={node.cornerRadius}
-                  ry={node.cornerRadius}
-                  fill={node.fill}
-                  opacity={node.opacity}
-                  transform={`rotate(${node.rotation} ${node.x + node.width / 2} ${node.y + node.height / 2})`}
-                />
-              );
-            }
-
-            if (!node.src) {
-              return null;
-            }
-
-            return (
-              <image
-                key={node.id}
-                href={node.src}
-                x={node.x}
-                y={node.y}
-                width={node.width}
-                height={node.height}
-                opacity={node.opacity}
-                preserveAspectRatio="xMidYMid slice"
-                transform={`rotate(${node.rotation} ${node.x + node.width / 2} ${node.y + node.height / 2})`}
-              />
-            );
-          })}
+          {document.nodes.map((node) => renderNode(node))}
         </svg>
       </div>
     </div>

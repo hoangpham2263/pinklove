@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from"react";
 import { useDropzone } from"react-dropzone";
-import { Image as ImageIcon, Upload, Search, CheckCircle2 } from"lucide-react";
+import { Image as ImageIcon, Upload, Search, CheckCircle2, FileText } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import {
@@ -25,6 +25,9 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
  const [loading, setLoading] = useState(false);
  const [uploading, setUploading] = useState(false);
  const [search, setSearch] = useState("");
+
+ const isImageUrl = (url: string) =>
+  /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(url) || url.startsWith("data:image/");
 
  const fetchMedia = async () => {
  setLoading(true);
@@ -70,7 +73,6 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
 
  const { getRootProps, getInputProps, isDragActive } = useDropzone({
  onDrop,
- accept: {"image/*": [] },
  multiple: false
  });
 
@@ -84,7 +86,14 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
   <div className="flex flex-col gap-2">
    {value ? (
    <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
+    {isImageUrl(value) ? (
     <img src={value} alt="Selected" className="h-full w-full object-cover" />
+    ) : (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
+     <FileText className="h-10 w-10 text-muted-foreground" />
+     <p className="text-sm text-muted-foreground break-all">{value}</p>
+    </div>
+    )}
     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
     <div className="flex gap-2">
      <SheetTrigger render={<Button variant="secondary" size="sm">Change</Button>} />
@@ -96,9 +105,9 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
    </div>
    ) : (
    <SheetTrigger render={
-    <button className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
+   <button className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
     <ImageIcon className="h-8 w-8 text-muted-foreground" />
-    <span className="font-medium text-muted-foreground">Select or Upload Image</span>
+    <span className="font-medium text-muted-foreground">Select or Upload File</span>
     </button>
    } />
    )}
@@ -119,15 +128,16 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
     } ${uploading ?"opacity-50 cursor-not-allowed" :""}`}
    >
     <input {...getInputProps()} />
-    <div className="flex flex-col items-center gap-2">
+     <div className="flex flex-col items-center gap-2">
     {uploading ? (
      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
     ) : (
      <Upload className="h-8 w-8 text-muted-foreground" />
     )}
     <p className="font-medium">
-     {uploading ?"Uploading..." :"Click or drag to upload new image"}
+     {uploading ?"Uploading..." :"Click or drag to upload new file"}
     </p>
+    <p className="text-sm text-muted-foreground">Supports all file types, including SVG</p>
     </div>
    </div>
 
@@ -160,11 +170,18 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
       setIsOpen(false);
       }}
      >
+      {item.mimeType.startsWith("image/") ? (
       <img
       src={item.url}
       alt={item.originalName}
       className="h-full w-full object-cover transition-transform group-hover:scale-110"
       />
+      ) : (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-3 text-center">
+       <FileText className="h-8 w-8 text-muted-foreground" />
+       <p className="line-clamp-3 text-[10px] text-muted-foreground">{item.originalName}</p>
+      </div>
+      )}
       {value === item.url && (
       <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
        <CheckCircle2 className="h-8 w-8 text-primary fill-white" />

@@ -14,8 +14,10 @@ const globalForDb = globalThis as unknown as {
  menuTablesMigrationDone?: boolean;
  affiliateTablesMigrationDone?: boolean;
  productTablesMigrationDone?: boolean;
+ blogTablesMigrationDone?: boolean;
  productSeedDone?: boolean;
  systemPagesSeedDone?: boolean;
+ blogSeedDone?: boolean;
 };
 
 function getDatabaseUrlOrThrow(): string {
@@ -281,6 +283,7 @@ async function ensureMenuTablesMigration() {
     CREATE TABLE IF NOT EXISTS cms_menu_items (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       menu_id TEXT NOT NULL REFERENCES cms_menus(id) ON DELETE CASCADE,
+      parent_id TEXT,
       label TEXT NOT NULL,
       type TEXT NOT NULL,
       page_slug TEXT,
@@ -293,8 +296,18 @@ async function ensureMenuTablesMigration() {
   `);
 
   await pool.query(`
+    ALTER TABLE cms_menu_items
+    ADD COLUMN IF NOT EXISTS parent_id TEXT;
+  `);
+
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS cms_menu_items_menu_id_idx
     ON cms_menu_items(menu_id);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS cms_menu_items_parent_id_idx
+    ON cms_menu_items(parent_id);
   `);
 }
 
@@ -405,6 +418,44 @@ async function ensureProductTablesMigration() {
   `);
 }
 
+async function ensureBlogTablesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blog_categories (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT blog_categories_status_check CHECK (status IN ('draft', 'published'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blog_posts (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      category_id TEXT NOT NULL REFERENCES blog_categories(id) ON DELETE CASCADE,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      excerpt TEXT,
+      content TEXT,
+      cover_image TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT blog_posts_status_check CHECK (status IN ('draft', 'published'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS blog_posts_category_id_idx
+    ON blog_posts(category_id);
+  `);
+}
+
 async function ensureProductSeed() {
   const pool = getPool();
 
@@ -419,7 +470,8 @@ async function ensureProductSeed() {
       price: "990000",
       config: {
         siteDefaults: {
-          heroTitle: "Minh & Lan",
+          brideName: "Lan",
+          groomName: "Minh",
           heroSubtitle: "Trân trọng kính mời bạn đến chung vui trong ngày trọng đại của chúng tôi.",
           eventDate: "15.12.2026",
           venue: "White Palace, TP.HCM",
@@ -439,7 +491,8 @@ async function ensureProductSeed() {
       price: "1290000",
       config: {
         siteDefaults: {
-          heroTitle: "Huy & Trâm",
+          brideName: "Trâm",
+          groomName: "Huy",
           heroSubtitle: "Một lời mời ấm áp dành cho người thân yêu trong ngày cưới của chúng tôi.",
           eventDate: "20.01.2027",
           venue: "Garden Hall, Đà Lạt",
@@ -512,10 +565,11 @@ async function ensureManagedPagesSeed() {
     await pool.query(
       `
       INSERT INTO cms_pages (slug, name, title, status, custom_fields)
-      VALUES ($1, $2, $3, 'draft', '{}'::jsonb)
+      VALUES ($1, $2, $3, 'published', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
+        status = EXCLUDED.status,
         updated_at = NOW()
       `,
       [slug, config.name, config.name]
@@ -533,6 +587,99 @@ async function ensureManagedPagesSeed() {
         updated_at = NOW()
       `,
       [slug, config.name, config.name]
+    );
+  }
+}
+
+async function ensureBlogSeed() {
+  const pool = getPool();
+
+  const categories = [
+    {
+      slug: "kinh-nghiem-thiep-cuoi",
+      name: "Kinh nghiệm thiệp cưới",
+      description: "Các bài viết về chọn mẫu thiệp, viết nội dung và tối ưu flow tạo thiệp online.",
+    },
+    {
+      slug: "ke-hoach-ngan-sach",
+      name: "Kế hoạch ngân sách",
+      description: "Gợi ý chia chi phí cưới và cách giảm chi không cần thiết.",
+    },
+    {
+      slug: "cam-hung-y-tuong",
+      name: "Cảm hứng & ý tưởng",
+      description: "Các concept, tone màu và ý tưởng để làm website cưới rõ ràng hơn.",
+    },
+  ] as const;
+
+  for (const category of categories) {
+    await pool.query(
+      `
+        INSERT INTO blog_categories (slug, name, description, status)
+        VALUES ($1, $2, $3, 'published')
+        ON CONFLICT (slug) DO UPDATE
+        SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `,
+      [category.slug, category.name, category.description]
+    );
+  }
+
+  const posts = [
+    {
+      categorySlug: "kinh-nghiem-thiep-cuoi",
+      slug: "5-noi-dung-khong-nen-thieu-tren-thiep-cuoi-online",
+      title: "5 nội dung không nên thiếu trên thiệp cưới online",
+      excerpt: "Nếu muốn khách xem thiệp là hiểu ngay thời gian, địa điểm và cách xác nhận tham dự, bạn nên khóa 5 phần nội dung này trước.",
+      content:
+        "Thiệp cưới online không chỉ là một tấm ảnh đẹp. Nó phải giúp khách nắm được thông tin ngay trong vài giây đầu tiên.\n\nPhần đầu tiên luôn là tên cô dâu chú rể và ngày diễn ra lễ cưới. Đây là cụm thông tin được nhìn thấy sớm nhất nên cần gọn và rõ.\n\nTiếp theo là địa điểm tổ chức. Đừng chỉ ghi tên nhà hàng nếu khách của bạn đến từ nhiều khu vực khác nhau. Hãy thêm địa chỉ cụ thể và gợi ý đường đi nếu cần.\n\nPhần lịch trình cũng rất quan trọng. Nhiều cặp đôi chỉ ghi giờ lễ nhưng bỏ qua giờ đón khách, điều này dễ làm khách bị động.\n\nBạn cũng nên có một đoạn lời mời ngắn. Đủ ấm áp, không quá dài, và thống nhất với phong cách của toàn bộ mẫu thiệp.\n\nCuối cùng là phần xác nhận tham dự hoặc cách liên hệ nhanh. Nếu có website thiệp cưới, đây là nơi nên tận dụng để khách phản hồi thuận tiện hơn.",
+    },
+    {
+      categorySlug: "ke-hoach-ngan-sach",
+      slug: "cach-chia-ngan-sach-cuoi-khi-ban-chua-biet-bat-dau-tu-dau",
+      title: "Cách chia ngân sách cưới khi bạn chưa biết bắt đầu từ đâu",
+      excerpt: "Một khung ngân sách tốt sẽ giúp bạn biết hạng mục nào cần ưu tiên trước và phần nào có thể tối ưu sau.",
+      content:
+        "Sai lầm phổ biến nhất là chốt từng hạng mục riêng lẻ mà không có tổng ngân sách ban đầu. Điều này làm chi phí cưới tăng rất nhanh.\n\nHãy bắt đầu từ tổng số tiền bạn thực sự có thể chi. Sau đó chia thành các nhóm lớn như nhà hàng, chụp ảnh, trang phục, trang trí và thiệp cưới.\n\nNhà hàng thường là phần lớn nhất, tiếp theo là hình ảnh và trang phục. Thiệp cưới và phần in ấn thường chiếm tỷ trọng nhỏ hơn nhưng lại có nhiều lựa chọn để tối ưu.\n\nNếu bạn dùng thiệp online cho phần mời khách, bạn có thể giảm chi phí in ấn và linh hoạt hơn khi cần sửa thông tin.\n\nSau khi có tỷ lệ khung, bạn mới nên đi sâu vào từng nhà cung cấp. Cách này giúp việc ra quyết định rõ ràng hơn nhiều.",
+    },
+    {
+      categorySlug: "cam-hung-y-tuong",
+      slug: "3-huong-chon-tone-mau-thiep-cuoi-de-dep-va-khong-bi-roi",
+      title: "3 hướng chọn tone màu thiệp cưới để đẹp và không bị rối",
+      excerpt: "Khi chưa biết bắt đầu với màu sắc nào, bạn có thể đi từ bối cảnh lễ cưới, tính cách cặp đôi hoặc mức độ trang trọng mong muốn.",
+      content:
+        "Một mẫu thiệp đẹp chưa chắc là mẫu có nhiều màu. Điều quan trọng hơn là tổng thể dễ nhìn và có điểm nhấn đúng chỗ.\n\nHướng đầu tiên là chọn tone màu dựa trên bối cảnh lễ cưới. Cưới sân vườn hợp với màu nhẹ và thoáng. Cưới buổi tối trong sảnh lớn có thể dùng tone đậm hơn để tăng độ sang.\n\nHướng thứ hai là chọn theo cá tính của cặp đôi. Nếu muốn cảm giác gần gũi, màu ấm và ít tương phản sẽ phù hợp. Nếu muốn hiện đại, có thể dùng nền sáng và typography rõ ràng.\n\nHướng thứ ba là chọn theo mức độ trang trọng. Sự kiện formal nên tiết chế số màu và giữ khoảng trắng tốt.\n\nDù chọn hướng nào, bạn cũng nên thống nhất giữa ảnh, màu nền, màu chữ và các khối nội dung để tránh cảm giác rời rạc.",
+    },
+    {
+      categorySlug: "kinh-nghiem-thiep-cuoi",
+      slug: "khi-nao-nen-dung-mau-code-san-va-khi-nao-nen-dung-builder",
+      title: "Khi nào nên dùng mẫu code sẵn và khi nào nên dùng builder",
+      excerpt: "Nếu bạn đang phân vân giữa đi nhanh bằng mẫu có sẵn và tự chỉnh sâu bằng builder, đây là cách chọn ngắn gọn nhất.",
+      content:
+        "Mẫu code sẵn phù hợp khi bạn muốn triển khai nhanh và không muốn mất thời gian sắp xếp bố cục. Bạn chỉ cần thay nội dung, ảnh và xuất bản.\n\nBuilder phù hợp khi bạn muốn chủ động hơn về cấu trúc section, thứ tự nội dung và phong cách trình bày.\n\nNếu thời gian gấp, nên bắt đầu bằng mẫu code sẵn. Nếu bạn đã có ý tưởng rõ và muốn thiệp mang dấu ấn riêng hơn, builder sẽ hợp hơn.\n\nTrong thực tế, nhiều cặp đôi có thể xem mẫu code sẵn trước để xác định gu, sau đó mới chuyển sang builder nếu cần chỉnh sâu hơn.",
+    },
+  ] as const;
+
+  for (const post of posts) {
+    await pool.query(
+      `
+        INSERT INTO blog_posts (category_id, slug, title, excerpt, content, status)
+        SELECT id, $2, $3, $4, $5, 'published'
+        FROM blog_categories
+        WHERE slug = $1
+        ON CONFLICT (slug) DO UPDATE
+        SET
+          category_id = EXCLUDED.category_id,
+          title = EXCLUDED.title,
+          excerpt = EXCLUDED.excerpt,
+          content = EXCLUDED.content,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `,
+      [post.categorySlug, post.slug, post.title, post.excerpt, post.content]
     );
   }
 }
@@ -583,6 +730,11 @@ export async function ensureDb() {
     globalForDb.productTablesMigrationDone = true;
   }
 
+  if (!globalForDb.blogTablesMigrationDone) {
+    await ensureBlogTablesMigration();
+    globalForDb.blogTablesMigrationDone = true;
+  }
+
   if (!globalForDb.systemPagesSeedDone) {
     await ensureManagedPagesSeed();
     globalForDb.systemPagesSeedDone = true;
@@ -591,6 +743,11 @@ export async function ensureDb() {
   if (!globalForDb.productSeedDone) {
     await ensureProductSeed();
     globalForDb.productSeedDone = true;
+  }
+
+  if (!globalForDb.blogSeedDone) {
+    await ensureBlogSeed();
+    globalForDb.blogSeedDone = true;
   }
 }
 

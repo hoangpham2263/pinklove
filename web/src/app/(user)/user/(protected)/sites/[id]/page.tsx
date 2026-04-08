@@ -2,14 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
+import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getWeddingSiteByIdForUser } from "@/features/sites/server/service";
-import { BuilderEditorClient } from "@/features/sites/builder/editor-client";
-import { getWeddingTemplateFields } from "@/features/sites/templates";
+import { getWeddingTemplateFields } from "@/features/sites/templates/registry";
 
 type WeddingSiteEditorPageProps = {
   params: Promise<{ id: string }>;
@@ -38,17 +38,8 @@ export default async function WeddingSiteEditorPage({ params, searchParams }: We
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      {query.saved && (
-        <div className="rounded-md border border-primary/20 bg-primary/10 px-4 py-3 text-sm">
-          Đã lưu thiệp cưới.
-        </div>
-      )}
-
-      {query.error && (
-        <div className="rounded-md border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          Không thể lưu thiệp cưới lúc này.
-        </div>
-      )}
+      {query.saved ? <PageToast message="Đã lưu thiệp cưới." variant="success" /> : null}
+      {query.error ? <PageToast message="Không thể lưu thiệp cưới lúc này." variant="error" /> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -86,28 +77,10 @@ export default async function WeddingSiteEditorPage({ params, searchParams }: We
               </div>
             </div>
 
-            {site.siteType === "builder_template" ? (
-              <BuilderEditorClient initialValue={data.builderDocument ?? data.builderCanvas} />
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="font-medium">Hero Title</label>
-                  <Input name="heroTitle" defaultValue={String(data.heroTitle || "")} />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="font-medium">Hero Subtitle</label>
-                  <Input name="heroSubtitle" defaultValue={String(data.heroSubtitle || "")} />
-                </div>
-
-                <div className="md:col-span-2">
-                  <FieldsEditor
-                    fields={templateFields.filter((field) => !["heroTitle", "heroSubtitle"].includes(field.name))}
-                    values={fieldValues}
-                  />
-                </div>
-              </div>
-            )}
+            <FieldsEditor
+              fields={templateFields}
+              values={fieldValues}
+            />
           </CardContent>
         </Card>
 

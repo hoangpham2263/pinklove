@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ContactContent } from "@/app/(client)/contact/_components/contact-content";
+import { PageStructuredData } from "@/components/common/page-structured-data";
 import { getCurrentUser } from "@/lib/auth";
 import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ searchParams }: ContactPageProps): Prom
       : null
     : await getPublishedCmsPageBySlug("contact");
 
-  return page ? buildPageMetadata(page) : {};
+  return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
@@ -33,5 +34,10 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
     notFound();
   }
 
-  return <ContactContent page={page} />;
+  return (
+    <>
+      <PageStructuredData page={page} />
+      <ContactContent page={page} />
+    </>
+  );
 }

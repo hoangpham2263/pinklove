@@ -5,7 +5,7 @@ import { ROUTES } from "@/lib/routes";
 import {
   getWeddingTemplateDefaults,
   getWeddingTemplateProductType,
-} from "@/features/sites/templates";
+} from "@/features/sites/templates/registry";
 import type { ProductType } from "@/features/products/types";
 
 export const runtime = "nodejs";

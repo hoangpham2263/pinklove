@@ -1,18 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from"react";
 import { NativeForm } from"@/components/common/native-form";
 import { Button } from"@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Input } from"@/components/ui/input";
-import { Menu, MenuItem, MenuItemType } from"@/lib/menu";
+import { Menu, MenuItemType } from"@/lib/menu";
 import { CmsPage } from"@/lib/cms";
-import { GripVertical, Trash2, ArrowUp, ArrowDown } from"lucide-react";
+import { GripVertical, Trash2 } from"lucide-react";
+import type { EditableMenuItem } from "./menu-sortable-list";
 
 type MenuEditorProps = { menu:Menu;
- availablePages:CmsPage[]; };
+availablePages:CmsPage[]; };
 
-export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [items, setItems] = useState<Omit<MenuItem,"id" |"menuId">[]>(
+const MenuSortableList = dynamic(
+  () => import("./menu-sortable-list").then((module) => module.MenuSortableList),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
+
+export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [items, setItems] = useState<EditableMenuItem[]>(
  menu.items.map((item) => ({ ...item }))
  );
  
@@ -20,6 +30,10 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  const [newType, setNewType] = useState<MenuItemType>("page");
  const [newPageSlug, setNewPageSlug] = useState("");
  const [newUrl, setNewUrl] = useState("");
+ const [newParentId, setNewParentId] = useState("");
+
+ const topLevelItems = items.filter((item) => !item.parentId);
+ const parentOptions = topLevelItems.map((item) => ({ id: item.id, label: item.label }));
 
  const handleAddItem = () => { if (!newLabel.trim()) return;
  if (newType ==="page" && !newPageSlug) return;
@@ -27,8 +41,10 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
 
  setItems([
  ...items,
- { label:newLabel,
+ { id:`new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+ parentId:newParentId || null,
  type:newType,
+ label:newLabel,
  pageSlug:newType ==="page" ? newPageSlug:null,
  url:newType ==="custom" ? newUrl:null,
  position:items.length, },
@@ -36,29 +52,27 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  
  setNewLabel("");
  setNewPageSlug("");
- setNewUrl(""); };
+ setNewUrl("");
+ setNewParentId(""); };
 
- const handleRemoveItem = (index:number) => { const newItems = [...items];
- newItems.splice(index, 1);
- setItems(newItems); };
+ const normalizePositions = (nextItems: EditableMenuItem[]) =>
+  nextItems.map((item, i) => ({
+   ...item,
+   position: i,
+  }));
 
- const moveItem = (index:number, direction:-1 | 1) => { const newIndex = index + direction;
- if (newIndex < 0 || newIndex >= items.length) return;
- 
- const newItems = [...items];
- const temp = newItems[index];
- newItems[index] = newItems[newIndex];
- newItems[newIndex] = temp;
- 
- // Update positions
- newItems.forEach((item, i) => { item.position = i; });
- 
- setItems(newItems); };
+ const handleRemoveItem = (index:number) => {
+  const targetItem = items[index];
+  if (!targetItem) return;
+  const nextItems = items.filter((item) => item.id !== targetItem.id && item.parentId !== targetItem.id);
+  setItems(normalizePositions(nextItems));
+ };
 
  // Convert current items array to JSON string to be submitted via NativeForm
  const serializedItems = JSON.stringify(
  items.map((item, i) => ({ label:item.label,
  type:item.type,
+ parentId:item.parentId,
  pageSlug:item.pageSlug,
  url:item.url,
  position:i, }))
@@ -95,6 +109,22 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  onChange={(e) => setNewLabel(e.target.value) }
  placeholder=""
  />
+ </div>
+
+ <div className="space-y-2">
+ <label>Menu Level</label>
+ <select
+ value={newParentId }
+ onChange={(e) => setNewParentId(e.target.value) }
+ className="h-10 w-full"
+ >
+ <option value="">Cấp 1</option>
+ {parentOptions.map((item) => (
+ <option key={item.id } value={item.id }>
+ Cấp 2 dưới: {item.label }
+ </option>
+ ))}
+ </select>
  </div>
 
  {newType ==="page" ? (
@@ -156,51 +186,38 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [i
  {items.length === 0 ? (
  <p className="text-muted-foreground italic">No items added yet.</p>
  ): (
-               <ul className="space-y-2">
-                 {items.map((item, index) => (
-                   <li key={index} className="flex items-center justify-between rounded-md border p-3 bg-card">
-                     <div className="flex items-center gap-3 overflow-hidden"> <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab shrink-0" />
- <div className="truncate">
- <p className="font-medium truncate">{item.label }</p>
- <p className="opacity-70 truncate">
- {item.type ==="page" ? `Page: /${item.pageSlug}`: `Custom: ${item.url}` }
- </p>
- </div>
- </div>
- <div className="flex items-center gap-1 shrink-0">
- <Button
- type="button"
- variant="ghost"
- size="icon"
- className="h-8 w-8"
- onClick={() => moveItem(index, -1) }
- disabled={index === 0 }
- >
- <ArrowUp className="h-4 w-4" />
- </Button>
- <Button
- type="button"
- variant="ghost"
- size="icon"
- className="h-8 w-8"
- onClick={() => moveItem(index, 1) }
- disabled={index === items.length - 1 }
- >
- <ArrowDown className="h-4 w-4" />
- </Button>
- <Button
- type="button"
- variant="ghost"
- size="icon"
- className="h-8 w-8 text-destructive hover:bg-destructive/10"
- onClick={() => handleRemoveItem(index) }
- >
- <Trash2 className="h-4 w-4" />
- </Button>
- </div>
- </li>
- )) }
- </ul>
+               <>
+                 <ul className="space-y-2 md:hidden">
+                   {items.map((item, index) => (
+                     <li key={item.id || `new-${index}`} className="flex items-center justify-between rounded-md border bg-card p-3">
+                       <div className={`flex items-center gap-3 overflow-hidden ${item.parentId ? "pl-5" : ""}`}>
+                         <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
+                         <div className="truncate">
+                           <p className="truncate font-medium">{item.label}</p>
+                           <p className="truncate opacity-70">
+                             {item.type === "page" ? `Page: /${item.pageSlug}` : `Custom: ${item.url}`}
+                             {item.parentId ? " • Cấp 2" : " • Cấp 1"}
+                           </p>
+                         </div>
+                       </div>
+                       <div className="flex items-center gap-1 shrink-0">
+                         <Button
+                           type="button"
+                           variant="ghost"
+                           size="icon"
+                           className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                           onClick={() => handleRemoveItem(index)}
+                         >
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </li>
+                   ))}
+                 </ul>
+                 <div className="hidden md:block">
+                   <MenuSortableList items={items} onChange={setItems} onRemove={handleRemoveItem} />
+                 </div>
+               </>
  ) }
  </div>
 

@@ -4,7 +4,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-import { query } from "@/lib/db";
+import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
 
 export const SESSION_COOKIE_NAME = "pinklove_session";
@@ -272,7 +272,7 @@ export async function getCurrentUserFromRequest(
  return getUserByToken(token);
 }
 
-export async function requireUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
+export async function requireUser(redirectTo: string = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
 
   const user = await getCurrentUser();
 
@@ -288,7 +288,7 @@ export async function requireUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<AuthU
 
 
 
-export async function requireAdmin(redirectTo = ROUTES.ADMIN.LOGIN): Promise<AuthUser> {
+export async function requireAdmin(redirectTo: string = ROUTES.ADMIN.LOGIN): Promise<AuthUser> {
 
   const user = await requireUser(redirectTo);
 
@@ -304,7 +304,7 @@ export async function requireAdmin(redirectTo = ROUTES.ADMIN.LOGIN): Promise<Aut
 
 
 
-export async function requireAppUser(redirectTo = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
+export async function requireAppUser(redirectTo: string = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
 
   const user = await requireUser(redirectTo);
 

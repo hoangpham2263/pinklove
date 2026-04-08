@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { NativeForm } from "@/components/common/native-form";
+import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,17 +48,18 @@ export default async function UserAffiliatePage({ searchParams }: UserAffiliateP
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      {query.saved && (
-        <div className="rounded-md border border-primary/20 bg-primary/10 px-4 py-3 text-sm">
-          Yêu cầu tham gia affiliate đã được gửi. Admin cần duyệt trước khi link của bạn hoạt động.
-        </div>
-      )}
-
-      {query.error && (
-        <div className="rounded-md border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {getAffiliateErrorMessage(String(query.error))}
-        </div>
-      )}
+      {query.saved ? (
+        <PageToast
+          message="Yêu cầu tham gia affiliate đã được gửi. Admin cần duyệt trước khi link của bạn hoạt động."
+          variant="success"
+        />
+      ) : null}
+      {query.error ? (
+        <PageToast
+          message={getAffiliateErrorMessage(String(query.error)) ?? "Không thể xử lý yêu cầu affiliate lúc này."}
+          variant="error"
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

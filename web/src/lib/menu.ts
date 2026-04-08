@@ -1,10 +1,11 @@
 import"server-only";
-import { query } from"@/lib/db";
+import { query } from"@/lib/database";
 
 export type MenuItemType ="page" |"custom";
 
 export type MenuItem = { id:string;
  menuId:string;
+ parentId:string | null;
  label:string;
  type:MenuItemType;
  pageSlug:string | null;
@@ -33,12 +34,13 @@ export async function getMenuById(id:string): Promise<Menu | null> { const menuR
 
  const itemsResult = await query<{ id:string;
  menu_id:string;
+ parent_id:string | null;
  label:string;
  type:MenuItemType;
  page_slug:string | null;
  url:string | null;
  position:number; }>(
- `SELECT id, menu_id, label, type, page_slug, url, position 
+ `SELECT id, menu_id, parent_id, label, type, page_slug, url, position 
   FROM cms_menu_items 
   WHERE menu_id = $1 
   ORDER BY position ASC`,
@@ -47,6 +49,7 @@ export async function getMenuById(id:string): Promise<Menu | null> { const menuR
 
  const items:MenuItem[] = itemsResult.rows.map((row) => ({ id:row.id,
  menuId:row.menu_id,
+ parentId:row.parent_id,
  label:row.label,
  type:row.type,
  pageSlug:row.page_slug,
@@ -75,6 +78,7 @@ export async function updateMenu(id:string, label:string): Promise<void> { await
 
 export type MenuItemInput = { label:string;
  type:MenuItemType;
+ parentId ?: string | null;
  pageSlug ?: string | null;
  url ?: string | null;
  position:number; };
@@ -87,10 +91,11 @@ export async function updateMenuItems(menuId:string, items:MenuItemInput[]): Pro
  
  // 2. Insert new items
  for (const item of items) { await query(
-  `INSERT INTO cms_menu_items (menu_id, label, type, page_slug, url, position)
-  VALUES ($1, $2, $3, $4, $5, $6)`,
+  `INSERT INTO cms_menu_items (menu_id, parent_id, label, type, page_slug, url, position)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)`,
   [
   menuId,
+  item.parentId || null,
   item.label,
   item.type,
   item.pageSlug || null,

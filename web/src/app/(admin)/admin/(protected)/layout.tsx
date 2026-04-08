@@ -1,248 +1,252 @@
-import Link from"next/link";
+import Link from "next/link";
 import {
- LayoutDashboard,
- Files,
- Menu as MenuIcon,
- Image as ImageIcon,
- ShoppingBag,
- Users,
- BadgePercent,
- Settings,
- ExternalLink
-} from"lucide-react";
+  LayoutDashboard,
+  Files,
+  Menu as MenuIcon,
+  Image as ImageIcon,
+  ShoppingBag,
+  Users,
+  BadgePercent,
+  Settings,
+  ExternalLink,
+  BookOpenText
+} from "lucide-react";
 
-import { AdminTopHeader } from"@/features/admin/components/layout/admin-top-header";
+import { AdminTopHeader } from "@/features/admin/components/layout/admin-top-header";
+import { AdminSidebarGroup } from "@/features/admin/components/layout/admin-sidebar-group";
 
-import { requireAdmin } from"@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
+type AdminNavChild = {
+  label: string;
+  href: string;
+  iconName: "files" | "shopping-bag" | "menu" | "image" | "book-open-text" | "users" | "badge-percent" | "settings";
+};
 
+type AdminNavGroup = {
+  label: string;
+  iconName: "files" | "shopping-bag" | "menu" | "image" | "book-open-text" | "users" | "badge-percent" | "settings";
+  children: AdminNavChild[];
+  defaultOpen?: boolean;
+};
+
+const adminNavGroups: AdminNavGroup[] = [
+  {
+    label: "Page",
+    iconName: "files",
+    defaultOpen: false,
+    children: [
+      { label: "Pages", href: "/admin/pages", iconName: "files" },
+      { label: "Navigation", href: "/admin/menus", iconName: "menu" },
+    ],
+  },
+  {
+    label: "Product",
+    iconName: "shopping-bag",
+    defaultOpen: false,
+    children: [
+      { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "shopping-bag" },
+      { label: "Create Product", href: ROUTES.ADMIN.PRODUCTS, iconName: "shopping-bag" },
+    ],
+  },
+  {
+    label: "User",
+    iconName: "users",
+    defaultOpen: false,
+    children: [
+      { label: "Users", href: "/admin/user", iconName: "users" },
+      { label: "Affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
+    ],
+  },
+  {
+    label: "Seo",
+    iconName: "book-open-text",
+    defaultOpen: false,
+    children: [
+      { label: "Page Seo", href: `${ROUTES.ADMIN.SEO_GUIDE}#page-seo`, iconName: "book-open-text" },
+      { label: "Seo Content", href: `${ROUTES.ADMIN.SEO_GUIDE}#seo-content`, iconName: "book-open-text" },
+      { label: "Seo Robots", href: `${ROUTES.ADMIN.SEO_GUIDE}#seo-robots`, iconName: "book-open-text" },
+    ],
+  },
+  {
+    label: "System",
+    iconName: "settings",
+    defaultOpen: false,
+    children: [
+      { label: "Settings", href: "/admin/settings", iconName: "settings" },
+    ],
+  },
+];
 
 export default async function AdminLayout({
- children
+  children
 }: { children: React.ReactNode }) {
- const user = await requireAdmin();
+  const user = await requireAdmin();
 
+  return (
+    <div>
+      <aside className="admin-sidebar-scroll fixed top-0 left-0 hidden h-screen w-60 overflow-y-auto border-r bg-background p-5 md:flex md:flex-col md:gap-3">
+        <div className="flex items-center gap-2 mb-6 px-3">
+          <div className="h-6 w-6 rounded-bg bg-primary" />
+          <h2 className="text-lg font-bold tracking-tight">PinkLove</h2>
+        </div>
 
+        <nav className="flex flex-col gap-2.5">
+          <Link href={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Link>
 
- const navItemClasses ="flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted";
+          <Link href="/admin/media" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
+            <ImageIcon className="h-5 w-5" />
+            <span>Media</span>
+          </Link>
 
+          {adminNavGroups.map((group) => (
+            <AdminSidebarGroup
+              key={group.label}
+              label={group.label}
+              iconName={group.iconName}
+              children={group.children}
+              defaultOpen={group.defaultOpen}
+            />
+          ))}
 
 
- return (
- <div>
-  <aside className="fixed top-0 left-0 hidden h-screen w-64 border-r bg-background p-5 md:flex md:flex-col md:gap-3">
-  <div className="flex items-center gap-2 mb-6 px-3">
-   <div className="h-6 w-6 rounded-bg bg-primary" />
-   <h2 className="text-lg font-bold tracking-tight">PinkLove</h2>
-  </div>
 
-  <nav className="flex flex-col gap-6">
+          <div className="mt-auto pt-4 border-t">
 
-   <div className="space-y-1">
+            <Link href="/" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted">
 
-   <p className="px-3 uppercase tracking-widest mb-2">Tổng quan</p>
+              <ExternalLink className="h-5 w-5" />
 
-   <Link href={ROUTES.ADMIN.DASHBOARD} className={navItemClasses}>
+              Xem Website
 
-    <LayoutDashboard className="h-5 w-5" />
+            </Link>
 
-    Bảng điều khiển
+          </div>
 
-   </Link>
+        </nav>
 
-   </div>
+      </aside>
 
 
 
-   <div className="space-y-1">
+      <main className="md:ml-60 min-h-screen bg-muted/30">
 
-   <p className="px-3 uppercase tracking-widest mb-2">Nội dung</p>
 
-   <Link href="/admin/pages" className={navItemClasses}>
 
-    <Files className="h-5 w-5" />
+        <AdminTopHeader username={user.username} />
 
-    Trang
 
-   </Link>
 
-   <Link href={ROUTES.ADMIN.PRODUCTS} className={navItemClasses}>
+        <section className="min-h-screen pt-14">
 
-    <ShoppingBag className="h-5 w-5" />
+          <section className="md:hidden border-b bg-background px-4 py-2">
 
-    Sản phẩm
+            <nav className="flex gap-4 overflow-x-auto py-1">
 
-   </Link>
+              <Link href={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
 
-   <Link href="/admin/menus" className={navItemClasses}>
+                <LayoutDashboard className="h-4 w-4" />
 
-    <MenuIcon className="h-5 w-5" />
+                Dashboard
 
-    Menu điều hướng
+              </Link>
 
-   </Link>
 
-   <Link href="/admin/media" className={navItemClasses}>
 
-    <ImageIcon className="h-5 w-5" />
+              <div className="w-px shrink-0 bg-border my-1" />
 
-    Thư viện Ảnh
 
-   </Link>
 
-   </div>
+              <Link href="/admin/pages" className="flex items-center gap-1.5 whitespace-nowrap">
 
+                <Files className="h-4 w-4" />
 
+                Pages
 
-   <div className="space-y-1">
+              </Link>
 
-   <p className="px-3 uppercase tracking-widest mb-2">Hệ thống</p>
+              <Link href={ROUTES.ADMIN.PRODUCTS} className="flex items-center gap-1.5 whitespace-nowrap">
 
-   <Link href="/admin/user" className={navItemClasses}>
+                <ShoppingBag className="h-4 w-4" />
 
-    <Users className="h-5 w-5" />
+                Products
 
-    Thành viên
+              </Link>
 
-   </Link>
+              <Link href="/admin/menus" className="flex items-center gap-1.5 whitespace-nowrap">
 
-   <Link href={ROUTES.ADMIN.AFFILIATES} className={navItemClasses}>
+                <MenuIcon className="h-4 w-4" />
 
-    <BadgePercent className="h-5 w-5" />
+                Navigation
 
-    Affiliate
+              </Link>
 
-   </Link>
+              <Link href="/admin/media" className="flex items-center gap-1.5 whitespace-nowrap">
 
-   <Link href="/admin/settings" className={navItemClasses}>
+                <ImageIcon className="h-4 w-4" />
 
-    <Settings className="h-5 w-5" />
+                Media
 
-    Cài đặt chung
+              </Link>
 
-   </Link>
+              <Link href={ROUTES.ADMIN.SEO_GUIDE} className="flex items-center gap-1.5 whitespace-nowrap">
 
-   </div>
+                <BookOpenText className="h-4 w-4" />
 
+                Seo Guide
 
+              </Link>
 
-   <div className="mt-auto pt-4 border-t">
 
-   <Link href="/" className={navItemClasses}>
 
-    <ExternalLink className="h-5 w-5" />
+              <div className="w-px shrink-0 bg-border my-1" />
 
-    Xem Website
 
-   </Link>
 
-   </div>
+              <Link href="/admin/user" className="flex items-center gap-1.5 whitespace-nowrap">
 
-  </nav>
+                <Users className="h-4 w-4" />
 
-  </aside>
+                Users
 
+              </Link>
 
+              <Link href={ROUTES.ADMIN.AFFILIATES} className="flex items-center gap-1.5 whitespace-nowrap">
 
-    <main className="md:ml-64 min-h-screen bg-muted/30">
+                <BadgePercent className="h-4 w-4" />
 
+                Affiliate
 
+              </Link>
 
-    <AdminTopHeader username={user.username} />
+              <Link href="/admin/settings" className="flex items-center gap-1.5 whitespace-nowrap">
 
+                <Settings className="h-4 w-4" />
 
+                Settings
 
-  <section className="min-h-screen pt-14">
+              </Link>
 
-   <section className="md:hidden border-b bg-background px-4 py-2">
+              <Link href="/" className="flex items-center gap-1.5 whitespace-nowrap">
 
-   <nav className="flex gap-4 overflow-x-auto py-1">
+                <ExternalLink className="h-4 w-4" />
 
-    <Link href={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-1.5 whitespace-nowrap">
+                Xem website
 
-    <LayoutDashboard className="h-4 w-4" />
+              </Link>
 
-    Bảng điều khiển
+            </nav>
 
-    </Link>
-
-
-
-    <div className="w-px shrink-0 bg-border my-1" />
-
-
-
-    <Link href="/admin/pages" className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <Files className="h-4 w-4" />
-
-    Các trang
-
-    </Link>
-
-    <Link href={ROUTES.ADMIN.PRODUCTS} className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <ShoppingBag className="h-4 w-4" />
-
-    Sản phẩm
-
-    </Link>
-
-    <Link href="/admin/menus" className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <MenuIcon className="h-4 w-4" />
-
-    Menu điều hướng
-
-    </Link>
-
-    <Link href="/admin/media" className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <ImageIcon className="h-4 w-4" />
-
-    Thư viện Ảnh
-
-    </Link>
-
-
-
-    <div className="w-px shrink-0 bg-border my-1" />
-
-
-
-    <Link href="/admin/user" className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <Users className="h-4 w-4" />
-
-    Thành viên
-
-    </Link>
-
-    <Link href={ROUTES.ADMIN.AFFILIATES} className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <BadgePercent className="h-4 w-4" />
-
-    Affiliate
-
-    </Link>
-
-    <Link href="/admin/settings" className="flex items-center gap-1.5 whitespace-nowrap">
-
-    <Settings className="h-4 w-4" />
-
-    Cài đặt
-
-    </Link>
-
-   </nav>
-
-   </section>
-   <section className="min-h-screen">
-   <div>{children}</div>
-   </section>
-  </section>
-  </main>
- </div>
- );
+          </section>
+          <section className="min-h-screen">
+            <div>{children}</div>
+          </section>
+        </section>
+      </main>
+    </div>
+  );
 }

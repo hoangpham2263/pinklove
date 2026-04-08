@@ -9,7 +9,7 @@ import type {
   AffiliateConversionStatus,
   AffiliateStatus,
 } from "@/features/affiliate/types";
-import { query } from "@/lib/db";
+import { query } from "@/lib/database";
 
 export const AFFILIATE_REF_COOKIE_NAME = "pinklove_affiliate_ref";
 export const AFFILIATE_VISITOR_COOKIE_NAME = "pinklove_affiliate_visitor";

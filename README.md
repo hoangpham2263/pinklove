@@ -76,7 +76,10 @@ Development note:
 
 ## Documentation
 
-- [Conventions](./docs/CONVENTIONS.md)
-- [Project Structure & Features](./docs/PROJECT_STRUCTURE_AND_FEATURES.md)
-- [Database Schema](./docs/DATABASE_SCHEMA.md)
-- [Agent Notes](./docs/AGENTS.md)
+- [index](./docs/index.md)
+- [conventions](./docs/conventions.md)
+- [client](./docs/client.md)
+- [user](./docs/user.md)
+- [admin](./docs/admin.md)
+- [structure](./docs/structure.md)
+- [schema](./docs/schema.md)

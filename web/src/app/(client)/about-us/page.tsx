@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AboutContent } from "@/app/(client)/about-us/_components/about-content";
+import { PageStructuredData } from "@/components/common/page-structured-data";
 import { getCurrentUser } from "@/lib/auth";
 import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ searchParams }: AboutPageProps): Promis
       : null
     : await getPublishedCmsPageBySlug("about-us");
 
-  return page ? buildPageMetadata(page) : {};
+  return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function AboutPage({ searchParams }: AboutPageProps) {
@@ -33,5 +34,10 @@ export default async function AboutPage({ searchParams }: AboutPageProps) {
     notFound();
   }
 
-  return <AboutContent page={page} />;
+  return (
+    <>
+      <PageStructuredData page={page} />
+      <AboutContent page={page} />
+    </>
+  );
 }

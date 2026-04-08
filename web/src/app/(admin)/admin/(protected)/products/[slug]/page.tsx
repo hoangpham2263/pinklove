@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageToast } from "@/components/common/page-toast";
 import { requireAdmin } from "@/lib/auth";
 import { getProductBySlug } from "@/features/products/server/service";
 import { ProductEditorForm } from "@/features/admin/components/products/product-editor-form";
@@ -35,17 +36,10 @@ export default async function AdminProductEditorPage({
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">Edit Product: {product.name}</h1>
         </div>
-        {query.saved === "1" && (
-          <span className="rounded-md border bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-            Changes saved!
-          </span>
-        )}
-        {typeof query.error === "string" && (
-          <span className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
-            Error saving product!
-          </span>
-        )}
       </div>
+
+      {query.saved === "1" ? <PageToast message="Changes saved!" variant="success" /> : null}
+      {typeof query.error === "string" ? <PageToast message="Error saving product!" variant="error" /> : null}
 
       <ProductEditorForm product={product} />
     </section>

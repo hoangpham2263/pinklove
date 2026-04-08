@@ -1,4 +1,5 @@
 export type BuilderNodeType = "text" | "image" | "shape";
+export type BuilderLeafNodeType = BuilderNodeType;
 
 export type BuilderTextNode = {
   id: string;
@@ -42,7 +43,19 @@ export type BuilderShapeNode = {
   cornerRadius: number;
 };
 
-export type BuilderNode = BuilderTextNode | BuilderImageNode | BuilderShapeNode;
+export type BuilderLeafNode = BuilderTextNode | BuilderImageNode | BuilderShapeNode;
+
+export type BuilderGroupNode = {
+  id: string;
+  type: "group";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  nodes: BuilderNode[];
+};
+
+export type BuilderNode = BuilderLeafNode | BuilderGroupNode;
 
 export type BuilderDocument = {
   width: number;

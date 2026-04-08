@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getPublicWeddingSiteBySlug } from "@/features/sites/server/service";
-import { renderWeddingSite } from "@/features/sites/templates";
+import { renderWeddingSite } from "@/features/sites/templates/renderers";
 
 type WeddingSitePublicPageProps = {
   params: Promise<{ slug: string }>;
@@ -24,5 +24,5 @@ export default async function WeddingSitePublicPage({ params, searchParams }: We
     }
   }
 
-  return renderWeddingSite(site);
+  return await renderWeddingSite(site);
 }

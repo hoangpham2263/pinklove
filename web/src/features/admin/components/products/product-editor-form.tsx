@@ -10,7 +10,7 @@ import { MediaSelector } from "@/features/media/components/media-selector";
 import {
   getWeddingTemplateFields,
   getWeddingTemplateOptions,
-} from "@/features/sites/templates";
+} from "@/features/sites/templates/registry";
 import type { Product, ProductType } from "@/features/products/types";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
@@ -44,7 +44,7 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
       <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
       <input type="hidden" name="siteDefaults" value={JSON.stringify(siteDefaults)} />
 
-      <Card className="min-w-0 lg:col-span-9">
+      <Card className="min-w-0 rounded-lg lg:col-span-9">
         <CardHeader>
           <CardTitle>Thông tin sản phẩm</CardTitle>
         </CardHeader>
@@ -149,8 +149,8 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
         </CardContent>
       </Card>
 
-      <div className="space-y-6">
-      <Card className="min-w-0 lg:col-span-3 lg:self-start">
+      <div className="min-w-0 space-y-6 lg:col-span-3">
+        <Card className="min-w-0 rounded-lg lg:self-start">
           <CardHeader>
             <CardTitle>Xuất bản</CardTitle>
           </CardHeader>
@@ -172,13 +172,27 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
               <Input name="price" type="number" min="0" step="1000" defaultValue={String(product.price)} />
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full rounded-md">
               Lưu sản phẩm
             </Button>
+
+            <div className="border-t pt-4">
+              <p className="text-sm text-muted-foreground">
+                Xóa product catalog entry này. Các `wedding_site` đã tạo trước đó vẫn giữ dữ liệu riêng.
+              </p>
+              <Button
+                type="button"
+                variant="destructive"
+                className="mt-4 w-full rounded-md"
+                form="product-delete-form"
+              >
+                Xóa sản phẩm
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Ảnh đại diện</CardTitle>
           </CardHeader>
@@ -186,25 +200,11 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
             <MediaSelector value={thumbnailUrl} onChange={setThumbnailUrl} />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Xóa sản phẩm</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Xóa product catalog entry này. Các `wedding_site` đã tạo trước đó vẫn giữ dữ liệu riêng.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </NativeForm>
 
-    <NativeForm action={ROUTES.API.ADMIN.PRODUCTS.DELETE} method="POST" className="mt-6">
+    <NativeForm id="product-delete-form" action={ROUTES.API.ADMIN.PRODUCTS.DELETE} method="POST" className="hidden">
       <input type="hidden" name="slug" value={product.slug} />
-      <Button type="submit" variant="destructive" className="w-full lg:w-auto">
-        Xóa sản phẩm
-      </Button>
     </NativeForm>
     </>
   );

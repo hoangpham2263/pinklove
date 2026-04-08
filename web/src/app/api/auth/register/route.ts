@@ -1,5 +1,6 @@
 import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
+import { MIN_PASSWORD_LENGTH } from "@/features/auth/constants";
 
 import {
  countUsers,
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
  return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=missing_fields" } });
  }
 
- if (password.length < 6) {
+ if (password.length < MIN_PASSWORD_LENGTH) {
  return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=weak_password" } });
  }
 

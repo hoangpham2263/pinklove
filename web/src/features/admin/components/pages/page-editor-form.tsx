@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getContentPageFields } from "@/features/pages/registry";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { getAuthPageFields, isAuthPageSlug, isManagedSitePageSlug } from "@/features/auth/page-registry";
+import { STRUCTURED_DATA_FIELD } from "@/lib/cms-fields";
 import { SeoPreview } from "./seo-preview";
 import type { CmsPage } from "@/lib/cms";
 import { slugify } from "@/lib/utils";
@@ -33,6 +34,10 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
 
   // Template and Custom Fields
   const [customFields, setCustomFields] = useState<Record<string, unknown>>(page.customFields || {});
+  const structuredDataValue =
+    typeof customFields[STRUCTURED_DATA_FIELD] === "string"
+      ? String(customFields[STRUCTURED_DATA_FIELD])
+      : "";
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextName = e.target.value;
@@ -225,6 +230,22 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
                     Canonical URL
                   </label>
                   <Input id="canonicalUrl" name="canonicalUrl" defaultValue={page.canonicalUrl} placeholder="https://example.com/page" />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="structuredDataJson" className="font-medium">
+                    Structured Data JSON-LD
+                  </label>
+                  <textarea
+                    id="structuredDataJson"
+                    value={structuredDataValue}
+                    onChange={(e) => handleCustomFieldChange(STRUCTURED_DATA_FIELD, e.target.value)}
+                    className="min-h-40 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder={'{"@context":"https://schema.org","@type":"WebPage","name":"Page name"}'}
+                  />
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Nhập JSON-LD hợp lệ cho page này. Để trống nếu không muốn render schema.
+                  </p>
                 </div>
               </div>
 

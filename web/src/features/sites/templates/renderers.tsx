@@ -1,16 +1,30 @@
+import Image from "next/image";
+import { resolveMediaUrl } from "@/lib/media-resolver";
 import { BuilderWeddingSiteTemplate } from "@/features/sites/builder/renderer";
 import type { WeddingSite } from "../types";
 
-export function RomanticBloomTemplate({ site }: { site: WeddingSite }) {
+function getCoupleTitle(data: Record<string, unknown>, fallback: string) {
+  const brideName = String(data.brideName || "").trim();
+  const groomName = String(data.groomName || "").trim();
+
+  if (brideName || groomName) {
+    return [groomName, brideName].filter(Boolean).join(" & ");
+  }
+
+  return String(data.heroTitle || fallback);
+}
+
+export async function RomanticBloomTemplate({ site }: { site: WeddingSite }) {
   const data = site.customData;
-  const gallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
+  const rawGallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
+  const gallery = (await Promise.all(rawGallery.map((image) => resolveMediaUrl(image)))).filter((image): image is string => Boolean(image));
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,rgba(255,241,242,0.8),rgba(255,255,255,1))]">
       <section className="mx-auto max-w-5xl px-6 py-24 text-center">
         <p className="text-sm uppercase tracking-[4px] text-muted-foreground">Wedding Invitation</p>
         <h1 className="mt-4 text-5xl font-semibold tracking-tight md:text-7xl">
-          {String(data.heroTitle || site.title)}
+          {getCoupleTitle(data, site.title)}
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
           {String(data.heroSubtitle || "")}
@@ -36,7 +50,14 @@ export function RomanticBloomTemplate({ site }: { site: WeddingSite }) {
           ) : (
             <div className="mt-4 grid grid-cols-2 gap-3">
               {gallery.map((image, index) => (
-                <img key={`${image}-${index}`} src={image} alt="" className="aspect-[4/5] w-full rounded-xl object-cover" />
+                <Image
+                  key={`${image}-${index}`}
+                  src={image}
+                  alt=""
+                  width={800}
+                  height={1000}
+                  className="aspect-[4/5] w-full rounded-xl object-cover"
+                />
               ))}
             </div>
           )}
@@ -46,9 +67,10 @@ export function RomanticBloomTemplate({ site }: { site: WeddingSite }) {
   );
 }
 
-export function ClassicGardenTemplate({ site }: { site: WeddingSite }) {
+export async function ClassicGardenTemplate({ site }: { site: WeddingSite }) {
   const data = site.customData;
-  const gallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
+  const rawGallery = Array.isArray(data.gallery) ? (data.gallery as string[]) : [];
+  const gallery = (await Promise.all(rawGallery.map((image) => resolveMediaUrl(image)))).filter((image): image is string => Boolean(image));
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f4f0e8,white_55%)]">
@@ -58,7 +80,7 @@ export function ClassicGardenTemplate({ site }: { site: WeddingSite }) {
             <div>
               <p className="uppercase tracking-[5px] text-muted-foreground">Save The Date</p>
               <h1 className="mt-4 text-5xl font-semibold md:text-6xl">
-                {String(data.heroTitle || site.title)}
+                {getCoupleTitle(data, site.title)}
               </h1>
               <p className="mt-6 text-lg text-muted-foreground">
                 {String(data.heroSubtitle || "")}
@@ -88,7 +110,14 @@ export function ClassicGardenTemplate({ site }: { site: WeddingSite }) {
             ) : (
               <div className="mt-4 space-y-3">
                 {gallery.slice(0, 3).map((image, index) => (
-                  <img key={`${image}-${index}`} src={image} alt="" className="aspect-video w-full rounded-xl object-cover" />
+                  <Image
+                    key={`${image}-${index}`}
+                    src={image}
+                    alt=""
+                    width={1280}
+                    height={720}
+                    className="aspect-video w-full rounded-xl object-cover"
+                  />
                 ))}
               </div>
             )}
@@ -99,7 +128,7 @@ export function ClassicGardenTemplate({ site }: { site: WeddingSite }) {
   );
 }
 
-export function renderWeddingSite(site: WeddingSite) {
+export async function renderWeddingSite(site: WeddingSite) {
   if (site.siteType === "builder_template") {
     return <BuilderWeddingSiteTemplate site={site} />;
   }

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getWeddingTemplateOptions } from "@/features/sites/templates";
+import { getWeddingTemplateOptions } from "@/features/sites/templates/registry";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import type { ProductType } from "@/features/products/types";
@@ -94,7 +94,7 @@ export function QuickCreateProductForm() {
         </div>
       </div>
 
-      <Button type="submit" className="w-full">
+      <Button type="submit" className="w-full rounded-md">
         Tạo sản phẩm
       </Button>
     </NativeForm>

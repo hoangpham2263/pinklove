@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Konva from "konva";
-import { Layer, Line, Rect, Stage, Text, Image as KonvaImage, Transformer } from "react-konva";
+import { Group, Image as KonvaImage, Layer, Line, Rect, Stage, Text, Transformer } from "react-konva";
 import { Copy, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,22 @@ import {
 } from "@/features/sites/builder/defaults";
 import { BUILDER_ASSET_PRESETS } from "@/features/sites/builder/presets";
 import {
+  getBuilderNodeBehavior,
+  getTransformPatchFromTarget,
+  isAppendSelectionKey,
+  offsetNode,
+} from "@/features/sites/builder/node-behaviors";
+import {
+  cloneNode,
+  createGroupNode,
   createImageNode,
   createShapeNode,
   createTextNode,
   ensureBuilderDocument,
+  getNodeBounds,
   updateNode,
 } from "@/features/sites/builder/utils";
-import type { BuilderDocument, BuilderImageNode, BuilderNode, BuilderTextNode } from "@/features/sites/builder/types";
+import type { BuilderDocument, BuilderGroupNode, BuilderImageNode, BuilderNode, BuilderTextNode } from "@/features/sites/builder/types";
 
 type BuilderEditorProps = {
   initialValue: unknown;
@@ -57,6 +66,24 @@ function useImageElement(src: string) {
   return src ? image : null;
 }
 
+function BuilderImageNodeInGroup({ node }: { node: BuilderImageNode }) {
+  const image = useImageElement(node.src);
+
+  return (
+    <KonvaImage
+      image={image ?? undefined}
+      x={node.x}
+      y={node.y}
+      width={node.width}
+      height={node.height}
+      rotation={node.rotation}
+      opacity={node.opacity}
+      cornerRadius={node.cornerRadius}
+      listening={false}
+    />
+  );
+}
+
 function BuilderImageNodeView({
   node,
   selected,
@@ -65,12 +92,13 @@ function BuilderImageNodeView({
 }: {
   node: BuilderImageNode;
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (append: boolean) => void;
   onChange: (patch: Partial<BuilderNode>) => void;
 }) {
   const image = useImageElement(node.src);
   const shapeRef = useRef<Konva.Image>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const behavior = getBuilderNodeBehavior(node.type);
 
   useEffect(() => {
     if (selected && shapeRef.current && transformerRef.current) {
@@ -92,8 +120,9 @@ function BuilderImageNodeView({
         opacity={node.opacity}
         cornerRadius={node.cornerRadius}
         draggable
-        onClick={onSelect}
-        onTap={onSelect}
+        onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
+        onTap={() => onSelect(false)}
+        onDragStart={() => onSelect(false)}
         onDragEnd={(event) => onChange({ x: event.target.x(), y: event.target.y() })}
         onTransformEnd={() => {
           const target = shapeRef.current;
@@ -101,21 +130,16 @@ function BuilderImageNodeView({
             return;
           }
 
-          const scaleX = target.scaleX();
-          const scaleY = target.scaleY();
-          target.scaleX(1);
-          target.scaleY(1);
-
-          onChange({
-            x: target.x(),
-            y: target.y(),
-            width: Math.max(80, target.width() * scaleX),
-            height: Math.max(80, target.height() * scaleY),
-            rotation: target.rotation(),
-          });
+          onChange(getTransformPatchFromTarget(node, target));
         }}
       />
-      {selected ? <Transformer ref={transformerRef} rotateEnabled enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]} /> : null}
+      {selected ? (
+        <Transformer
+          ref={transformerRef}
+          rotateEnabled={behavior.rotateEnabled}
+          enabledAnchors={behavior.enabledAnchors}
+        />
+      ) : null}
     </>
   );
 }
@@ -129,12 +153,13 @@ function BuilderTextNodeView({
 }: {
   node: BuilderTextNode;
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (append: boolean) => void;
   onChange: (patch: Partial<BuilderNode>) => void;
   onEdit: () => void;
 }) {
   const textRef = useRef<Konva.Text>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const behavior = getBuilderNodeBehavior(node.type);
 
   useEffect(() => {
     if (selected && textRef.current && transformerRef.current) {
@@ -159,10 +184,10 @@ function BuilderTextNodeView({
         opacity={node.opacity}
         rotation={node.rotation}
         draggable
-        onClick={onSelect}
-        onTap={onSelect}
+        onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
+        onTap={() => onSelect(false)}
         onDblClick={onEdit}
-        onDragStart={onSelect}
+        onDragStart={() => onSelect(false)}
         onDragEnd={(event) => onChange({ x: event.target.x(), y: event.target.y() })}
         onTransformEnd={() => {
           const target = textRef.current;
@@ -170,27 +195,16 @@ function BuilderTextNodeView({
             return;
           }
 
-          const scaleX = target.scaleX();
-          const scaleY = target.scaleY();
-          target.scaleX(1);
-          target.scaleY(1);
-
-          onChange({
-            x: target.x(),
-            y: target.y(),
-            width: Math.max(120, target.width() * scaleX),
-            fontSize: Math.max(12, node.fontSize * scaleY),
-            rotation: target.rotation(),
-          } as Partial<BuilderTextNode>);
+          onChange(getTransformPatchFromTarget(node, target));
         }}
       />
       {selected ? (
         <Transformer
           ref={transformerRef}
-          rotateEnabled
-          enabledAnchors={["middle-left", "middle-right", "top-left", "top-right", "bottom-left", "bottom-right"]}
+          rotateEnabled={behavior.rotateEnabled}
+          enabledAnchors={behavior.enabledAnchors}
           boundBoxFunc={(oldBox, newBox) => {
-            if (newBox.width < 120 || newBox.height < 24) {
+            if (newBox.width < behavior.minWidth || newBox.height < behavior.minHeight) {
               return oldBox;
             }
 
@@ -210,11 +224,12 @@ function BuilderShapeNodeView({
 }: {
   node: BuilderNode & { type: "shape" };
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (append: boolean) => void;
   onChange: (patch: Partial<BuilderNode>) => void;
 }) {
   const shapeRef = useRef<Konva.Rect>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const behavior = getBuilderNodeBehavior(node.type);
 
   useEffect(() => {
     if (selected && shapeRef.current && transformerRef.current) {
@@ -236,9 +251,9 @@ function BuilderShapeNodeView({
         opacity={node.opacity}
         rotation={node.rotation}
         draggable
-        onClick={onSelect}
-        onTap={onSelect}
-        onDragStart={onSelect}
+        onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
+        onTap={() => onSelect(false)}
+        onDragStart={() => onSelect(false)}
         onDragEnd={(event) => onChange({ x: event.target.x(), y: event.target.y() })}
         onTransformEnd={() => {
           const target = shapeRef.current;
@@ -246,27 +261,131 @@ function BuilderShapeNodeView({
             return;
           }
 
-          const scaleX = target.scaleX();
-          const scaleY = target.scaleY();
-          target.scaleX(1);
-          target.scaleY(1);
-
-          onChange({
-            x: target.x(),
-            y: target.y(),
-            width: Math.max(40, target.width() * scaleX),
-            height: Math.max(40, target.height() * scaleY),
-            rotation: target.rotation(),
-          });
+          onChange(getTransformPatchFromTarget(node, target));
         }}
       />
       {selected ? (
         <Transformer
           ref={transformerRef}
-          rotateEnabled
-          enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right", "middle-left", "middle-right"]}
+          rotateEnabled={behavior.rotateEnabled}
+          enabledAnchors={behavior.enabledAnchors}
           boundBoxFunc={(oldBox, newBox) => {
-            if (newBox.width < 40 || newBox.height < 40) {
+            if (newBox.width < behavior.minWidth || newBox.height < behavior.minHeight) {
+              return oldBox;
+            }
+
+            return newBox;
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function BuilderGroupNodeView({
+  node,
+  selected,
+  onSelect,
+  onChange,
+}: {
+  node: BuilderGroupNode;
+  selected: boolean;
+  onSelect: (append: boolean) => void;
+  onChange: (patch: Partial<BuilderGroupNode>) => void;
+}) {
+  const groupRef = useRef<Konva.Group>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
+  const behavior = getBuilderNodeBehavior(node.type);
+
+  useEffect(() => {
+    if (selected && groupRef.current && transformerRef.current) {
+      transformerRef.current.nodes([groupRef.current]);
+      transformerRef.current.getLayer()?.batchDraw();
+    }
+  }, [selected]);
+
+  return (
+    <>
+      <Group
+        ref={groupRef}
+        x={node.x}
+        y={node.y}
+        draggable
+        onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
+        onTap={() => onSelect(false)}
+        onDragStart={() => onSelect(false)}
+        onDragEnd={(event) => onChange({ x: event.target.x(), y: event.target.y() })}
+        onTransformEnd={() => {
+          const target = groupRef.current;
+          if (!target) {
+            return;
+          }
+
+          onChange(getTransformPatchFromTarget(node, target) as Partial<BuilderGroupNode>);
+        }}
+      >
+        <Rect
+          x={0}
+          y={0}
+          width={node.width}
+          height={node.height}
+          fill="transparent"
+          stroke={selected ? "#2563eb" : "transparent"}
+          dash={selected ? [10, 6] : undefined}
+          listening={false}
+        />
+        {node.nodes.map((child) => {
+          if (child.type === "text") {
+            return (
+              <Text
+                key={child.id}
+                x={child.x}
+                y={child.y}
+                width={child.width}
+                text={child.text}
+                fontSize={child.fontSize}
+                fontFamily={child.fontFamily}
+                fontStyle={child.fontStyle}
+                fill={child.fill}
+                align={child.align}
+                opacity={child.opacity}
+                rotation={child.rotation}
+                listening={false}
+              />
+            );
+          }
+
+          if (child.type === "shape") {
+            return (
+              <Rect
+                key={child.id}
+                x={child.x}
+                y={child.y}
+                width={child.width}
+                height={child.height}
+                fill={child.fill}
+                cornerRadius={child.cornerRadius}
+                opacity={child.opacity}
+                rotation={child.rotation}
+                listening={false}
+              />
+            );
+          }
+
+          if (child.type === "group") {
+            return null;
+          }
+
+          return <BuilderImageNodeInGroup key={child.id} node={child} />;
+        })}
+      </Group>
+      {selected ? (
+        <Transformer
+          ref={transformerRef}
+          rotateEnabled={behavior.rotateEnabled}
+          enabledAnchors={behavior.enabledAnchors}
+          boundBoxFunc={(oldBox, newBox) => {
+            if (newBox.width < behavior.minWidth || newBox.height < behavior.minHeight) {
               return oldBox;
             }
 
@@ -280,13 +399,19 @@ function BuilderShapeNodeView({
 
 export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const [document, setDocument] = useState<BuilderDocument>(() => ensureBuilderDocument(initialValue));
-  const [selectedId, setSelectedId] = useState<string | null>(document.nodes[0]?.id ?? null);
+  const [selectedIds, setSelectedIds] = useState<string[]>(document.nodes[0]?.id ? [document.nodes[0].id] : []);
   const stageWrapperRef = useRef<HTMLDivElement>(null);
   const textEditorRef = useRef<HTMLTextAreaElement>(null);
   const [zoom, setZoom] = useState(0.56);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [stageViewport, setStageViewport] = useState({ left: 0, top: 0 });
+  const resizeSessionRef = useRef<{ startY: number; startHeight: number } | null>(null);
 
+  const selectedId = selectedIds.length === 1 ? selectedIds[0] : null;
+  const selectedNodes = useMemo(
+    () => document.nodes.filter((node) => selectedIds.includes(node.id)),
+    [document.nodes, selectedIds]
+  );
   const selectedNode = useMemo(
     () => document.nodes.find((node) => node.id === selectedId) ?? null,
     [document.nodes, selectedId]
@@ -301,6 +426,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const stageHeight = Math.round(document.height * stageScale);
   const notebookGridSize = 40;
   const rowSpacing = notebookGridSize;
+  const canGroup = selectedNodes.length > 1 && selectedNodes.every((node) => node.type !== "group");
 
   const snapValue = (value: number) => Math.round(value / notebookGridSize) * notebookGridSize;
   const snapPosition = (x: number, y: number) => ({
@@ -317,7 +443,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
           points: [position, 0, position, document.height],
         };
       }),
-    [document.height, document.width, notebookGridSize]
+    [document.height, document.width]
   );
 
   const horizontalGridLines = useMemo(
@@ -331,6 +457,29 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
       }),
     [document.height, document.width, rowSpacing]
   );
+
+  const setSingleSelection = useCallback((nodeId: string | null) => {
+    setSelectedIds(nodeId ? [nodeId] : []);
+  }, []);
+
+  const toggleSelection = (nodeId: string) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(nodeId)) {
+        return prev.filter((id) => id !== nodeId);
+      }
+
+      return [...prev, nodeId];
+    });
+  };
+
+  const handleNodeSelect = (nodeId: string, append: boolean) => {
+    if (append) {
+      toggleSelection(nodeId);
+      return;
+    }
+
+    setSingleSelection(nodeId);
+  };
 
   const patchNodeById = (nodeId: string, patch: Partial<BuilderNode>) => {
     setDocument((prev) => ({
@@ -347,35 +496,33 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
     patchNodeById(selectedId, patch);
   };
 
-  const addNode = (node: BuilderNode) => {
+  const addNode = useCallback((node: BuilderNode) => {
     setDocument((prev) => ({ ...prev, nodes: [...prev.nodes, node] }));
-    setSelectedId(node.id);
-  };
+    setSingleSelection(node.id);
+  }, [setSingleSelection]);
 
-  const removeNodeById = (nodeId: string) => {
+  const removeSelectedNodes = useCallback(() => {
+    if (selectedIds.length === 0) {
+      return;
+    }
+
     setDocument((prev) => ({
       ...prev,
-      nodes: prev.nodes.filter((node) => node.id !== nodeId),
+      nodes: prev.nodes.filter((node) => !selectedIds.includes(node.id)),
     }));
-    setSelectedId(null);
+    setSelectedIds([]);
     setEditingTextId(null);
-  };
+  }, [selectedIds]);
 
-  const duplicateNodeById = (nodeId: string) => {
+  const duplicateNodeById = useCallback((nodeId: string) => {
     const sourceNode = document.nodes.find((node) => node.id === nodeId);
     if (!sourceNode) {
       return;
     }
 
-    const duplicate =
-      sourceNode.type === "text"
-        ? createTextNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize })
-        : sourceNode.type === "shape"
-          ? createShapeNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize })
-          : createImageNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize });
-
+    const duplicate = offsetNode(cloneNode(sourceNode), notebookGridSize, notebookGridSize);
     addNode(duplicate);
-  };
+  }, [addNode, document.nodes, notebookGridSize]);
 
   const moveNodeById = (nodeId: string, direction: "forward" | "backward") => {
     setDocument((prev) => {
@@ -397,6 +544,55 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
       nodes.splice(nextIndex, 0, item);
       return { ...prev, nodes };
     });
+  };
+
+  const groupSelectedNodes = useCallback(() => {
+    if (!canGroup) {
+      return;
+    }
+
+    const bounds = selectedNodes.map(getNodeBounds);
+    const minX = Math.min(...bounds.map((item) => item.x));
+    const minY = Math.min(...bounds.map((item) => item.y));
+    const maxX = Math.max(...bounds.map((item) => item.x + item.width));
+    const maxY = Math.max(...bounds.map((item) => item.y + item.height));
+    const selectedIdSet = new Set(selectedIds);
+
+    const groupNode = createGroupNode({
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+      nodes: selectedNodes.map((node) => offsetNode(cloneNode(node), -minX, -minY)),
+    });
+
+    setDocument((prev) => {
+      const insertIndex = prev.nodes.findIndex((node) => selectedIdSet.has(node.id));
+      const remainingNodes = prev.nodes.filter((node) => !selectedIdSet.has(node.id));
+      const nextNodes = [...remainingNodes];
+      nextNodes.splice(insertIndex === -1 ? remainingNodes.length : insertIndex, 0, groupNode);
+      return { ...prev, nodes: nextNodes };
+    });
+    setSingleSelection(groupNode.id);
+  }, [canGroup, selectedIds, selectedNodes, setSingleSelection]);
+
+  const ungroupSelectedNode = () => {
+    if (!selectedNode || selectedNode.type !== "group") {
+      return;
+    }
+
+    const ungroupedNodes = selectedNode.nodes.map((child) => offsetNode(cloneNode(child), selectedNode.x, selectedNode.y));
+    setDocument((prev) => {
+      const index = prev.nodes.findIndex((node) => node.id === selectedNode.id);
+      if (index === -1) {
+        return prev;
+      }
+
+      const nextNodes = [...prev.nodes];
+      nextNodes.splice(index, 1, ...ungroupedNodes);
+      return { ...prev, nodes: nextNodes };
+    });
+    setSelectedIds(ungroupedNodes.map((node) => node.id));
   };
 
   useEffect(() => {
@@ -442,33 +638,53 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
         tagName === "SELECT" ||
         target?.isContentEditable;
 
-      if ((event.key === "Delete" || event.key === "Backspace") && selectedId && !isTypingTarget) {
+      if ((event.key === "Delete" || event.key === "Backspace") && selectedIds.length > 0 && !isTypingTarget) {
         event.preventDefault();
-        removeNodeById(selectedId);
+        removeSelectedNodes();
       }
 
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "d" && selectedId && !isTypingTarget) {
         event.preventDefault();
-        const sourceNode = document.nodes.find((node) => node.id === selectedId);
-        if (!sourceNode) {
-          return;
-        }
+        duplicateNodeById(selectedId);
+      }
 
-        const duplicate =
-          sourceNode.type === "text"
-            ? createTextNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize })
-            : sourceNode.type === "shape"
-              ? createShapeNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize })
-              : createImageNode({ ...sourceNode, x: sourceNode.x + notebookGridSize, y: sourceNode.y + notebookGridSize });
-
-        setDocument((prev) => ({ ...prev, nodes: [...prev.nodes, duplicate] }));
-        setSelectedId(duplicate.id);
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "g" && selectedNodes.length > 1 && !isTypingTarget) {
+        event.preventDefault();
+        groupSelectedNodes();
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [document.nodes, selectedId]);
+  }, [canGroup, duplicateNodeById, groupSelectedNodes, removeSelectedNodes, selectedId, selectedIds, selectedNodes]);
+
+  useEffect(() => {
+    const onMouseMove = (event: MouseEvent) => {
+      const session = resizeSessionRef.current;
+      if (!session) {
+        return;
+      }
+
+      const delta = event.clientY - session.startY;
+      const rawHeight = session.startHeight + delta / stageScale;
+      const snappedHeight = Math.round(rawHeight / 10) * 10;
+      setDocument((prev) => ({
+        ...prev,
+        height: Math.min(BUILDER_MAX_HEIGHT, Math.max(BUILDER_MIN_HEIGHT, snappedHeight)),
+      }));
+    };
+
+    const onMouseUp = () => {
+      resizeSessionRef.current = null;
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [stageScale]);
 
   const editorOverlayStyle = editingTextNode ? {
     left: stageViewport.left + editingTextNode.x * stageScale,
@@ -534,6 +750,16 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
           <Button type="button" variant="outline" onClick={() => addNode(createImageNode())}>
             Thêm ảnh
           </Button>
+          {canGroup ? (
+            <Button type="button" variant="outline" onClick={groupSelectedNodes}>
+              Group {selectedNodes.length} item
+            </Button>
+          ) : null}
+          {selectedNode?.type === "group" ? (
+            <Button type="button" variant="outline" onClick={ungroupSelectedNode}>
+              Ungroup
+            </Button>
+          ) : null}
           {selectedNode ? (
             <>
               <Button type="button" variant="outline" size="icon" onClick={() => moveNodeById(selectedNode.id, "backward")}>
@@ -545,15 +771,22 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
               <Button type="button" variant="outline" size="icon" onClick={() => duplicateNodeById(selectedNode.id)}>
                 <Copy className="size-4" />
               </Button>
-              <Button type="button" variant="destructive" onClick={() => removeNodeById(selectedNode.id)}>
-                Xóa item
-              </Button>
             </>
+          ) : null}
+          {selectedIds.length > 0 ? (
+            <Button type="button" variant="destructive" onClick={removeSelectedNodes}>
+              Xóa item
+            </Button>
           ) : null}
         </div>
 
         <div className="grid gap-4 md:grid-cols-6">
-          {selectedNode ? (
+          {selectedIds.length > 1 ? (
+            <div className="rounded-xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-6">
+              Đang chọn {selectedIds.length} item.
+              {canGroup ? " Dùng `Ctrl/Cmd + G` hoặc nút group để gom các item này." : " Group lồng nhau hiện chưa hỗ trợ trong editor."}
+            </div>
+          ) : selectedNode ? (
             <>
               <div className="space-y-2">
                 <label className="font-medium">X</label>
@@ -563,10 +796,17 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
                 <label className="font-medium">Y</label>
                 <Input type="number" value={String(Math.round(selectedNode.y))} onChange={(e) => patchSelectedNode({ y: Number(e.target.value) })} />
               </div>
-              <div className="space-y-2">
-                <label className="font-medium">Opacity</label>
-                <Input type="number" min="0" max="1" step="0.1" value={String(selectedNode.opacity)} onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })} />
-              </div>
+
+              {selectedNode.type === "group" ? (
+                <div className="rounded-xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-4">
+                  Group có thể kéo và resize trực tiếp trên canvas, bao gồm kéo chiều cao.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="font-medium">Opacity</label>
+                  <Input type="number" min="0" max="1" step="0.1" value={String(selectedNode.opacity)} onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })} />
+                </div>
+              )}
 
               {selectedNode.type === "text" ? (
                 <>
@@ -666,7 +906,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
         <div className="space-y-4">
           <div
             ref={stageWrapperRef}
-            className="relative flex items-center justify-center overflow-auto rounded-2xl border bg-[#f5f5f5] p-4"
+            className="relative flex items-center justify-center overflow-auto rounded-2xl border bg-[#f5f5f5] p-4 pb-14"
             onDragOver={(event) => {
               if (event.dataTransfer.types.includes("application/pinklove-builder-asset")) {
                 event.preventDefault();
@@ -729,7 +969,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
               scaleY={stageScale}
               onMouseDown={(event) => {
                 if (event.target === event.target.getStage()) {
-                  setSelectedId(null);
+                  setSelectedIds([]);
                 }
               }}
             >
@@ -748,10 +988,10 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
                       <BuilderTextNodeView
                         key={node.id}
                         node={node}
-                        selected={selectedId === node.id}
-                        onSelect={() => setSelectedId(node.id)}
+                        selected={selectedIds.includes(node.id)}
+                        onSelect={(append) => handleNodeSelect(node.id, append)}
                         onEdit={() => {
-                          setSelectedId(node.id);
+                          setSingleSelection(node.id);
                           setEditingTextId(node.id);
                         }}
                         onChange={(patch) =>
@@ -774,8 +1014,30 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
                       <BuilderShapeNodeView
                         key={node.id}
                         node={node}
-                        selected={selectedId === node.id}
-                        onSelect={() => setSelectedId(node.id)}
+                        selected={selectedIds.includes(node.id)}
+                        onSelect={(append) => handleNodeSelect(node.id, append)}
+                        onChange={(patch) =>
+                          patchNodeById(node.id, {
+                            ...patch,
+                            ...(typeof patch.x === "number" || typeof patch.y === "number"
+                              ? snapPosition(
+                                  typeof patch.x === "number" ? patch.x : node.x,
+                                  typeof patch.y === "number" ? patch.y : node.y
+                                )
+                              : {}),
+                          })
+                        }
+                      />
+                    );
+                  }
+
+                  if (node.type === "image") {
+                    return (
+                      <BuilderImageNodeView
+                        key={node.id}
+                        node={node}
+                        selected={selectedIds.includes(node.id)}
+                        onSelect={(append) => handleNodeSelect(node.id, append)}
                         onChange={(patch) =>
                           patchNodeById(node.id, {
                             ...patch,
@@ -792,27 +1054,30 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
                   }
 
                   return (
-                    <BuilderImageNodeView
+                    <BuilderGroupNodeView
                       key={node.id}
                       node={node}
-                      selected={selectedId === node.id}
-                      onSelect={() => setSelectedId(node.id)}
-                      onChange={(patch) =>
-                        patchNodeById(node.id, {
-                          ...patch,
-                          ...(typeof patch.x === "number" || typeof patch.y === "number"
-                            ? snapPosition(
-                                typeof patch.x === "number" ? patch.x : node.x,
-                                typeof patch.y === "number" ? patch.y : node.y
-                              )
-                            : {}),
-                        })
-                      }
+                      selected={selectedIds.includes(node.id)}
+                      onSelect={(append) => handleNodeSelect(node.id, append)}
+                      onChange={(patch) => patchNodeById(node.id, patch)}
                     />
                   );
                 })}
               </Layer>
             </Stage>
+
+            <div
+              className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-row-resize items-center gap-2 rounded-full border bg-background/95 px-3 py-1 text-xs text-muted-foreground shadow-sm"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                resizeSessionRef.current = {
+                  startY: event.clientY,
+                  startHeight: document.height,
+                };
+              }}
+            >
+              Kéo để đổi chiều cao
+            </div>
           </div>
         </div>
       </div>

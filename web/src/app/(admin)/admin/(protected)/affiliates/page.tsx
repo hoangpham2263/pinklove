@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeForm } from "@/components/common/native-form";
+import { PageToast } from "@/components/common/page-toast";
 import { listAffiliateAccounts, getAffiliateProgramSummary } from "@/features/affiliate/server/service";
 import { requireAdmin } from "@/lib/auth";
 
@@ -33,17 +34,8 @@ export default async function AdminAffiliatesPage({ searchParams }: AdminAffilia
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      {query.saved && (
-        <div className="rounded-md border border-primary/20 bg-primary/10 px-4 py-3 text-sm">
-          Đã cập nhật cấu hình affiliate.
-        </div>
-      )}
-
-      {query.error && (
-        <div className="rounded-md border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {getAffiliateErrorMessage(String(query.error))}
-        </div>
-      )}
+      {query.saved ? <PageToast message="Đã cập nhật cấu hình affiliate." variant="success" /> : null}
+      {query.error ? <PageToast message={getAffiliateErrorMessage(String(query.error)) ?? "Không thể cập nhật affiliate lúc này."} variant="error" /> : null}
 
       <div className="grid gap-5 md:grid-cols-4">
         <Card>

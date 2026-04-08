@@ -3,7 +3,7 @@ import type { AuthPageFields } from "@/features/auth/fields";
 import { getCurrentUser } from "@/lib/auth";
 import { getCmsPageBySlug } from "@/lib/cms";
 import { getFields } from "@/lib/cms-fields";
-import { resolveMediaUrl } from "@/lib/media";
+import { resolveMediaUrl } from "@/lib/media-resolver";
 import { ROUTES } from "@/lib/routes";
 
 export type LoadedAuthSystemPage = {

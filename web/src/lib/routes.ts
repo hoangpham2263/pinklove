@@ -6,10 +6,21 @@ export const ROUTES = {
   HOME: "/",
   TEMPLATES: "/templates",
   BUILDER: "/builder",
+  SERVICES: "/services",
+  TOOLS: "/tools",
+  BLOG: "/blog",
   WEDDING: {
     TEMPLATE: (slug: string) => `/templates/${slug}`,
     BUILDER: (slug: string) => `/builder/${slug}`,
     SITE: (slug: string) => `/w/${slug}`,
+  },
+  TOOLS_PAGES: {
+    QR_BUILDER: "/tools/qr-builder",
+    WEDDING_BUDGET: "/tools/wedding-budget",
+  },
+  BLOG_PAGES: {
+    CATEGORY: (slug: string) => `/blog/${slug}`,
+    POST: (slug: string) => `/blog/post/${slug}`,
   },
   AUTH: {
     LOGIN: "/user/login",
@@ -27,8 +38,10 @@ export const ROUTES = {
   ADMIN: {
     LOGIN: "/admin/login",
     DASHBOARD: "/admin/dashboard",
+    SEO_GUIDE: "/admin/seo-guide",
     SETTINGS: "/admin/settings",
     PRODUCTS: "/admin/products",
+    PRODUCT_LIST: "/admin/products/list",
     PRODUCT: (slug: string) => `/admin/products/${slug}`,
     USER: "/admin/user",
     MEDIA: "/admin/media",

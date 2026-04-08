@@ -2,7 +2,8 @@
 
 import { useState } from"react";
 import { useDropzone } from"react-dropzone";
-import { X, Copy, Trash2, Eye, ChevronLeft, ChevronRight } from"lucide-react";
+import { X, Copy, Trash2, Eye, ChevronLeft, ChevronRight, FileText } from"lucide-react";
+import { toast } from "sonner";
 
 import { Button } from"@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
@@ -27,6 +28,10 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
  const [uploadState, setUploadState] = useState<UploadState>("idle");
  const [errorMessage, setErrorMessage] = useState<string | null>(null);
  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+ function isImageFile(item: MediaAsset) {
+ return item.mimeType.startsWith("image/");
+ }
 
  const totalPages = Math.ceil(total / limit);
 
@@ -85,12 +90,6 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
  }
 
  const { getRootProps, getInputProps, isDragActive } = useDropzone({
- accept: {
-"image/jpeg": [],
-"image/png": [],
-"image/webp": [],
-"image/gif": [],
- },
  multiple: true,
  disabled: uploadState ==="uploading",
  onDrop: (acceptedFiles) => {
@@ -129,11 +128,11 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
   <>
    <p>
    {isDragActive
-   ?"Thả ảnh vào đây..."
-   :"Kéo thả ảnh vào đây, hoặc click để chọn file"}
+   ?"Thả file vào đây..."
+   :"Kéo thả file vào đây, hoặc click để chọn file"}
    </p>
    <p className="opacity-70">
-   Hỗ trợ JPEG, PNG, WEBP, GIF
+   Hỗ trợ mọi loại file, gồm cả SVG
    </p>
   </>
   )}
@@ -172,6 +171,8 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
   {items.map((item) => (
              <article key={item.id} className="group relative overflow-hidden rounded-lg border bg-card transition-all">   <div className="relative aspect-square overflow-hidden bg-muted">
+   {isImageFile(item) ? (
+   <>
    <div
    className="h-full w-full cursor-pointer bg-cover bg-center transition-transform group-hover:scale-105"
    style={{ backgroundImage: `url(${item.url})` }}
@@ -179,6 +180,13 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
    />
    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100 cursor-pointer pointer-events-none">
                    <Eye className="h-6 w-6 text-white" />   </div>
+   </>
+   ) : (
+   <a href={item.url} target="_blank" rel="noreferrer" className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
+    <FileText className="h-10 w-10 text-muted-foreground" />
+    <p className="line-clamp-2 text-xs text-muted-foreground">{item.originalName}</p>
+   </a>
+   )}
    </div>
 
    <div className="flex items-center justify-between p-3 gap-2">
@@ -195,7 +203,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
     onClick={async (e) => {
     e.stopPropagation();
     await navigator.clipboard.writeText(item.url);
-    alert("Đã sao chép URL!");
+    toast.success("Đã sao chép URL.");
     }}
    >
     <Copy className="h-4 w-4" />
@@ -259,7 +267,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
   >
   <X className="h-6 w-6" />
   </button>
-  <div 
+ <div 
               className="relative max-h-full max-w-full overflow-hidden rounded-lg border bg-background"  onClick={(e) => e.stopPropagation()}
   >
   <img 

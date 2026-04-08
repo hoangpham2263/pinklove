@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { listContentPageSlugs } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
-import { query } from "@/lib/db";
+import { query } from "@/lib/database";
 import { getFields, type CmsFields } from "@/lib/cms-fields";
+import { getSiteUrl } from "@/lib/seo";
+import { resolveSeoImageUrl } from "@/lib/media-resolver";
 
 export type CmsPage = {
   id?: string;
@@ -175,8 +177,11 @@ export async function updateCmsPage(slug: string, data: Partial<CmsPage>): Promi
   return mapRowToPage(result.rows[0]);
 }
 
-export function buildPageMetadata(page: CmsPage): Metadata {
+export async function buildPageMetadata(page: CmsPage): Promise<Metadata> {
+  const ogImage = await resolveSeoImageUrl(page.ogImage);
+
   return {
+    metadataBase: new URL(getSiteUrl()),
     title: page.seoTitle || page.title || "Pinklove App",
     description: page.seoDescription || page.excerpt || "",
     keywords: page.seoKeywords ? page.seoKeywords.split(",").map(k => k.trim()) : undefined,
@@ -186,9 +191,16 @@ export function buildPageMetadata(page: CmsPage): Metadata {
       follow: !page.nofollow,
     },
     openGraph: {
+      type: "website",
       title: page.ogTitle || page.seoTitle || page.title,
       description: page.ogDescription || page.seoDescription || page.excerpt,
-      images: page.ogImage ? [{ url: page.ogImage }] : undefined,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title: page.ogTitle || page.seoTitle || page.title,
+      description: page.ogDescription || page.seoDescription || page.excerpt,
+      images: ogImage ? [ogImage] : undefined,
     },
   };
 }

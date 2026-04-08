@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { updateProduct } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
-import { getWeddingTemplateProductType } from "@/features/sites/templates";
+import { getWeddingTemplateProductType } from "@/features/sites/templates/registry";
 import type { ProductType } from "@/features/products/types";
 
 export const runtime = "nodejs";

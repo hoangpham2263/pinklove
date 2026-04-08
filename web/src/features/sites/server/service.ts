@@ -1,12 +1,12 @@
 import "server-only";
 
 import type { Product } from "@/features/products/types";
-import { query } from "@/lib/db";
+import { query } from "@/lib/database";
 import { slugify } from "@/lib/utils";
 import {
   getWeddingTemplateDefaults,
   getWeddingTemplateFields,
-} from "@/features/sites/templates";
+} from "@/features/sites/templates/registry";
 import { ensureBuilderDocument } from "@/features/sites/builder/utils";
 import type { WeddingSite, WeddingSiteStatus, WeddingSiteType } from "@/features/sites/types";
 
@@ -52,7 +52,7 @@ async function ensureUniqueWeddingSiteSlug(base: string, ignoreId?: string) {
         SELECT id
         FROM wedding_sites
         WHERE slug = $1
-          AND ($2::text IS NULL OR id <> $2)
+          AND ($2::text IS NULL OR id::text <> $2::text)
         LIMIT 1
       `,
       [candidate, ignoreId ?? null]
@@ -185,6 +185,32 @@ export async function getPublicWeddingSiteBySlug(slug: string): Promise<WeddingS
   }
 
   return mapWeddingSiteRow(result.rows[0]);
+}
+
+export async function listPublishedWeddingSites(): Promise<WeddingSite[]> {
+  const result = await query<WeddingSiteRow>(
+    `
+      SELECT
+        ws.id,
+        ws.user_id,
+        ws.product_id,
+        p.name AS product_name,
+        ws.title,
+        ws.slug,
+        ws.site_type,
+        ws.template_key,
+        ws.status,
+        ws.custom_data,
+        ws.created_at,
+        ws.updated_at
+      FROM wedding_sites ws
+      LEFT JOIN products p ON p.id = ws.product_id
+      WHERE ws.status = 'published'
+      ORDER BY ws.updated_at DESC
+    `
+  );
+
+  return result.rows.map(mapWeddingSiteRow);
 }
 
 export async function createWeddingSiteFromProduct(input: {

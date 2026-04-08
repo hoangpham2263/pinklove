@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from"next/navigation";
 
 import { AdminLoginForm } from"@/features/auth/components/login-forms";
@@ -11,5 +12,9 @@ export default async function AdminLoginPage() {
  redirect(target);
  }
 
- return <AdminLoginForm />;
+ return (
+  <Suspense fallback={null}>
+   <AdminLoginForm />
+  </Suspense>
+ );
 }

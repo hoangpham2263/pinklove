@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Section, SectionContainer } from "@/components/common/section";
 import { ROUTES } from "@/lib/routes";
+import { MIN_PASSWORD_LENGTH } from "@/features/auth/constants";
 
 export type AuthFormProps = {
   heading?: string;
@@ -34,7 +35,7 @@ function getErrorMessage(error: string | null): string | null {
   if (error === "google_callback_invalid") return "Phản hồi từ Google không hợp lệ.";
   if (error === "google_state_invalid") return "Phiên đăng nhập Google đã hết hạn. Vui lòng thử lại.";
   if (error === "google_login_failed") return "Đăng nhập Google thất bại. Vui lòng thử lại.";
-  if (error === "weak_password") return "Mật khẩu phải có ít nhất 6 ký tự.";
+  if (error === "weak_password") return `Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`;
   if (error === "username_taken") return "Tên đăng nhập đã tồn tại.";
   if (error === "register_failed") return "Không thể tạo tài khoản. Vui lòng thử tên khác.";
   return "Xác thực không thành công.";
@@ -211,7 +212,7 @@ export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps =
                     <Input
                       name="password"
                       type={showRegisterPassword ? "text" : "password"}
-                      placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+                      placeholder={`Mật khẩu (tối thiểu ${MIN_PASSWORD_LENGTH} ký tự)`}
                       autoComplete="new-password"
                     />
                     <Button

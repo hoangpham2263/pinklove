@@ -9,12 +9,17 @@ type AdminTopHeaderProps = {
 };
 
 function getPageTitle(pathname: string): string {
- if (pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return"Dashboard";
- if (pathname.startsWith("/admin/user")) return"User";
- if (pathname.startsWith("/admin/settings")) return"Settings";
- if (pathname.startsWith("/admin/media")) return"Media";
- if (pathname ==="/admin") return"Dashboard";
- return"Admin";
+ if (pathname === "/admin" || pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return "Dashboard";
+ if (pathname.startsWith("/admin/pages")) return "Pages";
+ if (pathname.startsWith("/admin/menus")) return "Navigation";
+ if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product List";
+ if (pathname.startsWith(ROUTES.ADMIN.PRODUCTS)) return "Products";
+ if (pathname.startsWith("/admin/user")) return "Users";
+ if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";
+ if (pathname.startsWith(ROUTES.ADMIN.MEDIA)) return "Media";
+ if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Seo";
+ if (pathname.startsWith(ROUTES.ADMIN.SETTINGS)) return "Settings";
+ return "Admin";
 }
 
 export function AdminTopHeader({ username }: AdminTopHeaderProps) {

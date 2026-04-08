@@ -7,14 +7,7 @@ import type { MediaAsset } from"../types";
 const UPLOAD_ROOT_DIR = path.join(process.cwd(),"public","uploads");
 const STORE_DIR = path.join(process.cwd(),"storage");
 const STORE_FILE = path.join(STORE_DIR,"media.json");
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-
-const ALLOWED_IMAGE_MIME_TYPES = new Set([
-"image/jpeg",
-"image/png",
-"image/webp",
-"image/gif",
-]);
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
 async function ensureMediaStore() {
  await fs.mkdir(UPLOAD_ROOT_DIR, { recursive:true });
@@ -54,12 +47,8 @@ export async function listMediaAssets(): Promise<MediaAsset[]> {
 }
 
 export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
- if (!ALLOWED_IMAGE_MIME_TYPES.has(file.type)) {
- throw new Error("Only JPEG, PNG, WEBP, and GIF are allowed.");
- }
-
- if (file.size > MAX_IMAGE_SIZE_BYTES) {
- throw new Error("File is too large. Maximum size is 5MB.");
+ if (file.size > MAX_FILE_SIZE_BYTES) {
+ throw new Error("File is too large. Maximum size is 20MB.");
  }
 
  const now = new Date();

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NativeForm } from "@/components/common/native-form";
+import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requireAppUser } from "@/lib/auth";
@@ -27,6 +28,9 @@ export default async function BuilderDesignPage({ params, searchParams }: Builde
 
   return (
     <section className="flex min-h-screen flex-col bg-[#f5f5f5]">
+      {query.saved ? <PageToast message="Đã lưu." variant="success" /> : null}
+      {query.error ? <PageToast message="Lưu thất bại." variant="error" /> : null}
+
       <NativeForm action={ROUTES.API.USER.SITES.UPDATE} method="POST" className="flex min-h-screen flex-col">
         <input type="hidden" name="siteId" value={String(site.id)} />
         <input type="hidden" name="templateKey" value={site.templateKey} />
@@ -43,8 +47,6 @@ export default async function BuilderDesignPage({ params, searchParams }: Builde
                   <Button className="w-full" variant="outline" render={<Link href={ROUTES.USER.SITES}>Quay lại</Link>} />
                   <div className="space-y-1">
                     <h1 className="truncate text-base font-semibold">{site.title}</h1>
-                    {query.saved ? <p className="text-sm text-primary">Đã lưu</p> : null}
-                    {query.error ? <p className="text-sm text-destructive">Lưu thất bại</p> : null}
                   </div>
                 </div>
 

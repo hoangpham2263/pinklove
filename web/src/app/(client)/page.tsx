@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HomeContent } from "@/app/(client)/_components/home-content";
+import { PageStructuredData } from "@/components/common/page-structured-data";
 import { getCurrentUser } from "@/lib/auth";
 import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
       : null
     : await getPublishedCmsPageBySlug("home");
 
-  return page ? buildPageMetadata(page) : {};
+  return page ? await buildPageMetadata(page) : {};
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
@@ -33,5 +34,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     notFound();
   }
 
-  return <HomeContent page={page} />;
+  return (
+    <>
+      <PageStructuredData page={page} />
+      <HomeContent page={page} />
+    </>
+  );
 }

@@ -1,7 +1,8 @@
 import "server-only";
 
 import type { Product, ProductType } from "@/features/products/types";
-import { query } from "@/lib/db";
+import { query } from "@/lib/database";
+import { resolveMediaUrl } from "@/lib/media-resolver";
 
 type ProductInput = {
   slug: string;
@@ -50,6 +51,15 @@ function mapProductRow(row: ProductRow): Product {
   };
 }
 
+async function mapProductRows(rows: ProductRow[]): Promise<Product[]> {
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...mapProductRow(row),
+      thumbnailUrl: await resolveMediaUrl(row.thumbnail_url),
+    }))
+  );
+}
+
 export async function listPublishedProducts(): Promise<Product[]> {
   const result = await query<ProductRow>(
     `
@@ -60,7 +70,7 @@ export async function listPublishedProducts(): Promise<Product[]> {
     `
   );
 
-  return result.rows.map(mapProductRow);
+  return mapProductRows(result.rows);
 }
 
 export async function listPublishedProductsByType(productType: ProductType): Promise<Product[]> {
@@ -75,7 +85,7 @@ export async function listPublishedProductsByType(productType: ProductType): Pro
     [productType]
   );
 
-  return result.rows.map(mapProductRow);
+  return mapProductRows(result.rows);
 }
 
 export async function listAllProducts(): Promise<Product[]> {
@@ -87,7 +97,7 @@ export async function listAllProducts(): Promise<Product[]> {
     `
   );
 
-  return result.rows.map(mapProductRow);
+  return mapProductRows(result.rows);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -105,7 +115,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return null;
   }
 
-  return mapProductRow(result.rows[0]);
+  return (await mapProductRows(result.rows))[0] ?? null;
 }
 
 export async function getPublishedProductBySlugAndType(
@@ -128,7 +138,7 @@ export async function getPublishedProductBySlugAndType(
     return null;
   }
 
-  return mapProductRow(result.rows[0]);
+  return (await mapProductRows(result.rows))[0] ?? null;
 }
 
 export async function createProduct(input: ProductInput): Promise<Product> {
@@ -154,7 +164,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
     ]
   );
 
-  return mapProductRow(result.rows[0]);
+  return (await mapProductRows(result.rows))[0];
 }
 
 export async function updateProduct(slug: string, input: Partial<ProductInput>): Promise<Product | null> {
@@ -200,7 +210,7 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
     return null;
   }
 
-  return mapProductRow(result.rows[0]);
+  return (await mapProductRows(result.rows))[0] ?? null;
 }
 
 export async function deleteProduct(slug: string): Promise<boolean> {

@@ -1,14 +1,33 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PageStructuredData } from "@/components/common/page-structured-data";
 import { RegisterForm } from "@/features/auth/components/login-forms";
-import { loadAuthPage } from "@/features/auth/page-loader";
+import { loadAuthPage } from "@/features/auth/auth-page-loader";
+import { getCurrentUser } from "@/lib/auth";
+import { buildPageMetadata, getCmsPageBySlug, getPublishedCmsPageBySlug } from "@/lib/cms";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = (await getCurrentUser())?.role === "admin"
+    ? await getCmsPageBySlug("register")
+    : await getPublishedCmsPageBySlug("register");
+
+  return page ? await buildPageMetadata(page) : {};
+}
 
 export default async function RegisterPage() {
-  const page = await loadAuthPage("register");
+  const [page, authPage] = await Promise.all([
+    getCmsPageBySlug("register"),
+    loadAuthPage("register"),
+  ]);
 
   return (
-    <RegisterForm
-      heading={page.heading}
-      subheading={page.subheading}
-      sideImage={page.sideImage}
-    />
+    <Suspense fallback={null}>
+      <PageStructuredData page={page} />
+      <RegisterForm
+        heading={authPage.heading}
+        subheading={authPage.subheading}
+        sideImage={authPage.sideImage}
+      />
+    </Suspense>
   );
 }

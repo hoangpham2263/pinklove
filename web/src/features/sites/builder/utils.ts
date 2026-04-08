@@ -5,7 +5,15 @@ import {
   BUILDER_PAGE_WIDTH,
   createDefaultBuilderDocument,
 } from "./defaults";
-import type { BuilderDocument, BuilderImageNode, BuilderNode, BuilderShapeNode, BuilderTextNode } from "./types";
+import type {
+  BuilderDocument,
+  BuilderGroupNode,
+  BuilderImageNode,
+  BuilderLeafNode,
+  BuilderNode,
+  BuilderShapeNode,
+  BuilderTextNode,
+} from "./types";
 
 function toFiniteNumber(value: unknown, fallback: number) {
   const next = Number(value);
@@ -31,6 +39,66 @@ function createNodeId(prefix: string) {
   }
 
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function estimateTextHeight(node: BuilderTextNode) {
+  const lineCount = node.text.split("\n").length || 1;
+  return Math.max(node.fontSize * 1.35 * lineCount, node.fontSize);
+}
+
+export function getNodeBounds(node: BuilderNode) {
+  if (node.type === "text") {
+    return {
+      x: node.x,
+      y: node.y,
+      width: node.width,
+      height: estimateTextHeight(node),
+    };
+  }
+
+  if (node.type === "group") {
+    return {
+      x: node.x,
+      y: node.y,
+      width: node.width,
+      height: node.height,
+    };
+  }
+
+  return {
+    x: node.x,
+    y: node.y,
+    width: node.width,
+    height: node.height,
+  };
+}
+
+function cloneLeafNode(node: BuilderLeafNode): BuilderLeafNode {
+  if (node.type === "text") {
+    return createTextNode(node);
+  }
+
+  if (node.type === "shape") {
+    return createShapeNode(node);
+  }
+
+  return createImageNode(node);
+}
+
+export function cloneNode(node: BuilderNode): BuilderNode {
+  if (node.type === "group") {
+    return {
+      id: createNodeId("group"),
+      type: "group",
+      x: node.x,
+      y: node.y,
+      width: node.width,
+      height: node.height,
+      nodes: node.nodes.map(cloneNode),
+    };
+  }
+
+  return cloneLeafNode(node);
 }
 
 function normalizeBuilderNode(node: unknown): BuilderNode | null {
@@ -87,6 +155,24 @@ function normalizeBuilderNode(node: unknown): BuilderNode | null {
       opacity: toOpacity(record.opacity, 1),
       fill: toStringValue(record.fill, "#ffe4ec"),
       cornerRadius: toNonNegativeNumber(record.cornerRadius, 24),
+    };
+  }
+
+  if (type === "group") {
+    const nodes = Array.isArray(record.nodes)
+      ? record.nodes.map(normalizeBuilderNode).filter((item): item is BuilderNode => Boolean(item))
+      : [];
+    const width = Math.max(40, toNonNegativeNumber(record.width, 320));
+    const height = Math.max(40, toNonNegativeNumber(record.height, 320));
+
+    return {
+      id,
+      type,
+      x: toFiniteNumber(record.x, 120),
+      y: toFiniteNumber(record.y, 120),
+      width,
+      height,
+      nodes,
     };
   }
 
@@ -167,6 +253,27 @@ export function createImageNode(partial?: Partial<BuilderImageNode>): BuilderIma
   };
 }
 
-export function updateNode(nodes: BuilderNode[], nodeId: string, patch: Partial<BuilderNode>) {
-  return nodes.map((node) => (node.id === nodeId ? { ...node, ...patch } as BuilderNode : node));
+export function createGroupNode(partial: Omit<BuilderGroupNode, "id" | "type">): BuilderGroupNode {
+  return {
+    id: createNodeId("group"),
+    type: "group",
+    ...partial,
+  };
+}
+
+export function updateNode(nodes: BuilderNode[], nodeId: string, patch: Partial<BuilderNode>): BuilderNode[] {
+  return nodes.map((node) => {
+    if (node.id === nodeId) {
+      return { ...node, ...patch } as BuilderNode;
+    }
+
+    if (node.type === "group") {
+      return {
+        ...node,
+        nodes: updateNode(node.nodes, nodeId, patch),
+      };
+    }
+
+    return node;
+  });
 }
