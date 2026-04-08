@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (!slug) {
     return new NextResponse(null, {
       status: 303,
-      headers: { Location: `${ROUTES.ADMIN.PRODUCTS}?error=missing_slug` },
+      headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=missing_slug` },
     });
   }
 
@@ -22,6 +22,6 @@ export async function POST(request: Request) {
 
   return new NextResponse(null, {
     status: 303,
-    headers: { Location: `${ROUTES.ADMIN.PRODUCTS}?deleted=1` },
+    headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}?deleted=1` },
   });
 }

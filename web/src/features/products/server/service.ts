@@ -225,3 +225,41 @@ export async function deleteProduct(slug: string): Promise<boolean> {
 
   return (result.rowCount ?? 0) > 0;
 }
+
+export async function updateProductsStatus(
+  slugs: string[],
+  status: "draft" | "published"
+): Promise<number> {
+  if (slugs.length === 0) {
+    return 0;
+  }
+
+  const result = await query(
+    `
+      UPDATE products
+      SET
+        status = $2,
+        updated_at = NOW()
+      WHERE slug = ANY($1::text[])
+    `,
+    [slugs, status]
+  );
+
+  return result.rowCount ?? 0;
+}
+
+export async function deleteProducts(slugs: string[]): Promise<number> {
+  if (slugs.length === 0) {
+    return 0;
+  }
+
+  const result = await query(
+    `
+      DELETE FROM products
+      WHERE slug = ANY($1::text[])
+    `,
+    [slugs]
+  );
+
+  return result.rowCount ?? 0;
+}

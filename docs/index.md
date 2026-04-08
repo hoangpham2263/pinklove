@@ -6,6 +6,7 @@ Use this file as the entrypoint for project documentation.
 
 - App: monolithic Next.js App Router project in `web/`
 - Core stack: Next.js, React, PostgreSQL, local auth, optional Google OAuth
+- Notification standard: `sonner` is the project-wide toast system
 - Main product areas: public marketing site, user dashboard, admin CMS, affiliate flows, wedding templates, builder-based wedding sites
 
 ## Read order
@@ -27,6 +28,17 @@ Use this file as the entrypoint for project documentation.
 - Update [user](./user.md) for user dashboard, auth, profile, affiliate, or site-management changes.
 - Update [admin](./admin.md) for admin-only flows and controls.
 - Keep all files in `docs/` lowercase.
+
+## Shared UI Rules
+
+- Use `sonner` for all toast notifications across the project.
+- If a route needs to convert query params into a toast after redirect, prefer the existing `PageToast` helper as a thin bridge to `sonner` rather than introducing another toast system.
+- Admin default layout:
+  pages should use the standard protected admin shell, page title at the top, and primary actions aligned in the same header row when possible.
+- Admin default content style:
+  prefer summary cards first, then filters/actions, then the main management surface such as datatables or forms.
+- Admin default data-management pattern:
+  use shadcn-style datatables for list screens, keep filters/search above the table, and use English for database-facing select/status values even when visible labels are Vietnamese.
 
 ## Current review notes
 

@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   if (!product) {
     return new NextResponse(null, {
       status: 303,
-      headers: { Location: `${ROUTES.ADMIN.PRODUCTS}?error=product_not_found` },
+      headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=product_not_found` },
     });
   }
 

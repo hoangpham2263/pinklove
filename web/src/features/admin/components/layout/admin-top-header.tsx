@@ -13,6 +13,7 @@ function getPageTitle(pathname: string): string {
  if (pathname.startsWith("/admin/pages")) return "Pages";
  if (pathname.startsWith("/admin/menus")) return "Navigation";
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product List";
+ if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCTS)) return "Products";
  if (pathname.startsWith("/admin/user")) return "Users";
  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";

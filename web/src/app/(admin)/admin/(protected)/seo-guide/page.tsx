@@ -160,7 +160,7 @@ export default async function AdminSeoGuidePage() {
               <Link href="/admin/pages" className="block rounded-xl border px-4 py-3 transition hover:bg-muted lg:rounded-2xl">
                 Vào quản lý Pages
               </Link>
-              <Link href={ROUTES.ADMIN.PRODUCTS} className="block rounded-xl border px-4 py-3 transition hover:bg-muted lg:rounded-2xl">
+              <Link href={ROUTES.ADMIN.PRODUCT_LIST} className="block rounded-xl border px-4 py-3 transition hover:bg-muted lg:rounded-2xl">
                 Vào quản lý Products
               </Link>
             </CardContent>

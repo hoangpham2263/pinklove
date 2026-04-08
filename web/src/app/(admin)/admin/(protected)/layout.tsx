@@ -47,7 +47,6 @@ const adminNavGroups: AdminNavGroup[] = [
     defaultOpen: false,
     children: [
       { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "shopping-bag" },
-      { label: "Create Product", href: ROUTES.ADMIN.PRODUCTS, iconName: "shopping-bag" },
     ],
   },
   {
@@ -108,7 +107,7 @@ export default async function AdminLayout({
               key={group.label}
               label={group.label}
               iconName={group.iconName}
-              children={group.children}
+              items={group.children}
               defaultOpen={group.defaultOpen}
             />
           ))}
@@ -169,11 +168,11 @@ export default async function AdminLayout({
 
               </Link>
 
-              <Link href={ROUTES.ADMIN.PRODUCTS} className="flex items-center gap-1.5 whitespace-nowrap">
+              <Link href={ROUTES.ADMIN.PRODUCT_LIST} className="flex items-center gap-1.5 whitespace-nowrap">
 
                 <ShoppingBag className="h-4 w-4" />
 
-                Products
+                Product List
 
               </Link>
 

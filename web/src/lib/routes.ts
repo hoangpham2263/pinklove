@@ -82,6 +82,7 @@ export const ROUTES = {
         CREATE: "/api/admin/products/create",
         UPDATE: "/api/admin/products/update",
         DELETE: "/api/admin/products/delete",
+        BULK: "/api/admin/products/bulk",
       },
     },
     USER: {
