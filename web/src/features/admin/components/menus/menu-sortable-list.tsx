@@ -5,8 +5,6 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ManagedPage } from "@/lib/managed-pages";
-import { getManagedPagePath } from "@/lib/page-paths";
 import type { MenuItem } from "@/lib/menu";
 
 export type EditableMenuItem = Omit<MenuItem, "menuId">;
@@ -19,23 +17,34 @@ export type MenuParentOption = {
 
 const INDENT_THRESHOLD = 24;
 
+export function getMenuItemMeta(item: EditableMenuItem) {
+  if (item.type === "page") {
+    const slug = item.pageSlug ?? "";
+    return {
+      typeLabel: "Page",
+      value: slug.startsWith("/") ? slug : `/${slug}`,
+    };
+  }
+
+  return {
+    typeLabel: "Custom",
+    value: item.url ?? "",
+  };
+}
+
 function SortableMenuItem({
   item,
   index,
   depth,
   parentOptions,
-  availablePages,
   onUpdateParent,
-  onUpdateItem,
   onRemove,
 }: {
   item: EditableMenuItem;
   index: number;
   depth: number;
   parentOptions: MenuParentOption[];
-  availablePages: ManagedPage[];
   onUpdateParent: (itemId: string, parentId: string | null) => void;
-  onUpdateItem: (itemId: string, next: Partial<EditableMenuItem>) => void;
   onRemove: (index: number) => void;
 }) {
   const sortableId = item.id || `new-${index}`;
@@ -46,15 +55,16 @@ function SortableMenuItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    marginLeft: `${depth * 20}px`,
-    width: `calc(100% - ${depth * 20}px)`,
+    marginLeft: `${depth * 50}px`,
+    width: `calc(100% - ${depth * 50}px)`,
   };
+  const meta = getMenuItemMeta(item);
 
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between gap-3 rounded-md border bg-card p-3${isDragging ? " opacity-70 shadow-md" : ""}`}
+      className={`flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2${isDragging ? " opacity-70 shadow-md" : ""}`}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
         <button
@@ -67,33 +77,19 @@ function SortableMenuItem({
           <GripVertical className="h-4 w-4" />
         </button>
 
-        <div className="min-w-0 flex flex-1 flex-row items-center gap-2">
-          <p className="truncate font-medium">{item.label}</p>
-          <p className="truncate opacity-70">
-            {item.type === "page" ? `Page: ${getManagedPagePath(availablePages.find((page) => page.slug === item.pageSlug) ?? { slug: item.pageSlug ?? "", permalink: null })}` : `Custom: ${item.url}`}
-            {depth > 0 ? ` • Cấp ${depth + 1}` : " • Cấp 1"}
+        <div className="min-w-0 flex flex-1 flex-row items-center gap-5">
+          <p className="min-w-25 font-medium">{item.label}</p>
+          <p className="flex min-w-0 items-center gap-1 text-sm">
+            <span className="shrink-0">{meta.typeLabel}:</span>
+            <span className="truncate">{meta.value}</span>
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        {item.type === "page" ? (
-          <select
-            value={item.pageSlug ?? ""}
-            onChange={(event) => onUpdateItem(item.id, { pageSlug: event.target.value || null })}
-            className="h-9 w-48 rounded-md border bg-background px-3 text-sm"
-          >
-            <option value="">Chọn trang</option>
-            {availablePages.map((page) => (
-              <option key={page.slug} value={page.slug}>
-                {page.name} ({getManagedPagePath(page)})
-              </option>
-            ))}
-          </select>
-        ) : null}
         <select
           value={item.parentId ?? ""}
           onChange={(event) => onUpdateParent(item.id, event.target.value || null)}
-          className="h-9 w-44 rounded-md border bg-background px-3 text-sm"
+          className="h-7.5 w-44 rounded-md border px-3"
         >
           <option value="">Gốc</option>
           {parentOptions.map((option) => (
@@ -107,7 +103,7 @@ function SortableMenuItem({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+          className="h-10 w-10 text-destructive hover:bg-destructive/10"
           onClick={() => onRemove(index)}
         >
           <Trash2 className="h-4 w-4" />
@@ -121,18 +117,14 @@ export function MenuSortableList({
   items,
   itemDepths,
   parentOptionsByItemId,
-  availablePages,
   onUpdateParent,
-  onUpdateItem,
   onChange,
   onRemove,
 }: {
   items: EditableMenuItem[];
   itemDepths: Record<string, number>;
   parentOptionsByItemId: Record<string, MenuParentOption[]>;
-  availablePages: ManagedPage[];
   onUpdateParent: (itemId: string, parentId: string | null) => void;
-  onUpdateItem: (itemId: string, next: Partial<EditableMenuItem>) => void;
   onChange: (items: EditableMenuItem[]) => void;
   onRemove: (index: number) => void;
 }) {
@@ -197,9 +189,7 @@ export function MenuSortableList({
               index={index}
               depth={itemDepths[item.id] ?? 0}
               parentOptions={parentOptionsByItemId[item.id] ?? []}
-              availablePages={availablePages}
               onUpdateParent={onUpdateParent}
-              onUpdateItem={onUpdateItem}
               onRemove={onRemove}
             />
           ))}

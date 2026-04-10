@@ -44,6 +44,10 @@ export function ProductCard({
         </p>
         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
           <div>
+            <p className="text-xs uppercase tracking-[3px] text-stone-400">Giá</p>
+            <p className="mt-1 font-medium text-stone-900">{product.price.toLocaleString("vi-VN")}đ</p>
+          </div>
+          <div>
             <p className="text-xs uppercase tracking-[3px] text-stone-400">Loại</p>
             <p className="mt-1 font-medium text-stone-900">
               {product.productType === "coded_template" ? "Thiếp mẫu sẵn" : "Tự tạo thiệp"}

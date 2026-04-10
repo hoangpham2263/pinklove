@@ -1,4 +1,5 @@
 export type ProductType = "coded_template" | "builder_template";
+export type ProductFulfillmentType = "digital" | "physical" | "service";
 
 export type ProductCategory = {
   id: string;
@@ -24,6 +25,7 @@ export type Product = {
   categoryName?: string;
   thumbnailUrl?: string;
   price: number;
+  fulfillmentType: ProductFulfillmentType;
   config: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;

@@ -16,6 +16,7 @@ const globalForDb = globalThis as unknown as {
   internalAccountsMigrationDone?: boolean;
   productTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
+  commerceTablesMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
@@ -54,6 +55,27 @@ function getPool(): Pool {
  globalForDb.pool = pool;
 
  return pool;
+}
+
+async function getColumnTypeSql(tableName: string, columnName: string, fallbackType = "TEXT") {
+ const pool = getPool();
+ const result = await pool.query<{ formatted_type: string }>(
+  `
+   SELECT format_type(a.atttypid, a.atttypmod) AS formatted_type
+   FROM pg_attribute a
+   INNER JOIN pg_class c ON c.oid = a.attrelid
+   INNER JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE n.nspname = current_schema()
+     AND c.relname = $1
+     AND a.attname = $2
+     AND a.attnum > 0
+     AND NOT a.attisdropped
+   LIMIT 1
+  `,
+  [tableName, columnName]
+ );
+
+ return result.rows[0]?.formatted_type ?? fallbackType;
 }
 
 async function initSchema() {
@@ -218,7 +240,8 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
     ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
     ADD COLUMN IF NOT EXISTS seo_indexing JSONB,
-    ADD COLUMN IF NOT EXISTS seo_opengraph JSONB;
+    ADD COLUMN IF NOT EXISTS seo_opengraph JSONB,
+    ADD COLUMN IF NOT EXISTS commerce_config JSONB;
   `);
 
   await pool.query(`
@@ -573,17 +596,48 @@ async function ensureProductTablesMigration() {
       template_key TEXT NOT NULL,
       thumbnail_url TEXT,
       price NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
-      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template'))
+      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template')),
+      CONSTRAINT products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
 
   await pool.query(`
     ALTER TABLE products
-    ADD COLUMN IF NOT EXISTS category_id TEXT;
+    ADD COLUMN IF NOT EXISTS category_id TEXT,
+    ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'digital';
+  `);
+
+  await pool.query(`
+    UPDATE products
+    SET fulfillment_type = COALESCE(NULLIF(fulfillment_type, ''), 'digital');
+  `);
+
+  await pool.query(`
+    ALTER TABLE products
+    ALTER COLUMN fulfillment_type SET NOT NULL;
+  `);
+
+  await pool.query(`
+    ALTER TABLE products
+    DROP CONSTRAINT IF EXISTS products_fulfillment_type_check;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      ALTER TABLE products
+      ADD CONSTRAINT products_fulfillment_type_check
+      CHECK (fulfillment_type IN ('digital', 'physical', 'service'));
+    EXCEPTION
+      WHEN duplicate_object THEN
+      NULL;
+    END
+    $$;
   `);
 
   await pool.query(`
@@ -669,6 +723,173 @@ async function ensureBlogTablesMigration() {
   `);
 }
 
+async function ensureCommerceTablesMigration() {
+  const pool = getPool();
+  const userIdType = await getColumnTypeSql("users", "id");
+  const productIdType = await getColumnTypeSql("products", "id");
+  const affiliateUserIdType = await getColumnTypeSql("affiliate_accounts", "user_id", userIdType);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS shopping_cart_items (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      quantity INT NOT NULL DEFAULT 1,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT shopping_cart_items_quantity_check CHECK (quantity > 0),
+      CONSTRAINT shopping_cart_items_user_product_unique UNIQUE (user_id, product_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS shopping_cart_items_user_id_idx
+    ON shopping_cart_items(user_id, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_orders (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_number TEXT NOT NULL UNIQUE,
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      customer_name TEXT NOT NULL DEFAULT '',
+      customer_email TEXT NOT NULL DEFAULT '',
+      customer_phone TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending_payment',
+      payment_status TEXT NOT NULL DEFAULT 'unpaid',
+      fulfillment_status TEXT NOT NULL DEFAULT 'not_required',
+      currency TEXT NOT NULL DEFAULT 'VND',
+      subtotal_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      discount_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      shipping_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      total_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      shipping_name TEXT NOT NULL DEFAULT '',
+      shipping_phone TEXT NOT NULL DEFAULT '',
+      shipping_line1 TEXT NOT NULL DEFAULT '',
+      shipping_line2 TEXT NOT NULL DEFAULT '',
+      shipping_ward TEXT NOT NULL DEFAULT '',
+      shipping_district TEXT NOT NULL DEFAULT '',
+      shipping_city TEXT NOT NULL DEFAULT '',
+      shipping_postal_code TEXT NOT NULL DEFAULT '',
+      shipping_country TEXT NOT NULL DEFAULT 'VN',
+      notes TEXT NOT NULL DEFAULT '',
+      affiliate_user_id ${affiliateUserIdType} REFERENCES affiliate_accounts(user_id) ON DELETE SET NULL,
+      affiliate_code TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      paid_at TIMESTAMPTZ,
+      completed_at TIMESTAMPTZ,
+      cancelled_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT commerce_orders_status_check CHECK (status IN ('pending_payment', 'paid', 'processing', 'ready_to_ship', 'shipped', 'completed', 'cancelled', 'refunded')),
+      CONSTRAINT commerce_orders_payment_status_check CHECK (payment_status IN ('unpaid', 'pending', 'paid', 'failed', 'refunded')),
+      CONSTRAINT commerce_orders_fulfillment_status_check CHECK (fulfillment_status IN ('not_required', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_orders_user_id_idx
+    ON commerce_orders(user_id, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_orders_status_idx
+    ON commerce_orders(status, payment_status, fulfillment_status, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_order_items (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
+      product_id ${productIdType} REFERENCES products(id) ON DELETE SET NULL,
+      product_name TEXT NOT NULL,
+      product_slug TEXT NOT NULL,
+      product_type TEXT NOT NULL,
+      fulfillment_type TEXT NOT NULL DEFAULT 'digital',
+      quantity INT NOT NULL DEFAULT 1,
+      unit_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      line_total NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT commerce_order_items_quantity_check CHECK (quantity > 0),
+      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder_template')),
+      CONSTRAINT commerce_order_items_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_order_items_order_id_idx
+    ON commerce_order_items(order_id);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_payments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
+      method TEXT NOT NULL DEFAULT 'mock_online',
+      provider TEXT NOT NULL DEFAULT 'mock',
+      amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      external_ref TEXT,
+      paid_at TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT commerce_payments_status_check CHECK (status IN ('pending', 'paid', 'failed', 'refunded')),
+      CONSTRAINT commerce_payments_method_check CHECK (method IN ('mock_online', 'bank_transfer', 'cod'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_payments_order_id_idx
+    ON commerce_payments(order_id, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_shipments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_id TEXT NOT NULL UNIQUE REFERENCES commerce_orders(id) ON DELETE CASCADE,
+      carrier TEXT NOT NULL DEFAULT '',
+      tracking_number TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending',
+      notes TEXT NOT NULL DEFAULT '',
+      shipped_at TIMESTAMPTZ,
+      delivered_at TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT commerce_shipments_status_check CHECK (status IN ('pending', 'packing', 'shipped', 'delivered', 'returned', 'cancelled'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_entitlements (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
+      order_item_id TEXT REFERENCES commerce_order_items(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT commerce_entitlements_status_check CHECK (status IN ('active', 'revoked'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_entitlements_user_id_idx
+    ON commerce_entitlements(user_id, status, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS commerce_entitlements_unique_active_idx
+    ON commerce_entitlements(user_id, product_id, order_id);
+  `);
+}
+
 async function ensureProductSeed() {
   const pool = getPool();
 
@@ -713,6 +934,7 @@ async function ensureProductSeed() {
       productType: "coded_template",
       templateKey: "romantic_bloom",
       price: "990000",
+      fulfillmentType: "digital",
       config: {
         siteDefaults: {
           brideName: "Lan",
@@ -735,6 +957,7 @@ async function ensureProductSeed() {
       productType: "coded_template",
       templateKey: "classic_garden",
       price: "1290000",
+      fulfillmentType: "digital",
       config: {
         siteDefaults: {
           brideName: "Trâm",
@@ -757,6 +980,7 @@ async function ensureProductSeed() {
       productType: "builder_template",
       templateKey: "freeform_sections",
       price: "0",
+      fulfillmentType: "digital",
       config: {
         siteDefaults: {
           heroTitle: "Tự tạo thiệp cưới của bạn",
@@ -776,11 +1000,11 @@ async function ensureProductSeed() {
     await pool.query(
       `
         INSERT INTO products (
-          slug, category_id, name, excerpt, description, status, product_type, template_key, price, config
+          slug, category_id, name, excerpt, description, status, product_type, template_key, price, fulfillment_type, config
         )
-        SELECT $1, categories.id, $2, $3, $4, 'published', $5, $6, $7, $8
+        SELECT $1, categories.id, $2, $3, $4, 'published', $5, $6, $7, $8, $9
         FROM product_categories categories
-        WHERE categories.slug = $9
+        WHERE categories.slug = $10
         ON CONFLICT (slug) DO UPDATE
         SET
           category_id = EXCLUDED.category_id,
@@ -791,6 +1015,7 @@ async function ensureProductSeed() {
           product_type = EXCLUDED.product_type,
           template_key = EXCLUDED.template_key,
           price = EXCLUDED.price,
+          fulfillment_type = EXCLUDED.fulfillment_type,
           config = EXCLUDED.config,
           updated_at = NOW()
       `,
@@ -802,6 +1027,7 @@ async function ensureProductSeed() {
         product.productType,
         product.templateKey,
         product.price,
+        product.fulfillmentType,
         product.config,
         product.categorySlug,
       ]
@@ -997,6 +1223,11 @@ export async function ensureDb() {
   if (!globalForDb.blogTablesMigrationDone) {
     await ensureBlogTablesMigration();
     globalForDb.blogTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.commerceTablesMigrationDone) {
+    await ensureCommerceTablesMigration();
+    globalForDb.commerceTablesMigrationDone = true;
   }
 
   const managedPagesSeedSignature = getManagedPagesSeedSignature();

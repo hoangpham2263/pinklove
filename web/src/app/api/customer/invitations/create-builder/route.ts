@@ -3,6 +3,7 @@ import { getPublishedProductBySlugAndType } from "@/features/products/server/ser
 import { ROUTES } from "@/lib/routes";
 import { createBuilderInvitation, createInvitationFromProduct } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { userHasActiveEntitlement } from "@/features/commerce/server/service";
 
 export const runtime = "nodejs";
 
@@ -18,12 +19,25 @@ export async function POST(request: Request) {
           return null;
         }
 
+        const entitled = await userHasActiveEntitlement(user.id, product.id);
+        if (!entitled) {
+          return "ENTITLEMENT_REQUIRED" as const;
+        }
+
         return createInvitationFromProduct({
           userId: user.id,
           product,
         });
       })()
     : await createBuilderInvitation(user.id);
+
+  if (site === "ENTITLEMENT_REQUIRED") {
+    return respondError(request, {
+      error: "entitlement_required",
+      message: "Bạn cần mua builder starter trước khi tạo thiệp builder.",
+      location: ROUTES.CHECKOUT.CART,
+    });
+  }
 
   if (!site) {
     return respondError(request, { error: "product_not_found", message: "Không tìm thấy builder template khả dụng.", location: `${ROUTES.BUILDER}?error=product_not_found` });

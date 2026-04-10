@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Product, ProductCategory, ProductType } from "@/features/products/types";
+import type { Product, ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
 import { ensureProductCatalogReady, query } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 
@@ -15,6 +15,7 @@ type ProductInput = {
   templateKey: string;
   thumbnailUrl?: string;
   price?: number;
+  fulfillmentType?: ProductFulfillmentType;
   config?: Record<string, unknown>;
 };
 
@@ -49,6 +50,7 @@ type ProductRow = {
   template_key: string;
   thumbnail_url: string | null;
   price: string;
+  fulfillment_type: ProductFulfillmentType;
   config: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
@@ -81,6 +83,7 @@ function mapProductRow(row: ProductRow): Product {
     templateKey: row.template_key,
     thumbnailUrl: row.thumbnail_url ?? undefined,
     price: Number(row.price ?? "0"),
+    fulfillmentType: row.fulfillment_type,
     config: row.config ?? {},
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -219,9 +222,9 @@ export async function createProduct(input: ProductInput): Promise<Product> {
     query<ProductRow>(
       `
         INSERT INTO products (
-          slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, config
+          slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, config
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING id
       `,
       [
@@ -235,6 +238,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
         input.templateKey,
         input.thumbnailUrl || null,
         input.price ?? 0,
+        input.fulfillmentType ?? "digital",
         input.config || {},
       ]
     )
@@ -269,9 +273,10 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
           template_key = COALESCE($8, template_key),
           thumbnail_url = $9,
           price = COALESCE($10, price),
-          config = $11,
+          fulfillment_type = COALESCE($11, fulfillment_type),
+          config = $12,
           updated_at = NOW()
-        WHERE slug = $12
+        WHERE slug = $13
         RETURNING id
       `,
       [
@@ -285,6 +290,7 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
         input.templateKey,
         input.thumbnailUrl !== undefined ? input.thumbnailUrl : existing.thumbnailUrl ?? null,
         input.price,
+        input.fulfillmentType,
         input.config !== undefined ? input.config : existing.config,
         slug,
       ]

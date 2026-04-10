@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BadgePercent, FolderHeart, Plus, User as UserIcon } from "lucide-react";
+import { ArrowRight, BadgePercent, FolderHeart, Plus, ShoppingBag, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +100,15 @@ export default async function CustomerDashboardPage() {
                 <div>
                   <p className="font-medium">My Invitations</p>
                   <p className="text-sm text-muted-foreground">Quản lý toàn bộ thiệp của bạn.</p>
+                </div>
+              </div>
+            </Link>
+            <Link href={ROUTES.CUSTOMER.ORDERS} className="rounded-lg border p-4 transition-colors hover:bg-muted">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="h-5 w-5" />
+                <div>
+                  <p className="font-medium">Đơn hàng</p>
+                  <p className="text-sm text-muted-foreground">Theo dõi checkout, thanh toán và giao hàng.</p>
                 </div>
               </div>
             </Link>

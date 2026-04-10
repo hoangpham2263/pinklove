@@ -18,6 +18,9 @@ function getPageTitle(pathname: string): string {
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Categories";
  if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCTS)) return "Products";
+ if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
+ if (pathname.startsWith(ROUTES.ADMIN.PAYMENTS)) return "Payments";
+ if (pathname.startsWith(ROUTES.ADMIN.SHIPMENTS)) return "Shipments";
  if (pathname.startsWith(ROUTES.ADMIN.USERS)) return "Users";
  if (pathname.startsWith(ROUTES.ADMIN.CUSTOMERS)) return "Khách hàng";
  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_USERS)) return "Đối tác / CTV";
@@ -42,7 +45,7 @@ export function AdminTopHeader({ username }: AdminTopHeaderProps) {
  <header
   id="admin-top-header"
   data-slot="admin-top-header"
-  className="admin-top-header fixed top-0 right-0 left-0 z-50 h-14 border-b border-border bg-background text-foreground md:left-64"
+  className="admin-top-header sticky top-0 z-50 h-14 w-full border-b border-border bg-background text-foreground"
  >
   <div className="flex h-full w-full items-center justify-between px-6 md:px-8">
   <div className="flex items-center gap-3">

@@ -1,162 +1,119 @@
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
-
-type PlatformCard = {
-  name: string;
-  status: "Draft UI" | "Ready For Logic";
-  description: string;
-  fields: string[];
-};
-
-const PLATFORM_CARDS: PlatformCard[] = [
-  {
-    name: "Shopee",
-    status: "Ready For Logic",
-    description: "Chuẩn bị kết nối shop, đồng bộ sản phẩm và nhận webhook đơn hàng từ Shopee.",
-    fields: ["Shop ID", "Partner ID", "Partner Key", "Redirect URL", "Webhook Secret"],
-  },
-  {
-    name: "TikTok Shop",
-    status: "Ready For Logic",
-    description: "Khung kết nối TikTok Shop để đồng bộ catalog, token và trạng thái đơn hàng.",
-    fields: ["App Key", "App Secret", "Shop Cipher", "Access Token", "Webhook URL"],
-  },
-  {
-    name: "Lazada",
-    status: "Draft UI",
-    description: "Khu vực cấu hình cơ bản cho API Lazada và mapping gian hàng theo tenant sau này.",
-    fields: ["App Key", "App Secret", "Seller ID", "Region", "Callback URL"],
-  },
-  {
-    name: "Meta Catalog",
-    status: "Draft UI",
-    description: "Dùng cho luồng đẩy sản phẩm sang catalog quảng cáo và dynamic ads khi cần.",
-    fields: ["Catalog ID", "Pixel ID", "Access Token", "Feed URL"],
-  },
-];
+import { ROUTES } from "@/lib/routes";
+import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function AdminCommerceConnectionsPage() {
   await requireAdmin();
+  const settings = await getSystemSettings();
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Commerce Connections</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Commerce</h1>
         <p className="text-sm text-muted-foreground">
-          Trang này chỉ dựng giao diện trước cho các kết nối sàn thương mại điện tử và catalog. Chưa có logic lưu dữ liệu, auth flow hay webhook processing.
+          Quản lý checkout, thanh toán mô phỏng, chuyển khoản và cấu hình vận chuyển dùng chung cho toàn hệ thống.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-lg">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng nền tảng</CardTitle>
+            <CardTitle className="text-base">Checkout</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>{PLATFORM_CARDS.length}</p>
-          </CardContent>
+          <CardContent>{settings.commerce.enabled ? "On" : "Off"}</CardContent>
         </Card>
-        <Card className="rounded-lg">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Đã bật UI</CardTitle>
+            <CardTitle className="text-base">Bank Transfer</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>4</p>
-            <p className="text-sm text-muted-foreground">Chưa có persist</p>
-          </CardContent>
+          <CardContent>{settings.commerce.allowBankTransfer ? "On" : "Off"}</CardContent>
         </Card>
-        <Card className="rounded-lg">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Webhook Ready</CardTitle>
+            <CardTitle className="text-base">COD</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>0</p>
-          </CardContent>
+          <CardContent>{settings.commerce.allowCod ? "On" : "Off"}</CardContent>
         </Card>
-        <Card className="rounded-lg">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Token Storage</CardTitle>
+            <CardTitle className="text-base">Shipping</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>Pending</p>
-          </CardContent>
+          <CardContent>{settings.commerce.supportShipping ? "On" : "Off"}</CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-lg">
+      <Card>
         <CardHeader>
-          <CardTitle>Cấu hình chung</CardTitle>
+          <CardTitle>Cấu hình commerce</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <label className="flex items-center justify-between gap-3 rounded-lg border p-4">
-            <div className="space-y-1">
-              <p className="font-medium">Cho phép đồng bộ sản phẩm</p>
-              <p className="text-sm text-muted-foreground">UI only, chưa có job đồng bộ.</p>
+        <CardContent>
+          <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
+            <input type="hidden" name="section" value="commerce" />
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <label className="flex items-start gap-3 rounded-md border p-4">
+                <input type="checkbox" name="enabled" defaultChecked={settings.commerce.enabled} className="mt-1" />
+                <div>
+                  <p className="font-medium">Bật checkout</p>
+                  <p className="text-sm text-muted-foreground">Cho phép tạo order từ cart.</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-4">
+                <input type="checkbox" name="allowBankTransfer" defaultChecked={settings.commerce.allowBankTransfer} className="mt-1" />
+                <div>
+                  <p className="font-medium">Cho phép chuyển khoản</p>
+                  <p className="text-sm text-muted-foreground">Hiển thị phương thức chuyển khoản trong checkout.</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-4">
+                <input type="checkbox" name="allowCod" defaultChecked={settings.commerce.allowCod} className="mt-1" />
+                <div>
+                  <p className="font-medium">Cho phép COD</p>
+                  <p className="text-sm text-muted-foreground">Áp dụng cho đơn cần vận chuyển.</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-4">
+                <input type="checkbox" name="autoApproveMockPayments" defaultChecked={settings.commerce.autoApproveMockPayments} className="mt-1" />
+                <div>
+                  <p className="font-medium">Auto approve mock payment</p>
+                  <p className="text-sm text-muted-foreground">Dùng cho dev/test để đơn chuyển paid ngay.</p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 rounded-md border p-4">
+                <input type="checkbox" name="supportShipping" defaultChecked={settings.commerce.supportShipping} className="mt-1" />
+                <div>
+                  <p className="font-medium">Bật vận chuyển</p>
+                  <p className="text-sm text-muted-foreground">Cho phép tính phí ship và sinh shipment.</p>
+                </div>
+              </label>
             </div>
-            <Switch checked={false} />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-lg border p-4">
-            <div className="space-y-1">
-              <p className="font-medium">Bật nhận webhook</p>
-              <p className="text-sm text-muted-foreground">UI only, chưa có endpoint xử lý.</p>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="space-y-2">
+                <label className="font-medium">Tiền tệ</label>
+                <input name="currency" defaultValue={settings.commerce.currency} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Phí vận chuyển cố định</label>
+                <input name="flatShippingFee" type="number" min="0" defaultValue={settings.commerce.flatShippingFee} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Ngưỡng miễn phí ship</label>
+                <input name="freeShippingThreshold" type="number" min="0" defaultValue={settings.commerce.freeShippingThreshold} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+              </div>
             </div>
-            <Switch checked={false} />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-lg border p-4">
-            <div className="space-y-1">
-              <p className="font-medium">Tự đẩy trạng thái đơn</p>
-              <p className="text-sm text-muted-foreground">UI only, chưa map order state.</p>
+
+            <div className="space-y-2">
+              <label className="font-medium">Hướng dẫn chuyển khoản</label>
+              <textarea name="bankTransferInstructions" defaultValue={settings.commerce.bankTransferInstructions} className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm" />
             </div>
-            <Switch checked={false} />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-lg border p-4">
-            <div className="space-y-1">
-              <p className="font-medium">Log request debug</p>
-              <p className="text-sm text-muted-foreground">UI only, chưa có storage cho log.</p>
-            </div>
-            <Switch checked />
-          </label>
+
+            <Button type="submit">Lưu cấu hình commerce</Button>
+          </form>
         </CardContent>
       </Card>
-
-      <div className="grid gap-5 xl:grid-cols-2">
-        {PLATFORM_CARDS.map((platform) => (
-          <Card key={platform.name} className="rounded-lg">
-            <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-              <div className="space-y-1">
-                <CardTitle>{platform.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">{platform.description}</p>
-              </div>
-              <Badge variant="secondary">{platform.status}</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                {platform.fields.map((field) => (
-                  <div key={field} className="space-y-2">
-                    <label className="text-sm font-medium">{field}</label>
-                    <Input placeholder={`Nhập ${field}`} />
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-3">
-                <button type="button" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:bg-muted">
-                  Test kết nối
-                </button>
-                <button type="button" className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:bg-muted">
-                  Xem log mẫu
-                </button>
-                <button type="button" className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90">
-                  Lưu cấu hình
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </section>
   );
 }

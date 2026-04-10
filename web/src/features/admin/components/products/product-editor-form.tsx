@@ -13,7 +13,7 @@ import {
   getInvitationTemplateFields,
   getInvitationTemplateOptions,
 } from "@/features/invitations/templates/registry";
-import type { Product, ProductCategory, ProductType } from "@/features/products/types";
+import type { Product, ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
@@ -29,6 +29,7 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
   const [name, setName] = useState(product.name);
   const [thumbnailUrl, setThumbnailUrl] = useState(product.thumbnailUrl || "");
   const [productType, setProductType] = useState<ProductType>(product.productType);
+  const [fulfillmentType, setFulfillmentType] = useState<ProductFulfillmentType>(product.fulfillmentType);
   const [templateKey, setTemplateKey] = useState(product.templateKey);
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
@@ -159,6 +160,19 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
                     {template.label}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="font-medium">Hình thức bàn giao</label>
+              <select
+                name="fulfillmentType"
+                value={fulfillmentType}
+                onChange={(e) => setFulfillmentType(e.target.value as ProductFulfillmentType)}
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="digital">Digital</option>
+                <option value="physical">Cần vận chuyển</option>
+                <option value="service">Dịch vụ</option>
               </select>
             </div>
           </div>

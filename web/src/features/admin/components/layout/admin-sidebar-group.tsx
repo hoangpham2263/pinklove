@@ -63,7 +63,7 @@ export function AdminSidebarGroup({
   return (
     <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
       <CollapsibleTrigger
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted"
       >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
@@ -80,7 +80,7 @@ export function AdminSidebarGroup({
               <AdminNavLink
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+                className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted"
               >
                 <ItemIcon className="h-4 w-4" />
                 <span>{item.label}</span>

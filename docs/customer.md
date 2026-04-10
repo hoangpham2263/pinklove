@@ -19,7 +19,8 @@ This file covers the normal customer area and customer-owned site flows.
 - Logged-in non-admin users (`CUSTOMER`, `AFFILIATE`, `VENDOR`) should be redirected away from customer auth pages back to the customer dashboard.
 - Admins may access the normal customer area for management and preview workflows.
 - Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
-- Current create flows bypass checkout and create draft invitation records directly. The current table name is still `wedding_sites`.
+- Invitation ownership now comes from commerce entitlements for paid products before customer create flows can instantiate new sites.
+- Customer purchase flow uses cart and checkout routes before order creation. The invitation/site table name remains `wedding_sites`.
 - Current builder limitations:
   - element height is not draggable/resizable yet
   - editor grouping is not implemented yet
@@ -31,6 +32,8 @@ This file covers the normal customer area and customer-owned site flows.
 - `src/app/customer/(protected)/(workspace)/dashboard/page.tsx`
 - `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
 - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
+- `src/app/customer/(protected)/(workspace)/orders/page.tsx`
+- `src/app/customer/(protected)/(workspace)/orders/[id]/page.tsx`
 - `src/app/customer/(protected)/(account)/profile/page.tsx`
 - `src/app/customer/(protected)/(account)/settings/page.tsx`
 - `src/app/customer/(protected)/(growth)/affiliate/page.tsx`

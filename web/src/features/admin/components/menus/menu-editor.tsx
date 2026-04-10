@@ -1,20 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { type FormEvent, useEffect, useRef, useState } from"react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from"@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
-import { Input } from"@/components/ui/input";
-import { Menu, MenuItemType } from"@/lib/menu";
-import { ManagedPage } from"@/lib/managed-pages";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Menu, MenuItemType } from "@/lib/menu";
+import { ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { GripVertical, Trash2 } from"lucide-react";
-import type { EditableMenuItem, MenuParentOption } from "./menu-sortable-list";
+import { GripVertical, Trash2 } from "lucide-react";
+import { getMenuItemMeta, type EditableMenuItem, type MenuParentOption } from "./menu-sortable-list";
 
-type MenuEditorProps = { menu:Menu;
-availablePages:ManagedPage[]; };
+type MenuEditorProps = {
+  menu: Menu;
+  availablePages: ManagedPage[];
+};
 
 const MenuSortableList = dynamic(
   () => import("./menu-sortable-list").then((module) => module.MenuSortableList),
@@ -24,425 +26,407 @@ const MenuSortableList = dynamic(
   }
 );
 
-export function MenuEditor({ menu, availablePages }: MenuEditorProps) { const [items, setItems] = useState<EditableMenuItem[]>(
- menu.items.map((item) => ({ ...item }))
- );
- const router = useRouter();
- const itemsRef = useRef<EditableMenuItem[]>(menu.items.map((item) => ({ ...item })));
- const serializedItemsRef = useRef<HTMLInputElement>(null);
- const nextTempIdRef = useRef(0);
- const [isSaving, setIsSaving] = useState(false);
- 
- const [newLabel, setNewLabel] = useState("");
- const [newType, setNewType] = useState<MenuItemType>("page");
- const [newPageSlug, setNewPageSlug] = useState("");
- const [newUrl, setNewUrl] = useState("");
- const [newParentId, setNewParentId] = useState("");
+export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
+  const [items, setItems] = useState<EditableMenuItem[]>(
+    menu.items.map((item) => ({ ...item }))
+  );
+  const router = useRouter();
+  const itemsRef = useRef<EditableMenuItem[]>(menu.items.map((item) => ({ ...item })));
+  const serializedItemsRef = useRef<HTMLInputElement>(null);
+  const nextTempIdRef = useRef(0);
+  const [isSaving, setIsSaving] = useState(false);
 
- const normalizePositions = (nextItems: EditableMenuItem[]) =>
-  nextItems.map((item, i) => ({
-   ...item,
-   position: i,
-  }));
+  const [newLabel, setNewLabel] = useState("");
+  const [newType, setNewType] = useState<MenuItemType>("page");
+  const [newPageSlug, setNewPageSlug] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [newParentId, setNewParentId] = useState("");
 
- const buildChildrenMap = (sourceItems: EditableMenuItem[]) => {
-  const map = new Map<string | null, EditableMenuItem[]>();
+  const normalizePositions = (nextItems: EditableMenuItem[]) =>
+    nextItems.map((item, i) => ({
+      ...item,
+      position: i,
+    }));
 
-  for (const item of sourceItems) {
-   const key = item.parentId ?? null;
-   const bucket = map.get(key) ?? [];
-   bucket.push(item);
-   map.set(key, bucket);
-  }
+  const buildChildrenMap = (sourceItems: EditableMenuItem[]) => {
+    const map = new Map<string | null, EditableMenuItem[]>();
 
-  return map;
- };
+    for (const item of sourceItems) {
+      const key = item.parentId ?? null;
+      const bucket = map.get(key) ?? [];
+      bucket.push(item);
+      map.set(key, bucket);
+    }
 
- const flattenItems = (sourceItems: EditableMenuItem[]) => {
-  const childrenMap = buildChildrenMap(sourceItems);
-  const ordered: EditableMenuItem[] = [];
-  const depths: Record<string, number> = {};
-  const visited = new Set<string>();
-
-  const visit = (parentId: string | null, depth: number) => {
-   const children = childrenMap.get(parentId) ?? [];
-   for (const child of children) {
-    if (visited.has(child.id)) continue;
-    visited.add(child.id);
-    depths[child.id] = depth;
-    ordered.push(child);
-    visit(child.id, depth + 1);
-   }
+    return map;
   };
 
-  visit(null, 0);
+  const flattenItems = (sourceItems: EditableMenuItem[]) => {
+    const childrenMap = buildChildrenMap(sourceItems);
+    const ordered: EditableMenuItem[] = [];
+    const depths: Record<string, number> = {};
+    const visited = new Set<string>();
 
-  for (const item of sourceItems) {
-   if (visited.has(item.id)) continue;
-   depths[item.id] = 0;
-   ordered.push(item);
-  }
+    const visit = (parentId: string | null, depth: number) => {
+      const children = childrenMap.get(parentId) ?? [];
+      for (const child of children) {
+        if (visited.has(child.id)) continue;
+        visited.add(child.id);
+        depths[child.id] = depth;
+        ordered.push(child);
+        visit(child.id, depth + 1);
+      }
+    };
 
-  return {
-   items: normalizePositions(ordered),
-   depths,
+    visit(null, 0);
+
+    for (const item of sourceItems) {
+      if (visited.has(item.id)) continue;
+      depths[item.id] = 0;
+      ordered.push(item);
+    }
+
+    return {
+      items: normalizePositions(ordered),
+      depths,
+    };
   };
- };
 
- const getDescendantIds = (sourceItems: EditableMenuItem[], itemId: string) => {
-  const descendants = new Set<string>();
-  const queue = [itemId];
+  const getDescendantIds = (sourceItems: EditableMenuItem[], itemId: string) => {
+    const descendants = new Set<string>();
+    const queue = [itemId];
 
-  while (queue.length > 0) {
-   const currentId = queue.shift();
-   if (!currentId) continue;
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (!currentId) continue;
 
-   for (const item of sourceItems) {
-    if (item.parentId !== currentId || descendants.has(item.id)) continue;
-    descendants.add(item.id);
-    queue.push(item.id);
-   }
-  }
+      for (const item of sourceItems) {
+        if (item.parentId !== currentId || descendants.has(item.id)) continue;
+        descendants.add(item.id);
+        queue.push(item.id);
+      }
+    }
 
-  return descendants;
- };
+    return descendants;
+  };
 
- const buildParentOptions = (sourceItems: EditableMenuItem[], excludeId?: string) => {
-  const { items: flattened, depths } = flattenItems(sourceItems);
-  const excludedIds = excludeId ? getDescendantIds(sourceItems, excludeId) : new Set<string>();
-  if (excludeId) excludedIds.add(excludeId);
+  const buildParentOptions = (sourceItems: EditableMenuItem[], excludeId?: string) => {
+    const { items: flattened, depths } = flattenItems(sourceItems);
+    const excludedIds = excludeId ? getDescendantIds(sourceItems, excludeId) : new Set<string>();
+    if (excludeId) excludedIds.add(excludeId);
 
-  return flattened
-   .filter((item) => !excludedIds.has(item.id))
-   .map((item) => ({
-    id: item.id,
-    label: item.label,
-    depth: depths[item.id] ?? 0,
-   })) satisfies MenuParentOption[];
- };
+    return flattened
+      .filter((item) => !excludedIds.has(item.id))
+      .map((item) => ({
+        id: item.id,
+        label: item.label,
+        depth: depths[item.id] ?? 0,
+      })) satisfies MenuParentOption[];
+  };
 
- const parentOptions = buildParentOptions(items);
- const { items: orderedItems, depths: itemDepths } = flattenItems(items);
- const parentOptionsByItemId = Object.fromEntries(
-  orderedItems.map((item) => [item.id, buildParentOptions(items, item.id)])
- ) as Record<string, MenuParentOption[]>;
+  const parentOptions = buildParentOptions(items);
+  const { items: orderedItems, depths: itemDepths } = flattenItems(items);
+  const parentOptionsByItemId = Object.fromEntries(
+    orderedItems.map((item) => [item.id, buildParentOptions(items, item.id)])
+  ) as Record<string, MenuParentOption[]>;
 
- const setOrderedItems = (nextItems: EditableMenuItem[]) => {
-  const normalizedItems = flattenItems(nextItems).items;
-  itemsRef.current = normalizedItems;
-  setItems(normalizedItems);
- };
+  const setOrderedItems = (nextItems: EditableMenuItem[]) => {
+    const normalizedItems = flattenItems(nextItems).items;
+    itemsRef.current = normalizedItems;
+    setItems(normalizedItems);
+  };
 
- const updateItemParent = (itemId: string, parentId: string | null) => {
-  setOrderedItems(
-   itemsRef.current.map((item) => (
-    item.id === itemId
-     ? {
-        ...item,
-        parentId,
-       }
-     : item
-   ))
+  const updateItemParent = (itemId: string, parentId: string | null) => {
+    setOrderedItems(
+      itemsRef.current.map((item) => (
+        item.id === itemId
+          ? {
+            ...item,
+            parentId,
+          }
+          : item
+      ))
+    );
+  };
+
+  const handleAddItem = () => {
+    if (!newLabel.trim()) return;
+    if (newType === "page" && !newPageSlug) return;
+    if (newType === "custom" && !newUrl.trim()) return;
+    const nextTempId = `new-${nextTempIdRef.current}`;
+    nextTempIdRef.current += 1;
+
+    setOrderedItems([
+      ...itemsRef.current,
+      {
+        id: nextTempId,
+        parentId: newParentId || null,
+        type: newType,
+        label: newLabel,
+        pageSlug: newType === "page" ? newPageSlug : null,
+        url: newType === "custom" ? newUrl : null,
+        position: items.length,
+      },
+    ]);
+
+    setNewLabel("");
+    setNewPageSlug("");
+    setNewUrl("");
+    setNewParentId("");
+  };
+
+  const handleRemoveItem = (index: number) => {
+    const targetItem = orderedItems[index];
+    if (!targetItem) return;
+    const descendants = getDescendantIds(itemsRef.current, targetItem.id);
+    const nextItems = itemsRef.current.filter((item) => item.id !== targetItem.id && !descendants.has(item.id));
+    setOrderedItems(nextItems);
+    toast.success(descendants.size > 0 ? "Đã xóa menu item và các mục con khỏi bản nháp." : "Đã xóa menu item khỏi bản nháp.");
+  };
+
+  const serializeItems = (sourceItems: EditableMenuItem[]) => {
+    const { items: normalizedItems } = flattenItems(sourceItems);
+    return JSON.stringify(
+      normalizedItems.map((item, i) => ({
+        id: item.id,
+        label: item.label,
+        type: item.type,
+        parentId: item.parentId,
+        pageSlug: item.pageSlug,
+        url: item.url,
+        position: i,
+      }))
+    );
+  };
+
+  const serializedItems = serializeItems(items);
+
+  useEffect(() => {
+    if (serializedItemsRef.current) {
+      serializedItemsRef.current.value = serializedItems;
+    }
+  }, [serializedItems]);
+
+  const handlePageChange = (slug: string) => {
+    setNewPageSlug(slug);
+    const selectedPage = availablePages.find((p) => p.slug === slug);
+    if (selectedPage && (!newLabel.trim() || availablePages.some(p => p.name === newLabel))) { setNewLabel(selectedPage.name); }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+
+    if (serializedItemsRef.current) {
+      serializedItemsRef.current.value = serializeItems(itemsRef.current);
+    }
+
+    const formData = new FormData(form);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch("/api/admin/menus/update", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      if (!response.ok) {
+        throw new Error(data?.message ?? "Không thể lưu menu.");
+      }
+
+      toast.success(data?.message ?? "Đã lưu menu.");
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể lưu menu.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+      <div className="lg:col-span-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Menu Item</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label>Link Type</label>
+              <select
+                value={newType}
+                onChange={(e) => setNewType(e.target.value as MenuItemType)}
+                className="h-10 w-full"
+              >
+                <option value="page">Existing Page</option>
+                <option value="custom">Custom Link</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label>Navigation Label</label>
+              <Input
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder=""
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label>Menu Level</label>
+              <select
+                value={newParentId}
+                onChange={(e) => setNewParentId(e.target.value)}
+                className="h-10 w-full"
+              >
+                <option value="">Cấp 1</option>
+                {parentOptions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    Cấp 2 dưới: {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {newType === "page" ? (
+              <div className="space-y-2">
+                <label>Select Page</label>
+                <select
+                  value={newPageSlug}
+                  onChange={(e) => handlePageChange(e.target.value)}
+                  className="h-10 w-full"
+                >
+                  <option value="" disabled>Select a page...</option>
+                  {availablePages.map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.name} ({getManagedPagePath(p)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label>URL</label>
+                <Input
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  placeholder=""
+                />
+              </div>
+            )}
+
+            <Button type="button" onClick={handleAddItem} className="h-10 w-full cursor-pointer">
+              Add to Menu
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="lg:col-span-9">
+        <Card>
+          <CardHeader>
+            <CardTitle>Menu Structure</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4"
+            >
+              <input type="hidden" name="id" value={menu.id} />
+              <input ref={serializedItemsRef} type="hidden" name="items" defaultValue={serializedItems} />
+
+              <div className="space-y-2">
+                <label>Menu Name</label>
+                <Input
+                  name="label"
+                  defaultValue={menu.label}
+                  required
+                  placeholder=""
+                />
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <p className="font-medium">Items</p>
+                {items.length === 0 ? (
+                  <p className="text-muted-foreground italic">No items added yet.</p>
+                ) : (
+                  <>
+                    <ul className="space-y-2 md:hidden">
+                      {orderedItems.map((item, index) => (
+                        <li
+                          key={item.id || `new-${index}`}
+                          className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2"
+                          style={{
+                            marginLeft: `${(itemDepths[item.id] ?? 0) * 50}px`,
+                            width: `calc(100% - ${(itemDepths[item.id] ?? 0) * 50}px)`,
+                          }}
+                        >
+                          <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
+                            <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex flex-1 flex-row items-center gap-5">
+                              <div className="flex min-w-0 flex-row items-center gap-2">
+                                <p className="min-w-25 font-medium">{item.label}</p>
+                                <p className="flex min-w-0 items-center gap-1 text-sm">
+                                  <span className="shrink-0">{getMenuItemMeta(item).typeLabel}:</span>
+                                  <span className="truncate">{getMenuItemMeta(item).value}</span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <select
+                              value={item.parentId ?? ""}
+                              onChange={(event) => updateItemParent(item.id, event.target.value || null)}
+                              className="h-7.5 w-44 rounded-md border px-3"
+                            >
+                              <option value="">Gốc</option>
+                              {(parentOptionsByItemId[item.id] ?? []).map((option) => (
+                                <option key={option.id} value={option.id}>
+                                  {"— ".repeat(option.depth)}
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRemoveItem(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="hidden md:block">
+                      <MenuSortableList
+                        items={orderedItems}
+                        itemDepths={itemDepths}
+                        parentOptionsByItemId={parentOptionsByItemId}
+                        onUpdateParent={updateItemParent}
+                        onChange={setOrderedItems}
+                        onRemove={handleRemoveItem}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="pt-5 mt-5 border-t">
+                <Button type="submit" className="h-10 w-full cursor-pointer lg:w-auto" disabled={isSaving}>
+                  {isSaving ? "Đang lưu..." : "Save Menu"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
- };
-
- const updateItem = (itemId: string, next: Partial<EditableMenuItem>) => {
-  setOrderedItems(
-   itemsRef.current.map((item) => (
-    item.id === itemId
-     ? {
-        ...item,
-        ...next,
-       }
-     : item
-   ))
-  );
- };
-
- const handleAddItem = () => { if (!newLabel.trim()) return;
- if (newType ==="page" && !newPageSlug) return;
- if (newType ==="custom" && !newUrl.trim()) return;
- const nextTempId = `new-${nextTempIdRef.current}`;
- nextTempIdRef.current += 1;
-
- setOrderedItems([
- ...itemsRef.current,
- { id:nextTempId,
- parentId:newParentId || null,
- type:newType,
- label:newLabel,
- pageSlug:newType ==="page" ? newPageSlug:null,
- url:newType ==="custom" ? newUrl:null,
- position:items.length, },
- ]);
- 
- setNewLabel("");
- setNewPageSlug("");
- setNewUrl("");
- setNewParentId(""); };
-
- const handleRemoveItem = (index:number) => {
-  const targetItem = orderedItems[index];
-  if (!targetItem) return;
-  const descendants = getDescendantIds(itemsRef.current, targetItem.id);
-  const nextItems = itemsRef.current.filter((item) => item.id !== targetItem.id && !descendants.has(item.id));
-  setOrderedItems(nextItems);
-  toast.success(descendants.size > 0 ? "Đã xóa menu item và các mục con khỏi bản nháp." : "Đã xóa menu item khỏi bản nháp.");
- };
-
- const serializeItems = (sourceItems: EditableMenuItem[]) => {
- const { items: normalizedItems } = flattenItems(sourceItems);
- return JSON.stringify(
- normalizedItems.map((item, i) => ({ id:item.id,
- label:item.label,
- type:item.type,
- parentId:item.parentId,
- pageSlug:item.pageSlug,
- url:item.url,
- position:i, }))
- ); };
-
- const serializedItems = serializeItems(items);
-
- useEffect(() => {
-  if (serializedItemsRef.current) {
-   serializedItemsRef.current.value = serializedItems;
-  }
- }, [serializedItems]);
-
- const handlePageChange = (slug:string) => { setNewPageSlug(slug);
- const selectedPage = availablePages.find((p) => p.slug === slug);
- if (selectedPage && (!newLabel.trim() || availablePages.some(p => p.name === newLabel))) { setNewLabel(selectedPage.name); } };
-
- const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-
-  if (serializedItemsRef.current) {
-   serializedItemsRef.current.value = serializeItems(itemsRef.current);
-  }
-
-  const formData = new FormData(form);
-  setIsSaving(true);
-
-  try {
-   const response = await fetch("/api/admin/menus/update", {
-    method: "POST",
-    body: formData,
-    headers: {
-     Accept: "application/json",
-    },
-   });
-
-   const data = (await response.json().catch(() => null)) as { message?: string } | null;
-   if (!response.ok) {
-    throw new Error(data?.message ?? "Không thể lưu menu.");
-   }
-
-   toast.success(data?.message ?? "Đã lưu menu.");
-   router.refresh();
-  } catch (error) {
-   toast.error(error instanceof Error ? error.message : "Không thể lưu menu.");
-  } finally {
-   setIsSaving(false);
-  }
- };
-
- return (
- <div className="flex flex-col lg:flex-row gap-6">
- <div className="w-full lg:w-80 shrink-0">
- <Card>
- <CardHeader>
- <CardTitle>Add Menu Item</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4">
- <div className="space-y-2">
- <label>Link Type</label>
- <select
- value={newType }
- onChange={(e) => setNewType(e.target.value as MenuItemType) }
- className="h-10 w-full"
- >
- <option value="page">Existing Page</option>
- <option value="custom">Custom Link</option>
- </select>
- </div>
-
- <div className="space-y-2">
- <label>Navigation Label</label>
- <Input
- value={newLabel }
- onChange={(e) => setNewLabel(e.target.value) }
- placeholder=""
- />
- </div>
-
- <div className="space-y-2">
- <label>Menu Level</label>
- <select
- value={newParentId }
- onChange={(e) => setNewParentId(e.target.value) }
- className="h-10 w-full"
- >
- <option value="">Cấp 1</option>
- {parentOptions.map((item) => (
- <option key={item.id } value={item.id }>
- Cấp 2 dưới: {item.label }
- </option>
- ))}
- </select>
- </div>
-
- {newType ==="page" ? (
- <div className="space-y-2">
- <label>Select Page</label>
- <select
- value={newPageSlug }
- onChange={(e) => handlePageChange(e.target.value) }
- className="h-10 w-full"
- >
- <option value="" disabled>Select a page...</option>
- {availablePages.map((p) => (
- <option key={p.slug } value={p.slug }>
- {p.name } ({getManagedPagePath(p)})
- </option>
- )) }
- </select>
- </div>
- ): (
- <div className="space-y-2">
- <label>URL</label>
- <Input
- value={newUrl }
- onChange={(e) => setNewUrl(e.target.value) }
- placeholder=""
- />
- </div>
- ) }
-
- <Button type="button" onClick={handleAddItem } className="w-full">
- Add to Menu
- </Button>
- </CardContent>
- </Card>
- </div>
-
- <div className="flex-1">
- <Card>
- <CardHeader>
- <CardTitle>Menu Structure</CardTitle>
- </CardHeader>
- <CardContent>
- <form
- onSubmit={handleSubmit}
- className="space-y-4"
- >
- <input type="hidden" name="id" value={menu.id } />
- <input ref={serializedItemsRef} type="hidden" name="items" defaultValue={serializedItems } />
- 
- <div className="space-y-2">
- <label>Menu Name (Internal)</label>
- <Input
- name="label"
- defaultValue={menu.label }
- required
- placeholder=""
- />
- </div>
-
- <div className="mt-4 space-y-2">
- <p className="font-medium">Items</p>
- {items.length === 0 ? (
- <p className="text-muted-foreground italic">No items added yet.</p>
- ): (
-               <>
-                 <ul className="space-y-2 md:hidden">
-                   {orderedItems.map((item, index) => (
-                     <li
-                       key={item.id || `new-${index}`}
-                       className="flex items-center justify-between gap-3 rounded-md border bg-card p-3"
-                       style={{
-                         marginLeft: `${(itemDepths[item.id] ?? 0) * 20}px`,
-                         width: `calc(100% - ${(itemDepths[item.id] ?? 0) * 20}px)`,
-                       }}
-                     >
-                       <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-                         <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
-                         <div className="min-w-0 flex flex-1 flex-row items-center gap-2">
-                           <div className="flex min-w-0 flex-row items-center gap-2">
-                             <p className="truncate font-medium">{item.label}</p>
-                             <p className="truncate opacity-70">
-                               {item.type === "page" ? `Page: ${getManagedPagePath(availablePages.find((page) => page.slug === item.pageSlug) ?? { slug: item.pageSlug ?? "", permalink: null })}` : `Custom: ${item.url}`}
-                               {(itemDepths[item.id] ?? 0) > 0 ? ` • Cấp ${(itemDepths[item.id] ?? 0) + 1}` : " • Cấp 1"}
-                             </p>
-                           </div>
-                         </div>
-                       </div>
-                       <div className="flex items-center gap-2 shrink-0">
-                         {item.type === "page" ? (
-                           <select
-                             value={item.pageSlug ?? ""}
-                             onChange={(event) => updateItem(item.id, { pageSlug: event.target.value || null })}
-                             className="h-9 w-48 rounded-md border bg-background px-3 text-sm"
-                           >
-                             <option value="">Chọn trang</option>
-                             {availablePages.map((page) => (
-                               <option key={page.slug} value={page.slug}>
-                                 {page.name} ({getManagedPagePath(page)})
-                               </option>
-                             ))}
-                           </select>
-                         ) : null}
-                         <select
-                           value={item.parentId ?? ""}
-                           onChange={(event) => updateItemParent(item.id, event.target.value || null)}
-                           className="h-9 w-44 rounded-md border bg-background px-3 text-sm"
-                         >
-                           <option value="">Gốc</option>
-                           {(parentOptionsByItemId[item.id] ?? []).map((option) => (
-                             <option key={option.id} value={option.id}>
-                               {"— ".repeat(option.depth)}
-                               {option.label}
-                             </option>
-                           ))}
-                         </select>
-                         <Button
-                           type="button"
-                           variant="ghost"
-                           size="icon"
-                           className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                           onClick={() => handleRemoveItem(index)}
-                         >
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
-                       </div>
-                     </li>
-                   ))}
-                 </ul>
-                 <div className="hidden md:block">
-                   <MenuSortableList
-                     items={orderedItems}
-                     itemDepths={itemDepths}
-                     parentOptionsByItemId={parentOptionsByItemId}
-                     availablePages={availablePages}
-                     onUpdateParent={updateItemParent}
-                     onUpdateItem={updateItem}
-                     onChange={setOrderedItems}
-                     onRemove={handleRemoveItem}
-                   />
-                 </div>
-               </>
- ) }
- </div>
-
- <div className="pt-6 border-t mt-6">
- <Button type="submit" className="w-full lg:w-auto 0" disabled={isSaving}>
- {isSaving ? "Đang lưu..." : "Save Menu"}
- </Button>
- </div>
- </form>
- </CardContent>
- </Card>
- </div>
- </div>
- ); }
+}

@@ -7,8 +7,8 @@ Use this file as the entrypoint for project documentation.
 - App: monolithic Next.js App Router project in `web/`
 - Core stack: Next.js, React, PostgreSQL, local auth, optional Google OAuth
 - Notification standard: `sonner` is the project-wide toast system
-- Main product areas: public guest site, customer dashboard, admin management, affiliate flows, invitation templates, and published invitations
-- Current admin navigation covers: dashboard, media, pages, menus, blog posts, blog categories, product list, product categories, users, affiliates, SEO pages/schema/rules, and system settings including commerce connection UI.
+- Main product areas: public guest site, customer dashboard, admin management, affiliate flows, commerce flows, invitation templates, and published invitations
+- Current admin navigation covers: dashboard, media, pages, menus, blog posts, blog categories, product list, product categories, users, affiliates, vendors, commerce operations, SEO pages/schema/rules, and system settings including commerce configuration.
 
 ## Read order
 

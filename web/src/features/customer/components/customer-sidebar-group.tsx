@@ -5,6 +5,7 @@ import {
   ChevronRight,
   FolderHeart,
   Settings,
+  ShoppingBag,
   User as UserIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -12,7 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CustomerNavLink } from "@/features/customer/components/customer-nav-link";
 import { isRouteActive } from "@/lib/navigation";
 
-type CustomerSidebarIconName = "folder-heart" | "user" | "badge-percent" | "settings";
+type CustomerSidebarIconName = "folder-heart" | "shopping-bag" | "user" | "badge-percent" | "settings";
 
 type CustomerSidebarChild = {
   label: string;
@@ -29,6 +30,7 @@ type CustomerSidebarGroupProps = {
 
 const iconMap = {
   "folder-heart": FolderHeart,
+  "shopping-bag": ShoppingBag,
   user: UserIcon,
   "badge-percent": BadgePercent,
   settings: Settings,
@@ -47,7 +49,7 @@ export function CustomerSidebarGroup({
   return (
     <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
       <CollapsibleTrigger
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted"
       >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
@@ -64,7 +66,7 @@ export function CustomerSidebarGroup({
               <CustomerNavLink
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
+                className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted"
               >
                 <ItemIcon className="h-4 w-4" />
                 <span>{item.label}</span>

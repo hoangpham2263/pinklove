@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { updateProduct } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationTemplateProductType } from "@/features/invitations/templates/registry";
-import type { ProductType } from "@/features/products/types";
+import type { ProductFulfillmentType, ProductType } from "@/features/products/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   const description = String(formData.get("description") ?? "");
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
+  const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
   const templateKey = String(formData.get("templateKey") ?? "").trim();
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     description,
     status,
     productType,
+    fulfillmentType,
     templateKey,
     thumbnailUrl,
     price,

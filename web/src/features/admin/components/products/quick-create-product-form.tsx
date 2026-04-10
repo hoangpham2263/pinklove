@@ -10,7 +10,7 @@ import { getInvitationTemplateOptions } from "@/features/invitations/templates/r
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
-import type { ProductCategory, ProductType } from "@/features/products/types";
+import type { ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
 
 export function QuickCreateProductForm({ categories = [] }: { categories?: ProductCategory[] }) {
   const router = useRouter();
@@ -18,6 +18,7 @@ export function QuickCreateProductForm({ categories = [] }: { categories?: Produ
   const [slug, setSlug] = useState("");
   const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [productType, setProductType] = useState<ProductType>("coded_template");
+  const [fulfillmentType, setFulfillmentType] = useState<ProductFulfillmentType>("digital");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const templateOptions = useMemo(
@@ -128,6 +129,23 @@ export function QuickCreateProductForm({ categories = [] }: { categories?: Produ
                 {template.label}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="fulfillmentType" className="font-medium text-sm">
+            Hình thức bàn giao
+          </label>
+          <select
+            id="fulfillmentType"
+            name="fulfillmentType"
+            value={fulfillmentType}
+            onChange={(e) => setFulfillmentType(e.target.value as ProductFulfillmentType)}
+            className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="digital">Digital</option>
+            <option value="physical">Cần vận chuyển</option>
+            <option value="service">Dịch vụ</option>
           </select>
         </div>
       </div>

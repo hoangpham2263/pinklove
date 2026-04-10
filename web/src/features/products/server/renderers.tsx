@@ -11,8 +11,6 @@ import {
 } from "@/app/(guest)/_components/guest-ui";
 import type { Product } from "@/features/products/types";
 import { getCurrentUser } from "@/lib/auth";
-import { CreateBuilderForm } from "@/features/invitations/components/create-invitation-forms";
-import { CreateFromProductForm } from "@/features/invitations/components/create-invitation-forms";
 import { getInvitationTemplateDefaults, getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { getBuilderProductPath, getTemplateProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
@@ -138,21 +136,34 @@ export async function renderTemplateProductPage(product: Product, config: Public
       <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
         <GuestPanel className="overflow-visible">
           <GuestPanelHeader>
-            <GuestPanelTitle>Tạo website thiệp từ mẫu này</GuestPanelTitle>
+            <GuestPanelTitle>Mua và sử dụng mẫu này</GuestPanelTitle>
           </GuestPanelHeader>
           <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
-              Hiện tại repo chưa có checkout thật. Nút dưới đây sẽ tạo trực tiếp một `wedding_site` draft trong tài khoản của bạn để anh tiếp tục triển khai flow mua hàng sau.
+              Sản phẩm sẽ đi qua giỏ hàng và checkout trước. Sau khi đơn đã thanh toán, bạn có thể tạo thiệp từ khu vực đơn hàng của mình.
             </p>
             {user ? (
-              <CreateFromProductForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_PRODUCT} productSlug={product.slug}>
-                <GuestButton type="submit" className="w-full">
-                  Tạo thiệp từ mẫu này
-                </GuestButton>
-              </CreateFromProductForm>
+              <div className="space-y-3">
+                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
+                  <input type="hidden" name="productSlug" value={product.slug} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="redirectTo" value={getTemplateProductPath(product, config)} />
+                  <GuestButton type="submit" className="w-full">
+                    Thêm vào giỏ hàng
+                  </GuestButton>
+                </form>
+                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
+                  <input type="hidden" name="productSlug" value={product.slug} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="redirectTo" value={ROUTES.CHECKOUT.CART} />
+                  <GuestButton type="submit" className="w-full border border-stone-300 bg-white text-stone-900 hover:bg-stone-50">
+                    Mua ngay
+                  </GuestButton>
+                </form>
+              </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để tạo thiệp</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
@@ -224,21 +235,34 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
       <aside className="min-w-0 lg:col-span-3 lg:sticky lg:top-20 lg:self-start">
         <GuestPanel>
           <GuestPanelHeader>
-            <GuestPanelTitle>Tạo site builder từ starter này</GuestPanelTitle>
+            <GuestPanelTitle>Mua và dùng builder starter này</GuestPanelTitle>
           </GuestPanelHeader>
           <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
-              Luồng này tạo trực tiếp một `wedding_site` draft kiểu builder để anh có thể test editor section-based trước khi checkout thật được nối vào.
+              Builder starter cũng đi qua luồng commerce chung. Sau khi đơn được thanh toán, bạn có thể tạo thiệp builder từ khu vực đơn hàng.
             </p>
             {user ? (
-              <CreateBuilderForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} productSlug={product.slug}>
-                <GuestButton type="submit" className="w-full">
-                  Tạo thiệp tự tạo từ starter này
-                </GuestButton>
-              </CreateBuilderForm>
+              <div className="space-y-3">
+                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
+                  <input type="hidden" name="productSlug" value={product.slug} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="redirectTo" value={getBuilderProductPath(product, config)} />
+                  <GuestButton type="submit" className="w-full">
+                    Thêm vào giỏ hàng
+                  </GuestButton>
+                </form>
+                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
+                  <input type="hidden" name="productSlug" value={product.slug} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="redirectTo" value={ROUTES.CHECKOUT.CART} />
+                  <GuestButton type="submit" className="w-full border border-stone-300 bg-white text-stone-900 hover:bg-stone-50">
+                    Mua ngay
+                  </GuestButton>
+                </form>
+              </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để bắt đầu</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}

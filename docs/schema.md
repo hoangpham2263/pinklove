@@ -209,6 +209,63 @@ Index:
 
 - `wedding_sites_user_id_idx` on `user_id`
 
+### Commerce tables
+
+- `shopping_cart_items`
+  - `id`: `text`
+  - `user_id`: matches the live SQL type of `users.id`
+  - `product_id`: matches the live SQL type of `products.id`
+  - `quantity`: `int`
+  - `metadata`: `jsonb`
+  - `created_at`: `timestamptz`
+  - `updated_at`: `timestamptz`
+- `commerce_orders`
+  - `id`: `text`
+  - `order_number`: `text`, unique
+  - `user_id`: matches the live SQL type of `users.id`
+  - `status`: `text`
+  - `payment_status`: `text`
+  - `fulfillment_status`: `text`
+  - customer, shipping, pricing, affiliate, and metadata fields are stored inline on the order row
+  - `affiliate_user_id`: matches the live SQL type of `affiliate_accounts.user_id`
+  - `created_at`: `timestamptz`
+  - `updated_at`: `timestamptz`
+- `commerce_order_items`
+  - `id`: `text`
+  - `order_id`: FK to `commerce_orders.id`
+  - `product_id`: matches the live SQL type of `products.id`, nullable
+  - product snapshot fields and pricing are stored per line item
+- `commerce_payments`
+  - `id`: `text`
+  - `order_id`: FK to `commerce_orders.id`
+  - `method`: `text`
+  - `provider`: `text`
+  - `amount`: `numeric(12,2)`
+  - `status`: `text`
+  - `external_ref`: `text`, nullable
+  - `metadata`: `jsonb`
+- `commerce_shipments`
+  - `id`: `text`
+  - `order_id`: FK to `commerce_orders.id`, unique
+  - `carrier`: `text`
+  - `tracking_number`: `text`
+  - `status`: `text`
+  - `notes`: `text`
+  - `metadata`: `jsonb`
+- `commerce_entitlements`
+  - `id`: `text`
+  - `user_id`: matches the live SQL type of `users.id`
+  - `product_id`: matches the live SQL type of `products.id`
+  - `order_id`: FK to `commerce_orders.id`
+  - `order_item_id`: FK to `commerce_order_items.id`, nullable
+  - `status`: `text`
+  - `metadata`: `jsonb`
+
+Compatibility note:
+
+- The commerce bootstrap must not hard-code `text` for foreign keys pointing at legacy tables.
+- `src/lib/database.ts` now derives the SQL type for `users.id`, `products.id`, and `affiliate_accounts.user_id` from the live database before creating commerce tables.
+
 ## Non-database storage
 
 ### Uploaded files

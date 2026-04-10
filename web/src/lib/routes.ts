@@ -48,6 +48,11 @@ export const ROUTES = {
     REGISTER: "/customer/register",
     LOGOUT_API: "/api/auth/logout",
   },
+  CHECKOUT: {
+    CART: "/checkout/cart",
+    INDEX: "/checkout",
+    SUCCESS: (orderNumber: string) => `/checkout/success/${orderNumber}`,
+  },
   CUSTOMER: {
     ROOT: "/customer",
     DASHBOARD: "/customer/dashboard",
@@ -56,6 +61,8 @@ export const ROUTES = {
     AFFILIATE: "/customer/affiliate",
     VENDOR: "/customer/vendor",
     INVITATIONS: "/customer/invitations",
+    ORDERS: "/customer/orders",
+    ORDER: (id: string) => `/customer/orders/${id}`,
     DESIGN: (id: string) => `/customer/design/${id}`,
   },
   ADMIN: {
@@ -95,6 +102,10 @@ export const ROUTES = {
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
     AFFILIATES: "/admin/affiliates",
+    ORDERS: "/admin/orders",
+    ORDER: (id: string) => `/admin/orders/${id}`,
+    PAYMENTS: "/admin/payments",
+    SHIPMENTS: "/admin/shipments",
   },
   API: {
     AUTH: {
@@ -156,12 +167,27 @@ export const ROUTES = {
         DELETE: "/api/admin/products/delete",
         BULK: "/api/admin/products/bulk",
       },
+      ORDERS: {
+        UPDATE: "/api/admin/orders/update",
+      },
+      PAYMENTS: {
+        UPDATE: "/api/admin/payments/update",
+      },
+      SHIPMENTS: {
+        UPDATE: "/api/admin/shipments/update",
+      },
     },
     CUSTOMER: {
       PROFILE: "/api/customer/profile",
       AFFILIATE: {
         APPLY: "/api/customer/affiliate/apply",
       },
+      CART: {
+        ADD: "/api/customer/cart/add",
+        UPDATE: "/api/customer/cart/update",
+        REMOVE: "/api/customer/cart/remove",
+      },
+      CHECKOUT: "/api/customer/checkout",
       INVITATIONS: {
         CREATE_FROM_PRODUCT: "/api/customer/invitations/create-from-product",
         CREATE_BUILDER: "/api/customer/invitations/create-builder",

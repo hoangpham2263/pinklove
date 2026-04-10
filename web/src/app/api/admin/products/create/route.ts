@@ -6,7 +6,7 @@ import {
   getInvitationTemplateDefaults,
   getInvitationTemplateProductType,
 } from "@/features/invitations/templates/registry";
-import type { ProductType } from "@/features/products/types";
+import type { ProductFulfillmentType, ProductType } from "@/features/products/types";
 
 export const runtime = "nodejs";
 
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
   const templateKey = String(formData.get("templateKey") ?? "").trim();
+  const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
 
   if (!name || !slug || !templateKey) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để tạo sản phẩm.", location: `${ROUTES.ADMIN.PRODUCTS}?error=missing_fields` });
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       productType,
       templateKey,
       status: "draft",
+      fulfillmentType,
       config: {
         siteDefaults: getInvitationTemplateDefaults(templateKey),
       },

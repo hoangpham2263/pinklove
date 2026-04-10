@@ -151,6 +151,12 @@ export function GuestHeader({
                   <Link href={ROUTES.CUSTOMER.INVITATIONS} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
                     Thiệp của tôi
                   </Link>
+                  <Link href={ROUTES.CHECKOUT.CART} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
+                    Giỏ hàng
+                  </Link>
+                  <Link href={ROUTES.CUSTOMER.ORDERS} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
+                    Đơn hàng của tôi
+                  </Link>
                   <Link href={settingsHref} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
                     Cài đặt tài khoản
                   </Link>

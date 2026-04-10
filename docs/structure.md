@@ -13,6 +13,10 @@ web/
       (guest)/
         layout.tsx
         page.tsx
+        checkout/
+          page.tsx
+          cart/page.tsx
+          success/[orderNumber]/page.tsx
         (marketing)/
           about/page.tsx
           contact/page.tsx
@@ -40,6 +44,11 @@ web/
           layout.tsx
           (overview)/
             dashboard/page.tsx
+          (commerce)/
+            orders/page.tsx
+            orders/[id]/page.tsx
+            payments/page.tsx
+            shipments/page.tsx
           (content)/
             menus/page.tsx
             menus/[id]/page.tsx
@@ -82,6 +91,8 @@ web/
             invitations/page.tsx
             invitations/[id]/page.tsx
             design/[id]/page.tsx
+            orders/page.tsx
+            orders/[id]/page.tsx
           (account)/
             profile/page.tsx
             settings/page.tsx
@@ -113,6 +124,10 @@ web/
         media/route.ts
         customer/
           affiliate/apply/route.ts
+          cart/add/route.ts
+          cart/remove/route.ts
+          cart/update/route.ts
+          checkout/route.ts
           profile/route.ts
           invitations/create-builder/route.ts
           invitations/create-from-product/route.ts
@@ -145,6 +160,9 @@ web/
         server/
         types.ts
       customer/components/
+      commerce/
+        server/
+        types.ts
     lib/
       auth.ts
       cms.ts
@@ -179,7 +197,7 @@ web/
 ## Customer Area
 
 - The customer shell lives under `src/app/customer`.
-- Protected customer flows include dashboard, profile, settings, affiliate, and site management.
+- Protected customer flows include dashboard, profile, settings, affiliate, orders, and site management.
 - Customer invitation flows live at:
   - `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
   - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
@@ -189,8 +207,8 @@ web/
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, products, SEO, blog management, and config.
-- Admin product management works at the catalog level, not at a commerce or entitlement level.
+- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, vendors, products, commerce operations, SEO, blog management, and config.
+- Admin product management works at the catalog level, while order/payment/shipment operations live in the dedicated commerce section.
 
 ## Feature map
 
@@ -198,6 +216,7 @@ web/
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/media`: media library UI and server storage
 - `src/features/affiliate`: affiliate flows for customer and admin
+- `src/features/commerce`: cart, checkout, orders, payments, shipments, and entitlement services
 - `src/features/products`: invitation catalog products
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 
@@ -208,4 +227,5 @@ web/
 - `home`, `login`, and `register` are system managed pages seeded by `src/lib/database.ts`.
 - The current builder editor does not support dragging/resizing element height yet.
 - The current builder editor does not support grouping selected elements yet.
-- Checkout, order completion, affiliate conversion settlement, and payout settlement are intentionally not implemented yet.
+- Checkout, order creation, entitlement grant, and admin order/payment/shipment management are now implemented in-app.
+- Commerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `products`.

@@ -5,6 +5,7 @@ import { MenuEditor } from"@/features/admin/components/menus/menu-editor";
 import Link from"next/link";
 import { notFound } from"next/navigation";
 import { ROUTES } from "@/lib/routes";
+import { ArrowLeft } from "lucide-react";
 
 type AdminMenuEditProps = { params:Promise<{ id:string }>; };
 
@@ -20,8 +21,9 @@ export default async function AdminMenuEdit({ params }: AdminMenuEditProps) {
  <div className="flex items-center gap-4">
  <Link
  href={ROUTES.ADMIN.MENUS}
- className="inline-flex h-10 items-center justify-center rounded-lg border px-4"
+ className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-4"
  >
+ <ArrowLeft className="h-4 w-4" />
  Quay lại
  </Link>
  </div>

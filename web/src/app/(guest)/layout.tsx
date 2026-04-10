@@ -125,6 +125,12 @@ export default async function GuestLayout({
                   <Link href={ROUTES.CUSTOMER.INVITATIONS} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
                     Thiệp của tôi
                   </Link>
+                  <Link href={ROUTES.CHECKOUT.CART} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
+                    Giỏ hàng
+                  </Link>
+                  <Link href={ROUTES.CUSTOMER.ORDERS} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
+                    Đơn hàng của tôi
+                  </Link>
                   <Link href={settingsHref} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
                     Cài đặt tài khoản
                   </Link>

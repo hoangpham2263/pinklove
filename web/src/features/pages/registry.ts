@@ -10,7 +10,7 @@ export type ContentPageConfig = {
 export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   home: {
     slug: "home",
-    name: "Home Page",
+    name: "Trang chủ",
     label: "Trang chủ",
     fields: [
       { name: "heroTitle", label: "Tiêu đề Hero", type: "text" },
@@ -23,7 +23,7 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   },
   "about-us": {
     slug: "about-us",
-    name: "About Us",
+    name: "Giới thiệu",
     label: "Trang giới thiệu",
     fields: [
       { name: "bannerImage", label: "Ảnh banner đầu trang", type: "media" },
@@ -33,7 +33,7 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   },
   contact: {
     slug: "contact",
-    name: "Contact",
+    name: "Liên hệ",
     label: "Trang liên hệ",
     fields: [
       { name: "contactEmail", label: "Email liên hệ công khai", type: "text" },
@@ -52,49 +52,49 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   },
   templates: {
     slug: "templates",
-    name: "Templates",
+    name: "Mẫu thiệp",
     label: "Trang mẫu thiệp",
     fields: [],
   },
   builder: {
     slug: "builder",
-    name: "Builder",
+    name: "Tự tạo thiệp",
     label: "Trang builder",
     fields: [],
   },
   services: {
     slug: "services",
-    name: "Services",
+    name: "Dịch vụ",
     label: "Trang gói dịch vụ",
     fields: [],
   },
   tools: {
     slug: "tools",
-    name: "Tools",
+    name: "Công cụ",
     label: "Trang công cụ",
     fields: [],
   },
   "tools/qr-builder": {
     slug: "tools/qr-builder",
-    name: "QR Builder",
+    name: "Tạo mã QR",
     label: "Trang công cụ QR",
     fields: [],
   },
   "tools/wedding-budget": {
     slug: "tools/wedding-budget",
-    name: "Wedding Budget",
+    name: "Dự toán cưới",
     label: "Trang công cụ chi phí cưới",
     fields: [],
   },
   blog: {
     slug: "blog",
-    name: "Blog",
+    name: "Bài viết",
     label: "Trang blog",
     fields: [],
   },
   "not-found": {
     slug: "not-found",
-    name: "Not Found",
+    name: "Không tìm thấy",
     label: "Trang 404",
     fields: [
       { name: "badgeText", label: "Nhãn nhỏ đầu trang", type: "text" },

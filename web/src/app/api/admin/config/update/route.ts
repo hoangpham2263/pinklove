@@ -4,6 +4,7 @@ import { ROUTES } from "@/lib/routes";
 import {
   updateIndexingSettings,
   updateBreadcrumbSettings,
+  updateCommerceSettings,
   updateOpenGraphSettings,
   updatePermalinkSettings,
   updateSitemapSettings,
@@ -96,6 +97,22 @@ export async function POST(request: Request) {
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt Open Graph." });
+    }
+
+    if (section === "commerce") {
+      await updateCommerceSettings({
+        enabled: isChecked(formData, "enabled"),
+        allowBankTransfer: isChecked(formData, "allowBankTransfer"),
+        allowCod: isChecked(formData, "allowCod"),
+        autoApproveMockPayments: isChecked(formData, "autoApproveMockPayments"),
+        supportShipping: isChecked(formData, "supportShipping"),
+        flatShippingFee: Number(formData.get("flatShippingFee") ?? "30000"),
+        freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? "1500000"),
+        bankTransferInstructions: String(formData.get("bankTransferInstructions") ?? ""),
+        currency: String(formData.get("currency") ?? "VND").trim() || "VND",
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cài đặt commerce." });
     }
 
     return respondError(request, {

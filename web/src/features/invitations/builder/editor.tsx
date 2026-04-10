@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Konva from "konva";
 import { Group, Image as KonvaImage, Layer, Line, Rect, Stage, Text, Transformer } from "react-konva";
-import { Copy, ZoomIn, ZoomOut } from "lucide-react";
+import { Copy, Grip, ImageIcon, Layers3, MousePointer2, Square, Type, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -427,6 +427,15 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const notebookGridSize = 40;
   const rowSpacing = notebookGridSize;
   const canGroup = selectedNodes.length > 1 && selectedNodes.every((node) => node.type !== "group");
+  const nodeCount = document.nodes.length;
+  const selectionLabel = selectedIds.length === 0
+    ? "Chưa chọn item"
+    : selectedIds.length === 1
+      ? selectedNode?.type === "group"
+        ? "Đang chọn 1 nhóm"
+        : `Đang chọn 1 ${selectedNode?.type ?? "item"}`
+      : `Đang chọn ${selectedIds.length} item`;
+  const assetLibraryCount = BUILDER_ASSET_PRESETS.length;
 
   const snapValue = (value: number) => Math.round(value / notebookGridSize) * notebookGridSize;
   const snapPosition = (x: number, y: number) => ({
@@ -701,212 +710,305 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   } as const : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <input type="hidden" name="builderDocument" value={JSON.stringify(document)} />
 
-      <div className="rounded-2xl border bg-card p-4 space-y-4">
-        <div className="grid gap-4 md:grid-cols-[160px_160px_120px]">
-          <div className="space-y-2">
-            <label className="font-medium">Khổ ngang cố định</label>
-            <Input value={`${BUILDER_PAGE_WIDTH}px`} disabled />
-          </div>
-          <div className="space-y-2">
-            <label className="font-medium">Chiều cao trang</label>
-            <Input
-              type="number"
-              min={String(BUILDER_MIN_HEIGHT)}
-              max={String(BUILDER_MAX_HEIGHT)}
-              step="10"
-              value={String(document.height || BUILDER_DEFAULT_HEIGHT)}
-              onChange={(e) =>
-                setDocument((prev) => ({
-                  ...prev,
-                  height: Math.min(
-                    BUILDER_MAX_HEIGHT,
-                    Math.max(BUILDER_MIN_HEIGHT, Number(e.target.value) || BUILDER_DEFAULT_HEIGHT)
-                  ),
-                }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="font-medium">Nền thiệp</label>
-            <Input
-              type="color"
-              value={document.background}
-              onChange={(e) => setDocument((prev) => ({ ...prev, background: e.target.value }))}
-              className="h-12"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" variant="outline" onClick={() => addNode(createTextNode())}>
-            Thêm text
-          </Button>
-          <Button type="button" variant="outline" onClick={() => addNode(createShapeNode())}>
-            Thêm shape
-          </Button>
-          <Button type="button" variant="outline" onClick={() => addNode(createImageNode())}>
-            Thêm ảnh
-          </Button>
-          {canGroup ? (
-            <Button type="button" variant="outline" onClick={groupSelectedNodes}>
-              Group {selectedNodes.length} item
-            </Button>
-          ) : null}
-          {selectedNode?.type === "group" ? (
-            <Button type="button" variant="outline" onClick={ungroupSelectedNode}>
-              Ungroup
-            </Button>
-          ) : null}
-          {selectedNode ? (
-            <>
-              <Button type="button" variant="outline" size="icon" onClick={() => moveNodeById(selectedNode.id, "backward")}>
-                ↓
-              </Button>
-              <Button type="button" variant="outline" size="icon" onClick={() => moveNodeById(selectedNode.id, "forward")}>
-                ↑
-              </Button>
-              <Button type="button" variant="outline" size="icon" onClick={() => duplicateNodeById(selectedNode.id)}>
-                <Copy className="size-4" />
-              </Button>
-            </>
-          ) : null}
-          {selectedIds.length > 0 ? (
-            <Button type="button" variant="destructive" onClick={removeSelectedNodes}>
-              Xóa item
-            </Button>
-          ) : null}
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-6">
-          {selectedIds.length > 1 ? (
-            <div className="rounded-xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-6">
-              Đang chọn {selectedIds.length} item.
-              {canGroup ? " Dùng `Ctrl/Cmd + G` hoặc nút group để gom các item này." : " Group lồng nhau hiện chưa hỗ trợ trong editor."}
+      <div className="overflow-hidden rounded-[28px] border border-border/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,244,246,0.9))] shadow-sm">
+        <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.4fr)_280px] lg:px-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+              Khu vực builder
             </div>
-          ) : selectedNode ? (
-            <>
-              <div className="space-y-2">
-                <label className="font-medium">X</label>
-                <Input type="number" value={String(Math.round(selectedNode.x))} onChange={(e) => patchSelectedNode({ x: Number(e.target.value) })} />
-              </div>
-              <div className="space-y-2">
-                <label className="font-medium">Y</label>
-                <Input type="number" value={String(Math.round(selectedNode.y))} onChange={(e) => patchSelectedNode({ y: Number(e.target.value) })} />
-              </div>
-
-              {selectedNode.type === "group" ? (
-                <div className="rounded-xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-4">
-                  Group có thể kéo và resize trực tiếp trên canvas, bao gồm kéo chiều cao.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <label className="font-medium">Opacity</label>
-                  <Input type="number" min="0" max="1" step="0.1" value={String(selectedNode.opacity)} onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })} />
-                </div>
-              )}
-
-              {selectedNode.type === "text" ? (
-                <>
-                  <div className="space-y-2 md:col-span-3">
-                    <label className="font-medium">Nội dung</label>
-                    <textarea
-                      value={selectedNode.text}
-                      onChange={(e) => patchSelectedNode({ text: e.target.value } as Partial<BuilderTextNode>)}
-                      className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Cỡ chữ</label>
-                    <Input type="number" value={String(selectedNode.fontSize)} onChange={(e) => patchSelectedNode({ fontSize: Number(e.target.value) } as Partial<BuilderTextNode>)} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Màu chữ</label>
-                    <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)} className="h-12" />
-                  </div>
-                </>
-              ) : null}
-
-              {selectedNode.type === "shape" ? (
-                <>
-                  <div className="space-y-2">
-                    <label className="font-medium">Width</label>
-                    <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Height</label>
-                    <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Màu shape</label>
-                    <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value })} className="h-12" />
-                  </div>
-                </>
-              ) : null}
-
-              {selectedNode.type === "image" ? (
-                <>
-                  <div className="space-y-2 md:col-span-3">
-                    <label className="font-medium">URL ảnh</label>
-                    <Input value={selectedNode.src} onChange={(e) => patchSelectedNode({ src: e.target.value })} placeholder="https://..." />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Width</label>
-                    <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Height</label>
-                    <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
-                  </div>
-                </>
-              ) : null}
-            </>
-          ) : (
-            <div className="rounded-xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-6">
-              Chọn một item trong thiệp để chỉnh thuộc tính.
+            <div className="space-y-2">
+              <h3 className="text-2xl font-semibold tracking-tight">Luồng dựng canvas chuyên nghiệp cho quá trình thiết kế thiệp.</h3>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Làm việc theo một thứ tự rõ ràng hơn: thêm block, chỉnh item đang chọn, rồi hoàn thiện bố cục cuối cùng trên canvas. Có thể kéo preset từ thư viện hoặc dùng các thao tác nhanh bên dưới.
+              </p>
             </div>
-          )}
+            <div className="flex flex-wrap gap-2">
+              <div className="rounded-full border border-border/70 bg-white/80 px-3 py-1.5 text-sm">
+                {nodeCount} layer
+              </div>
+              <div className="rounded-full border border-border/70 bg-white/80 px-3 py-1.5 text-sm">
+                {assetLibraryCount} preset
+              </div>
+              <div className="rounded-full border border-border/70 bg-white/80 px-3 py-1.5 text-sm">
+                Canvas {document.width} x {document.height}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3 backdrop-blur">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Lựa chọn</p>
+              <p className="mt-2 text-lg font-semibold">{selectionLabel}</p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3 backdrop-blur">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Phím tắt</p>
+              <p className="mt-2 text-sm text-muted-foreground">Delete để xóa, Ctrl/Cmd + D để nhân bản, Ctrl/Cmd + G để nhóm nhiều item.</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="rounded-2xl border bg-card p-4 space-y-4">
-          <h3 className="font-semibold">Thư viện kéo thả</h3>
-          <p className="text-sm text-muted-foreground">
-            Kéo `text`, `svg`, hoặc `image preset` vào trình dựng để tạo bố cục thiệp.
-          </p>
-          <div className="grid gap-3">
-            {BUILDER_ASSET_PRESETS.map((preset) => (
-              <div
-                key={preset.id}
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.setData("application/pinklove-builder-asset", preset.id);
-                  event.dataTransfer.effectAllowed = "copy";
-                }}
-                onDoubleClick={() => addNode(preset.createNode())}
-                className="flex cursor-grab items-center justify-between rounded-xl border bg-background px-3 py-3"
-              >
-                <div>
-                  <p className="font-medium">{preset.label}</p>
-                  <p className="text-xs uppercase tracking-[3px] text-muted-foreground">
-                    {preset.preview}
-                  </p>
-                </div>
-                <Button type="button" variant="outline" onClick={() => addNode(preset.createNode())}>
-                  Thêm
-                </Button>
+      <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="space-y-5">
+          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Thao tác nhanh</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Tạo các block cơ bản trước, sau đó mới tinh chỉnh layer đang chọn.</p>
               </div>
-            ))}
+              <div className="rounded-xl bg-primary/8 p-2 text-primary">
+                <MousePointer2 className="size-4" />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Button type="button" variant="outline" className="justify-start" onClick={() => addNode(createTextNode())}>
+                <Type className="size-4" />
+                Thêm block chữ
+              </Button>
+              <Button type="button" variant="outline" className="justify-start" onClick={() => addNode(createShapeNode())}>
+                <Square className="size-4" />
+                Thêm shape
+              </Button>
+              <Button type="button" variant="outline" className="justify-start" onClick={() => addNode(createImageNode())}>
+                <ImageIcon className="size-4" />
+                Thêm khung ảnh
+              </Button>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {canGroup ? (
+                <Button type="button" variant="outline" className="justify-start" onClick={groupSelectedNodes}>
+                  <Layers3 className="size-4" />
+                  Nhóm {selectedNodes.length} item đã chọn
+                </Button>
+              ) : null}
+              {selectedNode?.type === "group" ? (
+                <Button type="button" variant="outline" className="justify-start" onClick={ungroupSelectedNode}>
+                  <Layers3 className="size-4" />
+                  Bỏ nhóm đang chọn
+                </Button>
+              ) : null}
+              {selectedNode ? (
+                <>
+                  <Button type="button" variant="outline" className="justify-start" onClick={() => duplicateNodeById(selectedNode.id)}>
+                    <Copy className="size-4" />
+                    Nhân bản item đang chọn
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" variant="outline" onClick={() => moveNodeById(selectedNode.id, "backward")}>
+                      Lùi xuống
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => moveNodeById(selectedNode.id, "forward")}>
+                      Đưa lên
+                    </Button>
+                  </div>
+                </>
+              ) : null}
+              {selectedIds.length > 0 ? (
+                <Button type="button" variant="destructive" className="justify-start" onClick={removeSelectedNodes}>
+                  Xóa item
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Thư viện asset</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Kéo preset vào stage hoặc double click để chèn nhanh.</p>
+              </div>
+              <div className="rounded-xl bg-muted p-2 text-foreground">
+                <Grip className="size-4" />
+              </div>
+            </div>
+            <div className="grid gap-3">
+              {BUILDER_ASSET_PRESETS.map((preset) => (
+                <div
+                  key={preset.id}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.setData("application/pinklove-builder-asset", preset.id);
+                    event.dataTransfer.effectAllowed = "copy";
+                  }}
+                  onDoubleClick={() => addNode(preset.createNode())}
+                  className="flex cursor-grab items-center justify-between rounded-2xl border border-border/70 bg-background px-3 py-3 transition hover:border-primary/35 hover:bg-primary/5"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{preset.label}</p>
+                    <p className="truncate text-xs uppercase tracking-[3px] text-muted-foreground">
+                      {preset.preview}
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => addNode(preset.createNode())}>
+                    Thêm
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div
-            ref={stageWrapperRef}
-            className="relative flex items-center justify-center overflow-auto rounded-2xl border bg-[#f5f5f5] p-4 pb-14"
+        <div className="space-y-5">
+          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Thiết lập canvas và vùng chỉnh sửa</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Thiết lập cấp trang nằm phía trên, còn thuộc tính của item đang chọn nằm bên dưới.</p>
+              </div>
+              <div className="rounded-xl bg-primary/8 p-2 text-primary">
+                <Layers3 className="size-4" />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[160px_160px_120px]">
+              <div className="space-y-2">
+                <label className="font-medium">Chiều rộng canvas</label>
+                <Input value={`${BUILDER_PAGE_WIDTH}px`} disabled />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Chiều cao canvas</label>
+                <Input
+                  type="number"
+                  min={String(BUILDER_MIN_HEIGHT)}
+                  max={String(BUILDER_MAX_HEIGHT)}
+                  step="10"
+                  value={String(document.height || BUILDER_DEFAULT_HEIGHT)}
+                  onChange={(e) =>
+                    setDocument((prev) => ({
+                      ...prev,
+                      height: Math.min(
+                        BUILDER_MAX_HEIGHT,
+                        Math.max(BUILDER_MIN_HEIGHT, Number(e.target.value) || BUILDER_DEFAULT_HEIGHT)
+                      ),
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Nền</label>
+                <Input
+                  type="color"
+                  value={document.background}
+                  onChange={(e) => setDocument((prev) => ({ ...prev, background: e.target.value }))}
+                  className="h-12"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 border-t pt-5">
+              {selectedIds.length > 1 ? (
+                <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
+                  Đang chọn {selectedIds.length} item.
+                  {canGroup ? " Dùng Ctrl/Cmd + G hoặc nút group để gom các item này." : " Group lồng nhau hiện chưa hỗ trợ trong editor."}
+                </div>
+              ) : selectedNode ? (
+                <div className="grid gap-4 md:grid-cols-6">
+                  <div className="space-y-2">
+                    <label className="font-medium">X</label>
+                    <Input type="number" value={String(Math.round(selectedNode.x))} onChange={(e) => patchSelectedNode({ x: Number(e.target.value) })} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-medium">Y</label>
+                    <Input type="number" value={String(Math.round(selectedNode.y))} onChange={(e) => patchSelectedNode({ y: Number(e.target.value) })} />
+                  </div>
+
+                  {selectedNode.type === "group" ? (
+                    <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-4">
+                      Group có thể kéo và resize trực tiếp trên canvas, bao gồm kéo chiều cao.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="font-medium">Opacity</label>
+                      <Input type="number" min="0" max="1" step="0.1" value={String(selectedNode.opacity)} onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })} />
+                    </div>
+                  )}
+
+                  {selectedNode.type === "text" ? (
+                    <>
+                      <div className="space-y-2 md:col-span-3">
+                        <label className="font-medium">Nội dung</label>
+                        <textarea
+                          value={selectedNode.text}
+                          onChange={(e) => patchSelectedNode({ text: e.target.value } as Partial<BuilderTextNode>)}
+                          className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Cỡ chữ</label>
+                        <Input type="number" value={String(selectedNode.fontSize)} onChange={(e) => patchSelectedNode({ fontSize: Number(e.target.value) } as Partial<BuilderTextNode>)} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Màu chữ</label>
+                        <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)} className="h-12" />
+                      </div>
+                    </>
+                  ) : null}
+
+                  {selectedNode.type === "shape" ? (
+                    <>
+                      <div className="space-y-2">
+                        <label className="font-medium">Width</label>
+                        <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Height</label>
+                        <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Màu shape</label>
+                        <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value })} className="h-12" />
+                      </div>
+                    </>
+                  ) : null}
+
+                  {selectedNode.type === "image" ? (
+                    <>
+                      <div className="space-y-2 md:col-span-3">
+                        <label className="font-medium">URL ảnh</label>
+                        <Input value={selectedNode.src} onChange={(e) => patchSelectedNode({ src: e.target.value })} placeholder="https://..." />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Width</label>
+                        <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="font-medium">Height</label>
+                        <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
+                  Chọn một item trong canvas để chỉnh thuộc tính. Nếu đang bắt đầu từ đầu, hãy thêm text, shape hoặc khung ảnh từ cột bên trái.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="font-semibold">Khu vực canvas</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Canvas luôn được canh giữa, hỗ trợ zoom và bám lưới để quá trình dàn trang gọn gàng hơn.</p>
+              </div>
+              <div className="flex items-center gap-2 rounded-full border bg-background px-2 py-1">
+                <Button type="button" variant="ghost" size="icon-sm" onClick={() => setZoom((prev) => Math.max(0.3, Number((prev - 0.1).toFixed(2))))}>
+                  <ZoomOut className="size-4" />
+                </Button>
+                <div className="min-w-14 text-center text-sm font-medium">{Math.round(stageScale * 100)}%</div>
+                <Button type="button" variant="ghost" size="icon-sm" onClick={() => setZoom((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(2))))}>
+                  <ZoomIn className="size-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div
+              ref={stageWrapperRef}
+              className="relative flex items-center justify-center overflow-auto rounded-[24px] border bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(244,244,245,0.96))] p-4 pb-14"
             onDragOver={(event) => {
               if (event.dataTransfer.types.includes("application/pinklove-builder-asset")) {
                 event.preventDefault();
@@ -933,15 +1035,11 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
               addNode({ ...nextNode, x: snapped.x, y: snapped.y });
             }}
           >
-            <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-full border bg-background/95 px-2 py-1 backdrop-blur">
-              <Button type="button" variant="ghost" size="icon-sm" onClick={() => setZoom((prev) => Math.max(0.3, Number((prev - 0.1).toFixed(2))))}>
-                <ZoomOut className="size-4" />
-              </Button>
-              <div className="min-w-12 text-center text-sm">{Math.round(stageScale * 100)}%</div>
-              <Button type="button" variant="ghost" size="icon-sm" onClick={() => setZoom((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(2))))}>
-                <ZoomIn className="size-4" />
-              </Button>
-            </div>
+              <div className="absolute left-4 top-4 z-10 flex flex-wrap items-center gap-2 rounded-2xl border bg-background/92 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur">
+                <span className="font-medium text-foreground">Lưới {notebookGridSize}px</span>
+                <span className="h-1 w-1 rounded-full bg-border" />
+                <span>{selectionLabel}</span>
+              </div>
 
             {editingTextNode && editorOverlayStyle ? (
               <textarea
@@ -1078,6 +1176,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
             >
               Kéo để đổi chiều cao
             </div>
+          </div>
           </div>
         </div>
       </div>
