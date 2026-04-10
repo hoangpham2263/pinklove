@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { listOrdersForUser } from "@/features/commerce/server/service";
+import { listOrdersForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
+import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
-}
+import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function CustomerOrdersPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  const orders = await listOrdersForUser(user.id);
+  const [orders, settings] = await Promise.all([listOrdersForUser(user.id), getSystemSettings()]);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -52,7 +50,7 @@ export default async function CustomerOrdersPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <p className="font-semibold">{formatCurrency(order.totalAmount)}</p>
+                  <p className="font-semibold">{formatCurrency(order.totalAmount, settings.ecommerce)}</p>
                   <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDER(order.id)}>Xem đơn</Link>} />
                 </div>
               </CardContent>

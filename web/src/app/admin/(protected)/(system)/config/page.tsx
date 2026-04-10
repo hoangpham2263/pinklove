@@ -10,9 +10,19 @@ const CONFIG_SECTIONS = [
     icon: "settings" as const,
     items: [
       {
+        title: "Branding",
+        description: "Quản lý tên site và logo hiển thị riêng cho UI của website.",
+        href: ROUTES.ADMIN.CONFIG_BRANDING,
+      },
+      {
         title: "Kết nối thương mại",
         description: "Kết nối sàn thương mại điện tử, catalog và các kênh bán hàng để mở rộng sau.",
-        href: ROUTES.ADMIN.CONFIG_COMMERCE,
+        href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
+      },
+      {
+        title: "Hooks",
+        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
+        href: ROUTES.ADMIN.HOOKS,
       },
     ],
   },
@@ -32,8 +42,13 @@ const CONFIG_SECTIONS = [
       },
       {
         title: "Open Graph",
-        description: "Quản lý site name, locale, ảnh mặc định và fallback metadata khi share link.",
+        description: "Quản lý metadata social preview và ảnh mặc định khi share link.",
         href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
+      },
+      {
+        title: "Favicon",
+        description: "Thiết lập site icon riêng cho tab trình duyệt, shortcut và Apple touch icon.",
+        href: ROUTES.ADMIN.CONFIG_FAVICON,
       },
     ],
   },
@@ -78,7 +93,8 @@ export default async function AdminSettingsPage() {
     settings.breadcrumb.enabled,
     settings.sitemap.enabled,
     settings.permalink.legacyRedirects,
-    settings.opengraph.siteName.trim().length > 0,
+    settings.branding.siteName.trim().length > 0,
+    settings.favicon.siteFavicon.trim().length > 0,
   ].filter(Boolean).length;
 
   return (

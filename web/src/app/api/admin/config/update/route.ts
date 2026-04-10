@@ -2,9 +2,11 @@ import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { ROUTES } from "@/lib/routes";
 import {
+  updateBrandingSettings,
   updateIndexingSettings,
   updateBreadcrumbSettings,
-  updateCommerceSettings,
+  updateEcommerceSettings,
+  updateFaviconSettings,
   updateOpenGraphSettings,
   updatePermalinkSettings,
   updateSitemapSettings,
@@ -84,9 +86,17 @@ export async function POST(request: Request) {
       return respondSuccess(request, { message: "Đã lưu cài đặt indexing." });
     }
 
+    if (section === "branding") {
+      await updateBrandingSettings({
+        siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
+        brandLogo: String(formData.get("brandLogo") ?? "").trim(),
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cài đặt branding." });
+    }
+
     if (section === "opengraph") {
       await updateOpenGraphSettings({
-        siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
         locale: String(formData.get("locale") ?? "").trim() || "vi_VN",
         defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "PinkLove",
         defaultDescription:
@@ -99,8 +109,17 @@ export async function POST(request: Request) {
       return respondSuccess(request, { message: "Đã lưu cài đặt Open Graph." });
     }
 
-    if (section === "commerce") {
-      await updateCommerceSettings({
+    if (section === "favicon") {
+      await updateFaviconSettings({
+        siteFavicon: String(formData.get("siteFavicon") ?? "").trim(),
+        appleTouchIcon: String(formData.get("appleTouchIcon") ?? "").trim(),
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cài đặt favicon." });
+    }
+
+    if (section === "ecommerce") {
+      await updateEcommerceSettings({
         enabled: isChecked(formData, "enabled"),
         allowBankTransfer: isChecked(formData, "allowBankTransfer"),
         allowCod: isChecked(formData, "allowCod"),
@@ -110,9 +129,12 @@ export async function POST(request: Request) {
         freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? "1500000"),
         bankTransferInstructions: String(formData.get("bankTransferInstructions") ?? ""),
         currency: String(formData.get("currency") ?? "VND").trim() || "VND",
+        currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",
+        thousandSeparator: formData.get("thousandSeparator") === "," ? "," : ".",
+        decimalSeparator: formData.get("decimalSeparator") === "." ? "." : ",",
       });
 
-      return respondSuccess(request, { message: "Đã lưu cài đặt commerce." });
+      return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });
     }
 
     return respondError(request, {

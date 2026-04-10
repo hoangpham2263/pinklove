@@ -1,7 +1,7 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { getProductBySlug } from "@/features/products/server/service";
-import { addCartItem } from "@/features/commerce/server/service";
+import { addCartItem } from "@/features/ecommerce/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

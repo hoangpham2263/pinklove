@@ -319,7 +319,7 @@ export async function buildManagedPageMetadata(page: ManagedPage): Promise<Metad
       url: canonicalUrl,
       title: ogTitle,
       description: ogDescription,
-      siteName: settings.opengraph.siteName,
+      siteName: settings.branding.siteName,
       locale: settings.opengraph.locale,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },

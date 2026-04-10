@@ -41,8 +41,12 @@ export type IndexingSettings = {
   customRobotsRules: string;
 };
 
-export type OpenGraphSettings = {
+export type BrandingSettings = {
   siteName: string;
+  brandLogo: string;
+};
+
+export type OpenGraphSettings = {
   locale: string;
   defaultTitle: string;
   defaultDescription: string;
@@ -50,7 +54,12 @@ export type OpenGraphSettings = {
   twitterCard: "summary" | "summary_large_image";
 };
 
-export type CommerceSettings = {
+export type FaviconSettings = {
+  siteFavicon: string;
+  appleTouchIcon: string;
+};
+
+export type EcommerceSettings = {
   enabled: boolean;
   allowBankTransfer: boolean;
   allowCod: boolean;
@@ -60,6 +69,9 @@ export type CommerceSettings = {
   freeShippingThreshold: number;
   bankTransferInstructions: string;
   currency: string;
+  currencySymbol: string;
+  thousandSeparator: "," | ".";
+  decimalSeparator: "," | ".";
 };
 
 export type SystemSettings = {
@@ -67,8 +79,10 @@ export type SystemSettings = {
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
   indexing: IndexingSettings;
+  branding: BrandingSettings;
   opengraph: OpenGraphSettings;
-  commerce: CommerceSettings;
+  favicon: FaviconSettings;
+  ecommerce: EcommerceSettings;
 };
 
 type SettingRow = {
@@ -76,7 +90,9 @@ type SettingRow = {
   seo_breadcrumb: Record<string, unknown> | null;
   seo_sitemap: Record<string, unknown> | null;
   seo_indexing?: Record<string, unknown> | null;
+  seo_branding?: Record<string, unknown> | null;
   seo_opengraph?: Record<string, unknown> | null;
+  seo_favicon?: Record<string, unknown> | null;
   commerce_config?: Record<string, unknown> | null;
 };
 
@@ -116,15 +132,22 @@ const DEFAULT_SETTINGS: SystemSettings = {
     disallowApi: true,
     customRobotsRules: "",
   },
-  opengraph: {
+  branding: {
     siteName: "PinkLove",
+    brandLogo: "",
+  },
+  opengraph: {
     locale: "vi_VN",
     defaultTitle: "PinkLove",
     defaultDescription: "Thiệp cưới online, blog cưới, công cụ cưới và builder tạo thiệp tối ưu cho trải nghiệm chia sẻ.",
     defaultImage: "",
     twitterCard: "summary_large_image",
   },
-  commerce: {
+  favicon: {
+    siteFavicon: "",
+    appleTouchIcon: "",
+  },
+  ecommerce: {
     enabled: true,
     allowBankTransfer: true,
     allowCod: true,
@@ -134,6 +157,9 @@ const DEFAULT_SETTINGS: SystemSettings = {
     freeShippingThreshold: 1500000,
     bankTransferInstructions: "Chuyển khoản vào tài khoản công ty và ghi rõ mã đơn hàng trong nội dung.",
     currency: "VND",
+    currencySymbol: "₫",
+    thousandSeparator: ".",
+    decimalSeparator: ",",
   },
 };
 
@@ -197,10 +223,28 @@ function parseIndexingSettings(value: Record<string, unknown> | null | undefined
   };
 }
 
+function parseBrandingSettings(
+  value: Record<string, unknown> | null | undefined,
+  legacyOpenGraph: Record<string, unknown> | null | undefined
+): BrandingSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.branding as Record<string, unknown>, value);
+  return {
+    siteName: String(
+      merged.siteName ||
+        legacyOpenGraph?.siteName ||
+        DEFAULT_SETTINGS.branding.siteName
+    ),
+    brandLogo: String(
+      merged.brandLogo ??
+        legacyOpenGraph?.siteLogo ??
+        DEFAULT_SETTINGS.branding.brandLogo
+    ),
+  };
+}
+
 function parseOpenGraphSettings(value: Record<string, unknown> | null | undefined): OpenGraphSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.opengraph as Record<string, unknown>, value);
   return {
-    siteName: String(merged.siteName || DEFAULT_SETTINGS.opengraph.siteName),
     locale: String(merged.locale || DEFAULT_SETTINGS.opengraph.locale),
     defaultTitle: String(merged.defaultTitle || DEFAULT_SETTINGS.opengraph.defaultTitle),
     defaultDescription: String(merged.defaultDescription || DEFAULT_SETTINGS.opengraph.defaultDescription),
@@ -209,18 +253,39 @@ function parseOpenGraphSettings(value: Record<string, unknown> | null | undefine
   };
 }
 
-function parseCommerceSettings(value: Record<string, unknown> | null | undefined): CommerceSettings {
-  const merged = mergeRecord(DEFAULT_SETTINGS.commerce as Record<string, unknown>, value);
+function parseFaviconSettings(value: Record<string, unknown> | null | undefined): FaviconSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.favicon as Record<string, unknown>, value);
+  return {
+    siteFavicon: String(merged.siteFavicon ?? DEFAULT_SETTINGS.favicon.siteFavicon),
+    appleTouchIcon: String(merged.appleTouchIcon ?? DEFAULT_SETTINGS.favicon.appleTouchIcon),
+  };
+}
+
+function parseEcommerceSettings(value: Record<string, unknown> | null | undefined): EcommerceSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.ecommerce as Record<string, unknown>, value);
   return {
     enabled: Boolean(merged.enabled),
     allowBankTransfer: Boolean(merged.allowBankTransfer),
     allowCod: Boolean(merged.allowCod),
     autoApproveMockPayments: Boolean(merged.autoApproveMockPayments),
     supportShipping: Boolean(merged.supportShipping),
-    flatShippingFee: Number(merged.flatShippingFee ?? DEFAULT_SETTINGS.commerce.flatShippingFee),
-    freeShippingThreshold: Number(merged.freeShippingThreshold ?? DEFAULT_SETTINGS.commerce.freeShippingThreshold),
-    bankTransferInstructions: String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.commerce.bankTransferInstructions),
-    currency: String(merged.currency ?? DEFAULT_SETTINGS.commerce.currency),
+    flatShippingFee: Number(merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee),
+    freeShippingThreshold: Number(merged.freeShippingThreshold ?? DEFAULT_SETTINGS.ecommerce.freeShippingThreshold),
+    bankTransferInstructions: String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.ecommerce.bankTransferInstructions),
+    currency: String(merged.currency ?? DEFAULT_SETTINGS.ecommerce.currency),
+    currencySymbol: String(merged.currencySymbol ?? DEFAULT_SETTINGS.ecommerce.currencySymbol),
+    thousandSeparator:
+      merged.thousandSeparator === ","
+        ? ","
+        : merged.thousandSeparator === "."
+          ? "."
+          : DEFAULT_SETTINGS.ecommerce.thousandSeparator,
+    decimalSeparator:
+      merged.decimalSeparator === ","
+        ? ","
+        : merged.decimalSeparator === "."
+          ? "."
+          : DEFAULT_SETTINGS.ecommerce.decimalSeparator,
   };
 }
 
@@ -233,7 +298,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   try {
     const result = await query<SettingRow>(`
-      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_opengraph, commerce_config
+      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, seo_favicon, commerce_config
       FROM app_settings
       WHERE id = 1
       LIMIT 1
@@ -248,8 +313,10 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
+    branding: parseBrandingSettings(row?.seo_branding, row?.seo_opengraph),
     opengraph: parseOpenGraphSettings(row?.seo_opengraph),
-    commerce: parseCommerceSettings(row?.commerce_config),
+    favicon: parseFaviconSettings(row?.seo_favicon),
+    ecommerce: parseEcommerceSettings(row?.commerce_config),
   };
 }
 
@@ -321,6 +388,23 @@ export async function updateIndexingSettings(input: Partial<IndexingSettings>) {
   return next;
 }
 
+export async function updateBrandingSettings(input: Partial<BrandingSettings>) {
+  const current = await getSystemSettings();
+  const next = { ...current.branding, ...input };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET seo_branding = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next;
+}
+
 export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>) {
   const current = await getSystemSettings();
   const next = { ...current.opengraph, ...input };
@@ -338,9 +422,26 @@ export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>)
   return next;
 }
 
-export async function updateCommerceSettings(input: Partial<CommerceSettings>) {
+export async function updateFaviconSettings(input: Partial<FaviconSettings>) {
   const current = await getSystemSettings();
-  const next = { ...current.commerce, ...input };
+  const next = { ...current.favicon, ...input };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET seo_favicon = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next;
+}
+
+export async function updateEcommerceSettings(input: Partial<EcommerceSettings>) {
+  const current = await getSystemSettings();
+  const next = { ...current.ecommerce, ...input };
 
   await query(
     `

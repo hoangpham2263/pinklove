@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminPagesTable } from "@/features/admin/components/pages/admin-pages-table";
+import { AdminPagesTable } from "@/features/pages/admin/admin-pages-table";
 import { requireAdmin } from "@/lib/auth";
 import { listManagedPages } from "@/lib/managed-pages";
 

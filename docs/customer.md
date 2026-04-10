@@ -19,7 +19,7 @@ This file covers the normal customer area and customer-owned site flows.
 - Logged-in non-admin users (`CUSTOMER`, `AFFILIATE`, `VENDOR`) should be redirected away from customer auth pages back to the customer dashboard.
 - Admins may access the normal customer area for management and preview workflows.
 - Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
-- Invitation ownership now comes from commerce entitlements for paid products before customer create flows can instantiate new sites.
+- Invitation ownership now comes from ecommerce entitlements for paid products before customer create flows can instantiate new sites.
 - Customer purchase flow uses cart and checkout routes before order creation. The invitation/site table name remains `wedding_sites`.
 - Current builder limitations:
   - element height is not draggable/resizable yet

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
@@ -26,7 +27,7 @@ function isImageUrl(value: string) {
 export default async function AdminOpenGraphSettingsPage() {
   await requireAdmin();
   const [settings, siteUrl] = await Promise.all([getSystemSettings(), getCurrentSiteUrl()]);
-  const previewTitle = settings.opengraph.defaultTitle || settings.opengraph.siteName;
+  const previewTitle = settings.opengraph.defaultTitle || settings.branding.siteName;
   const previewDescription = settings.opengraph.defaultDescription;
   const previewImage = settings.opengraph.defaultImage || "Chưa cấu hình";
   const hasPreviewImage = Boolean(settings.opengraph.defaultImage) && isImageUrl(settings.opengraph.defaultImage);
@@ -40,7 +41,7 @@ export default async function AdminOpenGraphSettingsPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Open Graph</h1>
-            <p className="text-muted-foreground">Cấu hình metadata mặc định khi chia sẻ link qua Facebook, Zalo, Messenger và nền tảng social khác.</p>
+            <p className="text-muted-foreground">Cấu hình metadata và ảnh dùng cho social preview khi chia sẻ link qua Facebook, Zalo, Messenger và nền tảng tương tự.</p>
           </div>
         </div>
       </div>
@@ -48,10 +49,11 @@ export default async function AdminOpenGraphSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Site Name</CardTitle>
+            <CardTitle>Branding Source</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.opengraph.siteName}</p>
+            <p className="tracking-tight">{settings.branding.siteName}</p>
+            <p className="text-sm text-muted-foreground">Lấy từ cấu hình Branding</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
@@ -78,9 +80,11 @@ export default async function AdminOpenGraphSettingsPage() {
             <p className="break-all text-foreground">{previewImage}</p>
             {hasPreviewImage ? (
               <div className="overflow-hidden rounded-lg border bg-muted">
-                <img
+                <Image
                   src={settings.opengraph.defaultImage}
                   alt={previewTitle}
+                  width={1200}
+                  height={630}
                   className="aspect-[1200/630] w-full object-cover"
                 />
               </div>
@@ -94,6 +98,18 @@ export default async function AdminOpenGraphSettingsPage() {
           <CardTitle>Preview fallback</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-sm text-muted-foreground">
+            Tên site và logo hiển thị trong UI được quản lý riêng tại{" "}
+            <Link href={ROUTES.ADMIN.CONFIG_BRANDING} className="font-medium text-foreground underline underline-offset-4">
+              Branding
+            </Link>
+            .{" "}
+            Site icon của trình duyệt và thiết bị di động được quản lý riêng tại{" "}
+            <Link href={ROUTES.ADMIN.CONFIG_FAVICON} className="font-medium text-foreground underline underline-offset-4">
+              Favicon
+            </Link>
+            .
+          </div>
           <div className="rounded-lg border bg-background p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Preview URL</p>
             <p className="mt-2 break-all text-foreground">{siteUrl}</p>
@@ -101,9 +117,11 @@ export default async function AdminOpenGraphSettingsPage() {
             <p className="mt-2 text-muted-foreground">{previewDescription}</p>
             {hasPreviewImage ? (
               <div className="mt-4 overflow-hidden rounded-lg border bg-muted">
-                <img
+                <Image
                   src={settings.opengraph.defaultImage}
                   alt={previewTitle}
+                  width={1200}
+                  height={630}
                   className="aspect-[1200/630] w-full object-cover"
                 />
               </div>
@@ -127,13 +145,6 @@ export default async function AdminOpenGraphSettingsPage() {
               value: "w-[40%]",
             }}
             rows={[
-              {
-                id: "siteName",
-                label: "Site Name",
-                description: "Tên website hiển thị trong Open Graph và metadata gốc.",
-                type: "text",
-                value: settings.opengraph.siteName,
-              },
               {
                 id: "locale",
                 label: "Locale",
@@ -160,7 +171,7 @@ export default async function AdminOpenGraphSettingsPage() {
                 id: "defaultImage",
                 label: "Default Image",
                 description: "Đường dẫn ảnh mặc định cho social share. Có thể nhập URL tuyệt đối hoặc path nội bộ như `/uploads/og-default.jpg`.",
-                type: "text",
+                type: "media",
                 value: settings.opengraph.defaultImage,
               },
               {

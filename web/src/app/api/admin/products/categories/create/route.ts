@@ -15,13 +15,13 @@ export async function POST(request: Request) {
   const status = String(formData.get("status") ?? "draft").trim() as "draft" | "published";
 
   if (!name || !slug) {
-    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để tạo product category.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=missing_fields` });
+    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để tạo Product Cat.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=missing_fields` });
   }
 
   try {
     const category = await createProductCategory({ name, slug, description, status });
-    return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_CATEGORY(category.slug), message: "Đã tạo product category." });
+    return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_CATEGORY(category.slug), message: "Đã tạo Product Cat." });
   } catch {
-    return respondError(request, { error: "create_failed", message: "Không thể tạo product category.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=create_failed` });
+    return respondError(request, { error: "create_failed", message: "Không thể tạo Product Cat.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=create_failed` });
   }
 }

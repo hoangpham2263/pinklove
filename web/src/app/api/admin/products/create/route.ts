@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   const name = String(formData.get("name") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "").trim();
+  const status = String(formData.get("status") ?? "draft") as "draft" | "published";
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
   const templateKey = String(formData.get("templateKey") ?? "").trim();
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       name,
       productType,
       templateKey,
-      status: "draft",
+      status,
       fulfillmentType,
       config: {
         siteDefaults: getInvitationTemplateDefaults(templateKey),

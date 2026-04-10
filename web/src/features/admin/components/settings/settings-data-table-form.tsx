@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
+import { MediaSelector } from "@/features/media/components/media-selector";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,7 +41,7 @@ type SettingsRow = {
   id: string;
   label: string;
   description: string;
-  type: "boolean" | "text" | "textarea" | "select";
+  type: "boolean" | "text" | "textarea" | "select" | "media";
   value: boolean | string;
   options?: Array<{
     label: string;
@@ -49,7 +50,7 @@ type SettingsRow = {
 };
 
 type SettingsDataTableFormProps = {
-  section: "permalink" | "breadcrumb" | "sitemap" | "indexing" | "opengraph";
+  section: "permalink" | "breadcrumb" | "sitemap" | "indexing" | "branding" | "opengraph" | "favicon" | "ecommerce";
   title: string;
   rows: SettingsRow[];
   saveMessage: string;
@@ -174,6 +175,20 @@ export function SettingsDataTableForm({
                   </option>
                 ))}
               </select>
+            );
+          }
+
+          if (item.type === "media") {
+            return (
+              <MediaSelector
+                name={item.id}
+                value={String(item.value)}
+                onChange={(next) => {
+                  setRows((prev) =>
+                    prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
+                  );
+                }}
+              />
             );
           }
 

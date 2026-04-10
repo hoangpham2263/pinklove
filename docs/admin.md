@@ -14,8 +14,9 @@ This file covers the admin area and admin-controlled workflows.
 - The admin shell lives under `src/app/admin/(protected)`.
 - Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR` for stored roles; `GUEST` is the public non-authenticated actor only.
 - Admin `Pages` edits only managed content and system pages already registered in code.
+- Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin product flows operate on catalog entries in `products`.
-- Admin commerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
+- Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
 - Menu management expects `navigation_menus` and `navigation_menu_items`.
 - Current public guest navigation is still hardcoded even though menu management exists in admin.
 - `Admin > Cấu hình` is the centralized place for system-wide permalink, breadcrumb, sitemap, and robots behavior.
@@ -28,12 +29,13 @@ This file covers the admin area and admin-controlled workflows.
 ## Current admin sections
 
 - dashboard
+- global fields
 - blog posts
 - blog categories
 - customer management
 - affiliate actor management
 - vendor management
-- commerce operations
+- ecommerce operations
   - orders
   - payments
   - shipments
@@ -50,7 +52,10 @@ This file covers the admin area and admin-controlled workflows.
   - seo schema
   - seo rules
 - cấu hình
-  - commerce
+  - branding
+  - ecommerce
+  - favicon
+  - opengraph
   - permalinks
   - breadcrumbs
   - sitemap

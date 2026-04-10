@@ -38,14 +38,24 @@ Index:
 
 ### `app_settings`
 
-- `key`: `text`, primary key
-- `value`: `jsonb`
+- `id`: `integer`, fixed to row `1`
+- `theme`: `text`
+- `seo_permalink`: `jsonb`
+- `seo_breadcrumb`: `jsonb`
+- `seo_sitemap`: `jsonb`
+- `seo_indexing`: `jsonb`
+- `seo_branding`: `jsonb`
+- `seo_opengraph`: `jsonb`
+- `seo_favicon`: `jsonb`
+- `global_fields_config`: `jsonb`
+- `commerce_config`: `jsonb`
 - `updated_at`: `timestamptz`
 
 Notes:
 
 - Currently used for centralized SEO/system settings such as permalink, breadcrumb, and sitemap config.
 - Also stores site-wide indexing / robots settings.
+- Also stores whole-site shared global fields in `global_fields_config`.
 
 ### `internal_accounts`
 
@@ -209,7 +219,7 @@ Index:
 
 - `wedding_sites_user_id_idx` on `user_id`
 
-### Commerce tables
+### Ecommerce tables
 
 - `shopping_cart_items`
   - `id`: `text`
@@ -263,8 +273,7 @@ Index:
 
 Compatibility note:
 
-- The commerce bootstrap must not hard-code `text` for foreign keys pointing at legacy tables.
-- `src/lib/database.ts` now derives the SQL type for `users.id`, `products.id`, and `affiliate_accounts.user_id` from the live database before creating commerce tables.
+- The ecommerce bootstrap derives the SQL type for `users.id`, `products.id`, and `affiliate_accounts.user_id` from the live database before creating the legacy `commerce_*` tables.
 
 ## Non-database storage
 

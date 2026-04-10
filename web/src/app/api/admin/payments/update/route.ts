@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { adminUpdatePaymentState } from "@/features/commerce/server/service";
-import type { CommercePayment } from "@/features/commerce/types";
+import { adminUpdatePaymentState } from "@/features/ecommerce/server/service";
+import type { EcommercePayment } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   await adminUpdatePaymentState({
     paymentId,
-    status: String(formData.get("status") ?? "pending") as CommercePayment["status"],
+    status: String(formData.get("status") ?? "pending") as EcommercePayment["status"],
     externalRef: String(formData.get("externalRef") ?? ""),
   });
 

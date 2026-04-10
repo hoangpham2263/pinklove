@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BlogCategoryEditorForm } from "@/features/admin/components/blog/blog-category-editor-form";
+import { BlogCategoryEditorForm } from "@/features/blog/admin/blog-category-editor-form";
 import { requireAdmin } from "@/lib/auth";
 import { getBlogCategoryBySlug } from "@/features/blog/server/service";
 import { ROUTES } from "@/lib/routes";

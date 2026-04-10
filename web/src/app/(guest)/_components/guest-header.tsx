@@ -26,6 +26,8 @@ type GuestHeaderProps = {
   headerTree: GuestHeaderNode[];
   dashboardHref: string;
   settingsHref: string;
+  siteName: string;
+  siteLogo?: string;
 };
 
 function NavDropdown({
@@ -71,6 +73,8 @@ export function GuestHeader({
   headerTree,
   dashboardHref,
   settingsHref,
+  siteName,
+  siteLogo,
 }: GuestHeaderProps) {
   const userInitial = user?.username?.trim().charAt(0).toUpperCase() || "U";
   const [isScrolled, setIsScrolled] = useState(false);
@@ -98,7 +102,17 @@ export function GuestHeader({
         ].join(" ")}
       >
         <div className="flex items-center justify-start">
-          <Link href={ROUTES.HOME} className="font-semibold tracking-[0.18em] uppercase">Pinklove</Link>
+          <Link href={ROUTES.HOME} className="flex items-center gap-3">
+            {siteLogo ? (
+              <img
+                src={siteLogo}
+                alt={siteName}
+                className="h-10 w-auto object-contain"
+              />
+            ) : (
+              <span className="font-semibold tracking-[0.18em] uppercase">{siteName}</span>
+            )}
+          </Link>
         </div>
 
         <nav className="flex items-center justify-center gap-4">

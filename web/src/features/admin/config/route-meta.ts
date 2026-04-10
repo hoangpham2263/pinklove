@@ -1,0 +1,32 @@
+import { ROUTES } from "@/lib/routes";
+
+export function getAdminPageTitle(pathname: string): string {
+  if (pathname === ROUTES.ADMIN.ROOT || pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return "Dashboard";
+  if (pathname.startsWith(ROUTES.ADMIN.GLOBAL_FIELDS)) return "Global Fields";
+  if (pathname.startsWith(ROUTES.ADMIN.PAGES)) return "Pages";
+  if (pathname.startsWith(ROUTES.ADMIN.BLOG_POSTS)) return "Blog Posts";
+  if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
+  if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
+  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product";
+  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Cat";
+  if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
+  if (pathname.startsWith(`${ROUTES.ADMIN.PRODUCT_LIST}/`)) return "Edit Product";
+  if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
+  if (pathname.startsWith(ROUTES.ADMIN.PAYMENTS)) return "Payments";
+  if (pathname.startsWith(ROUTES.ADMIN.SHIPMENTS)) return "Shipments";
+  if (pathname.startsWith(ROUTES.ADMIN.USERS)) return "Users";
+  if (pathname.startsWith(ROUTES.ADMIN.CUSTOMERS)) return "Khách hàng";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_USERS)) return "Đối tác / CTV";
+  if (pathname.startsWith(ROUTES.ADMIN.VENDORS)) return "Nhà cung cấp";
+  if (pathname.startsWith(ROUTES.ADMIN.INTERNAL_ACCOUNTS)) return "Tài khoản nội bộ";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";
+  if (pathname.startsWith(ROUTES.ADMIN.MEDIA)) return "Media";
+  if (pathname.startsWith(ROUTES.ADMIN.SEO_PAGES)) return "Page SEO";
+  if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
+  if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
+  if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
+  if (pathname.startsWith(ROUTES.ADMIN.HOOKS)) return "Hooks";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG)) return "Cấu hình";
+  return "Admin";
+}

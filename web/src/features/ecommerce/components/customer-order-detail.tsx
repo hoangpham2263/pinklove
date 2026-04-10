@@ -1,0 +1,117 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { EcommerceOrder } from "@/features/ecommerce/types";
+import { formatCurrency } from "@/lib/currency";
+import { ROUTES } from "@/lib/routes";
+import type { EcommerceSettings } from "@/lib/system-settings";
+
+type CustomerOrderDetailProps = {
+  order: EcommerceOrder;
+  currencyFormat: EcommerceSettings;
+};
+
+export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDetailProps) {
+  return (
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Đơn hàng {order.orderNumber}</h1>
+          <p className="text-muted-foreground">
+            Theo dõi trạng thái đơn, thanh toán và sử dụng sản phẩm đã mua.
+          </p>
+        </div>
+        <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDERS}>Quay lại danh sách đơn</Link>} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Trạng thái đơn</CardTitle>
+          </CardHeader>
+          <CardContent className="font-semibold">{order.status}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Thanh toán</CardTitle>
+          </CardHeader>
+          <CardContent className="font-semibold">{order.paymentStatus}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tổng tiền</CardTitle>
+          </CardHeader>
+          <CardContent className="font-semibold">{formatCurrency(order.totalAmount, currencyFormat)}</CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sản phẩm trong đơn</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {order.items.map((item) => {
+            const canUseProduct =
+              order.paymentStatus === "paid" && item.fulfillmentType === "digital" && item.productId;
+            const createAction =
+              item.productType === "builder_template"
+                ? ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER
+                : ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_PRODUCT;
+
+            return (
+              <div key={item.id} className="rounded-md border p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold">{item.productName}</p>
+                    <p className="text-muted-foreground">
+                      {item.productType} • {item.fulfillmentType} • SL {item.quantity}
+                    </p>
+                  </div>
+                  <p className="font-medium">{formatCurrency(item.lineTotal, currencyFormat)}</p>
+                </div>
+
+                {canUseProduct ? (
+                  <form action={createAction} method="POST" className="mt-4">
+                    <input type="hidden" name="productSlug" value={item.productSlug} />
+                    <Button type="submit">
+                      {item.productType === "builder_template" ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
+                    </Button>
+                  </form>
+                ) : (
+                  <p className="mt-4 text-muted-foreground">
+                    {item.fulfillmentType === "digital"
+                      ? "Sản phẩm sẽ dùng được sau khi đơn chuyển sang trạng thái đã thanh toán."
+                      : "Sản phẩm này không tạo thiệp trực tiếp trong hệ thống."}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {order.shipment ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Vận chuyển</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            <div>
+              <p className="text-muted-foreground">Trạng thái</p>
+              <p className="font-semibold">{order.shipment.status}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Đơn vị</p>
+              <p className="font-semibold">{order.shipment.carrier || "Chưa cập nhật"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Mã tracking</p>
+              <p className="font-semibold">{order.shipment.trackingNumber || "Chưa cập nhật"}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+    </section>
+  );
+}

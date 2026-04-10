@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { adminUpdateOrderState } from "@/features/commerce/server/service";
-import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/commerce/types";
+import { adminUpdateOrderState } from "@/features/ecommerce/server/service";
+import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

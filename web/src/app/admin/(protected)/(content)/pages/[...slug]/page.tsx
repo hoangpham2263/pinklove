@@ -4,9 +4,8 @@ import { Eye } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getPageBySlug, listManagedPages, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { PageEditorForm } from "@/features/admin/components/pages/page-editor-form";
-import { isContentPageSlug } from "@/features/pages/registry";
-import { isAuthPageSlug } from "@/features/auth/page-registry";
+import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
+import { isAuthPageSlug, isContentPageSlug } from "@/features/pages/config/managed-pages";
 import { ROUTES } from "@/lib/routes";
 
 type AdminPageEditorProps = {

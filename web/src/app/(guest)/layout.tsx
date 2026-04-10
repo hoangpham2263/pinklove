@@ -6,6 +6,7 @@ import { getManagedPagePath } from "@/lib/page-paths";
 import { getMenuByName } from "@/lib/menu";
 import { getRoleLabel } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
+import { getSystemSettings } from "@/lib/system-settings";
 
 function resolveMenuHref(pageSlug: string | null, url: string | null, pagePathMap: Map<string, string>) {
   if (url) return url;
@@ -65,11 +66,12 @@ function flattenNavTree(nodes: GuestHeaderNode[]): GuestHeaderNode[] {
 export default async function GuestLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [user, headerMenu, footerMenu, managedPages] = await Promise.all([
+  const [user, headerMenu, footerMenu, managedPages, settings] = await Promise.all([
     getCurrentUser(),
     getMenuByName("header"),
     getMenuByName("footer"),
     listManagedPages(),
+    getSystemSettings(),
   ]);
   const pagePathMap = new Map(managedPages.map((page) => [page.slug, getManagedPagePath(page)]));
   const dashboardHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
@@ -86,6 +88,8 @@ export default async function GuestLayout({
         headerTree={headerTree}
         dashboardHref={dashboardHref}
         settingsHref={settingsHref}
+        siteName={settings.branding.siteName || "PinkLove"}
+        siteLogo={settings.branding.brandLogo || undefined}
       />
       <main className="pt-20 bg-[linear-gradient(180deg,#fffdfb_0%,#fbf3ee_42%,#f3e9e1_100%)]">
         {children}

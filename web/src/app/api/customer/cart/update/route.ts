@@ -1,6 +1,6 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { updateCartItemQuantity } from "@/features/commerce/server/service";
+import { updateCartItemQuantity } from "@/features/ecommerce/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

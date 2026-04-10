@@ -12,9 +12,9 @@ export async function POST(request: Request) {
   const slug = String(formData.get("slug") ?? "").trim();
 
   if (!slug) {
-    return respondError(request, { error: "missing_slug", message: "Thiếu slug để xóa product category.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=missing_slug` });
+    return respondError(request, { error: "missing_slug", message: "Thiếu slug để xóa Product Cat.", location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=missing_slug` });
   }
 
   await deleteProductCategory(slug);
-  return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_CATEGORIES, message: "Đã xóa product category." });
+  return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_CATEGORIES, message: "Đã xóa Product Cat." });
 }

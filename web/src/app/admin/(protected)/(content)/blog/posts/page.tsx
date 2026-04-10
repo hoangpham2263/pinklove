@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QuickCreateBlogPostForm } from "@/features/admin/components/blog/quick-create-blog-post-form";
+import { QuickCreateBlogPostForm } from "@/features/blog/admin/quick-create-blog-post-form";
 import { requireAdmin } from "@/lib/auth";
 import { listAllBlogCategories, listAllBlogPosts } from "@/features/blog/server/service";
 import { ROUTES } from "@/lib/routes";

@@ -24,7 +24,7 @@ export default async function AdminMenuEdit({ params }: AdminMenuEditProps) {
  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-4"
  >
  <ArrowLeft className="h-4 w-4" />
- Quay lại
+ Back
  </Link>
  </div>
 

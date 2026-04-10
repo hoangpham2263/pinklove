@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
-import { listAllProductCategories, listAllProducts } from "@/features/products/server/service";
-import { QuickCreateProductForm } from "@/features/admin/components/products/quick-create-product-form";
+import { listAllProducts } from "@/features/products/server/service";
+import type { Product, ProductType } from "@/features/products/types";
+import { AdminProductList } from "@/features/products/admin/admin-product-list";
+import { ROUTES } from "@/lib/routes";
 
 type AdminProductsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -9,8 +13,11 @@ type AdminProductsPageProps = {
 
 export default async function AdminProductsPage({ searchParams }: AdminProductsPageProps) {
   await requireAdmin();
-  await searchParams;
-  const [products, categories] = await Promise.all([listAllProducts(), listAllProductCategories()]);
+  const query = (await searchParams) ?? {};
+  const products = await listAllProducts();
+  const search = getQueryValue(query.q) ?? "";
+  const status = (getQueryValue(query.status) ?? "") as "" | Product["status"];
+  const productType = (getQueryValue(query.type) ?? "") as "" | ProductType;
   const publishedCount = products.filter((product) => product.status === "published").length;
   const draftCount = products.length - publishedCount;
   const codedCount = products.filter((product) => product.productType === "coded_template").length;
@@ -20,11 +27,9 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tạo sản phẩm</h1>
-          <p className="text-sm text-muted-foreground">
-            Tạo sản phẩm mới, xem nhanh thống kê và truy cập danh sách sản phẩm khi cần.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">Product</h1>
         </div>
+        <Button render={<Link href={ROUTES.ADMIN.PRODUCTS}>Tạo sản phẩm</Link>} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -63,14 +68,17 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
         </Card>
       </div>
 
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Tạo sản phẩm</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <QuickCreateProductForm categories={categories} />
-        </CardContent>
-      </Card>
+      <AdminProductList
+        products={products}
+        search={search}
+        status={status}
+        productType={productType}
+        title={undefined}
+      />
     </section>
   );
+}
+
+function getQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }

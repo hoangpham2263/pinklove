@@ -1,6 +1,6 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { removeCartItem } from "@/features/commerce/server/service";
+import { removeCartItem } from "@/features/ecommerce/server/service";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";

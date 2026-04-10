@@ -136,8 +136,8 @@ export async function listPublishedProducts(): Promise<Product[]> {
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
-        WHERE status = 'published'
-        ORDER BY product_type ASC, created_at DESC
+        WHERE products.status = 'published'
+        ORDER BY products.product_type ASC, products.created_at DESC
       `
     )
   );
@@ -150,9 +150,9 @@ export async function listPublishedProductsByType(productType: ProductType): Pro
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
-        WHERE status = 'published'
-          AND product_type = $1
-        ORDER BY created_at DESC
+        WHERE products.status = 'published'
+          AND products.product_type = $1
+        ORDER BY products.created_at DESC
       `,
       [productType]
     )
@@ -166,7 +166,7 @@ export async function listAllProducts(): Promise<Product[]> {
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
-        ORDER BY product_type ASC, created_at DESC
+        ORDER BY products.product_type ASC, products.created_at DESC
       `
     )
   );
@@ -179,7 +179,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
-        WHERE slug = $1
+        WHERE products.slug = $1
         LIMIT 1
       `,
       [slug]
@@ -201,9 +201,9 @@ export async function getPublishedProductBySlugAndType(
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
-        WHERE slug = $1
-          AND status = 'published'
-          AND product_type = $2
+        WHERE products.slug = $1
+          AND products.status = 'published'
+          AND products.product_type = $2
         LIMIT 1
       `,
       [slug, productType]

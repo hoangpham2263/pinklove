@@ -17,9 +17,10 @@ import type { MediaAsset } from"../types";
 type MediaSelectorProps = {
  value: string;
  onChange: (url: string) => void;
+ name?: string;
 };
 
-export function MediaSelector({ value, onChange }: MediaSelectorProps) {
+export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
  const [isOpen, setIsOpen] = useState(false);
  const [items, setItems] = useState<MediaAsset[]>([]);
  const [loading, setLoading] = useState(false);
@@ -111,7 +112,7 @@ export function MediaSelector({ value, onChange }: MediaSelectorProps) {
     </button>
    } />
    )}
-   <input type="hidden" name="ogImage" value={value} />
+   {name ? <input type="hidden" name={name} value={value} /> : null}
   </div>
 
   <SheetContent side="right" className="sm:max-w-2xl flex flex-col h-full">

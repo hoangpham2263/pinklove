@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getProductBySlug, listAllProductCategories } from "@/features/products/server/service";
-import { ProductEditorForm } from "@/features/admin/components/products/product-editor-form";
+import { ProductEditorForm } from "@/features/products/admin/product-editor-form";
 import { ROUTES } from "@/lib/routes";
 
 type AdminProductEditorPageProps = {

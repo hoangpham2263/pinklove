@@ -3,7 +3,7 @@ import { getPublishedProductBySlugAndType } from "@/features/products/server/ser
 import { ROUTES } from "@/lib/routes";
 import { createBuilderInvitation, createInvitationFromProduct } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { userHasActiveEntitlement } from "@/features/commerce/server/service";
+import { userHasActiveEntitlement } from "@/features/ecommerce/server/service";
 
 export const runtime = "nodejs";
 

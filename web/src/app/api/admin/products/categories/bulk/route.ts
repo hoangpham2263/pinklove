@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   if (slugs.length === 0) {
     return respondError(request, {
       error: "missing_selection",
-      message: "Hãy chọn ít nhất một product category.",
+      message: "Hãy chọn ít nhất một Product Cat.",
       location: `${ROUTES.ADMIN.PRODUCT_CATEGORIES}?error=missing_selection`,
     });
   }
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const count = await deleteProductCategories(slugs);
     return respondSuccess(request, {
       location: ROUTES.ADMIN.PRODUCT_CATEGORIES,
-      message: `${count} product category đã bị xóa.`,
+      message: `${count} Product Cat đã bị xóa.`,
       data: { count, bulk: "deleted" },
     });
   }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   const count = await updateProductCategoriesStatus(slugs, action === "publish" ? "published" : "draft");
   return respondSuccess(request, {
     location: ROUTES.ADMIN.PRODUCT_CATEGORIES,
-    message: `${count} product category đã chuyển sang ${action === "publish" ? "Published" : "Draft"}.`,
+    message: `${count} Product Cat đã chuyển sang ${action === "publish" ? "Published" : "Draft"}.`,
     data: { count, bulk: action },
   });
 }

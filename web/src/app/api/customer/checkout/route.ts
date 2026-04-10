@@ -1,6 +1,6 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { createOrderFromCart } from "@/features/commerce/server/service";
+import { createOrderFromCart } from "@/features/ecommerce/server/service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -23,16 +23,16 @@ export async function POST(request: Request) {
   const settings = await getSystemSettings();
   const formData = await request.formData();
 
-  if (!settings.commerce.enabled) {
+  if (!settings.ecommerce.enabled) {
     return respondError(request, {
-      error: "commerce_disabled",
+      error: "ecommerce_disabled",
       message: "Checkout hiện đang tạm khóa.",
       location: ROUTES.CHECKOUT.CART,
     });
   }
 
   const paymentMethod = String(formData.get("paymentMethod") ?? "mock_online");
-  if (paymentMethod === "bank_transfer" && !settings.commerce.allowBankTransfer) {
+  if (paymentMethod === "bank_transfer" && !settings.ecommerce.allowBankTransfer) {
     return respondError(request, {
       error: "payment_method_disabled",
       message: "Phương thức chuyển khoản hiện chưa được bật.",
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (paymentMethod === "cod" && !settings.commerce.allowCod) {
+  if (paymentMethod === "cod" && !settings.ecommerce.allowCod) {
     return respondError(request, {
       error: "payment_method_disabled",
       message: "Phương thức COD hiện chưa được bật.",

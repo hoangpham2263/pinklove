@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { listCartItems } from "@/features/commerce/server/service";
+import { listCartItems } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
+import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
-}
+import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function CheckoutCartPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  const items = await listCartItems(user.id);
+  const [items, settings] = await Promise.all([listCartItems(user.id), getSystemSettings()]);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
@@ -52,7 +50,7 @@ export default async function CheckoutCartPage() {
                     <p className="mt-1 text-sm text-muted-foreground">
                       {item.productType === "coded_template" ? "Template code sẵn" : "Builder starter"} • {item.fulfillmentType}
                     </p>
-                    <p className="mt-2 text-sm">{formatCurrency(item.price)} / sản phẩm</p>
+                    <p className="mt-2 text-sm">{formatCurrency(item.price, settings.ecommerce)} / sản phẩm</p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -89,7 +87,7 @@ export default async function CheckoutCartPage() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Tạm tính</span>
-                <span className="font-semibold">{formatCurrency(subtotal)}</span>
+                <span className="font-semibold">{formatCurrency(subtotal, settings.ecommerce)}</span>
               </div>
               <Button className="w-full" render={<Link href={ROUTES.CHECKOUT.INDEX}>Tiến hành checkout</Link>} />
             </CardContent>

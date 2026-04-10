@@ -247,7 +247,7 @@ export default async function AdminDashboardPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button render={<Link href={ROUTES.ADMIN.PRODUCT_LIST}>Mở danh sách sản phẩm</Link>} />
+              <Button render={<Link href={ROUTES.ADMIN.PRODUCT_LIST}>Mở sản phẩm</Link>} />
               <Button variant="outline" render={<Link href={ROUTES.ADMIN.BLOG_POSTS}>Xem luồng blog</Link>} />
             </div>
           </div>

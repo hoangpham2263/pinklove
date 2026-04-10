@@ -28,7 +28,7 @@ export function CustomerTopHeader({ username }: CustomerTopHeaderProps) {
   data-slot="customer-top-header"
   className="sticky top-0 z-50 h-14 w-full border-b border-border bg-background text-foreground"
  >
-  <div className="flex h-full w-full items-center justify-between px-6 md:px-8">
+  <div className="flex h-full w-full items-center justify-between px-5 md:px-7.5">
   <div className="flex items-center gap-3">
    <span className="text-muted-foreground">|</span>
    <p className="font-medium">{pageTitle}</p>

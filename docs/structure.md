@@ -44,7 +44,7 @@ web/
           layout.tsx
           (overview)/
             dashboard/page.tsx
-          (commerce)/
+          (ecommerce)/
             orders/page.tsx
             orders/[id]/page.tsx
             payments/page.tsx
@@ -72,12 +72,16 @@ web/
             vendors/page.tsx
             vendors/create/page.tsx
           (system)/
+            global-fields/page.tsx
             media/page.tsx
             config/page.tsx
+            config/branding/page.tsx
             config/breadcrumbs/page.tsx
+            config/favicon/page.tsx
             config/permalinks/page.tsx
+            config/opengraph/page.tsx
             config/sitemap/page.tsx
-            config/commerce/page.tsx
+            config/ecommerce/page.tsx
       customer/
         page.tsx
         (auth)/
@@ -109,6 +113,7 @@ web/
         sitemap-blog-posts.xml/route.ts
       api/
         admin/
+          global-fields/update/route.ts
           affiliates/update/route.ts
           auth/login/route.ts
           menus/update/route.ts
@@ -136,31 +141,46 @@ web/
       common/
       ui/
     features/
-      admin/components/
+      admin/
+        components/
+        config/
+        layout/
       affiliate/
         components/
         server/
+      global-fields/
+        admin/
+        schema.ts
       auth/
         components/
         fields.ts
         auth-page-loader.ts
         page-registry.ts
+      blog/
+        admin/
+        components/
+        server/
+        types.ts
+      customer/components/
+      ecommerce/
+        server/
+        types.ts
+      invitations/
+        builder/
+        components/
+        server/
       media/
         components/
         server/
         types.ts
       pages/
+        admin/
+        config/
         registry.ts
-      invitations/
-        builder/
-        components/
-        server/
+        schema.ts
       products/
+        admin/
         components/
-        server/
-        types.ts
-      customer/components/
-      commerce/
         server/
         types.ts
     lib/
@@ -182,6 +202,9 @@ web/
 - Database access is raw SQL through `src/lib/database.ts`.
 - `database.ts` also performs limited auto-migrations and seed steps on first use.
 - Media files are stored on disk, not in PostgreSQL.
+- Shared custom-field architecture uses code-registered schemas.
+  Managed-page field schemas live under `src/features/pages/*`.
+  Whole-site global field schemas live under `src/features/global-fields/*`.
 
 ## Public Guest Area
 
@@ -207,17 +230,19 @@ web/
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, vendors, products, commerce operations, SEO, blog management, and config.
-- Admin product management works at the catalog level, while order/payment/shipment operations live in the dedicated commerce section.
+- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, vendors, products, ecommerce operations, SEO, blog management, and config.
+- Admin product management works at the catalog level, while order/payment/shipment operations live in the dedicated ecommerce section.
 
 ## Feature map
 
-- `src/features/pages`: managed content page registry and schema
+- `src/features/admin`: shared admin shell layout, route metadata, and admin-only modules that are not owned by a business domain
+- `src/features/pages`: managed content page registry, managed-page config, and admin page editing UI
 - `src/features/auth`: auth page fields, registry, and shared loader logic
+- `src/features/blog`: public blog renderers/services plus admin blog forms
 - `src/features/media`: media library UI and server storage
 - `src/features/affiliate`: affiliate flows for customer and admin
-- `src/features/commerce`: cart, checkout, orders, payments, shipments, and entitlement services
-- `src/features/products`: invitation catalog products
+- `src/features/ecommerce`: cart, checkout, orders, payments, shipments, and entitlement services
+- `src/features/products`: invitation catalog products plus admin product/category management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 
 ## Current implementation notes
@@ -228,4 +253,5 @@ web/
 - The current builder editor does not support dragging/resizing element height yet.
 - The current builder editor does not support grouping selected elements yet.
 - Checkout, order creation, entitlement grant, and admin order/payment/shipment management are now implemented in-app.
-- Commerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `products`.
+- Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `products`.
+  The persisted SQL table names remain `commerce_*` for legacy compatibility.

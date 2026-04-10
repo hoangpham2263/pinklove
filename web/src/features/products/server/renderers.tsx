@@ -239,7 +239,7 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
           </GuestPanelHeader>
           <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
-              Builder starter cũng đi qua luồng commerce chung. Sau khi đơn được thanh toán, bạn có thể tạo thiệp builder từ khu vực đơn hàng.
+              Builder starter cũng đi qua luồng ecommerce chung. Sau khi đơn được thanh toán, bạn có thể tạo thiệp builder từ khu vực đơn hàng.
             </p>
             {user ? (
               <div className="space-y-3">
