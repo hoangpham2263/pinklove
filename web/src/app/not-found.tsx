@@ -2,8 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, Heart, Search } from "lucide-react";
 import { ClientLinkButton, ClientPanel, ClientPanelBody, ClientShell } from "@/app/(client)/_components/client-ui";
 import { getCurrentUser } from "@/lib/auth";
-import { getCmsPageBySlug } from "@/lib/cms";
-import { getFields } from "@/lib/cms-fields";
+import { getPageBySlug } from "@/lib/managed-pages";
+import { getPageFields } from "@/lib/page-fields";
+import { ROUTES } from "@/lib/routes";
 
 type NotFoundFields = {
   badgeText?: string;
@@ -33,31 +34,31 @@ const fallbackCards = [
   {
     title: "Builder",
     description: "Tự tạo thiệp cưới theo bố cục của bạn.",
-    href: "/builder",
+    href: ROUTES.BUILDER,
   },
   {
     title: "Công cụ",
     description: "QR mừng cưới, bảng chi phí cưới và các tool hỗ trợ.",
-    href: "/tools",
+    href: ROUTES.TOOLS,
   },
   {
     title: "Blog",
     description: "Xem thêm kinh nghiệm và ý tưởng cho thiệp cưới online.",
-    href: "/blog",
+    href: ROUTES.BLOG,
   },
   {
     title: "Liên hệ",
     description: "Cần hỗ trợ nhanh, hãy chuyển sang các kênh tư vấn.",
-    href: "/contact",
+    href: ROUTES.CONTACT,
   },
 ];
 
 export default async function NotFoundPage() {
   const user = await getCurrentUser();
-  const page = await getCmsPageBySlug("not-found");
+  const page = await getPageBySlug("not-found");
   const canUseDraft = page?.status === "published" || user?.role === "admin";
   const resolvedPage = canUseDraft ? page : null;
-  const fields = getFields<NotFoundFields>(resolvedPage);
+  const fields = getPageFields<NotFoundFields>(resolvedPage);
 
   const cards = [
     {
@@ -117,11 +118,11 @@ export default async function NotFoundPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <ClientLinkButton href={fields.primaryButtonLink || "/"}>
+                  <ClientLinkButton href={fields.primaryButtonLink || ROUTES.HOME}>
                     {fields.primaryButtonText || "Về trang chủ"}
                   </ClientLinkButton>
                   <Link
-                    href={fields.secondaryButtonLink || "/templates"}
+                    href={fields.secondaryButtonLink || ROUTES.TEMPLATES}
                     className="inline-flex min-h-12 items-center justify-center rounded-xl border border-stone-300 bg-white px-6 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
                   >
                     {fields.secondaryButtonText || "Xem mẫu thiệp"}
@@ -145,7 +146,7 @@ export default async function NotFoundPage() {
           </ClientPanel>
 
           <Link
-            href={fields.backLink || "/"}
+            href={fields.backLink || ROUTES.HOME}
             className="mx-auto inline-flex items-center gap-2 text-sm text-stone-500 transition hover:text-stone-900"
           >
             <ArrowLeft className="h-4 w-4" />

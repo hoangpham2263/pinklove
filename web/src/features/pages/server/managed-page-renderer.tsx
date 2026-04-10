@@ -1,0 +1,495 @@
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
+import { AboutContent } from "@/app/(client)/(marketing)/about/_components/about-content";
+import {
+  ClientInput,
+  ClientLinkButton,
+  ClientPanel,
+  ClientPanelBody,
+  ClientPanelHeader,
+  ClientPanelTitle,
+  ClientShell,
+} from "@/app/(client)/_components/client-ui";
+import { ContactContent } from "@/app/(client)/(marketing)/contact/_components/contact-content";
+import { HomeContent } from "@/app/(client)/_components/home-content";
+import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcrumb";
+import { PageStructuredData } from "@/components/common/page-structured-data";
+import { BlogTabs } from "@/features/blog/components/blog-tabs";
+import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
+import { ProductCard } from "@/features/products/components/product-card";
+import { listPublishedProducts, listPublishedProductsByType } from "@/features/products/server/service";
+import {
+  buildManagedPageMetadata,
+  getAccessiblePageBySlug,
+  listManagedPages,
+  type ManagedPage,
+} from "@/lib/managed-pages";
+import { getManagedPagePath } from "@/lib/page-paths";
+import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { ROUTES } from "@/lib/routes";
+import { getCurrentUser } from "@/lib/auth";
+import { getSystemSettings } from "@/lib/system-settings";
+
+type ManagedSearchParams = Promise<Record<string, string | string[] | undefined>> | undefined;
+
+const plans = [
+  {
+    name: "Free Plan",
+    price: "0đ",
+    summary: "Bắt đầu nhanh với nhu cầu cơ bản.",
+    features: [
+      "Dùng mẫu thiệp có sẵn",
+      "Tự chỉnh nội dung cơ bản",
+      "Xuất bản 1 thiệp",
+      "Phù hợp để thử nghiệm ban đầu",
+    ],
+  },
+  {
+    name: "Basic Plan",
+    price: "499.000đ",
+    summary: "Phù hợp cho nhu cầu triển khai thực tế, gọn và đủ dùng.",
+    features: [
+      "Dùng mẫu có sẵn và starter builder",
+      "Tùy chỉnh nội dung đầy đủ",
+      "Ưu tiên hỗ trợ khi setup",
+      "Phù hợp cho đa số cặp đôi",
+    ],
+  },
+  {
+    name: "Premium Plan",
+    price: "1.490.000đ",
+    summary: "Dành cho nhu cầu chỉn chu hơn và cần hỗ trợ sâu hơn.",
+    features: [
+      "Tùy chỉnh sâu hơn theo yêu cầu",
+      "Ưu tiên hỗ trợ nhanh",
+      "Định hướng giao diện và nội dung",
+      "Phù hợp khi cần trải nghiệm riêng",
+    ],
+  },
+];
+
+const budgetCategories = [
+  { label: "Nhà hàng", percent: "50%" },
+  { label: "Chụp ảnh", percent: "15%" },
+  { label: "Trang phục", percent: "10%" },
+  { label: "Trang trí", percent: "10%" },
+  { label: "Thiệp & in ấn", percent: "5%" },
+  { label: "Khác", percent: "10%" },
+];
+
+async function isPreviewRequest(searchParams?: ManagedSearchParams) {
+  const resolvedSearchParams = (await searchParams) ?? {};
+  return resolvedSearchParams.preview === "1";
+}
+
+export async function generateManagedPageMetadata(slug: string, searchParams?: ManagedSearchParams): Promise<Metadata> {
+  const page = await getAccessiblePageBySlug(slug, {
+    preview: await isPreviewRequest(searchParams),
+  });
+
+  return page ? buildManagedPageMetadata(page) : {};
+}
+
+export async function loadManagedPageForRoute(
+  slug: string,
+  requestPath: string,
+  searchParams?: ManagedSearchParams
+): Promise<ManagedPage> {
+  const preview = await isPreviewRequest(searchParams);
+  const page = await getAccessiblePageBySlug(slug, { preview });
+
+  if (!page) {
+    notFound();
+  }
+
+  const targetPath = getManagedPagePath(page);
+  const settings = await getSystemSettings();
+
+  if (!preview && settings.permalink.legacyRedirects && targetPath !== requestPath) {
+    redirect(targetPath);
+  }
+
+  return page;
+}
+
+function PageHero({ page, fallbackTitle, fallbackExcerpt }: { page: ManagedPage; fallbackTitle: string; fallbackExcerpt: string }) {
+  return (
+    <div className="mx-auto max-w-3xl space-y-4 text-center">
+      <ManagedPageBreadcrumb page={page} />
+      <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{page.title || fallbackTitle}</h1>
+      <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+        {page.excerpt || fallbackExcerpt}
+      </p>
+    </div>
+  );
+}
+
+function GenericManagedPage({ page }: { page: ManagedPage }) {
+  const paragraphs = (page.body || "")
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return (
+    <ClientShell className="gap-10 py-12">
+      <PageStructuredData page={page} />
+      <PageHero
+        page={page}
+        fallbackTitle={page.name}
+        fallbackExcerpt={page.excerpt || "Nội dung trang đang được cập nhật."}
+      />
+
+      <div className="mx-auto w-full max-w-4xl rounded-xl border border-stone-200 bg-white px-6 py-8 shadow-sm lg:rounded-2xl lg:px-8">
+        {paragraphs.length > 0 ? (
+          <div className="space-y-5 text-sm leading-8 text-stone-700 md:text-base">
+            {paragraphs.map((paragraph, index) => (
+              <p key={`${page.slug}-${index}`}>{paragraph}</p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm leading-8 text-stone-600 md:text-base">
+            Trang này đã được đăng ký trong hệ thống và sẽ hiển thị nội dung khi bạn cập nhật phần body trong CMS.
+          </p>
+        )}
+      </div>
+    </ClientShell>
+  );
+}
+
+export async function renderManagedPage(page: ManagedPage) {
+  const settings = await getSystemSettings();
+  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
+  const managedPathMap = new Map(
+    (await listManagedPages()).map((item) => [item.slug, getManagedPagePath(item)])
+  );
+  const contactPath = managedPathMap.get("contact") || ROUTES.CONTACT;
+  const templatesPath = managedPathMap.get("templates") || ROUTES.TEMPLATES;
+  const qrBuilderPath = managedPathMap.get("tools/qr-builder") || ROUTES.TOOLS_PAGES.QR_BUILDER;
+  const weddingBudgetPath = managedPathMap.get("tools/wedding-budget") || ROUTES.TOOLS_PAGES.WEDDING_BUDGET;
+
+  switch (page.slug) {
+    case "home":
+      return (
+        <>
+          <PageStructuredData page={page} />
+          <HomeContent page={page} />
+        </>
+      );
+    case "about-us":
+      return (
+        <>
+          <PageStructuredData page={page} />
+          <AboutContent page={page} />
+        </>
+      );
+    case "contact":
+      return (
+        <>
+          <PageStructuredData page={page} />
+          <ContactContent page={page} />
+        </>
+      );
+    case "templates": {
+      const products = await listPublishedProducts();
+      const codedTemplates = products.filter((product) => product.productType === "coded_template");
+      const builderTemplates = products.filter((product) => product.productType === "builder_template");
+
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="Mẫu thiệp"
+            fallbackExcerpt="Hiện tại PinkLove có 2 loại mẫu thiệp để bạn bắt đầu nhanh hơn: mẫu code sẵn và mẫu builder linh hoạt."
+          />
+
+          <section className="space-y-6">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 1</p>
+              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Mẫu thiệp code sẵn</h2>
+              <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+                Phù hợp khi bạn muốn đi nhanh với bố cục đã hoàn chỉnh, chỉ cần chỉnh nội dung và xuất bản.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {codedTemplates.map((product) => (
+                <ProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
+              ))}
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 2</p>
+              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Mẫu thiệp builder</h2>
+              <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+                Phù hợp khi bạn muốn chủ động hơn trong cách sắp nội dung và dựng thiệp theo ý của mình.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {builderTemplates.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  href={getBuilderProductPath(product, permalinkConfig)}
+                  ctaLabel="Xem builder"
+                />
+              ))}
+            </div>
+          </section>
+        </ClientShell>
+      );
+    }
+    case "builder": {
+      const [user, builderProducts] = await Promise.all([
+        getCurrentUser(),
+        listPublishedProductsByType("builder_template"),
+      ]);
+
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <div className="space-y-3">
+            <ManagedPageBreadcrumb page={page} />
+            <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Tự tạo thiệp</p>
+            <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">
+              {page.title || "Bắt đầu một mẫu thiệp cưới tùy biến"}
+            </h1>
+            <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+              {page.excerpt || "Luồng này tạo một `wedding_site` kiểu builder. Hiện tại builder đang ở mức section-based foundation để chuẩn bị cho giao diện kéo-thả sau này."}
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {builderProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                href={getBuilderProductPath(product, permalinkConfig)}
+                ctaLabel="Chọn starter"
+              />
+            ))}
+          </div>
+
+          {!user ? (
+            <div className="flex flex-wrap gap-3">
+              <ClientLinkButton href={ROUTES.AUTH.LOGIN}>Đăng nhập để bắt đầu</ClientLinkButton>
+              <ClientLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary">Đăng ký tài khoản</ClientLinkButton>
+            </div>
+          ) : null}
+        </ClientShell>
+      );
+    }
+    case "services":
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="Gói dịch vụ"
+            fallbackExcerpt="Chọn gói phù hợp với mức độ tùy chỉnh và hỗ trợ mà bạn cần cho thiệp cưới online của mình."
+          />
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {plans.map((plan) => (
+              <ClientPanel key={plan.name} className="h-full">
+                <ClientPanelHeader>
+                  <p className="text-xs uppercase tracking-[0.3em] text-stone-400">{plan.name}</p>
+                  <ClientPanelTitle className="mt-3">{plan.price}</ClientPanelTitle>
+                  <p className="mt-3 text-sm leading-7 text-stone-600">{plan.summary}</p>
+                </ClientPanelHeader>
+                <ClientPanelBody className="flex h-full flex-col gap-6">
+                  <div className="space-y-3">
+                    {plan.features.map((feature) => (
+                      <div key={feature} className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 lg:rounded-2xl">
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-auto">
+                    <ClientLinkButton href={contactPath} className="flex w-full justify-center">
+                      Liên hệ tư vấn
+                    </ClientLinkButton>
+                  </div>
+                </ClientPanelBody>
+              </ClientPanel>
+            ))}
+          </div>
+        </ClientShell>
+      );
+    case "tools": {
+      const tools = [
+        {
+          title: "QR mừng cưới custom",
+          description: "Tạo mã QR mừng cưới đẹp hơn để chèn vào thiệp, bảng gallery hoặc website cưới.",
+          href: qrBuilderPath,
+          cta: "Mở tool QR",
+        },
+        {
+          title: "Bảng tính chi phí cưới",
+          description: "Chia ngân sách cưới theo từng hạng mục để dễ dự trù và ra quyết định nhanh hơn.",
+          href: weddingBudgetPath,
+          cta: "Mở bảng chi phí",
+        },
+      ];
+
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="Công cụ"
+            fallbackExcerpt="Các mini-tool này giúp giải quyết nhanh những việc nhỏ trong hành trình chuẩn bị cưới, đồng thời dẫn sang flow tạo thiệp online tự nhiên hơn."
+          />
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {tools.map((tool) => (
+              <ClientPanel key={tool.href} className="h-full">
+                <ClientPanelHeader>
+                  <ClientPanelTitle>{tool.title}</ClientPanelTitle>
+                </ClientPanelHeader>
+                <ClientPanelBody className="flex h-full flex-col gap-6">
+                  <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{tool.description}</p>
+                  <div className="mt-auto">
+                    <ClientLinkButton href={tool.href}>{tool.cta}</ClientLinkButton>
+                  </div>
+                </ClientPanelBody>
+              </ClientPanel>
+            ))}
+          </div>
+        </ClientShell>
+      );
+    }
+    case "tools/qr-builder":
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="QR mừng cưới custom"
+            fallbackExcerpt="Bản v1 để chốt luồng sản phẩm. Bước tiếp theo có thể nối dữ liệu ngân hàng, render QR thật và xuất ảnh để chèn vào thiệp."
+          />
+
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <ClientPanel>
+              <ClientPanelHeader>
+                <ClientPanelTitle>Thông tin mã QR</ClientPanelTitle>
+              </ClientPanelHeader>
+              <ClientPanelBody className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-stone-700">Tên cô dâu chú rể</label>
+                  <ClientInput placeholder="Ví dụ: Linh & Tuan" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-stone-700">Ngân hàng</label>
+                  <ClientInput placeholder="Ví dụ: MB Bank" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-stone-700">Số tài khoản</label>
+                  <ClientInput placeholder="Ví dụ: 123456789" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-stone-700">Chủ tài khoản</label>
+                  <ClientInput placeholder="Ví dụ: Nguyen Van A" />
+                </div>
+              </ClientPanelBody>
+            </ClientPanel>
+
+            <ClientPanel>
+              <ClientPanelHeader>
+                <ClientPanelTitle>Xem trước</ClientPanelTitle>
+              </ClientPanelHeader>
+              <ClientPanelBody className="space-y-6">
+                <div className="mx-auto flex aspect-square max-w-[320px] items-center justify-center rounded-xl border border-stone-200 bg-stone-50 lg:rounded-2xl">
+                  <div className="space-y-3 text-center">
+                    <div className="mx-auto grid h-40 w-40 grid-cols-6 gap-1 rounded-xl bg-white p-3 shadow-sm lg:rounded-2xl">
+                      {Array.from({ length: 36 }).map((_, index) => (
+                        <div key={index} className={index % 3 === 0 ? "bg-stone-950" : "bg-stone-300/40"} />
+                      ))}
+                    </div>
+                    <p className="text-sm font-medium text-stone-700">QR preview placeholder</p>
+                  </div>
+                </div>
+                <ClientLinkButton href={templatesPath} className="flex w-full justify-center">
+                  Dùng QR này trong mẫu thiệp
+                </ClientLinkButton>
+              </ClientPanelBody>
+            </ClientPanel>
+          </div>
+        </ClientShell>
+      );
+    case "tools/wedding-budget":
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="Bảng tính chi phí cưới"
+            fallbackExcerpt="Bản v1 giúp chia ngân sách cưới theo tỷ lệ tham khảo để bạn có một khung dự trù nhanh trước khi chốt chi tiết."
+          />
+
+          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <ClientPanel>
+              <ClientPanelHeader>
+                <ClientPanelTitle>Ngân sách dự kiến</ClientPanelTitle>
+              </ClientPanelHeader>
+              <ClientPanelBody className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-stone-700">Tổng ngân sách</label>
+                  <ClientInput placeholder="Ví dụ: 150000000" />
+                </div>
+                <p className="text-sm leading-7 text-stone-600">
+                  Bước tiếp theo có thể thêm slider và tính tiền realtime cho từng hạng mục.
+                </p>
+              </ClientPanelBody>
+            </ClientPanel>
+
+            <ClientPanel>
+              <ClientPanelHeader>
+                <ClientPanelTitle>Phân bổ tham khảo</ClientPanelTitle>
+              </ClientPanelHeader>
+              <ClientPanelBody className="space-y-3">
+                {budgetCategories.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 lg:rounded-2xl">
+                    <span className="text-sm font-medium text-stone-800">{item.label}</span>
+                    <span className="text-sm text-stone-500">{item.percent}</span>
+                  </div>
+                ))}
+                <div className="pt-3">
+                  <ClientLinkButton href={templatesPath} className="flex w-full justify-center">
+                    Tiết kiệm bằng thiệp online
+                  </ClientLinkButton>
+                </div>
+              </ClientPanelBody>
+            </ClientPanel>
+          </div>
+        </ClientShell>
+      );
+    case "blog": {
+      const [categories, posts] = await Promise.all([
+        listPublishedBlogCategories(),
+        listPublishedBlogPosts(),
+      ]);
+
+      return (
+        <ClientShell className="gap-10 py-12">
+          <PageStructuredData page={page} />
+          <PageHero
+            page={page}
+            fallbackTitle="Blog cưới"
+            fallbackExcerpt="Chia sẻ kinh nghiệm chọn mẫu thiệp, lên ngân sách cưới, tối ưu nội dung và dùng công cụ đúng lúc để chuẩn bị nhanh hơn."
+          />
+          <BlogTabs categories={categories} posts={posts} permalinkConfig={permalinkConfig} />
+        </ClientShell>
+      );
+    }
+    default:
+      if (page.slug === "not-found") {
+        notFound();
+      }
+
+      return <GenericManagedPage page={page} />;
+  }
+}

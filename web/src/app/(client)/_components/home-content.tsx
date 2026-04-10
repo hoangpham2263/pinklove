@@ -1,9 +1,10 @@
 import { ClientLinkButton } from "@/app/(client)/_components/client-ui";
-import type { CmsPage } from "@/lib/cms";
-import { getFields } from "@/lib/cms-fields";
+import type { ManagedPage } from "@/lib/managed-pages";
+import { getPageFields } from "@/lib/page-fields";
+import { ROUTES } from "@/lib/routes";
 
-export function HomeContent({ page }: { page: CmsPage }) {
-  const fields = getFields<{
+export function HomeContent({ page }: { page: ManagedPage }) {
+  const fields = getPageFields<{
     heroTitle?: string;
     heroDescription?: string;
     heroButtonText?: string;
@@ -27,11 +28,11 @@ export function HomeContent({ page }: { page: CmsPage }) {
             </p>
           )}
           <div className="flex flex-wrap justify-center gap-4 pt-6">
-            <ClientLinkButton href={fields.heroButtonLink || "/about-us"}>
+            <ClientLinkButton href={fields.heroButtonLink || ROUTES.ABOUT}>
               {fields.heroButtonText || "Learn more"}
             </ClientLinkButton>
             {fields.secondaryButtonText ? (
-              <ClientLinkButton href={fields.secondaryButtonLink || "/contact"} variant="secondary">
+              <ClientLinkButton href={fields.secondaryButtonLink || ROUTES.CONTACT} variant="secondary">
                 {fields.secondaryButtonText}
               </ClientLinkButton>
             ) : null}

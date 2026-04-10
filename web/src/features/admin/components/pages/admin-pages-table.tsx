@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, Eye, Pencil, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowUpDown, ExternalLink, Pencil, X } from "lucide-react";
+import { toast } from "sonner";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type RowSelectionState,
   type SortingState,
   flexRender,
   getCoreRowModel,
@@ -16,7 +19,10 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { NativeForm } from "@/components/common/native-form";
+import { finishMutation, postForm } from "@/lib/client-mutation";
 import { Input } from "@/components/ui/input";
+import { getManagedPagePath } from "@/lib/page-paths";
 import {
   Table,
   TableBody,
@@ -25,20 +31,51 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { CmsPage } from "@/lib/cms";
+import type { ManagedPage } from "@/lib/managed-pages";
 
 type AdminPagesTableProps = {
-  pages: CmsPage[];
+  pages: ManagedPage[];
   emptyMessage: string;
 };
 
 export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
+  const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkAction, setBulkAction] = useState("");
 
-  const columns = useMemo<ColumnDef<CmsPage>[]>(
+  const columns = useMemo<ColumnDef<ManagedPage>[]>(
     () => [
+      {
+        id: "select",
+        enableSorting: false,
+        enableColumnFilter: false,
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            aria-label="Select all"
+            className="h-4 w-4 rounded border border-input"
+            checked={table.getIsAllPageRowsSelected()}
+            ref={(element) => {
+              if (element) {
+                element.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+              }
+            }}
+            onChange={(event) => table.toggleAllPageRowsSelected(event.target.checked)}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            aria-label={`Select ${row.original.name}`}
+            className="h-4 w-4 rounded border border-input"
+            checked={row.getIsSelected()}
+            onChange={(event) => row.toggleSelected(event.target.checked)}
+          />
+        ),
+      },
       {
         accessorKey: "name",
         header: ({ column }) => (
@@ -76,9 +113,10 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           </Button>
         ),
         cell: ({ row }) => (
-          <code className="relative rounded bg-muted px-[5px] py-[3px] font-mono text-sm">
-            /{row.original.slug}
-          </code>
+          <div className="flex flex-col gap-1">
+            <code>{getManagedPagePath(row.original)}</code>
+            <span className="text-xs text-muted-foreground">Slug: {row.original.slug}</span>
+          </div>
         ),
       },
       {
@@ -114,12 +152,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const page = row.original;
-          const targetUrl =
-            page.slug === "home"
-              ? "/"
-              : page.slug === "login" || page.slug === "register"
-                ? `/user/${page.slug}`
-                : `/${page.slug}`;
+          const targetUrl = getManagedPagePath(page);
 
           return (
             <div className="flex justify-end gap-2">
@@ -129,7 +162,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
                 title="Xem trang"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
               >
-                <Eye className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
               </Link>
               <Link
                 href={`/admin/pages/${page.slug}`}
@@ -153,10 +186,12 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
       sorting,
       columnFilters,
       globalFilter,
+      rowSelection,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
     globalFilterFn: (row, _columnId, filterValue) => {
       const keyword = String(filterValue).trim().toLowerCase();
       if (!keyword) return true;
@@ -169,10 +204,14 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.slug,
+    enableRowSelection: true,
   });
 
   const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
   const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
 
   return (
     <>
@@ -195,19 +234,63 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           </select>
         </div>
 
-        {hasFilters ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setGlobalFilter("");
-              table.getColumn("status")?.setFilterValue("");
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <NativeForm
+            action="/api/admin/pages/bulk"
+            method="POST"
+            className="flex flex-col gap-3 md:flex-row md:items-center"
+            onSubmit={async (event) => {
+              if (!bulkAction || selectedCount === 0) {
+                event.preventDefault();
+                return;
+              }
+
+              event.preventDefault();
+
+              try {
+                const result = await postForm("/api/admin/pages/bulk", new FormData(event.currentTarget));
+                toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
+                finishMutation(router, result, { redirect: false });
+                setRowSelection({});
+                setBulkAction("");
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Không thể áp dụng tác vụ hàng loạt.");
+              }
             }}
           >
-            <X className="h-4 w-4" />
-            Xóa bộ lọc
-          </Button>
-        ) : null}
+            {selectedRows.map((row) => (
+              <input key={row.id} type="hidden" name="slugs" value={row.original.slug} />
+            ))}
+            <span className="text-sm text-muted-foreground">Đã chọn {selectedCount}</span>
+            <select
+              name="bulkAction"
+              value={bulkAction}
+              onChange={(event) => setBulkAction(event.target.value)}
+              className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Tác vụ hàng loạt</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+            <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+              Áp dụng
+            </Button>
+          </NativeForm>
+
+          {hasFilters ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setGlobalFilter("");
+                table.getColumn("status")?.setFilterValue("");
+              }}
+            >
+              <X className="h-4 w-4" />
+              Xóa bộ lọc
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="rounded-md border">

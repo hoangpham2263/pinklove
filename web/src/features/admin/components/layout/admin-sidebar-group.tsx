@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   BadgePercent,
   BookOpenText,
@@ -12,7 +11,10 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { AdminNavLink } from "@/features/admin/components/layout/admin-nav-link";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { isRouteActive } from "@/lib/navigation";
 
 type AdminSidebarIconName =
   | "files"
@@ -54,11 +56,15 @@ export function AdminSidebarGroup({
   items,
   defaultOpen = true,
 }: AdminSidebarGroupProps) {
+  const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
+  const hasActiveItem = items.some((item) => isRouteActive(pathname, item.href, true));
 
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group/collapsible">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted">
+    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+      >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
           <span>{label}</span>
@@ -71,14 +77,14 @@ export function AdminSidebarGroup({
             const ItemIcon = iconMap[item.iconName];
 
             return (
-              <Link
+              <AdminNavLink
                 key={item.href}
                 href={item.href}
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
               >
                 <ItemIcon className="h-4 w-4" />
                 <span>{item.label}</span>
-              </Link>
+              </AdminNavLink>
             );
           })}
         </div>

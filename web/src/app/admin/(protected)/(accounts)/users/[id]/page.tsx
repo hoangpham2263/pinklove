@@ -1,0 +1,39 @@
+import { notFound } from"next/navigation";
+import Link from"next/link";
+import { requireAdmin, getUserAccount, getUserProfile } from"@/lib/auth";
+import { Button } from"@/components/ui/button";
+import { ChevronLeft } from"lucide-react";
+import { EditUserForm } from "@/features/admin/components/users/edit-user-form";
+import { ROUTES } from "@/lib/routes";
+
+type EditUserPageProps = {
+ params: Promise<{ id: string }>;
+ searchParams: Promise<{ saved?: string; error?: string }>;
+};
+
+export default async function EditUserPage({ params, searchParams }: EditUserPageProps) {
+ const actor = await requireAdmin();
+ const { id } = await params;
+ const userId = id;
+
+ const user = await getUserAccount(userId);
+ if (!user) return notFound();
+
+ const profile = await getUserProfile(userId);
+ await searchParams;
+
+ return (
+ <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+ <div className="flex items-center gap-4">
+ <Link href={ROUTES.ADMIN.USERS}>
+  <Button variant="outline" size="sm">
+  <ChevronLeft className="mr-2 h-4 w-4" />
+  Quay lại
+  </Button>
+ </Link>
+ <h1 className="text-2xl font-bold tracking-tight">Chỉnh sửa người dùng: {user.username}</h1>
+ </div>
+ <EditUserForm actor={actor} user={user} profile={profile} />
+ </section>
+ );
+}

@@ -1,17 +1,16 @@
-import { NextResponse } from"next/server";
-
 import { adminUpdateRole, getCurrentUserFromRequest, type UserRole } from"@/lib/auth";
 import { ROUTES } from "@/lib/routes";
+import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime ="nodejs";
 
 export async function POST(request: Request) {
  const actor = await getCurrentUserFromRequest(request);
  if (!actor) {
- return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
+ return respondError(request, { status: 401, error: "UNAUTHORIZED", message: "Vui lòng đăng nhập admin.", location: ROUTES.ADMIN.LOGIN });
  }
  if (actor.role !=="admin") {
- return new NextResponse(null, { status: 303, headers: { Location: ROUTES.USER.DASHBOARD } });
+ return respondError(request, { status: 403, error: "FORBIDDEN", message: "Bạn không có quyền cập nhật vai trò.", location: ROUTES.USER.DASHBOARD });
  }
 
  const formData = await request.formData();
@@ -21,23 +20,23 @@ export async function POST(request: Request) {
  const userId = userIdRaw.trim();
 
  if (!userId) {
- return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=invalid_user" } });
+ return respondError(request, { error: "invalid_user", message: "Người dùng không hợp lệ.", location: `${ROUTES.ADMIN.USERS}?error=invalid_user` });
  }
 
  try {
  await adminUpdateRole(actor.id, userId, nextRole);
- return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?saved=role_updated" } });
+ return respondSuccess(request, { location: ROUTES.ADMIN.USERS, message: "Đã cập nhật vai trò." });
  } catch (error) {
  const message = error instanceof Error ? error.message :"";
  if (message ==="USER_NOT_FOUND") {
-  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=user_not_found" } });
+  return respondError(request, { error: "user_not_found", message: "Không tìm thấy người dùng.", location: `${ROUTES.ADMIN.USERS}?error=user_not_found` });
  }
  if (message ==="CANNOT_CHANGE_SELF_ROLE") {
-  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=cannot_change_self" } });
+  return respondError(request, { error: "cannot_change_self", message: "Không thể tự đổi vai trò của chính bạn.", location: `${ROUTES.ADMIN.USERS}?error=cannot_change_self` });
  }
  if (message ==="LAST_ADMIN_PROTECTED") {
-  return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=last_admin_protected" } });
+  return respondError(request, { error: "last_admin_protected", message: "Không thể hạ quyền admin cuối cùng.", location: `${ROUTES.ADMIN.USERS}?error=last_admin_protected` });
  }
- return new NextResponse(null, { status: 303, headers: { Location: "/admin/user?error=role_update_failed" } });
+ return respondError(request, { error: "role_update_failed", message: "Không thể cập nhật vai trò.", location: `${ROUTES.ADMIN.USERS}?error=role_update_failed` });
  }
 }

@@ -18,11 +18,11 @@ export async function POST(request: Request) {
  const password = String(formData.get("password") ??"");
 
  if (!username || !password) {
- return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=missing_fields" } });
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=missing_fields` } });
  }
 
  if (password.length < MIN_PASSWORD_LENGTH) {
- return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=weak_password" } });
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=weak_password` } });
  }
 
  try {
@@ -37,9 +37,9 @@ export async function POST(request: Request) {
  } catch (error) {
  const message = error instanceof Error ? error.message :"";
  if (message.includes("duplicate key value")) {
-  return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=username_taken" } });
+  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=username_taken` } });
  }
 
- return new NextResponse(null, { status: 303, headers: { Location: "/user/register?error=register_failed" } });
- }
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=register_failed` } });
+}
 }

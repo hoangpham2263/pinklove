@@ -1,17 +1,67 @@
+import { headers } from "next/headers";
 import type { Metadata } from "next";
+import { getSystemSettings } from "@/lib/system-settings";
 
-const DEFAULT_SITE_URL = "http://localhost:3000";
 const DEFAULT_SITE_NAME = "PinkLove";
 const DEFAULT_TITLE = "PinkLove";
 const DEFAULT_DESCRIPTION = "Thiệp cưới online, blog cưới, công cụ cưới và builder tạo thiệp tối ưu cho trải nghiệm chia sẻ.";
 
 export function getSiteUrl() {
-  const value = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  return value || DEFAULT_SITE_URL;
+  const value =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.SITE_URL?.trim() ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+
+  if (!value) {
+    return "http://127.0.0.1:3000";
+  }
+
+  return value.startsWith("http://") || value.startsWith("https://")
+    ? value
+    : `https://${value}`;
 }
 
-export function absoluteUrl(path = "/") {
-  return new URL(path, getSiteUrl()).toString();
+export function getSiteUrlFromHeaderValues({
+  host,
+  forwardedHost,
+  forwardedProto,
+}: {
+  host?: string | null;
+  forwardedHost?: string | null;
+  forwardedProto?: string | null;
+}) {
+  const resolvedHost = forwardedHost?.trim() || host?.trim();
+
+  if (resolvedHost) {
+    return `${forwardedProto?.trim() || "https"}://${resolvedHost}`;
+  }
+
+  return getSiteUrl();
+}
+
+export function getSiteUrlFromRequest(request: Request) {
+  return getSiteUrlFromHeaderValues({
+    host: request.headers.get("host"),
+    forwardedHost: request.headers.get("x-forwarded-host"),
+    forwardedProto: request.headers.get("x-forwarded-proto"),
+  });
+}
+
+export async function getCurrentSiteUrl() {
+  try {
+    const headerStore = await headers();
+    return getSiteUrlFromHeaderValues({
+      host: headerStore.get("host"),
+      forwardedHost: headerStore.get("x-forwarded-host"),
+      forwardedProto: headerStore.get("x-forwarded-proto"),
+    });
+  } catch {
+    return getSiteUrl();
+  }
+}
+
+export function absoluteUrl(path = "/", baseUrl = getSiteUrl()) {
+  return new URL(path, baseUrl).toString();
 }
 
 type SeoMetadataInput = {
@@ -24,7 +74,7 @@ type SeoMetadataInput = {
   noindex?: boolean;
 };
 
-export function createSeoMetadata({
+export async function createSeoMetadata({
   title,
   description,
   path = "/",
@@ -32,9 +82,12 @@ export function createSeoMetadata({
   image,
   type = "website",
   noindex = false,
-}: SeoMetadataInput): Metadata {
-  const url = absoluteUrl(path);
-  const imageUrl = image ? absoluteUrl(image) : undefined;
+}: SeoMetadataInput): Promise<Metadata> {
+  const settings = await getSystemSettings();
+  const siteUrl = await getCurrentSiteUrl();
+  const url = absoluteUrl(path, siteUrl);
+  const imageUrl = image ? absoluteUrl(image, siteUrl) : undefined;
+  const canIndex = settings.indexing.siteIndexingEnabled && !noindex;
 
   return {
     title,
@@ -44,8 +97,8 @@ export function createSeoMetadata({
       canonical: url,
     },
     robots: {
-      index: !noindex,
-      follow: !noindex,
+      index: canIndex,
+      follow: canIndex,
     },
     openGraph: {
       type,
@@ -65,9 +118,13 @@ export function createSeoMetadata({
   };
 }
 
-export function createRootMetadata(): Metadata {
+export async function createRootMetadata(): Promise<Metadata> {
+  const settings = await getSystemSettings();
+  const siteUrl = await getCurrentSiteUrl();
+  const canIndex = settings.indexing.siteIndexingEnabled;
+
   return {
-    metadataBase: new URL(getSiteUrl()),
+    metadataBase: new URL(siteUrl),
     applicationName: DEFAULT_SITE_NAME,
     title: {
       default: DEFAULT_TITLE,
@@ -75,11 +132,11 @@ export function createRootMetadata(): Metadata {
     },
     description: DEFAULT_DESCRIPTION,
     alternates: {
-      canonical: absoluteUrl("/"),
+      canonical: absoluteUrl("/", siteUrl),
     },
     openGraph: {
       type: "website",
-      url: absoluteUrl("/"),
+      url: absoluteUrl("/", siteUrl),
       title: DEFAULT_TITLE,
       description: DEFAULT_DESCRIPTION,
       siteName: DEFAULT_SITE_NAME,
@@ -91,11 +148,11 @@ export function createRootMetadata(): Metadata {
       description: DEFAULT_DESCRIPTION,
     },
     robots: {
-      index: true,
-      follow: true,
+      index: canIndex,
+      follow: canIndex,
       googleBot: {
-        index: true,
-        follow: true,
+        index: canIndex,
+        follow: canIndex,
         "max-image-preview": "large",
         "max-snippet": -1,
         "max-video-preview": -1,

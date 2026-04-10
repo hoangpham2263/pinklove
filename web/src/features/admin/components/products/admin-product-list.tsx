@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, Eye, Pencil, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowUpDown, ExternalLink, Eye, Pencil, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -18,6 +20,13 @@ import {
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -28,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ROUTES } from "@/lib/routes";
+import { finishMutation, postForm } from "@/lib/client-mutation";
 import type { Product, ProductType } from "@/features/products/types";
 
 type AdminProductListProps = {
@@ -45,6 +55,7 @@ export function AdminProductList({
   productType,
   title,
 }: AdminProductListProps) {
+  const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -53,6 +64,7 @@ export function AdminProductList({
   const [globalFilter, setGlobalFilter] = useState(search);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [bulkAction, setBulkAction] = useState("");
+  const [previewProductId, setPreviewProductId] = useState<string | null>(null);
 
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
@@ -97,17 +109,7 @@ export function AdminProductList({
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => {
-          const product = row.original;
-          return (
-            <div className="flex flex-col">
-              <span className="font-semibold">{product.name}</span>
-              {product.excerpt ? (
-                <span className="text-muted-foreground line-clamp-2 text-xs">{product.excerpt}</span>
-              ) : null}
-            </div>
-          );
-        },
+        cell: ({ row }) => <span>{row.original.name}</span>,
       },
       {
         accessorKey: "slug",
@@ -118,17 +120,12 @@ export function AdminProductList({
             className="-ml-2 h-8 px-2"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Slug / Template
+            Slug
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="flex flex-col gap-1">
-            <code className="relative w-fit rounded bg-muted px-[5px] py-[3px] font-mono text-sm">
-              /{row.original.slug}
-            </code>
-            <span className="text-muted-foreground text-xs">{row.original.templateKey}</span>
-          </div>
+          <code>/{row.original.slug}</code>
         ),
       },
       {
@@ -153,6 +150,11 @@ export function AdminProductList({
             {row.original.productType === "builder_template" ? "Builder Template" : "Coded Template"}
           </Badge>
         ),
+      },
+      {
+        accessorKey: "categoryName",
+        header: "Category",
+        cell: ({ row }) => row.original.categoryName ? <span>{row.original.categoryName}</span> : <span className="text-muted-foreground">-</span>,
       },
       {
         accessorKey: "status",
@@ -206,13 +208,17 @@ export function AdminProductList({
 
           return (
             <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setPreviewProductId(product.id)}>
+                <Eye className="h-4 w-4" />
+                Xem
+              </Button>
               <Link
                 href={publicHref}
                 target="_blank"
                 title="Xem ngoài site"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
               >
-                <Eye className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
               </Link>
               <Link
                 href={ROUTES.ADMIN.PRODUCT(product.slug)}
@@ -225,9 +231,18 @@ export function AdminProductList({
                 action={ROUTES.API.ADMIN.PRODUCTS.DELETE}
                 method="POST"
                 className="inline-block"
-                onSubmit={(event) => {
+                onSubmit={async (event) => {
+                  event.preventDefault();
                   if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${product.name}?`)) {
-                    event.preventDefault();
+                    return;
+                  }
+
+                  try {
+                    const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, new FormData(event.currentTarget));
+                    toast.success(result.message ?? "Đã xóa sản phẩm.");
+                    finishMutation(router, result, { redirect: false });
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm.");
                   }
                 }}
               >
@@ -247,7 +262,7 @@ export function AdminProductList({
         },
       },
     ],
-    []
+    [router]
   );
 
   const table = useReactTable({
@@ -292,6 +307,7 @@ export function AdminProductList({
     globalFilter.trim().length > 0 || statusFilterValue.length > 0 || typeFilterValue.length > 0;
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
+  const previewProduct = previewProductId ? products.find((product) => product.id === previewProductId) ?? null : null;
 
   return (
     <div className="space-y-4">
@@ -330,14 +346,26 @@ export function AdminProductList({
             action={ROUTES.API.ADMIN.PRODUCTS.BULK}
             method="POST"
             className="flex flex-col gap-3 md:flex-row md:items-center"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               if (!bulkAction || selectedCount === 0) {
                 event.preventDefault();
                 return;
               }
 
+              event.preventDefault();
+
               if (bulkAction === "delete" && !confirm(`Xóa ${selectedCount} sản phẩm đã chọn?`)) {
-                event.preventDefault();
+                return;
+              }
+
+              try {
+                const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.BULK, new FormData(event.currentTarget));
+                toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
+                finishMutation(router, result, { redirect: false });
+                setRowSelection({});
+                setBulkAction("");
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Không thể áp dụng tác vụ hàng loạt.");
               }
             }}
           >
@@ -414,6 +442,77 @@ export function AdminProductList({
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={Boolean(previewProduct)} onOpenChange={(open) => !open && setPreviewProductId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {previewProduct ? (
+            <div className="space-y-6">
+              <DialogHeader>
+                <DialogTitle>Chi tiết sản phẩm</DialogTitle>
+                <DialogDescription>Xem đầy đủ thông tin của sản phẩm.</DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tên sản phẩm</p>
+                  <p className="text-sm text-muted-foreground">{previewProduct.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Slug</p>
+                  <p className="text-sm text-muted-foreground">/{previewProduct.slug}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Trạng thái</p>
+                  <p className="text-sm text-muted-foreground">{previewProduct.status}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Loại</p>
+                  <p className="text-sm text-muted-foreground">{previewProduct.productType}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Giá</p>
+                  <p className="text-sm text-muted-foreground">{previewProduct.price}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Template Key</p>
+                  <p className="text-sm text-muted-foreground">{previewProduct.templateKey}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tạo lúc</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(previewProduct.createdAt).toISOString().slice(0, 16).replace("T", " ")}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Cập nhật lúc</p>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(previewProduct.updatedAt).toISOString().slice(0, 16).replace("T", " ")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Excerpt</p>
+                <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewProduct.excerpt || "—"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Mô tả</p>
+                <p className="rounded-md border p-3 text-sm text-muted-foreground">
+                  {previewProduct.description || "—"}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Thumbnail</p>
+                <p className="break-all rounded-md border p-3 text-sm text-muted-foreground">
+                  {previewProduct.thumbnailUrl || "—"}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

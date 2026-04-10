@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   BadgePercent,
   ChevronRight,
@@ -8,7 +7,10 @@ import {
   Settings,
   User as UserIcon,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { UserNavLink } from "@/features/user/components/user-nav-link";
+import { isRouteActive } from "@/lib/navigation";
 
 type UserSidebarIconName = "folder-heart" | "user" | "badge-percent" | "settings";
 
@@ -38,11 +40,15 @@ export function UserSidebarGroup({
   children,
   defaultOpen = false,
 }: UserSidebarGroupProps) {
+  const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
+  const hasActiveItem = children.some((item) => isRouteActive(pathname, item.href, true));
 
   return (
-    <Collapsible defaultOpen={defaultOpen} className="group/collapsible">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted">
+    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+      >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
           <span>{label}</span>
@@ -55,14 +61,14 @@ export function UserSidebarGroup({
             const ItemIcon = iconMap[item.iconName];
 
             return (
-              <Link
+              <UserNavLink
                 key={item.href}
                 href={item.href}
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
               >
                 <ItemIcon className="h-4 w-4" />
                 <span>{item.label}</span>
-              </Link>
+              </UserNavLink>
             );
           })}
         </div>

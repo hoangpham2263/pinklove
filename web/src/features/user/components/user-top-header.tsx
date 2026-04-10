@@ -9,8 +9,8 @@ type UserTopHeaderProps = {
 };
 
 function getPageTitle(pathname: string): string {
- if (pathname === "/user" || pathname.startsWith(ROUTES.USER.DASHBOARD)) return "Dashboard";
- if (pathname.startsWith(ROUTES.USER.SITES)) return "My Sites";
+ if (pathname === ROUTES.USER.ROOT || pathname.startsWith(ROUTES.USER.DASHBOARD)) return "Dashboard";
+ if (pathname.startsWith(ROUTES.USER.INVITATIONS)) return "My Invitations";
  if (pathname.startsWith(ROUTES.USER.PROFILE)) return "Profile";
  if (pathname.startsWith(ROUTES.USER.AFFILIATE)) return "Affiliate";
  if (pathname.startsWith(ROUTES.USER.SETTINGS)) return "Settings";

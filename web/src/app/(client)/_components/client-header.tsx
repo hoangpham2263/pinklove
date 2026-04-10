@@ -13,7 +13,7 @@ export type ClientHeaderLink = {
 };
 
 export type ClientHeaderNode = ClientHeaderLink & {
-  children: ClientHeaderLink[];
+  children: ClientHeaderNode[];
 };
 
 type ClientHeaderProps = {
@@ -28,26 +28,36 @@ type ClientHeaderProps = {
 };
 
 function NavDropdown({
-  label,
-  href,
-  items,
+  item,
+  depth = 0,
 }: {
-  label: string;
-  href: string;
-  items: ClientHeaderLink[];
+  item: ClientHeaderNode;
+  depth?: number;
 }) {
+  const contentClassName =
+    depth === 0
+      ? "invisible absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-56 translate-y-2 rounded-xl border border-stone-200 bg-white p-2 opacity-0 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 lg:rounded-2xl"
+      : "invisible absolute left-[calc(100%+0.5rem)] top-0 z-50 min-w-56 rounded-xl border border-stone-200 bg-white p-2 opacity-0 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-200 group-hover:visible group-hover:opacity-100 lg:rounded-2xl";
+
   return (
     <div className="group relative">
-      <Link href={href} className="text-sm md:text-base whitespace-nowrap">
-        {label}
+      <Link
+        href={item.href}
+        className={depth === 0 ? "text-sm md:text-base whitespace-nowrap" : "rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl"}
+      >
+        {item.label}
       </Link>
-      <div className="absolute left-0 top-full h-3 w-full" />
-      <div className="invisible absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-56 translate-y-2 rounded-xl border border-stone-200 bg-white p-2 opacity-0 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 lg:rounded-2xl">
+      {depth === 0 ? <div className="absolute left-0 top-full h-3 w-full" /> : null}
+      <div className={contentClassName}>
         <div className="flex flex-col gap-1">
-          {items.map((item) => (
-            <Link key={item.id} href={item.href} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
-              {item.label}
-            </Link>
+          {item.children.map((child) => (
+            child.children.length > 0 ? (
+              <NavDropdown key={child.id} item={child} depth={depth + 1} />
+            ) : (
+              <Link key={child.id} href={child.href} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
+                {child.label}
+              </Link>
+            )
           ))}
         </div>
       </div>
@@ -93,7 +103,7 @@ export function ClientHeader({
         <nav className="flex items-center justify-center gap-4">
           {headerTree.map((item) =>
             item.children.length > 0 ? (
-              <NavDropdown key={item.id} label={item.label} href={item.href} items={item.children} />
+              <NavDropdown key={item.id} item={item} />
             ) : (
               <Link key={item.id} href={item.href} className="text-sm md:text-base whitespace-nowrap">
                 {item.label}
@@ -137,7 +147,7 @@ export function ClientHeader({
                   <Link href={dashboardHref} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
                     {user.role === "admin" ? "Quản lý Admin" : "Trang người dùng"}
                   </Link>
-                  <Link href={ROUTES.USER.SITES} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
+                  <Link href={ROUTES.USER.INVITATIONS} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
                     Thiệp của tôi
                   </Link>
                   <Link href={settingsHref} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">

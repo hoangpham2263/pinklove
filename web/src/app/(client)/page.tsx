@@ -1,36 +1,19 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { HomeContent } from "@/app/(client)/_components/home-content";
-import { PageStructuredData } from "@/components/common/page-structured-data";
-import { buildPageMetadata, getAccessibleCmsPageBySlug } from "@/lib/cms";
+import {
+  generateManagedPageMetadata,
+  loadManagedPageForRoute,
+  renderManagedPage,
+} from "@/features/pages/server/managed-page-renderer";
 
 type HomePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const page = await getAccessibleCmsPageBySlug("home", {
-    preview: resolvedSearchParams.preview === "1",
-  });
-
-  return page ? await buildPageMetadata(page) : {};
+  return generateManagedPageMetadata("home", searchParams);
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const page = await getAccessibleCmsPageBySlug("home", {
-    preview: resolvedSearchParams.preview === "1",
-  });
-
-  if (!page) {
-    notFound();
-  }
-
-  return (
-    <>
-      <PageStructuredData page={page} />
-      <HomeContent page={page} />
-    </>
-  );
+  const page = await loadManagedPageForRoute("home", "/", searchParams);
+  return renderManagedPage(page);
 }

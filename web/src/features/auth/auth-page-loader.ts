@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import type { AuthPageFields } from "@/features/auth/fields";
 import { getCurrentUser } from "@/lib/auth";
-import { getAccessibleCmsPageBySlug } from "@/lib/cms";
-import { getFields } from "@/lib/cms-fields";
+import { getAccessiblePageBySlug } from "@/lib/managed-pages";
+import { getPageFields } from "@/lib/page-fields";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { ROUTES } from "@/lib/routes";
 
@@ -19,12 +19,12 @@ export async function loadAuthPage(slug: "login" | "register"): Promise<LoadedAu
     redirect(ROUTES.USER.DASHBOARD);
   }
 
-  const page = await getAccessibleCmsPageBySlug(slug, { allowAdminDraftAccess: true });
+  const page = await getAccessiblePageBySlug(slug, { allowAdminDraftAccess: true });
   if (!page) {
     notFound();
   }
 
-  const customFields = getFields<AuthPageFields>(page);
+  const customFields = getPageFields<AuthPageFields>(page);
   const sideImage = await resolveMediaUrl(customFields.sideImage);
 
   return {

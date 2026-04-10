@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,25 +11,31 @@ import { Button } from "@/components/ui/button";
 import { getContentPageFields } from "@/features/pages/registry";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { getAuthPageFields, isAuthPageSlug, isManagedSitePageSlug } from "@/features/auth/page-registry";
-import { STRUCTURED_DATA_FIELD } from "@/lib/cms-fields";
+import { STRUCTURED_DATA_FIELD } from "@/lib/page-fields";
+import { canCustomizePagePermalink, getManagedPagePath, getDefaultPagePath, normalizePagePermalinkInput } from "@/lib/page-paths";
 import { ROUTES } from "@/lib/routes";
 import { SeoPreview } from "./seo-preview";
-import type { CmsPage } from "@/lib/cms";
+import type { ManagedPage } from "@/lib/managed-pages";
+import { finishMutation, postForm } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
 
 type PageEditorFormProps = {
-  page: CmsPage;
+  page: ManagedPage;
+  availablePages: ManagedPage[];
   isSaved?: boolean;
   hasError?: boolean;
 };
 
-export function PageEditorForm({ page }: PageEditorFormProps) {
+export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
+  const router = useRouter();
   const [ogImage, setOgImage] = useState(page.ogImage || "");
+  const [isSaving, setIsSaving] = useState(false);
   
   // SEO Preview States
   const [seoTitle, setSeoTitle] = useState(page.seoTitle || "");
   const [seoDescription, setSeoDescription] = useState(page.seoDescription || "");
   const [slug, setSlug] = useState(page.slug || "");
+  const [permalink, setPermalink] = useState(page.permalink || getDefaultPagePath(page.slug));
   const [pageTitle, setPageTitle] = useState(page.title || "");
   const [pageName, setPageName] = useState(page.name || "");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!page.slug);
@@ -66,12 +74,34 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
   };
 
   const isProtectedSlug = isManagedSitePageSlug(page.slug);
+  const canCustomizePermalink = canCustomizePagePermalink(page.slug);
   const templateFields = isAuthPageSlug(page.slug)
     ? getAuthPageFields(page.slug)
     : getContentPageFields(page.slug);
 
+  const previewPage: ManagedPage = {
+    ...page,
+    slug,
+    permalink: normalizePagePermalinkInput(permalink, slug),
+  };
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const result = await postForm(ROUTES.API.ADMIN.PAGES.UPDATE, new FormData(event.currentTarget));
+      toast.success(result.message ?? "Đã lưu thay đổi trang.");
+      finishMutation(router, result, { redirect: "replace", refresh: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể lưu trang.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
-    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6" onSubmit={handleSubmit}>
       <input type="hidden" name="originalSlug" value={page.slug} />
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
@@ -99,7 +129,7 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
               </div>
               <div className="space-y-2">
                 <label htmlFor="slug" className="font-medium">
-                  Slug
+                  Slug nội bộ
                 </label>
                 <Input 
                   id="slug" 
@@ -112,6 +142,26 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
                   className={isProtectedSlug ? "bg-muted cursor-not-allowed opacity-70" : ""}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="permalink" className="font-medium">
+                Custom Permalink
+              </label>
+              <Input
+                id="permalink"
+                name="permalink"
+                value={permalink}
+                onChange={(e) => setPermalink(e.target.value)}
+                readOnly={!canCustomizePermalink}
+                className={!canCustomizePermalink ? "bg-muted cursor-not-allowed opacity-70" : ""}
+                placeholder="/ten-trang-seo"
+              />
+              <p className="text-[10px] text-muted-foreground italic">
+                {!canCustomizePermalink
+                  ? "Trang system đặc biệt dùng URL cố định."
+                  : "Nhập đường dẫn public như WordPress/Rank Math, ví dụ /gioi-thieu hoặc /dich-vu."}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -180,7 +230,7 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
               <SeoPreview 
                 title={seoTitle || pageTitle} 
                 description={seoDescription} 
-                slug={slug} 
+                path={getManagedPagePath(previewPage)}
               />
 
               <div className="space-y-4 pt-4 border-t">
@@ -231,6 +281,39 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
                     Canonical URL
                   </label>
                   <Input id="canonicalUrl" name="canonicalUrl" defaultValue={page.canonicalUrl} placeholder="https://example.com/page" />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="breadcrumbTitle" className="font-medium">
+                    Breadcrumb Title
+                  </label>
+                  <Input
+                    id="breadcrumbTitle"
+                    name="breadcrumbTitle"
+                    defaultValue={page.breadcrumbTitle}
+                    placeholder="Tên hiển thị trong breadcrumb"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="breadcrumbParentSlug" className="font-medium">
+                    Breadcrumb Parent
+                  </label>
+                  <select
+                    id="breadcrumbParentSlug"
+                    name="breadcrumbParentSlug"
+                    defaultValue={page.breadcrumbParentSlug || ""}
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Tự động / không chọn</option>
+                    {availablePages
+                      .filter((item) => item.slug !== page.slug)
+                      .map((item) => (
+                        <option key={item.slug} value={item.slug}>
+                          {item.name} ({getManagedPagePath(item)})
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2">
@@ -313,8 +396,8 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
             </div>
 
             <div className="pt-2">
-              <Button type="submit" className="w-full">
-                Update Page
+              <Button type="submit" className="w-full" disabled={isSaving}>
+                {isSaving ? "Đang lưu..." : "Update Page"}
               </Button>
             </div>
           </CardContent>

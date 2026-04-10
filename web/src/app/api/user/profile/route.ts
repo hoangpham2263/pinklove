@@ -25,5 +25,5 @@ export async function POST(request: Request) {
  if (wantsJson) {
  return NextResponse.json({ success: true });
  }
- return new NextResponse(null, { status: 303, headers: { Location: "/user/profile?saved=1" } });
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.USER.PROFILE}?saved=1` } });
 }

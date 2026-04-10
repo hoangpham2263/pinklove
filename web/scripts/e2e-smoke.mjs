@@ -216,7 +216,7 @@ async function main() {
     await step("public pages respond", async () => {
       for (const path of [
         "/",
-        "/about-us",
+        "/about",
         "/contact",
         "/templates",
         "/templates/classic-garden",
@@ -256,7 +256,7 @@ async function main() {
         "/user/dashboard",
         "/user/profile",
         "/user/settings",
-        "/user/sites",
+        "/user/invitations",
         "/user/affiliate",
       ]) {
         const html = await user.getText(path);
@@ -312,17 +312,17 @@ async function main() {
 
     let codedSiteId = "";
     await step("coded template site can be created, edited, and published", async () => {
-      const create = await user.postForm("/api/user/sites/create-from-product", {
+      const create = await user.postForm("/api/user/invitations/create-from-product", {
         productSlug: "classic-garden",
       });
-      expectLocation(create.location, "/user/sites/");
+      expectLocation(create.location, "/user/invitations/");
       codedSiteId = create.location.split("/").pop();
       assert(Boolean(codedSiteId), "Failed to resolve coded site id");
 
-      const editor = await user.getText(`/user/sites/${codedSiteId}`);
+      const editor = await user.getText(`/user/invitations/${codedSiteId}`);
       assert(editor.includes("Classic Garden"), "Coded site editor did not load expected product");
 
-      const update = await user.postForm("/api/user/sites/update", {
+      const update = await user.postForm("/api/user/invitations/update", {
         siteId: codedSiteId,
         title: "Smoke Coded Site",
         slug: state.codedSiteSlug,
@@ -337,7 +337,7 @@ async function main() {
         storyTitle: "Smoke Story",
         storyBody: `Story ${runId}`,
       });
-      expectLocation(update.location, `/user/sites/${codedSiteId}?saved=1`);
+      expectLocation(update.location, `/user/invitations/${codedSiteId}?saved=1`);
 
       const siteRow = await fetchRow(
         db,
@@ -348,7 +348,7 @@ async function main() {
       assert(siteRow?.status === "published", "Coded site should be published");
       assert(siteRow?.custom_data?.brideName === "Alice", "Coded site brideName missing");
 
-      const publicHtml = await guest.getText(`/w/${state.codedSiteSlug}`);
+      const publicHtml = await guest.getText(`/invitations/${state.codedSiteSlug}`);
       assert(publicHtml.includes("Alice"), "Public coded site is missing bride name");
       assert(publicHtml.includes("Bob"), "Public coded site is missing groom name");
       assert(publicHtml.includes("Smoke Story"), "Public coded site is missing custom content");
@@ -356,7 +356,7 @@ async function main() {
 
     let builderSiteId = "";
     await step("builder site can be created, edited with groups, and published", async () => {
-      const create = await user.postForm("/api/user/sites/create-builder", {});
+      const create = await user.postForm("/api/user/invitations/create-builder", {});
       expectLocation(create.location, "/user/design/");
       builderSiteId = create.location.split("/").pop();
       assert(Boolean(builderSiteId), "Failed to resolve builder site id");
@@ -409,7 +409,7 @@ async function main() {
         ],
       };
 
-      const update = await user.postForm("/api/user/sites/update", {
+      const update = await user.postForm("/api/user/invitations/update", {
         siteId: builderSiteId,
         title: "Smoke Builder Site",
         slug: state.builderSiteSlug,
@@ -429,7 +429,7 @@ async function main() {
       assert(siteRow?.custom_data?.builderDocument?.height === 2200, "Builder document height was not saved");
       assert(siteRow?.custom_data?.builderDocument?.nodes?.[0]?.type === "group", "Builder group node was not saved");
 
-      const publicHtml = await guest.getText(`/w/${state.builderSiteSlug}`);
+      const publicHtml = await guest.getText(`/invitations/${state.builderSiteSlug}`);
       assert(publicHtml.includes(`Builder Smoke ${runId}`), "Public builder site is missing grouped text");
     });
 
@@ -467,7 +467,7 @@ async function main() {
       for (const path of [
         "/admin/dashboard",
         "/admin/settings",
-        "/admin/user",
+        "/admin/users",
         "/admin/products",
         "/admin/products/classic-garden",
         "/admin/pages",
@@ -516,7 +516,7 @@ async function main() {
         password: PASSWORD,
         role: "user",
       });
-      expectLocation(create.location, "/admin/user?saved=created");
+      expectLocation(create.location, "/admin/users?saved=created");
 
       managedUserId = await fetchValue(
         db,
@@ -535,7 +535,7 @@ async function main() {
         phone: "0911111111",
         bio: `Managed bio ${runId}`,
       });
-      expectLocation(update.location, `/admin/user/${managedUserId}?saved=updated`);
+      expectLocation(update.location, `/admin/users/${managedUserId}?saved=updated`);
 
       const profile = await fetchRow(
         db,
@@ -555,7 +555,7 @@ async function main() {
         userId: managedUserId,
         role: "admin",
       });
-      expectLocation(promote.location, "/admin/user?saved=role_updated");
+      expectLocation(promote.location, "/admin/users?saved=role_updated");
 
       const roleAfterPromote = await fetchValue(
         db,
@@ -568,7 +568,7 @@ async function main() {
         userId: managedUserId,
         role: "user",
       });
-      expectLocation(demote.location, "/admin/user?saved=role_updated");
+      expectLocation(demote.location, "/admin/users?saved=role_updated");
 
       const roleAfterDemote = await fetchValue(
         db,
@@ -580,7 +580,7 @@ async function main() {
       const remove = await admin.postForm("/api/admin/users/delete", {
         userId: managedUserId,
       });
-      expectLocation(remove.location, "/admin/user?saved=deleted");
+      expectLocation(remove.location, "/admin/users?saved=deleted");
 
       const gone = await fetchValue(
         db,
@@ -680,7 +680,7 @@ async function main() {
       });
       expectLocation(update.location, "/admin/pages/about-us?saved=1");
 
-      const publicHtml = await guest.getText("/about-us");
+      const publicHtml = await guest.getText("/about");
       assert(publicHtml.includes(state.pageMarker), "Published about-us page did not reflect updated body");
     });
 
@@ -758,8 +758,8 @@ async function main() {
 
     log("\nSmoke test completed successfully.");
     log(`User tested: ${state.userUsername}`);
-    log(`Coded site: /w/${state.codedSiteSlug}`);
-    log(`Builder site: /w/${state.builderSiteSlug}`);
+    log(`Coded site: /invitations/${state.codedSiteSlug}`);
+    log(`Builder site: /invitations/${state.builderSiteSlug}`);
   } finally {
     if (restore.page) {
       await db.query(

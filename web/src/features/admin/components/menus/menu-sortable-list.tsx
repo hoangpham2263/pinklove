@@ -5,17 +5,37 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { ManagedPage } from "@/lib/managed-pages";
+import { getManagedPagePath } from "@/lib/page-paths";
 import type { MenuItem } from "@/lib/menu";
 
 export type EditableMenuItem = Omit<MenuItem, "menuId">;
 
+export type MenuParentOption = {
+  id: string;
+  label: string;
+  depth: number;
+};
+
+const INDENT_THRESHOLD = 24;
+
 function SortableMenuItem({
   item,
   index,
+  depth,
+  parentOptions,
+  availablePages,
+  onUpdateParent,
+  onUpdateItem,
   onRemove,
 }: {
   item: EditableMenuItem;
   index: number;
+  depth: number;
+  parentOptions: MenuParentOption[];
+  availablePages: ManagedPage[];
+  onUpdateParent: (itemId: string, parentId: string | null) => void;
+  onUpdateItem: (itemId: string, next: Partial<EditableMenuItem>) => void;
   onRemove: (index: number) => void;
 }) {
   const sortableId = item.id || `new-${index}`;
@@ -26,15 +46,17 @@ function SortableMenuItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    marginLeft: `${depth * 20}px`,
+    width: `calc(100% - ${depth * 20}px)`,
   };
 
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between rounded-md border bg-card p-3${isDragging ? " opacity-70 shadow-md" : ""}`}
+      className={`flex items-center justify-between gap-3 rounded-md border bg-card p-3${isDragging ? " opacity-70 shadow-md" : ""}`}
     >
-      <div className="flex items-center gap-3 overflow-hidden">
+      <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
         <button
           type="button"
           className="cursor-grab shrink-0 text-muted-foreground active:cursor-grabbing"
@@ -44,15 +66,43 @@ function SortableMenuItem({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        <div className="truncate">
+
+        <div className="min-w-0 flex flex-1 flex-row items-center gap-2">
           <p className="truncate font-medium">{item.label}</p>
           <p className="truncate opacity-70">
-            {item.type === "page" ? `Page: /${item.pageSlug}` : `Custom: ${item.url}`}
-            {item.parentId ? " • Cấp 2" : " • Cấp 1"}
+            {item.type === "page" ? `Page: ${getManagedPagePath(availablePages.find((page) => page.slug === item.pageSlug) ?? { slug: item.pageSlug ?? "", permalink: null })}` : `Custom: ${item.url}`}
+            {depth > 0 ? ` • Cấp ${depth + 1}` : " • Cấp 1"}
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
+        {item.type === "page" ? (
+          <select
+            value={item.pageSlug ?? ""}
+            onChange={(event) => onUpdateItem(item.id, { pageSlug: event.target.value || null })}
+            className="h-9 w-48 rounded-md border bg-background px-3 text-sm"
+          >
+            <option value="">Chọn trang</option>
+            {availablePages.map((page) => (
+              <option key={page.slug} value={page.slug}>
+                {page.name} ({getManagedPagePath(page)})
+              </option>
+            ))}
+          </select>
+        ) : null}
+        <select
+          value={item.parentId ?? ""}
+          onChange={(event) => onUpdateParent(item.id, event.target.value || null)}
+          className="h-9 w-44 rounded-md border bg-background px-3 text-sm"
+        >
+          <option value="">Gốc</option>
+          {parentOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {"— ".repeat(option.depth)}
+              {option.label}
+            </option>
+          ))}
+        </select>
         <Button
           type="button"
           variant="ghost"
@@ -69,10 +119,20 @@ function SortableMenuItem({
 
 export function MenuSortableList({
   items,
+  itemDepths,
+  parentOptionsByItemId,
+  availablePages,
+  onUpdateParent,
+  onUpdateItem,
   onChange,
   onRemove,
 }: {
   items: EditableMenuItem[];
+  itemDepths: Record<string, number>;
+  parentOptionsByItemId: Record<string, MenuParentOption[]>;
+  availablePages: ManagedPage[];
+  onUpdateParent: (itemId: string, parentId: string | null) => void;
+  onUpdateItem: (itemId: string, next: Partial<EditableMenuItem>) => void;
   onChange: (items: EditableMenuItem[]) => void;
   onRemove: (index: number) => void;
 }) {
@@ -92,7 +152,35 @@ export function MenuSortableList({
     const newIndex = items.findIndex((item, index) => (item.id || `new-${index}`) === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
 
-    onChange(normalizePositions(arrayMove(items, oldIndex, newIndex)));
+    const reorderedItems = normalizePositions(arrayMove(items, oldIndex, newIndex));
+    const movedItem = reorderedItems[newIndex];
+    if (!movedItem) {
+      onChange(reorderedItems);
+      return;
+    }
+
+    const previousItem = reorderedItems[newIndex - 1] ?? null;
+    const allowedParentIds = new Set((parentOptionsByItemId[movedItem.id] ?? []).map((option) => option.id));
+
+    let nextParentId = movedItem.parentId ?? null;
+
+    if (event.delta.x > INDENT_THRESHOLD && previousItem && allowedParentIds.has(previousItem.id)) {
+      nextParentId = previousItem.id;
+    } else if (event.delta.x < -INDENT_THRESHOLD) {
+      if (movedItem.parentId) {
+        const currentParent = reorderedItems.find((item) => item.id === movedItem.parentId) ?? null;
+        nextParentId = currentParent?.parentId ?? null;
+      } else {
+        nextParentId = null;
+      }
+    }
+
+    reorderedItems[newIndex] = {
+      ...movedItem,
+      parentId: nextParentId,
+    };
+
+    onChange(normalizePositions(reorderedItems));
   };
 
   return (
@@ -107,6 +195,11 @@ export function MenuSortableList({
               key={item.id || `new-${index}`}
               item={item}
               index={index}
+              depth={itemDepths[item.id] ?? 0}
+              parentOptions={parentOptionsByItemId[item.id] ?? []}
+              availablePages={availablePages}
+              onUpdateParent={onUpdateParent}
+              onUpdateItem={onUpdateItem}
               onRemove={onRemove}
             />
           ))}

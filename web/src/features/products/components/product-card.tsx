@@ -7,12 +7,12 @@ import {
   ClientPanelTitle,
 } from "@/app/(client)/_components/client-ui";
 import type { Product } from "@/features/products/types";
-import { getWeddingTemplateLabel } from "@/features/sites/templates/registry";
+import { getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { ROUTES } from "@/lib/routes";
 
 export function ProductCard({
   product,
-  href = ROUTES.WEDDING.TEMPLATE(product.slug),
+  href = ROUTES.CATALOG.TEMPLATE(product.slug),
   ctaLabel = "Xem chi tiết",
 }: {
   product: Product;
@@ -23,7 +23,7 @@ export function ProductCard({
     <ClientPanel className="flex h-full flex-col">
       <ClientPanelHeader>
         <ClientPanelTitle>{product.name}</ClientPanelTitle>
-        <p className="mt-2 text-sm text-stone-500">{getWeddingTemplateLabel(product.templateKey)}</p>
+        <p className="mt-2 text-sm text-stone-500">{getInvitationTemplateLabel(product.templateKey)}</p>
       </ClientPanelHeader>
       <ClientPanelBody className="flex flex-1 flex-col gap-4">
         {product.thumbnailUrl ? (

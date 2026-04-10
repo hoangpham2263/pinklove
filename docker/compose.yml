@@ -33,7 +33,8 @@ services:
       mkdir -p node_modules &&
       echo $$CURRENT_HASH > $$LOCK_HASH_FILE;
       fi &&
-      npm run dev -- --hostname 0.0.0.0 --port 3000"
+      rm -rf .next &&
+      npm run dev -- --hostname 0.0.0.0 --port 3000 --webpack"
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-3001}:3000"

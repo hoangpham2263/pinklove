@@ -15,16 +15,19 @@ This file is the repo-wide source of truth.
 
 - The Next.js app lives in `web/`.
 - Paths in documentation are relative to `web/` unless a path starts with `docs/`.
-- The project is a monolithic Next.js App Router app with PostgreSQL, local auth, optional Google OAuth, a CMS layer, affiliate tracking, and wedding-site product flows.
+- The project is a monolithic Next.js App Router app with PostgreSQL, local auth, optional Google OAuth, managed pages, affiliate tracking, and invitation product flows.
 
 ## Folder structure
 
 - Keep routing concerns in `src/app` only.
 - Use route groups for concern separation:
   - `src/app/(client)`
-  - `src/app/(admin)`
-  - `src/app/(user)`
-  - `src/app/(designer)` for dedicated builder editing
+  - `src/app/(seo)` for `robots.txt` and sitemap routes
+  - direct URL segments like `src/app/admin` and `src/app/user` when the folder name already matches the public path
+- Prefer nested route groups inside each area when they clarify responsibility without changing URL paths.
+  Public examples: `(marketing)`, `(catalog)`, `(content)`, `(tools)`.
+  Admin examples: `(overview)`, `(content)`, `(catalog)`, `(accounts)`, `(system)`.
+  User examples: `(workspace)`, `(account)`, `(growth)`.
 - Keep domain logic in `src/features/<feature>`.
 - Keep shared UI in `src/components/ui`.
 - Keep shared app-level components in `src/components/common`.
@@ -36,6 +39,20 @@ This file is the repo-wide source of truth.
 - The central route registry is `src/lib/routes.ts`.
 - Prefer `ROUTES.*` for internal navigation and redirects.
 - Keep route handlers under `src/app/api/**/route.ts`.
+- Public URLs must use descriptive, self-explanatory path bases. Avoid opaque short aliases like `/w` for primary public content routes.
+- When a public route base changes, keep the old route as a redirect-only legacy alias instead of serving two canonical public paths long-term.
+- Managed-page public paths must resolve from `src/lib/page-paths.ts`.
+- Blog, category, product, builder, and invitation public paths must resolve from `src/lib/public-paths.ts`.
+- Permalink settings should be per content type with a constrained whitelist of supported patterns, not a free-form global token engine.
+
+## SEO routes
+
+- Keep `robots.txt` and `sitemap*.xml` under `src/app/(seo)` so route-level SEO files stay grouped without changing their public URLs.
+- `sitemap.xml` must be generated automatically from the project registry and publishable data sources. Do not maintain sitemap URLs as a manual hardcoded list.
+- When a managed page, product, blog post, category, or public site is added or published, the relevant sitemap output should update automatically.
+- `robots.txt` may start from a safe automatic baseline, but it must support controlled manual rules for crawl budget and private paths.
+- Typical `robots.txt` manual rules should cover admin, account, checkout, cart, internal search, and other non-indexable routes when those areas exist in the product.
+- Never hardcode the production domain inside sitemap or robots output. Always resolve the live domain from the current request context.
 
 ## Naming
 
@@ -63,19 +80,20 @@ This file is the repo-wide source of truth.
 - Use `NativeForm` from `src/components/common/native-form.tsx` for POST forms that rely on redirect responses.
 - `NativeForm` should be preferred for browser-native submissions that need server redirects to behave predictably.
 
-## CMS and content
+## Managed Pages and content
 
-- CMS page content is stored in `cms_pages`.
+- Managed page content is stored in `managed_pages`.
 - Public content routes are code-managed explicit files under `src/app/(client)`.
 - Managed content-page config lives in `src/features/pages/registry.ts`.
 - Auth-page config lives in `src/features/auth/page-registry.ts`.
-- Template-specific fields are stored in `cms_pages.custom_fields`.
-- Use `getFields(page)` from `src/lib/cms-fields.ts` when a page object is already loaded.
-- Use `getFieldsBySlug(slug)` from `src/lib/cms.ts` only in server routes or pages that need to load by slug.
-- Public CMS-managed pages must load through `getAccessibleCmsPageBySlug()` from `src/lib/cms.ts`.
-- Do not use `getCmsPageBySlug()` directly in public route rendering for CMS-managed pages.
-- `draft` CMS pages must not render publicly.
-- Unpublished CMS pages are accessible only to logged-in admins.
+- When a managed page is registered in the page registries, CMS seeding and sitemap inclusion must update automatically from that registry data rather than requiring a second hardcoded sitemap edit.
+- Template-specific fields are stored in `managed_pages.custom_fields`.
+- Use `getPageFields(page)` from `src/lib/page-fields.ts` when a page object is already loaded.
+- Use `getPageFieldsBySlug(slug)` from `src/lib/managed-pages.ts` only in server routes or pages that need to load by slug.
+- Public managed pages must load through `getAccessiblePageBySlug()` from `src/lib/managed-pages.ts`.
+- Do not use `getPageBySlug()` directly in public route rendering for managed pages.
+- `draft` managed pages must not render publicly.
+- Unpublished managed pages are accessible only to logged-in admins.
 - For public preview links, require `?preview=1` and an authenticated admin session.
 - For auth system pages like `login` and `register`, draft access is allowed only for logged-in admins through the shared helper path.
 - Protected system slugs currently include `home`, `login`, and `register`.
@@ -131,5 +149,5 @@ This file is the repo-wide source of truth.
 - Affiliate foundation lives in `web/src/features/affiliate/`.
 - Wedding product foundation lives in:
   - `web/src/features/products/`
-  - `web/src/features/sites/`
-- Builder editing lives in `web/src/app/(designer)/user/design/[id]/page.tsx`.
+  - `web/src/features/invitations/`
+- Builder editing lives in `web/src/app/user/(protected)/(workspace)/design/[id]/page.tsx`.

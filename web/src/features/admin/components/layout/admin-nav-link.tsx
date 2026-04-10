@@ -1,0 +1,37 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { isRouteActive } from "@/lib/navigation";
+
+type AdminNavLinkProps = {
+  href: string;
+  exact?: boolean;
+  className?: string;
+  activeClassName?: string;
+  inactiveClassName?: string;
+  children: React.ReactNode;
+};
+
+export function AdminNavLink({
+  href,
+  exact = true,
+  className,
+  activeClassName = "bg-muted",
+  inactiveClassName = "hover:bg-muted",
+  children,
+}: AdminNavLinkProps) {
+  const pathname = usePathname();
+  const active = isRouteActive(pathname, href, exact);
+
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(className, active ? activeClassName : inactiveClassName)}
+    >
+      {children}
+    </Link>
+  );
+}

@@ -13,50 +13,81 @@ web/
       (client)/
         layout.tsx
         page.tsx
-        about-us/page.tsx
-        builder/page.tsx
-        builder/[slug]/page.tsx
-        contact/page.tsx
-        templates/page.tsx
-        templates/[slug]/page.tsx
-        w/[slug]/page.tsx
-      (admin)/
-        admin/
-          page.tsx
-          (auth)/
-            layout.tsx
-            login/page.tsx
-          (protected)/
-            layout.tsx
+        (marketing)/
+          about/page.tsx
+          contact/page.tsx
+          services/page.tsx
+        (catalog)/
+          builder/page.tsx
+          builder/[slug]/page.tsx
+          sites/[slug]/page.tsx
+          templates/page.tsx
+          templates/[slug]/page.tsx
+        (content)/
+          blog/page.tsx
+          blog/[slug]/page.tsx
+          blog/post/[slug]/page.tsx
+      tools/
+        page.tsx
+        qr-builder/page.tsx
+        wedding-budget/page.tsx
+      admin/
+        page.tsx
+        (auth)/
+          layout.tsx
+          login/page.tsx
+        (protected)/
+          layout.tsx
+          (overview)/
             dashboard/page.tsx
-            affiliates/page.tsx
-            media/page.tsx
+          (content)/
             menus/page.tsx
             menus/[id]/page.tsx
             pages/page.tsx
-            pages/[slug]/page.tsx
+            pages/[...slug]/page.tsx
+            seo-guide/page.tsx
+          (catalog)/
             products/page.tsx
-            settings/page.tsx
+            products/list/page.tsx
+            products/[slug]/page.tsx
+          (accounts)/
+            affiliates/page.tsx
             user/page.tsx
+            user/create/page.tsx
             user/[id]/page.tsx
-      (user)/
-        user/
-          page.tsx
-          (auth)/
-            layout.tsx
-            login/page.tsx
-            register/page.tsx
-          (protected)/
-            layout.tsx
-            affiliate/page.tsx
+          (system)/
+            media/page.tsx
+            config/page.tsx
+            config/breadcrumbs/page.tsx
+            config/permalinks/page.tsx
+            config/sitemap/page.tsx
+            config/commerce/page.tsx
+      user/
+        page.tsx
+        (auth)/
+          layout.tsx
+          login/page.tsx
+          register/page.tsx
+        (protected)/
+          layout.tsx
+          (workspace)/
             dashboard/page.tsx
+            invitations/page.tsx
+            invitations/[id]/page.tsx
+            design/[id]/page.tsx
+          (account)/
             profile/page.tsx
             settings/page.tsx
-            sites/page.tsx
-            sites/[id]/page.tsx
-      (designer)/
-        user/
-          design/[id]/page.tsx
+          (growth)/
+            affiliate/page.tsx
+      (seo)/
+        robots.txt/route.ts
+        sitemap.xml/route.ts
+        sitemap-pages.xml/route.ts
+        sitemap-products.xml/route.ts
+        sitemap-invitations.xml/route.ts
+        sitemap-blog-categories.xml/route.ts
+        sitemap-blog-posts.xml/route.ts
       api/
         admin/
           affiliates/update/route.ts
@@ -75,9 +106,9 @@ web/
         user/
           affiliate/apply/route.ts
           profile/route.ts
-          sites/create-builder/route.ts
-          sites/create-from-product/route.ts
-          sites/update/route.ts
+          invitations/create-builder/route.ts
+          invitations/create-from-product/route.ts
+          invitations/update/route.ts
     components/
       common/
       ui/
@@ -97,16 +128,13 @@ web/
         types.ts
       pages/
         registry.ts
-        schema.ts
-      products/
-        components/
-        server/
-        types.ts
-      sites/
+      invitations/
         builder/
         components/
         server/
-        templates/
+      products/
+        components/
+        server/
         types.ts
       user/components/
     lib/
@@ -125,8 +153,8 @@ web/
 
 - The app is a monolithic Next.js application inside `web/`.
 - Route handlers and Server Components call shared infra in `src/lib/*` and feature-owned server services in `src/features/*/server/*`.
-- Database access is raw SQL through `src/lib/db.ts`.
-- `db.ts` also performs limited auto-migrations and seed steps on first use.
+- Database access is raw SQL through `src/lib/database.ts`.
+- `database.ts` also performs limited auto-migrations and seed steps on first use.
 - Media files are stored on disk, not in PostgreSQL.
 
 ## Public client area
@@ -134,26 +162,26 @@ web/
 - The public website uses the `(client)` route group.
 - Public content pages are explicit route files in `src/app/(client)`.
 - Current public catalog flows:
-  - `src/app/(client)/templates/page.tsx`
-  - `src/app/(client)/templates/[slug]/page.tsx`
-  - `src/app/(client)/builder/page.tsx`
-  - `src/app/(client)/builder/[slug]/page.tsx`
-- Public invitation rendering lives at `src/app/(client)/w/[slug]/page.tsx`.
+  - `src/app/(client)/(catalog)/templates/page.tsx`
+  - `src/app/(client)/(catalog)/templates/[slug]/page.tsx`
+  - `src/app/(client)/(catalog)/builder/page.tsx`
+  - `src/app/(client)/(catalog)/builder/[slug]/page.tsx`
+- Public invitation rendering lives at `src/app/(client)/(catalog)/invitations/[slug]/page.tsx`.
 
 ## User area
 
-- The user shell lives under `src/app/(user)/user`.
+- The user shell lives under `src/app/user`.
 - Protected user flows include dashboard, profile, settings, affiliate, and site management.
-- User site flows live at:
-  - `src/app/(user)/user/(protected)/sites/page.tsx`
-  - `src/app/(user)/user/(protected)/sites/[id]/page.tsx`
-- Builder editing for user-owned builder sites is handled in the dedicated designer route:
-  - `src/app/(designer)/user/design/[id]/page.tsx`
+- User invitation flows live at:
+  - `src/app/user/(protected)/(workspace)/invitations/page.tsx`
+  - `src/app/user/(protected)/(workspace)/invitations/[id]/page.tsx`
+- Builder editing for user-owned builder invitations lives at:
+  - `src/app/user/(protected)/(workspace)/design/[id]/page.tsx`
 
 ## Admin area
 
-- The admin shell lives under `src/app/(admin)/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, products, and settings.
+- The admin shell lives under `src/app/admin/(protected)`.
+- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, products, SEO, blog management, and config.
 - Admin product management works at the catalog level, not at a commerce or entitlement level.
 
 ## Feature map
@@ -162,14 +190,14 @@ web/
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/media`: media library UI and server storage
 - `src/features/affiliate`: affiliate flows for user and admin
-- `src/features/products`: wedding invitation catalog products
-- `src/features/sites`: per-user wedding site instances, renderers, and builder editor
+- `src/features/products`: invitation catalog products
+- `src/features/invitations`: per-user invitation instances, renderers, and builder editor
 
 ## Current implementation notes
 
 - Public content pages are code-managed routes, not admin-created arbitrary routes.
 - Admin `Pages` edits only managed content and system pages already registered in code.
-- `home`, `login`, and `register` are system CMS pages seeded by `src/lib/db.ts`.
+- `home`, `login`, and `register` are system managed pages seeded by `src/lib/database.ts`.
 - The current builder editor does not support dragging/resizing element height yet.
 - The current builder editor does not support grouping selected elements yet.
 - Checkout, order completion, affiliate conversion settlement, and payout settlement are intentionally not implemented yet.

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { listMediaAssets } from "@/features/media/server/media-store";
-import { absoluteUrl } from "@/lib/seo";
+import { absoluteUrl, getCurrentSiteUrl } from "@/lib/seo";
 
 type MediaReference =
   | string
@@ -81,5 +81,9 @@ export async function resolveMediaUrl(input: unknown): Promise<string | undefine
 
 export async function resolveSeoImageUrl(input: unknown): Promise<string | undefined> {
   const url = await resolveMediaUrl(input);
-  return url ? absoluteUrl(url) : undefined;
+  if (!url) {
+    return undefined;
+  }
+
+  return absoluteUrl(url, await getCurrentSiteUrl());
 }

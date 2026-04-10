@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,18 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import {
-  getWeddingTemplateFields,
-  getWeddingTemplateOptions,
-} from "@/features/sites/templates/registry";
-import type { Product, ProductType } from "@/features/products/types";
+  getInvitationTemplateFields,
+  getInvitationTemplateOptions,
+} from "@/features/invitations/templates/registry";
+import type { Product, ProductCategory, ProductType } from "@/features/products/types";
+import { finishMutation, postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 
 type ProductEditorFormProps = {
   product: Product;
+  categories: ProductCategory[];
 };
 
-export function ProductEditorForm({ product }: ProductEditorFormProps) {
+export function ProductEditorForm({ product, categories }: ProductEditorFormProps) {
+  const router = useRouter();
   const [slug, setSlug] = useState(product.slug);
   const [name, setName] = useState(product.name);
   const [thumbnailUrl, setThumbnailUrl] = useState(product.thumbnailUrl || "");
@@ -28,9 +33,45 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const templateOptions = useMemo(() => getWeddingTemplateOptions(productType), [productType]);
-  const templateFields = getWeddingTemplateFields(templateKey);
+  const templateOptions = useMemo(() => getInvitationTemplateOptions(productType), [productType]);
+  const templateFields = getInvitationTemplateFields(templateKey);
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.UPDATE, new FormData(event.currentTarget));
+      toast.success(result.message ?? "Đã lưu sản phẩm.");
+      finishMutation(router, result, { redirect: "replace", refresh: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể lưu sản phẩm.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${product.name}?`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const formData = new FormData();
+      formData.append("slug", product.slug);
+      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, formData);
+      toast.success(result.message ?? "Đã xóa sản phẩm.");
+      finishMutation(router, result, { redirect: "push", refresh: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <>
@@ -39,6 +80,7 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
       action={ROUTES.API.ADMIN.PRODUCTS.UPDATE}
       method="POST"
       className="grid gap-6 lg:grid-cols-12"
+      onSubmit={handleSave}
     >
       <input type="hidden" name="originalSlug" value={product.slug} />
       <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
@@ -72,6 +114,21 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
+              <label className="font-medium">Product Category</label>
+              <select
+                name="categoryId"
+                defaultValue={product.categoryId ?? ""}
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">Không chọn category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
               <label className="font-medium">Loại sản phẩm</label>
               <select
                 name="productType"
@@ -79,7 +136,7 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
                 onChange={(e) => {
                   const nextType = e.target.value as ProductType;
                   setProductType(nextType);
-                  const nextTemplate = getWeddingTemplateOptions(nextType)[0]?.value || "";
+                  const nextTemplate = getInvitationTemplateOptions(nextType)[0]?.value || "";
                   setTemplateKey(nextTemplate);
                   setSiteDefaults({});
                 }}
@@ -172,8 +229,8 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
               <Input name="price" type="number" min="0" step="1000" defaultValue={String(product.price)} />
             </div>
 
-            <Button type="submit" className="w-full rounded-md">
-              Lưu sản phẩm
+            <Button type="submit" className="w-full rounded-md" disabled={isSaving}>
+              {isSaving ? "Đang lưu..." : "Lưu sản phẩm"}
             </Button>
 
             <div className="border-t pt-4">
@@ -184,9 +241,10 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
                 type="button"
                 variant="destructive"
                 className="mt-4 w-full rounded-md"
-                form="product-delete-form"
+                disabled={isDeleting}
+                onClick={() => void handleDelete()}
               >
-                Xóa sản phẩm
+                {isDeleting ? "Đang xóa..." : "Xóa sản phẩm"}
               </Button>
             </div>
           </CardContent>
@@ -201,10 +259,6 @@ export function ProductEditorForm({ product }: ProductEditorFormProps) {
           </CardContent>
         </Card>
       </div>
-    </NativeForm>
-
-    <NativeForm id="product-delete-form" action={ROUTES.API.ADMIN.PRODUCTS.DELETE} method="POST" className="hidden">
-      <input type="hidden" name="slug" value={product.slug} />
     </NativeForm>
     </>
   );

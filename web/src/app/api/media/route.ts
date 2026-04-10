@@ -16,8 +16,20 @@ export async function GET(request: Request) {
  return NextResponse.json({ message:"Unauthorized" }, { status: 401 });
  }
 
+ const { searchParams } = new URL(request.url);
+ const pageParam = Number(searchParams.get("page") ?? "1");
+ const limitParam = Number(searchParams.get("limit") ?? "100");
+ const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
+ const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.floor(limitParam) : 100;
+
  const items = await listMediaAssets();
- return NextResponse.json({ items });
+ const total = items.length;
+ const totalPages = Math.max(1, Math.ceil(total / limit));
+ const normalizedPage = Math.min(page, totalPages);
+ const offset = (normalizedPage - 1) * limit;
+ const pagedItems = items.slice(offset, offset + limit);
+
+ return NextResponse.json({ items: pagedItems, total, page: normalizedPage, limit });
 }
 
 export async function POST(request: Request) {

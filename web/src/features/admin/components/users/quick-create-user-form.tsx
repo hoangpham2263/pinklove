@@ -1,0 +1,76 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
+import { NativeForm } from "@/components/common/native-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { finishMutation, postForm } from "@/lib/client-mutation";
+import { ROUTES } from "@/lib/routes";
+
+export function QuickCreateUserForm() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const result = await postForm(ROUTES.API.ADMIN.USERS.CREATE, new FormData(event.currentTarget));
+      toast.success(result.message ?? "Đã tạo tài khoản mới.");
+      finishMutation(router, result, { redirect: false });
+      event.currentTarget.reset();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể tạo tài khoản.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <NativeForm action={ROUTES.API.ADMIN.USERS.CREATE} method="POST" className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
+      <div className="space-y-2">
+        <label>Tên đăng nhập</label>
+        <Input name="username" required />
+      </div>
+      <div className="space-y-2">
+        <label>Mật khẩu</label>
+        <Input name="password" type="password" required />
+      </div>
+      <div className="space-y-2">
+        <label>Vai trò</label>
+        <select
+          name="role"
+          defaultValue="user"
+          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+        >
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+
+      <div className="grid gap-4 border-t pt-4 md:col-span-3 md:grid-cols-3">
+        <div className="space-y-2">
+          <label>Họ và tên</label>
+          <Input name="fullName" />
+        </div>
+        <div className="space-y-2">
+          <label>Tên hiển thị</label>
+          <Input name="displayName" />
+        </div>
+        <div className="space-y-2">
+          <label>Số điện thoại</label>
+          <Input name="phone" />
+        </div>
+      </div>
+
+      <div className="md:col-span-3">
+        <Button type="submit" className="w-full md:w-auto" disabled={isSubmitting}>
+          {isSubmitting ? "Đang tạo..." : "Tạo tài khoản"}
+        </Button>
+      </div>
+    </NativeForm>
+  );
+}

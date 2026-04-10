@@ -5,7 +5,9 @@ import { AppToaster } from"@/components/common/app-toaster";
 import { AffiliateRefTracker } from "@/features/affiliate/components/affiliate-ref-tracker";
 import { createRootMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = createRootMetadata();
+export async function generateMetadata(): Promise<Metadata> {
+ return createRootMetadata();
+}
 
 export default function RootLayout({
  children,

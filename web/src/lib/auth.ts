@@ -30,6 +30,10 @@ export type AccountUser = {
   username: string;
   role: UserRole;
   createdAt: string;
+  fullName: string;
+  displayName: string;
+  phone: string;
+  bio: string;
 };
 
 type UserRow = {
@@ -371,11 +375,24 @@ export async function listAccounts(): Promise<AccountUser[]> {
  username: string;
  role: UserRole;
  created_at: string;
+ full_name: string | null;
+ display_name: string | null;
+ phone: string | null;
+ bio: string | null;
  }>(
  `
-  SELECT id, username, role, created_at
-  FROM users
-  ORDER BY created_at ASC
+  SELECT
+   u.id,
+   u.username,
+   u.role,
+   u.created_at,
+   p.full_name,
+   p.display_name,
+   p.phone,
+   p.bio
+  FROM users u
+  LEFT JOIN user_profiles p ON p.user_id = u.id
+  ORDER BY u.created_at ASC
  `
  );
 
@@ -384,6 +401,10 @@ export async function listAccounts(): Promise<AccountUser[]> {
  username: row.username,
  role: row.role,
  createdAt: row.created_at,
+ fullName: row.full_name ?? "",
+ displayName: row.display_name ?? "",
+ phone: row.phone ?? "",
+ bio: row.bio ?? "",
  }));
 }
 
@@ -393,11 +414,24 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  username: string;
  role: UserRole;
  created_at: string;
+ full_name: string | null;
+ display_name: string | null;
+ phone: string | null;
+ bio: string | null;
  }>(
  `
-  SELECT id, username, role, created_at
-  FROM users
-  WHERE id = $1
+  SELECT
+   u.id,
+   u.username,
+   u.role,
+   u.created_at,
+   p.full_name,
+   p.display_name,
+   p.phone,
+   p.bio
+  FROM users u
+  LEFT JOIN user_profiles p ON p.user_id = u.id
+  WHERE u.id = $1
   LIMIT 1
  `,
  [id]
@@ -410,6 +444,10 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  username: row.username,
  role: row.role,
  createdAt: row.created_at,
+ fullName: row.full_name ?? "",
+ displayName: row.display_name ?? "",
+ phone: row.phone ?? "",
+ bio: row.bio ?? "",
  };
 }
 

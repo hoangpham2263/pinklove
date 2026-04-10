@@ -1,38 +1,15 @@
 import Link from "next/link";
 import { ClientHeader, type ClientHeaderLink, type ClientHeaderNode } from "@/app/(client)/_components/client-header";
-import { listPublishedBlogCategories } from "@/features/blog/server/service";
 import { getCurrentUser } from "@/lib/auth";
+import { listManagedPages } from "@/lib/managed-pages";
+import { getManagedPagePath } from "@/lib/page-paths";
 import { getMenuByName } from "@/lib/menu";
 import { ROUTES } from "@/lib/routes";
 
-const toolLinks: ClientHeaderLink[] = [
-  { id: "client-tools", label: "Công cụ", href: ROUTES.TOOLS },
-  { id: "tools-qr-builder", label: "QR mừng cưới", href: ROUTES.TOOLS_PAGES.QR_BUILDER, parentId: "client-tools" },
-  { id: "tools-wedding-budget", label: "Bảng tính chi phí cưới", href: ROUTES.TOOLS_PAGES.WEDDING_BUDGET, parentId: "client-tools" },
-];
-
-const primaryClientLinks: ClientHeaderLink[] = [
-  { id: "client-templates", label: "Mẫu thiệp", href: ROUTES.TEMPLATES },
-  { id: "client-blog", label: "Blog", href: ROUTES.BLOG },
-  { id: "client-services", label: "Gói dịch vụ", href: ROUTES.SERVICES },
-  { id: "client-builder", label: "Tự tạo thiệp", href: ROUTES.BUILDER },
-  ...toolLinks,
-];
-
-function appendMissingLinks(links: ClientHeaderLink[], requiredLinks: ClientHeaderLink[]) {
-  const signatures = new Set(
-    links.map((item) => `${item.href}::${item.parentId ?? "root"}`)
-  );
-  return [
-    ...links,
-    ...requiredLinks.filter((item) => !signatures.has(`${item.href}::${item.parentId ?? "root"}`)),
-  ];
-}
-
-function resolveMenuHref(pageSlug: string | null, url: string | null) {
+function resolveMenuHref(pageSlug: string | null, url: string | null, pagePathMap: Map<string, string>) {
   if (url) return url;
-  if (!pageSlug || pageSlug === "home") return "/";
-  return `/${pageSlug}`;
+  if (!pageSlug) return "/";
+  return pagePathMap.get(pageSlug) || "/";
 }
 
 function mapMenuLinks(
@@ -45,16 +22,14 @@ function mapMenuLinks(
       parentId?: string | null;
     }>
     | undefined,
-  fallback: ClientHeaderLink[]
+  pagePathMap: Map<string, string>,
 ) {
-  if (!items?.length) {
-    return fallback;
-  }
+  if (!items?.length) return [];
 
   return items.map((item) => ({
     id: item.id,
     label: item.label,
-    href: resolveMenuHref(item.pageSlug, item.url),
+    href: resolveMenuHref(item.pageSlug, item.url, pagePathMap),
     parentId: item.parentId,
   }));
 }
@@ -72,12 +47,7 @@ function buildNavTree(links: ClientHeaderLink[]): ClientHeaderNode[] {
     if (!node) continue;
 
     if (item.parentId && nodeMap.has(item.parentId)) {
-      nodeMap.get(item.parentId)?.children.push({
-        id: node.id,
-        label: node.label,
-        href: node.href,
-        parentId: node.parentId,
-      });
+      nodeMap.get(item.parentId)?.children.push(node);
       continue;
     }
 
@@ -87,69 +57,26 @@ function buildNavTree(links: ClientHeaderLink[]): ClientHeaderNode[] {
   return roots;
 }
 
-function withDynamicChildren(rootLinks: ClientHeaderNode[], blogCategoryLinks: ClientHeaderLink[]) {
-  return rootLinks.map((item) => {
-    if (item.href === ROUTES.TOOLS && item.children.length === 0) {
-      return {
-        ...item,
-        children: [
-          { id: `${item.id}-qr-builder`, label: "QR mừng cưới", href: ROUTES.TOOLS_PAGES.QR_BUILDER, parentId: item.id },
-          { id: `${item.id}-wedding-budget`, label: "Bảng tính chi phí cưới", href: ROUTES.TOOLS_PAGES.WEDDING_BUDGET, parentId: item.id },
-        ],
-      };
-    }
-
-    if (item.href === ROUTES.BLOG && item.children.length === 0) {
-      return {
-        ...item,
-        children: blogCategoryLinks,
-      };
-    }
-
-    return item;
-  });
+function flattenNavTree(nodes: ClientHeaderNode[]): ClientHeaderNode[] {
+  return nodes.flatMap((node) => [node, ...flattenNavTree(node.children)]);
 }
 
 export default async function ClientLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [user, headerMenu, footerMenu, blogCategories] = await Promise.all([
+  const [user, headerMenu, footerMenu, managedPages] = await Promise.all([
     getCurrentUser(),
     getMenuByName("header"),
     getMenuByName("footer"),
-    listPublishedBlogCategories(),
+    listManagedPages(),
   ]);
+  const pagePathMap = new Map(managedPages.map((page) => [page.slug, getManagedPagePath(page)]));
   const dashboardHref = user?.role === "admin" ? ROUTES.ADMIN.DASHBOARD : ROUTES.USER.DASHBOARD;
-  const settingsHref = user?.role === "admin" ? ROUTES.ADMIN.SETTINGS : ROUTES.USER.SETTINGS;
-  const headerLinks = mapMenuLinks(headerMenu?.items, [
-    { id: "header-home", label: "Home", href: "/" },
-    { id: "header-templates", label: "Mẫu thiệp", href: ROUTES.TEMPLATES },
-    { id: "header-services", label: "Gói dịch vụ", href: ROUTES.SERVICES },
-    { id: "header-builder", label: "Tự tạo thiệp", href: ROUTES.BUILDER },
-    { id: "header-about", label: "About Us", href: "/about-us" },
-    { id: "header-contact", label: "Contact", href: "/contact" },
-  ]);
-  const normalizedHeaderLinks = appendMissingLinks(headerLinks, primaryClientLinks);
-  const footerLinks = mapMenuLinks(footerMenu?.items, [
-    { id: "footer-home", label: "Trang chủ", href: "/" },
-    { id: "footer-templates", label: "Mẫu thiệp", href: ROUTES.TEMPLATES },
-    { id: "footer-tools", label: "Công cụ", href: ROUTES.TOOLS },
-    { id: "footer-services", label: "Gói dịch vụ", href: ROUTES.SERVICES },
-    { id: "footer-builder", label: "Tự tạo thiệp", href: ROUTES.BUILDER },
-    { id: "footer-about", label: "Giới thiệu", href: "/about-us" },
-    { id: "footer-contact", label: "Liên hệ", href: "/contact" },
-  ]);
-  const normalizedFooterLinks = appendMissingLinks(footerLinks, [
-    { id: "footer-tools", label: "Công cụ", href: ROUTES.TOOLS },
-    { id: "footer-blog", label: "Blog", href: ROUTES.BLOG },
-  ]);
-  const blogCategoryLinks: ClientHeaderLink[] = blogCategories.map((item) => ({
-    id: item.id,
-    label: item.name,
-    href: ROUTES.BLOG_PAGES.CATEGORY(item.slug),
-  }));
-  const headerTree = withDynamicChildren(buildNavTree(normalizedHeaderLinks), blogCategoryLinks);
-  const footerTree = buildNavTree(normalizedFooterLinks);
+  const settingsHref = user?.role === "admin" ? ROUTES.ADMIN.CONFIG : ROUTES.USER.SETTINGS;
+  const headerLinks = mapMenuLinks(headerMenu?.items, pagePathMap);
+  const footerLinks = mapMenuLinks(footerMenu?.items, pagePathMap);
+  const headerTree = buildNavTree(headerLinks);
+  const footerTree = buildNavTree(footerLinks);
 
   return (
     <div className="min-h-full w-full">
@@ -177,7 +104,7 @@ export default async function ClientLayout({
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Điều hướng</p>
             <div className="flex flex-col gap-2">
-              {footerTree.flatMap((item) => [item, ...item.children]).map((item) => (
+              {flattenNavTree(footerTree).map((item) => (
                 <Link key={item.id} href={item.href} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
                   {item.label}
                 </Link>
@@ -193,7 +120,7 @@ export default async function ClientLayout({
                   <Link href={dashboardHref} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
                     {user.role === "admin" ? "Dashboard admin" : "Trang người dùng"}
                   </Link>
-                  <Link href={ROUTES.USER.SITES} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
+                  <Link href={ROUTES.USER.INVITATIONS} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">
                     Thiệp của tôi
                   </Link>
                   <Link href={settingsHref} className="text-sm text-stone-600 transition hover:text-stone-950 md:text-base">

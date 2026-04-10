@@ -36,6 +36,17 @@ Index:
 - `ui_density`: `text`, `small`, `medium`, or `large`
 - `updated_at`: `timestamptz`
 
+### `app_settings`
+
+- `key`: `text`, primary key
+- `value`: `jsonb`
+- `updated_at`: `timestamptz`
+
+Notes:
+
+- Currently used for centralized SEO/system settings such as permalink, breadcrumb, and sitemap config.
+- Also stores site-wide indexing / robots settings.
+
 ### `user_profiles`
 
 - `user_id`: PK and FK to `users.id`
@@ -58,7 +69,7 @@ Constraint:
 
 - unique `(provider, provider_user_id)`
 
-### `cms_pages`
+### `managed_pages`
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
 - `slug`: `text`, unique
@@ -72,6 +83,9 @@ Constraint:
 - `seo_description`: `text`
 - `seo_keywords`: `text`
 - `canonical_url`: `text`
+- `permalink`: `text`, unique
+- `breadcrumb_title`: `text`
+- `breadcrumb_parent_slug`: `text`
 - `og_title`: `text`
 - `og_description`: `text`
 - `og_image`: `text`
@@ -85,7 +99,7 @@ Notes:
 
 - `src/lib/db.ts` seeds the built-in `home`, `login`, and `register` rows if missing.
 
-### `cms_menus`
+### `navigation_menus`
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
 - `name`: `text`, unique
@@ -93,10 +107,10 @@ Notes:
 - `created_at`: `timestamptz`
 - `updated_at`: `timestamptz`
 
-### `cms_menu_items`
+### `navigation_menu_items`
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
-- `menu_id`: FK to `cms_menus.id`
+- `menu_id`: FK to `navigation_menus.id`
 - `label`: `text`
 - `type`: `text`, `page` or `custom`
 - `page_slug`: `text`, nullable
@@ -163,6 +177,8 @@ Index:
 - `updated_at`: `timestamptz`
 
 ### `wedding_sites`
+
+Current business meaning: invitation instances created by users and published at `/invitations/[slug]`.
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
 - `user_id`: FK to `users.id`

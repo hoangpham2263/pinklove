@@ -13,7 +13,7 @@ type PageToastProps = {
 export function PageToast({
   message,
   variant = "info",
-  cleanupKeys = ["saved", "error", "deleted"],
+  cleanupKeys = ["saved", "error", "deleted", "bulk", "count"],
 }: PageToastProps) {
   const router = useRouter();
   const pathname = usePathname();

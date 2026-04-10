@@ -1,24 +1,38 @@
 import"server-only";
 
-import { Pool } from"pg";
+import { Pool, type QueryResultRow } from"pg";
 import { CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
  initPromise?: Promise<void>;
- roleMigrationDone?: boolean;
- userProfilesMigrationDone?: boolean;
- userSettingsDensityMigrationDone?: boolean;
- oauthAccountsMigrationDone?: boolean;
- menuTablesMigrationDone?: boolean;
- affiliateTablesMigrationDone?: boolean;
- productTablesMigrationDone?: boolean;
- blogTablesMigrationDone?: boolean;
- productSeedDone?: boolean;
- systemPagesSeedDone?: boolean;
- blogSeedDone?: boolean;
+  roleMigrationDone?: boolean;
+  userProfilesMigrationDone?: boolean;
+  userSettingsDensityMigrationDone?: boolean;
+  oauthAccountsMigrationDone?: boolean;
+  menuTablesMigrationDone?: boolean;
+  affiliateTablesMigrationDone?: boolean;
+  productTablesMigrationDone?: boolean;
+  blogTablesMigrationDone?: boolean;
+  productSeedDone?: boolean;
+  productCategorySeedDone?: boolean;
+  managedPagesSeedSignature?: string;
+  blogSeedDone?: boolean;
 };
+
+function getManagedPagesSeedSignature() {
+ return JSON.stringify({
+  auth: Object.entries(AUTH_PAGES).map(([slug, config]) => ({
+   slug,
+   name: config.name,
+  })),
+  content: Object.entries(CONTENT_PAGES).map(([slug, config]) => ({
+   slug,
+   name: config.name,
+  })),
+ });
+}
 
 function getDatabaseUrlOrThrow(): string {
  const url = process.env.DATABASE_URL;
@@ -178,6 +192,34 @@ async function ensureUserSettingsDensityMigration() {
  `);
 }
 
+async function ensureAppSettingsMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      id INTEGER PRIMARY KEY,
+      theme TEXT NOT NULL DEFAULT 'pink',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT app_settings_id_check CHECK (id = 1),
+      CONSTRAINT app_settings_theme_check CHECK (theme IN ('pink', 'black'))
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE app_settings
+    ADD COLUMN IF NOT EXISTS seo_permalink JSONB,
+    ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
+    ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
+    ADD COLUMN IF NOT EXISTS seo_indexing JSONB;
+  `);
+
+  await pool.query(`
+    INSERT INTO app_settings (id, theme, updated_at)
+    VALUES (1, 'pink', NOW())
+    ON CONFLICT (id) DO NOTHING;
+  `);
+}
+
 async function ensureOauthAccountsMigration() {
  const pool = getPool();
 
@@ -194,11 +236,26 @@ async function ensureOauthAccountsMigration() {
  `);
 }
 
-async function ensureCmsPagesMigration() {
+async function ensureManagedPagesMigration() {
   const pool = getPool();
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS cms_pages (
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'cms_pages'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'managed_pages'
+      ) THEN
+        ALTER TABLE cms_pages RENAME TO managed_pages;
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS managed_pages (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
@@ -211,6 +268,9 @@ async function ensureCmsPagesMigration() {
       seo_description TEXT,
       seo_keywords TEXT,
       canonical_url TEXT,
+      permalink TEXT,
+      breadcrumb_title TEXT,
+      breadcrumb_parent_slug TEXT,
       og_title TEXT,
       og_description TEXT,
       og_image TEXT,
@@ -223,7 +283,7 @@ async function ensureCmsPagesMigration() {
   `);
 
   await pool.query(`
-    ALTER TABLE cms_pages
+    ALTER TABLE managed_pages
     ADD COLUMN IF NOT EXISTS title TEXT,
     ADD COLUMN IF NOT EXISTS excerpt TEXT,
     ADD COLUMN IF NOT EXISTS body TEXT,
@@ -233,6 +293,9 @@ async function ensureCmsPagesMigration() {
     ADD COLUMN IF NOT EXISTS seo_description TEXT,
     ADD COLUMN IF NOT EXISTS seo_keywords TEXT,
     ADD COLUMN IF NOT EXISTS canonical_url TEXT,
+    ADD COLUMN IF NOT EXISTS permalink TEXT,
+    ADD COLUMN IF NOT EXISTS breadcrumb_title TEXT,
+    ADD COLUMN IF NOT EXISTS breadcrumb_parent_slug TEXT,
     ADD COLUMN IF NOT EXISTS og_title TEXT,
     ADD COLUMN IF NOT EXISTS og_description TEXT,
     ADD COLUMN IF NOT EXISTS og_image TEXT,
@@ -244,10 +307,18 @@ async function ensureCmsPagesMigration() {
   `);
 
   await pool.query(`
-    UPDATE cms_pages
+    UPDATE managed_pages
     SET
       status = COALESCE(status, 'draft'),
       template = COALESCE(template, 'default'),
+      permalink = COALESCE(
+        NULLIF(permalink, ''),
+        CASE
+          WHEN slug = 'home' THEN '/'
+          WHEN slug IN ('login', 'register') THEN '/user/' || slug
+          ELSE '/' || slug
+        END
+      ),
       noindex = COALESCE(noindex, false),
       nofollow = COALESCE(nofollow, false),
       custom_fields = COALESCE(custom_fields, '{}'::jsonb),
@@ -256,7 +327,12 @@ async function ensureCmsPagesMigration() {
   `);
 
   await pool.query(`
-    ALTER TABLE cms_pages
+    CREATE UNIQUE INDEX IF NOT EXISTS managed_pages_permalink_idx
+    ON managed_pages(permalink);
+  `);
+
+  await pool.query(`
+    ALTER TABLE managed_pages
     ALTER COLUMN status SET DEFAULT 'draft',
     ALTER COLUMN template SET DEFAULT 'default',
     ALTER COLUMN noindex SET DEFAULT false,
@@ -270,7 +346,32 @@ async function ensureMenuTablesMigration() {
   const pool = getPool();
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS cms_menus (
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'cms_menus'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'navigation_menus'
+      ) THEN
+        ALTER TABLE cms_menus RENAME TO navigation_menus;
+      END IF;
+
+      IF EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'cms_menu_items'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'navigation_menu_items'
+      ) THEN
+        ALTER TABLE cms_menu_items RENAME TO navigation_menu_items;
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS navigation_menus (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       name TEXT NOT NULL UNIQUE,
       label TEXT NOT NULL,
@@ -280,9 +381,9 @@ async function ensureMenuTablesMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS cms_menu_items (
+    CREATE TABLE IF NOT EXISTS navigation_menu_items (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      menu_id TEXT NOT NULL REFERENCES cms_menus(id) ON DELETE CASCADE,
+      menu_id TEXT NOT NULL REFERENCES navigation_menus(id) ON DELETE CASCADE,
       parent_id TEXT,
       label TEXT NOT NULL,
       type TEXT NOT NULL,
@@ -291,23 +392,23 @@ async function ensureMenuTablesMigration() {
       position INT NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT cms_menu_items_type_check CHECK (type IN ('page', 'custom'))
+      CONSTRAINT navigation_menu_items_type_check CHECK (type IN ('page', 'custom'))
     );
   `);
 
   await pool.query(`
-    ALTER TABLE cms_menu_items
+    ALTER TABLE navigation_menu_items
     ADD COLUMN IF NOT EXISTS parent_id TEXT;
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS cms_menu_items_menu_id_idx
-    ON cms_menu_items(menu_id);
+    CREATE INDEX IF NOT EXISTS navigation_menu_items_menu_id_idx
+    ON navigation_menu_items(menu_id);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS cms_menu_items_parent_id_idx
-    ON cms_menu_items(parent_id);
+    CREATE INDEX IF NOT EXISTS navigation_menu_items_parent_id_idx
+    ON navigation_menu_items(parent_id);
   `);
 }
 
@@ -375,9 +476,23 @@ async function ensureProductTablesMigration() {
   const pool = getPool();
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS product_categories (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT product_categories_status_check CHECK (status IN ('draft', 'published'))
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
+      category_id TEXT REFERENCES product_categories(id) ON DELETE SET NULL,
       name TEXT NOT NULL,
       excerpt TEXT,
       description TEXT,
@@ -392,6 +507,32 @@ async function ensureProductTablesMigration() {
       CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
       CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template'))
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS category_id TEXT;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'products_category_id_fkey'
+      ) THEN
+        ALTER TABLE products
+        ADD CONSTRAINT products_category_id_fkey
+        FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE SET NULL;
+      END IF;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS products_category_id_idx
+    ON products(category_id);
   `);
 
   await pool.query(`
@@ -459,8 +600,40 @@ async function ensureBlogTablesMigration() {
 async function ensureProductSeed() {
   const pool = getPool();
 
+  const seedCategories = [
+    {
+      slug: "coded-templates",
+      name: "Coded Templates",
+      description: "Nhóm sản phẩm mẫu thiệp code sẵn.",
+      status: "published",
+    },
+    {
+      slug: "builder-templates",
+      name: "Builder Templates",
+      description: "Nhóm sản phẩm starter cho luồng builder.",
+      status: "published",
+    },
+  ] as const;
+
+  for (const category of seedCategories) {
+    await pool.query(
+      `
+        INSERT INTO product_categories (slug, name, description, status)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (slug) DO UPDATE
+        SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `,
+      [category.slug, category.name, category.description, category.status]
+    );
+  }
+
   const seedProducts = [
     {
+      categorySlug: "coded-templates",
       slug: "romantic-bloom",
       name: "Romantic Bloom",
       excerpt: "Mẫu thiệp cưới phong cách nhẹ nhàng, hiện đại và dễ chỉnh sửa.",
@@ -482,6 +655,7 @@ async function ensureProductSeed() {
       },
     },
     {
+      categorySlug: "coded-templates",
       slug: "classic-garden",
       name: "Classic Garden",
       excerpt: "Mẫu thiệp cưới cân bằng giữa phong cách cổ điển và bố cục hiện đại.",
@@ -503,6 +677,7 @@ async function ensureProductSeed() {
       },
     },
     {
+      categorySlug: "builder-templates",
       slug: "builder-starter",
       name: "Builder Starter",
       excerpt: "Bắt đầu từ bố cục section-based để tự tạo thiệp cưới theo ý muốn.",
@@ -529,11 +704,14 @@ async function ensureProductSeed() {
     await pool.query(
       `
         INSERT INTO products (
-          slug, name, excerpt, description, status, product_type, template_key, price, config
+          slug, category_id, name, excerpt, description, status, product_type, template_key, price, config
         )
-        VALUES ($1, $2, $3, $4, 'published', $5, $6, $7, $8)
+        SELECT $1, categories.id, $2, $3, $4, 'published', $5, $6, $7, $8
+        FROM product_categories categories
+        WHERE categories.slug = $9
         ON CONFLICT (slug) DO UPDATE
         SET
+          category_id = EXCLUDED.category_id,
           name = EXCLUDED.name,
           excerpt = EXCLUDED.excerpt,
           description = EXCLUDED.description,
@@ -553,9 +731,16 @@ async function ensureProductSeed() {
         product.templateKey,
         product.price,
         product.config,
+        product.categorySlug,
       ]
     );
   }
+}
+
+export async function ensureProductCatalogReady() {
+  await ensureDb();
+  await ensureProductTablesMigration();
+  await ensureProductSeed();
 }
 
 async function ensureManagedPagesSeed() {
@@ -564,7 +749,7 @@ async function ensureManagedPagesSeed() {
   for (const [slug, config] of Object.entries(AUTH_PAGES)) {
     await pool.query(
       `
-      INSERT INTO cms_pages (slug, name, title, status, custom_fields)
+      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
       VALUES ($1, $2, $3, 'published', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
@@ -579,7 +764,7 @@ async function ensureManagedPagesSeed() {
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
     await pool.query(
       `
-      INSERT INTO cms_pages (slug, name, title, status, custom_fields)
+      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
       VALUES ($1, $2, $3, 'draft', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
@@ -705,14 +890,16 @@ export async function ensureDb() {
     globalForDb.userSettingsDensityMigrationDone = true;
   }
 
+  await ensureAppSettingsMigration();
+
   if (!globalForDb.oauthAccountsMigrationDone) {
     await ensureOauthAccountsMigration();
     globalForDb.oauthAccountsMigrationDone = true;
   }
 
-  if (!(globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done) {
-    await ensureCmsPagesMigration();
-    (globalForDb as Record<string, unknown>).cmsPagesMigrationV2Done = true;
+  if (!(globalForDb as Record<string, unknown>).managedPagesMigrationDone) {
+    await ensureManagedPagesMigration();
+    (globalForDb as Record<string, unknown>).managedPagesMigrationDone = true;
   }
 
   if (!globalForDb.menuTablesMigrationDone) {
@@ -735,9 +922,10 @@ export async function ensureDb() {
     globalForDb.blogTablesMigrationDone = true;
   }
 
-  if (!globalForDb.systemPagesSeedDone) {
+  const managedPagesSeedSignature = getManagedPagesSeedSignature();
+  if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
     await ensureManagedPagesSeed();
-    globalForDb.systemPagesSeedDone = true;
+    globalForDb.managedPagesSeedSignature = managedPagesSeedSignature;
   }
 
   if (!globalForDb.productSeedDone) {
@@ -754,4 +942,23 @@ export async function ensureDb() {
 export async function query<T extends import("pg").QueryResultRow>(text: string, values?: unknown[]) {
  await ensureDb();
  return getPool().query<T>(text, values);
+}
+
+export type DbExecutor = <T extends QueryResultRow>(text: string, values?: unknown[]) => Promise<import("pg").QueryResult<T>>;
+
+export async function withTransaction<T>(callback: (execute: DbExecutor) => Promise<T>): Promise<T> {
+ await ensureDb();
+ const client = await getPool().connect();
+
+ try {
+  await client.query("BEGIN");
+  const result = await callback((text, values) => client.query(text, values));
+  await client.query("COMMIT");
+  return result;
+ } catch (error) {
+  await client.query("ROLLBACK");
+  throw error;
+ } finally {
+  client.release();
+ }
 }

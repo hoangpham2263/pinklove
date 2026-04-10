@@ -9,17 +9,24 @@ type AdminTopHeaderProps = {
 };
 
 function getPageTitle(pathname: string): string {
- if (pathname === "/admin" || pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return "Dashboard";
- if (pathname.startsWith("/admin/pages")) return "Pages";
- if (pathname.startsWith("/admin/menus")) return "Navigation";
+ if (pathname === ROUTES.ADMIN.ROOT || pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return "Dashboard";
+ if (pathname.startsWith(ROUTES.ADMIN.PAGES)) return "Pages";
+ if (pathname.startsWith(ROUTES.ADMIN.BLOG_POSTS)) return "Blog Posts";
+ if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
+ if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product List";
+ if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Categories";
  if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
  if (pathname.startsWith(ROUTES.ADMIN.PRODUCTS)) return "Products";
- if (pathname.startsWith("/admin/user")) return "Users";
+ if (pathname.startsWith(ROUTES.ADMIN.USERS)) return "Users";
  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";
  if (pathname.startsWith(ROUTES.ADMIN.MEDIA)) return "Media";
- if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Seo";
- if (pathname.startsWith(ROUTES.ADMIN.SETTINGS)) return "Settings";
+ if (pathname.startsWith(ROUTES.ADMIN.SEO_PAGES)) return "Page SEO";
+ if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
+ if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
+ if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
+ if (pathname.startsWith(ROUTES.ADMIN.CONFIG_COMMERCE)) return "Commerce Connections";
+ if (pathname.startsWith(ROUTES.ADMIN.CONFIG)) return "Cấu hình";
  return "Admin";
 }
 

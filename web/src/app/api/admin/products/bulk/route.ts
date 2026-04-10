@@ -1,18 +1,11 @@
-import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { deleteProducts, updateProductsStatus } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
+import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
 
 type BulkAction = "publish" | "draft" | "delete";
-
-function redirectToList(search: string) {
-  return new NextResponse(null, {
-    status: 303,
-    headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}${search}` },
-  });
-}
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -25,18 +18,22 @@ export async function POST(request: Request) {
     .filter(Boolean);
 
   if (slugs.length === 0) {
-    return redirectToList("?error=missing_selection");
+    return respondError(request, { error: "missing_selection", message: "Hãy chọn ít nhất một sản phẩm.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=missing_selection` });
   }
 
   if (!["publish", "draft", "delete"].includes(action)) {
-    return redirectToList("?error=invalid_bulk_action");
+    return respondError(request, { error: "invalid_bulk_action", message: "Tác vụ hàng loạt không hợp lệ.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=invalid_bulk_action` });
   }
 
   if (action === "delete") {
     const count = await deleteProducts(slugs);
-    return redirectToList(`?bulk=deleted&count=${count}`);
+    return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_LIST, message: `${count} sản phẩm đã bị xóa.`, data: { count, bulk: "deleted" } });
   }
 
   const count = await updateProductsStatus(slugs, action === "publish" ? "published" : "draft");
-  return redirectToList(`?bulk=${action}&count=${count}`);
+  return respondSuccess(request, {
+    location: ROUTES.ADMIN.PRODUCT_LIST,
+    message: `${count} sản phẩm đã chuyển sang ${action === "publish" ? "Published" : "Draft"}.`,
+    data: { count, bulk: action },
+  });
 }

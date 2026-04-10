@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { deleteProduct } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
+import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
 
@@ -12,16 +12,10 @@ export async function POST(request: Request) {
   const slug = String(formData.get("slug") ?? "").trim();
 
   if (!slug) {
-    return new NextResponse(null, {
-      status: 303,
-      headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=missing_slug` },
-    });
+    return respondError(request, { error: "missing_slug", message: "Thiếu slug sản phẩm để xóa.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=missing_slug` });
   }
 
   await deleteProduct(slug);
 
-  return new NextResponse(null, {
-    status: 303,
-    headers: { Location: `${ROUTES.ADMIN.PRODUCT_LIST}?deleted=1` },
-  });
+  return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_LIST, message: "Đã xóa sản phẩm." });
 }

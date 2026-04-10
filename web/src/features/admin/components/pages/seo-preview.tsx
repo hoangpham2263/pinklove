@@ -1,19 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Globe, MoreVertical } from"lucide-react";
 
 type SeoPreviewProps = {
  title: string;
  description: string;
- slug: string;
+ path: string;
  baseUrl?: string;
 };
 
-export function SeoPreview({ title, description, slug, baseUrl ="https://yourdomain.com" }: SeoPreviewProps) {
+export function SeoPreview({ title, description, path, baseUrl }: SeoPreviewProps) {
+ const [origin, setOrigin] = useState(baseUrl || "");
+
+ useEffect(() => {
+  if (baseUrl) {
+   setOrigin(baseUrl);
+   return;
+  }
+
+  if (typeof window !== "undefined") {
+   setOrigin(window.location.origin);
+  }
+ }, [baseUrl]);
+
  const displayTitle = title ||"Page Title - Site Name";
  const displayDescription = description ||"Please provide a meta description by editing the snippet below. If you don't, Google will try to find a relevant part of your content to show in the search results.";
- const displayUrl = `${baseUrl}/${slug}`;
+ const displayUrl = origin ? `${origin}${path === "/" ? "" : path}` : path;
 
  return (
  <Card className="border-dashed bg-muted/20">

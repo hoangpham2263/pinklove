@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 export function AffiliateRefTracker() {
   const pathname = usePathname();
@@ -13,7 +14,7 @@ export function AffiliateRefTracker() {
       return;
     }
 
-    if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
+    if (pathname.startsWith(ROUTES.ADMIN.ROOT) || pathname.startsWith("/api")) {
       return;
     }
 
@@ -24,7 +25,7 @@ export function AffiliateRefTracker() {
 
     window.sessionStorage.setItem(key, "1");
 
-    void fetch("/api/affiliate/track", {
+    void fetch(ROUTES.API.AFFILIATE.TRACK, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

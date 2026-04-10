@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import {
   type AffiliateCommissionType,
@@ -6,6 +5,7 @@ import {
 } from "@/features/affiliate/types";
 import { adminUpdateAffiliateAccount } from "@/features/affiliate/server/service";
 import { ROUTES } from "@/lib/routes";
+import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
 
@@ -19,9 +19,10 @@ export async function POST(request: Request) {
   const notes = String(formData.get("notes") ?? "");
 
   if (!userId) {
-    return new NextResponse(null, {
-      status: 303,
-      headers: { Location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_user` },
+    return respondError(request, {
+      error: "missing_user",
+      message: "Thiếu user cần cập nhật.",
+      location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_user`,
     });
   }
 
@@ -35,15 +36,22 @@ export async function POST(request: Request) {
       notes,
     });
 
-    return new NextResponse(null, {
-      status: 303,
-      headers: { Location: `${ROUTES.ADMIN.AFFILIATES}?saved=updated` },
+    return respondSuccess(request, {
+      location: ROUTES.ADMIN.AFFILIATES,
+      message: "Đã cập nhật cấu hình affiliate.",
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : "update_failed";
-    return new NextResponse(null, {
-      status: 303,
-      headers: { Location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}` },
+    const message =
+      code === "AFFILIATE_NOT_FOUND"
+        ? "Không tìm thấy tài khoản affiliate."
+        : code === "AFFILIATE_COMMISSION_INVALID"
+          ? "Mức commission không hợp lệ."
+          : "Không thể cập nhật affiliate lúc này.";
+    return respondError(request, {
+      error: code,
+      message,
+      location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}`,
     });
   }
 }

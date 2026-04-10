@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { updateCmsPage, getCmsPageBySlug } from "@/lib/cms";
+import { updateManagedPage, getPageBySlug } from "@/lib/managed-pages";
+import { canCustomizePagePermalink, isReservedPagePermalink, normalizePagePermalinkInput } from "@/lib/page-paths";
 import { ROUTES } from "@/lib/routes";
+import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) {
-    return new NextResponse(null, { status: 303, headers: { Location: ROUTES.ADMIN.LOGIN } });
+    return respondError(request, { status: 401, error: "UNAUTHORIZED", message: "Vui lòng đăng nhập admin.", location: ROUTES.ADMIN.LOGIN });
   }
 
   const formData = await request.formData();
@@ -24,6 +25,9 @@ export async function POST(request: Request) {
   const seoDescription = String(formData.get("seoDescription") ?? "");
   const seoKeywords = String(formData.get("seoKeywords") ?? "");
   const canonicalUrl = String(formData.get("canonicalUrl") ?? "");
+  const permalink = String(formData.get("permalink") ?? "");
+  const breadcrumbTitle = String(formData.get("breadcrumbTitle") ?? "");
+  const breadcrumbParentSlug = String(formData.get("breadcrumbParentSlug") ?? "");
   const ogTitle = String(formData.get("ogTitle") ?? "");
   const ogDescription = String(formData.get("ogDescription") ?? "");
   const ogImage = String(formData.get("ogImage") ?? "");
@@ -43,17 +47,30 @@ export async function POST(request: Request) {
   }
 
   if (!originalSlug || !name || !slug) {
-    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${originalSlug || slug}?error=missing_fields` } });
+    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu trang bắt buộc.", location: `${ROUTES.ADMIN.PAGES}/${originalSlug || slug}?error=missing_fields` });
   }
 
   try {
-    const existing = await getCmsPageBySlug(originalSlug);
+    const existing = await getPageBySlug(originalSlug);
 
     if (!existing) {
-      return new NextResponse(null, { status: 303, headers: { Location: "/admin/pages?error=page_not_found" } });
+      return respondError(request, { error: "page_not_found", message: "Không tìm thấy trang.", location: `${ROUTES.ADMIN.PAGES}?error=page_not_found` });
     }
 
-    await updateCmsPage(originalSlug, {
+    const normalizedPermalink = normalizePagePermalinkInput(
+      canCustomizePagePermalink(slug) ? permalink : existing.permalink,
+      slug
+    );
+
+    if (isReservedPagePermalink(normalizedPermalink)) {
+      return respondError(request, {
+        error: "invalid_permalink",
+        message: "Permalink đang trùng vùng route hệ thống. Hãy chọn đường dẫn khác.",
+        location: `${ROUTES.ADMIN.PAGES}/${originalSlug}?error=invalid_permalink`,
+      });
+    }
+
+    await updateManagedPage(originalSlug, {
       slug,
       name,
       title,
@@ -64,6 +81,9 @@ export async function POST(request: Request) {
       seoDescription,
       seoKeywords,
       canonicalUrl,
+      permalink: normalizedPermalink,
+      breadcrumbTitle,
+      breadcrumbParentSlug: breadcrumbParentSlug || undefined,
       ogTitle,
       ogDescription,
       ogImage,
@@ -72,9 +92,13 @@ export async function POST(request: Request) {
       customFields,
     });
 
-    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${slug}?saved=1` } });
+    return respondSuccess(request, { location: `${ROUTES.ADMIN.PAGES}/${slug}`, message: "Đã lưu thay đổi trang." });
   } catch (error) {
     console.error("Failed to update page:", error);
-    return new NextResponse(null, { status: 303, headers: { Location: `/admin/pages/${originalSlug}?error=update_failed` } });
+    const message =
+      error instanceof Error && /managed_pages_permalink_idx|cms_pages_permalink_idx|duplicate key/i.test(error.message)
+        ? "Permalink đang bị trùng với trang khác."
+        : "Không thể lưu trang.";
+    return respondError(request, { error: "update_failed", message, location: `${ROUTES.ADMIN.PAGES}/${originalSlug}?error=update_failed` });
   }
 }
