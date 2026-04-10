@@ -25,7 +25,7 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
     event.preventDefault();
 
     try {
-      const result = await postForm(ROUTES.API.USER.INVITATIONS.UPDATE, new FormData(event.currentTarget));
+      const result = await postForm(ROUTES.API.CUSTOMER.INVITATIONS.UPDATE, new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu.");
       finishMutation(router, result, { redirect: false });
     } catch (error) {
@@ -34,7 +34,7 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
   }
 
   return (
-    <NativeForm action={ROUTES.API.USER.INVITATIONS.UPDATE} method="POST" className="flex min-h-screen flex-col" onSubmit={handleSubmit}>
+    <NativeForm action={ROUTES.API.CUSTOMER.INVITATIONS.UPDATE} method="POST" className="flex min-h-screen flex-col" onSubmit={handleSubmit}>
       <input type="hidden" name="siteId" value={String(invitation.id)} />
       <input type="hidden" name="templateKey" value={invitation.templateKey} />
 
@@ -47,7 +47,7 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
           <div className="lg:col-span-2">
             <div className="sticky top-22 space-y-4 rounded-2xl border bg-card p-4">
               <div className="space-y-3 border-b pb-4">
-                <Button className="w-full" variant="outline" render={<Link href={ROUTES.USER.INVITATIONS}>Quay lại</Link>} />
+                <Button className="w-full" variant="outline" render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Quay lại</Link>} />
                 <div className="space-y-1">
                   <h1 className="truncate text-base font-semibold">{invitation.title}</h1>
                 </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { listContentPageSlugs } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { query, withTransaction } from "@/lib/database";
 import { getPageFields, type PageFields } from "@/lib/page-fields";
 import { absoluteUrl, getCurrentSiteUrl } from "@/lib/seo";
@@ -187,7 +187,7 @@ export async function getAccessiblePageBySlug(
   }
 
   const user = await getCurrentUser();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
 
   if (!isAdmin) {
     return null;
@@ -297,10 +297,12 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
 
 export async function buildManagedPageMetadata(page: ManagedPage): Promise<Metadata> {
   const siteUrl = await getCurrentSiteUrl();
-  const ogImage = await resolveSeoImageUrl(page.ogImage);
-  const canonicalUrl = page.canonicalUrl || absoluteUrl(getManagedPagePath(page), siteUrl);
   const settings = await getSystemSettings();
+  const ogImage = await resolveSeoImageUrl(page.ogImage || settings.opengraph.defaultImage);
+  const canonicalUrl = page.canonicalUrl || absoluteUrl(getManagedPagePath(page), siteUrl);
   const canIndex = settings.indexing.siteIndexingEnabled && !page.noindex;
+  const ogTitle = page.ogTitle || page.seoTitle || page.title || settings.opengraph.defaultTitle;
+  const ogDescription = page.ogDescription || page.seoDescription || page.excerpt || settings.opengraph.defaultDescription;
 
   return {
     metadataBase: new URL(siteUrl),
@@ -315,14 +317,16 @@ export async function buildManagedPageMetadata(page: ManagedPage): Promise<Metad
     openGraph: {
       type: "website",
       url: canonicalUrl,
-      title: page.ogTitle || page.seoTitle || page.title,
-      description: page.ogDescription || page.seoDescription || page.excerpt,
+      title: ogTitle,
+      description: ogDescription,
+      siteName: settings.opengraph.siteName,
+      locale: settings.opengraph.locale,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
     twitter: {
-      card: ogImage ? "summary_large_image" : "summary",
-      title: page.ogTitle || page.seoTitle || page.title,
-      description: page.ogDescription || page.seoDescription || page.excerpt,
+      card: ogImage ? settings.opengraph.twitterCard : "summary",
+      title: ogTitle,
+      description: ogDescription,
       images: ogImage ? [ogImage] : undefined,
     },
   };

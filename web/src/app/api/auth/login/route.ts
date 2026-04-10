@@ -3,6 +3,7 @@ import { ROUTES } from "@/lib/routes";
 
 import {
  authenticateUser,
+ canAccessUserPortal,
  createSession,
  SESSION_COOKIE_NAME,
  getSessionCookieOptions,
@@ -24,12 +25,12 @@ export async function POST(request: Request) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
- if (user.role !=="user") {
+ if (!canAccessUserPortal(user.role)) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  const token = await createSession(user.id);
- const target =ROUTES.USER.DASHBOARD;
+ const target =ROUTES.CUSTOMER.DASHBOARD;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;

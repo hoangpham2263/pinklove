@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ClientPanel, ClientPanelBody, ClientPanelHeader } from "@/app/(client)/_components/client-ui";
+import { GuestPanel, GuestPanelBody, GuestPanelHeader } from "@/app/(guest)/_components/guest-ui";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 import { getBlogCategoryPath, getBlogPostPath, type PublicPermalinkConfig } from "@/lib/public-paths";
@@ -66,8 +66,8 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
       </section>
 
       {featuredPost ? (
-        <ClientPanel>
-          <ClientPanelHeader>
+        <GuestPanel>
+          <GuestPanelHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Bài nổi bật</p>
               {activeCategory !== "all" ? (
@@ -79,8 +79,8 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
                 </Link>
               ) : null}
             </div>
-          </ClientPanelHeader>
-          <ClientPanelBody className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          </GuestPanelHeader>
+          <GuestPanelBody className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="min-h-80 rounded-xl bg-[linear-gradient(135deg,#f4ede7_0%,#ead8c8_100%)] lg:rounded-2xl" />
             <div className="space-y-5">
               <Link
@@ -102,8 +102,8 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
                 Đọc bài viết
               </Link>
             </div>
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
       ) : null}
 
       <section className="space-y-6">

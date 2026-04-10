@@ -5,12 +5,11 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { query } from "@/lib/database";
+import { canAccessUserPortal, isAdminRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 export const SESSION_COOKIE_NAME = "pinklove_session";
 const SESSION_DURATION_DAYS = 7;
-
-export type UserRole = "admin" | "user";
 
 export type AuthUser = {
   id: string;
@@ -150,7 +149,7 @@ async function generateUniqueUsername(base: string): Promise<string> {
  .replace(/[^a-z0-9_]/g,"_")
  .replace(/_+/g,"_")
  .replace(/^_+|_+$/g,"");
- const root = normalized.length >= 3 ? normalized :"user";
+ const root = normalized.length >= 3 ? normalized :"customer";
 
  for (let i = 0; i < 1000; i += 1) {
  const candidate = i === 0 ? root : `${root}_${i}`;
@@ -163,7 +162,7 @@ async function generateUniqueUsername(base: string): Promise<string> {
  }
  }
 
- return `user_${Date.now()}`;
+ return `customer_${Date.now()}`;
 }
 
 export async function authenticateGoogleUser(input: {
@@ -194,9 +193,9 @@ export async function authenticateGoogleUser(input: {
 
  const emailBase = input.email.split("@")[0] ??"";
  const nameBase = input.name?.trim().split(/\s+/).join("_") ??"";
- const username = await generateUniqueUsername(nameBase || emailBase ||"google_user");
+ const username = await generateUniqueUsername(nameBase || emailBase ||"customer");
  const totalUsers = await countUsers();
- const role: UserRole = totalUsers === 0 ?"admin" :"user";
+ const role: UserRole = totalUsers === 0 ? USER_ROLES.ADMIN : USER_ROLES.CUSTOMER;
  const created = await registerUser(username, randomBytes(24).toString("hex"), role);
 
  await query(
@@ -296,9 +295,9 @@ export async function requireAdmin(redirectTo: string = ROUTES.ADMIN.LOGIN): Pro
 
   const user = await requireUser(redirectTo);
 
-  if (user.role !== "admin") {
+  if (!isAdminRole(user.role)) {
 
-    redirect(ROUTES.USER.DASHBOARD);
+    redirect(ROUTES.CUSTOMER.DASHBOARD);
 
   }
 
@@ -408,6 +407,11 @@ export async function listAccounts(): Promise<AccountUser[]> {
  }));
 }
 
+export async function listAccountsByRole(role: UserRole): Promise<AccountUser[]> {
+ const accounts = await listAccounts();
+ return accounts.filter((account) => account.role === role);
+}
+
 export async function getUserAccount(id: string): Promise<AccountUser | null> {
  const result = await query<{
  id: string;
@@ -456,7 +460,7 @@ export async function countAdmins(): Promise<number> {
  `
   SELECT COUNT(*)::text AS count
   FROM users
-  WHERE role = 'admin'
+  WHERE role = 'ADMIN'
  `
  );
 
@@ -489,7 +493,7 @@ export async function adminUpdateRole(
  throw new Error("CANNOT_CHANGE_SELF_ROLE");
  }
 
- if (target.role ==="admin" && nextRole ==="user") {
+ if (isAdminRole(target.role) && !isAdminRole(nextRole)) {
  const admins = await countAdmins();
  if (admins <= 1) {
   throw new Error("LAST_ADMIN_PROTECTED");
@@ -542,7 +546,7 @@ export async function adminDeleteAccount(actorId: string, targetUserId: string):
  throw new Error("CANNOT_DELETE_SELF");
  }
 
- if (target.role ==="admin") {
+ if (isAdminRole(target.role)) {
  const admins = await countAdmins();
  if (admins <= 1) {
   throw new Error("LAST_ADMIN_PROTECTED");
@@ -551,3 +555,6 @@ export async function adminDeleteAccount(actorId: string, targetUserId: string):
 
  await query("DELETE FROM users WHERE id = $1", [targetUserId]);
 }
+
+export { canAccessUserPortal, isAdminRole, USER_ROLES };
+export type { UserRole };

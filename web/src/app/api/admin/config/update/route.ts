@@ -4,6 +4,7 @@ import { ROUTES } from "@/lib/routes";
 import {
   updateIndexingSettings,
   updateBreadcrumbSettings,
+  updateOpenGraphSettings,
   updatePermalinkSettings,
   updateSitemapSettings,
 } from "@/lib/system-settings";
@@ -80,6 +81,21 @@ export async function POST(request: Request) {
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt indexing." });
+    }
+
+    if (section === "opengraph") {
+      await updateOpenGraphSettings({
+        siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
+        locale: String(formData.get("locale") ?? "").trim() || "vi_VN",
+        defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "PinkLove",
+        defaultDescription:
+          String(formData.get("defaultDescription") ?? "").trim() ||
+          "Thiệp cưới online, blog cưới, công cụ cưới và builder tạo thiệp tối ưu cho trải nghiệm chia sẻ.",
+        defaultImage: String(formData.get("defaultImage") ?? "").trim(),
+        twitterCard: formData.get("twitterCard") === "summary" ? "summary" : "summary_large_image",
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cài đặt Open Graph." });
     }
 
     return respondError(request, {

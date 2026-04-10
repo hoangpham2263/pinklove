@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ClientPanel, ClientPanelBody, ClientPanelHeader, ClientPanelTitle, ClientShell } from "@/app/(client)/_components/client-ui";
+import { GuestPanel, GuestPanelBody, GuestPanelHeader, GuestPanelTitle, GuestShell } from "@/app/(guest)/_components/guest-ui";
 import { JsonLd } from "@/components/common/json-ld";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
@@ -71,7 +71,7 @@ export function renderBlogCategoryPage({
   config: PublicPermalinkConfig;
 }) {
   return (
-    <ClientShell className="gap-10 py-12">
+    <GuestShell className="gap-10 py-12">
       <div className="mx-auto max-w-3xl space-y-4 text-center">
         <p className="text-xs uppercase tracking-[0.35em] text-stone-400">
           <Link href={ROUTES.BLOG} className="hover:text-stone-900">
@@ -120,7 +120,7 @@ export function renderBlogCategoryPage({
           ))}
         </div>
       </section>
-    </ClientShell>
+    </GuestShell>
   );
 }
 
@@ -154,7 +154,7 @@ export function renderBlogPostPage({
   };
 
   return (
-    <ClientShell className="gap-10 py-12">
+    <GuestShell className="gap-10 py-12">
       <JsonLd data={jsonLd} />
       <div className="mx-auto max-w-4xl space-y-4 text-center">
         <p className="text-xs uppercase tracking-[0.35em] text-stone-400">
@@ -195,11 +195,11 @@ export function renderBlogPostPage({
         </article>
 
         <aside className="space-y-6">
-          <ClientPanel>
-            <ClientPanelHeader>
-              <ClientPanelTitle>Cùng danh mục</ClientPanelTitle>
-            </ClientPanelHeader>
-            <ClientPanelBody className="space-y-3">
+          <GuestPanel>
+            <GuestPanelHeader>
+              <GuestPanelTitle>Cùng danh mục</GuestPanelTitle>
+            </GuestPanelHeader>
+            <GuestPanelBody className="space-y-3">
               <Link
                 href={getBlogCategoryPath(post.categorySlug, config)}
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-stone-300 bg-white px-5 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
@@ -212,8 +212,8 @@ export function renderBlogPostPage({
               >
                 Xem công cụ hỗ trợ cưới
               </Link>
-            </ClientPanelBody>
-          </ClientPanel>
+            </GuestPanelBody>
+          </GuestPanel>
         </aside>
       </section>
 
@@ -235,6 +235,6 @@ export function renderBlogPostPage({
           </div>
         </section>
       ) : null}
-    </ClientShell>
+    </GuestShell>
   );
 }

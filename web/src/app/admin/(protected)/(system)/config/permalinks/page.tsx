@@ -23,12 +23,12 @@ export default async function AdminPermalinkSettingsPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             ← Back
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Permalinks</h1>
-            <p className="text-sm text-muted-foreground">Cài đặt URL dùng chung cho managed pages.</p>
+            <p className="text-muted-foreground">Cài đặt URL dùng chung cho managed pages.</p>
           </div>
         </div>
       </div>
@@ -36,34 +36,34 @@ export default async function AdminPermalinkSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Legacy Redirects</CardTitle>
+            <CardTitle>Legacy Redirects</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.permalink.legacyRedirects ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.permalink.legacyRedirects ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Leading Slash</CardTitle>
+            <CardTitle>Leading Slash</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.permalink.enforceLeadingSlash ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.permalink.enforceLeadingSlash ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Trailing Slash</CardTitle>
+            <CardTitle>Trailing Slash</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.permalink.stripTrailingSlash ? "Off" : "On"}</p>
+            <p className="tracking-tight">{settings.permalink.stripTrailingSlash ? "Off" : "On"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Blog Pattern</CardTitle>
+            <CardTitle>Blog Pattern</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm font-semibold break-all">{permalinkConfig.blogPostPattern}</p>
+            <p className="break-all text-foreground">{permalinkConfig.blogPostPattern}</p>
           </CardContent>
         </Card>
       </div>
@@ -77,7 +77,7 @@ export default async function AdminPermalinkSettingsPage() {
             {previewSamples.map((item) => (
               <div key={item.label} className="rounded-lg bg-muted/30 p-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</p>
-                <p className="mt-2 break-all font-mono text-sm">{item.value}</p>
+                <p className="mt-2 break-all font-mono">{item.value}</p>
               </div>
             ))}
           </div>

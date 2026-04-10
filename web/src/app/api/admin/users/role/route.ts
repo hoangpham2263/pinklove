@@ -1,4 +1,5 @@
-import { adminUpdateRole, getCurrentUserFromRequest, type UserRole } from"@/lib/auth";
+import { adminUpdateRole, getCurrentUserFromRequest, isAdminRole } from"@/lib/auth";
+import { parseUserRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
@@ -9,14 +10,14 @@ export async function POST(request: Request) {
  if (!actor) {
  return respondError(request, { status: 401, error: "UNAUTHORIZED", message: "Vui lòng đăng nhập admin.", location: ROUTES.ADMIN.LOGIN });
  }
- if (actor.role !=="admin") {
- return respondError(request, { status: 403, error: "FORBIDDEN", message: "Bạn không có quyền cập nhật vai trò.", location: ROUTES.USER.DASHBOARD });
+ if (!isAdminRole(actor.role)) {
+ return respondError(request, { status: 403, error: "FORBIDDEN", message: "Bạn không có quyền cập nhật vai trò.", location: ROUTES.CUSTOMER.DASHBOARD });
  }
 
  const formData = await request.formData();
  const userIdRaw = String(formData.get("userId") ??"");
- const roleInput = String(formData.get("role") ??"user");
- const nextRole: UserRole = roleInput ==="admin" ?"admin" :"user";
+ const roleInput = String(formData.get("role") ?? USER_ROLES.CUSTOMER);
+ const nextRole: UserRole = parseUserRole(roleInput, USER_ROLES.CUSTOMER);
  const userId = userIdRaw.trim();
 
  if (!userId) {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   return respondError(request, { error: "cannot_change_self", message: "Không thể tự đổi vai trò của chính bạn.", location: `${ROUTES.ADMIN.USERS}?error=cannot_change_self` });
  }
  if (message ==="LAST_ADMIN_PROTECTED") {
-  return respondError(request, { error: "last_admin_protected", message: "Không thể hạ quyền admin cuối cùng.", location: `${ROUTES.ADMIN.USERS}?error=last_admin_protected` });
+  return respondError(request, { error: "last_admin_protected", message: "Không thể hạ quyền quản trị viên cuối cùng.", location: `${ROUTES.ADMIN.USERS}?error=last_admin_protected` });
  }
  return respondError(request, { error: "role_update_failed", message: "Không thể cập nhật vai trò.", location: `${ROUTES.ADMIN.USERS}?error=role_update_failed` });
  }

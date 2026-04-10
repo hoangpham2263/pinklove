@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Heart, Search } from "lucide-react";
-import { ClientLinkButton, ClientPanel, ClientPanelBody, ClientShell } from "@/app/(client)/_components/client-ui";
-import { getCurrentUser } from "@/lib/auth";
+import { GuestLinkButton, GuestPanel, GuestPanelBody, GuestShell } from "@/app/(guest)/_components/guest-ui";
+import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getPageBySlug } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
 import { ROUTES } from "@/lib/routes";
@@ -56,7 +56,7 @@ const fallbackCards = [
 export default async function NotFoundPage() {
   const user = await getCurrentUser();
   const page = await getPageBySlug("not-found");
-  const canUseDraft = page?.status === "published" || user?.role === "admin";
+  const canUseDraft = page?.status === "published" || isAdminRole(user?.role);
   const resolvedPage = canUseDraft ? page : null;
   const fields = getPageFields<NotFoundFields>(resolvedPage);
 
@@ -85,7 +85,7 @@ export default async function NotFoundPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_38%),linear-gradient(180deg,_#fff7fb_0%,_#ffffff_48%,_#fffaf2_100%)]">
-      <ClientShell className="justify-center py-10 lg:py-15 2xl:py-20">
+      <GuestShell className="justify-center py-10 lg:py-15 2xl:py-20">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
           <div className="mx-auto flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.3em] backdrop-blur">
             <Heart className="h-3.5 w-3.5 text-rose-500" />
@@ -102,8 +102,8 @@ export default async function NotFoundPage() {
             </p>
           </div>
 
-          <ClientPanel className="mx-auto w-full max-w-4xl">
-            <ClientPanelBody className="grid gap-4 p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-8">
+          <GuestPanel className="mx-auto w-full max-w-4xl">
+            <GuestPanelBody className="grid gap-4 p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-8">
               <div className="space-y-6">
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-500 lg:rounded-2xl">
                   <Search className="h-8 w-8" />
@@ -118,9 +118,9 @@ export default async function NotFoundPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <ClientLinkButton href={fields.primaryButtonLink || ROUTES.HOME}>
+                  <GuestLinkButton href={fields.primaryButtonLink || ROUTES.HOME}>
                     {fields.primaryButtonText || "Về trang chủ"}
-                  </ClientLinkButton>
+                  </GuestLinkButton>
                   <Link
                     href={fields.secondaryButtonLink || ROUTES.TEMPLATES}
                     className="inline-flex min-h-12 items-center justify-center rounded-xl border border-stone-300 bg-white px-6 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
@@ -142,8 +142,8 @@ export default async function NotFoundPage() {
                   </Link>
                 ))}
               </div>
-            </ClientPanelBody>
-          </ClientPanel>
+            </GuestPanelBody>
+          </GuestPanel>
 
           <Link
             href={fields.backLink || ROUTES.HOME}
@@ -153,7 +153,7 @@ export default async function NotFoundPage() {
             {fields.backLinkText || "Quay lại trang trước đó"}
           </Link>
         </div>
-      </ClientShell>
+      </GuestShell>
     </main>
   );
 }

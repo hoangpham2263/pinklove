@@ -10,7 +10,7 @@ web/
     app/
       layout.tsx
       globals.css
-      (client)/
+      (guest)/
         layout.tsx
         page.tsx
         (marketing)/
@@ -52,9 +52,16 @@ web/
             products/[slug]/page.tsx
           (accounts)/
             affiliates/page.tsx
-            user/page.tsx
-            user/create/page.tsx
-            user/[id]/page.tsx
+            affiliate-users/page.tsx
+            affiliate-users/create/page.tsx
+            customers/page.tsx
+            customers/create/page.tsx
+            users/page.tsx
+            users/create/page.tsx
+            users/[id]/page.tsx
+            internal-accounts/page.tsx
+            vendors/page.tsx
+            vendors/create/page.tsx
           (system)/
             media/page.tsx
             config/page.tsx
@@ -62,7 +69,7 @@ web/
             config/permalinks/page.tsx
             config/sitemap/page.tsx
             config/commerce/page.tsx
-      user/
+      customer/
         page.tsx
         (auth)/
           layout.tsx
@@ -80,6 +87,7 @@ web/
             settings/page.tsx
           (growth)/
             affiliate/page.tsx
+            vendor/page.tsx
       (seo)/
         robots.txt/route.ts
         sitemap.xml/route.ts
@@ -103,7 +111,7 @@ web/
           logout/route.ts
           register/route.ts
         media/route.ts
-        user/
+        customer/
           affiliate/apply/route.ts
           profile/route.ts
           invitations/create-builder/route.ts
@@ -120,7 +128,7 @@ web/
       auth/
         components/
         fields.ts
-        page-loader.ts
+        auth-page-loader.ts
         page-registry.ts
       media/
         components/
@@ -136,12 +144,12 @@ web/
         components/
         server/
         types.ts
-      user/components/
+      customer/components/
     lib/
       auth.ts
       cms.ts
       cms-fields.ts
-      db.ts
+      database.ts
       google-oauth.ts
       media.ts
       menu.ts
@@ -157,26 +165,26 @@ web/
 - `database.ts` also performs limited auto-migrations and seed steps on first use.
 - Media files are stored on disk, not in PostgreSQL.
 
-## Public client area
+## Public Guest Area
 
-- The public website uses the `(client)` route group.
-- Public content pages are explicit route files in `src/app/(client)`.
+- The public website uses the `(guest)` route group.
+- Public content pages are explicit route files in `src/app/(guest)`.
 - Current public catalog flows:
-  - `src/app/(client)/(catalog)/templates/page.tsx`
-  - `src/app/(client)/(catalog)/templates/[slug]/page.tsx`
-  - `src/app/(client)/(catalog)/builder/page.tsx`
-  - `src/app/(client)/(catalog)/builder/[slug]/page.tsx`
-- Public invitation rendering lives at `src/app/(client)/(catalog)/invitations/[slug]/page.tsx`.
+  - `src/app/(guest)/(catalog)/templates/page.tsx`
+  - `src/app/(guest)/(catalog)/templates/[slug]/page.tsx`
+  - `src/app/(guest)/(catalog)/builder/page.tsx`
+  - `src/app/(guest)/(catalog)/builder/[slug]/page.tsx`
+- Public invitation rendering lives at `src/app/(guest)/(catalog)/invitations/[slug]/page.tsx`.
 
-## User area
+## Customer Area
 
-- The user shell lives under `src/app/user`.
-- Protected user flows include dashboard, profile, settings, affiliate, and site management.
-- User invitation flows live at:
-  - `src/app/user/(protected)/(workspace)/invitations/page.tsx`
-  - `src/app/user/(protected)/(workspace)/invitations/[id]/page.tsx`
-- Builder editing for user-owned builder invitations lives at:
-  - `src/app/user/(protected)/(workspace)/design/[id]/page.tsx`
+- The customer shell lives under `src/app/customer`.
+- Protected customer flows include dashboard, profile, settings, affiliate, and site management.
+- Customer invitation flows live at:
+  - `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
+  - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
+- Builder editing for customer-owned builder invitations lives at:
+  - `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`
 
 ## Admin area
 
@@ -189,9 +197,9 @@ web/
 - `src/features/pages`: managed content page registry and schema
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/media`: media library UI and server storage
-- `src/features/affiliate`: affiliate flows for user and admin
+- `src/features/affiliate`: affiliate flows for customer and admin
 - `src/features/products`: invitation catalog products
-- `src/features/invitations`: per-user invitation instances, renderers, and builder editor
+- `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 
 ## Current implementation notes
 

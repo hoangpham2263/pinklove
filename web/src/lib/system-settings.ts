@@ -41,11 +41,21 @@ export type IndexingSettings = {
   customRobotsRules: string;
 };
 
+export type OpenGraphSettings = {
+  siteName: string;
+  locale: string;
+  defaultTitle: string;
+  defaultDescription: string;
+  defaultImage: string;
+  twitterCard: "summary" | "summary_large_image";
+};
+
 export type SystemSettings = {
   permalink: PermalinkSettings;
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
   indexing: IndexingSettings;
+  opengraph: OpenGraphSettings;
 };
 
 type SettingRow = {
@@ -53,6 +63,7 @@ type SettingRow = {
   seo_breadcrumb: Record<string, unknown> | null;
   seo_sitemap: Record<string, unknown> | null;
   seo_indexing?: Record<string, unknown> | null;
+  seo_opengraph?: Record<string, unknown> | null;
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -90,6 +101,14 @@ const DEFAULT_SETTINGS: SystemSettings = {
     disallowUser: true,
     disallowApi: true,
     customRobotsRules: "",
+  },
+  opengraph: {
+    siteName: "PinkLove",
+    locale: "vi_VN",
+    defaultTitle: "PinkLove",
+    defaultDescription: "Thiệp cưới online, blog cưới, công cụ cưới và builder tạo thiệp tối ưu cho trải nghiệm chia sẻ.",
+    defaultImage: "",
+    twitterCard: "summary_large_image",
   },
 };
 
@@ -153,6 +172,18 @@ function parseIndexingSettings(value: Record<string, unknown> | null | undefined
   };
 }
 
+function parseOpenGraphSettings(value: Record<string, unknown> | null | undefined): OpenGraphSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.opengraph as Record<string, unknown>, value);
+  return {
+    siteName: String(merged.siteName || DEFAULT_SETTINGS.opengraph.siteName),
+    locale: String(merged.locale || DEFAULT_SETTINGS.opengraph.locale),
+    defaultTitle: String(merged.defaultTitle || DEFAULT_SETTINGS.opengraph.defaultTitle),
+    defaultDescription: String(merged.defaultDescription || DEFAULT_SETTINGS.opengraph.defaultDescription),
+    defaultImage: String(merged.defaultImage ?? DEFAULT_SETTINGS.opengraph.defaultImage),
+    twitterCard: merged.twitterCard === "summary" ? "summary" : "summary_large_image",
+  };
+}
+
 export async function getSystemSettings(): Promise<SystemSettings> {
   if (!process.env.DATABASE_URL) {
     return DEFAULT_SETTINGS;
@@ -162,7 +193,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   try {
     const result = await query<SettingRow>(`
-      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing
+      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_opengraph
       FROM app_settings
       WHERE id = 1
       LIMIT 1
@@ -177,6 +208,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
+    opengraph: parseOpenGraphSettings(row?.seo_opengraph),
   };
 }
 
@@ -239,6 +271,23 @@ export async function updateIndexingSettings(input: Partial<IndexingSettings>) {
     `
     UPDATE app_settings
     SET seo_indexing = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next;
+}
+
+export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>) {
+  const current = await getSystemSettings();
+  const next = { ...current.opengraph, ...input };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET seo_opengraph = $1::jsonb,
         updated_at = NOW()
     WHERE id = 1
     `,

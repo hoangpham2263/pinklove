@@ -30,6 +30,11 @@ const CONFIG_SECTIONS = [
         description: "Thiết lập breadcrumb UI và breadcrumb schema giống cách làm SEO plugin.",
         href: ROUTES.ADMIN.CONFIG_BREADCRUMBS,
       },
+      {
+        title: "Open Graph",
+        description: "Quản lý site name, locale, ảnh mặc định và fallback metadata khi share link.",
+        href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
+      },
     ],
   },
   {
@@ -73,6 +78,7 @@ export default async function AdminSettingsPage() {
     settings.breadcrumb.enabled,
     settings.sitemap.enabled,
     settings.permalink.legacyRedirects,
+    settings.opengraph.siteName.trim().length > 0,
   ].filter(Boolean).length;
 
   return (
@@ -80,43 +86,43 @@ export default async function AdminSettingsPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cấu hình</h1>
-          <p className="text-sm text-muted-foreground">Trung tâm cấu hình, indexing và tài liệu SEO dùng chung cho toàn hệ thống.</p>
+          <p className="text-muted-foreground">Trung tâm cấu hình, indexing và tài liệu SEO dùng chung cho toàn hệ thống.</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng mục</CardTitle>
+            <CardTitle>Tổng mục</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
+            <p className="tracking-tight">{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Đang bật</CardTitle>
+            <CardTitle>Đang bật</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{enabledCount}</p>
-            <p className="text-sm text-muted-foreground">Theo cấu hình hiện tại</p>
+            <p className="tracking-tight">{enabledCount}</p>
+            <p className="text-muted-foreground">Theo cấu hình hiện tại</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Sitemap</CardTitle>
+            <CardTitle>Sitemap</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.sitemap.enabled ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.sitemap.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Site Indexing</CardTitle>
+            <CardTitle>Site Indexing</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
-            <p className="text-sm text-muted-foreground">Quản lý trong Sitemap</p>
+            <p className="tracking-tight">{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
+            <p className="text-muted-foreground">Quản lý trong Sitemap</p>
           </CardContent>
         </Card>
       </div>

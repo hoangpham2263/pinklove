@@ -9,14 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { AccountUser, AuthUser, UserProfile } from "@/lib/auth";
 import { finishMutation, postForm } from "@/lib/client-mutation";
+import { USER_ROLE_OPTIONS, getRoleLabel } from "@/lib/roles";
 
 type EditUserFormProps = {
   actor: AuthUser;
   user: AccountUser;
   profile: UserProfile | null;
+  returnTo?: string;
 };
 
-export function EditUserForm({ actor, user, profile }: EditUserFormProps) {
+export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,6 +40,7 @@ export function EditUserForm({ actor, user, profile }: EditUserFormProps) {
   return (
     <NativeForm action="/api/admin/users/update" method="POST" className="flex flex-col gap-6 lg:flex-row" onSubmit={handleSubmit}>
       <input type="hidden" name="userId" value={user.id} />
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
 
       <div className="flex-1 space-y-6">
         <Card>
@@ -102,8 +105,11 @@ export function EditUserForm({ actor, user, profile }: EditUserFormProps) {
                 disabled={user.id === actor.id}
                 className="h-10 w-full disabled:opacity-50"
               >
-                <option value="user">user</option>
-                <option value="admin">admin</option>
+                {USER_ROLE_OPTIONS.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {getRoleLabel(role.value)} ({role.value})
+                  </option>
+                ))}
               </select>
             </div>
             <Button type="submit" className="w-full" disabled={isSaving}>

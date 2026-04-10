@@ -6,8 +6,10 @@ import {
  countUsers,
  createSession,
  getSessionCookieOptions,
+ isAdminRole,
  registerUser,
  SESSION_COOKIE_NAME,
+ USER_ROLES,
 } from"@/lib/auth";
 
 export const runtime ="nodejs";
@@ -27,10 +29,10 @@ export async function POST(request: Request) {
 
  try {
  const totalUsers = await countUsers();
- const role = totalUsers === 0 ?"admin" :"user";
+ const role = totalUsers === 0 ? USER_ROLES.ADMIN : USER_ROLES.CUSTOMER;
  const user = await registerUser(username, password, role);
  const token = await createSession(user.id);
- const target = user.role ==="admin" ?ROUTES.ADMIN.DASHBOARD :ROUTES.USER.DASHBOARD;
+ const target = isAdminRole(user.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;

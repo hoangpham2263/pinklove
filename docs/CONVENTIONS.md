@@ -21,13 +21,13 @@ This file is the repo-wide source of truth.
 
 - Keep routing concerns in `src/app` only.
 - Use route groups for concern separation:
-  - `src/app/(client)`
+  - `src/app/(guest)`
   - `src/app/(seo)` for `robots.txt` and sitemap routes
-  - direct URL segments like `src/app/admin` and `src/app/user` when the folder name already matches the public path
+  - direct URL segments like `src/app/admin` and `src/app/customer` when the folder name already matches the public path
 - Prefer nested route groups inside each area when they clarify responsibility without changing URL paths.
   Public examples: `(marketing)`, `(catalog)`, `(content)`, `(tools)`.
   Admin examples: `(overview)`, `(content)`, `(catalog)`, `(accounts)`, `(system)`.
-  User examples: `(workspace)`, `(account)`, `(growth)`.
+  Customer examples: `(workspace)`, `(account)`, `(growth)`.
 - Keep domain logic in `src/features/<feature>`.
 - Keep shared UI in `src/components/ui`.
 - Keep shared app-level components in `src/components/common`.
@@ -83,7 +83,7 @@ This file is the repo-wide source of truth.
 ## Managed Pages and content
 
 - Managed page content is stored in `managed_pages`.
-- Public content routes are code-managed explicit files under `src/app/(client)`.
+- Public content routes are code-managed explicit files under `src/app/(guest)`.
 - Managed content-page config lives in `src/features/pages/registry.ts`.
 - Auth-page config lives in `src/features/auth/page-registry.ts`.
 - When a managed page is registered in the page registries, CMS seeding and sitemap inclusion must update automatically from that registry data rather than requiring a second hardcoded sitemap edit.
@@ -117,8 +117,8 @@ This file is the repo-wide source of truth.
 - Global styles live in `src/app/globals.css`.
 - Prefer the project token system already defined in `globals.css`.
 - The project uses a px-first scale. Prefer px-backed Tailwind tokens and px arbitrary values over rem-based arbitrary values.
-- Public/client typography and section layout rules are defined in `docs/client.md` and should be reused consistently.
-- Public/client border radius rule is `rounded-xl lg:rounded-2xl` unless a truly different shape is intentional.
+- Public guest typography and section layout rules are defined in `docs/guest.md` and should be reused consistently.
+- Public guest border radius rule is `rounded-xl lg:rounded-2xl` unless a truly different shape is intentional.
 
 ## Runtime and startup
 
@@ -131,7 +131,7 @@ This file is the repo-wide source of truth.
 
 ## Database change rule
 
-- Check `src/lib/db.ts` before adding tables or migrations.
+- Check `src/lib/database.ts` before adding tables or migrations.
 - Follow the existing bootstrap and migration helper pattern if extending schema initialization.
 
 ## Agent workflow
@@ -139,15 +139,15 @@ This file is the repo-wide source of truth.
 - When `docs/index.md` is referenced, read `docs/conventions.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
 - Treat the docs as describing the repository as it exists now, including incomplete product areas.
 - If a code change affects documented behavior, update the docs in the same task.
-- Database access is raw SQL through `web/src/lib/db.ts`.
+- Database access is raw SQL through `web/src/lib/database.ts`.
 - Media metadata is stored in `web/storage/media.json`.
 - Uploaded files are stored in `web/public/uploads/...`.
 - Public content-page config lives in `web/src/features/pages/registry.ts`.
 - Auth-page config and shared loading logic live in:
   - `web/src/features/auth/page-registry.ts`
-  - `web/src/features/auth/page-loader.ts`
+  - `web/src/features/auth/auth-page-loader.ts`
 - Affiliate foundation lives in `web/src/features/affiliate/`.
 - Wedding product foundation lives in:
   - `web/src/features/products/`
   - `web/src/features/invitations/`
-- Builder editing lives in `web/src/app/user/(protected)/(workspace)/design/[id]/page.tsx`.
+- Builder editing lives in `web/src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`.

@@ -103,20 +103,20 @@ export default async function AdminSitemapSettingsPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             ← Back
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Sitemap</h1>
-            <p className="text-sm text-muted-foreground">Quản lý cấu hình và xem realtime sitemap.xml theo domain, settings và dữ liệu đang publish.</p>
+            <p className="text-muted-foreground">Quản lý cấu hình và xem realtime sitemap.xml theo domain, settings và dữ liệu đang publish.</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Link href={ROUTES.SITEMAP_XML} target="_blank" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={ROUTES.SITEMAP_XML} target="_blank" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             Mở sitemap.xml
           </Link>
-          <Link href={ROUTES.ROBOTS_TXT} target="_blank" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+          <Link href={ROUTES.ROBOTS_TXT} target="_blank" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             Mở robots.txt
           </Link>
         </div>
@@ -125,34 +125,34 @@ export default async function AdminSitemapSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Domain Runtime</CardTitle>
+            <CardTitle>Domain Runtime</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="break-all text-sm font-medium">{siteUrl}</p>
+            <p className="break-all text-foreground">{siteUrl}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Sitemap</CardTitle>
+            <CardTitle>Sitemap</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.sitemap.enabled ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.sitemap.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Enabled Groups</CardTitle>
+            <CardTitle>Enabled Groups</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{providerRows.filter((provider) => provider.enabled).length}</p>
+            <p className="tracking-tight">{providerRows.filter((provider) => provider.enabled).length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Indexed URLs</CardTitle>
+            <CardTitle>Indexed URLs</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{totalUrls}</p>
+            <p className="tracking-tight">{totalUrls}</p>
           </CardContent>
         </Card>
       </div>
@@ -175,15 +175,15 @@ export default async function AdminSitemapSettingsPage() {
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <div>
             <CardTitle>Sitemap Index</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">Nguồn thực tế cho /sitemap.xml trên domain hiện tại.</p>
+            <p className="mt-1 text-muted-foreground">Nguồn thực tế cho /sitemap.xml trên domain hiện tại.</p>
           </div>
-          <Link href="#sitemap-settings" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 text-sm font-medium hover:bg-accent">
+          <Link href="#sitemap-settings" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             Sửa cài đặt
           </Link>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg bg-muted/30 p-3 text-sm">
-            <span className="font-medium">URL:</span> {siteUrl}/sitemap.xml
+          <div className="rounded-lg bg-muted/30 p-3">
+            <span className="text-foreground">URL:</span> {siteUrl}/sitemap.xml
           </div>
 
           <AdminSitemapTable
@@ -203,11 +203,11 @@ export default async function AdminSitemapSettingsPage() {
       <Card className="rounded-lg">
         <CardHeader>
           <CardTitle>Robots.txt</CardTitle>
-          <p className="text-sm text-muted-foreground">Preview runtime và chỉnh thêm rules thủ công cho robots.txt.</p>
+          <p className="text-muted-foreground">Preview runtime và chỉnh thêm rules thủ công cho robots.txt.</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg bg-muted/30 p-3 text-sm">
-            <span className="font-medium">URL:</span> {siteUrl}/robots.txt
+          <div className="rounded-lg bg-muted/30 p-3">
+            <span className="text-foreground">URL:</span> {siteUrl}/robots.txt
           </div>
 
           <pre className="overflow-x-auto rounded-lg bg-muted/30 p-4 text-xs leading-5">
@@ -242,8 +242,8 @@ export default async function AdminSitemapSettingsPage() {
               },
               {
                 id: "disallowUser",
-                label: "Disallow /user",
-                description: "Chặn crawler truy cập khu user.",
+                label: "Disallow /customer",
+                description: "Chặn crawler truy cập khu customer.",
                 type: "boolean",
                 value: settings.indexing.disallowUser,
               },

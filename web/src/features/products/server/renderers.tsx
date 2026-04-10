@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { JsonLd } from "@/components/common/json-ld";
 import {
-  ClientButton,
-  ClientLinkButton,
-  ClientPanel,
-  ClientPanelBody,
-  ClientPanelHeader,
-  ClientPanelTitle,
-} from "@/app/(client)/_components/client-ui";
+  GuestButton,
+  GuestLinkButton,
+  GuestPanel,
+  GuestPanelBody,
+  GuestPanelHeader,
+  GuestPanelTitle,
+} from "@/app/(guest)/_components/guest-ui";
 import type { Product } from "@/features/products/types";
 import { getCurrentUser } from "@/lib/auth";
 import { CreateBuilderForm } from "@/features/invitations/components/create-invitation-forms";
@@ -88,11 +88,11 @@ export async function renderTemplateProductPage(product: Product, config: Public
           <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{product.description || product.excerpt}</p>
         </div>
 
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Xem nhanh</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody>
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Xem nhanh</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody>
             {product.thumbnailUrl ? (
               <Image
                 src={product.thumbnailUrl}
@@ -106,58 +106,58 @@ export async function renderTemplateProductPage(product: Product, config: Public
                 Chưa có ảnh preview
               </div>
             )}
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
 
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Thông tin template</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="space-y-3 text-sm text-stone-700 md:text-base">
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Thông tin template</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="space-y-3 text-sm text-stone-700 md:text-base">
             <p><span className="font-medium text-stone-950">Template:</span> {getInvitationTemplateLabel(product.templateKey)}</p>
             <p><span className="font-medium text-stone-950">Loại:</span> Thiếp mẫu sẵn</p>
             <p><span className="font-medium text-stone-950">Giá:</span> {product.price}</p>
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
 
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Mặc định khi tạo site</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="grid gap-3 md:grid-cols-2">
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Mặc định khi tạo site</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="grid gap-3 md:grid-cols-2">
             {Object.entries(defaults).map(([key, value]) => (
               <div key={key} className="rounded-xl border border-stone-200 bg-stone-50 p-4 lg:rounded-2xl">
                 <p className="text-xs uppercase tracking-[0.3em] text-stone-400">{key}</p>
                 <p className="mt-2 text-sm leading-6 text-stone-700">{Array.isArray(value) ? `${value.length} item(s)` : String(value)}</p>
               </div>
             ))}
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
       </div>
 
       <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
-        <ClientPanel className="overflow-visible">
-          <ClientPanelHeader>
-            <ClientPanelTitle>Tạo website thiệp từ mẫu này</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="space-y-4">
+        <GuestPanel className="overflow-visible">
+          <GuestPanelHeader>
+            <GuestPanelTitle>Tạo website thiệp từ mẫu này</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
               Hiện tại repo chưa có checkout thật. Nút dưới đây sẽ tạo trực tiếp một `wedding_site` draft trong tài khoản của bạn để anh tiếp tục triển khai flow mua hàng sau.
             </p>
             {user ? (
-              <CreateFromProductForm action={ROUTES.API.USER.INVITATIONS.CREATE_FROM_PRODUCT} productSlug={product.slug}>
-                <ClientButton type="submit" className="w-full">
+              <CreateFromProductForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_PRODUCT} productSlug={product.slug}>
+                <GuestButton type="submit" className="w-full">
                   Tạo thiệp từ mẫu này
-                </ClientButton>
+                </GuestButton>
               </CreateFromProductForm>
             ) : (
               <div className="space-y-3">
-                <ClientLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để tạo thiệp</ClientLinkButton>
-                <ClientLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</ClientLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để tạo thiệp</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
       </aside>
     </section>
   );
@@ -195,55 +195,55 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
           <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{product.description || product.excerpt}</p>
         </div>
 
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Thông tin builder starter</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="space-y-3 text-sm text-stone-700 md:text-base">
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Thông tin builder starter</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="space-y-3 text-sm text-stone-700 md:text-base">
             <p><span className="font-medium text-stone-950">Template:</span> {getInvitationTemplateLabel(product.templateKey)}</p>
             <p><span className="font-medium text-stone-950">Loại:</span> Tự tạo thiệp</p>
             <p><span className="font-medium text-stone-950">Giá:</span> {product.price}</p>
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
 
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Section mặc định khi tạo site</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="grid gap-3 md:grid-cols-2">
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Section mặc định khi tạo site</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="grid gap-3 md:grid-cols-2">
             {Object.entries(defaults).map(([key, value]) => (
               <div key={key} className="rounded-xl border border-stone-200 bg-stone-50 p-4 lg:rounded-2xl">
                 <p className="text-xs uppercase tracking-[0.3em] text-stone-400">{key}</p>
                 <p className="mt-2 text-sm leading-6 text-stone-700">{Array.isArray(value) ? `${value.length} item(s)` : String(value)}</p>
               </div>
             ))}
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
       </div>
 
       <aside className="min-w-0 lg:col-span-3 lg:sticky lg:top-20 lg:self-start">
-        <ClientPanel>
-          <ClientPanelHeader>
-            <ClientPanelTitle>Tạo site builder từ starter này</ClientPanelTitle>
-          </ClientPanelHeader>
-          <ClientPanelBody className="space-y-4">
+        <GuestPanel>
+          <GuestPanelHeader>
+            <GuestPanelTitle>Tạo site builder từ starter này</GuestPanelTitle>
+          </GuestPanelHeader>
+          <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
               Luồng này tạo trực tiếp một `wedding_site` draft kiểu builder để anh có thể test editor section-based trước khi checkout thật được nối vào.
             </p>
             {user ? (
-              <CreateBuilderForm action={ROUTES.API.USER.INVITATIONS.CREATE_BUILDER} productSlug={product.slug}>
-                <ClientButton type="submit" className="w-full">
+              <CreateBuilderForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} productSlug={product.slug}>
+                <GuestButton type="submit" className="w-full">
                   Tạo thiệp tự tạo từ starter này
-                </ClientButton>
+                </GuestButton>
               </CreateBuilderForm>
             ) : (
               <div className="space-y-3">
-                <ClientLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để bắt đầu</ClientLinkButton>
-                <ClientLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</ClientLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để bắt đầu</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
-          </ClientPanelBody>
-        </ClientPanel>
+          </GuestPanelBody>
+        </GuestPanel>
       </aside>
     </section>
   );

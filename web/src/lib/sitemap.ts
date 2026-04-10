@@ -82,7 +82,7 @@ export function renderSitemapIndex(items: SitemapIndexItem[]) {
 }
 
 async function discoverClientStaticRoutes(): Promise<string[]> {
-  const clientRoot = path.join(process.cwd(), "src", "app", "(client)");
+  const clientRoot = path.join(process.cwd(), "src", "app", "(guest)");
   const discovered = new Set<string>();
 
   async function walk(currentDir: string, segments: string[]) {

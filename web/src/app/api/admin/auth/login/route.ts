@@ -4,6 +4,7 @@ import { ROUTES } from "@/lib/routes";
 import {
  authenticateUser,
  createSession,
+ isAdminRole,
  SESSION_COOKIE_NAME,
  getSessionCookieOptions,
 } from"@/lib/auth";
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.LOGIN}?error=invalid_credentials` } });
  }
 
- if (user.role !=="admin") {
+ if (!isAdminRole(user.role)) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.LOGIN}?error=invalid_credentials` } });
  }
 

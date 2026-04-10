@@ -9,12 +9,12 @@ type AuthPageConfig = {
 
 export const AUTH_PAGES: Record<string, AuthPageConfig> = {
   login: {
-    name: "User Login",
+    name: "Customer Login",
     label: "Trang đăng nhập hệ thống",
     fields: AUTH_PAGE_FIELDS,
   },
   register: {
-    name: "User Register",
+    name: "Customer Register",
     label: "Trang đăng ký hệ thống",
     fields: AUTH_PAGE_FIELDS,
   },

@@ -17,7 +17,7 @@ export function AffiliateApplyForm() {
     setIsSubmitting(true);
 
     try {
-      const result = await postForm("/api/user/affiliate/apply", new FormData(event.currentTarget));
+      const result = await postForm("/api/customer/affiliate/apply", new FormData(event.currentTarget));
       toast.success(result.message ?? "Yêu cầu tham gia affiliate đã được gửi.");
       finishMutation(router, result, { redirect: false });
     } catch (error) {
@@ -28,7 +28,7 @@ export function AffiliateApplyForm() {
   }
 
   return (
-    <NativeForm action="/api/user/affiliate/apply" method="POST" className="grid gap-4 md:grid-cols-[1fr_auto]" onSubmit={handleSubmit}>
+    <NativeForm action="/api/customer/affiliate/apply" method="POST" className="grid gap-4 md:grid-cols-[1fr_auto]" onSubmit={handleSubmit}>
       <div className="space-y-2">
         <label htmlFor="preferredCode" className="font-medium">
           Mã affiliate mong muốn

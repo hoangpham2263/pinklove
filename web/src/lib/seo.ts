@@ -64,6 +64,15 @@ export function absoluteUrl(path = "/", baseUrl = getSiteUrl()) {
   return new URL(path, baseUrl).toString();
 }
 
+function resolveMetadataImageUrl(image: string | undefined, baseUrl: string) {
+  const trimmed = image?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return absoluteUrl(trimmed, baseUrl);
+}
+
 type SeoMetadataInput = {
   title: string;
   description: string;
@@ -86,8 +95,10 @@ export async function createSeoMetadata({
   const settings = await getSystemSettings();
   const siteUrl = await getCurrentSiteUrl();
   const url = absoluteUrl(path, siteUrl);
-  const imageUrl = image ? absoluteUrl(image, siteUrl) : undefined;
+  const imageUrl = resolveMetadataImageUrl(image || settings.opengraph.defaultImage, siteUrl);
   const canIndex = settings.indexing.siteIndexingEnabled && !noindex;
+  const ogTitle = title || settings.opengraph.defaultTitle || DEFAULT_TITLE;
+  const ogDescription = description || settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
 
   return {
     title,
@@ -103,16 +114,16 @@ export async function createSeoMetadata({
     openGraph: {
       type,
       url,
-      title,
-      description,
-      siteName: DEFAULT_SITE_NAME,
-      locale: "vi_VN",
+      title: ogTitle,
+      description: ogDescription,
+      siteName: settings.opengraph.siteName || DEFAULT_SITE_NAME,
+      locale: settings.opengraph.locale || "vi_VN",
       images: imageUrl ? [{ url: imageUrl }] : undefined,
     },
     twitter: {
-      card: imageUrl ? "summary_large_image" : "summary",
-      title,
-      description,
+      card: imageUrl ? settings.opengraph.twitterCard : "summary",
+      title: ogTitle,
+      description: ogDescription,
       images: imageUrl ? [imageUrl] : undefined,
     },
   };
@@ -122,30 +133,37 @@ export async function createRootMetadata(): Promise<Metadata> {
   const settings = await getSystemSettings();
   const siteUrl = await getCurrentSiteUrl();
   const canIndex = settings.indexing.siteIndexingEnabled;
+  const defaultImage = resolveMetadataImageUrl(settings.opengraph.defaultImage, siteUrl);
+  const defaultTitle = settings.opengraph.defaultTitle || DEFAULT_TITLE;
+  const defaultDescription = settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
+  const siteName = settings.opengraph.siteName || DEFAULT_SITE_NAME;
+  const locale = settings.opengraph.locale || "vi_VN";
 
   return {
     metadataBase: new URL(siteUrl),
-    applicationName: DEFAULT_SITE_NAME,
+    applicationName: siteName,
     title: {
-      default: DEFAULT_TITLE,
-      template: `%s | ${DEFAULT_SITE_NAME}`,
+      default: defaultTitle,
+      template: `%s | ${siteName}`,
     },
-    description: DEFAULT_DESCRIPTION,
+    description: defaultDescription,
     alternates: {
       canonical: absoluteUrl("/", siteUrl),
     },
     openGraph: {
       type: "website",
       url: absoluteUrl("/", siteUrl),
-      title: DEFAULT_TITLE,
-      description: DEFAULT_DESCRIPTION,
-      siteName: DEFAULT_SITE_NAME,
-      locale: "vi_VN",
+      title: defaultTitle,
+      description: defaultDescription,
+      siteName,
+      locale,
+      images: defaultImage ? [{ url: defaultImage }] : undefined,
     },
     twitter: {
-      card: "summary_large_image",
-      title: DEFAULT_TITLE,
-      description: DEFAULT_DESCRIPTION,
+      card: defaultImage ? settings.opengraph.twitterCard : "summary",
+      title: defaultTitle,
+      description: defaultDescription,
+      images: defaultImage ? [defaultImage] : undefined,
     },
     robots: {
       index: canIndex,

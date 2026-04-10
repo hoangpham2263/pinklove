@@ -13,6 +13,7 @@ const globalForDb = globalThis as unknown as {
   oauthAccountsMigrationDone?: boolean;
   menuTablesMigrationDone?: boolean;
   affiliateTablesMigrationDone?: boolean;
+  internalAccountsMigrationDone?: boolean;
   productTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
   productSeedDone?: boolean;
@@ -111,13 +112,22 @@ async function ensureUsersRoleMigration() {
 
  await pool.query(`
  ALTER TABLE users
- ALTER COLUMN role SET DEFAULT 'user';
+ DROP CONSTRAINT IF EXISTS users_role_check;
  `);
 
  await pool.query(`
  UPDATE users
- SET role = 'admin'
- WHERE role IS NULL;
+ SET role = CASE
+  WHEN role IS NULL OR BTRIM(role) = '' THEN 'ADMIN'
+  WHEN LOWER(role) = 'admin' THEN 'ADMIN'
+  WHEN LOWER(role) = 'user' THEN 'CUSTOMER'
+  ELSE UPPER(role)
+ END;
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ALTER COLUMN role SET DEFAULT 'CUSTOMER';
  `);
 
  await pool.query(`
@@ -128,14 +138,11 @@ async function ensureUsersRoleMigration() {
  await pool.query(`
  DO $$
  BEGIN
-  IF NOT EXISTS (
-  SELECT 1
-  FROM pg_constraint
-  WHERE conname = 'users_role_check'
-  ) THEN
   ALTER TABLE users
-  ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'user'));
-  END IF;
+  ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'VENDOR'));
+ EXCEPTION
+  WHEN duplicate_object THEN
+  NULL;
  END
  $$;
  `);
@@ -210,7 +217,8 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS seo_permalink JSONB,
     ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
     ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
-    ADD COLUMN IF NOT EXISTS seo_indexing JSONB;
+    ADD COLUMN IF NOT EXISTS seo_indexing JSONB,
+    ADD COLUMN IF NOT EXISTS seo_opengraph JSONB;
   `);
 
   await pool.query(`
@@ -315,7 +323,7 @@ async function ensureManagedPagesMigration() {
         NULLIF(permalink, ''),
         CASE
           WHEN slug = 'home' THEN '/'
-          WHEN slug IN ('login', 'register') THEN '/user/' || slug
+          WHEN slug IN ('login', 'register') THEN '/customer/' || slug
           ELSE '/' || slug
         END
       ),
@@ -469,6 +477,70 @@ async function ensureAffiliateTablesMigration() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS affiliate_conversions_affiliate_user_id_idx
     ON affiliate_conversions(affiliate_user_id);
+  `);
+}
+
+async function ensureInternalAccountsMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS internal_accounts (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      platform TEXT NOT NULL,
+      label TEXT NOT NULL,
+      login_username TEXT NOT NULL DEFAULT '',
+      login_password TEXT NOT NULL DEFAULT '',
+      login_url TEXT NOT NULL DEFAULT '',
+      notes TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE internal_accounts
+    ADD COLUMN IF NOT EXISTS platform TEXT,
+    ADD COLUMN IF NOT EXISTS label TEXT,
+    ADD COLUMN IF NOT EXISTS login_username TEXT DEFAULT '',
+    ADD COLUMN IF NOT EXISTS login_password TEXT DEFAULT '',
+    ADD COLUMN IF NOT EXISTS login_url TEXT DEFAULT '',
+    ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '',
+    ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    UPDATE internal_accounts
+    SET
+      platform = COALESCE(NULLIF(platform, ''), 'Khác'),
+      label = COALESCE(NULLIF(label, ''), platform, 'Tài khoản'),
+      login_username = COALESCE(login_username, ''),
+      login_password = COALESCE(login_password, ''),
+      login_url = COALESCE(login_url, ''),
+      notes = COALESCE(notes, ''),
+      sort_order = COALESCE(sort_order, 0),
+      created_at = COALESCE(created_at, NOW()),
+      updated_at = COALESCE(updated_at, NOW());
+  `);
+
+  await pool.query(`
+    ALTER TABLE internal_accounts
+    ALTER COLUMN platform SET NOT NULL,
+    ALTER COLUMN label SET NOT NULL,
+    ALTER COLUMN login_username SET NOT NULL,
+    ALTER COLUMN login_password SET NOT NULL,
+    ALTER COLUMN login_url SET NOT NULL,
+    ALTER COLUMN notes SET NOT NULL,
+    ALTER COLUMN sort_order SET NOT NULL,
+    ALTER COLUMN created_at SET NOT NULL,
+    ALTER COLUMN updated_at SET NOT NULL;
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS internal_accounts_sort_order_idx
+    ON internal_accounts(sort_order, updated_at DESC);
   `);
 }
 
@@ -910,6 +982,11 @@ export async function ensureDb() {
   if (!globalForDb.affiliateTablesMigrationDone) {
     await ensureAffiliateTablesMigration();
     globalForDb.affiliateTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.internalAccountsMigrationDone) {
+    await ensureInternalAccountsMigration();
+    globalForDb.internalAccountsMigrationDone = true;
   }
 
   if (!globalForDb.productTablesMigrationDone) {

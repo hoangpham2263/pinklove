@@ -10,7 +10,7 @@ export function buildRobotsContent(siteUrl: string, settings: SystemSettings) {
   } else {
     lines.push("Allow: /");
     if (settings.indexing.disallowAdmin) lines.push("Disallow: /admin/");
-    if (settings.indexing.disallowUser) lines.push("Disallow: /user/");
+    if (settings.indexing.disallowUser) lines.push("Disallow: /customer/");
     if (settings.indexing.disallowApi) lines.push("Disallow: /api/");
   }
 

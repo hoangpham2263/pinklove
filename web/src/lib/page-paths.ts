@@ -3,7 +3,7 @@ export type PagePathLike = {
   permalink?: string | null;
 };
 
-const RESERVED_PREFIXES = ["/api", "/admin", "/user"];
+const RESERVED_PREFIXES = ["/api", "/admin", "/customer", "/user"];
 
 export function getDefaultPagePath(slug: string): string {
   if (slug === "home") {
@@ -11,7 +11,7 @@ export function getDefaultPagePath(slug: string): string {
   }
 
   if (slug === "login" || slug === "register") {
-    return `/user/${slug}`;
+    return `/customer/${slug}`;
   }
 
   return `/${slug}`;

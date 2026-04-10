@@ -3,6 +3,7 @@ import { NextResponse } from"next/server";
 
 import {
  authenticateGoogleUser,
+ canAccessUserPortal,
  createSession,
  getSessionCookieOptions,
  SESSION_COOKIE_NAME,
@@ -36,12 +37,12 @@ export async function GET(request: Request) {
   name: googleUser.name,
  });
 
- if (appUser.role !=="user") {
+ if (!canAccessUserPortal(appUser.role)) {
   return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  const token = await createSession(appUser.id);
- const target =ROUTES.USER.DASHBOARD;
+ const target =ROUTES.CUSTOMER.DASHBOARD;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE,"", {

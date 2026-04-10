@@ -1,0 +1,51 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InvitationCard } from "@/features/invitations/components/invitation-card";
+import { requireAppUser } from "@/lib/auth";
+import { getInvitationPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { ROUTES } from "@/lib/routes";
+import { getSystemSettings } from "@/lib/system-settings";
+import { listInvitationsForUser } from "@/features/invitations/server/service";
+
+export default async function CustomerInvitationsPage() {
+  const user = await requireAppUser(ROUTES.AUTH.LOGIN);
+  const [invitations, settings] = await Promise.all([listInvitationsForUser(user.id), getSystemSettings()]);
+  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
+
+  return (
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Thiệp của tôi</h1>
+          <p className="text-sm text-muted-foreground">
+            Mỗi thiệp là một bản phát hành riêng được tạo từ template hoặc từ builder starter.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" render={<Link href={ROUTES.TEMPLATES}>Tạo từ mẫu</Link>} />
+          <Button render={<Link href={ROUTES.BUILDER}>Tự tạo thiệp</Link>} />
+        </div>
+      </div>
+
+      {invitations.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Chưa có thiệp nào</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Bạn chưa tạo thiệp mời nào. Có thể bắt đầu từ một template code sẵn hoặc từ builder starter.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {invitations.map((invitation) => (
+            <InvitationCard key={invitation.id} invitation={invitation} publicHref={getInvitationPath(invitation, permalinkConfig)} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

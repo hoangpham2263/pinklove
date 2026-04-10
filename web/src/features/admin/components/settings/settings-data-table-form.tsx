@@ -33,15 +33,25 @@ type SettingsRow = {
   id: string;
   label: string;
   description: string;
-  type: "boolean" | "text" | "textarea";
+  type: "boolean" | "text" | "textarea" | "select";
   value: boolean | string;
+  options?: Array<{
+    label: string;
+    value: string;
+  }>;
 };
 
 type SettingsDataTableFormProps = {
-  section: "permalink" | "breadcrumb" | "sitemap" | "indexing";
+  section: "permalink" | "breadcrumb" | "sitemap" | "indexing" | "opengraph";
   title: string;
   rows: SettingsRow[];
   saveMessage: string;
+  compactDescription?: boolean;
+  columnWidths?: {
+    label?: string;
+    description?: string;
+    value?: string;
+  };
 };
 
 export function SettingsDataTableForm({
@@ -49,6 +59,8 @@ export function SettingsDataTableForm({
   title,
   rows: initialRows,
   saveMessage,
+  compactDescription = false,
+  columnWidths,
 }: SettingsDataTableFormProps) {
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
@@ -72,16 +84,27 @@ export function SettingsDataTableForm({
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => <span className="font-medium">{row.original.label}</span>,
+        meta: {
+          className: columnWidths?.label,
+        },
+        cell: ({ row }) => <span className="text-foreground">{row.original.label}</span>,
       },
       {
         accessorKey: "description",
         header: () => <span>Description</span>,
-        cell: ({ row }) => <p className="text-sm text-muted-foreground">{row.original.description}</p>,
+        meta: {
+          className: columnWidths?.description ?? (compactDescription ? "w-px" : undefined),
+        },
+        cell: ({ row }) => (
+          <p className={`text-muted-foreground ${compactDescription ? "max-w-none" : ""}`}>{row.original.description}</p>
+        ),
       },
       {
         accessorKey: "value",
         header: () => <span>Value</span>,
+        meta: {
+          className: columnWidths?.value ?? (compactDescription ? "w-full" : undefined),
+        },
         cell: ({ row }) => {
           const item = row.original;
 
@@ -104,7 +127,7 @@ export function SettingsDataTableForm({
                   }}
                   aria-label={item.label}
                 />
-                <span className="text-sm">{Boolean(item.value) ? "On" : "Off"}</span>
+                <span>{Boolean(item.value) ? "On" : "Off"}</span>
               </div>
             );
           }
@@ -120,8 +143,30 @@ export function SettingsDataTableForm({
                     prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
                   );
                 }}
-                className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                className="min-h-32 w-full rounded-md border bg-background px-3 py-2"
               />
+            );
+          }
+
+          if (item.type === "select") {
+            return (
+              <select
+                name={item.id}
+                value={String(item.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setRows((prev) =>
+                    prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
+                  );
+                }}
+                className="h-9 w-full rounded-md border bg-background px-3"
+              >
+                {(item.options ?? []).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             );
           }
 
@@ -141,7 +186,7 @@ export function SettingsDataTableForm({
         },
       },
     ],
-    []
+    [columnWidths?.description, columnWidths?.label, columnWidths?.value, compactDescription]
   );
 
   const table = useReactTable({
@@ -216,7 +261,7 @@ export function SettingsDataTableForm({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className={header.column.columnDef.meta?.className as string | undefined}>
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -228,7 +273,7 @@ export function SettingsDataTableForm({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.className as string | undefined}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -236,7 +281,7 @@ export function SettingsDataTableForm({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   Không có cấu hình nào phù hợp.
                 </TableCell>
               </TableRow>

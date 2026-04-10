@@ -32,7 +32,7 @@ export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormP
     event.preventDefault();
 
     try {
-      const result = await postForm(ROUTES.API.USER.INVITATIONS.UPDATE, new FormData(event.currentTarget));
+      const result = await postForm(ROUTES.API.CUSTOMER.INVITATIONS.UPDATE, new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu thiệp cưới.");
       finishMutation(router, result, { redirect: false });
     } catch (error) {
@@ -41,7 +41,7 @@ export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormP
   }
 
   return (
-    <NativeForm action={ROUTES.API.USER.INVITATIONS.UPDATE} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSubmit}>
+    <NativeForm action={ROUTES.API.CUSTOMER.INVITATIONS.UPDATE} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSubmit}>
       <input type="hidden" name="siteId" value={String(site.id)} />
       <input type="hidden" name="templateKey" value={site.templateKey} />
 

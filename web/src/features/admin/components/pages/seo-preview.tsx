@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Globe, MoreVertical } from"lucide-react";
 
@@ -11,19 +11,16 @@ type SeoPreviewProps = {
  baseUrl?: string;
 };
 
+function subscribe() {
+ return () => {};
+}
+
 export function SeoPreview({ title, description, path, baseUrl }: SeoPreviewProps) {
- const [origin, setOrigin] = useState(baseUrl || "");
-
- useEffect(() => {
-  if (baseUrl) {
-   setOrigin(baseUrl);
-   return;
-  }
-
-  if (typeof window !== "undefined") {
-   setOrigin(window.location.origin);
-  }
- }, [baseUrl]);
+ const origin = useSyncExternalStore(
+  subscribe,
+  () => baseUrl || window.location.origin,
+  () => baseUrl || "",
+ );
 
  const displayTitle = title ||"Page Title - Site Name";
  const displayDescription = description ||"Please provide a meta description by editing the snippet below. If you don't, Google will try to find a relevant part of your content to show in the search results.";

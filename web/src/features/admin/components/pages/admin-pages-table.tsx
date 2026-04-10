@@ -91,12 +91,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
         ),
         cell: ({ row }) => {
           const page = row.original;
-          return (
-            <div className="flex flex-col">
-              <span className="font-semibold">{page.name}</span>
-              {page.title ? <span className="text-muted-foreground text-xs">{page.title}</span> : null}
-            </div>
-          );
+          return <span>{page.name}</span>;
         },
       },
       {
@@ -112,12 +107,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => (
-          <div className="flex flex-col gap-1">
-            <code>{getManagedPagePath(row.original)}</code>
-            <span className="text-xs text-muted-foreground">Slug: {row.original.slug}</span>
-          </div>
-        ),
+        cell: ({ row }) => <code>{getManagedPagePath(row.original)}</code>,
       },
       {
         accessorKey: "status",

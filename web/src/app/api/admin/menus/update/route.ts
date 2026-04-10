@@ -1,4 +1,4 @@
-import { getCurrentUserFromRequest } from"@/lib/auth";
+import { getCurrentUserFromRequest, isAdminRole } from"@/lib/auth";
 import { withTransaction } from "@/lib/database";
 import { updateMenu, updateMenuItems, MenuItemInput } from"@/lib/menu";
 import { ROUTES } from "@/lib/routes";
@@ -10,8 +10,8 @@ export async function POST(request:Request) { const actor = await getCurrentUser
  if (!actor) {
   return respondError(request, { status: 401, error: "UNAUTHORIZED", message: "Vui lòng đăng nhập admin.", location: ROUTES.ADMIN.LOGIN });
  }
- if (actor.role !=="admin") {
-  return respondError(request, { status: 403, error: "FORBIDDEN", message: "Bạn không có quyền cập nhật menu.", location: ROUTES.USER.DASHBOARD });
+ if (!isAdminRole(actor.role)) {
+  return respondError(request, { status: 403, error: "FORBIDDEN", message: "Bạn không có quyền cập nhật menu.", location: ROUTES.CUSTOMER.DASHBOARD });
  }
 
  const formData = await request.formData();

@@ -7,7 +7,7 @@ Use this file as the entrypoint for project documentation.
 - App: monolithic Next.js App Router project in `web/`
 - Core stack: Next.js, React, PostgreSQL, local auth, optional Google OAuth
 - Notification standard: `sonner` is the project-wide toast system
-- Main product areas: public marketing site, user dashboard, admin management, affiliate flows, invitation templates, and published invitations
+- Main product areas: public guest site, customer dashboard, admin management, affiliate flows, invitation templates, and published invitations
 - Current admin navigation covers: dashboard, media, pages, menus, blog posts, blog categories, product list, product categories, users, affiliates, SEO pages/schema/rules, and system settings including commerce connection UI.
 
 ## Read order
@@ -16,8 +16,8 @@ Use this file as the entrypoint for project documentation.
 2. [structure](./structure.md)
 3. [schema](./schema.md)
 4. Read the area docs that match the task:
-   - [client](./client.md)
-   - [user](./user.md)
+   - [guest](./guest.md)
+   - [customer](./customer.md)
    - [admin](./admin.md)
 
 ## Update rules
@@ -25,8 +25,8 @@ Use this file as the entrypoint for project documentation.
 - Update [conventions](./conventions.md) for repo-wide workflow, routing, naming, or shared implementation rules.
 - Update [structure](./structure.md) for route, folder, or architecture changes.
 - Update [schema](./schema.md) for database, storage, or migration changes.
-- Update [client](./client.md) for public site behavior or UI conventions.
-- Update [user](./user.md) for user dashboard, auth, profile, affiliate, or site-management changes.
+- Update [guest](./guest.md) for public site behavior or UI conventions.
+- Update [customer](./customer.md) for customer dashboard, auth, profile, affiliate, or site-management changes.
 - Update [admin](./admin.md) for admin-only flows and controls.
 - Keep all files in `docs/` lowercase.
 
@@ -80,7 +80,6 @@ Use this file as the entrypoint for project documentation.
 
 ## Current review notes
 
-- `docs/index.md` now uses portable relative links instead of an old machine-specific absolute path.
-- Several docs still reference older file names such as `src/lib/db.ts`, `page-loader.ts`, or `media.ts`, while the current code uses `src/lib/database.ts`, `auth-page-loader.ts`, and `media-resolver.ts`.
-- `docs/structure.md` does not yet fully reflect newer public routes such as `services`, `tools`, and `blog`.
-- `README.md` also still references `web/src/features/auth/page-loader.ts` and should be aligned in a follow-up update.
+- Documentation and route names now use `guest` and `customer` as the primary actor terms in paths and area descriptions.
+- Database bootstrapping lives in `web/src/lib/database.ts`.
+- Auth page loading lives in `web/src/features/auth/auth-page-loader.ts`.

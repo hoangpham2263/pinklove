@@ -27,12 +27,12 @@ export const ROUTES = {
   },
   INVITATIONS: {
     PUBLIC: (slug: string) => `/invitations/${slug}`,
-    DASHBOARD: "/user/invitations",
-    EDITOR: (id: string) => `/user/invitations/${id}`,
+    DASHBOARD: "/customer/invitations",
+    EDITOR: (id: string) => `/customer/invitations/${id}`,
     API: {
-      CREATE_FROM_PRODUCT: "/api/user/invitations/create-from-product",
-      CREATE_BUILDER: "/api/user/invitations/create-builder",
-      UPDATE: "/api/user/invitations/update",
+      CREATE_FROM_PRODUCT: "/api/customer/invitations/create-from-product",
+      CREATE_BUILDER: "/api/customer/invitations/create-builder",
+      UPDATE: "/api/customer/invitations/update",
     },
   },
   TOOLS_PAGES: {
@@ -44,18 +44,19 @@ export const ROUTES = {
     POST: (slug: string) => `/blog/post/${slug}`,
   },
   AUTH: {
-    LOGIN: "/user/login",
-    REGISTER: "/user/register",
+    LOGIN: "/customer/login",
+    REGISTER: "/customer/register",
     LOGOUT_API: "/api/auth/logout",
   },
-  USER: {
-    ROOT: "/user",
-    DASHBOARD: "/user/dashboard",
-    PROFILE: "/user/profile",
-    SETTINGS: "/user/settings",
-    AFFILIATE: "/user/affiliate",
-    INVITATIONS: "/user/invitations",
-    DESIGN: (id: string) => `/user/design/${id}`,
+  CUSTOMER: {
+    ROOT: "/customer",
+    DASHBOARD: "/customer/dashboard",
+    PROFILE: "/customer/profile",
+    SETTINGS: "/customer/settings",
+    AFFILIATE: "/customer/affiliate",
+    VENDOR: "/customer/vendor",
+    INVITATIONS: "/customer/invitations",
+    DESIGN: (id: string) => `/customer/design/${id}`,
   },
   ADMIN: {
     ROOT: "/admin",
@@ -76,6 +77,7 @@ export const ROUTES = {
     CONFIG_COMMERCE: "/admin/config/commerce",
     CONFIG_PERMALINKS: "/admin/config/permalinks",
     CONFIG_BREADCRUMBS: "/admin/config/breadcrumbs",
+    CONFIG_OPENGRAPH: "/admin/config/opengraph",
     CONFIG_SITEMAP: "/admin/config/sitemap",
     PRODUCTS: "/admin/products",
     PRODUCT_LIST: "/admin/products/list",
@@ -84,6 +86,13 @@ export const ROUTES = {
     PRODUCT: (slug: string) => `/admin/products/${slug}`,
     USERS: "/admin/users",
     USERS_CREATE: "/admin/users/create",
+    CUSTOMERS: "/admin/customers",
+    CUSTOMERS_CREATE: "/admin/customers/create",
+    AFFILIATE_USERS: "/admin/affiliate-users",
+    AFFILIATE_USERS_CREATE: "/admin/affiliate-users/create",
+    VENDORS: "/admin/vendors",
+    VENDORS_CREATE: "/admin/vendors/create",
+    INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
     AFFILIATES: "/admin/affiliates",
   },
@@ -124,6 +133,10 @@ export const ROUTES = {
         UPDATE: "/api/admin/affiliates/update",
         BULK: "/api/admin/affiliates/bulk",
       },
+      INTERNAL_ACCOUNTS: {
+        SAVE: "/api/admin/internal-accounts/save",
+        DELETE: "/api/admin/internal-accounts/delete",
+      },
       USERS: {
         CREATE: "/api/admin/users/create",
         UPDATE: "/api/admin/users/update",
@@ -144,15 +157,15 @@ export const ROUTES = {
         BULK: "/api/admin/products/bulk",
       },
     },
-    USER: {
-      PROFILE: "/api/user/profile",
+    CUSTOMER: {
+      PROFILE: "/api/customer/profile",
       AFFILIATE: {
-        APPLY: "/api/user/affiliate/apply",
+        APPLY: "/api/customer/affiliate/apply",
       },
       INVITATIONS: {
-        CREATE_FROM_PRODUCT: "/api/user/invitations/create-from-product",
-        CREATE_BUILDER: "/api/user/invitations/create-builder",
-        UPDATE: "/api/user/invitations/update",
+        CREATE_FROM_PRODUCT: "/api/customer/invitations/create-from-product",
+        CREATE_BUILDER: "/api/customer/invitations/create-builder",
+        UPDATE: "/api/customer/invitations/update",
       },
     },
     AFFILIATE: {

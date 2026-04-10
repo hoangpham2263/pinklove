@@ -38,17 +38,27 @@ import {
 } from "@/components/ui/table";
 import { AccountUser, AuthUser } from "@/lib/auth";
 import { finishMutation, postForm } from "@/lib/client-mutation";
+import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 interface UserManagementProps {
   initialUsers: AccountUser[];
   actor: AuthUser;
+  returnTo?: string;
+  defaultRoleFilter?: UserRole | "";
 }
 
-export function UserManagement({ initialUsers, actor }: UserManagementProps) {
+export function UserManagement({
+  initialUsers,
+  actor,
+  returnTo,
+  defaultRoleFilter = "",
+}: UserManagementProps) {
   const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    defaultRoleFilter ? [{ id: "role", value: defaultRoleFilter }] : []
+  );
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [bulkAction, setBulkAction] = React.useState("");
@@ -125,8 +135,8 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
           return row.getValue<string>(columnId) === filterValue;
         },
         cell: ({ row }) => (
-          <Badge variant={row.original.role === "admin" ? "default" : "secondary"}>
-            {row.original.role}
+          <Badge variant={isAdminRole(row.original.role) ? "default" : "secondary"}>
+            {getRoleLabel(row.original.role)}
           </Badge>
         ),
       },
@@ -147,7 +157,7 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
               </Button>
 
               <Link
-                href={`/admin/users/${user.id}`}
+                href={returnTo ? `${ROUTES.ADMIN.USERS}/${user.id}?returnTo=${encodeURIComponent(returnTo)}` : `${ROUTES.ADMIN.USERS}/${user.id}`}
                 title="Sửa thông tin"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
               >
@@ -173,6 +183,7 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
                   }
                 }}
               >
+                {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                 <input type="hidden" name="userId" value={String(user.id)} />
                 <Button
                   type="submit"
@@ -190,7 +201,7 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
         },
       },
     ],
-    [actor.id, router]
+    [actor.id, returnTo, router]
   );
 
   const table = useReactTable({
@@ -211,7 +222,7 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
       if (!keyword) return true;
 
       const user = row.original;
-      return [user.username, user.role]
+      return [user.username, user.role, getRoleLabel(user.role)]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     },
@@ -244,8 +255,11 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
             className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
           >
             <option value="">Tất cả vai trò</option>
-            <option value="admin">admin</option>
-            <option value="user">user</option>
+            {USER_ROLE_OPTIONS.map((role) => (
+              <option key={role.value} value={role.value}>
+                {getRoleLabel(role.value)}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -277,6 +291,7 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
               }
             }}
           >
+            {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             {selectedRows.map((row) => (
               <input key={row.id} type="hidden" name="userIds" value={row.original.id} />
             ))}
@@ -288,8 +303,11 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
               className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
             >
               <option value="">Tác vụ hàng loạt</option>
-              <option value="admin">admin</option>
-              <option value="user">user</option>
+              {USER_ROLE_OPTIONS.map((role) => (
+                <option key={role.value} value={role.value}>
+                  Đổi sang {getRoleLabel(role.value)}
+                </option>
+              ))}
               <option value="delete">Delete</option>
             </select>
             <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
@@ -368,7 +386,9 @@ export function UserManagement({ initialUsers, actor }: UserManagementProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Vai trò</p>
-                  <p className="text-sm text-muted-foreground">{previewUser.role}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {getRoleLabel(previewUser.role)} ({previewUser.role})
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Họ và tên</p>

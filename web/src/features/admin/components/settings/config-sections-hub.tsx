@@ -11,7 +11,7 @@ import {
   Settings2,
   ShieldCheck,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type ConfigHubItem = {
@@ -68,7 +68,7 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
             className="h-10 pl-9"
           />
         </div>
-        <div className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground">
+        <div className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-muted-foreground">
           <ShieldCheck className="h-4 w-4" />
           Quản lý tập trung cho toàn bộ cấu hình hệ thống
         </div>
@@ -86,7 +86,7 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
                     <SectionIcon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="font-semibold tracking-tight">{section.title}</h2>
+                    <h2 className="tracking-tight text-foreground">{section.title}</h2>
                   </div>
                 </div>
 
@@ -97,8 +97,8 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
                       href={item.href}
                       className="block rounded-lg border border-transparent px-3 py-2 transition-colors hover:border-border hover:bg-muted/40"
                     >
-                      <p className="font-medium text-foreground">{item.title}</p>
-                      <p className="mt-1 text-sm leading-5 text-muted-foreground">{item.description}</p>
+                      <p className="text-foreground">{item.title}</p>
+                      <p className="mt-1 leading-5 text-muted-foreground">{item.description}</p>
                     </Link>
                   ))}
                 </div>
@@ -108,7 +108,7 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
 
           {filteredSections.length === 0 ? (
             <div className="lg:col-span-3">
-              <div className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed px-4 py-10 text-center text-muted-foreground">
                 Không tìm thấy mục cấu hình hoặc tài liệu phù hợp.
               </div>
             </div>

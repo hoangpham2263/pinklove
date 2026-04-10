@@ -7,8 +7,8 @@ import { getInvitationTemplateLabel } from "../templates";
 
 export function InvitationCard({ invitation, publicHref }: { invitation: InvitationSite; publicHref: string }) {
   const editHref = invitation.siteType === "builder_template"
-    ? ROUTES.USER.DESIGN(invitation.id)
-    : `${ROUTES.USER.INVITATIONS}/${invitation.id}`;
+    ? ROUTES.CUSTOMER.DESIGN(invitation.id)
+    : `${ROUTES.CUSTOMER.INVITATIONS}/${invitation.id}`;
 
   return (
     <Card className="h-full">

@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { AboutContent } from "@/app/(client)/(marketing)/about/_components/about-content";
+import { AboutContent } from "@/app/(guest)/(marketing)/about/_components/about-content";
 import {
-  ClientInput,
-  ClientLinkButton,
-  ClientPanel,
-  ClientPanelBody,
-  ClientPanelHeader,
-  ClientPanelTitle,
-  ClientShell,
-} from "@/app/(client)/_components/client-ui";
-import { ContactContent } from "@/app/(client)/(marketing)/contact/_components/contact-content";
-import { HomeContent } from "@/app/(client)/_components/home-content";
+  GuestInput,
+  GuestLinkButton,
+  GuestPanel,
+  GuestPanelBody,
+  GuestPanelHeader,
+  GuestPanelTitle,
+  GuestShell,
+} from "@/app/(guest)/_components/guest-ui";
+import { ContactContent } from "@/app/(guest)/(marketing)/contact/_components/contact-content";
+import { HomeContent } from "@/app/(guest)/_components/home-content";
 import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcrumb";
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
@@ -131,7 +131,7 @@ function GenericManagedPage({ page }: { page: ManagedPage }) {
     .filter(Boolean);
 
   return (
-    <ClientShell className="gap-10 py-12">
+    <GuestShell className="gap-10 py-12">
       <PageStructuredData page={page} />
       <PageHero
         page={page}
@@ -152,7 +152,7 @@ function GenericManagedPage({ page }: { page: ManagedPage }) {
           </p>
         )}
       </div>
-    </ClientShell>
+    </GuestShell>
   );
 }
 
@@ -195,7 +195,7 @@ export async function renderManagedPage(page: ManagedPage) {
       const builderTemplates = products.filter((product) => product.productType === "builder_template");
 
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -239,7 +239,7 @@ export async function renderManagedPage(page: ManagedPage) {
               ))}
             </div>
           </section>
-        </ClientShell>
+        </GuestShell>
       );
     }
     case "builder": {
@@ -249,7 +249,7 @@ export async function renderManagedPage(page: ManagedPage) {
       ]);
 
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <div className="space-y-3">
             <ManagedPageBreadcrumb page={page} />
@@ -275,16 +275,16 @@ export async function renderManagedPage(page: ManagedPage) {
 
           {!user ? (
             <div className="flex flex-wrap gap-3">
-              <ClientLinkButton href={ROUTES.AUTH.LOGIN}>Đăng nhập để bắt đầu</ClientLinkButton>
-              <ClientLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary">Đăng ký tài khoản</ClientLinkButton>
+              <GuestLinkButton href={ROUTES.AUTH.LOGIN}>Đăng nhập để bắt đầu</GuestLinkButton>
+              <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary">Đăng ký tài khoản</GuestLinkButton>
             </div>
           ) : null}
-        </ClientShell>
+        </GuestShell>
       );
     }
     case "services":
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -294,13 +294,13 @@ export async function renderManagedPage(page: ManagedPage) {
 
           <div className="grid gap-6 lg:grid-cols-3">
             {plans.map((plan) => (
-              <ClientPanel key={plan.name} className="h-full">
-                <ClientPanelHeader>
+              <GuestPanel key={plan.name} className="h-full">
+                <GuestPanelHeader>
                   <p className="text-xs uppercase tracking-[0.3em] text-stone-400">{plan.name}</p>
-                  <ClientPanelTitle className="mt-3">{plan.price}</ClientPanelTitle>
+                  <GuestPanelTitle className="mt-3">{plan.price}</GuestPanelTitle>
                   <p className="mt-3 text-sm leading-7 text-stone-600">{plan.summary}</p>
-                </ClientPanelHeader>
-                <ClientPanelBody className="flex h-full flex-col gap-6">
+                </GuestPanelHeader>
+                <GuestPanelBody className="flex h-full flex-col gap-6">
                   <div className="space-y-3">
                     {plan.features.map((feature) => (
                       <div key={feature} className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 lg:rounded-2xl">
@@ -309,15 +309,15 @@ export async function renderManagedPage(page: ManagedPage) {
                     ))}
                   </div>
                   <div className="mt-auto">
-                    <ClientLinkButton href={contactPath} className="flex w-full justify-center">
+                    <GuestLinkButton href={contactPath} className="flex w-full justify-center">
                       Liên hệ tư vấn
-                    </ClientLinkButton>
+                    </GuestLinkButton>
                   </div>
-                </ClientPanelBody>
-              </ClientPanel>
+                </GuestPanelBody>
+              </GuestPanel>
             ))}
           </div>
-        </ClientShell>
+        </GuestShell>
       );
     case "tools": {
       const tools = [
@@ -336,7 +336,7 @@ export async function renderManagedPage(page: ManagedPage) {
       ];
 
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -346,25 +346,25 @@ export async function renderManagedPage(page: ManagedPage) {
 
           <div className="grid gap-6 lg:grid-cols-2">
             {tools.map((tool) => (
-              <ClientPanel key={tool.href} className="h-full">
-                <ClientPanelHeader>
-                  <ClientPanelTitle>{tool.title}</ClientPanelTitle>
-                </ClientPanelHeader>
-                <ClientPanelBody className="flex h-full flex-col gap-6">
+              <GuestPanel key={tool.href} className="h-full">
+                <GuestPanelHeader>
+                  <GuestPanelTitle>{tool.title}</GuestPanelTitle>
+                </GuestPanelHeader>
+                <GuestPanelBody className="flex h-full flex-col gap-6">
                   <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{tool.description}</p>
                   <div className="mt-auto">
-                    <ClientLinkButton href={tool.href}>{tool.cta}</ClientLinkButton>
+                    <GuestLinkButton href={tool.href}>{tool.cta}</GuestLinkButton>
                   </div>
-                </ClientPanelBody>
-              </ClientPanel>
+                </GuestPanelBody>
+              </GuestPanel>
             ))}
           </div>
-        </ClientShell>
+        </GuestShell>
       );
     }
     case "tools/qr-builder":
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -373,35 +373,35 @@ export async function renderManagedPage(page: ManagedPage) {
           />
 
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <ClientPanel>
-              <ClientPanelHeader>
-                <ClientPanelTitle>Thông tin mã QR</ClientPanelTitle>
-              </ClientPanelHeader>
-              <ClientPanelBody className="space-y-4">
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Thông tin mã QR</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">Tên cô dâu chú rể</label>
-                  <ClientInput placeholder="Ví dụ: Linh & Tuan" />
+                  <GuestInput placeholder="Ví dụ: Linh & Tuan" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">Ngân hàng</label>
-                  <ClientInput placeholder="Ví dụ: MB Bank" />
+                  <GuestInput placeholder="Ví dụ: MB Bank" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">Số tài khoản</label>
-                  <ClientInput placeholder="Ví dụ: 123456789" />
+                  <GuestInput placeholder="Ví dụ: 123456789" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">Chủ tài khoản</label>
-                  <ClientInput placeholder="Ví dụ: Nguyen Van A" />
+                  <GuestInput placeholder="Ví dụ: Nguyen Van A" />
                 </div>
-              </ClientPanelBody>
-            </ClientPanel>
+              </GuestPanelBody>
+            </GuestPanel>
 
-            <ClientPanel>
-              <ClientPanelHeader>
-                <ClientPanelTitle>Xem trước</ClientPanelTitle>
-              </ClientPanelHeader>
-              <ClientPanelBody className="space-y-6">
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Xem trước</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-6">
                 <div className="mx-auto flex aspect-square max-w-[320px] items-center justify-center rounded-xl border border-stone-200 bg-stone-50 lg:rounded-2xl">
                   <div className="space-y-3 text-center">
                     <div className="mx-auto grid h-40 w-40 grid-cols-6 gap-1 rounded-xl bg-white p-3 shadow-sm lg:rounded-2xl">
@@ -412,17 +412,17 @@ export async function renderManagedPage(page: ManagedPage) {
                     <p className="text-sm font-medium text-stone-700">QR preview placeholder</p>
                   </div>
                 </div>
-                <ClientLinkButton href={templatesPath} className="flex w-full justify-center">
+                <GuestLinkButton href={templatesPath} className="flex w-full justify-center">
                   Dùng QR này trong mẫu thiệp
-                </ClientLinkButton>
-              </ClientPanelBody>
-            </ClientPanel>
+                </GuestLinkButton>
+              </GuestPanelBody>
+            </GuestPanel>
           </div>
-        </ClientShell>
+        </GuestShell>
       );
     case "tools/wedding-budget":
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -431,26 +431,26 @@ export async function renderManagedPage(page: ManagedPage) {
           />
 
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <ClientPanel>
-              <ClientPanelHeader>
-                <ClientPanelTitle>Ngân sách dự kiến</ClientPanelTitle>
-              </ClientPanelHeader>
-              <ClientPanelBody className="space-y-4">
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Ngân sách dự kiến</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">Tổng ngân sách</label>
-                  <ClientInput placeholder="Ví dụ: 150000000" />
+                  <GuestInput placeholder="Ví dụ: 150000000" />
                 </div>
                 <p className="text-sm leading-7 text-stone-600">
                   Bước tiếp theo có thể thêm slider và tính tiền realtime cho từng hạng mục.
                 </p>
-              </ClientPanelBody>
-            </ClientPanel>
+              </GuestPanelBody>
+            </GuestPanel>
 
-            <ClientPanel>
-              <ClientPanelHeader>
-                <ClientPanelTitle>Phân bổ tham khảo</ClientPanelTitle>
-              </ClientPanelHeader>
-              <ClientPanelBody className="space-y-3">
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Phân bổ tham khảo</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-3">
                 {budgetCategories.map((item) => (
                   <div key={item.label} className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 lg:rounded-2xl">
                     <span className="text-sm font-medium text-stone-800">{item.label}</span>
@@ -458,14 +458,14 @@ export async function renderManagedPage(page: ManagedPage) {
                   </div>
                 ))}
                 <div className="pt-3">
-                  <ClientLinkButton href={templatesPath} className="flex w-full justify-center">
+                  <GuestLinkButton href={templatesPath} className="flex w-full justify-center">
                     Tiết kiệm bằng thiệp online
-                  </ClientLinkButton>
+                  </GuestLinkButton>
                 </div>
-              </ClientPanelBody>
-            </ClientPanel>
+              </GuestPanelBody>
+            </GuestPanel>
           </div>
-        </ClientShell>
+        </GuestShell>
       );
     case "blog": {
       const [categories, posts] = await Promise.all([
@@ -474,7 +474,7 @@ export async function renderManagedPage(page: ManagedPage) {
       ]);
 
       return (
-        <ClientShell className="gap-10 py-12">
+        <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
           <PageHero
             page={page}
@@ -482,7 +482,7 @@ export async function renderManagedPage(page: ManagedPage) {
             fallbackExcerpt="Chia sẻ kinh nghiệm chọn mẫu thiệp, lên ngân sách cưới, tối ưu nội dung và dùng công cụ đúng lúc để chuẩn bị nhanh hơn."
           />
           <BlogTabs categories={categories} posts={posts} permalinkConfig={permalinkConfig} />
-        </ClientShell>
+        </GuestShell>
       );
     }
     default:

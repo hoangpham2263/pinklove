@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { X, Copy, Trash2, Eye, ChevronLeft, ChevronRight, FileText, Grid2X2, List } from "lucide-react";
+import { X, Copy, Trash2, Eye, ChevronLeft, ChevronRight, FileText, Grid2X2, List, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -421,7 +421,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{item.originalName}</p>
+                        <p className="truncate">{item.originalName}</p>
                         <p className="truncate text-sm text-muted-foreground">{item.url}</p>
                         <p className="text-sm text-muted-foreground">
                           {(item.sizeBytes / 1024).toFixed(0)} KB
@@ -509,57 +509,71 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
             <X className="h-6 w-6" />
           </button>
           <div
-            className="relative grid max-h-full max-w-6xl overflow-hidden rounded-lg border bg-background lg:grid-cols-[minmax(0,1fr)_320px]" onClick={(e) => e.stopPropagation()}
+            className="relative flex max-h-[calc(100vh-32px)] max-w-5xl flex-col overflow-hidden rounded-lg border bg-background" onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center bg-black/5 p-4">
+            <div className="flex min-h-0 items-center justify-center bg-black/5 p-4">
               <img
                 src={previewItem.url}
                 alt="Preview"
-                className="max-h-[90vh] max-w-full object-contain"
+                className="max-h-[48vh] max-w-full object-contain"
               />
             </div>
-            <div className="flex flex-col gap-4 border-l p-5">
+            <div className="flex max-h-[calc(100vh-32px-48vh)] flex-col gap-4 overflow-y-auto border-t p-5">
               <div>
-                <p className="text-sm text-muted-foreground">Tên file</p>
-                <p className="break-words font-medium">{previewItem.originalName}</p>
+                <p className="text-xs text-muted-foreground">Tên file</p>
+                <p className="break-words">{previewItem.originalName}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">URL</p>
-                <p className="break-all text-sm">{previewItem.url}</p>
+                <p className="text-xs text-muted-foreground">URL</p>
+                <p className="break-all text-xs">{previewItem.url}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-muted-foreground">Loại file</p>
-                  <p>{previewItem.mimeType || "unknown"}</p>
+                  <p className="text-xs text-muted-foreground">Loại file</p>
+                  <p className="text-xs">{previewItem.mimeType || "unknown"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Dung lượng</p>
-                  <p>{(previewItem.sizeBytes / 1024).toFixed(0)} KB</p>
+                  <p className="text-xs text-muted-foreground">Dung lượng</p>
+                  <p className="text-xs">{(previewItem.sizeBytes / 1024).toFixed(0)} KB</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Ngày tạo</p>
-                  <p>{new Date(previewItem.createdAt).toLocaleString("vi-VN")}</p>
+                  <p className="text-xs text-muted-foreground">Ngày tạo</p>
+                  <p className="text-xs">{new Date(previewItem.createdAt).toLocaleString("vi-VN")}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">File name</p>
-                  <p className="break-all">{previewItem.fileName}</p>
+                  <p className="text-xs text-muted-foreground">File name</p>
+                  <p className="break-all text-xs">{previewItem.fileName}</p>
                 </div>
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
+                  size="icon"
+                  title="Mở trên trình duyệt"
+                  onClick={() => {
+                    window.open(previewItem.url, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  title="Copy URL"
                   onClick={async () => {
                     await navigator.clipboard.writeText(previewItem.url);
                     toast.success("Đã sao chép URL.");
                   }}
                 >
                   <Copy className="h-4 w-4" />
-                  Copy URL
                 </Button>
                 <Button
                   type="button"
                   variant="destructive"
+                  size="icon"
+                  title="Xóa"
                   onClick={async () => {
                     const id = previewItem.id;
                     setPreviewItem(null);
@@ -567,7 +581,6 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Xóa
                 </Button>
               </div>
             </div>

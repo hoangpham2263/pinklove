@@ -66,8 +66,8 @@ export function IndexingSettingsForm({ settings }: { settings: IndexingSettings 
             <label className="flex items-start gap-3 rounded-md border bg-card p-4">
               <input type="checkbox" name="disallowUser" defaultChecked={settings.disallowUser} className="mt-1 rounded border-input" />
               <span className="space-y-1">
-                <span className="block font-medium">Disallow /user</span>
-                <span className="block text-sm text-muted-foreground">Chặn crawl khu user.</span>
+                <span className="block font-medium">Disallow /customer</span>
+                <span className="block text-sm text-muted-foreground">Chặn crawl khu customer.</span>
               </span>
             </label>
             <label className="flex items-start gap-3 rounded-md border bg-card p-4">

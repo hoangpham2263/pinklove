@@ -1,11 +1,11 @@
 import Image from "next/image";
 import {
-  ClientLinkButton,
-  ClientPanel,
-  ClientPanelBody,
-  ClientPanelHeader,
-  ClientPanelTitle,
-} from "@/app/(client)/_components/client-ui";
+  GuestLinkButton,
+  GuestPanel,
+  GuestPanelBody,
+  GuestPanelHeader,
+  GuestPanelTitle,
+} from "@/app/(guest)/_components/guest-ui";
 import type { Product } from "@/features/products/types";
 import { getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { ROUTES } from "@/lib/routes";
@@ -20,12 +20,12 @@ export function ProductCard({
   ctaLabel?: string;
 }) {
   return (
-    <ClientPanel className="flex h-full flex-col">
-      <ClientPanelHeader>
-        <ClientPanelTitle>{product.name}</ClientPanelTitle>
+    <GuestPanel className="flex h-full flex-col">
+      <GuestPanelHeader>
+        <GuestPanelTitle>{product.name}</GuestPanelTitle>
         <p className="mt-2 text-sm text-stone-500">{getInvitationTemplateLabel(product.templateKey)}</p>
-      </ClientPanelHeader>
-      <ClientPanelBody className="flex flex-1 flex-col gap-4">
+      </GuestPanelHeader>
+      <GuestPanelBody className="flex flex-1 flex-col gap-4">
         {product.thumbnailUrl ? (
           <Image
             src={product.thumbnailUrl}
@@ -49,9 +49,9 @@ export function ProductCard({
               {product.productType === "coded_template" ? "Thiếp mẫu sẵn" : "Tự tạo thiệp"}
             </p>
           </div>
-          <ClientLinkButton href={href}>{ctaLabel}</ClientLinkButton>
+          <GuestLinkButton href={href}>{ctaLabel}</GuestLinkButton>
         </div>
-      </ClientPanelBody>
-    </ClientPanel>
+      </GuestPanelBody>
+    </GuestPanel>
   );
 }

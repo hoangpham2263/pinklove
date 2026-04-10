@@ -9,7 +9,6 @@ import {
   BadgePercent,
   Settings,
   ExternalLink,
-  BookOpenText
 } from "lucide-react";
 
 import { AdminTopHeader } from "@/features/admin/components/layout/admin-top-header";
@@ -61,12 +60,16 @@ const adminNavGroups: AdminNavGroup[] = [
     ],
   },
   {
-    label: "User",
+    label: "Tài khoản",
     iconName: "users",
     defaultOpen: false,
     children: [
-      { label: "Users", href: ROUTES.ADMIN.USERS, iconName: "users" },
-      { label: "Affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
+      { label: "Người dùng", href: ROUTES.ADMIN.USERS, iconName: "users" },
+      { label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
+      { label: "Đối tác / CTV", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
+      { label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "users" },
+      { label: "Tài khoản nội bộ", href: ROUTES.ADMIN.INTERNAL_ACCOUNTS, iconName: "users" },
+      { label: "Chương trình affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
     ],
   },
 ];
@@ -78,7 +81,7 @@ export default async function AdminLayout({
 
   return (
     <div>
-      <aside className="admin-sidebar-scroll fixed top-0 left-0 hidden h-screen w-60 overflow-y-auto border-r bg-background p-5 md:flex md:flex-col md:gap-3">
+      <aside className="admin-sidebar-scroll fixed top-0 left-0 hidden h-screen w-64 overflow-y-auto border-r bg-background p-5 md:flex md:flex-col md:gap-3">
         <div className="flex items-center gap-2 mb-6 px-3">
           <div className="h-6 w-6 rounded-bg bg-primary" />
           <h2 className="text-lg font-bold tracking-tight">PinkLove</h2>
@@ -130,7 +133,7 @@ export default async function AdminLayout({
 
 
 
-      <main className="md:ml-60 min-h-screen bg-muted/30">
+      <main className="md:ml-64 min-h-screen bg-muted/30">
 
 
 
@@ -222,7 +225,38 @@ export default async function AdminLayout({
 
                 <Users className="h-4 w-4" />
 
-                Users
+                Người dùng
+              </AdminNavLink>
+
+              <AdminNavLink href={ROUTES.ADMIN.CUSTOMERS} className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-sm transition-colors">
+
+                <Users className="h-4 w-4" />
+
+                Khách hàng
+
+              </AdminNavLink>
+
+              <AdminNavLink href={ROUTES.ADMIN.AFFILIATE_USERS} className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-sm transition-colors">
+
+                <Users className="h-4 w-4" />
+
+                Đối tác / CTV
+
+              </AdminNavLink>
+
+              <AdminNavLink href={ROUTES.ADMIN.VENDORS} className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-sm transition-colors">
+
+                <Users className="h-4 w-4" />
+
+                Nhà cung cấp
+
+              </AdminNavLink>
+
+              <AdminNavLink href={ROUTES.ADMIN.INTERNAL_ACCOUNTS} className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 text-sm transition-colors">
+
+                <Users className="h-4 w-4" />
+
+                Tài khoản nội bộ
 
               </AdminNavLink>
 
@@ -230,7 +264,7 @@ export default async function AdminLayout({
 
                 <BadgePercent className="h-4 w-4" />
 
-                Affiliate
+                CT affiliate
 
               </AdminNavLink>
 

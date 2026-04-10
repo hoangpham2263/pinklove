@@ -56,7 +56,7 @@ export default async function AdminCommerceConnectionsPage() {
             <CardTitle className="text-base">Tổng nền tảng</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{PLATFORM_CARDS.length}</p>
+            <p>{PLATFORM_CARDS.length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
@@ -64,7 +64,7 @@ export default async function AdminCommerceConnectionsPage() {
             <CardTitle className="text-base">Đã bật UI</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">4</p>
+            <p>4</p>
             <p className="text-sm text-muted-foreground">Chưa có persist</p>
           </CardContent>
         </Card>
@@ -73,7 +73,7 @@ export default async function AdminCommerceConnectionsPage() {
             <CardTitle className="text-base">Webhook Ready</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">0</p>
+            <p>0</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
@@ -81,7 +81,7 @@ export default async function AdminCommerceConnectionsPage() {
             <CardTitle className="text-base">Token Storage</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">Pending</p>
+            <p>Pending</p>
           </CardContent>
         </Card>
       </div>

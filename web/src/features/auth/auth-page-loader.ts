@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import type { AuthPageFields } from "@/features/auth/fields";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getAccessiblePageBySlug } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
 import { resolveMediaUrl } from "@/lib/media-resolver";
@@ -15,8 +15,8 @@ export type LoadedAuthSystemPage = {
 export async function loadAuthPage(slug: "login" | "register"): Promise<LoadedAuthSystemPage> {
   const user = await getCurrentUser();
 
-  if (user?.role === "user") {
-    redirect(ROUTES.USER.DASHBOARD);
+  if (user && !isAdminRole(user.role)) {
+    redirect(ROUTES.CUSTOMER.DASHBOARD);
   }
 
   const page = await getAccessiblePageBySlug(slug, { allowAdminDraftAccess: true });

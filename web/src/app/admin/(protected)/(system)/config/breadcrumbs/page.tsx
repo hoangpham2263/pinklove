@@ -13,12 +13,12 @@ export default async function AdminBreadcrumbSettingsPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
             ← Back
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Breadcrumbs</h1>
-            <p className="text-sm text-muted-foreground">Cài đặt breadcrumb UI và structured data dùng chung.</p>
+            <p className="text-muted-foreground">Cài đặt breadcrumb UI và structured data dùng chung.</p>
           </div>
         </div>
       </div>
@@ -26,34 +26,34 @@ export default async function AdminBreadcrumbSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Breadcrumbs</CardTitle>
+            <CardTitle>Breadcrumbs</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.breadcrumb.enabled ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.breadcrumb.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Show On Page</CardTitle>
+            <CardTitle>Show On Page</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.breadcrumb.showOnPage ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.breadcrumb.showOnPage ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">JSON-LD</CardTitle>
+            <CardTitle>JSON-LD</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{settings.breadcrumb.includeStructuredData ? "On" : "Off"}</p>
+            <p className="tracking-tight">{settings.breadcrumb.includeStructuredData ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Home Label</CardTitle>
+            <CardTitle>Home Label</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{settings.breadcrumb.homeLabel}</p>
+            <p className="tracking-tight">{settings.breadcrumb.homeLabel}</p>
           </CardContent>
         </Card>
       </div>

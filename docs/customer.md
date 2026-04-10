@@ -1,0 +1,38 @@
+# Customer Convention
+
+This file covers the normal customer area and customer-owned site flows.
+
+## Scope
+
+- `src/app/customer/*`
+- `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`
+- `src/app/api/customer/*`
+- `src/features/customer/*`
+- customer-facing parts of `src/features/invitations/*`
+
+## Rules
+
+- The session cookie name is `pinklove_session`.
+- Stored roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR`.
+- Public visitors are treated as the `GUEST` actor in code/docs, but are not stored in the `users` table.
+- The first registered account becomes `ADMIN`.
+- Logged-in non-admin users (`CUSTOMER`, `AFFILIATE`, `VENDOR`) should be redirected away from customer auth pages back to the customer dashboard.
+- Admins may access the normal customer area for management and preview workflows.
+- Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
+- Current create flows bypass checkout and create draft invitation records directly. The current table name is still `wedding_sites`.
+- Current builder limitations:
+  - element height is not draggable/resizable yet
+  - editor grouping is not implemented yet
+
+## Current customer routes
+
+- `src/app/customer/(auth)/login/page.tsx`
+- `src/app/customer/(auth)/register/page.tsx`
+- `src/app/customer/(protected)/(workspace)/dashboard/page.tsx`
+- `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
+- `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
+- `src/app/customer/(protected)/(account)/profile/page.tsx`
+- `src/app/customer/(protected)/(account)/settings/page.tsx`
+- `src/app/customer/(protected)/(growth)/affiliate/page.tsx`
+- `src/app/customer/(protected)/(growth)/vendor/page.tsx`
+- `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`

@@ -67,7 +67,7 @@ export function SitemapSettingsForm({ settings }: { settings: SitemapSettings })
             <input type="checkbox" name="includeDiscoveredRoutes" defaultChecked={settings.includeDiscoveredRoutes} className="mt-1 rounded border-input" />
             <span className="space-y-1">
               <span className="block font-medium">Static public pages</span>
-              <span className="block text-sm text-muted-foreground">Đưa các public route tĩnh từ `src/app/(client)` vào cùng `sitemap-pages.xml`.</span>
+              <span className="block text-sm text-muted-foreground">Đưa các public route tĩnh từ `src/app/(guest)` vào cùng `sitemap-pages.xml`.</span>
             </span>
           </label>
 

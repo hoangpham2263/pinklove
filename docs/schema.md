@@ -4,18 +4,18 @@ This document describes the tables the current code uses or expects.
 
 ## Important compatibility note
 
-- The current bootstrap code in `src/lib/db.ts` creates new tables with `text` primary keys using `app_random_id()`.
+- The current bootstrap code in `src/lib/database.ts` creates new tables with `text` primary keys using `app_random_id()`.
 - Some existing environments may still contain older `bigserial` and `bigint` IDs from an earlier schema version.
 - When changing queries, write them defensively so they do not assume every environment already uses the new text-based IDs.
 
-## Auto-created by `src/lib/db.ts`
+## Auto-created by `src/lib/database.ts`
 
 ### `users`
 
 - `id`: `text` in the current bootstrap, may be `bigserial` in older databases
 - `username`: `text`, unique
 - `password_hash`: `text`
-- `role`: `text`, `admin` or `user`
+- `role`: `text`, one of `ADMIN`, `CUSTOMER`, `AFFILIATE`, or `VENDOR`
 - `created_at`: `timestamptz`
 
 ### `user_sessions`
@@ -46,6 +46,19 @@ Notes:
 
 - Currently used for centralized SEO/system settings such as permalink, breadcrumb, and sitemap config.
 - Also stores site-wide indexing / robots settings.
+
+### `internal_accounts`
+
+- `id`: `text`
+- `platform`: `text`
+- `label`: `text`
+- `login_username`: `text`
+- `login_password`: `text`
+- `login_url`: `text`
+- `notes`: `text`
+- `sort_order`: `int`
+- `created_at`: `timestamptz`
+- `updated_at`: `timestamptz`
 
 ### `user_profiles`
 
@@ -97,7 +110,7 @@ Constraint:
 
 Notes:
 
-- `src/lib/db.ts` seeds the built-in `home`, `login`, and `register` rows if missing.
+- `src/lib/database.ts` seeds the built-in `home`, `login`, and `register` rows if missing.
 
 ### `navigation_menus`
 

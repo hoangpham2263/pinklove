@@ -7,9 +7,18 @@ import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { finishMutation, postForm } from "@/lib/client-mutation";
+import { USER_ROLE_OPTIONS, type UserRole, USER_ROLES, getRoleLabel } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
-export function QuickCreateUserForm() {
+type QuickCreateUserFormProps = {
+  defaultRole?: UserRole;
+  returnTo?: string;
+};
+
+export function QuickCreateUserForm({
+  defaultRole = USER_ROLES.CUSTOMER,
+  returnTo,
+}: QuickCreateUserFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,6 +40,7 @@ export function QuickCreateUserForm() {
 
   return (
     <NativeForm action={ROUTES.API.ADMIN.USERS.CREATE} method="POST" className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <div className="space-y-2">
         <label>Tên đăng nhập</label>
         <Input name="username" required />
@@ -43,11 +53,14 @@ export function QuickCreateUserForm() {
         <label>Vai trò</label>
         <select
           name="role"
-          defaultValue="user"
+          defaultValue={defaultRole}
           className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         >
-          <option value="user">user</option>
-          <option value="admin">admin</option>
+          {USER_ROLE_OPTIONS.map((role) => (
+            <option key={role.value} value={role.value}>
+              {getRoleLabel(role.value)} ({role.value})
+            </option>
+          ))}
         </select>
       </div>
 
