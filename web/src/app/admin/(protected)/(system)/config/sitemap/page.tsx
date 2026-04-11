@@ -107,7 +107,7 @@ export default async function AdminSitemapSettingsPage() {
             ← Back
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Sitemap</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Sitemap & Robots</h1>
             <p className="text-muted-foreground">Quản lý cấu hình và xem realtime sitemap.xml theo domain, settings và dữ liệu đang publish.</p>
           </div>
         </div>
@@ -125,41 +125,41 @@ export default async function AdminSitemapSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Domain Runtime</CardTitle>
+            <CardTitle className="text-base font-medium">Domain Runtime</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="break-all text-foreground">{siteUrl}</p>
+            <p className="break-all text-2xl font-semibold text-foreground">{siteUrl}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Sitemap</CardTitle>
+            <CardTitle className="text-base font-medium">Sitemap</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.sitemap.enabled ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.sitemap.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Enabled Groups</CardTitle>
+            <CardTitle className="text-base font-medium">Enabled Groups</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{providerRows.filter((provider) => provider.enabled).length}</p>
+            <p className="text-2xl font-semibold">{providerRows.filter((provider) => provider.enabled).length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Indexed URLs</CardTitle>
+            <CardTitle className="text-base font-medium">Indexed URLs</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{totalUrls}</p>
+            <p className="text-2xl font-semibold">{totalUrls}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card id="sitemap-settings" className="rounded-lg">
         <CardHeader>
-          <CardTitle>Cấu hình sitemap</CardTitle>
+          <CardTitle>Sitemap Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm

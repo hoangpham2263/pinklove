@@ -14,7 +14,12 @@ export default async function AdminBrandingSettingsPage() {
   await requireAdmin();
   const settings = await getSystemSettings();
   const brandLogo = settings.branding.brandLogo || "Chưa cấu hình";
+  const favicon = settings.favicon.siteFavicon || "Chưa cấu hình";
+  const appleTouchIcon = settings.favicon.appleTouchIcon || "Chưa cấu hình";
   const hasBrandLogo = Boolean(settings.branding.brandLogo) && canPreviewImage(settings.branding.brandLogo);
+  const hasFaviconPreview = Boolean(settings.favicon.siteFavicon) && canPreviewImage(settings.favicon.siteFavicon);
+  const hasAppleTouchIconPreview =
+    Boolean(settings.favicon.appleTouchIcon) && canPreviewImage(settings.favicon.appleTouchIcon);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -25,7 +30,7 @@ export default async function AdminBrandingSettingsPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Branding</h1>
-            <p className="text-muted-foreground">Quản lý tên site và logo hiển thị trong header, sidebar và các shell của hệ thống.</p>
+            <p className="text-muted-foreground">Quản lý tên site, logo và các icon nhận diện hiển thị trên toàn hệ thống.</p>
           </div>
         </div>
       </div>
@@ -33,15 +38,15 @@ export default async function AdminBrandingSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Site Name</CardTitle>
+            <CardTitle className="text-base font-medium">Site Name</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.branding.siteName}</p>
+            <p className="text-2xl font-semibold">{settings.branding.siteName}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Brand Logo</CardTitle>
+            <CardTitle className="text-base font-medium">Brand Logo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="break-all text-foreground">{brandLogo}</p>
@@ -58,11 +63,49 @@ export default async function AdminBrandingSettingsPage() {
             ) : null}
           </CardContent>
         </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Browser Favicon</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="break-all text-foreground">{favicon}</p>
+            {hasFaviconPreview ? (
+              <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
+                <Image
+                  src={settings.favicon.siteFavicon}
+                  alt="Favicon preview"
+                  width={64}
+                  height={64}
+                  className="max-h-full w-auto object-contain"
+                />
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Apple Touch Icon</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="break-all text-foreground">{appleTouchIcon}</p>
+            {hasAppleTouchIconPreview ? (
+              <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
+                <Image
+                  src={settings.favicon.appleTouchIcon}
+                  alt="Apple touch icon preview"
+                  width={96}
+                  height={96}
+                  className="max-h-full w-auto object-contain"
+                />
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Cấu hình branding</CardTitle>
+          <CardTitle>Brand Assets</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm
@@ -88,6 +131,40 @@ export default async function AdminBrandingSettingsPage() {
                 description: "Logo hiển thị trong header hoặc sidebar. Đây không phải favicon và cũng không phải ảnh social share mặc định.",
                 type: "media",
                 value: settings.branding.brandLogo,
+              },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardTitle>Favicon & App Icons</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SettingsDataTableForm
+            section="favicon"
+            title="Favicon"
+            saveMessage="Đã lưu cài đặt favicon."
+            columnWidths={{
+              label: "w-[20%]",
+              description: "w-[40%]",
+              value: "w-[40%]",
+            }}
+            rows={[
+              {
+                id: "siteFavicon",
+                label: "Browser Favicon",
+                description: "Icon mặc định cho tab trình duyệt và shortcut. Nên dùng `.ico`, `.png` hoặc `.svg` vuông.",
+                type: "media",
+                value: settings.favicon.siteFavicon,
+              },
+              {
+                id: "appleTouchIcon",
+                label: "Apple Touch Icon",
+                description: "Icon riêng cho iPhone/iPad khi lưu ra màn hình chính. Nên dùng ảnh vuông kích thước lớn như 180x180.",
+                type: "media",
+                value: settings.favicon.appleTouchIcon,
               },
             ]}
           />

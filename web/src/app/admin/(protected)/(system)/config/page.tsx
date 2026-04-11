@@ -6,28 +6,23 @@ import { getSystemSettings } from "@/lib/system-settings";
 
 const CONFIG_SECTIONS = [
   {
-    title: "Cấu hình chung",
+    title: "Brand & UI",
     icon: "settings" as const,
     items: [
       {
         title: "Branding",
-        description: "Quản lý tên site và logo hiển thị riêng cho UI của website.",
+        description: "Quản lý tên site, logo và các icon nhận diện hiển thị trên toàn website.",
         href: ROUTES.ADMIN.CONFIG_BRANDING,
       },
       {
-        title: "Kết nối thương mại",
-        description: "Kết nối sàn thương mại điện tử, catalog và các kênh bán hàng để mở rộng sau.",
-        href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
-      },
-      {
-        title: "Hooks",
-        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
-        href: ROUTES.ADMIN.HOOKS,
+        title: "Thông báo",
+        description: "Quản lý thông báo toàn site hiển thị dùng chung cho người dùng.",
+        href: ROUTES.ADMIN.GLOBAL_FIELDS,
       },
     ],
   },
   {
-    title: "SEO & Đường dẫn",
+    title: "URLs",
     icon: "link" as const,
     items: [
       {
@@ -35,9 +30,15 @@ const CONFIG_SECTIONS = [
         description: "Quản lý chuẩn URL hệ thống cho managed pages và redirect từ URL cũ sang URL mới.",
         href: ROUTES.ADMIN.CONFIG_PERMALINKS,
       },
+    ],
+  },
+  {
+    title: "SEO",
+    icon: "link" as const,
+    items: [
       {
         title: "Breadcrumbs",
-        description: "Thiết lập breadcrumb UI và breadcrumb schema giống cách làm SEO plugin.",
+        description: "Thiết lập breadcrumb UI và breadcrumb schema cho toàn website.",
         href: ROUTES.ADMIN.CONFIG_BREADCRUMBS,
       },
       {
@@ -46,17 +47,6 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
       },
       {
-        title: "Favicon",
-        description: "Thiết lập site icon riêng cho tab trình duyệt, shortcut và Apple touch icon.",
-        href: ROUTES.ADMIN.CONFIG_FAVICON,
-      },
-    ],
-  },
-  {
-    title: "Indexing & Sitemap",
-    icon: "globe" as const,
-    items: [
-      {
         title: "Sitemap & Robots",
         description: "Quản lý sitemap.xml, robots.txt và các nhóm nội dung public được index.",
         href: ROUTES.ADMIN.CONFIG_SITEMAP,
@@ -64,7 +54,7 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "Tài liệu SEO",
+    title: "SEO Docs",
     icon: "docs" as const,
     items: [
       {
@@ -81,6 +71,22 @@ const CONFIG_SECTIONS = [
         title: "SEO Rules",
         description: "Quy tắc vận hành nội dung SEO để hạn chế trùng intent và giữ index ổn định.",
         href: ROUTES.ADMIN.SEO_RULES,
+      },
+    ],
+  },
+  {
+    title: "Nâng cao",
+    icon: "globe" as const,
+    items: [
+      {
+        title: "Ecommerce",
+        description: "Kết nối sàn thương mại điện tử, catalog và các kênh bán hàng để mở rộng sau.",
+        href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
+      },
+      {
+        title: "Hooks",
+        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
+        href: ROUTES.ADMIN.HOOKS,
       },
     ],
   },
@@ -101,43 +107,43 @@ export default async function AdminSettingsPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cấu hình</h1>
-          <p className="text-muted-foreground">Trung tâm cấu hình, indexing và tài liệu SEO dùng chung cho toàn hệ thống.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Configuration</h1>
+          <p className="text-muted-foreground">Trung tâm cấu hình thương hiệu, vận hành hệ thống, SEO và tài liệu dùng chung.</p>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Tổng mục</CardTitle>
+            <CardTitle className="text-base font-medium">Total Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
+            <p className="text-2xl font-semibold">{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Đang bật</CardTitle>
+            <CardTitle className="text-base font-medium">Active Settings</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{enabledCount}</p>
+            <p className="text-2xl font-semibold">{enabledCount}</p>
             <p className="text-muted-foreground">Theo cấu hình hiện tại</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Sitemap</CardTitle>
+            <CardTitle className="text-base font-medium">Sitemap</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.sitemap.enabled ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.sitemap.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Site Indexing</CardTitle>
+            <CardTitle className="text-base font-medium">Site Indexing</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
             <p className="text-muted-foreground">Quản lý trong Sitemap</p>
           </CardContent>
         </Card>

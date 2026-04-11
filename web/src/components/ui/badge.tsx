@@ -5,7 +5,7 @@ function Badge({ className, ...props }: React.ComponentProps<"span"> & { variant
  return (
  <span
   data-slot="badge"
-  className={cn(" font-medium capitalize", className)}
+  className={cn(" capitalize", className)}
   {...props}
  />
  )

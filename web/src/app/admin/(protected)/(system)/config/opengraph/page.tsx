@@ -49,24 +49,24 @@ export default async function AdminOpenGraphSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Branding Source</CardTitle>
+            <CardTitle className="text-base font-medium">Branding Source</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.branding.siteName}</p>
+            <p className="text-2xl font-semibold">{settings.branding.siteName}</p>
             <p className="text-sm text-muted-foreground">Lấy từ cấu hình Branding</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Locale</CardTitle>
+            <CardTitle className="text-base font-medium">Locale</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.opengraph.locale}</p>
+            <p className="text-2xl font-semibold">{settings.opengraph.locale}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Twitter Card</CardTitle>
+            <CardTitle className="text-base font-medium">Twitter Card</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-foreground">{settings.opengraph.twitterCard}</p>
@@ -95,18 +95,13 @@ export default async function AdminOpenGraphSettingsPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Preview fallback</CardTitle>
+          <CardTitle>Preview Fallback</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-sm text-muted-foreground">
-            Tên site và logo hiển thị trong UI được quản lý riêng tại{" "}
+            Tên site, logo và icon nhận diện của website được quản lý tại{" "}
             <Link href={ROUTES.ADMIN.CONFIG_BRANDING} className="font-medium text-foreground underline underline-offset-4">
               Branding
-            </Link>
-            .{" "}
-            Site icon của trình duyệt và thiết bị di động được quản lý riêng tại{" "}
-            <Link href={ROUTES.ADMIN.CONFIG_FAVICON} className="font-medium text-foreground underline underline-offset-4">
-              Favicon
             </Link>
             .
           </div>
@@ -132,7 +127,7 @@ export default async function AdminOpenGraphSettingsPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Cấu hình Open Graph</CardTitle>
+          <CardTitle>Open Graph Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm

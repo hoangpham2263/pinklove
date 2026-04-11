@@ -26,41 +26,41 @@ export default async function AdminBreadcrumbSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Breadcrumbs</CardTitle>
+            <CardTitle className="text-base font-medium">Breadcrumbs</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.breadcrumb.enabled ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.breadcrumb.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Show On Page</CardTitle>
+            <CardTitle className="text-base font-medium">Show On Page</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.breadcrumb.showOnPage ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.breadcrumb.showOnPage ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>JSON-LD</CardTitle>
+            <CardTitle className="text-base font-medium">JSON-LD</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.breadcrumb.includeStructuredData ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.breadcrumb.includeStructuredData ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Home Label</CardTitle>
+            <CardTitle className="text-base font-medium">Home Label</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.breadcrumb.homeLabel}</p>
+            <p className="text-2xl font-semibold">{settings.breadcrumb.homeLabel}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Cấu hình breadcrumb</CardTitle>
+          <CardTitle>Breadcrumb Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm

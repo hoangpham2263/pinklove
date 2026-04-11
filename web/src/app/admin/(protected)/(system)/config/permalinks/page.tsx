@@ -36,31 +36,31 @@ export default async function AdminPermalinkSettingsPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Legacy Redirects</CardTitle>
+            <CardTitle className="text-base font-medium">Legacy Redirects</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.permalink.legacyRedirects ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.permalink.legacyRedirects ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Leading Slash</CardTitle>
+            <CardTitle className="text-base font-medium">Leading Slash</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.permalink.enforceLeadingSlash ? "On" : "Off"}</p>
+            <p className="text-2xl font-semibold">{settings.permalink.enforceLeadingSlash ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Trailing Slash</CardTitle>
+            <CardTitle className="text-base font-medium">Trailing Slash</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="tracking-tight">{settings.permalink.stripTrailingSlash ? "Off" : "On"}</p>
+            <p className="text-2xl font-semibold">{settings.permalink.stripTrailingSlash ? "Off" : "On"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle>Blog Pattern</CardTitle>
+            <CardTitle className="text-base font-medium">Blog Pattern</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="break-all text-foreground">{permalinkConfig.blogPostPattern}</p>
@@ -86,7 +86,7 @@ export default async function AdminPermalinkSettingsPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Cấu hình permalink</CardTitle>
+          <CardTitle>Permalink Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm
