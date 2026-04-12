@@ -26,6 +26,7 @@ import {
 } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 import { getCurrentUser } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -125,11 +126,6 @@ function PageHero({ page, fallbackTitle, fallbackExcerpt }: { page: ManagedPage;
 }
 
 function GenericManagedPage({ page }: { page: ManagedPage }) {
-  const paragraphs = (page.body || "")
-    .split(/\n{2,}/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
   return (
     <GuestShell className="gap-10 py-12">
       <PageStructuredData page={page} />
@@ -140,12 +136,11 @@ function GenericManagedPage({ page }: { page: ManagedPage }) {
       />
 
       <div className="mx-auto w-full max-w-4xl rounded-xl border border-stone-200 bg-white px-6 py-8 shadow-sm lg:rounded-2xl lg:px-8">
-        {paragraphs.length > 0 ? (
-          <div className="space-y-5 text-sm leading-8 text-stone-700 md:text-base">
-            {paragraphs.map((paragraph, index) => (
-              <p key={`${page.slug}-${index}`}>{paragraph}</p>
-            ))}
-          </div>
+        {page.body ? (
+          <div
+            className={RICH_TEXT_CONTENT_CLASSNAME}
+            dangerouslySetInnerHTML={createRichTextMarkup(page.body)}
+          />
         ) : (
           <p className="text-sm leading-8 text-stone-600 md:text-base">
             Trang này đã được đăng ký trong hệ thống và sẽ hiển thị nội dung khi bạn cập nhật phần body trong CMS.

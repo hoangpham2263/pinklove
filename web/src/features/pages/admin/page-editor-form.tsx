@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
@@ -17,6 +18,11 @@ import { SeoPreview } from "./seo-preview";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
+
+const TiptapRichTextEditor = dynamic(
+  () => import("@/components/common/tiptap-rich-text-editor").then((mod) => mod.TiptapRichTextEditor),
+  { ssr: false }
+);
 
 type PageEditorFormProps = {
   page: ManagedPage;
@@ -191,12 +197,9 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
               <label htmlFor="body" className="font-medium">
                 Body Content
               </label>
-              <textarea
-                id="body"
+              <TiptapRichTextEditor
                 name="body"
-                defaultValue={page.body}
-                className="min-h-[400px] w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                placeholder="Enter page content here..."
+                initialValue={page.body}
               />
             </div>
           </CardContent>
@@ -204,8 +207,8 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
 
         {templateFields.length > 0 && (
           <Card>
-            <CardHeader className="bg-muted/30 pb-4">
-              <CardTitle>Template Custom Fields</CardTitle>
+            <CardHeader>
+              <CardTitle>Custom Fields</CardTitle>
             </CardHeader>
             <CardContent>
               <FieldsEditor
@@ -219,22 +222,22 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
 
         <Card>
           <details className="group">
-            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
               <CardTitle>SEO Settings</CardTitle>
-              <span className="text-sm text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+              <span className="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
             </summary>
-            <CardContent className="space-y-6 border-t pt-4">
+            <CardContent className="space-y-4 border-t pt-4">
               <SeoPreview 
                 title={seoTitle || pageTitle} 
                 description={seoDescription} 
                 path={getManagedPagePath(previewPage)}
               />
 
-              <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="seoTitle" className="font-medium flex justify-between">
                     <span>SEO Title</span>
-                    <span className={`text-[10px] ${(seoTitle || pageTitle).length > 60 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                    <span className={(seoTitle || pageTitle).length > 60 ? "text-orange-500" : "text-muted-foreground"}>
                       {(seoTitle || pageTitle).length} / 60 chars
                     </span>
                   </label>
@@ -245,13 +248,13 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                     onChange={(e) => setSeoTitle(e.target.value)}
                     placeholder="Search engine title" 
                   />
-                  <p className="text-[10px] text-muted-foreground italic">Tip: Use your main keyword at the beginning of the title.</p>
+                  <p className="text-muted-foreground">Tip: Use your main keyword at the beginning of the title.</p>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="seoDescription" className="font-medium flex justify-between">
                     <span>SEO Description</span>
-                    <span className={`text-[10px] ${seoDescription.length > 160 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                    <span className={seoDescription.length > 160 ? "text-orange-500" : "text-muted-foreground"}>
                       {seoDescription.length} / 160 chars
                     </span>
                   </label>
@@ -263,7 +266,7 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                     className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     placeholder="Search engine description"
                   />
-                  <p className="text-[10px] text-muted-foreground italic">Tip: A good description increases click-through rate.</p>
+                  <p className="text-muted-foreground">Tip: A good description increases click-through rate.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -324,16 +327,16 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                     className="min-h-40 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     placeholder={'{"@context":"https://schema.org","@type":"WebPage","name":"Page name"}'}
                   />
-                  <p className="text-[10px] text-muted-foreground italic">
+                  <p className="text-muted-foreground">
                     Nhập JSON-LD hợp lệ cho page này. Để trống nếu không muốn render schema.
                   </p>
                 </div>
               </div>
 
-              <hr className="my-4" />
+              <hr />
 
               <div className="space-y-4">
-                <h3 className="font-semibold uppercase tracking-wider text-muted-foreground">Open Graph (Social)</h3>
+                <h3 className="font-semibold">Open Graph (Social)</h3>
                 <div className="space-y-2">
                   <label htmlFor="ogTitle" className="font-medium">
                     OG Title
@@ -354,12 +357,12 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-6 pt-2">
-                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                <div className="flex flex-wrap gap-4">
+                  <label className="inline-flex cursor-pointer items-center gap-2">
                     <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
                     <span className="font-medium">Noindex</span> (Hide from search engines)
                   </label>
-                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <label className="inline-flex cursor-pointer items-center gap-2">
                     <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
                     <span className="font-medium">Nofollow</span> (Don&apos;t follow links)
                   </label>

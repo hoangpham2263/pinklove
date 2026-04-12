@@ -26,17 +26,17 @@ export function CustomerTopHeader({ username }: CustomerTopHeaderProps) {
  <header
   id="customer-top-header"
   data-slot="customer-top-header"
-  className="sticky top-0 z-50 h-14 w-full border-b border-border bg-background text-foreground"
+  className="sticky top-0 z-50 h-14 w-full border-b border-border bg-background"
  >
   <div className="flex h-full w-full items-center justify-between px-5 md:px-7.5">
   <div className="flex items-center gap-3">
-   <span className="text-muted-foreground">|</span>
+   <span>|</span>
    <p className="font-medium">{pageTitle}</p>
   </div>
   <div className="flex items-center gap-3">
-   <span className="text-muted-foreground">{username}</span>
+   <span>{username}</span>
    <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
-   <button type="submit" className="text-foreground hover:underline">
+   <button type="submit" className="hover:underline">
     Logout
    </button>
    </form>

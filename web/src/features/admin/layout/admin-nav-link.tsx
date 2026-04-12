@@ -11,6 +11,7 @@ type AdminNavLinkProps = {
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   children: React.ReactNode;
 };
 
@@ -20,6 +21,7 @@ export function AdminNavLink({
   className,
   activeClassName = "bg-muted",
   inactiveClassName = "hover:bg-muted",
+  onClick,
   children,
 }: AdminNavLinkProps) {
   const pathname = usePathname();
@@ -29,6 +31,7 @@ export function AdminNavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      onClick={onClick}
       className={cn(className, active ? activeClassName : inactiveClassName)}
     >
       {children}

@@ -1,6 +1,7 @@
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
+import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 
 export function HomeContent({ page }: { page: ManagedPage }) {
@@ -44,9 +45,10 @@ export function HomeContent({ page }: { page: ManagedPage }) {
       {page.body ? (
         <section className="pt-10 lg:pt-15 2xl:pt-20">
           <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-5xl whitespace-pre-wrap text-sm leading-8 text-stone-700 md:text-base lg:text-lg">
-            {page.body}
-          </div>
+          <div
+            className={`mx-auto max-w-5xl ${RICH_TEXT_CONTENT_CLASSNAME}`}
+            dangerouslySetInnerHTML={createRichTextMarkup(page.body)}
+          />
           </div>
         </section>
       ) : null}

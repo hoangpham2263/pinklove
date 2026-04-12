@@ -46,6 +46,11 @@ export async function listMediaAssets(): Promise<MediaAsset[]> {
  return readStore();
 }
 
+export async function findMediaAssetByUrl(url:string): Promise<MediaAsset | null> {
+ const items = await readStore();
+ return items.find((item) => item.url === url) ?? null;
+}
+
 export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
  if (file.size > MAX_FILE_SIZE_BYTES) {
  throw new Error("File is too large. Maximum size is 20MB.");

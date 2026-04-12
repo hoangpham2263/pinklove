@@ -377,7 +377,9 @@ export function buildInvitationPayload(formData: FormData, templateKey: string) 
   const payload: Record<string, unknown> = {};
 
   for (const field of getInvitationTemplateFields(templateKey)) {
-    payload[field.name] = normalizeTemplateFieldValue(field.name, formData.get(field.name));
+    if ("name" in field && field.type !== "repeater") {
+      payload[field.name] = normalizeTemplateFieldValue(field.name, formData.get(field.name));
+    }
   }
 
   return payload;

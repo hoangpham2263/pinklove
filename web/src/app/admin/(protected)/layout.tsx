@@ -7,31 +7,35 @@ import {
   Files,
   Image as ImageIcon,
   LayoutDashboard,
-  Menu as MenuIcon,
+  Menu,
   Settings,
   ShoppingBag,
   Users,
 } from "lucide-react";
 
-import { ADMIN_MOBILE_NAV, ADMIN_NAV_GROUPS } from "@/features/admin/config/navigation";
+import {
+  ADMIN_NAV_AUXILIARY_ITEMS,
+  ADMIN_NAV_GROUPS,
+  ADMIN_NAV_PRIMARY_ITEMS,
+  ADMIN_NAV_SECONDARY_ITEMS,
+} from "@/features/admin/config/navigation";
 import { AdminNavLink } from "@/features/admin/layout/admin-nav-link";
 import { AdminSidebarGroup } from "@/features/admin/layout/admin-sidebar-group";
 import { AdminTopHeader } from "@/features/admin/layout/admin-top-header";
 import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
-const adminMobileIconMap = {
+const standaloneIconMap = {
   "layout-dashboard": LayoutDashboard,
   files: Files,
-  menu: MenuIcon,
-  image: ImageIcon,
   "shopping-bag": ShoppingBag,
+  menu: Menu,
+  image: ImageIcon,
+  "book-open-text": BookOpenText,
   users: Users,
   "badge-percent": BadgePercent,
   settings: Settings,
   "external-link": ExternalLink,
-  "book-open-text": BookOpenText,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
 export default async function AdminLayout({
@@ -62,15 +66,16 @@ export default async function AdminLayout({
         </div>
 
         <nav className="flex flex-col gap-2.5">
-          <AdminNavLink href={ROUTES.ADMIN.DASHBOARD} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Dashboard</span>
-          </AdminNavLink>
+          {ADMIN_NAV_PRIMARY_ITEMS.map((item) => {
+            const Icon = standaloneIconMap[item.iconName];
 
-          <AdminNavLink href={ROUTES.ADMIN.MEDIA} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-            <ImageIcon className="h-5 w-5" />
-            <span>Media</span>
-          </AdminNavLink>
+            return (
+              <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
+                <Icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </AdminNavLink>
+            );
+          })}
 
           {ADMIN_NAV_GROUPS.map((group) => (
             <AdminSidebarGroup
@@ -82,21 +87,28 @@ export default async function AdminLayout({
             />
           ))}
 
-          <AdminNavLink href={ROUTES.ADMIN.GLOBAL_FIELDS} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-            <BookOpenText className="h-5 w-5" />
-            <span>Global Fields</span>
-          </AdminNavLink>
+          {ADMIN_NAV_SECONDARY_ITEMS.map((item) => {
+            const Icon = standaloneIconMap[item.iconName];
 
-          <AdminNavLink href={ROUTES.ADMIN.CONFIG} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-            <Settings className="h-5 w-5" />
-            <span>Cấu hình</span>
-          </AdminNavLink>
+            return (
+              <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
+                <Icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </AdminNavLink>
+            );
+          })}
 
           <div className="mt-auto border-t pt-4">
-            <Link href={ROUTES.HOME} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
-              <ExternalLink className="h-5 w-5" />
-              Xem Website
-            </Link>
+            {ADMIN_NAV_AUXILIARY_ITEMS.map((item) => {
+              const Icon = standaloneIconMap[item.iconName];
+
+              return (
+                <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
         </nav>
       </aside>
@@ -105,33 +117,6 @@ export default async function AdminLayout({
         <AdminTopHeader username={user.username} />
 
         <section className="min-h-screen">
-          <section className="border-b bg-background px-4 py-2 md:hidden">
-            <nav className="flex gap-4 overflow-x-auto py-1">
-              {ADMIN_MOBILE_NAV.map((entry, index) => {
-                if (entry.type === "separator") {
-                  return <div key={`separator-${index}`} className="my-1 w-px shrink-0 bg-border" />;
-                }
-
-                const Icon = adminMobileIconMap[entry.iconName];
-                return (
-                  <AdminNavLink
-                    key={entry.href}
-                    href={entry.href}
-                    className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 transition-colors"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {entry.label}
-                  </AdminNavLink>
-                );
-              })}
-
-              <Link href={ROUTES.HOME} className="flex items-center gap-1.5 whitespace-nowrap">
-                <ExternalLink className="h-4 w-4" />
-                Xem website
-              </Link>
-            </nav>
-          </section>
-
           <section className="min-h-screen">
             <div>{children}</div>
           </section>

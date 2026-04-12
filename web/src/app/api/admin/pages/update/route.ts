@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { updateManagedPage, getPageBySlug } from "@/lib/managed-pages";
 import { canCustomizePagePermalink, isReservedPagePermalink, normalizePagePermalinkInput } from "@/lib/page-paths";
+import { normalizeRichTextHtml } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   const name = String(formData.get("name") ?? "");
   const title = String(formData.get("title") ?? "");
   const excerpt = String(formData.get("excerpt") ?? "");
-  const body = String(formData.get("body") ?? "");
+  const body = normalizeRichTextHtml(String(formData.get("body") ?? ""));
   const status = String(formData.get("status") ?? "draft");
   
   const seoTitle = String(formData.get("seoTitle") ?? "");

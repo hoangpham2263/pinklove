@@ -2,6 +2,7 @@ import { NextResponse } from"next/server";
 
 import {
  deleteMediaAsset,
+ findMediaAssetByUrl,
  listMediaAssets,
  saveUploadedMedia,
 } from"@/features/media/server/media-store";
@@ -19,8 +20,14 @@ export async function GET(request: Request) {
  const { searchParams } = new URL(request.url);
  const pageParam = Number(searchParams.get("page") ?? "1");
  const limitParam = Number(searchParams.get("limit") ?? "100");
+ const url = searchParams.get("url");
  const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
  const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.floor(limitParam) : 100;
+
+ if (url) {
+ const item = await findMediaAssetByUrl(url);
+ return NextResponse.json({ item });
+ }
 
  const items = await listMediaAssets();
  const total = items.length;

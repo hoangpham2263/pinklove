@@ -2,6 +2,7 @@ import Image from "next/image";
 import { GuestPanel, GuestPanelBody, GuestPanelHeader, GuestPanelTitle } from "@/app/(guest)/_components/guest-ui";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
+import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 
 export function AboutContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
@@ -100,9 +101,10 @@ export function AboutContent({ page }: { page: ManagedPage }) {
                 <GuestPanelBody>
                   <div className="space-y-5">
                     {page.body ? (
-                      <div className="whitespace-pre-wrap text-sm leading-8 text-stone-700 md:text-base lg:text-lg">
-                        {page.body}
-                      </div>
+                      <div
+                        className={RICH_TEXT_CONTENT_CLASSNAME}
+                        dangerouslySetInnerHTML={createRichTextMarkup(page.body)}
+                      />
                     ) : (
                       <p className="text-sm leading-8 text-stone-700 md:text-base lg:text-lg">
                         PinkLove tập trung vào trải nghiệm tạo thiệp cưới online đơn giản, có thể bắt đầu nhanh nhưng vẫn đủ linh hoạt để mở rộng khi cần.

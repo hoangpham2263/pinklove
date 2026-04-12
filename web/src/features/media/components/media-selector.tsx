@@ -18,14 +18,16 @@ type MediaSelectorProps = {
  value: string;
  onChange: (url: string) => void;
  name?: string;
+ compact?: boolean;
 };
 
-export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
+export function MediaSelector({ value, onChange, name, compact = false }: MediaSelectorProps) {
  const [isOpen, setIsOpen] = useState(false);
  const [items, setItems] = useState<MediaAsset[]>([]);
  const [loading, setLoading] = useState(false);
  const [uploading, setUploading] = useState(false);
  const [search, setSearch] = useState("");
+ const [displayName, setDisplayName] = useState("");
 
  const isImageUrl = (url: string) =>
   /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(url) || url.startsWith("data:image/");
@@ -50,6 +52,42 @@ export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
   void fetchMedia();
  }
  }, [isOpen]);
+
+ useEffect(() => {
+ if (!value) {
+  setDisplayName("");
+  return;
+ }
+
+ const matchedItem = items.find((item) => item.url === value);
+ if (matchedItem) {
+  setDisplayName(matchedItem.originalName);
+  return;
+ }
+
+ let ignore = false;
+
+ const fetchCurrentMediaName = async () => {
+  try {
+   const response = await fetch(`/api/media?url=${encodeURIComponent(value)}`);
+   if (!response.ok) return;
+   const data = await response.json() as { item?: MediaAsset | null };
+   if (!ignore) {
+    setDisplayName(data.item?.originalName || getFileLabel(value));
+   }
+  } catch {
+   if (!ignore) {
+    setDisplayName(getFileLabel(value));
+   }
+  }
+ };
+
+ void fetchCurrentMediaName();
+
+ return () => {
+  ignore = true;
+ };
+ }, [items, value]);
 
  const onDrop = async (acceptedFiles: File[]) => {
  if (acceptedFiles.length === 0) return;
@@ -81,11 +119,43 @@ export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
  item.originalName.toLowerCase().includes(search.toLowerCase())
  );
 
+ const getFileLabel = (url: string) => {
+ try {
+  const pathname = new URL(url, "http://local").pathname;
+  const filename = pathname.split("/").filter(Boolean).pop();
+  return filename || url;
+ } catch {
+  return url.split("/").filter(Boolean).pop() || url;
+ }
+ };
+
  return (
  <div className="space-y-2">
   <Sheet open={isOpen} onOpenChange={setIsOpen}>
   <div className="flex flex-col gap-2">
-   {value ? (
+   {compact ? (
+   <SheetTrigger render={
+   <button className="flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
+    {value ? (
+    <>
+     <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+      {isImageUrl(value) ? (
+      <img src={value} alt="Selected" className="h-full w-full object-cover" />
+      ) : (
+      <FileText className="h-3.5 w-3.5" />
+      )}
+     </span>
+     <span className="min-w-0 flex-1 truncate">{displayName || getFileLabel(value)}</span>
+    </>
+    ) : (
+    <>
+     <ImageIcon className="h-4 w-4 shrink-0" />
+     <span>Upload</span>
+    </>
+    )}
+   </button>
+   } />
+   ) : value ? (
    <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
     {isImageUrl(value) ? (
     <img src={value} alt="Selected" className="h-full w-full object-cover" />
@@ -97,7 +167,7 @@ export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
     )}
     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
     <div className="flex gap-2">
-     <SheetTrigger render={<Button variant="secondary" size="sm">Change</Button>} />
+     <SheetTrigger render={<Button variant="secondary" size="sm">Upload</Button>} />
      <Button variant="destructive" size="sm" onClick={() => onChange("")}>
      Remove
      </Button>
@@ -108,7 +178,7 @@ export function MediaSelector({ value, onChange, name }: MediaSelectorProps) {
    <SheetTrigger render={
    <button className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
     <ImageIcon className="h-8 w-8 text-muted-foreground" />
-    <span className="font-medium text-muted-foreground">Select or Upload File</span>
+    <span className="font-medium text-muted-foreground">Upload</span>
     </button>
    } />
    )}

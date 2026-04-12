@@ -23,9 +23,16 @@ export type AdminNavGroup = {
   defaultOpen?: boolean;
 };
 
-export type AdminMobileNavEntry =
-  | { type: "link"; label: string; href: string; iconName: AdminNavIconName | "layout-dashboard" | "external-link" }
-  | { type: "separator" };
+export type AdminStandaloneNavItem = {
+  label: string;
+  href: string;
+  iconName: AdminNavIconName | "layout-dashboard" | "external-link";
+};
+
+export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
+  { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
+  { label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
+];
 
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
@@ -85,28 +92,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
 ];
 
-export const ADMIN_MOBILE_NAV: AdminMobileNavEntry[] = [
-  { type: "link", label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
-  { type: "separator" },
-  { type: "link", label: "Pages", href: ROUTES.ADMIN.PAGES, iconName: "files" },
-  { type: "link", label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS, iconName: "files" },
-  { type: "link", label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "files" },
-  { type: "link", label: "Product", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "shopping-bag" },
-  { type: "link", label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "shopping-bag" },
-  { type: "link", label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "shopping-bag" },
-  { type: "link", label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "shopping-bag" },
-  { type: "link", label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "shopping-bag" },
-  { type: "link", label: "Navigation", href: ROUTES.ADMIN.MENUS, iconName: "menu" },
-  { type: "link", label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
-  { type: "separator" },
-  { type: "link", label: "Người dùng", href: ROUTES.ADMIN.USERS, iconName: "users" },
-  { type: "link", label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
-  { type: "link", label: "Tài khoản nội bộ", href: ROUTES.ADMIN.INTERNAL_ACCOUNTS, iconName: "users" },
-  { type: "separator" },
-  { type: "link", label: "Đối tác / CTV", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
-  { type: "link", label: "Chương trình affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
-  { type: "separator" },
-  { type: "link", label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "users" },
-  { type: "link", label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "book-open-text" },
-  { type: "link", label: "Cấu hình", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
+export const ADMIN_NAV_SECONDARY_ITEMS: AdminStandaloneNavItem[] = [
+  { label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "book-open-text" },
+  { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
+];
+
+export const ADMIN_NAV_AUXILIARY_ITEMS: AdminStandaloneNavItem[] = [
+  { label: "Xem Website", href: ROUTES.HOME, iconName: "external-link" },
 ];
