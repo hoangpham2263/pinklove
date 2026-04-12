@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { getPageBySlug, listManagedPages, normalizeSlug } from "@/lib/managed-pages";
+import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
 import { isAuthPageSlug, isContentPageSlug } from "@/features/pages/config/managed-pages";
@@ -25,10 +25,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
     notFound();
   }
 
-  const [page, availablePages] = await Promise.all([
-    getPageBySlug(slug),
-    listManagedPages(),
-  ]);
+  const page = await getPageBySlug(slug);
 
   if (!page) {
     notFound();
@@ -56,11 +53,11 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
             aria-label="Xem trang"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border hover:bg-accent"
           >
-            <Eye className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4" />
           </Link>
         </div>
       </div>
-      <PageEditorForm page={page} availablePages={availablePages} />
+      <PageEditorForm page={page} />
     </section>
   );
 }

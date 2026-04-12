@@ -26,12 +26,11 @@ const TiptapRichTextEditor = dynamic(
 
 type PageEditorFormProps = {
   page: ManagedPage;
-  availablePages: ManagedPage[];
   isSaved?: boolean;
   hasError?: boolean;
 };
 
-export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
+export function PageEditorForm({ page }: PageEditorFormProps) {
   const router = useRouter();
   const [ogImage, setOgImage] = useState(page.ogImage || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -104,13 +103,13 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 lg:grid-cols-12 gap-6" onSubmit={handleSubmit}>
+    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 gap-6 lg:grid-cols-12" onSubmit={handleSubmit}>
       <input type="hidden" name="originalSlug" value={page.slug} />
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
 
       {/* Left Column: Main Content & SEO (9/12) */}
-      <div className="lg:col-span-9 space-y-6">
+      <div className="space-y-5 lg:col-span-9">
         <Card className="">
           <CardHeader>
             <CardTitle>Content</CardTitle>
@@ -233,29 +232,28 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                 path={getManagedPagePath(previewPage)}
               />
 
-              <div className="space-y-4">
+              <div className="grid gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="seoTitle" className="font-medium flex justify-between">
+                  <label htmlFor="seoTitle" className="flex justify-between font-medium">
                     <span>SEO Title</span>
                     <span className={(seoTitle || pageTitle).length > 60 ? "text-orange-500" : "text-muted-foreground"}>
-                      {(seoTitle || pageTitle).length} / 60 chars
+                      {(seoTitle || pageTitle).length} / 60
                     </span>
                   </label>
-                  <Input 
-                    id="seoTitle" 
-                    name="seoTitle" 
-                    value={seoTitle} 
+                  <Input
+                    id="seoTitle"
+                    name="seoTitle"
+                    value={seoTitle}
                     onChange={(e) => setSeoTitle(e.target.value)}
-                    placeholder="Search engine title" 
+                    placeholder="Search engine title"
                   />
-                  <p className="text-muted-foreground">Tip: Use your main keyword at the beginning of the title.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="seoDescription" className="font-medium flex justify-between">
+                  <label htmlFor="seoDescription" className="flex justify-between font-medium">
                     <span>SEO Description</span>
                     <span className={seoDescription.length > 160 ? "text-orange-500" : "text-muted-foreground"}>
-                      {seoDescription.length} / 160 chars
+                      {seoDescription.length} / 160
                     </span>
                   </label>
                   <textarea
@@ -266,54 +264,34 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                     className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     placeholder="Search engine description"
                   />
-                  <p className="text-muted-foreground">Tip: A good description increases click-through rate.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="seoKeywords" className="font-medium">
-                    SEO Keywords
-                  </label>
-                  <Input id="seoKeywords" name="seoKeywords" defaultValue={page.seoKeywords} placeholder="comma, separated, keywords" />
-                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label htmlFor="canonicalUrl" className="font-medium">
+                      Canonical URL Override
+                    </label>
+                    <Input
+                      id="canonicalUrl"
+                      name="canonicalUrl"
+                      defaultValue={page.canonicalUrl}
+                      placeholder="Để trống để dùng permalink hiện tại"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="canonicalUrl" className="font-medium">
-                    Canonical URL
-                  </label>
-                  <Input id="canonicalUrl" name="canonicalUrl" defaultValue={page.canonicalUrl} placeholder="https://example.com/page" />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="breadcrumbTitle" className="font-medium">
-                    Breadcrumb Title
-                  </label>
-                  <Input
-                    id="breadcrumbTitle"
-                    name="breadcrumbTitle"
-                    defaultValue={page.breadcrumbTitle}
-                    placeholder="Tên hiển thị trong breadcrumb"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="breadcrumbParentSlug" className="font-medium">
-                    Breadcrumb Parent
-                  </label>
-                  <select
-                    id="breadcrumbParentSlug"
-                    name="breadcrumbParentSlug"
-                    defaultValue={page.breadcrumbParentSlug || ""}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">Tự động / không chọn</option>
-                    {availablePages
-                      .filter((item) => item.slug !== page.slug)
-                      .map((item) => (
-                        <option key={item.slug} value={item.slug}>
-                          {item.name} ({getManagedPagePath(item)})
-                        </option>
-                      ))}
-                  </select>
+                  <div className="space-y-2">
+                    <label className="font-medium">Search Engine Rules</label>
+                    <div className="flex flex-wrap gap-4 rounded-md border px-3 py-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2">
+                        <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
+                        <span>Noindex</span>
+                      </label>
+                      <label className="inline-flex cursor-pointer items-center gap-2">
+                        <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
+                        <span>Nofollow</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -327,45 +305,6 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
                     className="min-h-40 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                     placeholder={'{"@context":"https://schema.org","@type":"WebPage","name":"Page name"}'}
                   />
-                  <p className="text-muted-foreground">
-                    Nhập JSON-LD hợp lệ cho page này. Để trống nếu không muốn render schema.
-                  </p>
-                </div>
-              </div>
-
-              <hr />
-
-              <div className="space-y-4">
-                <h3 className="font-semibold">Open Graph (Social)</h3>
-                <div className="space-y-2">
-                  <label htmlFor="ogTitle" className="font-medium">
-                    OG Title
-                  </label>
-                  <Input id="ogTitle" name="ogTitle" defaultValue={page.ogTitle} placeholder="Facebook/Twitter title" />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="ogDescription" className="font-medium">
-                    OG Description
-                  </label>
-                  <textarea
-                    id="ogDescription"
-                    name="ogDescription"
-                    defaultValue={page.ogDescription}
-                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="Facebook/Twitter description"
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  <label className="inline-flex cursor-pointer items-center gap-2">
-                    <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
-                    <span className="font-medium">Noindex</span> (Hide from search engines)
-                  </label>
-                  <label className="inline-flex cursor-pointer items-center gap-2">
-                    <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
-                    <span className="font-medium">Nofollow</span> (Don&apos;t follow links)
-                  </label>
                 </div>
               </div>
             </CardContent>
@@ -374,7 +313,7 @@ export function PageEditorForm({ page, availablePages }: PageEditorFormProps) {
       </div>
 
       {/* Right Column: Sidebar (3/12) */}
-      <div className="lg:col-span-3 space-y-6">
+      <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-20 lg:self-start">
         <Card className="">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold">Publish</CardTitle>
