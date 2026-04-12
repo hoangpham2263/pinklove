@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WEB_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$WEB_DIR/.." && pwd)"
+COMPOSE_DEV=(-f "$ROOT_DIR/docker/compose.yml" --project-directory "$ROOT_DIR")
+SETUP_ENTRY="${SETUP_ENTRY:-./web/setup}"
+
+if [ ! -f "$ROOT_DIR/.env" ] && [ -f "$ROOT_DIR/.env.example" ]; then
+  cp "$ROOT_DIR/.env.example" "$ROOT_DIR/.env"
+  echo "Created .env from .env.example"
+fi
+
+require_docker() {
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker is not installed."
+    exit 1
+  fi
+
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker daemon is not running. Start Docker Desktop first."
+    exit 1
+  fi
+}
+
+run_up() {
+  require_docker
+  docker compose "${COMPOSE_DEV[@]}" up -d --build
+}
+
+run_down() {
+  require_docker
+  docker compose "${COMPOSE_DEV[@]}" down
+}
+
+run_restart() {
+  require_docker
+  clean_next_cache
+  if docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
+    docker compose "${COMPOSE_DEV[@]}" restart web
+  else
+    docker compose "${COMPOSE_DEV[@]}" up -d --build web
+  fi
+}
+
+clean_next_cache() {
+  rm -rf "$ROOT_DIR/web/.next" "$ROOT_DIR/web/tsconfig.tsbuildinfo"
+}
+
+run_logs() {
+  require_docker
+  echo "Watching web logs (save a .tsx/.css file to see 'Compiled in ...')"
+  docker compose "${COMPOSE_DEV[@]}" logs -f web
+}
+
+ensure_dev_stack_running() {
+  require_docker
+  if ! docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
+    docker compose "${COMPOSE_DEV[@]}" up -d --build
+  fi
+}
+
+run_seed_website() {
+  ensure_dev_stack_running
+  docker compose "${COMPOSE_DEV[@]}" exec -T web npm run seed:website
+}
+
+show_help() {
+  cat <<'EOF'
+EOF
+  cat <<EOF
+Usage: ${SETUP_ENTRY} [command]
+
+Commands:
+  up         Build and start the dev stack
+  restart    Clear Next.js cache and restart the web service
+  seed       Seed demo website data
+  down       Stop containers
+  logs       Stream web logs
+  help       Show this help
+EOF
+}
+
+show_menu() {
+  echo "Choose option:"
+  echo "1) up"
+  echo "2) restart"
+  echo "3) seed"
+  echo "4) down"
+  echo "5) logs"
+  echo "6) help"
+  printf "Select [1-6]: "
+  read -r choice
+
+  case "${choice}" in
+    1) run_up ;;
+    2) run_restart ;;
+    3) run_seed_website ;;
+    4) run_down ;;
+    5) run_logs ;;
+    6) show_help ;;
+    *) echo "Invalid option."; exit 1 ;;
+  esac
+}
+
+case "${1:-menu}" in
+  menu) show_menu ;;
+  up) run_up ;;
+  restart) run_restart ;;
+  seed) run_seed_website ;;
+  down) run_down ;;
+  logs) run_logs ;;
+  help|-h|--help) show_help ;;
+  *) show_help; exit 1 ;;
+esac

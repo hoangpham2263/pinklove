@@ -1,1 +1,2 @@
-còn thiếu quản lý blog và danh mục và product category thêm cho tôi và update lại docs/index.md  cho đồng bộ dự án hiện tại
+admin -> vendor : pass
+vendor -> admin : faild

@@ -2,89 +2,86 @@
 
 Use this file as the entrypoint for project documentation.
 
-## Canonical Rules
+## Purpose
 
-- `docs/index.md` is the canonical shared rule set for the whole project.
-- Every area doc in `docs/` extends this file and follows the same shared rules.
-- When a rule applies project-wide, update this file first and keep area docs aligned with it.
-- If a more specific doc conflicts with this file, align the specific doc back to the shared rule unless the project intentionally changes the standard.
+- `docs/index.md` is the navigation map and ownership map for project documentation.
+- Put project-wide high-level rules here only.
+- Put feature-specific or system-specific rules in dedicated docs such as `fields.md`, `schema.md`, `realtime.md`, `admin.md`, `guest.md`, `customer.md`, and `partner.md`.
 
-## Project snapshot
+## Project Snapshot
 
 - App: monolithic Next.js App Router project in `web/`
 - Core stack: Next.js, React, PostgreSQL, local auth, optional Google OAuth
-- Notification standard: `sonner` is the project-wide toast system
-- Main product areas: public guest site, customer dashboard, admin management, affiliate flows, ecommerce flows, invitation templates, and published invitations
+- Shared toast system: `sonner`
+- Main areas: guest site, customer workspace, admin management, ecommerce flows, invitation flows, shared SEO/config systems
 
-## Read order
+## Read Order
 
 1. [conventions](./conventions.md)
 2. [structure](./structure.md)
 3. [schema](./schema.md)
 4. [fields](./fields.md)
-5. Read the area docs that match the task:
+5. [realtime](./realtime.md)
+6. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
+   - [partner](./partner.md)
 
-## Update rules
+## Doc Ownership
 
-- Update this file first for project-wide standards, shared UI patterns, shared architecture rules, and conventions that apply across guest, customer, admin, API, or feature modules.
-- Update [conventions](./conventions.md) for repo-wide workflow, routing, naming, or shared implementation rules.
-- Update [structure](./structure.md) for route, folder, or architecture changes.
-- Update [schema](./schema.md) for database, storage, or migration changes.
-- Update [fields](./fields.md) for shared field schema, field editor, and rich-text field standards.
-- Update [guest](./guest.md) for public site behavior or UI conventions.
-- Update [customer](./customer.md) for customer dashboard, auth, profile, affiliate, or site-management changes.
-- Update [admin](./admin.md) for admin-only flows and controls.
+- `docs/index.md`
+  Project-level navigation, doc ownership, and high-level shared standards only.
+- `docs/conventions.md`
+  Repo workflow, naming, routing, import/export, runtime, and cross-cutting engineering rules.
+- `docs/structure.md`
+  Folder structure, route groups, architecture layout, and implemented feature map.
+- `docs/schema.md`
+  Database tables, storage shape, and persistence compatibility notes.
+- `docs/fields.md`
+  Field schema contract, shared field editor rules, `wysiwyg` rules, repeater/section rules, and rich-text field standards.
+- `docs/realtime.md`
+  Shared realtime architecture, SSE/event contracts, client/server core rules, and scale path for transport upgrades.
+- `docs/guest.md`
+  Public site conventions, guest typography/layout rules, and guest route expectations.
+- `docs/customer.md`
+  Customer workspace, account area, and customer-owned invitation flow rules.
+- `docs/admin.md`
+  Admin-only workflows, admin screen ownership, and admin config/control conventions.
+- `docs/partner.md`
+  Partner/vendor portal ownership, assignment flow, vendor order collaboration, and dedicated partner route rules.
+
+## Shared Standards
+
+- Use `sonner` for toast notifications across the project.
+- Use the shared mutation flow built around `web/src/lib/client-mutation.ts` and `web/src/lib/action-response.ts`.
+- Use the shared realtime core in `web/src/features/realtime/*` for SSE client/server behavior instead of feature-level copy-paste loops.
+- For admin/vendor operational screens, prefer `toast + partial JSON refresh` over redirect-driven saves or full-route reloads.
+- Use `web/src/lib/page-paths.ts` as the source of truth for managed-page public paths.
+- Use `web/src/lib/public-paths.ts` as the source of truth for blog, product, builder, and invitation public paths.
+- Use explicit route handlers for `robots.txt` and `sitemap*.xml` when SEO output needs plain-text or XML control.
+- Use the standard admin/customer/editor 12-column layout language for protected screens.
+- Show human-facing order and vendor status labels in Vietnamese on management screens when that improves operational clarity.
+
+## Update Rules
+
+- When a rule is project-wide, update `docs/index.md` first, then update the owned doc if the rule needs implementation detail.
+- When a rule belongs to a specific concern, update the owned doc directly:
+  - workflow/routing/imports/runtime: `conventions.md`
+  - folders/routes/feature map: `structure.md`
+  - database/storage: `schema.md`
+  - fields/rich text/editor contract: `fields.md`
+  - shared realtime/event transport: `realtime.md`
+  - public site: `guest.md`
+  - customer area: `customer.md`
+  - admin area: `admin.md`
+  - partner area: `partner.md`
+- If code and docs conflict, update docs in the same task.
 - Keep all files in `docs/` lowercase.
 
-## Shared UI Rules
+## Verification Baseline
 
-- Use `sonner` for all toast notifications across the project.
-- Ring standard:
-  prefer `ring-1` across the project for selected, focused, highlighted, or active visual states unless a screen has a very specific reason to use another ring width.
-- Mutation standard:
-  for save, delete, bulk apply, publish, or similar in-page mutations, use the project mutation flow based on JSON responses and in-place UI updates.
-- Preferred mutation flow:
-  client components submit with `fetch` using `Accept: application/json`, show `sonner`, then call `router.refresh()` for same-page updates or `router.push/replace()` only when the UX truly needs navigation.
-- Shared helpers:
-  use `web/src/lib/client-mutation.ts` on the client and `web/src/lib/action-response.ts` in route handlers so routes can support both JSON responses and legacy redirect fallbacks.
-- Managed page permalink standard:
-  managed pages use `web/src/lib/page-paths.ts` as the single source of truth for public paths across menus, sitemap, previews, and breadcrumb code.
-- Managed page SEO standard:
-  breadcrumb schema, canonical URL, preview URL, and `sitemap.xml` for managed pages should all resolve from the stored permalink, with `slug` kept as the stable internal identifier.
-- Public permalink standard:
-  blog posts, blog categories, products, builder starters, and invitation sites resolve through `web/src/lib/public-paths.ts` for sitemap, preview buttons, canonical metadata, and cards.
-- Public permalink policy:
-  support a small whitelist of safe blog-post patterns and explicit base fields per content type.
-- Legacy URL policy:
-  when a public permalink setting changes, old static routes redirect to the canonical path or return `404`, keeping a single canonical public URL.
-- Robots and sitemap standard:
-  prefer explicit route handlers for `robots.txt` and `sitemap*.xml` when the project needs WordPress-like plain-text/XML output, sitemap index files, or multiple child sitemaps.
-  Public static pages and managed pages are grouped together in `sitemap-pages.xml`.
-  SEO automation policy:
-  `sitemap.xml` should be automatic by default and must update from registry/data changes without manual URL edits.
-  `robots.txt` should ship with a safe automatic baseline, but must allow careful manual override/extension for crawl-control rules such as admin, account, search, cart, checkout, and other non-SEO paths.
-  `robots.txt` should always reference the live-domain sitemap URL.
-- Redirects are still acceptable for auth/session transitions:
-  login, logout, register, OAuth callback, and other flows whose primary purpose is navigation may keep redirect behavior.
-- If a route still needs to convert query params into a toast after redirect, prefer the existing `PageToast` helper as a thin bridge to `sonner` rather than introducing another toast system.
-- Admin default layout:
-  pages should use the standard protected admin shell, page title at the top, and primary actions aligned in the same header row when possible.
-- Shared app layout standard:
-  for protected admin/customer screens and editor-style management pages, use an outer `grid grid-cols-1 lg:grid-cols-12` container and split the internal layout with `col-span-*` blocks.
-  Prefer patterns such as `lg:col-span-9` + `lg:col-span-3` for editor/detail screens and `md:grid md:grid-cols-12` with sidebar/content spans for shells.
-  The standard layout language for these screens is the 12-column grid rather than fixed-width columns.
-- Admin default content style:
-  prefer summary cards first, then filters/actions, then the main management surface such as datatables or forms.
-- Admin default data-management pattern:
-  use shadcn-style datatables for list screens, keep filters/search above the table, and use English for database-facing select/status values even when visible labels are Vietnamese.
-- Admin form UI standard:
-  prefer default shadcn component styling for tabs, buttons, inputs, and disclosure surfaces.
-  Do not introduce custom size or color styling unless the screen has a documented exception.
-  Limit custom classes to layout, spacing, border alignment, and other structural needs.
-- For admin CRUD areas, prefer:
-  list page with top-right create button, dedicated create page, dedicated edit page, row actions, and bulk actions in the same toolbar row as filters when the domain supports it.
-- Exception:
-  `Admin > Pages` follows the same list/edit/bulk layout pattern, with page creation and removal managed from the code registry.
+- Minimum project verification for structural or shared-component changes:
+  - `npm run build` in `web/`
+  - `npm run lint -- .` in `web/`
+- If a task changes behavior in auth, admin, customer, media, SEO, or editor flows, also verify the affected route or screen directly when runtime config is available.

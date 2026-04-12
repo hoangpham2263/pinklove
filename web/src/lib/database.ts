@@ -1,6 +1,6 @@
 import"server-only";
 
-import { Pool, type QueryResultRow } from"pg";
+import { Pool, type PoolClient, type QueryResultRow } from"pg";
 import { CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 
@@ -17,6 +17,7 @@ const globalForDb = globalThis as unknown as {
   productTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
   commerceTablesMigrationDone?: boolean;
+  vendorOrdersMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
@@ -179,10 +180,22 @@ async function ensureUserProfilesMigration() {
   full_name TEXT,
   display_name TEXT,
   phone TEXT,
+  vendor_portal_slug TEXT,
   bio TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
  );
  `);
+
+  await pool.query(`
+  ALTER TABLE user_profiles
+  ADD COLUMN IF NOT EXISTS vendor_portal_slug TEXT;
+  `);
+
+  await pool.query(`
+  CREATE UNIQUE INDEX IF NOT EXISTS user_profiles_vendor_portal_slug_uidx
+  ON user_profiles (LOWER(vendor_portal_slug))
+  WHERE vendor_portal_slug IS NOT NULL;
+  `);
 }
 
 async function ensureUserSettingsDensityMigration() {
@@ -893,6 +906,58 @@ async function ensureCommerceTablesMigration() {
   `);
 }
 
+async function ensureVendorOrdersMigration() {
+  const pool = getPool();
+  const userIdType = await getColumnTypeSql("users", "id");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_order_assignments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_id TEXT NOT NULL UNIQUE REFERENCES commerce_orders(id) ON DELETE CASCADE,
+      vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'pending_confirmation',
+      internal_note TEXT NOT NULL DEFAULT '',
+      vendor_note TEXT NOT NULL DEFAULT '',
+      vendor_reference TEXT NOT NULL DEFAULT '',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      accepted_at TIMESTAMPTZ,
+      completed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_order_assignments_status_check
+      CHECK (status IN ('pending_confirmation', 'accepted', 'in_progress', 'ready_for_review', 'completed', 'cancelled'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_order_assignments_vendor_user_id_idx
+    ON vendor_order_assignments(vendor_user_id, status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_order_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      assignment_id TEXT NOT NULL REFERENCES vendor_order_assignments(id) ON DELETE CASCADE,
+      actor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      actor_type TEXT NOT NULL DEFAULT 'system',
+      event_type TEXT NOT NULL DEFAULT 'note_added',
+      message TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_order_events_actor_type_check
+      CHECK (actor_type IN ('admin', 'vendor', 'system')),
+      CONSTRAINT vendor_order_events_event_type_check
+      CHECK (event_type IN ('assignment_created', 'assignment_reassigned', 'status_changed', 'note_added'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_order_events_assignment_id_idx
+    ON vendor_order_events(assignment_id, created_at DESC);
+  `);
+}
+
 async function ensureProductSeed() {
   const pool = getPool();
 
@@ -1233,6 +1298,11 @@ export async function ensureDb() {
     globalForDb.commerceTablesMigrationDone = true;
   }
 
+  if (!globalForDb.vendorOrdersMigrationDone) {
+    await ensureVendorOrdersMigration();
+    globalForDb.vendorOrdersMigrationDone = true;
+  }
+
   const managedPagesSeedSignature = getManagedPagesSeedSignature();
   if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
     await ensureManagedPagesSeed();
@@ -1270,6 +1340,11 @@ export async function withTransaction<T>(callback: (execute: DbExecutor) => Prom
   await client.query("ROLLBACK");
   throw error;
  } finally {
-  client.release();
+ client.release();
  }
+}
+
+export async function connectDbListener(): Promise<PoolClient> {
+ await ensureDb();
+ return getPool().connect();
 }

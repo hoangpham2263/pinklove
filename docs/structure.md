@@ -71,6 +71,7 @@ web/
             internal-accounts/page.tsx
             vendors/page.tsx
             vendors/create/page.tsx
+            vendors/[id]/page.tsx
           (system)/
             global-fields/page.tsx
             media/page.tsx
@@ -103,6 +104,18 @@ web/
           (growth)/
             affiliate/page.tsx
             vendor/page.tsx
+      partner/
+        page.tsx
+        [slug]/page.tsx
+        (auth)/
+          layout.tsx
+          login/page.tsx
+        (protected)/
+          layout.tsx
+          (workspace)/
+            dashboard/page.tsx
+            orders/page.tsx
+            orders/[id]/page.tsx
       (seo)/
         robots.txt/route.ts
         sitemap.xml/route.ts
@@ -113,6 +126,7 @@ web/
         sitemap-blog-posts.xml/route.ts
       api/
         admin/
+          orders/vendor-assignment/route.ts
           global-fields/update/route.ts
           affiliates/update/route.ts
           auth/login/route.ts
@@ -137,6 +151,9 @@ web/
           invitations/create-builder/route.ts
           invitations/create-from-product/route.ts
           invitations/update/route.ts
+        partner/
+          auth/login/route.ts
+          orders/update/route.ts
     components/
       common/
       ui/
@@ -226,6 +243,15 @@ web/
   - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
 - Builder editing for customer-owned builder invitations lives at:
   - `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`
+
+## Partner Area
+
+- The partner shell lives under `src/app/partner`.
+- `src/app/partner/[slug]/page.tsx` is the canonical vendor portal route:
+  - signed out: landing + login
+  - signed in as that vendor: assigned-order working surface
+- `src/app/partner/(protected)/(workspace)/orders/[id]/page.tsx` serves the public URL `/partner/orders/[id]` for per-assignment collaboration detail.
+- `src/app/partner/dashboard/page.tsx` and `src/app/partner/orders/page.tsx` are legacy redirect-only aliases back to the canonical vendor portal route.
 
 ## Admin area
 

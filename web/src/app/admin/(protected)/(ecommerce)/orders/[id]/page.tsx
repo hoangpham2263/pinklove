@@ -1,21 +1,34 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-state-panel";
 import { getOrderById } from "@/features/ecommerce/server/service";
-import { requireAdmin } from "@/lib/auth";
+import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
+import { getVendorAssignmentByOrderId } from "@/features/vendor-orders/server/service";
+import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
+import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function AdminOrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requireAdmin();
   const { id } = await params;
-  const [order, settings] = await Promise.all([getOrderById(id), getSystemSettings()]);
+  const query = (await searchParams) ?? {};
+  const [order, settings, vendors, vendorAssignment] = await Promise.all([
+    getOrderById(id),
+    getSystemSettings(),
+    listAccountsByRole(USER_ROLES.VENDOR),
+    getVendorAssignmentByOrderId(id),
+  ]);
 
   if (!order) {
     notFound();
@@ -23,6 +36,10 @@ export default async function AdminOrderDetailPage({
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      {query.saved ? <PageToast message="Đã cập nhật trạng thái đơn hàng." variant="success" cleanupKeys={["saved"]} /> : null}
+      {query.vendorSaved ? <PageToast message="Đã lưu phân công vendor." variant="success" cleanupKeys={["vendorSaved"]} /> : null}
+      {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{order.orderNumber}</h1>
@@ -64,44 +81,43 @@ export default async function AdminOrderDetailPage({
           </Card>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Cập nhật đơn hàng</CardTitle>
             </CardHeader>
-            <CardContent>
-              <form action={ROUTES.API.ADMIN.ORDERS.UPDATE} method="POST" className="space-y-4">
-                <input type="hidden" name="orderId" value={order.id} />
-                <div className="space-y-2">
-                  <label className="font-medium">Trạng thái đơn</label>
-                  <select name="status" defaultValue={order.status} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    {["pending_payment", "paid", "processing", "ready_to_ship", "shipped", "completed", "cancelled", "refunded"].map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-medium">Trạng thái thanh toán</label>
-                  <select name="paymentStatus" defaultValue={order.paymentStatus} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    {["unpaid", "pending", "paid", "failed", "refunded"].map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-medium">Fulfillment</label>
-                  <select name="fulfillmentStatus" defaultValue={order.fulfillmentStatus} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    {["not_required", "pending", "processing", "shipped", "delivered", "cancelled"].map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-medium">Ghi chú</label>
-                  <textarea name="notes" defaultValue={order.notes} className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" />
-                </div>
-                <Button type="submit" className="w-full">Lưu trạng thái đơn</Button>
-              </form>
+            <CardContent className="space-y-4">
+              <AdminOrderStatePanel
+                orderId={order.id}
+                submitUrl={ROUTES.API.ADMIN.ORDERS.UPDATE}
+                detailUrl={`/api/admin/orders/${order.id}/state`}
+                initialOrder={{
+                  id: order.id,
+                  status: order.status,
+                  paymentStatus: order.paymentStatus,
+                  fulfillmentStatus: order.fulfillmentStatus,
+                  notes: order.notes,
+                  updatedAt: order.updatedAt,
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Phân công vendor</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <AdminVendorAssignmentPanel
+                orderId={order.id}
+                submitUrl={ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT}
+                detailUrl={`/api/admin/orders/${order.id}/vendor-assignment`}
+                initialDetail={vendorAssignment}
+                vendorOptions={vendors.map((vendor) => ({
+                  id: vendor.id,
+                  label: vendor.displayName || vendor.fullName || vendor.username,
+                }))}
+              />
             </CardContent>
           </Card>
 

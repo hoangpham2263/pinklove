@@ -47,70 +47,72 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-12">
-      <aside className="admin-sidebar-scroll hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:gap-3">
-        <div className="mb-6 flex items-center gap-2 px-3">
+      <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
+        <div className="mb-6 shrink-0 flex items-center gap-3 px-3">
           {settings.branding.brandLogo ? (
             <Image
               src={settings.branding.brandLogo}
-              alt={settings.branding.siteName}
+              alt={settings.branding.siteName || "PinkLove"}
               width={120}
               height={40}
-              className="h-10 w-auto object-contain"
+              className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
-            <>
-              <div className="h-6 w-6 rounded-bg bg-primary" />
-              <h2 className="text-lg font-bold tracking-tight">{settings.branding.siteName || "PinkLove"}</h2>
-            </>
+            <div className="h-6 w-6 rounded-bg bg-primary" />
           )}
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold tracking-tight">{settings.branding.siteName || "PinkLove"}</h2>
+          </div>
         </div>
 
-        <nav className="flex flex-col gap-2.5">
-          {ADMIN_NAV_PRIMARY_ITEMS.map((item) => {
-            const Icon = standaloneIconMap[item.iconName];
-
-            return (
-              <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </AdminNavLink>
-            );
-          })}
-
-          {ADMIN_NAV_GROUPS.map((group) => (
-            <AdminSidebarGroup
-              key={group.label}
-              label={group.label}
-              iconName={group.iconName}
-              items={group.children}
-              defaultOpen={group.defaultOpen}
-            />
-          ))}
-
-          {ADMIN_NAV_SECONDARY_ITEMS.map((item) => {
-            const Icon = standaloneIconMap[item.iconName];
-
-            return (
-              <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </AdminNavLink>
-            );
-          })}
-
-          <div className="mt-auto border-t pt-4">
-            {ADMIN_NAV_AUXILIARY_ITEMS.map((item) => {
+        <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="flex flex-col gap-2.5">
+            {ADMIN_NAV_PRIMARY_ITEMS.map((item) => {
               const Icon = standaloneIconMap[item.iconName];
 
               return (
-                <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
+                <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
                   <Icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
+                  <span>{item.label}</span>
+                </AdminNavLink>
+              );
+            })}
+
+            {ADMIN_NAV_GROUPS.map((group) => (
+              <AdminSidebarGroup
+                key={group.label}
+                label={group.label}
+                iconName={group.iconName}
+                items={group.children}
+                defaultOpen={group.defaultOpen}
+              />
+            ))}
+
+            {ADMIN_NAV_SECONDARY_ITEMS.map((item) => {
+              const Icon = standaloneIconMap[item.iconName];
+
+              return (
+                <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </AdminNavLink>
               );
             })}
           </div>
         </nav>
+
+        <div className="mt-4 shrink-0 border-t pt-4">
+          {ADMIN_NAV_AUXILIARY_ITEMS.map((item) => {
+            const Icon = standaloneIconMap[item.iconName];
+
+            return (
+              <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">

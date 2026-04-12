@@ -65,6 +65,14 @@ export const ROUTES = {
     ORDER: (id: string) => `/customer/orders/${id}`,
     DESIGN: (id: string) => `/customer/design/${id}`,
   },
+  PARTNER: {
+    ROOT: "/partner",
+    LOGIN: "/partner/login",
+    LEGACY_DASHBOARD: "/partner/dashboard",
+    LEGACY_ORDERS: "/partner/orders",
+    PORTAL: (slug: string) => `/partner/${slug}`,
+    ORDER: (id: string) => `/partner/orders/${id}`,
+  },
   ADMIN: {
     ROOT: "/admin",
     LOGIN: "/admin/login",
@@ -103,6 +111,7 @@ export const ROUTES = {
     AFFILIATE_USERS_CREATE: "/admin/affiliate-users/create",
     VENDORS: "/admin/vendors",
     VENDORS_CREATE: "/admin/vendors/create",
+    VENDOR: (id: string) => `/admin/vendors/${id}`,
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
     AFFILIATES: "/admin/affiliates",
@@ -117,6 +126,18 @@ export const ROUTES = {
       REGISTER: "/api/auth/register",
       GOOGLE_LOGIN: "/api/auth/google/login",
       LOGOUT: "/api/auth/logout",
+    },
+    PARTNER: {
+      AUTH: {
+        LOGIN: "/api/partner/auth/login",
+      },
+      REALTIME: {
+        PORTAL: "/api/partner/realtime/portal",
+        ASSIGNMENT: (id: string) => `/api/partner/realtime/assignments/${id}`,
+      },
+      ORDERS: {
+        UPDATE: "/api/partner/orders/update",
+      },
     },
     ADMIN: {
       AUTH: {
@@ -176,6 +197,10 @@ export const ROUTES = {
       },
       ORDERS: {
         UPDATE: "/api/admin/orders/update",
+        VENDOR_ASSIGNMENT: "/api/admin/orders/vendor-assignment",
+      },
+      REALTIME: {
+        ASSIGNMENT: (id: string) => `/api/admin/realtime/assignments/${id}`,
       },
       PAYMENTS: {
         UPDATE: "/api/admin/payments/update",

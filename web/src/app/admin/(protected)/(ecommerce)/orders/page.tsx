@@ -5,6 +5,7 @@ import { listAllOrders } from "@/features/ecommerce/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
+import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function AdminOrdersPage() {
@@ -46,7 +47,7 @@ export default async function AdminOrdersPage() {
                   {order.customerName} • {order.items.map((item) => item.productName).join(", ")}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Đơn: {order.status} • Payment: {order.paymentStatus} • Fulfillment: {order.fulfillmentStatus}
+                  Đơn: {getOrderStatusLabel(order.status)} • Thanh toán: {getPaymentStatusLabel(order.paymentStatus)} • Giao hàng: {getFulfillmentStatusLabel(order.fulfillmentStatus)}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">

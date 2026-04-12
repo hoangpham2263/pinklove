@@ -2,13 +2,14 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { requireAppUser, getUserProfile } from "@/lib/auth";
+import { ensureVendorPortalSlug, getUserProfile, requireAppUser } from "@/lib/auth";
 import { isVendorRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 export default async function CustomerVendorPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const profile = await getUserProfile(user.id);
+  const vendorPortalSlug = isVendorRole(user.role) ? await ensureVendorPortalSlug(user.id) : null;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -61,6 +62,9 @@ export default async function CustomerVendorPage() {
             <CardTitle>Truy cập nhanh</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {vendorPortalSlug ? (
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Mở portal riêng của đối tác</Link>} />
+            ) : null}
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.PROFILE}>Cập nhật hồ sơ nhà cung cấp</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.SETTINGS}>Mở cài đặt tài khoản</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Xem các thiệp đang quản lý</Link>} />

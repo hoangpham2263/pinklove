@@ -6,6 +6,7 @@ import { getOrderByNumberForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
+import { getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function CheckoutSuccessPage({
@@ -38,11 +39,11 @@ export default async function CheckoutSuccessPage({
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-md border p-4">
               <p className="text-sm text-muted-foreground">Trạng thái đơn</p>
-              <p className="mt-1 font-semibold">{order.status}</p>
+              <p className="mt-1 font-semibold">{getOrderStatusLabel(order.status)}</p>
             </div>
             <div className="rounded-md border p-4">
               <p className="text-sm text-muted-foreground">Thanh toán</p>
-              <p className="mt-1 font-semibold">{order.paymentStatus}</p>
+              <p className="mt-1 font-semibold">{getPaymentStatusLabel(order.paymentStatus)}</p>
             </div>
             <div className="rounded-md border p-4">
               <p className="text-sm text-muted-foreground">Tổng tiền</p>

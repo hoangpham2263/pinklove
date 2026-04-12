@@ -50,11 +50,11 @@ Current notable behavior:
 ## Getting Started
 
 1. Ensure Docker Desktop is running.
-2. Run `./docker/setup up` to build and start the development stack.
+2. Run `./web/setup up` to build and start the development stack.
 3. Open the app in your browser using the `WEB_PORT` value from `.env`.
    Default in `.env.example`: `http://localhost:3000`
 
-If `.env` does not exist, `./docker/setup` creates it from `.env.example`.
+If `.env` does not exist, `./web/setup` creates it from `.env.example`.
 
 Development note:
 
@@ -62,11 +62,12 @@ Development note:
 
 ## Main Commands
 
-- `./docker/setup up`: build and start containers in detached mode
-- `./docker/setup rebuild`: stop then rebuild and start
-- `./docker/setup down`: stop containers
-- `./docker/setup logs`: stream web logs
-- `./docker/setup`: open the interactive menu
+- `./web/setup up`: build and start containers in detached mode
+- `./web/setup restart`: clear Next.js cache and restart the web service
+- `./web/setup seed`: start the dev stack if needed, then seed demo website data
+- `./web/setup down`: stop containers
+- `./web/setup logs`: stream web logs
+- `./web/setup help`: show all supported commands
 
 ## Repo Layout
 

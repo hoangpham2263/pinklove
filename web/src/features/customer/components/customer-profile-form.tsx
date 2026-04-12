@@ -11,6 +11,7 @@ type CustomerProfileFormProps = {
  fullName: string;
  displayName: string;
  phone: string;
+ vendorPortalSlug?: string;
  bio: string;
  };
 };
@@ -78,6 +79,17 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
   </label>
   <Input id="phone" name="phone" defaultValue={initialProfile.phone} placeholder="0901234567" />
   </div>
+
+  {initialProfile.vendorPortalSlug ? (
+   <div className="space-y-2">
+   <label htmlFor="vendorPortalSlug" className="font-medium">
+    Vendor portal slug
+   </label>
+   <Input id="vendorPortalSlug" name="vendorPortalSlug" defaultValue={initialProfile.vendorPortalSlug} readOnly />
+   </div>
+  ) : (
+   <input type="hidden" name="vendorPortalSlug" value="" />
+  )}
 
   <div className="space-y-2">
   <label htmlFor="bio" className="font-medium">

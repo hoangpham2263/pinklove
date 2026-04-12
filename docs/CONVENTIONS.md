@@ -122,8 +122,8 @@ This file is the repo-wide source of truth.
 
 ## Runtime and startup
 
-- Use `./docker/setup` for common Docker workflows.
-- `./docker/setup` supports `up`, `rebuild`, `down`, and `logs`.
+- Use `./web/setup` for common Docker workflows.
+- `./web/setup` supports `up`, `restart`, `seed`, `down`, and `logs`.
 - Development stack configuration lives in `docker/compose.yml`.
 - Production-style stack lives in `docker/compose.prod.yml`.
 - The dev web service bind-mounts `./web` into the container.

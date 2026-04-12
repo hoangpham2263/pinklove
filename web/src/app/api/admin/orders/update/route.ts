@@ -1,15 +1,20 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { adminUpdateOrderState } from "@/features/ecommerce/server/service";
+import { recordAdminOrderUpdateForVendor } from "@/features/vendor-orders/server/service";
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const formData = await request.formData();
   const orderId = String(formData.get("orderId") ?? "").trim();
+  const status = String(formData.get("status") ?? "pending_payment") as OrderStatus;
+  const paymentStatus = String(formData.get("paymentStatus") ?? "unpaid") as PaymentStatus;
+  const fulfillmentStatus = String(formData.get("fulfillmentStatus") ?? "not_required") as FulfillmentStatus;
+  const notes = String(formData.get("notes") ?? "");
 
   if (!orderId) {
     return respondError(request, {
@@ -21,10 +26,18 @@ export async function POST(request: Request) {
 
   await adminUpdateOrderState({
     orderId,
-    status: String(formData.get("status") ?? "pending_payment") as OrderStatus,
-    paymentStatus: String(formData.get("paymentStatus") ?? "unpaid") as PaymentStatus,
-    fulfillmentStatus: String(formData.get("fulfillmentStatus") ?? "not_required") as FulfillmentStatus,
-    notes: String(formData.get("notes") ?? ""),
+    status,
+    paymentStatus,
+    fulfillmentStatus,
+    notes,
+  });
+
+  await recordAdminOrderUpdateForVendor({
+    orderId,
+    actorUserId: admin.id,
+    status,
+    paymentStatus,
+    fulfillmentStatus,
   });
 
   return respondSuccess(request, {

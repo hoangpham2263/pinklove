@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export SETUP_ENTRY="./setup"
+
+exec "$ROOT_DIR/web/setup" "$@"

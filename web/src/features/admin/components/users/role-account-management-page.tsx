@@ -17,6 +17,7 @@ type RoleAccountManagementPageProps = {
   createHref: string;
   listHref: string;
   createLabel: string;
+  children?: React.ReactNode;
 };
 
 export function RoleAccountManagementPage({
@@ -29,6 +30,7 @@ export function RoleAccountManagementPage({
   createHref,
   listHref,
   createLabel,
+  children,
 }: RoleAccountManagementPageProps) {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -74,6 +76,8 @@ export function RoleAccountManagementPage({
           </CardContent>
         </Card>
       </div>
+
+      {children}
 
       <Card className="rounded-lg">
         <CardHeader>

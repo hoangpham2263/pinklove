@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EcommerceOrder } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
+import { getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import type { EcommerceSettings } from "@/lib/system-settings";
 
 type CustomerOrderDetailProps = {
@@ -30,13 +31,13 @@ export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDeta
           <CardHeader>
             <CardTitle className="text-base">Trạng thái đơn</CardTitle>
           </CardHeader>
-          <CardContent className="font-semibold">{order.status}</CardContent>
+          <CardContent className="font-semibold">{getOrderStatusLabel(order.status)}</CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Thanh toán</CardTitle>
           </CardHeader>
-          <CardContent className="font-semibold">{order.paymentStatus}</CardContent>
+          <CardContent className="font-semibold">{getPaymentStatusLabel(order.paymentStatus)}</CardContent>
         </Card>
         <Card>
           <CardHeader>
