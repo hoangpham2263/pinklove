@@ -205,7 +205,7 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle>Total Hooks</CardTitle>
@@ -252,7 +252,7 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_180px_180px]">
               <Input
                 value={globalFilter}

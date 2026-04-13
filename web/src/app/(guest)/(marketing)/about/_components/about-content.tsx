@@ -43,7 +43,7 @@ export function AboutContent({ page }: { page: ManagedPage }) {
 
   return (
     <div className="flex-1">
-      <section className="pt-10 lg:pt-15 2xl:pt-20">
+      <section className="pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4">
           <div className="space-y-10">
             <div className="mx-auto max-w-3xl space-y-4 text-center">
@@ -52,7 +52,7 @@ export function AboutContent({ page }: { page: ManagedPage }) {
                 <span className="mx-2">/</span>
                 <span>Giới thiệu</span>
               </p>
-              <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{page.title}</h1>
+              <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{page.title}</h1>
               {page.excerpt ? (
                 <p className="mx-auto max-w-2xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
                   {page.excerpt}
@@ -70,7 +70,7 @@ export function AboutContent({ page }: { page: ManagedPage }) {
                   <div className="relative flex h-full flex-col justify-end p-8 lg:p-10">
                     <div className="max-w-2xl space-y-4">
                       <p className="text-xs uppercase tracking-[0.35em] text-stone-500">pinklove</p>
-                      <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">
+                      <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
                         {fields.introHeading || "Thiệp cưới online hiện đại, rõ ràng và dễ mở rộng."}
                       </h2>
                       <p className="text-sm leading-8 text-stone-700 md:text-base lg:text-lg">

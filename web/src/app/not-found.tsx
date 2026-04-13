@@ -85,7 +85,7 @@ export default async function NotFoundPage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_38%),linear-gradient(180deg,_#fff7fb_0%,_#ffffff_48%,_#fffaf2_100%)]">
-      <GuestShell className="justify-center py-10 lg:py-15 2xl:py-20">
+      <GuestShell className="justify-center py-10 lg:py-15 2 xl:py-20">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
           <div className="mx-auto flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.3em] backdrop-blur">
             <Heart className="h-3.5 w-3.5 text-rose-500" />
@@ -93,7 +93,7 @@ export default async function NotFoundPage() {
           </div>
 
           <div className="space-y-4 text-center">
-            <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl 2xl:text-5xl">
+            <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl 2 xl:text-5xl">
               {resolvedPage?.title || "Trang bạn tìm không còn ở đây."}
             </h1>
             <p className="mx-auto max-w-2xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
@@ -109,7 +109,7 @@ export default async function NotFoundPage() {
                   <Search className="h-8 w-8" />
                 </div>
                 <div className="space-y-3">
-                  <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">
+                  <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
                     {fields.panelTitle || "Quay lại luồng chính"}
                   </h2>
                   <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">

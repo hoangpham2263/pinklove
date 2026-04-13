@@ -32,7 +32,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
         <Button render={<Link href={ROUTES.ADMIN.PRODUCTS}>Tạo sản phẩm</Link>} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Tổng sản phẩm</CardTitle>

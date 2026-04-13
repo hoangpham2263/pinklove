@@ -89,7 +89,7 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
               >
                 {featuredPost.categoryName}
               </Link>
-              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">
+              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
                 <Link href={getPostHref(featuredPost)} className="hover:text-stone-700">
                   {featuredPost.title}
                 </Link>
@@ -111,9 +111,9 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
           <p className="text-xs uppercase tracking-[0.3em] text-stone-400">
             {activeCategory === "all" ? "Mới nhất" : "Theo danh mục"}
           </p>
-          <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Danh sách bài viết</h2>
+          <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Danh sách bài viết</h2>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {visiblePosts.map((post) => (
             <BlogCard
               key={post.id}

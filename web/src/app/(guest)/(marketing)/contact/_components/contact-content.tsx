@@ -63,7 +63,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
   );
 
   return (
-    <section className="bg-[radial-gradient(circle_at_top,#f8ede2_0%,#fff8f2_24%,#fffdf9_56%,#ffffff_100%)] pt-10 lg:pt-14 2xl:pt-18">
+    <section className="bg-[radial-gradient(circle_at_top,#f8ede2_0%,#fff8f2_24%,#fffdf9_56%,#ffffff_100%)] pt-10 lg:pt-14 2 xl:pt-18">
       <div className="container mx-auto flex w-full flex-1 flex-col gap-10 px-4 pb-14">
         <div className="mx-auto max-w-4xl space-y-5 text-center">
           <p className="text-xs uppercase tracking-[0.35em] text-stone-400">
@@ -80,7 +80,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
           {page.excerpt ? <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{page.excerpt}</p> : null}
 
           {contactMethods.length > 0 ? (
-            <div className="grid gap-3 pt-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 pt-3 sm:grid-cols-2 lg:grid-cols-4">
               {contactMethods.slice(0, 4).map((item) => (
                 <div key={`${item.label}-${item.value}`} className="rounded-2xl border border-stone-200 bg-white/90 px-5 py-4 text-left shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
                   <p className="text-xs uppercase tracking-[0.24em] text-stone-400">{item.label}</p>
@@ -110,7 +110,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
             ) : null}
 
             {socialLinks.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               {socialLinks.map((item) => {
                 const content = (
                   <div className="flex h-full flex-col items-center gap-4 rounded-2xl border border-stone-200 bg-white px-5 py-6 text-center transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(15,23,42,0.08)]">

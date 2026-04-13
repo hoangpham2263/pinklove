@@ -23,7 +23,7 @@ type VendorPortalRealtimeState = {
   assignmentCount: number;
 };
 
-export async function getVendorAssignmentRealtimeState(assignmentId: string): Promise<VendorAssignmentRealtimeState | null> {
+async function getVendorAssignmentRealtimeStateRow(assignmentId: string, vendorUserId?: string) {
   const result = await query<{
     assignment_id: string;
     updated_at: string;
@@ -50,12 +50,17 @@ export async function getVendorAssignmentRealtimeState(assignmentId: string): Pr
         ) AS last_event_created_at
       FROM vendor_order_assignments a
       WHERE a.id = $1
+      ${vendorUserId ? "AND a.vendor_user_id = $2" : ""}
       LIMIT 1
     `,
-    [assignmentId]
+    vendorUserId ? [assignmentId, vendorUserId] : [assignmentId]
   );
 
-  const row = result.rows[0];
+  return result.rows[0] ?? null;
+}
+
+export async function getVendorAssignmentRealtimeState(assignmentId: string): Promise<VendorAssignmentRealtimeState | null> {
+  const row = await getVendorAssignmentRealtimeStateRow(assignmentId);
   if (!row) {
     return null;
   }
@@ -73,38 +78,7 @@ export async function getVendorAssignmentRealtimeStateForVendor(
   vendorUserId: string,
   assignmentId: string
 ): Promise<VendorAssignmentRealtimeState | null> {
-  const result = await query<{
-    assignment_id: string;
-    updated_at: string;
-    last_event_id: string | null;
-    last_event_created_at: string | null;
-  }>(
-    `
-      SELECT
-        a.id AS assignment_id,
-        a.updated_at::text AS updated_at,
-        (
-          SELECT e.id
-          FROM vendor_order_events e
-          WHERE e.assignment_id = a.id
-          ORDER BY e.created_at DESC, e.id DESC
-          LIMIT 1
-        ) AS last_event_id,
-        (
-          SELECT e.created_at::text
-          FROM vendor_order_events e
-          WHERE e.assignment_id = a.id
-          ORDER BY e.created_at DESC, e.id DESC
-          LIMIT 1
-        ) AS last_event_created_at
-      FROM vendor_order_assignments a
-      WHERE a.id = $1 AND a.vendor_user_id = $2
-      LIMIT 1
-    `,
-    [assignmentId, vendorUserId]
-  );
-
-  const row = result.rows[0];
+  const row = await getVendorAssignmentRealtimeStateRow(assignmentId, vendorUserId);
   if (!row) {
     return null;
   }

@@ -445,9 +445,14 @@ export async function upsertVendorAssignment(input: UpsertVendorAssignmentInput)
 
 export async function updateVendorAssignmentByVendor(input: UpdateVendorAssignmentInput): Promise<void> {
   await withTransaction(async (execute) => {
-    const existing = await execute<{ id: string }>(
+    const existing = await execute<{
+      id: string;
+      status: VendorAssignmentStatus;
+      vendor_note: string;
+      vendor_reference: string;
+    }>(
       `
-        SELECT id
+        SELECT id, status, vendor_note, vendor_reference
         FROM vendor_order_assignments
         WHERE id = $1 AND vendor_user_id = $2
         LIMIT 1
@@ -461,6 +466,16 @@ export async function updateVendorAssignmentByVendor(input: UpdateVendorAssignme
 
     const vendorNote = (input.vendorNote ?? "").trim();
     const vendorReference = (input.vendorReference ?? "").trim();
+    const currentStatus = existing.rows[0].status;
+    const currentVendorNote = existing.rows[0].vendor_note;
+    const currentVendorReference = existing.rows[0].vendor_reference;
+    const statusChanged = currentStatus !== input.status;
+    const vendorNoteChanged = currentVendorNote !== vendorNote;
+    const vendorReferenceChanged = currentVendorReference !== vendorReference;
+
+    if (!statusChanged && !vendorNoteChanged && !vendorReferenceChanged) {
+      return;
+    }
 
     await execute(
       `
@@ -484,15 +499,17 @@ export async function updateVendorAssignmentByVendor(input: UpdateVendorAssignme
       [input.assignmentId, input.status, vendorNote, vendorReference]
     );
 
-    await execute(
-      `
-        INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
-        VALUES ($1, $2, 'vendor', 'status_changed', $3)
-      `,
-      [input.assignmentId, input.vendorUserId, `Vendor đã cập nhật trạng thái sang ${input.status}.`]
-    );
+    if (statusChanged) {
+      await execute(
+        `
+          INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
+          VALUES ($1, $2, 'vendor', 'status_changed', $3)
+        `,
+        [input.assignmentId, input.vendorUserId, `Vendor đã cập nhật trạng thái sang ${input.status}.`]
+      );
+    }
 
-    if (vendorNote) {
+    if (vendorNoteChanged && vendorNote) {
       await execute(
         `
           INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)

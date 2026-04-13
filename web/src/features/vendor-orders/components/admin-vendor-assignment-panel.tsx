@@ -44,9 +44,6 @@ export function AdminVendorAssignmentPanel({
   const [vendorUserId, setVendorUserId] = useState(initialDetail?.assignment.vendorUserId ?? "");
   const [internalNote, setInternalNote] = useState(initialDetail?.assignment.internalNote ?? "");
   const [isSaving, setIsSaving] = useState(false);
-  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "live" | "retrying">(
-    initialDetail ? "connecting" : "live"
-  );
   const skipNextRealtimeToastRef = useRef(false);
 
   useEffect(() => {
@@ -57,6 +54,7 @@ export function AdminVendorAssignmentPanel({
   const loadDetail = useCallback(async () => {
     const response = await fetch(detailUrl, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
       credentials: "same-origin",
     });
 
@@ -91,10 +89,6 @@ export function AdminVendorAssignmentPanel({
     },
   });
 
-  useEffect(() => {
-    setRealtimeStatus(liveStatus);
-  }, [liveStatus]);
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -122,7 +116,7 @@ export function AdminVendorAssignmentPanel({
     <div className="space-y-4">
       {detail ? (
         <div className="rounded-md border border-dashed bg-background/70 px-3 py-2 text-xs text-muted-foreground">
-          Realtime: {realtimeStatus === "live" ? "live" : realtimeStatus === "retrying" ? "reconnecting" : "connecting"}
+          Realtime: {liveStatus === "live" ? "live" : liveStatus === "retrying" ? "reconnecting" : "connecting"}
         </div>
       ) : null}
 

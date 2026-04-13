@@ -40,7 +40,6 @@ export function PartnerVendorPortalPanel({
 }: PartnerVendorPortalPanelProps) {
   const [stats, setStats] = useState(initialStats);
   const [assignments, setAssignments] = useState(initialAssignments);
-  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "live" | "retrying">("connecting");
 
   useEffect(() => {
     setStats(initialStats);
@@ -50,6 +49,7 @@ export function PartnerVendorPortalPanel({
   const loadSummary = useCallback(async () => {
     const response = await fetch(summaryUrl, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
       credentials: "same-origin",
     });
 
@@ -77,10 +77,6 @@ export function PartnerVendorPortalPanel({
       toast.error("Khong the tai lai danh sach don vendor.");
     },
   });
-
-  useEffect(() => {
-    setRealtimeStatus(liveStatus);
-  }, [liveStatus]);
 
   return (
     <>
@@ -119,11 +115,9 @@ export function PartnerVendorPortalPanel({
         </Card>
       </div>
 
-      {assignments[0] ? (
-        <div className="rounded-2xl border border-dashed bg-white/80 px-4 py-3 text-xs text-zinc-500">
-          Realtime: {realtimeStatus === "live" ? "live" : realtimeStatus === "retrying" ? "reconnecting" : "connecting"}
-        </div>
-      ) : null}
+      <div className="rounded-2xl border border-dashed bg-white/80 px-4 py-3 text-xs text-zinc-500">
+        Realtime: {liveStatus === "live" ? "live" : liveStatus === "retrying" ? "reconnecting" : "connecting"}
+      </div>
 
       <Card className="border-zinc-200/80 bg-white/94 shadow-sm">
         <CardHeader className="border-b">

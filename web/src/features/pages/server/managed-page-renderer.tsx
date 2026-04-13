@@ -117,7 +117,7 @@ function PageHero({ page, fallbackTitle, fallbackExcerpt }: { page: ManagedPage;
   return (
     <div className="mx-auto max-w-3xl space-y-4 text-center">
       <ManagedPageBreadcrumb page={page} />
-      <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{page.title || fallbackTitle}</h1>
+      <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{page.title || fallbackTitle}</h1>
       <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
         {page.excerpt || fallbackExcerpt}
       </p>
@@ -201,13 +201,13 @@ export async function renderManagedPage(page: ManagedPage) {
           <section className="space-y-6">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 1</p>
-              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Mẫu thiệp code sẵn</h2>
+              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp code sẵn</h2>
               <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
                 Phù hợp khi bạn muốn đi nhanh với bố cục đã hoàn chỉnh, chỉ cần chỉnh nội dung và xuất bản.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {codedTemplates.map((product) => (
                 <ProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
               ))}
@@ -217,13 +217,13 @@ export async function renderManagedPage(page: ManagedPage) {
           <section className="space-y-6">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 2</p>
-              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Mẫu thiệp builder</h2>
+              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp builder</h2>
               <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
                 Phù hợp khi bạn muốn chủ động hơn trong cách sắp nội dung và dựng thiệp theo ý của mình.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {builderTemplates.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -249,7 +249,7 @@ export async function renderManagedPage(page: ManagedPage) {
           <div className="space-y-3">
             <ManagedPageBreadcrumb page={page} />
             <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Tự tạo thiệp</p>
-            <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">
+            <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">
               {page.title || "Bắt đầu một mẫu thiệp cưới tùy biến"}
             </h1>
             <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
@@ -257,7 +257,7 @@ export async function renderManagedPage(page: ManagedPage) {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {builderProducts.map((product) => (
               <ProductCard
                 key={product.id}

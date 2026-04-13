@@ -165,7 +165,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
         <NativeForm
           action={ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE}
           method="POST"
-          className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+          className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
           onSubmit={handleCreate}
         >
           <Input
@@ -212,9 +212,9 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
             placeholder="Ghi chú"
             value={createDraft.notes}
             onChange={(event) => setCreateDraft((current) => ({ ...current, notes: event.target.value }))}
-            className="md:col-span-2 xl:col-span-2"
+            className="md:col-span-2 lg:col-span-2"
           />
-          <div className="flex items-center gap-2 md:col-span-2 xl:col-span-4">
+          <div className="flex items-center gap-2 md:col-span-2 lg:col-span-4">
             <Button type="submit">
               <Plus className="h-4 w-4" />
               Thêm tài khoản

@@ -10,7 +10,7 @@ type EcommerceSettingsFormProps = {
 export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) {
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Checkout</CardTitle>
@@ -45,7 +45,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
           <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
             <input type="hidden" name="section" value="ecommerce" />
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <label className="flex items-start gap-3 rounded-md border p-4">
                 <input type="checkbox" name="enabled" defaultChecked={settings.ecommerce.enabled} className="mt-1" />
                 <div>
@@ -98,7 +98,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
               </label>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <label className="font-medium">Tiền tệ</label>
                 <input name="currency" defaultValue={settings.ecommerce.currency} className="h-10 w-full rounded-md border bg-background px-3" />

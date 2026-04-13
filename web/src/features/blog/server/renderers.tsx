@@ -80,7 +80,7 @@ export function renderBlogCategoryPage({
           <span className="mx-2">/</span>
           <span>{category.name}</span>
         </p>
-        <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{category.name}</h1>
+        <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{category.name}</h1>
         <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
           {category.description ?? "Các bài viết trong danh mục này giúp bạn đi nhanh hơn khi chuẩn bị thiệp cưới và kế hoạch cưới."}
         </p>
@@ -109,7 +109,7 @@ export function renderBlogCategoryPage({
       </section>
 
       <section className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <BlogCard
               key={post.id}
@@ -166,7 +166,7 @@ export function renderBlogPostPage({
             {post.categoryName}
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{post.title}</h1>
+        <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{post.title}</h1>
         <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{post.excerpt}</p>
         <p className="text-xs uppercase tracking-[0.25em] text-stone-400">{formatDate(post.createdAt)}</p>
       </div>
@@ -221,9 +221,9 @@ export function renderBlogPostPage({
         <section className="space-y-6">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Liên quan</p>
-            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Bài viết liên quan</h2>
+            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Bài viết liên quan</h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {relatedPosts.map((item) => (
               <BlogCard
                 key={item.id}

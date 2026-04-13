@@ -241,7 +241,7 @@ export function UserManagement({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
           <Input
             value={globalFilter}
@@ -263,7 +263,7 @@ export function UserManagement({
           </select>
         </div>
 
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm
             action={ROUTES.API.ADMIN.USERS.BULK}
             method="POST"

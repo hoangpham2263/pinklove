@@ -277,7 +277,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid gap-4 lg:grid-cols-4">
         {spotlightCards.map((card) => {
           const Icon = card.icon;
 
@@ -315,7 +315,7 @@ export default async function AdminDashboardPage() {
         })}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_380px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_380px]">
         <div className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-3">
             {operationalGroups.map((group) => {

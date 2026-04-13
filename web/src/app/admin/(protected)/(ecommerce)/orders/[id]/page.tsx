@@ -48,8 +48,8 @@ export default async function AdminOrderDetailPage({
         <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Quay lại orders</Link>} />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="space-y-5 lg:col-span-9">
           <Card>
             <CardHeader>
               <CardTitle>Sản phẩm trong đơn</CardTitle>
@@ -81,7 +81,7 @@ export default async function AdminOrderDetailPage({
           </Card>
         </div>
 
-        <div className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+        <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Cập nhật đơn hàng</CardTitle>

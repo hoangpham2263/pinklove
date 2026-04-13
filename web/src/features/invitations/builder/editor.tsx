@@ -751,7 +751,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
         </div>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
         <div className="space-y-5">
           <div className="rounded-2xl border bg-card p-4 shadow-sm">
             <div className="mb-4 flex items-start justify-between gap-3">

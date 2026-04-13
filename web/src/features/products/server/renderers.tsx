@@ -82,7 +82,7 @@ export async function renderTemplateProductPage(product: Product, config: Public
       <div className="min-w-0 space-y-6">
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Thiếp mẫu sẵn</p>
-          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{product.name}</h1>
+          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{product.name}</h1>
           <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{product.description || product.excerpt}</p>
         </div>
 
@@ -202,7 +202,7 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
       <div className="min-w-0 space-y-6 lg:col-span-9">
         <div className="space-y-3">
           <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Tự tạo thiệp</p>
-          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">{product.name}</h1>
+          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{product.name}</h1>
           <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{product.description || product.excerpt}</p>
         </div>
 

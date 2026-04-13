@@ -50,7 +50,7 @@ export default async function CustomerDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Total Invitations</CardTitle>
@@ -86,7 +86,7 @@ export default async function CustomerDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <Card className="rounded-lg">
           <CardHeader className="flex flex-row items-center justify-between gap-3">
             <div>

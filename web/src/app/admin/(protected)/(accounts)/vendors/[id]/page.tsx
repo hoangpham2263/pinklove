@@ -79,7 +79,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader><CardTitle className="text-base">Tổng phân công</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{stats.total}</p></CardContent>
@@ -98,7 +98,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
         </Card>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle>Thông tin vendor</CardTitle>

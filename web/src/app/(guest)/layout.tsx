@@ -98,7 +98,7 @@ export default async function GuestLayout({
         <div className="container mx-auto grid gap-10 px-4 py-12 lg:grid-cols-[1.4fr_1fr_1fr]">
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.35em] text-stone-400">pinklove guest</p>
-            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">
+            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
               Thiệp cưới online gọn, rõ và dễ tùy chỉnh.
             </h2>
             <p className="text-sm leading-7 text-stone-600 md:text-base lg:text-lg">

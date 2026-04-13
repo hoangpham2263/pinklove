@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
@@ -47,7 +48,6 @@ export function PartnerVendorAssignmentPanel({
   const [vendorReference, setVendorReference] = useState(initialDetail.assignment.vendorReference);
   const [vendorNote, setVendorNote] = useState(initialDetail.assignment.vendorNote);
   const [isSaving, setIsSaving] = useState(false);
-  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "live" | "retrying">("connecting");
   const skipNextRealtimeToastRef = useRef(false);
 
   useEffect(() => {
@@ -59,6 +59,7 @@ export function PartnerVendorAssignmentPanel({
   const loadDetail = useCallback(async () => {
     const response = await fetch(detailUrl, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
       credentials: "same-origin",
     });
 
@@ -101,10 +102,6 @@ export function PartnerVendorAssignmentPanel({
     },
   });
 
-  useEffect(() => {
-    setRealtimeStatus(liveStatus);
-  }, [liveStatus]);
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -130,33 +127,36 @@ export function PartnerVendorAssignmentPanel({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-md border border-dashed bg-background/70 px-3 py-2 text-xs text-muted-foreground">
-        Realtime: {realtimeStatus === "live" ? "live" : realtimeStatus === "retrying" ? "reconnecting" : "connecting"}
-      </div>
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+      <div className="space-y-5 lg:col-span-9">
+        <div className="rounded-md border border-dashed bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+          Realtime: {liveStatus === "live" ? "live" : liveStatus === "retrying" ? "reconnecting" : "connecting"}
+        </div>
 
-      <div className="grid gap-3 rounded-md border bg-muted/20 p-3 text-sm md:grid-cols-2">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Trang thai don</p>
-          <p className="mt-1 font-medium">{getOrderStatusLabel(detail.order.status)}</p>
+        <div className="space-y-3 rounded-md border bg-muted/20 p-3 text-sm">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Trang thai don</p>
+            <p className="mt-1 font-medium">{getOrderStatusLabel(detail.order.status)}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Thanh toan</p>
+            <p className="mt-1 font-medium">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Fulfillment</p>
+            <p className="mt-1 font-medium">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Cap nhat don gan nhat</p>
+            <p className="mt-1 font-medium">{formatDateTime(detail.order.updatedAt)}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Thanh toan</p>
-          <p className="mt-1 font-medium">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Fulfillment</p>
-          <p className="mt-1 font-medium">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Cap nhat don gan nhat</p>
-          <p className="mt-1 font-medium">{formatDateTime(detail.order.updatedAt)}</p>
-        </div>
-      </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
-          <div className="space-y-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Timeline phối hợp</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {detail.events.length === 0 ? (
               <p className="text-sm text-muted-foreground">Chua co activity nao.</p>
             ) : (
@@ -172,55 +172,62 @@ export function PartnerVendorAssignmentPanel({
                 </div>
               ))
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="space-y-5">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input type="hidden" name="assignmentId" value={detail.assignment.id} />
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Trang thai vendor</label>
-              <select
-                name="status"
-                value={status}
-                onChange={(event) => setStatus(event.target.value as VendorAssignmentStatus)}
-                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-              >
-                {VENDOR_STATUSES.map((item) => (
-                  <option key={item} value={item}>
-                    {getVendorAssignmentStatusLabel(item)}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-5 lg:self-start">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cập nhật trạng thái vendor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input type="hidden" name="assignmentId" value={detail.assignment.id} />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Trang thai vendor</label>
+                <select
+                  name="status"
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value as VendorAssignmentStatus)}
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                >
+                  {VENDOR_STATUSES.map((item) => (
+                    <option key={item} value={item}>
+                      {getVendorAssignmentStatusLabel(item)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ma tham chieu vendor</label>
-              <input
-                name="vendorReference"
-                value={vendorReference}
-                onChange={(event) => setVendorReference(event.target.value)}
-                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                placeholder="PO, ma noi bo, tracking..."
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ma tham chieu vendor</label>
+                <input
+                  name="vendorReference"
+                  value={vendorReference}
+                  onChange={(event) => setVendorReference(event.target.value)}
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                  placeholder="PO, ma noi bo, tracking..."
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ghi chu cap nhat</label>
-              <textarea
-                name="vendorNote"
-                value={vendorNote}
-                onChange={(event) => setVendorNote(event.target.value)}
-                className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                placeholder="Mo ta tien do, vuong mac, thoi gian du kien..."
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ghi chu cap nhat</label>
+                <textarea
+                  name="vendorNote"
+                  value={vendorNote}
+                  onChange={(event) => setVendorNote(event.target.value)}
+                  className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  placeholder="Mo ta tien do, vuong mac, thoi gian du kien..."
+                />
+              </div>
 
-            <Button type="submit" className="w-full" disabled={isSaving}>
-              {isSaving ? "Dang luu..." : "Luu cap nhat vendor"}
-            </Button>
-          </form>
-        </div>
+              <Button type="submit" className="w-full" disabled={isSaving}>
+                {isSaving ? "Dang luu..." : "Luu cap nhat vendor"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -16,11 +16,11 @@ export function HomeContent({ page }: { page: ManagedPage }) {
 
   return (
     <div className="w-full bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_38%),linear-gradient(180deg,_#fff7fb_0%,_#ffffff_48%,_#fffaf2_100%)]">
-      <section className="overflow-hidden border-b border-stone-200 pt-10 lg:pt-15 2xl:pt-20">
+      <section className="overflow-hidden border-b border-stone-200 pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4 pb-16 pt-12 text-center lg:pb-24 lg:pt-20">
           <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-sm uppercase tracking-[0.4em] text-stone-500">pinklove guest</p>
-          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">
+          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">
             {fields.heroTitle || page.title}
           </h1>
           {(fields.heroDescription || page.excerpt) && (
@@ -43,7 +43,7 @@ export function HomeContent({ page }: { page: ManagedPage }) {
       </section>
 
       {page.body ? (
-        <section className="pt-10 lg:pt-15 2xl:pt-20">
+        <section className="pt-10 lg:pt-15 2 xl:pt-20">
           <div className="container mx-auto px-4">
           <div
             className={`mx-auto max-w-5xl ${RICH_TEXT_CONTENT_CLASSNAME}`}
@@ -53,9 +53,9 @@ export function HomeContent({ page }: { page: ManagedPage }) {
         </section>
       ) : null}
 
-      <section className="bg-stone-100/70 pt-10 lg:pt-15 2xl:pt-20">
+      <section className="bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4 pb-16">
-          <h2 className="mb-12 text-center text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Our Services</h2>
+          <h2 className="mb-12 text-center text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Our Services</h2>
           <div className="grid gap-8 md:grid-cols-3">
             {[
               { title: "Design Consultation", desc: "Our professional team is always ready to help." },

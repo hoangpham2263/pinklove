@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import type { RealtimeStatus, UseRealtimeResourceOptions } from "@/features/realtime/types";
 
@@ -15,9 +15,33 @@ export function useRealtimeResource<TData>({
   onError,
 }: UseRealtimeResourceOptions<TData>) {
   const [status, setStatus] = useState<RealtimeStatus>(enabled ? "connecting" : "live");
+  const latestRequestIdRef = useRef(0);
+  const syncResource = useEffectEvent(() => {
+    const requestId = latestRequestIdRef.current + 1;
+    latestRequestIdRef.current = requestId;
+    setStatus("live");
+    void load()
+      .then((data) => {
+        if (latestRequestIdRef.current !== requestId) {
+          return;
+        }
+        onData(data);
+      })
+      .catch((error) => {
+        if (latestRequestIdRef.current !== requestId) {
+          return;
+        }
+        onError?.(error instanceof Error ? error : new Error("REALTIME_LOAD_FAILED"));
+      });
+  });
+
+  const handleDeletedEvent = useEffectEvent(() => {
+    onDeleted?.();
+  });
 
   useEffect(() => {
     if (!enabled) {
+      latestRequestIdRef.current += 1;
       setStatus("live");
       return;
     }
@@ -33,18 +57,11 @@ export function useRealtimeResource<TData>({
     };
 
     const handleChanged = () => {
-      setStatus("live");
-      void load()
-        .then((data) => {
-          onData(data);
-        })
-        .catch((error) => {
-          onError?.(error instanceof Error ? error : new Error("REALTIME_LOAD_FAILED"));
-        });
+      syncResource();
     };
 
     const handleDeleted = () => {
-      onDeleted?.();
+      handleDeletedEvent();
     };
 
     eventSource.addEventListener("open", handleOpen);
@@ -56,6 +73,7 @@ export function useRealtimeResource<TData>({
     }
 
     return () => {
+      latestRequestIdRef.current += 1;
       eventSource.removeEventListener("open", handleOpen);
       eventSource.removeEventListener("error", handleError);
       eventSource.removeEventListener(changedEvent, handleChanged);
@@ -64,7 +82,7 @@ export function useRealtimeResource<TData>({
       }
       eventSource.close();
     };
-  }, [changedEvent, deletedEvent, enabled, load, onData, onDeleted, onError, streamUrl]);
+  }, [changedEvent, deletedEvent, enabled, streamUrl, syncResource, handleDeletedEvent]);
 
   return {
     status,

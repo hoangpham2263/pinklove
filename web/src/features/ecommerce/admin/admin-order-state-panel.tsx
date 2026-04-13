@@ -57,6 +57,7 @@ export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrd
   async function loadOrder() {
     const response = await fetch(detailUrl, {
       headers: { Accept: "application/json" },
+      cache: "no-store",
       credentials: "same-origin",
     });
 
@@ -100,7 +101,7 @@ export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrd
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-md border bg-muted/20 p-3 text-sm md:grid-cols-2">
+      <div className="space-y-3 rounded-md border bg-muted/20 p-3 text-sm">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Trang thai don</p>
           <p className="mt-1 font-medium">{getOrderStatusLabel(order.status)}</p>

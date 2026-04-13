@@ -47,40 +47,22 @@ export default async function PartnerOrderDetailPage({
         />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sản phẩm được giao</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {detail.order.items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
-                  <div>
-                    <p className="font-medium">{item.productName}</p>
-                    <p className="text-sm text-muted-foreground">{item.fulfillmentType} • SL {item.quantity}</p>
-                  </div>
-                  <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Timeline phối hợp</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <PartnerVendorAssignmentPanel
-                detailUrl={`/api/partner/vendor-assignments/${detail.assignment.id}`}
-                submitUrl={ROUTES.API.PARTNER.ORDERS.UPDATE}
-                portalHref={portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT}
-                initialDetail={detail}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Sản phẩm được giao</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {detail.order.items.map((item) => (
+            <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
+              <div>
+                <p className="font-medium">{item.productName}</p>
+                <p className="text-sm text-muted-foreground">{item.fulfillmentType} • SL {item.quantity}</p>
+              </div>
+              <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -93,6 +75,13 @@ export default async function PartnerOrderDetailPage({
           <p><span className="font-medium">Ghi chú đơn:</span> {detail.order.notes || "Không có"}</p>
         </CardContent>
       </Card>
+
+      <PartnerVendorAssignmentPanel
+        detailUrl={`/api/partner/vendor-assignments/${detail.assignment.id}`}
+        submitUrl={ROUTES.API.PARTNER.ORDERS.UPDATE}
+        portalHref={portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT}
+        initialDetail={detail}
+      />
     </section>
   );
 }

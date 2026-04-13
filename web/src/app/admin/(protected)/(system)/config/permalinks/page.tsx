@@ -33,7 +33,7 @@ export default async function AdminPermalinkSettingsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Legacy Redirects</CardTitle>
@@ -73,7 +73,7 @@ export default async function AdminPermalinkSettingsPage() {
           <CardTitle>Preview URL</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {previewSamples.map((item) => (
               <div key={item.label} className="rounded-lg bg-muted/30 p-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</p>

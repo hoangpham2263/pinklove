@@ -41,7 +41,7 @@ export function BlogCard({
           <span>{formatDate(post.createdAt)}</span>
         </div>
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">
+          <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
             <Link href={postHref} className="hover:text-stone-700">
               {post.title}
             </Link>

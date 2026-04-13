@@ -122,7 +122,7 @@ export default async function AdminSitemapSettingsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Domain Runtime</CardTitle>
