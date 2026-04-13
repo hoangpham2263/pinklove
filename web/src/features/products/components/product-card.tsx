@@ -9,18 +9,23 @@ import {
 import type { Product } from "@/features/products/types";
 import { getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 export function ProductCard({
   product,
   href = ROUTES.CATALOG.TEMPLATE(product.slug),
   ctaLabel = "Xem chi tiết",
+  className,
+  imageClassName,
 }: {
   product: Product;
   href?: string;
   ctaLabel?: string;
+  className?: string;
+  imageClassName?: string;
 }) {
   return (
-    <GuestPanel className="flex h-full flex-col">
+    <GuestPanel className={cn("flex h-full flex-col", className)}>
       <GuestPanelHeader>
         <GuestPanelTitle>{product.name}</GuestPanelTitle>
         <p className="mt-2 text-sm text-stone-500">{getInvitationTemplateLabel(product.templateKey)}</p>
@@ -32,10 +37,10 @@ export function ProductCard({
             alt={product.name}
             width={800}
             height={600}
-            className="aspect-[4/3] w-full rounded-xl object-cover lg:rounded-2xl"
+            className={cn("aspect-[4/3] w-full rounded-xl object-cover lg:rounded-2xl", imageClassName)}
           />
         ) : (
-          <div className="flex aspect-[4/3] w-full rounded-xl border border-stone-200 bg-stone-50 text-stone-400 lg:rounded-2xl items-center justify-center">
+          <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-400 lg:rounded-2xl">
             Preview
           </div>
         )}

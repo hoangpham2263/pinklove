@@ -11,7 +11,13 @@ import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
+import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
+
+function formatShippingAddress(order: Awaited<ReturnType<typeof getOrderById>>) {
+  if (!order) return "";
+  return [order.shippingLine1, order.shippingWard, order.shippingDistrict, order.shippingCity].filter(Boolean).join(", ");
+}
 
 export default async function AdminOrderDetailPage({
   params,
@@ -34,19 +40,60 @@ export default async function AdminOrderDetailPage({
     notFound();
   }
 
+  const shippingAddress = formatShippingAddress(order);
+
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       {query.saved ? <PageToast message="Đã cập nhật trạng thái đơn hàng." variant="success" cleanupKeys={["saved"]} /> : null}
       {query.vendorSaved ? <PageToast message="Đã lưu phân công vendor." variant="success" cleanupKeys={["vendorSaved"]} /> : null}
       {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{order.orderNumber}</h1>
-          <p className="text-sm text-muted-foreground">{order.customerName} • {order.customerEmail}</p>
-        </div>
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Quay lại orders</Link>} />
+      <div className="flex justify-start">
+        <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Danh sách đơn hàng</Link>} />
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold">{order.orderNumber}</h1>
+              <p className="text-sm text-muted-foreground">
+                {order.customerName}
+                {order.customerEmail ? ` • ${order.customerEmail}` : ""}
+                {order.customerPhone ? ` • ${order.customerPhone}` : ""}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <span>{getOrderStatusLabel(order.status)}</span>
+              <span>{getPaymentStatusLabel(order.paymentStatus)}</span>
+              <span>{getFulfillmentStatusLabel(order.fulfillmentStatus)}</span>
+            </div>
+
+            {order.notes ? (
+              <p className="max-w-3xl text-sm text-muted-foreground">{order.notes}</p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-4 text-sm lg:min-w-[320px] lg:max-w-[360px]">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Tổng tiền</p>
+              <p className="text-lg font-semibold">{formatCurrency(order.totalAmount, settings.ecommerce)}</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Người nhận</p>
+              <p className="font-medium">{order.shippingName || order.customerName || "Chưa có thông tin"}</p>
+              {order.shippingPhone ? <p className="text-muted-foreground">{order.shippingPhone}</p> : null}
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Địa chỉ giao hàng</p>
+              <p className="text-muted-foreground">{shippingAddress || "Không yêu cầu vận chuyển"}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <div className="space-y-5 lg:col-span-9">
@@ -56,29 +103,29 @@ export default async function AdminOrderDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               {order.items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
-                  <div>
+                <div key={item.id} className="flex items-center justify-between gap-4 rounded-md border p-3">
+                  <div className="min-w-0 space-y-1">
                     <p className="font-medium">{item.productName}</p>
                     <p className="text-sm text-muted-foreground">
                       {item.productType} • {item.fulfillmentType} • SL {item.quantity}
                     </p>
                   </div>
-                  <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
+                  <div className="shrink-0 font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông tin giao hàng</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><span className="font-medium">Người nhận:</span> {order.shippingName || "Chưa có"}</p>
-              <p><span className="font-medium">Điện thoại:</span> {order.shippingPhone || "Chưa có"}</p>
-              <p><span className="font-medium">Địa chỉ:</span> {[order.shippingLine1, order.shippingLine2, order.shippingWard, order.shippingDistrict, order.shippingCity].filter(Boolean).join(", ") || "Không yêu cầu vận chuyển"}</p>
-            </CardContent>
-          </Card>
+          <AdminVendorAssignmentPanel
+            orderId={order.id}
+            submitUrl={ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT}
+            detailUrl={`/api/admin/orders/${order.id}/vendor-assignment`}
+            initialDetail={vendorAssignment}
+            vendorOptions={vendors.map((vendor) => ({
+              id: vendor.id,
+              label: vendor.displayName || vendor.fullName || vendor.username,
+            }))}
+          />
         </div>
 
         <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-6 lg:self-start">
@@ -100,44 +147,6 @@ export default async function AdminOrderDetailPage({
                   updatedAt: order.updatedAt,
                 }}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Phân công vendor</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <AdminVendorAssignmentPanel
-                orderId={order.id}
-                submitUrl={ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT}
-                detailUrl={`/api/admin/orders/${order.id}/vendor-assignment`}
-                initialDetail={vendorAssignment}
-                vendorOptions={vendors.map((vendor) => ({
-                  id: vendor.id,
-                  label: vendor.displayName || vendor.fullName || vendor.username,
-                }))}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Tổng tiền</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Tạm tính</span>
-                <span>{formatCurrency(order.subtotalAmount, settings.ecommerce)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Phí ship</span>
-                <span>{formatCurrency(order.shippingAmount, settings.ecommerce)}</span>
-              </div>
-              <div className="flex items-center justify-between font-semibold">
-                <span>Tổng cộng</span>
-                <span>{formatCurrency(order.totalAmount, settings.ecommerce)}</span>
-              </div>
             </CardContent>
           </Card>
         </div>

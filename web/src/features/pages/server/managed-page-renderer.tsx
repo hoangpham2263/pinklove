@@ -190,51 +190,56 @@ export async function renderManagedPage(page: ManagedPage) {
       const builderTemplates = products.filter((product) => product.productType === "builder_template");
 
       return (
-        <GuestShell className="gap-10 py-12">
-          <PageStructuredData page={page} />
-          <PageHero
-            page={page}
-            fallbackTitle="Mẫu thiệp"
-            fallbackExcerpt="Hiện tại PinkLove có 2 loại mẫu thiệp để bạn bắt đầu nhanh hơn: mẫu code sẵn và mẫu builder linh hoạt."
-          />
+        <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,226,236,0.9),rgba(255,245,248,0.94)_28%,rgba(255,251,252,0.98)_58%,rgba(255,255,255,1)_100%)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-56" />
+          <GuestShell className="relative gap-10 py-12">
+            <PageStructuredData page={page} />
+            <section className="rounded-[32px] border border-white/70 bg-white/55 px-6 py-10 shadow-[0_20px_70px_rgba(244,114,182,0.08)] sm:px-8 lg:px-12 lg:py-14">
+              <PageHero
+                page={page}
+                fallbackTitle="Mẫu thiệp"
+                fallbackExcerpt="Hiện tại PinkLove có 2 loại mẫu thiệp để bạn bắt đầu nhanh hơn: mẫu code sẵn và mẫu builder linh hoạt."
+              />
+            </section>
 
-          <section className="space-y-6">
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 1</p>
-              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp code sẵn</h2>
-              <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-                Phù hợp khi bạn muốn đi nhanh với bố cục đã hoàn chỉnh, chỉ cần chỉnh nội dung và xuất bản.
-              </p>
-            </div>
+            <section className="space-y-6">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.3em] text-rose-500">Loại 1</p>
+                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp code sẵn</h2>
+                <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+                  Phù hợp khi bạn muốn đi nhanh với bố cục đã hoàn chỉnh, chỉ cần chỉnh nội dung và xuất bản.
+                </p>
+              </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {codedTemplates.map((product) => (
-                <ProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
-              ))}
-            </div>
-          </section>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {codedTemplates.map((product) => (
+                  <ProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
+                ))}
+              </div>
+            </section>
 
-          <section className="space-y-6">
-            <div className="space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Loại 2</p>
-              <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp builder</h2>
-              <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-                Phù hợp khi bạn muốn chủ động hơn trong cách sắp nội dung và dựng thiệp theo ý của mình.
-              </p>
-            </div>
+            <section className="space-y-6">
+              <div className="space-y-3">
+                <p className="text-xs uppercase tracking-[0.3em] text-pink-500">Loại 2</p>
+                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp builder</h2>
+                <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
+                  Phù hợp khi bạn muốn chủ động hơn trong cách sắp nội dung và dựng thiệp theo ý của mình.
+                </p>
+              </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {builderTemplates.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  href={getBuilderProductPath(product, permalinkConfig)}
-                  ctaLabel="Xem builder"
-                />
-              ))}
-            </div>
-          </section>
-        </GuestShell>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {builderTemplates.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    href={getBuilderProductPath(product, permalinkConfig)}
+                    ctaLabel="Xem builder"
+                  />
+                ))}
+              </div>
+            </section>
+          </GuestShell>
+        </section>
       );
     }
     case "builder": {

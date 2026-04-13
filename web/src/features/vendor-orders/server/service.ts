@@ -17,6 +17,7 @@ import type {
 } from "@/features/vendor-orders/types";
 import { query, type DbExecutor, withTransaction } from "@/lib/database";
 import { USER_ROLES } from "@/lib/roles";
+import { getVendorAssignmentStatusLabel } from "@/lib/status-labels";
 
 type VendorAssignmentRow = {
   id: string;
@@ -505,7 +506,7 @@ export async function updateVendorAssignmentByVendor(input: UpdateVendorAssignme
           INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
           VALUES ($1, $2, 'vendor', 'status_changed', $3)
         `,
-        [input.assignmentId, input.vendorUserId, `Vendor đã cập nhật trạng thái sang ${input.status}.`]
+        [input.assignmentId, input.vendorUserId, `Vendor đã cập nhật trạng thái sang ${getVendorAssignmentStatusLabel(input.status)}.`]
       );
     }
 

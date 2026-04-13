@@ -101,24 +101,7 @@ export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrd
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 rounded-md border bg-muted/20 p-3 text-sm">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Trang thai don</p>
-          <p className="mt-1 font-medium">{getOrderStatusLabel(order.status)}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Cap nhat gan nhat</p>
-          <p className="mt-1 font-medium">{formatDateTime(order.updatedAt)}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Thanh toan</p>
-          <p className="mt-1 font-medium">{getPaymentStatusLabel(order.paymentStatus)}</p>
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Fulfillment</p>
-          <p className="mt-1 font-medium">{getFulfillmentStatusLabel(order.fulfillmentStatus)}</p>
-        </div>
-      </div>
+      <p className="text-xs text-muted-foreground">Cap nhat gan nhat: {formatDateTime(order.updatedAt)}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

@@ -2,40 +2,40 @@ import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/e
 import type { VendorAssignmentStatus } from "@/features/vendor-orders/types";
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending_payment: "Cho thanh toan",
-  paid: "Da thanh toan",
-  processing: "Dang xu ly",
-  ready_to_ship: "San sang giao",
-  shipped: "Da giao van",
-  completed: "Hoan tat",
-  cancelled: "Da huy",
-  refunded: "Da hoan tien",
+  pending_payment: "Chờ thanh toán",
+  paid: "Đã thanh toán",
+  processing: "Đang xử lý",
+  ready_to_ship: "Sẵn sàng giao",
+  shipped: "Đã giao vận",
+  completed: "Hoàn tất",
+  cancelled: "Đã hủy",
+  refunded: "Đã hoàn tiền",
 };
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  unpaid: "Chua thanh toan",
-  pending: "Dang cho",
-  paid: "Da thanh toan",
-  failed: "Thanh toan loi",
-  refunded: "Da hoan tien",
+  unpaid: "Chưa thanh toán",
+  pending: "Đang chờ",
+  paid: "Đã thanh toán",
+  failed: "Thanh toán lỗi",
+  refunded: "Đã hoàn tiền",
 };
 
 const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
-  not_required: "Khong can giao",
-  pending: "Cho xu ly",
-  processing: "Dang chuan bi",
-  shipped: "Dang giao",
-  delivered: "Da giao",
-  cancelled: "Da huy",
+  not_required: "Không cần giao",
+  pending: "Chờ xử lý",
+  processing: "Đang chuẩn bị",
+  shipped: "Đang giao",
+  delivered: "Đã giao",
+  cancelled: "Đã hủy",
 };
 
 const VENDOR_ASSIGNMENT_STATUS_LABELS: Record<VendorAssignmentStatus, string> = {
-  pending_confirmation: "Cho xac nhan",
-  accepted: "Da nhan",
-  in_progress: "Dang thuc hien",
-  ready_for_review: "Cho duyet",
-  completed: "Hoan tat",
-  cancelled: "Da huy",
+  pending_confirmation: "Chờ xác nhận",
+  accepted: "Đã nhận",
+  in_progress: "Đang thực hiện",
+  ready_for_review: "Chờ duyệt",
+  completed: "Hoàn tất",
+  cancelled: "Đã hủy",
 };
 
 export function getOrderStatusLabel(status: OrderStatus) {

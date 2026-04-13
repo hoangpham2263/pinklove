@@ -21,6 +21,12 @@ const VENDOR_STATUSES: VendorAssignmentStatus[] = [
   "cancelled",
 ];
 
+const ACTOR_LABELS = {
+  admin: "Admin",
+  vendor: "Đối tác",
+  system: "Hệ thống",
+} as const;
+
 type PartnerVendorAssignmentPanelProps = {
   detailUrl: string;
   submitUrl: string;
@@ -34,6 +40,16 @@ function formatDateTime(value: string) {
     timeStyle: "short",
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
+}
+
+function formatVendorEventMessage(message: string) {
+  return message
+    .replaceAll("pending_confirmation", getVendorAssignmentStatusLabel("pending_confirmation"))
+    .replaceAll("ready_for_review", getVendorAssignmentStatusLabel("ready_for_review"))
+    .replaceAll("in_progress", getVendorAssignmentStatusLabel("in_progress"))
+    .replaceAll("accepted", getVendorAssignmentStatusLabel("accepted"))
+    .replaceAll("completed", getVendorAssignmentStatusLabel("completed"))
+    .replaceAll("cancelled", getVendorAssignmentStatusLabel("cancelled"));
 }
 
 export function PartnerVendorAssignmentPanel({
@@ -80,7 +96,7 @@ export function PartnerVendorAssignmentPanel({
     return data.detail;
   }, [detailUrl, portalHref, router]);
 
-  const { status: liveStatus } = useRealtimeResource({
+  useRealtimeResource({
     enabled: true,
     streamUrl: ROUTES.API.PARTNER.REALTIME.ASSIGNMENT(detail.assignment.id),
     changedEvent: "vendor-assignment.changed",
@@ -90,7 +106,7 @@ export function PartnerVendorAssignmentPanel({
       if (skipNextRealtimeToastRef.current) {
         skipNextRealtimeToastRef.current = false;
       } else {
-        toast.info("Admin vua cap nhat don hang cua ban.");
+        toast.info("Admin vừa cập nhật đơn hàng của bạn.");
       }
       setDetail(nextDetail);
     },
@@ -98,7 +114,7 @@ export function PartnerVendorAssignmentPanel({
       router.replace(`${portalHref}?error=assignment_not_found`);
     },
     onError: () => {
-      toast.error("Khong the tai lai cap nhat vendor.");
+      toast.error("Không thể tải lại cập nhật đơn hàng.");
     },
   });
 
@@ -115,59 +131,92 @@ export function PartnerVendorAssignmentPanel({
 
       skipNextRealtimeToastRef.current = true;
       const result = await postForm(submitUrl, formData);
-      toast.success(result.message ? String(result.message) : "Da luu cap nhat vendor.");
+      toast.success(result.message ? String(result.message) : "Đã lưu cập nhật.");
 
       setDetail(await loadDetail());
     } catch (error) {
       skipNextRealtimeToastRef.current = false;
-      toast.error(error instanceof Error ? error.message : "Khong the luu cap nhat vendor.");
+      toast.error(error instanceof Error ? error.message : "Không thể lưu cập nhật.");
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-      <div className="space-y-5 lg:col-span-9">
-        <div className="rounded-md border border-dashed bg-background/70 px-3 py-2 text-xs text-muted-foreground">
-          Realtime: {liveStatus === "live" ? "live" : liveStatus === "retrying" ? "reconnecting" : "connecting"}
-        </div>
-
-        <div className="space-y-3 rounded-md border bg-muted/20 p-3 text-sm">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Trang thai don</p>
-            <p className="mt-1 font-medium">{getOrderStatusLabel(detail.order.status)}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Thanh toan</p>
-            <p className="mt-1 font-medium">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Fulfillment</p>
-            <p className="mt-1 font-medium">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Cap nhat don gan nhat</p>
-            <p className="mt-1 font-medium">{formatDateTime(detail.order.updatedAt)}</p>
-          </div>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Timeline phối hợp</CardTitle>
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+      <div className="space-y-5 xl:col-span-8">
+        <Card className="border-zinc-200/80 bg-white/90">
+          <CardHeader className="border-b">
+            <CardTitle className="text-base font-semibold text-zinc-950">Tổng quan xử lý</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="grid gap-3 pt-5 text-sm sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-zinc-200/80 p-3">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Trạng thái</p>
+              <p className="mt-1 font-medium text-zinc-950">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-200/80 p-3">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Đơn hàng</p>
+              <p className="mt-1 font-medium text-zinc-950">{getOrderStatusLabel(detail.order.status)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-200/80 p-3">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Thanh toán</p>
+              <p className="mt-1 font-medium text-zinc-950">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-200/80 p-3">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Cập nhật gần nhất</p>
+              <p className="mt-1 font-medium text-zinc-950">{formatDateTime(detail.assignment.updatedAt)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200/80 bg-white/90">
+          <CardHeader className="border-b">
+            <CardTitle className="text-base font-semibold text-zinc-950">Ghi chú đơn hàng</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-5 text-sm">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-xl border border-zinc-200/80 p-3">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">Khách hàng</p>
+                <p className="mt-1 font-medium text-zinc-950">{detail.order.customerName}</p>
+                <p className="text-zinc-600">{detail.order.customerPhone || "Chưa có số điện thoại"}</p>
+                <p className="text-zinc-600">{detail.order.customerEmail || "Chưa có email"}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-200/80 p-3">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">Giao hàng</p>
+                <p className="mt-1 font-medium text-zinc-950">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
+                <p className="text-zinc-600">
+                  {[detail.order.shippingLine1, detail.order.shippingLine2, detail.order.shippingWard, detail.order.shippingDistrict, detail.order.shippingCity]
+                    .filter(Boolean)
+                    .join(", ") || "Không có thông tin giao hàng"}
+                </p>
+              </div>
+            </div>
+
+            {detail.order.notes ? (
+              <div className="rounded-xl border border-zinc-200/80 p-3">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">Ghi chú từ đơn hàng</p>
+                <p className="mt-1 text-zinc-900">{detail.order.notes}</p>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200/80 bg-white/90">
+          <CardHeader className="border-b">
+            <CardTitle className="text-base font-semibold text-zinc-950">Lịch sử cập nhật</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-5">
             {detail.events.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Chua co activity nao.</p>
+              <p className="text-sm text-zinc-500">Chưa có cập nhật nào.</p>
             ) : (
               detail.events.map((eventItem) => (
-                <div key={eventItem.id} className="rounded-md border p-3">
+                <div key={eventItem.id} className="rounded-xl border border-zinc-200/80 p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium">{eventItem.message}</p>
-                    <p className="text-xs text-muted-foreground">{formatDateTime(eventItem.createdAt)}</p>
+                    <p className="font-medium text-zinc-950">{formatVendorEventMessage(eventItem.message)}</p>
+                    <p className="text-xs text-zinc-500">{formatDateTime(eventItem.createdAt)}</p>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {eventItem.actorType} {eventItem.actorUsername ? `- ${eventItem.actorUsername}` : ""}
+                  <p className="mt-1 text-zinc-600">
+                    {ACTOR_LABELS[eventItem.actorType]}{eventItem.actorUsername ? ` • ${eventItem.actorUsername}` : ""}
                   </p>
                 </div>
               ))
@@ -176,16 +225,16 @@ export function PartnerVendorAssignmentPanel({
         </Card>
       </div>
 
-      <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-5 lg:self-start">
-        <Card>
-          <CardHeader>
-            <CardTitle>Cập nhật trạng thái vendor</CardTitle>
+      <div className="space-y-5 xl:col-span-4 xl:sticky xl:top-5 xl:self-start">
+        <Card className="border-zinc-200/80 bg-white/90">
+          <CardHeader className="border-b">
+            <CardTitle className="text-base font-semibold text-zinc-950">Cập nhật tiến độ</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4 pt-5">
             <form onSubmit={handleSubmit} className="space-y-4">
               <input type="hidden" name="assignmentId" value={detail.assignment.id} />
               <div className="space-y-2">
-                <label className="text-sm font-medium">Trang thai vendor</label>
+                <label className="text-sm font-medium text-zinc-950">Trạng thái xử lý</label>
                 <select
                   name="status"
                   value={status}
@@ -201,29 +250,29 @@ export function PartnerVendorAssignmentPanel({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Ma tham chieu vendor</label>
+                <label className="text-sm font-medium text-zinc-950">Mã tham chiếu</label>
                 <input
                   name="vendorReference"
                   value={vendorReference}
                   onChange={(event) => setVendorReference(event.target.value)}
                   className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                  placeholder="PO, ma noi bo, tracking..."
+                  placeholder="Ví dụ: PO, mã nội bộ, mã vận đơn"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Ghi chu cap nhat</label>
+                <label className="text-sm font-medium text-zinc-950">Ghi chú cập nhật</label>
                 <textarea
                   name="vendorNote"
                   value={vendorNote}
                   onChange={(event) => setVendorNote(event.target.value)}
-                  className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  placeholder="Mo ta tien do, vuong mac, thoi gian du kien..."
+                  className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  placeholder="Ghi rõ tiến độ, vướng mắc hoặc thời gian dự kiến"
                 />
               </div>
 
               <Button type="submit" className="w-full" disabled={isSaving}>
-                {isSaving ? "Dang luu..." : "Luu cap nhat vendor"}
+                {isSaving ? "Đang lưu..." : "Lưu cập nhật"}
               </Button>
             </form>
           </CardContent>
