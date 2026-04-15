@@ -332,3 +332,70 @@
 [data-ui-density] textarea {
   padding-inline: var(--ui-control-padding-x) !important;
 }
+
+@keyframes phone-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  10% {
+    transform: rotate(15deg);
+  }
+
+  20% {
+    transform: rotate(-10deg);
+  }
+
+  30% {
+    transform: rotate(15deg);
+  }
+
+  40% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(10deg);
+  }
+
+  60% {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-phone-ring {
+  animation: phone-ring 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes fade-in-and-slide-down {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(var(--puramu-length));
+  }
+}
+
+@keyframes breathe {
+  0%,
+  to {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.breathe-element {
+  animation: breathe var(--puramu-animation-length, 1s) cubic-bezier(0.42, 0, 0.58, 1) infinite;
+  animation-delay: var(--puramu-delay, 0s);
+}

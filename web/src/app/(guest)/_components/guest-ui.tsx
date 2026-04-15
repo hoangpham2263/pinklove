@@ -91,7 +91,7 @@ export function GuestLinkButton({
     <Link
       href={href}
       className={cn(
-        "inline-flex min-h-12 items-center justify-center rounded-xl px-6 text-sm font-semibold transition lg:rounded-2xl",
+        "inline-flex min-h-12 items-center justify-center px-6 text-sm lg:text-base transition rounded-sm lg:rounded-full",
         variant === "primary"
           ? "bg-stone-950 text-white hover:bg-stone-800"
           : "border border-stone-300 bg-white text-stone-900 hover:bg-stone-50",

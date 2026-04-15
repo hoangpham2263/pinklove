@@ -13,12 +13,38 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     name: "Trang chủ",
     label: "Trang chủ",
     fields: [
-      { name: "heroTitle", label: "Tiêu đề Hero", type: "text" },
-      { name: "heroDescription", label: "Mô tả Hero", type: "textarea" },
-      { name: "heroButtonText", label: "Nhãn nút chính", type: "text" },
-      { name: "heroButtonLink", label: "Liên kết nút chính", type: "text" },
-      { name: "secondaryButtonText", label: "Nhãn nút phụ", type: "text" },
-      { name: "secondaryButtonLink", label: "Liên kết nút phụ", type: "text" },
+      {
+        type: "section",
+        label: "Banner",
+        description: "Nội dung banner đầu trang.",
+        fields: [
+          { name: "bannerTitle", label: "Title", type: "text", width: 12 },
+          { name: "bannerShortDescription", label: "Short Description", type: "text", width: 12 },
+          { name: "bannerDescription", label: "Description", type: "wysiwyg", width: 12 },
+          { name: "heroButtonText", label: "Nhãn nút chính", type: "text", width: 6 },
+          { name: "heroButtonLink", label: "Liên kết nút chính", type: "text", width: 6 },
+        ],
+      },
+      {
+        type: "section",
+        label: "Services Intro",
+        description: "Tiêu đề và mô tả phần dịch vụ trên trang chủ.",
+        fields: [
+          { name: "servicesTitle", label: "Tiêu đề phần dịch vụ", type: "text", width: 12 },
+          { name: "servicesDescription", label: "Mô tả phần dịch vụ", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "serviceItems",
+        type: "repeater",
+        label: "Service Items",
+        description: "Danh sách card dịch vụ hiển thị bên dưới hero.",
+        addLabel: "Thêm dịch vụ",
+        fields: [
+          { name: "title", label: "Tiêu đề", type: "text", width: 4 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 8 },
+        ],
+      },
     ],
   },
   "about-us": {
