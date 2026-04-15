@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from"react";
 import { useDropzone } from"react-dropzone";
-import { Image as ImageIcon, Upload, Search, CheckCircle2, FileText } from"lucide-react";
+import { Image as ImageIcon, Upload, Search, CheckCircle2, FileText, X } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
 import {
@@ -134,27 +134,41 @@ export function MediaSelector({ value, onChange, name, compact = false }: MediaS
   <Sheet open={isOpen} onOpenChange={setIsOpen}>
   <div className="flex flex-col gap-2">
    {compact ? (
-   <SheetTrigger render={
-   <button className="flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
+   <div className="flex items-center gap-2">
+    <SheetTrigger render={
+    <button className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
+     {value ? (
+     <>
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+       {isImageUrl(value) ? (
+       <img src={value} alt="Selected" className="h-full w-full object-cover" />
+       ) : (
+       <FileText className="h-3.5 w-3.5" />
+       )}
+      </span>
+      <span className="min-w-0 flex-1 truncate">{displayName || getFileLabel(value)}</span>
+     </>
+     ) : (
+     <>
+      <ImageIcon className="h-4 w-4 shrink-0" />
+      <span>Upload</span>
+     </>
+     )}
+    </button>
+    } />
     {value ? (
-    <>
-     <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-      {isImageUrl(value) ? (
-      <img src={value} alt="Selected" className="h-full w-full object-cover" />
-      ) : (
-      <FileText className="h-3.5 w-3.5" />
-      )}
-     </span>
-     <span className="min-w-0 flex-1 truncate">{displayName || getFileLabel(value)}</span>
-    </>
-    ) : (
-    <>
-     <ImageIcon className="h-4 w-4 shrink-0" />
-     <span>Upload</span>
-    </>
-    )}
-   </button>
-   } />
+    <Button
+     type="button"
+     variant="outline"
+     size="icon"
+     className="h-10 w-10 shrink-0"
+     aria-label="Xóa ảnh đã chọn"
+     onClick={() => onChange("")}
+    >
+     <X className="h-4 w-4" />
+    </Button>
+    ) : null}
+   </div>
    ) : value ? (
    <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
     {isImageUrl(value) ? (

@@ -27,6 +27,32 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
       {
         type: "section",
+        label: "About Us",
+        description: "Nội dung phần giới thiệu trên trang chủ.",
+        layout: "two-columns",
+        fields: [
+          { name: "aboutTitle", label: "Tiêu đề", type: "text", column: "left", width: 12 },
+          { name: "aboutDescription", label: "Mô tả", type: "wysiwyg", column: "left", width: 12 },
+          { name: "aboutImage", label: "Hình ảnh", type: "media", column: "left", width: 12 },
+          { name: "aboutText1", label: "Nội dung bên phải 1", type: "textarea", column: "right", width: 12 },
+          { name: "aboutText2", label: "Nội dung bên phải 2", type: "textarea", column: "right", width: 12 },
+          { name: "aboutText3", label: "Nội dung bên phải 3", type: "textarea", column: "right", width: 12 },
+          {
+            name: "aboutItems",
+            type: "repeater",
+            label: "Items",
+            addLabel: "Thêm",
+            column: "right",
+            width: 12,
+            fields: [
+              { name: "label", label: "Nhãn", type: "text", width: 12 },
+              { name: "content", label: "Nội dung", type: "textarea", width: 12 },
+            ],
+          },
+        ],
+      },
+      {
+        type: "section",
         label: "Services Intro",
         description: "Tiêu đề và mô tả phần dịch vụ trên trang chủ.",
         fields: [

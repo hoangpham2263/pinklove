@@ -1,10 +1,12 @@
+import Image from "next/image";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import type { ManagedPage } from "@/lib/managed-pages";
+import { resolveMediaUrl } from "@/lib/media-resolver";
 import { getPageFields } from "@/lib/page-fields";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 
-export function HomeContent({ page }: { page: ManagedPage }) {
+export async function HomeContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
     bannerTitle?: string;
     bannerShortDescription?: string;
@@ -13,6 +15,16 @@ export function HomeContent({ page }: { page: ManagedPage }) {
     heroDescription?: string;
     heroButtonText?: string;
     heroButtonLink?: string;
+    aboutTitle?: string;
+    aboutDescription?: string;
+    aboutImage?: string;
+    aboutText1?: string;
+    aboutText2?: string;
+    aboutText3?: string;
+    aboutItems?: Array<{
+      label?: string;
+      content?: string;
+    }>;
     servicesTitle?: string;
     servicesDescription?: string;
     serviceItems?: Array<{
@@ -36,10 +48,30 @@ export function HomeContent({ page }: { page: ManagedPage }) {
   const bannerTitle = fields.bannerTitle || fields.heroTitle || page.title;
   const bannerShortDescription = fields.bannerShortDescription || page.excerpt;
   const bannerDescription = fields.bannerDescription || fields.heroDescription;
+  const aboutImage = await resolveMediaUrl(fields.aboutImage);
+  const aboutTexts = [fields.aboutText1, fields.aboutText2, fields.aboutText3].filter(
+    (item): item is string => Boolean(item?.trim())
+  );
+  const aboutItems = (Array.isArray(fields.aboutItems) ? fields.aboutItems : []).filter(
+    (item) => item.label?.trim() && item.content?.trim()
+  );
+  const hasAboutContent = Boolean(
+    fields.aboutTitle?.trim() ||
+    fields.aboutDescription?.trim() ||
+    aboutImage ||
+    aboutTexts.length ||
+    aboutItems.length
+  );
+  const scrollDots = [
+    { id: "hero", href: "#home-hero", label: "Đi đến banner", className: "size-4 bg-[#FF6FF5]" },
+    { id: "about", href: hasAboutContent ? "#home-about" : "#home-services", label: "Đi đến giới thiệu", className: "size-3.5 bg-[#FF6FF5]/80" },
+    { id: "services", href: "#home-services", label: "Đi đến dịch vụ", className: "size-3 bg-[#FF6FF5]/60" },
+    { id: "service-items", href: "#home-service-items", label: "Đi đến danh sách dịch vụ", className: "size-3 bg-[#FF6FF5]/60" },
+  ];
 
   return (
     <div>
-      <section className="aspect-[1920/900] bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] overflow-hidden">
+      <section id="home-hero" className="aspect-[1920/900] scroll-mt-24 bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="pl-20 relative grid grid-cols-12 gap-5 lg:gap-10">
             <div className="col-start-12 lg:col-span-6 flex flex-col justify-center space-y-5">
@@ -82,10 +114,14 @@ export function HomeContent({ page }: { page: ManagedPage }) {
             {/* Dots */}
             <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col items-center gap-y-7.5 z-10">
               <div className="flex flex-col items-center gap-y-5">
-                <div className="size-4 bg-[#FF6FF5] rounded-full"></div>
-                <div className="size-3.5 bg-[#FF6FF5]/80 rounded-full"></div>
-                <div className="size-3 bg-[#FF6FF5]/60 rounded-full"></div>
-                <div className="size-3 bg-[#FF6FF5]/60 rounded-full"></div>
+                {scrollDots.map((dot) => (
+                  <a
+                    key={dot.id}
+                    href={dot.href}
+                    aria-label={dot.label}
+                    className={`${dot.className} block rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6FF5]`}
+                  />
+                ))}
               </div>
               <div className="breathe-element flex justify-center whitespace-nowrap text-sm lg:text-base uppercase font-medium [--puramu-animation-length:3s]" style={{ writingMode: "sideways-lr" }}>cuộn xuống</div>
 
@@ -101,8 +137,58 @@ export function HomeContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
+      {hasAboutContent ? (
+        <section id="home-about" className="scroll-mt-24 bg-white pt-10 lg:pt-15 2xl:pt-20">
+          <div className="container mx-auto px-4">
+            <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+              <div className="space-y-6 lg:col-span-6">
+                {fields.aboutTitle ? (
+                  <h2 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl">
+                    {fields.aboutTitle}
+                  </h2>
+                ) : null}
+                {fields.aboutDescription ? (
+                  <div
+                    className={RICH_TEXT_CONTENT_CLASSNAME}
+                    dangerouslySetInnerHTML={createRichTextMarkup(fields.aboutDescription)}
+                  />
+                ) : null}
+                <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gradient-to-br from-[#FFD1F7] to-[#F9F1FF]">
+                  {aboutImage ? (
+                    <Image src={aboutImage} alt={fields.aboutTitle || "About us"} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-center space-y-8 lg:col-span-6">
+                {aboutTexts.length ? (
+                  <div className="space-y-4">
+                    {aboutTexts.map((text, index) => (
+                      <p key={index} className="text-sm leading-7 text-stone-700 md:text-base lg:text-lg">
+                        {text}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+
+                {aboutItems.length ? (
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {aboutItems.map((item) => (
+                      <div key={`${item.label}-${item.content}`} className="border-l-2 border-[#FF6FF5] pl-5">
+                        <h3 className="text-sm font-semibold uppercase text-stone-950 md:text-base">{item.label}</h3>
+                        <p className="mt-2 text-sm leading-7 text-stone-600 md:text-base">{item.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {page.body ? (
-        <section className="pt-10 lg:pt-15 2 xl:pt-20">
+        <section id="home-body" className="scroll-mt-24 pt-10 lg:pt-15 2 xl:pt-20">
           <div className="container mx-auto px-4">
             <div
               className={`mx-auto max-w-5xl ${RICH_TEXT_CONTENT_CLASSNAME}`}
@@ -112,7 +198,7 @@ export function HomeContent({ page }: { page: ManagedPage }) {
         </section>
       ) : null}
 
-      <section className="bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
+      <section id="home-services" className="scroll-mt-24 bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4 pb-16">
           <div className="mb-12 text-center">
             <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
@@ -124,7 +210,7 @@ export function HomeContent({ page }: { page: ManagedPage }) {
               </p>
             ) : null}
           </div>
-          <div className="grid gap-8 md:grid-cols-3">
+          <div id="home-service-items" className="grid scroll-mt-24 gap-8 md:grid-cols-3">
             {resolvedServiceItems.map((feature) => (
               <div key={feature.title} className="rounded-xl border border-stone-200 bg-white p-8 lg:rounded-2xl">
                 <h3 className="mb-3 text-xl font-semibold text-stone-950">{feature.title}</h3>

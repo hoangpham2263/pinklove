@@ -80,6 +80,15 @@ function renderField(
   }
 ) {
   if (field.type === "section") {
+    const renderChild = (child: FieldSchema, index: number, childOptions = options) => (
+      <div
+        key={`${child.type}-${"name" in child ? child.name : child.label}-${index}`}
+        className={getFieldWidthClass(child, childOptions)}
+      >
+        {renderField(child, values, onChange, childOptions)}
+      </div>
+    );
+
     return (
       <section className="rounded-b-xl border border-t-0">
         <div className="space-y-1 border-b p-4">
@@ -88,16 +97,24 @@ function renderField(
             <p className="text-sm text-muted-foreground">{field.description}</p>
           ) : null}
         </div>
-        <div className="grid grid-cols-12 gap-4 p-4">
-          {field.fields.map((child, index) => (
-            <div
-              key={`${child.type}-${"name" in child ? child.name : child.label}-${index}`}
-              className={getFieldWidthClass(child, options)}
-            >
-              {renderField(child, values, onChange, options)}
+        {field.layout === "two-columns" ? (
+          <div className="grid gap-6 p-4 lg:grid-cols-2">
+            <div className="grid grid-cols-12 content-start gap-4">
+              {field.fields
+                .filter((child) => child.column !== "right")
+                .map((child, index) => renderChild(child, index, { compact: true }))}
             </div>
-          ))}
-        </div>
+            <div className="grid grid-cols-12 content-start gap-4">
+              {field.fields
+                .filter((child) => child.column === "right")
+                .map((child, index) => renderChild(child, index, { compact: true }))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-12 gap-4 p-4">
+            {field.fields.map((child, index) => renderChild(child, index, options))}
+          </div>
+        )}
       </section>
     );
   }
@@ -108,8 +125,8 @@ function renderField(
       : [];
 
     return (
-      <section className="rounded-b-xl border border-t-0">
-        <div className="space-y-4 p-4">
+      <section className={options?.compact ? "space-y-4" : "rounded-b-xl border border-t-0"}>
+        <div className={options?.compact ? "space-y-4" : "space-y-4 p-4"}>
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <h3 className="font-semibold">{field.label}</h3>
@@ -144,13 +161,10 @@ function renderField(
 
           {items.map((item, itemIndex) => (
             <div key={`${field.name}-${itemIndex}`} className="rounded-xl border">
-              <div className="flex items-start justify-between gap-4 border-b p-4">
+              <div className="flex items-center justify-between gap-4 border-b p-4">
                 <div className="space-y-1">
                   <p className="font-medium">
                     {field.label} #{itemIndex + 1}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {getRepeaterItemSummary(item, field.fields)}
                   </p>
                 </div>
                 {onChange ? (
@@ -293,8 +307,12 @@ function getFieldWidthClass(
     compact?: boolean;
   }
 ) {
-  if (field.type === "repeater" || field.type === "section") {
+  if (field.type === "section") {
     return "col-span-12";
+  }
+
+  if (field.type === "repeater") {
+    return options?.compact ? getSchemaWidthClass(field.width ?? 12) : "col-span-12";
   }
 
   return getLeafWidthClass(field, options);
@@ -308,6 +326,10 @@ function getLeafWidthClass(
 ) {
   const width = field.width ?? (field.type === "textarea" && !options?.compact ? 12 : 6);
 
+  return getSchemaWidthClass(width);
+}
+
+function getSchemaWidthClass(width: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12) {
   switch (width) {
     case 2:
       return "col-span-12 md:col-span-6 lg:col-span-2";
@@ -333,20 +355,4 @@ function getLeafWidthClass(
     default:
       return "col-span-12";
   }
-}
-
-function getRepeaterItemSummary(
-  item: Record<string, unknown>,
-  fields: Array<Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" }>>
-) {
-  const firstFilledField = fields.find((field) => {
-    const value = item[field.name];
-    return typeof value === "string" && value.trim().length > 0;
-  });
-
-  if (!firstFilledField) {
-    return "Chưa có nội dung";
-  }
-
-  return String(item[firstFilledField.name]);
 }
