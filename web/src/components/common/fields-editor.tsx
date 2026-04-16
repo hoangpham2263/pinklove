@@ -90,15 +90,15 @@ function renderField(
     );
 
     return (
-      <section className="rounded-b-xl border border-t-0">
-        <div className="space-y-1 border-b p-4">
+      <section className={options?.compact ? "space-y-4" : "rounded-b-xl border border-t-0"}>
+        <div className={options?.compact ? "space-y-1" : "space-y-1 border-b p-4"}>
           <h3 className="font-semibold">{field.label}</h3>
           {field.description ? (
             <p className="text-sm text-muted-foreground">{field.description}</p>
           ) : null}
         </div>
         {field.layout === "two-columns" ? (
-          <div className="grid gap-6 p-4 lg:grid-cols-2">
+          <div className={cn("grid gap-6 lg:grid-cols-2", options?.compact ? "" : "p-4")}>
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column !== "right")
@@ -111,8 +111,8 @@ function renderField(
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-12 gap-4 p-4">
-            {field.fields.map((child, index) => renderChild(child, index, options))}
+          <div className={cn("grid grid-cols-12 gap-4", options?.compact ? "" : "p-4")}>
+            {field.fields.map((child, index) => renderChild(child, index, { compact: true }))}
           </div>
         )}
       </section>
@@ -160,8 +160,11 @@ function renderField(
           ) : null}
 
           {items.map((item, itemIndex) => (
-            <div key={`${field.name}-${itemIndex}`} className="rounded-xl border">
-              <div className="flex items-center justify-between gap-4 border-b p-4">
+            <div
+              key={`${field.name}-${itemIndex}`}
+              className={cn(options?.compact ? "rounded-xl bg-muted/30 p-4" : "rounded-xl border")}
+            >
+              <div className={cn("flex items-center justify-between gap-4", options?.compact ? "mb-4" : "border-b p-4")}>
                 <div className="space-y-1">
                   <p className="font-medium">
                     {field.label} #{itemIndex + 1}
@@ -182,7 +185,7 @@ function renderField(
                   </Button>
                 ) : null}
               </div>
-              <div className="grid grid-cols-12 gap-4 p-4">
+              <div className={cn("grid grid-cols-12 gap-4", options?.compact ? "" : "p-4")}>
                 {field.fields.map((child) =>
                   renderLeafField(
                     child,

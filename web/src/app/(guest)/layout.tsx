@@ -1,6 +1,7 @@
 import { GuestFooter } from "@/app/(guest)/_components/guest-footer";
 import { GuestHeader, type GuestHeaderLink, type GuestHeaderNode } from "@/app/(guest)/_components/guest-header";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
+import { getGlobalFields } from "@/lib/global-fields";
 import { listManagedPages } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { getMenuByName } from "@/lib/menu";
@@ -61,20 +62,18 @@ function buildNavTree(links: GuestHeaderLink[]): GuestHeaderNode[] {
 export default async function GuestLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [user, headerMenu, footerMenu, managedPages, settings] = await Promise.all([
+  const [user, headerMenu, managedPages, settings, globalFields] = await Promise.all([
     getCurrentUser(),
     getMenuByName("header"),
-    getMenuByName("footer"),
     listManagedPages(),
     getSystemSettings(),
+    getGlobalFields(),
   ]);
   const pagePathMap = new Map(managedPages.map((page) => [page.slug, getManagedPagePath(page)]));
   const dashboardHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
   const settingsHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.CONFIG : ROUTES.CUSTOMER.SETTINGS;
   const headerLinks = mapMenuLinks(headerMenu?.items, pagePathMap);
-  const footerLinks = mapMenuLinks(footerMenu?.items, pagePathMap);
   const headerTree = buildNavTree(headerLinks);
-  const footerTree = buildNavTree(footerLinks);
 
   return (
     <div className="min-h-full w-full">
@@ -90,10 +89,7 @@ export default async function GuestLayout({
         {children}
       </main>
       <GuestFooter
-        user={user ? { role: user.role } : null}
-        footerTree={footerTree}
-        dashboardHref={dashboardHref}
-        settingsHref={settingsHref}
+        globalFields={globalFields}
       />
     </div>
   );

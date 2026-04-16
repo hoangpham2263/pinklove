@@ -49,8 +49,10 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
   const bannerShortDescription = fields.bannerShortDescription || page.excerpt;
   const bannerDescription = fields.bannerDescription || fields.heroDescription;
   const aboutImage = await resolveMediaUrl(fields.aboutImage);
-  const aboutTexts = [fields.aboutText1, fields.aboutText2, fields.aboutText3].filter(
-    (item): item is string => Boolean(item?.trim())
+  const hasAboutTexts = Boolean(
+    fields.aboutText1?.trim() ||
+    fields.aboutText2?.trim() ||
+    fields.aboutText3?.trim()
   );
   const aboutItems = (Array.isArray(fields.aboutItems) ? fields.aboutItems : []).filter(
     (item) => item.label?.trim() && item.content?.trim()
@@ -59,7 +61,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     fields.aboutTitle?.trim() ||
     fields.aboutDescription?.trim() ||
     aboutImage ||
-    aboutTexts.length ||
+    hasAboutTexts ||
     aboutItems.length
   );
   const scrollDots = [
@@ -71,11 +73,11 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
   return (
     <div>
-      <section id="home-hero" className="aspect-[1920/900] scroll-mt-24 bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] overflow-hidden">
+      <section id="home-hero" className="h-screen bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="pl-20 relative grid grid-cols-12 gap-5 lg:gap-10">
             <div className="col-start-12 lg:col-span-6 flex flex-col justify-center space-y-5">
-              <h1 className="bg-[linear-gradient(90deg,#000_0%,#FF61AF_50.09%,#000_100%)] bg-clip-text text-transparent text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold">{bannerTitle}</h1>
+              <h1 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold bg-[linear-gradient(90deg,#000_0%,#FF61AF_50.09%,#000_100%)] bg-clip-text text-transparent">{bannerTitle}</h1>
               {bannerShortDescription && (<p className="text-sm md:text-base lg:text-lg font-semibold">{bannerShortDescription}</p>)}
               {bannerDescription ? (<p className="text-sm md:text-base lg:text-lg">{bannerDescription}</p>) : null}
               <div className="mt-5 lg:mt-7.5">
@@ -137,58 +139,51 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      {hasAboutContent ? (
-        <section id="home-about" className="scroll-mt-24 bg-white pt-10 lg:pt-15 2xl:pt-20">
-          <div className="container mx-auto px-4">
-            <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
-              <div className="space-y-6 lg:col-span-6">
-                {fields.aboutTitle ? (
-                  <h2 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl">
-                    {fields.aboutTitle}
-                  </h2>
-                ) : null}
-                {fields.aboutDescription ? (
-                  <div
-                    className={RICH_TEXT_CONTENT_CLASSNAME}
-                    dangerouslySetInnerHTML={createRichTextMarkup(fields.aboutDescription)}
-                  />
-                ) : null}
-                <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gradient-to-br from-[#FFD1F7] to-[#F9F1FF]">
-                  {aboutImage ? (
-                    <Image src={aboutImage} alt={fields.aboutTitle || "About us"} fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="flex flex-col justify-center space-y-8 lg:col-span-6">
-                {aboutTexts.length ? (
-                  <div className="space-y-4">
-                    {aboutTexts.map((text, index) => (
-                      <p key={index} className="text-sm leading-7 text-stone-700 md:text-base lg:text-lg">
-                        {text}
-                      </p>
-                    ))}
-                  </div>
-                ) : null}
-
-                {aboutItems.length ? (
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {aboutItems.map((item) => (
-                      <div key={`${item.label}-${item.content}`} className="border-l-2 border-[#FF6FF5] pl-5">
-                        <h3 className="text-sm font-semibold uppercase text-stone-950 md:text-base">{item.label}</h3>
-                        <p className="mt-2 text-sm leading-7 text-stone-600 md:text-base">{item.content}</p>
-                      </div>
-                    ))}
-                  </div>
+      <section id="home-about" className="py-10 lg:py-15 2xl:py-20 bg-gradient-to-b from-[#FF6FF5] to-[#3A5172] ">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-12 gap-10 lg:gap-15 2xl:gap-20">
+            <div className="col-span-12 lg:col-span-6 space-y-5 lg:space-y-7.5">
+              {fields.aboutTitle ? (<h2 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold bg-[linear-gradient(90deg,#ADD3C1_0%,#FFFFFF_50%,#ADD3C1_100%)] bg-no-repeat bg-clip-text text-transparent">{fields.aboutTitle}</h2>) : null}
+              {fields.aboutDescription ? (<div className={`${RICH_TEXT_CONTENT_CLASSNAME} text-white`} dangerouslySetInnerHTML={createRichTextMarkup(fields.aboutDescription)} />) : null}
+              <div className="overflow-hidden rounded-xl max-w-lg">
+                {aboutImage ? (
+                  <Image src={aboutImage} alt={fields.aboutTitle || "About us"} fill className="!relative object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
                 ) : null}
               </div>
             </div>
+
+            <div className="col-span-12 lg:col-span-6 flex flex-col justify-center space-y-5 lg:space-y-7.5">
+              {hasAboutTexts ? (
+                <div className="space-y-7.5">
+                  {fields.aboutText1?.trim() ? (
+                    <p className="text-sm md:text-base lg:text-lg text-white">{fields.aboutText1}</p>
+                  ) : null}
+                  {fields.aboutText2?.trim() ? (
+                    <p className="text-sm md:text-base lg:text-lg text-white">{fields.aboutText2}</p>
+                  ) : null}
+                  {fields.aboutText3?.trim() ? (
+                    <p className="text-sm md:text-base lg:text-lg text-white">{fields.aboutText3}</p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {aboutItems.length ? (
+                <div className="space-y-5 lg:space-y-7.5">
+                  {aboutItems.map((item) => (
+                    <div key={`${item.label}-${item.content}`} className="flex items-center gap-x-5 px-5 lg:px-7.5 py-5 lg:py-7.5 bg-gradient-to-r from-[#111111] to-[#111111]/35 rounded-full">
+                      <h3 className="text-base md:text-lg lg:text-xl font-semibold uppercase text-guest-primary">{item.label}</h3>
+                      <p className="text-sm md:text-base text-white">{item.content}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
       {page.body ? (
-        <section id="home-body" className="scroll-mt-24 pt-10 lg:pt-15 2 xl:pt-20">
+        <section id="home-body" className="pt-10 lg:pt-15 2 xl:pt-20">
           <div className="container mx-auto px-4">
             <div
               className={`mx-auto max-w-5xl ${RICH_TEXT_CONTENT_CLASSNAME}`}
@@ -198,23 +193,23 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         </section>
       ) : null}
 
-      <section id="home-services" className="scroll-mt-24 bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
+      <section id="home-services" className="bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4 pb-16">
           <div className="mb-12 text-center">
-            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
+            <h2 className="text-xl font-semibold sm:text-2xl lg:text-3xl 2 xl:text-4xl">
               {fields.servicesTitle || "Our Services"}
             </h2>
             {fields.servicesDescription ? (
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-stone-600 md:text-base lg:text-lg">
+              <p className="mx-auto mt-4 max-w-2xl text-sm md:text-base lg:text-lg">
                 {fields.servicesDescription}
               </p>
             ) : null}
           </div>
-          <div id="home-service-items" className="grid scroll-mt-24 gap-8 md:grid-cols-3">
+          <div id="home-service-items" className="grid gap-8 md:grid-cols-3">
             {resolvedServiceItems.map((feature) => (
               <div key={feature.title} className="rounded-xl border border-stone-200 bg-white p-8 lg:rounded-2xl">
-                <h3 className="mb-3 text-xl font-semibold text-stone-950">{feature.title}</h3>
-                <p className="text-sm leading-7 text-stone-600 md:text-base lg:text-lg">{feature.description}</p>
+                <h3 className="mb-3 text-xl font-semibold">{feature.title}</h3>
+                <p className="text-sm md:text-base lg:text-lg text-stone-600">{feature.description}</p>
               </div>
             ))}
           </div>
