@@ -112,6 +112,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
     setUploadState("uploading");
     setErrorMessage(null);
+
     try {
       for (const file of files) {
         const formData = new FormData();
@@ -147,7 +148,6 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
   });
 
   async function handleXóa(id: string) {
-    if (!confirm("Bạn có chắc chắn muốn xóa ảnh này không?")) return;
     try {
       const response = await fetch(`/api/media?id=${id}`, { method: "DELETE" });
       if (!response.ok) {
@@ -168,7 +168,6 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
   async function handleBulkDelete() {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} media đã chọn không?`)) return;
 
     try {
       for (const id of selectedIds) {

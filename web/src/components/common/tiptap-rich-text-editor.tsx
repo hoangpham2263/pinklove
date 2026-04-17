@@ -259,30 +259,38 @@ export function TiptapRichTextEditor({
   };
 
   const handleMediaUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) {
       return;
     }
 
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const uploadedItems: MediaAsset[] = [];
 
-      const response = await fetch("/api/media", {
-        method: "POST",
-        body: formData,
-      });
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      if (!response.ok) {
-        return;
+        const response = await fetch("/api/media", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = (await response.json()) as { item?: MediaAsset };
+        if (data.item) {
+          uploadedItems.push(data.item);
+        }
       }
 
-      const data = (await response.json()) as { item?: MediaAsset };
-      if (data.item?.url) {
-        insertImage(data.item.url, data.item.originalName);
-        setItems((current) => [data.item as MediaAsset, ...current]);
+      if (uploadedItems.length > 0) {
+        insertImage(uploadedItems[0].url, uploadedItems[0].originalName);
+        setItems((current) => [...uploadedItems, ...current]);
       }
     } finally {
       event.target.value = "";
@@ -381,7 +389,7 @@ export function TiptapRichTextEditor({
                     />
                     <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-muted">
                       {uploading ? "Uploading..." : "Upload"}
-                      <input type="file" className="hidden" onChange={handleMediaUpload} />
+                      <input type="file" className="hidden" multiple onChange={handleMediaUpload} />
                     </label>
                   </div>
 

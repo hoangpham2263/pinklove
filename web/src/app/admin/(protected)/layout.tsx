@@ -48,21 +48,14 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen md:grid md:grid-cols-12">
       <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
-        <div className="mb-6 shrink-0 flex items-center gap-3 px-3">
-          {settings.branding.brandLogo ? (
-            <Image
-              src={settings.branding.brandLogo}
-              alt={settings.branding.siteName || "PinkLove"}
-              width={120}
-              height={40}
-              className="h-10 w-auto max-w-[120px] object-contain"
-            />
-          ) : (
-            <div className="h-6 w-6 rounded-bg bg-primary" />
-          )}
-          <div className="min-w-0">
-            <h2 className="truncate text-lg font-bold tracking-tight">{settings.branding.siteName || "PinkLove"}</h2>
-          </div>
+        <div className="mb-6 shrink-0 px-3">
+          <Image
+            src={settings.branding.brandLogo}
+            alt="PinkLove"
+            width={120}
+            height={40}
+            className="h-10 w-auto max-w-[120px] object-contain"
+          />
         </div>
 
         <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">

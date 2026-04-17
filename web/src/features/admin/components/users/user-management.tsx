@@ -40,12 +40,14 @@ import { AccountUser, AuthUser } from "@/lib/auth";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
+import { VendorPortalCopyButton } from "@/features/admin/components/vendors/vendor-portal-copy-button";
 
 interface UserManagementProps {
   initialUsers: AccountUser[];
   actor: AuthUser;
   returnTo?: string;
   defaultRoleFilter?: UserRole | "";
+  showVendorWorkspaceColumn?: boolean;
 }
 
 export function UserManagement({
@@ -53,6 +55,7 @@ export function UserManagement({
   actor,
   returnTo,
   defaultRoleFilter = "",
+  showVendorWorkspaceColumn = false,
 }: UserManagementProps) {
   const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -140,6 +143,43 @@ export function UserManagement({
           </Badge>
         ),
       },
+      ...(showVendorWorkspaceColumn
+        ? [{
+            id: "vendorWorkspace",
+            enableSorting: false,
+            enableColumnFilter: false,
+            header: () => <span>Workspace</span>,
+            cell: ({ row }: { row: { original: AccountUser } }) => {
+              const user = row.original;
+              const vendorPortalSlug = user.vendorPortalSlug || "";
+
+              if (!vendorPortalSlug) {
+                return <span className="text-sm text-muted-foreground">Chưa có workspace</span>;
+              }
+
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  <VendorPortalCopyButton
+                    label="Xem thông tin"
+                    path={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}
+                    username={user.username}
+                    password="12313"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</Link>}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href={ROUTES.ADMIN.VENDOR(user.id)}>Quản lý đơn riêng</Link>}
+                  />
+                </div>
+              );
+            },
+          } satisfies ColumnDef<AccountUser>]
+        : []),
       {
         id: "actions",
         enableSorting: false,
@@ -201,7 +241,7 @@ export function UserManagement({
         },
       },
     ],
-    [actor.id, returnTo, router]
+    [actor.id, returnTo, router, showVendorWorkspaceColumn]
   );
 
   const table = useReactTable({

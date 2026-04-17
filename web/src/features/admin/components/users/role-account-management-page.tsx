@@ -17,6 +17,8 @@ type RoleAccountManagementPageProps = {
   createHref: string;
   listHref: string;
   createLabel: string;
+  showInlineCreateForm?: boolean;
+  showVendorWorkspaceColumn?: boolean;
   children?: React.ReactNode;
 };
 
@@ -30,6 +32,8 @@ export function RoleAccountManagementPage({
   createHref,
   listHref,
   createLabel,
+  showInlineCreateForm = true,
+  showVendorWorkspaceColumn = false,
   children,
 }: RoleAccountManagementPageProps) {
   return (
@@ -79,20 +83,23 @@ export function RoleAccountManagementPage({
 
       {children}
 
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>{createLabel}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <QuickCreateUserForm defaultRole={role} returnTo={listHref} />
-        </CardContent>
-      </Card>
+      {showInlineCreateForm ? (
+        <Card className="rounded-lg">
+          <CardHeader>
+            <CardTitle>{createLabel}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuickCreateUserForm defaultRole={role} returnTo={listHref} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <UserManagement
         initialUsers={users}
         actor={actor}
         returnTo={listHref}
         defaultRoleFilter={role}
+        showVendorWorkspaceColumn={showVendorWorkspaceColumn}
       />
     </section>
   );

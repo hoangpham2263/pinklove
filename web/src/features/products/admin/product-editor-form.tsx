@@ -200,18 +200,11 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
               <h3 className="font-semibold">Dữ liệu mặc định khi tạo site</h3>
               <FieldsEditor
                 fields={templateFields}
-                values={{
-                  ...siteDefaults,
-                  gallery: Array.isArray(siteDefaults.gallery)
-                    ? (siteDefaults.gallery as string[]).join("\n")
-                    : siteDefaults.gallery,
-                }}
+                values={siteDefaults}
                 onChange={(fieldName, value) => {
                   setSiteDefaults((prev) => ({
                     ...prev,
-                    [fieldName]: fieldName === "gallery"
-                      ? String(value).split("\n").map((item) => item.trim()).filter(Boolean)
-                      : value,
+                    [fieldName]: value,
                   }));
                 }}
               />

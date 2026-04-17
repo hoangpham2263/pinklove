@@ -141,14 +141,14 @@ export function AdminHeaderMenu() {
       <Button
         variant="ghost"
         size="icon-sm"
-        className="rounded-full"
+        className="rounded-full md:hidden"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
       >
         <MenuIcon className="h-4 w-4" />
       </Button>
 
-      <SheetContent side="left" className="w-[min(22rem,calc(100vw-2rem))] rounded-r-2xl p-0">
+      <SheetContent side="left" className="w-[min(22rem,calc(100vw-2rem))] rounded-r-2xl p-0 md:hidden">
         <SheetHeader className="border-b px-4 py-4">
           <SheetTitle className="text-base">Menu</SheetTitle>
         </SheetHeader>

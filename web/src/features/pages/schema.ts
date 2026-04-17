@@ -8,6 +8,7 @@ type BaseFieldSchema = {
 export type TextFieldSchema = BaseFieldSchema & {
   name: string;
   type: "text" | "textarea" | "media" | "wysiwyg";
+  multiple?: boolean;
 };
 
 export type SectionFieldSchema = BaseFieldSchema & {

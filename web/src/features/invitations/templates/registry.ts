@@ -16,7 +16,7 @@ const INVITATION_TEMPLATE_BASE_FIELDS: FieldSchema[] = [
   { name: "heroSubtitle", label: "Lời mở đầu", type: "textarea" },
   { name: "eventDate", label: "Ngày cưới", type: "text" },
   { name: "venue", label: "Địa điểm", type: "text" },
-  { name: "gallery", label: "Gallery URLs", type: "textarea" },
+  { name: "gallery", label: "Gallery Images", type: "media", multiple: true },
 ];
 
 const INVITATION_TEMPLATE_BASE_DEFAULTS = {

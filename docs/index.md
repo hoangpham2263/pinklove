@@ -56,6 +56,8 @@ Use this file as the entrypoint for project documentation.
 - Use `sonner` for toast notifications across the project.
 - Use the shared mutation flow built around `web/src/lib/client-mutation.ts` and `web/src/lib/action-response.ts`.
 - Use the shared realtime core in `web/src/features/realtime/*` for SSE client/server behavior instead of feature-level copy-paste loops.
+- Use shared `FieldsEditor` media fields for image selection; when a field stores a media gallery, model it as `type: "media"` with `multiple: true` instead of raw textarea URL input.
+- Media Library upload surfaces should allow batch uploads into the shared library even when the consuming field stores only one selected asset.
 - For admin/vendor operational screens, prefer `toast + partial JSON refresh` over redirect-driven saves or full-route reloads.
 - Use `web/src/lib/page-paths.ts` as the source of truth for managed-page public paths.
 - Use `web/src/lib/public-paths.ts` as the source of truth for blog, product, builder, and invitation public paths.

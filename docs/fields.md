@@ -19,6 +19,8 @@ Use this file for project-wide rules around field schema, field editors, and ric
 ## Editor Rules
 
 - Use the shared `FieldsEditor` component for page fields, global fields, product fields, and other custom-field editors.
+- Media fields should use `type: "media"`, and gallery-style fields should set `multiple: true` so the shared selector stores arrays instead of newline-delimited URLs.
+- Shared Media Library upload UI should accept multiple files even for single-value media fields; only the stored selection count should differ.
 - Top-level field groups render as tabs by default.
 - Within the active tab, `section` and `repeater` content render as normal bordered blocks without nested accordion behavior.
 - Admin field UI should stay on default project component styling and only customize structural layout where needed.

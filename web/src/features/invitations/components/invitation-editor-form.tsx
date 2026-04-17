@@ -22,10 +22,6 @@ type InvitationEditorFormProps = {
 export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormProps) {
   const router = useRouter();
   const data = site.customData;
-  const fieldValues: Record<string, unknown> = {
-    ...data,
-    gallery: Array.isArray(data.gallery) ? (data.gallery as string[]).join("\n") : (data.gallery ?? ""),
-  };
   const templateFields = getInvitationTemplateFields(site.templateKey);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -62,7 +58,7 @@ export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormP
             </div>
           </div>
 
-          <FieldsEditor fields={templateFields} values={fieldValues} />
+          <FieldsEditor fields={templateFields} values={data} />
         </CardContent>
       </Card>
 

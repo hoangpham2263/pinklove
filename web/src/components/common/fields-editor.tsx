@@ -224,6 +224,8 @@ function renderLeafField(
     compact?: boolean;
   }
 ) {
+  const fieldValue = values[field.name];
+
   return (
     <div
       key={field.name}
@@ -236,14 +238,14 @@ function renderLeafField(
       {field.type === "text" && (
         onChange ? (
           <Input
-            value={String(values[field.name] ?? "")}
+            value={String(fieldValue ?? "")}
             onChange={(e) => onChange(field.name, e.target.value)}
             placeholder={field.label}
           />
         ) : (
           <Input
             name={field.name}
-            defaultValue={String(values[field.name] ?? "")}
+            defaultValue={String(fieldValue ?? "")}
             placeholder={field.label}
           />
         )
@@ -251,7 +253,7 @@ function renderLeafField(
       {field.type === "textarea" && (
         onChange ? (
           <textarea
-            value={String(values[field.name] ?? "")}
+            value={String(fieldValue ?? "")}
             onChange={(e) => onChange(field.name, e.target.value)}
             className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             placeholder={field.label}
@@ -259,31 +261,34 @@ function renderLeafField(
         ) : (
           <textarea
             name={field.name}
-            defaultValue={String(values[field.name] ?? "")}
+            defaultValue={String(fieldValue ?? "")}
             className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             placeholder={field.label}
           />
         )
       )}
       {field.type === "media" && (
-        onChange ? (
+        field.multiple ? (
           <MediaSelector
-            value={String(values[field.name] ?? "")}
-            onChange={(value) => onChange(field.name, value)}
+            name={onChange ? undefined : field.name}
+            value={normalizeMediaValues(fieldValue)}
+            onChange={(value) => onChange?.(field.name, value)}
             compact
+            multiple
           />
         ) : (
-          <Input
-            name={field.name}
-            defaultValue={String(values[field.name] ?? "")}
-            placeholder={field.label}
+          <MediaSelector
+            name={onChange ? undefined : field.name}
+            value={String(fieldValue ?? "")}
+            onChange={(value) => onChange?.(field.name, value)}
+            compact
           />
         )
       )}
       {field.type === "wysiwyg" && (
         <TiptapRichTextEditor
           name={field.name}
-          initialValue={String(values[field.name] ?? "")}
+          initialValue={String(fieldValue ?? "")}
           className="space-y-2"
           onChange={onChange ? (value) => onChange(field.name, value) : undefined}
         />
@@ -358,4 +363,16 @@ function getSchemaWidthClass(width: 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
     default:
       return "col-span-12";
   }
+}
+
+function normalizeMediaValues(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value];
+  }
+
+  return [];
 }

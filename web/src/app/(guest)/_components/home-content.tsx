@@ -193,7 +193,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         </section>
       ) : null}
 
-      <section id="home-services" className="bg-stone-100/70 pt-10 lg:pt-15 2 xl:pt-20">
+      <section id="home-services" className="pt-10 lg:pt-15 2 xl:pt-20">
         <div className="container mx-auto px-4 pb-16">
           <div className="mb-12 text-center">
             <h2 className="text-xl font-semibold sm:text-2xl lg:text-3xl 2 xl:text-4xl">

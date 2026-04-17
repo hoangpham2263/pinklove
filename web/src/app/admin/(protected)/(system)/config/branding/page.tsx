@@ -13,9 +13,6 @@ function canPreviewImage(value: string) {
 export default async function AdminBrandingSettingsPage() {
   await requireAdmin();
   const settings = await getSystemSettings();
-  const brandLogo = settings.branding.brandLogo || "Chưa cấu hình";
-  const favicon = settings.favicon.siteFavicon || "Chưa cấu hình";
-  const appleTouchIcon = settings.favicon.appleTouchIcon || "Chưa cấu hình";
   const hasBrandLogo = Boolean(settings.branding.brandLogo) && canPreviewImage(settings.branding.brandLogo);
   const hasFaviconPreview = Boolean(settings.favicon.siteFavicon) && canPreviewImage(settings.favicon.siteFavicon);
   const hasAppleTouchIconPreview =
@@ -48,8 +45,7 @@ export default async function AdminBrandingSettingsPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Brand Logo</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="break-all text-foreground">{brandLogo}</p>
+          <CardContent>
             {hasBrandLogo ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
                 <Image
@@ -60,15 +56,14 @@ export default async function AdminBrandingSettingsPage() {
                   className="max-h-full w-auto object-contain"
                 />
               </div>
-            ) : null}
+            ) : <p className="text-muted-foreground">Chưa cấu hình</p>}
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Browser Favicon</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="break-all text-foreground">{favicon}</p>
+          <CardContent>
             {hasFaviconPreview ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
                 <Image
@@ -79,15 +74,14 @@ export default async function AdminBrandingSettingsPage() {
                   className="max-h-full w-auto object-contain"
                 />
               </div>
-            ) : null}
+            ) : <p className="text-muted-foreground">Chưa cấu hình</p>}
           </CardContent>
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Apple Touch Icon</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="break-all text-foreground">{appleTouchIcon}</p>
+          <CardContent>
             {hasAppleTouchIconPreview ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
                 <Image
@@ -98,7 +92,7 @@ export default async function AdminBrandingSettingsPage() {
                   className="max-h-full w-auto object-contain"
                 />
               </div>
-            ) : null}
+            ) : <p className="text-muted-foreground">Chưa cấu hình</p>}
           </CardContent>
         </Card>
       </div>

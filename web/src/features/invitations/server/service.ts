@@ -289,19 +289,19 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
   return mapInvitationRow(result.rows[0]);
 }
 
-function parseGalleryInput(input: string) {
-  return input
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function normalizeTemplateFieldValue(name: string, value: FormDataEntryValue | null) {
-  if (name === "gallery") {
-    return parseGalleryInput(String(value ?? ""));
+function normalizeTemplateFieldValue(field: {
+  name: string;
+  type: "text" | "textarea" | "media" | "wysiwyg";
+  multiple?: boolean;
+}, formData: FormData) {
+  if (field.type === "media" && field.multiple) {
+    return formData
+      .getAll(field.name)
+      .map((entry) => String(entry).trim())
+      .filter(Boolean);
   }
 
-  return String(value ?? "");
+  return String(formData.get(field.name) ?? "");
 }
 
 export async function updateInvitationForUser(input: {
@@ -378,7 +378,7 @@ export function buildInvitationPayload(formData: FormData, templateKey: string) 
 
   for (const field of getInvitationTemplateFields(templateKey)) {
     if ("name" in field && field.type !== "repeater") {
-      payload[field.name] = normalizeTemplateFieldValue(field.name, formData.get(field.name));
+      payload[field.name] = normalizeTemplateFieldValue(field, formData);
     }
   }
 

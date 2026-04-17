@@ -34,6 +34,11 @@ export async function resolveMediaUrl(input: unknown): Promise<string | undefine
     return undefined;
   }
 
+  if (Array.isArray(input)) {
+    const [first] = input;
+    return resolveMediaUrl(first);
+  }
+
   if (typeof input === "string") {
     const value = input.trim();
     if (!value) {
