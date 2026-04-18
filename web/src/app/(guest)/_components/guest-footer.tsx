@@ -34,6 +34,10 @@ type FloatingBarItem = {
   url?: string;
 };
 
+type PinkCloudMessageItem = {
+  message?: string;
+};
+
 type GuestFooterGlobalFields = {
   footerBackgroundImage?: string;
   footerBrandImage?: string;
@@ -46,6 +50,7 @@ type GuestFooterGlobalFields = {
   footerPartnerLinks?: FooterRepeaterLink[];
   footerSocialLinks?: FooterSocialLink[];
   floatingBarItems?: FloatingBarItem[];
+  pinkCloudMessages?: PinkCloudMessageItem[];
 };
 
 type GuestFooterProps = {
@@ -92,6 +97,12 @@ async function normalizeFloatingBarItems(items: FloatingBarItem[] | undefined) {
         url: normalizeActionUrl(item.url!.trim()),
       }))
   );
+}
+
+function normalizePinkCloudMessages(items: PinkCloudMessageItem[] | undefined) {
+  return (Array.isArray(items) ? items : [])
+    .map((item) => item.message?.trim() || "")
+    .filter(Boolean);
 }
 
 function isExternalHref(href: string) {
@@ -167,6 +178,7 @@ export async function GuestFooter({
   const newsletterPlaceholder = globalFields.footerNewsletterPlaceholder?.trim();
   const copyright = globalFields.footerCopyright?.trim();
   const floatingLinks = await normalizeFloatingBarItems(globalFields.floatingBarItems);
+  const pinkCloudMessages = normalizePinkCloudMessages(globalFields.pinkCloudMessages);
 
   return (
     <>
@@ -303,7 +315,7 @@ export async function GuestFooter({
           );
         })}
         <ScrollToTopButton />
-        <GuestPinkCloud />
+        <GuestPinkCloud messages={pinkCloudMessages} />
       </div>
     </>
   );

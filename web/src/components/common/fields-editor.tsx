@@ -141,12 +141,23 @@ function renderField(
               <Button
                 type="button"
                 variant="outline"
-                onClick={() =>
-                  onChange(field.name, [
+                onClick={() => {
+                  const nextIndex = items.length;
+                  const nextItems = [
                     ...items,
                     Object.fromEntries(field.fields.map((child) => [child.name, ""])),
-                  ])
-                }
+                  ];
+
+                  onChange(field.name, nextItems);
+
+                  const firstFocusableChild = getFirstFocusableRepeaterChild(field.fields);
+                  if (!firstFocusableChild) {
+                    return;
+                  }
+
+                  const focusPath = `${field.name}.${nextIndex}.${firstFocusableChild.name}`;
+                  focusRepeaterField(focusPath);
+                }}
               >
                 {field.addLabel || "Thêm item"}
               </Button>
@@ -202,6 +213,7 @@ function renderField(
                       : undefined,
                     {
                       compact: true,
+                      fieldPath: `${field.name}.${itemIndex}.${child.name}`,
                     }
                   )
                 )}
@@ -222,6 +234,7 @@ function renderLeafField(
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
+    fieldPath?: string;
   }
 ) {
   const fieldValue = values[field.name];
@@ -229,6 +242,7 @@ function renderLeafField(
   return (
     <div
       key={field.name}
+      data-field-path={options?.fieldPath}
       className={cn("space-y-2", getLeafWidthClass(field, options))}
     >
       <label className="font-medium">{field.label}</label>
@@ -295,6 +309,25 @@ function renderLeafField(
       )}
     </div>
   );
+}
+
+function getFirstFocusableRepeaterChild(
+  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" }>[]
+) {
+  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media");
+}
+
+function focusRepeaterField(fieldPath: string) {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const container = document.querySelector<HTMLElement>(`[data-field-path="${fieldPath}"]`);
+      const focusTarget = container?.querySelector<HTMLElement>(
+        'input, textarea, button, [contenteditable="true"], [role="textbox"]'
+      );
+
+      focusTarget?.focus();
+    });
+  });
 }
 
 function getFieldTabKey(field?: FieldSchema, index = 0) {

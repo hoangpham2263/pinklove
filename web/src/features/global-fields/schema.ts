@@ -151,4 +151,21 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
       },
     ],
   },
+  {
+    type: "section",
+    label: "PinkCloud Settings",
+    description: "Thiết lập nội dung bubble message của PinkCloud.",
+    fields: [
+      {
+        name: "pinkCloudMessages",
+        type: "repeater",
+        label: "PinkCloud Messages",
+        description: "Danh sách câu thoại luân phiên hiển thị trong bubble của PinkCloud.",
+        addLabel: "Thêm message",
+        fields: [
+          { name: "message", label: "Message", type: "text", width: 12 },
+        ],
+      },
+    ],
+  },
 ];

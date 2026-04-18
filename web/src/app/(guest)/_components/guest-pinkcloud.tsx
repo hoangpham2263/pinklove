@@ -5,13 +5,9 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 
-const PINK_CLOUD_MESSAGES = [
-  "PinkCloud chào cậu.!",
-  "PinkCloud ở đây để hỗ trợ bạn nè.",
-  "Cần PinkCloud gợi ý mẫu thiệp hông nè.",
-  "PinkCloud có thể giúp cậu nhanh hơn đó.",
-  "Bấm vào PinkCloud nếu cậu cần hỗ trợ nho.",
-];
+type GuestPinkCloudProps = {
+  messages?: string[];
+};
 
 const pinkCloudStyles = `
   @keyframes pinkcloud-float {
@@ -420,7 +416,7 @@ function PinkCloudArt({ active = false, size = "sm" }: { active?: boolean; size?
   );
 }
 
-export function GuestPinkCloud() {
+export function GuestPinkCloud({ messages }: GuestPinkCloudProps) {
   const [isReady, setIsReady] = useState(false);
   const [isBubbleHidden, setIsBubbleHidden] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -428,6 +424,7 @@ export function GuestPinkCloud() {
   const [isDialogBirdActive, setIsDialogBirdActive] = useState(false);
   const [showBubbleMessage, setShowBubbleMessage] = useState(false);
   const [bubbleMessageIndex, setBubbleMessageIndex] = useState(0);
+  const bubbleMessages = Array.isArray(messages) ? messages.filter((message) => message.trim()) : [];
 
   useEffect(() => {
     const markReady = () => {
@@ -449,7 +446,7 @@ export function GuestPinkCloud() {
   }, []);
 
   useEffect(() => {
-    if (!isReady || isBubbleHidden) {
+    if (!isReady || isBubbleHidden || bubbleMessages.length === 0) {
       setShowBubbleMessage(false);
       setBubbleMessageIndex(0);
       return;
@@ -458,7 +455,7 @@ export function GuestPinkCloud() {
     const timer = window.setTimeout(() => {
       if (showBubbleMessage) {
         setShowBubbleMessage(false);
-        setBubbleMessageIndex((current) => (current + 1) % PINK_CLOUD_MESSAGES.length);
+        setBubbleMessageIndex((current) => (current + 1) % bubbleMessages.length);
         return;
       }
 
@@ -468,7 +465,7 @@ export function GuestPinkCloud() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [isReady, isBubbleHidden, showBubbleMessage]);
+  }, [bubbleMessages.length, isReady, isBubbleHidden, showBubbleMessage]);
 
   const activateDialogBird = () => setIsDialogBirdActive(true);
   const deactivateDialogBird = () => setIsDialogBirdActive(false);
@@ -493,7 +490,7 @@ export function GuestPinkCloud() {
     <div style={pinkCloudVars}>
       <style jsx global>{pinkCloudStyles}</style>
       <div className={`pinkcloud group relative transition-opacity duration-200 ${isReady ? "opacity-100" : "pointer-events-none opacity-0"}`}>
-        {!isBubbleHidden ? (
+        {!isBubbleHidden && bubbleMessages.length > 0 ? (
           <div className="pinkcloud-bubble absolute right-[calc(100%+14px)] top-1/2 w-45 max-w-[calc(100vw-110px)] rounded-[14px] border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white/98 shadow-[0_18px_44px_var(--pinkcloud-primary-shadow)]">
             <button
               type="button"
@@ -505,7 +502,7 @@ export function GuestPinkCloud() {
             </button>
             {showBubbleMessage ? (
               <p className="px-2.5 py-2.5 text-center text-sm font-normal text-[color:var(--pinkcloud-primary-deep)]">
-                {PINK_CLOUD_MESSAGES[bubbleMessageIndex]}
+                {bubbleMessages[bubbleMessageIndex]}
               </p>
             ) : (
               <div className="flex min-h-10 items-center justify-center gap-1.5 px-2.5 py-2.5" aria-label="PinkCloud đang soạn tin nhắn">
