@@ -219,9 +219,9 @@ async function main() {
         "/about",
         "/contact",
         "/templates",
-        "/templates/classic-garden",
+        "/templates/mau-thiep-cuoi-golden-aisle",
         "/builder",
-        "/builder/builder-starter",
+        "/builder/mau-thiep-cuoi-editorial-story",
         "/user/login",
         "/user/register",
         "/admin/login",
@@ -313,14 +313,14 @@ async function main() {
     let codedSiteId = "";
     await step("coded template site can be created, edited, and published", async () => {
       const create = await user.postForm("/api/user/invitations/create-from-product", {
-        productSlug: "classic-garden",
+        productSlug: "mau-thiep-cuoi-golden-aisle",
       });
       expectLocation(create.location, "/user/invitations/");
       codedSiteId = create.location.split("/").pop();
       assert(Boolean(codedSiteId), "Failed to resolve coded site id");
 
       const editor = await user.getText(`/user/invitations/${codedSiteId}`);
-      assert(editor.includes("Classic Garden"), "Coded site editor did not load expected product");
+      assert(editor.includes("Golden Aisle"), "Coded site editor did not load expected product");
 
       const update = await user.postForm("/api/user/invitations/update", {
         siteId: codedSiteId,
@@ -469,7 +469,7 @@ async function main() {
         "/admin/settings",
         "/admin/users",
         "/admin/products",
-        "/admin/products/classic-garden",
+        "/admin/products/mau-thiep-cuoi-golden-aisle",
         "/admin/pages",
         "/admin/pages/about-us",
         "/admin/menus",

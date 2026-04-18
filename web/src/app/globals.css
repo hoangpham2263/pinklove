@@ -315,6 +315,31 @@
   background: color-mix(in oklab, var(--foreground) 22%, var(--border));
 }
 
+.admin-tab-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 12%, var(--border)) transparent;
+  scrollbar-gutter: stable;
+}
+
+.admin-tab-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.admin-tab-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-tab-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--foreground) 12%, var(--border));
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+.admin-tab-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--foreground) 22%, var(--border));
+}
+
 [data-ui-density] [data-slot="card-content"],
 [data-ui-density] [data-slot="card-footer"] {
   padding-inline: calc(var(--ui-control-padding-x) + 6px) !important;

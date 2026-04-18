@@ -291,7 +291,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
 
 function normalizeTemplateFieldValue(field: {
   name: string;
-  type: "text" | "textarea" | "media" | "wysiwyg";
+  type: "text" | "textarea" | "media" | "wysiwyg" | "product-select";
   multiple?: boolean;
 }, formData: FormData) {
   if (field.type === "media" && field.multiple) {

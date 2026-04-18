@@ -1,11 +1,15 @@
 import Image from "next/image";
 import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
+import { listPublishedProducts } from "@/features/products/server/service";
+import { LoopProductCard } from "@/features/products/components/product-card";
 import type { ManagedPage } from "@/lib/managed-pages";
+import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { getPageFields } from "@/lib/page-fields";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
+import { getSystemSettings } from "@/lib/system-settings";
 
 export async function HomeContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
@@ -32,6 +36,32 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
       title?: string;
       description?: string;
     }>;
+    eventPlannerEyebrow?: string;
+    eventPlannerTitle?: string;
+    eventPlannerHighlight?: string;
+    eventPlannerSuffix?: string;
+    eventPlannerArrowLabel?: string;
+    eventPlannerSolutionTitle?: string;
+    eventPlannerSolutionDescription?: string;
+    eventPlannerHighlightText?: string;
+    eventPlannerCtaText?: string;
+    eventPlannerCtaLink?: string;
+    eventPlannerProblems?: Array<{
+      image?: string;
+      title?: string;
+      description?: string;
+    }>;
+    eventPlannerFeatures?: Array<{
+      title?: string;
+      description?: string;
+      accentLabel?: string;
+    }>;
+    invitationGalleryBadge?: string;
+    invitationGalleryTitle?: string;
+    invitationGalleryDescription?: string;
+    invitationGalleryCtaText?: string;
+    invitationGalleryCtaLink?: string;
+    invitationGalleryProductSlugs?: string[];
   }>(page);
 
   const serviceItems = (Array.isArray(fields.serviceItems) ? fields.serviceItems : []).filter(
@@ -58,12 +88,72 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
   const aboutItems = (Array.isArray(fields.aboutItems) ? fields.aboutItems : []).filter(
     (item) => item.label?.trim() && item.content?.trim()
   );
+  const eventPlannerProblems = (Array.isArray(fields.eventPlannerProblems) ? fields.eventPlannerProblems : []).filter(
+    (item) => item.title?.trim() && item.description?.trim()
+  );
+  const eventPlannerProblemCards = await Promise.all(
+    eventPlannerProblems.map(async (item) => ({
+      image: await resolveMediaUrl(item.image),
+      title: item.title?.trim() || "",
+      description: item.description?.trim() || "",
+    }))
+  );
+  const eventPlannerFeatures = (Array.isArray(fields.eventPlannerFeatures) ? fields.eventPlannerFeatures : []).filter(
+    (item) => item.title?.trim() && item.description?.trim()
+  );
+  const settings = await getSystemSettings();
+  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
+  const publishedProducts = await listPublishedProducts();
+  const invitationGalleryProductSlugs = Array.isArray(fields.invitationGalleryProductSlugs)
+    ? fields.invitationGalleryProductSlugs.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const publishedProductMap = new Map(publishedProducts.map((item) => [item.slug, item] as const));
+  const invitationGalleryItems = invitationGalleryProductSlugs
+    .map((slug) => publishedProductMap.get(slug))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item) => item.thumbnailUrl?.trim());
   const hasAboutContent = Boolean(
     fields.aboutTitle?.trim() ||
     fields.aboutDescription?.trim() ||
     aboutImage ||
     hasAboutTexts ||
     aboutItems.length
+  );
+  const eventPlannerEyebrow = fields.eventPlannerEyebrow?.trim();
+  const eventPlannerTitle = fields.eventPlannerTitle?.trim();
+  const eventPlannerHighlight = fields.eventPlannerHighlight?.trim();
+  const eventPlannerSuffix = fields.eventPlannerSuffix?.trim();
+  const eventPlannerArrowLabel = fields.eventPlannerArrowLabel?.trim();
+  const eventPlannerSolutionTitle = fields.eventPlannerSolutionTitle?.trim();
+  const eventPlannerSolutionDescription = fields.eventPlannerSolutionDescription?.trim();
+  const eventPlannerHighlightText = fields.eventPlannerHighlightText?.trim();
+  const eventPlannerCtaText = fields.eventPlannerCtaText?.trim();
+  const eventPlannerCtaLink = fields.eventPlannerCtaLink?.trim();
+  const eventPlannerTitleParts = eventPlannerSolutionTitle && eventPlannerHighlightText
+    ? eventPlannerSolutionTitle.split(eventPlannerHighlightText)
+    : [];
+  const invitationGalleryBadge = fields.invitationGalleryBadge?.trim();
+  const invitationGalleryTitle = fields.invitationGalleryTitle?.trim();
+  const invitationGalleryDescription = fields.invitationGalleryDescription?.trim();
+  const invitationGalleryCtaText = fields.invitationGalleryCtaText?.trim();
+  const invitationGalleryCtaLink = fields.invitationGalleryCtaLink?.trim();
+  const hasEventPlannerSection = Boolean(
+    eventPlannerEyebrow ||
+    eventPlannerTitle ||
+    eventPlannerHighlight ||
+    eventPlannerSuffix ||
+    eventPlannerArrowLabel ||
+    eventPlannerSolutionTitle ||
+    eventPlannerSolutionDescription ||
+    eventPlannerProblemCards.length ||
+    eventPlannerFeatures.length
+  );
+  const hasInvitationGallerySection = Boolean(
+    invitationGalleryBadge ||
+    invitationGalleryTitle ||
+    invitationGalleryDescription ||
+    invitationGalleryCtaText ||
+    invitationGalleryItems.length
   );
   const scrollDots = [
     { id: "hero", href: "#home-hero", label: "Đi đến banner", className: "size-4 bg-[#FF6FF5]" },
@@ -216,6 +306,223 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </div>
         </div>
       </section>
+
+      {hasEventPlannerSection ? (
+        <section id="home-event-planner" className="overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,171,196,0.22),transparent_32%),linear-gradient(180deg,#fff7f8_0%,#ffffff_48%,#fff8f4_100%)] py-14 lg:py-20">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-6xl space-y-10 lg:space-y-14">
+              {(eventPlannerEyebrow || eventPlannerTitle || eventPlannerHighlight || eventPlannerSuffix) ? (
+                <div className="text-center">
+                  <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-2 text-[#231f27]">
+                    {eventPlannerEyebrow ? (
+                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
+                        {eventPlannerEyebrow}
+                      </span>
+                    ) : null}
+                    {eventPlannerArrowLabel ? (
+                      <span className="inline-flex items-center gap-2 px-1 text-[#dc5561]">
+                        <span className="text-sm font-medium italic sm:text-base">{eventPlannerArrowLabel}</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                          viewBox="0 0 88 40"
+                          className="h-7 w-16 sm:h-8 sm:w-20"
+                          fill="none"
+                        >
+                          <path d="M3 13c14-13 43-13 53 8 4 8 1 13-4 13-8 0-8-13 4-13 8 0 18 5 26 15" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" />
+                          <path d="m74 29 8 7-2-10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
+                        </svg>
+                      </span>
+                    ) : null}
+                    {eventPlannerTitle ? (
+                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
+                        {eventPlannerTitle}
+                      </span>
+                    ) : null}
+                    {eventPlannerHighlight ? (
+                      <span className="font-['Brush_Script_MT','Segoe_Script',cursive] text-[4rem] leading-none text-[#dc5561] sm:text-[5.5rem] lg:text-[7rem]">
+                        {eventPlannerHighlight}
+                      </span>
+                    ) : null}
+                    {eventPlannerSuffix ? (
+                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
+                        {eventPlannerSuffix}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {eventPlannerProblemCards.length ? (
+                <div className="grid gap-5 md:grid-cols-3">
+                  {eventPlannerProblemCards.map((item) => (
+                    <article
+                      key={`${item.title}-${item.description}`}
+                      className="rounded-[28px] border border-[#f7e6e8] bg-white px-6 py-8 text-center shadow-[0_18px_40px_rgba(219,110,126,0.12)]"
+                    >
+                      <div className="mx-auto mb-5 flex h-24 items-center justify-center">
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            width={112}
+                            height={112}
+                            className="h-auto max-h-24 w-auto object-contain"
+                          />
+                        ) : (
+                          <div className="flex size-20 items-center justify-center rounded-full bg-[#fff4f2] text-4xl text-[#d9a79e]">
+                            ?
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-extrabold text-[#231f27] sm:text-xl">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-7 text-[#63606d] sm:text-base">{item.description}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : null}
+
+              {(eventPlannerSolutionTitle || eventPlannerSolutionDescription || eventPlannerCtaText) ? (
+                <div className="mx-auto max-w-5xl text-center">
+                  {eventPlannerSolutionTitle ? (
+                    <h2 className="text-3xl font-black uppercase leading-tight tracking-tight text-[#231f27] sm:text-4xl lg:text-[3.25rem]">
+                      {eventPlannerTitleParts.length > 1 ? (
+                        eventPlannerTitleParts.map((part, index) => (
+                          <span key={`${part}-${index}`}>
+                            {part}
+                            {index < eventPlannerTitleParts.length - 1 ? (
+                              <span className="bg-[linear-gradient(90deg,#d64f5b_0%,#f6a6b1_100%)] bg-clip-text text-transparent">
+                                {eventPlannerHighlightText}
+                              </span>
+                            ) : null}
+                          </span>
+                        ))
+                      ) : (
+                        eventPlannerSolutionTitle
+                      )}
+                    </h2>
+                  ) : null}
+                  {eventPlannerSolutionDescription ? (
+                    <p className="mx-auto mt-5 max-w-4xl text-base leading-8 text-[#3d3744] sm:text-lg">
+                      {eventPlannerSolutionDescription}
+                    </p>
+                  ) : null}
+                  {eventPlannerCtaText ? (
+                    <div className="mt-8">
+                      <GuestLinkButton
+                        href={eventPlannerCtaLink || ROUTES.ABOUT}
+                        className="relative inline-flex min-w-[220px] items-center justify-center rounded-full border-0 bg-[linear-gradient(90deg,#ef6c76_0%,#d94d5d_100%)] px-8 py-4 text-lg font-bold text-white shadow-[0_16px_34px_rgba(217,77,93,0.32)] hover:opacity-95"
+                      >
+                        <span className="absolute -left-7 top-1/2 hidden -translate-y-1/2 text-3xl text-[#ffd46a] sm:block">✦</span>
+                        <span className="absolute -left-2 top-0 hidden text-xl text-[#ffe093] sm:block">✦</span>
+                        <span>{eventPlannerCtaText}</span>
+                        <span className="ml-3 text-xl">◔</span>
+                        <span className="absolute -right-7 top-1/2 hidden -translate-y-1/2 text-3xl text-[#ffd46a] sm:block">✦</span>
+                        <span className="absolute -right-2 bottom-0 hidden text-xl text-[#ffe093] sm:block">✦</span>
+                      </GuestLinkButton>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {eventPlannerFeatures.length ? (
+                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                  {eventPlannerFeatures.map((item, index) => {
+                    const accent = item.accentLabel?.trim() || ["◫", "●●", "✦", "⤴"][index % 4];
+
+                    return (
+                      <article
+                        key={`${item.title}-${index}`}
+                        className="relative min-h-[320px] overflow-hidden rounded-[28px] border border-[#f2e8ea] bg-white p-7 shadow-[0_18px_40px_rgba(45,35,66,0.08)]"
+                      >
+                        <div className="max-w-[15rem]">
+                          <h3 className="text-2xl font-black leading-tight tracking-tight text-[#231f27]">
+                            {item.title}
+                          </h3>
+                          <p className="mt-5 text-base leading-8 text-[#63606d]">
+                            {item.description}
+                          </p>
+                        </div>
+                        <div className="pointer-events-none absolute bottom-5 right-5 select-none text-6xl font-black text-[#e6d6ff]/95">
+                          {accent}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {hasInvitationGallerySection ? (
+        <section id="home-invitation-gallery" className="overflow-hidden bg-white py-14 lg:py-20">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-[92rem]">
+              <div className="mx-auto max-w-5xl text-left">
+                {invitationGalleryBadge ? (
+                  <div className="mb-4 inline-flex size-11 items-center justify-center rounded-full bg-[#ffd8dd] text-xl text-[#d55363] shadow-[0_10px_24px_rgba(213,83,99,0.12)]">
+                    {invitationGalleryBadge}
+                  </div>
+                ) : null}
+                {invitationGalleryTitle ? (
+                  <h2 className="max-w-4xl text-3xl font-black uppercase leading-[1.08] tracking-tight text-[#231f27] sm:text-4xl lg:text-[4rem]">
+                    {invitationGalleryTitle}
+                  </h2>
+                ) : null}
+                {invitationGalleryDescription ? (
+                  <p className="mt-4 max-w-4xl text-base leading-8 text-[#6a6876] sm:text-xl">
+                    {invitationGalleryDescription}
+                  </p>
+                ) : null}
+              </div>
+
+              {invitationGalleryItems.length ? (
+                <div className="relative mt-10 lg:mt-14">
+                  <div className="pointer-events-none absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
+                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
+                      ‹
+                    </div>
+                  </div>
+                  <div className="pointer-events-none absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
+                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
+                      ›
+                    </div>
+                  </div>
+
+                  <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex min-w-max gap-4 lg:gap-5">
+                      {invitationGalleryItems.map((product) => (
+                        <LoopProductCard
+                          key={product.id}
+                          product={product}
+                          href={product.productType === "builder_template"
+                            ? getBuilderProductPath(product, permalinkConfig)
+                            : getTemplateProductPath(product, permalinkConfig)}
+                          variant="gallery"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {invitationGalleryCtaText ? (
+                <div className="mt-10 flex justify-center">
+                  <GuestLinkButton
+                    href={invitationGalleryCtaLink || ROUTES.TEMPLATES}
+                    className="inline-flex items-center justify-center gap-3 rounded-full border-0 bg-[linear-gradient(90deg,#e45b66_0%,#d94d5d_100%)] px-9 py-4 text-lg font-bold text-white shadow-[0_16px_34px_rgba(217,77,93,0.28)] hover:opacity-95"
+                  >
+                    <span>{invitationGalleryCtaText}</span>
+                    <span aria-hidden="true" className="text-lg">➤</span>
+                  </GuestLinkButton>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <GlobalFaqSection className="pb-16" containerClassName="container mx-auto px-4" />
     </div>

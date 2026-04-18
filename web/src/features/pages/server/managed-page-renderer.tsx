@@ -16,7 +16,7 @@ import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcru
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
-import { ProductCard } from "@/features/products/components/product-card";
+import { LoopProductCard } from "@/features/products/components/product-card";
 import { listPublishedProducts, listPublishedProductsByType } from "@/features/products/server/service";
 import {
   buildManagedPageMetadata,
@@ -213,7 +213,7 @@ export async function renderManagedPage(page: ManagedPage) {
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {codedTemplates.map((product) => (
-                  <ProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
+                  <LoopProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
                 ))}
               </div>
             </section>
@@ -229,7 +229,7 @@ export async function renderManagedPage(page: ManagedPage) {
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {builderTemplates.map((product) => (
-                  <ProductCard
+                  <LoopProductCard
                     key={product.id}
                     product={product}
                     href={getBuilderProductPath(product, permalinkConfig)}
@@ -264,7 +264,7 @@ export async function renderManagedPage(page: ManagedPage) {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {builderProducts.map((product) => (
-              <ProductCard
+              <LoopProductCard
                 key={product.id}
                 product={product}
                 href={getBuilderProductPath(product, permalinkConfig)}

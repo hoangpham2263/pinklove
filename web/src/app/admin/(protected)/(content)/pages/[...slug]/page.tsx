@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
+import { listAllProducts } from "@/features/products/server/service";
 import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
@@ -32,6 +33,12 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
   }
 
   const previewHref = getPreviewHref(getManagedPagePath(page));
+  const products = await listAllProducts();
+  const productOptions = products.map((product) => ({
+    value: product.slug,
+    label: product.name,
+    description: `${product.productType === "builder_template" ? "Builder" : "Template"} • ${product.status}`,
+  }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -57,7 +64,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
           </Link>
         </div>
       </div>
-      <PageEditorForm page={page} />
+      <PageEditorForm page={page} productOptions={productOptions} />
     </section>
   );
 }

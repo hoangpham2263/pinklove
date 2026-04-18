@@ -71,7 +71,7 @@ export function QuickCreateProductForm({ categories = [] }: { categories?: Produ
                     setSlug(slugify(next));
                   }
                 }}
-                placeholder="Ví dụ: Romantic Bloom"
+                placeholder="Ví dụ: Mẫu thiệp cưới Aurora Veil"
                 required
               />
             </div>
@@ -88,7 +88,7 @@ export function QuickCreateProductForm({ categories = [] }: { categories?: Produ
                   setSlug(e.target.value);
                   setIsSlugEdited(true);
                 }}
-                placeholder="romantic-bloom"
+                placeholder="mau-thiep-cuoi-aurora-veil"
                 required
               />
             </div>

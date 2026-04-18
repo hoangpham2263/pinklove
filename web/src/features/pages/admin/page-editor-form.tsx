@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { FieldsEditor } from "@/components/common/fields-editor";
+import { FieldsEditor, type FieldsEditorProductOption } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,10 @@ type PageEditorFormProps = {
   page: ManagedPage;
   isSaved?: boolean;
   hasError?: boolean;
+  productOptions?: FieldsEditorProductOption[];
 };
 
-export function PageEditorForm({ page }: PageEditorFormProps) {
+export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProps) {
   const router = useRouter();
   const [ogImage, setOgImage] = useState(page.ogImage || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -214,6 +215,7 @@ export function PageEditorForm({ page }: PageEditorFormProps) {
                 fields={templateFields}
                 values={customFields}
                 onChange={handleCustomFieldChange}
+                productOptions={productOptions}
               />
             </CardContent>
           </Card>

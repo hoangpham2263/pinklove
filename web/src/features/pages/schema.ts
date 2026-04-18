@@ -11,6 +11,16 @@ export type TextFieldSchema = BaseFieldSchema & {
   multiple?: boolean;
 };
 
+export type ProductSelectFieldSchema = BaseFieldSchema & {
+  name: string;
+  type: "product-select";
+  multiple?: boolean;
+};
+
+export type LeafFieldSchema =
+  | TextFieldSchema
+  | ProductSelectFieldSchema;
+
 export type SectionFieldSchema = BaseFieldSchema & {
   type: "section";
   layout?: "two-columns";
@@ -21,10 +31,10 @@ export type RepeaterFieldSchema = BaseFieldSchema & {
   name: string;
   type: "repeater";
   addLabel?: string;
-  fields: TextFieldSchema[];
+  fields: LeafFieldSchema[];
 };
 
 export type FieldSchema =
-  | TextFieldSchema
+  | LeafFieldSchema
   | SectionFieldSchema
   | RepeaterFieldSchema;

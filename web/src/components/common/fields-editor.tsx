@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TiptapRichTextEditor } from "@/components/common/tiptap-rich-text-editor";
@@ -8,16 +9,24 @@ import { MediaSelector } from "@/features/media/components/media-selector";
 import type { FieldSchema } from "@/features/pages/schema";
 import { cn } from "@/lib/utils";
 
+export type FieldsEditorProductOption = {
+  value: string;
+  label: string;
+  description?: string;
+};
+
 type FieldsEditorProps = {
   fields: FieldSchema[];
   values: Record<string, unknown>;
   onChange?: (name: string, value: unknown) => void;
+  productOptions?: FieldsEditorProductOption[];
 };
 
 export function FieldsEditor({
   fields,
   values,
   onChange,
+  productOptions = [],
 }: FieldsEditorProps) {
   const [activeTab, setActiveTab] = useState(getFieldTabKey(fields[0], 0));
 
@@ -31,7 +40,7 @@ export function FieldsEditor({
 
   return (
     <div className="pt-4">
-      <div className="overflow-x-auto border-b">
+      <div className="admin-tab-scroll overflow-x-auto border-b">
         <div className="flex min-w-max items-center gap-2">
           {fields.map((field, index) => {
             const tabKey = getFieldTabKey(field, index);
@@ -63,7 +72,7 @@ export function FieldsEditor({
 
         return (
           <Fragment key={tabKey}>
-            {renderField(field, values, onChange)}
+            {renderField(field, values, onChange, { productOptions })}
           </Fragment>
         );
       })}
@@ -77,6 +86,7 @@ function renderField(
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
+    productOptions?: FieldsEditorProductOption[];
   }
 ) {
   if (field.type === "section") {
@@ -102,17 +112,17 @@ function renderField(
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column !== "right")
-                .map((child, index) => renderChild(child, index, { compact: true }))}
+                .map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
             </div>
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column === "right")
-                .map((child, index) => renderChild(child, index, { compact: true }))}
+                .map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
             </div>
           </div>
         ) : (
           <div className={cn("grid grid-cols-12 gap-4", options?.compact ? "" : "p-4")}>
-            {field.fields.map((child, index) => renderChild(child, index, { compact: true }))}
+            {field.fields.map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
           </div>
         )}
       </section>
@@ -214,6 +224,7 @@ function renderField(
                     {
                       compact: true,
                       fieldPath: `${field.name}.${itemIndex}.${child.name}`,
+                      productOptions: options?.productOptions,
                     }
                   )
                 )}
@@ -229,12 +240,13 @@ function renderField(
 }
 
 function renderLeafField(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "product-select" }>,
   values: Record<string, unknown>,
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
     fieldPath?: string;
+    productOptions?: FieldsEditorProductOption[];
   }
 ) {
   const fieldValue = values[field.name];
@@ -307,14 +319,23 @@ function renderLeafField(
           onChange={onChange ? (value) => onChange(field.name, value) : undefined}
         />
       )}
+      {field.type === "product-select" && (
+        <ProductSelectField
+          fieldName={field.name}
+          multiple={field.multiple}
+          value={fieldValue}
+          onChange={onChange}
+          options={options?.productOptions ?? []}
+        />
+      )}
     </div>
   );
 }
 
 function getFirstFocusableRepeaterChild(
-  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" }>[]
+  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "product-select" }>[]
 ) {
-  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media");
+  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media" || child.type === "product-select");
 }
 
 function focusRepeaterField(fieldPath: string) {
@@ -360,7 +381,7 @@ function getFieldWidthClass(
 }
 
 function getLeafWidthClass(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "product-select" }>,
   options?: {
     compact?: boolean;
   }
@@ -408,4 +429,175 @@ function normalizeMediaValues(value: unknown) {
   }
 
   return [];
+}
+
+function normalizeStringArray(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value];
+  }
+
+  return [];
+}
+
+function ProductSelectField({
+  fieldName,
+  multiple,
+  value,
+  onChange,
+  options,
+}: {
+  fieldName: string;
+  multiple?: boolean;
+  value: unknown;
+  onChange?: (name: string, value: unknown) => void;
+  options: FieldsEditorProductOption[];
+}) {
+  const [search, setSearch] = useState("");
+  const selectedValues = normalizeStringArray(value);
+
+  const availableOptions = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const selectedSet = new Set(selectedValues);
+
+    return options.filter((option) => {
+      if (selectedSet.has(option.value)) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      return `${option.label} ${option.description ?? ""}`.toLowerCase().includes(query);
+    });
+  }, [options, search, selectedValues]);
+
+  const selectedOptions = useMemo(() => {
+    const optionMap = new Map(options.map((option) => [option.value, option] as const));
+    const query = search.trim().toLowerCase();
+
+    return selectedValues
+      .map((item) => optionMap.get(item))
+      .filter((item): item is FieldsEditorProductOption => Boolean(item))
+      .filter((option) => {
+        if (!query) {
+          return true;
+        }
+
+        return `${option.label} ${option.description ?? ""}`.toLowerCase().includes(query);
+      });
+  }, [options, search, selectedValues]);
+
+  function addProduct(productValue: string) {
+    if (!onChange) {
+      return;
+    }
+
+    const next = multiple
+      ? [...selectedValues, productValue].filter((item, index, array) => array.indexOf(item) === index)
+      : [productValue];
+
+    onChange(fieldName, next);
+  }
+
+  function removeProduct(productValue: string) {
+    if (!onChange) {
+      return;
+    }
+
+    onChange(
+      fieldName,
+      selectedValues.filter((item) => item !== productValue)
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border bg-background p-3">
+      <div className="space-y-2">
+        <p className="text-sm font-medium leading-5">Tìm sản phẩm</p>
+        <Input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Tìm sản phẩm..."
+          className="w-full"
+        />
+      </div>
+
+      <div className="grid grid-cols-12 gap-3">
+        <div className="col-span-12 space-y-2 lg:col-span-6">
+          <div className="grid min-h-8 content-start gap-2">
+            <p className="text-sm font-medium leading-5">Danh sách sản phẩm</p>
+          </div>
+        <div className="admin-sidebar-scroll h-64 overflow-y-auto rounded-md border">
+          {availableOptions.length ? (
+            availableOptions.map((option) => (
+              <div
+                key={option.value}
+                className="flex items-start justify-between gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-muted/60"
+              >
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-medium">{option.label}</span>
+                  {option.description ? (
+                    <span className="block text-xs text-muted-foreground">{option.description}</span>
+                  ) : null}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 min-w-8 cursor-pointer px-2"
+                  onClick={() => addProduct(option.value)}
+                  aria-label={`Thêm ${option.label}`}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+            ))
+          ) : (
+            <div className="p-3 text-sm text-muted-foreground">Không có sản phẩm phù hợp.</div>
+          )}
+        </div>
+        </div>
+
+        <div className="col-span-12 space-y-2 lg:col-span-6">
+          <div className="grid min-h-8 content-start gap-2">
+            <p className="text-sm font-medium leading-5">Đã chọn</p>
+          </div>
+          <div className="admin-sidebar-scroll h-64 overflow-y-auto rounded-md border">
+            {selectedOptions.length ? (
+              selectedOptions.map((option) => (
+                <div
+                  key={option.value}
+                  className="flex items-start justify-between gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-muted/60"
+                >
+                  <span className="space-y-0.5">
+                    <span className="block text-sm font-medium">{option.label}</span>
+                    {option.description ? (
+                      <span className="block text-xs text-muted-foreground">{option.description}</span>
+                    ) : null}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 min-w-8 cursor-pointer px-2"
+                    onClick={() => removeProduct(option.value)}
+                    aria-label={`Bỏ ${option.label}`}
+                  >
+                    <Minus className="size-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="p-3 text-sm text-muted-foreground">Chưa chọn sản phẩm nào.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

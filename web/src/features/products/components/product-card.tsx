@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   GuestLinkButton,
   GuestPanel,
@@ -8,22 +9,55 @@ import {
 } from "@/app/(guest)/_components/guest-ui";
 import type { Product } from "@/features/products/types";
 import { getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
+import { LoopProductCardImage } from "@/features/products/components/loop-product-card-image";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
-export function ProductCard({
+export function LoopProductCard({
   product,
   href = ROUTES.CATALOG.TEMPLATE(product.slug),
   ctaLabel = "Xem chi tiết",
+  variant = "default",
   className,
   imageClassName,
 }: {
   product: Product;
   href?: string;
   ctaLabel?: string;
+  variant?: "default" | "gallery";
   className?: string;
   imageClassName?: string;
 }) {
+  if (variant === "gallery") {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "group relative block h-[24rem] w-[15rem] overflow-hidden rounded-[22px] border border-[#efe8ea] bg-white p-0 shadow-[0_18px_40px_rgba(35,31,39,0.1)]",
+          className
+        )}
+      >
+        {product.thumbnailUrl ? (
+          <LoopProductCardImage
+            src={product.thumbnailUrl}
+            alt={product.name}
+            className={imageClassName}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400">
+            Preview
+          </div>
+        )}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#231f27]/82 via-[#231f27]/32 to-transparent px-5 pb-5 pt-16 text-left text-white">
+          <h3 className="text-lg font-bold leading-tight">{product.name}</h3>
+          <p className="mt-1 text-sm text-white/88">
+            {product.excerpt || getInvitationTemplateLabel(product.templateKey)}
+          </p>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <GuestPanel className={cn("flex h-full flex-col", className)}>
       <GuestPanelHeader>
