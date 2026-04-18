@@ -140,7 +140,7 @@ function ScrollToTopButton() {
   return (
     <a
       href="#top"
-      className="flex h-12 w-12 items-center justify-center text-primary transition hover:-translate-y-0.5"
+      className="flex h-12 w-12 items-center justify-center text-guest-primary transition hover:-translate-y-0.5"
       aria-label="Quay lại đầu trang"
     >
       <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="h-6 w-6" viewBox="0 0 24 24" fill="none">
@@ -281,7 +281,7 @@ export async function GuestFooter({
         </div>
       </footer>
 
-      <div className="fixed right-4 bottom-5 z-40 flex flex-col items-center gap-3">
+      <div className="fixed right-4 bottom-10 z-40 flex flex-col items-center gap-2.5">
         {floatingLinks.map((item) => {
           const Icon = getSocialIcon(item.label);
 

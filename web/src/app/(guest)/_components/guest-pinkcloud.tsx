@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, FocusEvent, MouseEvent, useState } from "react";
+import { CSSProperties, FocusEvent, MouseEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
@@ -398,10 +398,30 @@ function PinkCloudArt({ active = false, size = "sm" }: { active?: boolean; size?
 }
 
 export function GuestPinkCloud() {
+  const [isReady, setIsReady] = useState(false);
   const [isBubbleHidden, setIsBubbleHidden] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isFloatingBirdActive, setIsFloatingBirdActive] = useState(false);
   const [isDialogBirdActive, setIsDialogBirdActive] = useState(false);
+
+  useEffect(() => {
+    const markReady = () => {
+      window.requestAnimationFrame(() => {
+        setIsReady(true);
+      });
+    };
+
+    if (document.readyState === "complete") {
+      markReady();
+      return;
+    }
+
+    window.addEventListener("load", markReady, { once: true });
+
+    return () => {
+      window.removeEventListener("load", markReady);
+    };
+  }, []);
 
   const activateDialogBird = () => setIsDialogBirdActive(true);
   const deactivateDialogBird = () => setIsDialogBirdActive(false);
@@ -425,9 +445,9 @@ export function GuestPinkCloud() {
   return (
     <div style={pinkCloudVars}>
       <style jsx global>{pinkCloudStyles}</style>
-      <div className="pinkcloud group relative">
+      <div className={`pinkcloud group relative transition-opacity duration-200 ${isReady ? "opacity-100" : "pointer-events-none opacity-0"}`}>
         {!isBubbleHidden ? (
-          <div className="pinkcloud-bubble absolute right-[calc(100%+14px)] top-1/2 w-[180px] max-w-[calc(100vw-110px)] rounded-[14px] border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white/98 shadow-[0_18px_44px_var(--pinkcloud-primary-shadow)]">
+          <div className="pinkcloud-bubble absolute right-[calc(100%+14px)] top-1/2 w-45 max-w-[calc(100vw-110px)] rounded-[14px] border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white/98 shadow-[0_18px_44px_var(--pinkcloud-primary-shadow)]">
             <button
               type="button"
               className="pointer-events-none absolute -right-2.5 -top-2.5 z-30 flex size-5 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white text-[12px] leading-none text-[color:var(--pinkcloud-primary-deep)] opacity-0 shadow-[0_10px_24px_color-mix(in_srgb,var(--pinkcloud-primary)_22%,transparent)] transition-[opacity,color] group-hover:pointer-events-auto group-hover:opacity-100 hover:text-primary focus-visible:pointer-events-auto focus-visible:opacity-100"
@@ -436,7 +456,7 @@ export function GuestPinkCloud() {
             >
               ×
             </button>
-            <p className="px-3 py-3 text-center text-[14px] font-semibold text-[color:var(--pinkbird-primary-deep)]">PinkCloud ở đây để hỗ trợ bạn nè</p>
+            <p className="px-2.5 py-2.5 text-center text-sm font-normal text-[color:var(--pinkbird-primary-deep)]">PinkCloud ở đây để hỗ trợ bạn nè</p>
           </div>
         ) : null}
 
