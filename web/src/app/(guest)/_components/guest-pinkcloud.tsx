@@ -21,11 +21,6 @@ const pinkCloudStyles = `
     33.5%, 73.5%, 76% { transform: translateY(0); }
   }
 
-  @keyframes pinkcloud-bubble-float {
-    0%, 100% { transform: translateY(-50%); }
-    50% { transform: translateY(calc(-50% - 2px)); }
-  }
-
   @keyframes pinkcloud-heart-pop {
     0%, 100% { transform: scale(0.85); }
     50% { transform: scale(1); }
@@ -64,10 +59,6 @@ const pinkCloudStyles = `
       transform: translateY(-2px) scale(1);
       opacity: 1;
     }
-  }
-
-  .pinkcloud .pinkcloud-bubble {
-    animation: pinkcloud-bubble-float 3.4s ease-in-out infinite;
   }
 
   .pinkcloud .pinkcloud-thinking-dot {
@@ -491,7 +482,7 @@ export function GuestPinkCloud({ messages }: GuestPinkCloudProps) {
       <style jsx global>{pinkCloudStyles}</style>
       <div className={`pinkcloud group relative transition-opacity duration-200 ${isReady ? "opacity-100" : "pointer-events-none opacity-0"}`}>
         {!isBubbleHidden && bubbleMessages.length > 0 ? (
-          <div className="pinkcloud-bubble absolute right-[calc(100%+14px)] top-1/2 w-45 max-w-[calc(100vw-110px)] rounded-[14px] border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white/98 shadow-[0_18px_44px_var(--pinkcloud-primary-shadow)]">
+          <div className="pinkcloud-bubble absolute right-[calc(100%+14px)] top-1/2 w-45 -translate-y-1/2 max-w-[calc(100vw-110px)] rounded-[14px] border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white/98 shadow-[0_18px_44px_var(--pinkcloud-primary-shadow)]">
             <button
               type="button"
               className="pointer-events-none absolute -right-2.5 -top-2.5 z-30 flex size-5 items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--pinkcloud-primary)_34%,white)] bg-white text-[12px] leading-none text-[color:var(--pinkcloud-primary-deep)] opacity-0 shadow-[0_10px_24px_color-mix(in_srgb,var(--pinkcloud-primary)_22%,transparent)] transition-[opacity,color] group-hover:pointer-events-auto group-hover:opacity-100 hover:text-primary focus-visible:pointer-events-auto focus-visible:opacity-100"
