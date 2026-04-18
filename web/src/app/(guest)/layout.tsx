@@ -76,7 +76,7 @@ export default async function GuestLayout({
   const headerTree = buildNavTree(headerLinks);
 
   return (
-    <div className="min-h-full w-full">
+    <div id="top" className="min-h-full w-full">
       <GuestHeader
         user={user ? { username: user.username, role: user.role } : null}
         headerTree={headerTree}

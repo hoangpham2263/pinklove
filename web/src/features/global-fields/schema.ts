@@ -91,19 +91,15 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
       },
       {
         type: "section",
-        label: "Social & Floating Buttons",
-        description: "Social trong footer và các nút nổi bên phải.",
+        label: "Footer Social",
+        description: "Phần placeholder email và social hiển thị trong footer.",
         fields: [
           { name: "footerNewsletterPlaceholder", label: "Placeholder ô email", type: "text", width: 12 },
-          { name: "zaloUrl", label: "Liên kết Zalo", type: "text", width: 3 },
-          { name: "facebookUrl", label: "Liên kết Facebook", type: "text", width: 3 },
-          { name: "instagramUrl", label: "Liên kết Instagram", type: "text", width: 3 },
-          { name: "tiktokUrl", label: "Liên kết TikTok", type: "text", width: 3 },
           {
             name: "footerSocialLinks",
             type: "repeater",
             label: "Footer Social Links",
-            description: "Danh sách social ở footer và nút nổi bên phải.",
+            description: "Danh sách social hiển thị ở footer.",
             addLabel: "Thêm social link",
             fields: [
               { name: "platform", label: "Nền tảng", type: "text", width: 3 },
@@ -114,6 +110,45 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
         ],
       },
       { name: "footerCopyright", label: "Copyright footer", type: "text", width: 12 },
+    ],
+  },
+  {
+    type: "section",
+    label: "Floating Bar Settings",
+    description: "Thiết lập social dùng chung và các nút nổi bên phải.",
+    fields: [
+      {
+        name: "floatingBarItems",
+        type: "repeater",
+        label: "Floating Bar Buttons",
+        description: "Danh sách nút nổi bên phải, mỗi nút gồm ảnh và liên kết mở tab mới.",
+        addLabel: "Thêm nút nổi",
+        fields: [
+          { name: "image", label: "Ảnh nút", type: "media", width: 3 },
+          { name: "label", label: "Tên hiển thị", type: "text", width: 3 },
+          { name: "url", label: "Liên kết", type: "text", width: 6 },
+        ],
+      },
+    ],
+  },
+  {
+    type: "section",
+    label: "FAQ Settings",
+    description: "Nội dung FAQ dùng chung cho trang dịch vụ.",
+    fields: [
+      { name: "globalFaqTitle", label: "Tiêu đề FAQ", type: "text", width: 12 },
+      { name: "globalFaqDescription", label: "Mô tả FAQ", type: "textarea", width: 12 },
+      {
+        name: "globalFaqItems",
+        type: "repeater",
+        label: "FAQ Items",
+        description: "Danh sách câu hỏi thường gặp hiển thị sau phần dịch vụ.",
+        addLabel: "Thêm câu hỏi",
+        fields: [
+          { name: "question", label: "Câu hỏi", type: "textarea", width: 4 },
+          { name: "answer", label: "Trả lời", type: "wysiwyg", width: 8 },
+        ],
+      },
     ],
   },
 ];

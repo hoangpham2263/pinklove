@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { resolveMediaUrl } from "@/lib/media-resolver";
@@ -215,6 +216,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </div>
         </div>
       </section>
+
+      <GlobalFaqSection className="pb-16" containerClassName="container mx-auto px-4" />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { GuestPinkCloud } from "@/app/(guest)/_components/guest-pinkcloud";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import {
-  ArrowUp,
   Camera,
   CircleArrowRight,
   Globe,
@@ -28,6 +28,12 @@ type FooterSocialLink = FooterRepeaterLink & {
   platform?: string;
 };
 
+type FloatingBarItem = {
+  image?: string;
+  label?: string;
+  url?: string;
+};
+
 type GuestFooterGlobalFields = {
   footerBackgroundImage?: string;
   footerBrandImage?: string;
@@ -39,6 +45,7 @@ type GuestFooterGlobalFields = {
   footerQuickLinks?: FooterRepeaterLink[];
   footerPartnerLinks?: FooterRepeaterLink[];
   footerSocialLinks?: FooterSocialLink[];
+  floatingBarItems?: FloatingBarItem[];
 };
 
 type GuestFooterProps = {
@@ -57,7 +64,7 @@ function normalizeSocialLinks(items: FooterSocialLink[] | undefined) {
     .filter((item) => item.label?.trim() && item.url?.trim())
     .map((item) => ({
       label: item.label!.trim(),
-      url: item.url!.trim(),
+      url: normalizeActionUrl(item.url!.trim()),
       platform: item.platform?.trim() || item.label!.trim(),
     }));
 }
@@ -75,8 +82,28 @@ async function normalizeIntroItems(items: FooterIntroItem[] | undefined) {
   );
 }
 
+async function normalizeFloatingBarItems(items: FloatingBarItem[] | undefined) {
+  return Promise.all(
+    (Array.isArray(items) ? items : [])
+      .filter((item) => item.url?.trim())
+      .map(async (item) => ({
+        image: await resolveMediaUrl(item.image),
+        label: item.label?.trim() || "Floating button",
+        url: normalizeActionUrl(item.url!.trim()),
+      }))
+  );
+}
+
 function isExternalHref(href: string) {
   return /^https?:\/\//.test(href);
+}
+
+function normalizeActionUrl(href: string) {
+  if (/^(https?:\/\/|mailto:|tel:|sms:|#|\/)/i.test(href)) {
+    return href;
+  }
+
+  return `https://${href}`;
 }
 
 function renderFooterLink(item: { label: string; url: string }, className: string) {
@@ -109,6 +136,23 @@ function getSocialIcon(platformOrLabel: string) {
   return Send;
 }
 
+function ScrollToTopButton() {
+  return (
+    <a
+      href="#top"
+      className="flex h-12 w-12 items-center justify-center text-primary transition hover:-translate-y-0.5"
+      aria-label="Quay lại đầu trang"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+        <g stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="19" r="3" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v10m0-10c-.561 0-.989.438-1.843 1.314L8.5 4.97M12 2c.563 0 .99.438 1.844 1.314l1.657 1.656" />
+        </g>
+      </svg>
+    </a>
+  );
+}
+
 export async function GuestFooter({
   globalFields,
 }: GuestFooterProps) {
@@ -122,11 +166,7 @@ export async function GuestFooter({
   const brandTagline = globalFields.footerBrandTagline?.trim();
   const newsletterPlaceholder = globalFields.footerNewsletterPlaceholder?.trim();
   const copyright = globalFields.footerCopyright?.trim();
-  const floatingLinks = socialLinks.slice(0, 3).map((item) => ({
-    label: item.label,
-    url: item.url,
-    icon: getSocialIcon(item.platform),
-  }));
+  const floatingLinks = await normalizeFloatingBarItems(globalFields.floatingBarItems);
 
   return (
     <>
@@ -175,7 +215,7 @@ export async function GuestFooter({
                   Dịch vụ
                 </h3>
                 <div className="flex flex-col gap-3">
-                  {serviceLinks.map((item) => renderFooterLink(item, "text-sm md:text-base transition"))}
+                  {serviceLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
                 </div>
               </div>
 
@@ -184,7 +224,7 @@ export async function GuestFooter({
                   Liên kết nhanh
                 </h3>
                 <div className="flex flex-col gap-3">
-                  {quickLinks.map((item) => renderFooterLink(item, "text-sm md:text-base transition"))}
+                  {quickLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
                 </div>
               </div>
 
@@ -193,7 +233,7 @@ export async function GuestFooter({
                   Đối tác
                 </h3>
                 <div className="flex flex-col gap-3">
-                  {partnerLinks.map((item) => renderFooterLink(item, "text-sm md:text-base transition"))}
+                  {partnerLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
                 </div>
               </div>
 
@@ -241,9 +281,9 @@ export async function GuestFooter({
         </div>
       </footer>
 
-      <div className="fixed right-4 bottom-5 z-40 flex flex-col gap-3">
+      <div className="fixed right-4 bottom-5 z-40 flex flex-col items-center gap-3">
         {floatingLinks.map((item) => {
-          const Icon = item.icon;
+          const Icon = getSocialIcon(item.label);
 
           return (
             <a
@@ -254,17 +294,16 @@ export async function GuestFooter({
               className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200/30 bg-[radial-gradient(circle_at_30%_30%,#93f5c6_0%,#69daa8_44%,#2a6b56_100%)] text-white shadow-[0_10px_28px_rgba(42,107,86,0.45)] transition hover:-translate-y-0.5"
               aria-label={item.label}
             >
-              <Icon className="h-5 w-5" />
+              {item.image ? (
+                <img src={item.image} alt={item.label} className="h-6 w-6 object-contain" />
+              ) : (
+                <Icon className="h-5 w-5" />
+              )}
             </a>
           );
         })}
-        <a
-          href="#top"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200/30 bg-[radial-gradient(circle_at_30%_30%,#93f5c6_0%,#69daa8_44%,#2a6b56_100%)] text-white shadow-[0_10px_28px_rgba(42,107,86,0.45)] transition hover:-translate-y-0.5"
-          aria-label="Lên đầu trang"
-        >
-          <ArrowUp className="h-5 w-5" />
-        </a>
+        <ScrollToTopButton />
+        <GuestPinkCloud />
       </div>
     </>
   );

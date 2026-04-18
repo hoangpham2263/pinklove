@@ -55,6 +55,7 @@
 }
 
 @keyframes breathe {
+
   0%,
   to {
     opacity: 0.35;
