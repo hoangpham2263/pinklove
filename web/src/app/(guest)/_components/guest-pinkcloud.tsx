@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { ROUTES } from "@/lib/routes";
 
+const PINK_CLOUD_MESSAGES = [
+  "PinkCloud chào cậu.!",
+  "PinkCloud ở đây để hỗ trợ bạn nè.",
+  "Cần PinkCloud gợi ý mẫu thiệp hông nè.",
+  "PinkCloud có thể giúp cậu nhanh hơn đó.",
+  "Bấm vào PinkCloud nếu cậu cần hỗ trợ nho.",
+];
+
 const pinkCloudStyles = `
   @keyframes pinkcloud-float {
     0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg); }
@@ -51,8 +59,23 @@ const pinkCloudStyles = `
     }
   }
 
+  @keyframes pinkcloud-thinking-dot {
+    0%, 80%, 100% {
+      transform: translateY(0) scale(0.92);
+      opacity: 0.35;
+    }
+    40% {
+      transform: translateY(-2px) scale(1);
+      opacity: 1;
+    }
+  }
+
   .pinkcloud .pinkcloud-bubble {
     animation: pinkcloud-bubble-float 3.4s ease-in-out infinite;
+  }
+
+  .pinkcloud .pinkcloud-thinking-dot {
+    animation: pinkcloud-thinking-dot 1.2s ease-in-out infinite;
   }
 
   .pinkcloud .pinkcloud-bubble::before {
@@ -403,6 +426,8 @@ export function GuestPinkCloud() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isFloatingBirdActive, setIsFloatingBirdActive] = useState(false);
   const [isDialogBirdActive, setIsDialogBirdActive] = useState(false);
+  const [showBubbleMessage, setShowBubbleMessage] = useState(false);
+  const [bubbleMessageIndex, setBubbleMessageIndex] = useState(0);
 
   useEffect(() => {
     const markReady = () => {
@@ -422,6 +447,28 @@ export function GuestPinkCloud() {
       window.removeEventListener("load", markReady);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isReady || isBubbleHidden) {
+      setShowBubbleMessage(false);
+      setBubbleMessageIndex(0);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (showBubbleMessage) {
+        setShowBubbleMessage(false);
+        setBubbleMessageIndex((current) => (current + 1) % PINK_CLOUD_MESSAGES.length);
+        return;
+      }
+
+      setShowBubbleMessage(true);
+    }, showBubbleMessage ? 4200 : 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isReady, isBubbleHidden, showBubbleMessage]);
 
   const activateDialogBird = () => setIsDialogBirdActive(true);
   const deactivateDialogBird = () => setIsDialogBirdActive(false);
@@ -456,7 +503,17 @@ export function GuestPinkCloud() {
             >
               ×
             </button>
-            <p className="px-2.5 py-2.5 text-center text-sm font-normal text-[color:var(--pinkbird-primary-deep)]">PinkCloud ở đây để hỗ trợ bạn nè</p>
+            {showBubbleMessage ? (
+              <p className="px-2.5 py-2.5 text-center text-sm font-normal text-[color:var(--pinkcloud-primary-deep)]">
+                {PINK_CLOUD_MESSAGES[bubbleMessageIndex]}
+              </p>
+            ) : (
+              <div className="flex min-h-10 items-center justify-center gap-1.5 px-2.5 py-2.5" aria-label="PinkCloud đang soạn tin nhắn">
+                <span className="pinkcloud-thinking-dot size-2 rounded-full bg-[color:var(--pinkcloud-primary-deep)]/40" />
+                <span className="pinkcloud-thinking-dot size-2 rounded-full bg-[color:var(--pinkcloud-primary-deep)]/50" style={{ animationDelay: "0.18s" }} />
+                <span className="pinkcloud-thinking-dot size-2 rounded-full bg-[color:var(--pinkcloud-primary-deep)]/60" style={{ animationDelay: "0.36s" }} />
+              </div>
+            )}
           </div>
         ) : null}
 
