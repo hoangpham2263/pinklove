@@ -38,7 +38,7 @@ export function HeroInvitationOrb({
           <div className="pointer-events-none absolute left-[24%] top-[50%] z-[18] h-20 w-[42%] rounded-full bg-[radial-gradient(circle,rgba(255,111,245,0.08),rgba(255,111,245,0.025)_45%,rgba(255,111,245,0)_78%)] blur-2xl" />
           <div className="pointer-events-none absolute left-[27%] top-[68%] z-[18] h-18 w-[36%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.14),rgba(255,255,255,0)_72%)] blur-2xl" />
 
-          <div className="absolute inset-x-[15%] top-[54%] z-20 -rotate-[10deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="absolute left-[14%] right-[6%] top-[53%] z-[19] -rotate-[8deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]">
             <div
               className="hero-invitation-marquee relative flex w-max items-center gap-3 py-2.5"
               style={{ animationDuration: "34s" }}
@@ -61,7 +61,7 @@ export function HeroInvitationOrb({
             </div>
           </div>
 
-          <div className="absolute inset-x-[9%] top-[70%] z-[19] rotate-[5deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <div className="absolute inset-x-[9%] top-[70%] z-20 rotate-[5deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_93%,transparent)]">
             <div
               className="hero-invitation-marquee-reverse relative flex w-max items-center gap-3 py-2.5 opacity-82"
               style={{ animationDuration: "36s" }}
