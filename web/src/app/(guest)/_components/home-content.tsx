@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { EventPlannerTitleAccent } from "@/app/(guest)/_components/EventPlannerTitleAccent";
 import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated-cta-button";
@@ -44,7 +45,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     eventPlannerTitle?: string;
     eventPlannerHighlight?: string;
     eventPlannerSuffix?: string;
-    eventPlannerArrowLabel?: string;
     eventPlannerSolutionTitle?: string;
     eventPlannerSolutionDescription?: string;
     eventPlannerHighlightText?: string;
@@ -169,7 +169,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
   const eventPlannerTitle = fields.eventPlannerTitle?.trim();
   const eventPlannerHighlight = fields.eventPlannerHighlight?.trim();
   const eventPlannerSuffix = fields.eventPlannerSuffix?.trim();
-  const eventPlannerArrowLabel = fields.eventPlannerArrowLabel?.trim();
   const eventPlannerSolutionTitle = fields.eventPlannerSolutionTitle?.trim();
   const eventPlannerSolutionDescription = fields.eventPlannerSolutionDescription?.trim();
   const eventPlannerHighlightText = fields.eventPlannerHighlightText?.trim();
@@ -193,7 +192,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     eventPlannerTitle ||
     eventPlannerHighlight ||
     eventPlannerSuffix ||
-    eventPlannerArrowLabel ||
     eventPlannerSolutionTitle ||
     eventPlannerSolutionDescription ||
     eventPlannerProblemCards.length ||
@@ -222,13 +220,32 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
   return (
     <div>
-      <section id="home-hero" className="h-screen bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] overflow-hidden">
-        <div className="container mx-auto px-4">
+      <section id="home-hero" className="relative h-screen overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF]">
+        <div className="pointer-events-none absolute inset-0 z-0 hidden lg:block">
+          <div className="absolute left-[7%] top-[22%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
+          <div className="absolute right-[14%] top-[30%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
+          <div className="absolute bottom-[14%] left-[28%] size-24 rounded-full bg-white/35 blur-3xl" />
+          <span className="cta-sparkle-float absolute left-[5%] top-[20%] text-4xl text-guest-primary/70">✦</span>
+          <span className="cta-sparkle-float absolute left-[34%] top-[18%] text-2xl text-[#ffb8fb]">✧</span>
+          <span className="cta-heart-pop absolute left-[8%] bottom-[24%] text-3xl text-[#d94dce]/75">♥</span>
+          <span className="cta-sparkle-float absolute left-[46%] bottom-[18%] text-5xl text-white/80 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
+          <span className="cta-sparkle-float absolute right-[28%] top-[21%] text-3xl text-guest-primary/65">✦</span>
+          <span className="cta-heart-pop absolute right-[18%] bottom-[28%] text-2xl text-[#d94dce]/70">♥</span>
+          <span className="cta-sparkle-float absolute right-[9%] top-[52%] text-4xl text-white/75 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
+          <span className="absolute left-[55%] top-[16%] size-2 rounded-full bg-white shadow-[0_0_20px_rgba(255,111,245,0.7)]" />
+          <span className="absolute right-[10%] bottom-[18%] size-3 rounded-full bg-guest-primary/50 shadow-[0_0_24px_rgba(255,111,245,0.55)]" />
+        </div>
+        <div className="relative z-10 container mx-auto px-4">
           <div className="pl-20 relative grid grid-cols-12 gap-5 lg:gap-10">
             <div className="col-start-12 lg:col-span-6 flex flex-col justify-center space-y-5">
               <h1 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold bg-[linear-gradient(90deg,#000_0%,#FF61AF_50.09%,#000_100%)] bg-clip-text text-transparent">{bannerTitle}</h1>
               {bannerShortDescription && (<p className="text-sm md:text-base lg:text-lg font-semibold">{bannerShortDescription}</p>)}
-              {bannerDescription ? (<p className="text-sm md:text-base lg:text-lg">{bannerDescription}</p>) : null}
+              {bannerDescription ? (
+                <div
+                  className={`text-sm md:text-base lg:text-lg ${RICH_TEXT_CONTENT_CLASSNAME}`}
+                  dangerouslySetInnerHTML={createRichTextMarkup(bannerDescription)}
+                />
+              ) : null}
               <div className="mt-5 lg:mt-7.5">
                 <GuestLinkButton href={fields.heroButtonLink || ROUTES.ABOUT} className="inline-flex items-center justify-center gap-2.5 uppercase font-semibold bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] hover:bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)]">
                   {fields.heroButtonText}
@@ -242,24 +259,26 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               </div>
             </div>
             <div className="col-start-12 lg:col-span-6">
-              <svg className="w-full aspect-square" width="815" height="815" viewBox="0 0 815 815" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M407.5 815C632.556 815 815 632.556 815 407.5C815 182.444 632.556 0 407.5 0C182.444 0 0 182.444 0 407.5C0 632.556 182.444 815 407.5 815Z" fill="url(#paint0_linear_1_22)" />
-                <path d="M407.5 0C396.745 0 386.07 0.431471 375.523 1.24647L375.525 1.25446C388.824 1.96559 392.079 20.1673 380.014 25.4088C375.297 27.4619 370.456 29.2178 365.52 30.6664C349.843 35.2686 335.229 42.9203 322.516 53.1827C309.791 63.4376 299.212 76.1013 291.387 90.449L287.184 98.1675C271.376 127.135 244.71 148.639 213.051 157.95L208.464 159.293C192.789 163.901 178.175 171.553 165.458 181.81C152.741 192.068 142.169 204.731 134.347 219.075L111.527 260.896C107.276 268.694 117.024 276.557 123.752 270.772C134.044 261.919 145.214 254.2 157.071 247.744C168.929 241.288 181.473 236.094 194.497 232.259L273.536 209.024C285.7 205.448 297.04 199.51 306.909 191.55C316.777 183.59 324.98 173.764 331.05 162.632C337.126 151.507 345.33 141.684 355.196 133.724C365.062 125.765 376.401 119.83 388.563 116.257L465.988 93.4853C490.438 85.9266 505.508 72.8706 514.409 61.924C522.799 51.5847 537.485 48.8041 548.974 55.5159C549.15 55.6278 549.342 55.7236 549.518 55.8355C564.891 64.8484 567.735 85.8626 555.127 98.4712L510.029 143.569C498.79 154.808 481.686 157.164 467.471 150.051C458.289 145.457 447.807 143.076 436.725 143.608C404.739 145.144 378.871 171.455 377.839 203.461C377.641 209.392 378.294 215.322 379.777 221.068C385.695 243.938 370.344 266.876 347.145 271.325C338.2 273.04 329.112 273.898 320.004 273.888C281.41 273.843 244.55 289.964 217.26 317.254L184.773 349.74C157.807 376.706 121.233 391.855 83.098 391.855H0.335588C0.127843 397.049 0 402.258 0 407.5C0 437.687 3.30794 467.075 9.54029 495.392H48.9C68.8617 495.392 88.6279 491.461 107.07 483.822C125.512 476.183 142.269 464.986 156.384 450.871L159.229 448.026C173.344 433.911 190.101 422.715 208.543 415.076C226.985 407.437 246.751 403.505 266.713 403.505H357.32C377.282 403.505 397.048 399.574 415.49 391.935C433.932 384.296 450.689 373.099 464.804 358.984L494.352 329.436C534.543 286.049 607.749 281.479 610.897 281.015C683.416 270.436 749.798 327.438 750.997 400.708C751.029 402.978 751.045 405.231 751.045 407.5V408.216C750.989 440.659 730.264 469.325 699.766 480.39C690.283 483.83 680.739 488.923 671.709 495.645C642.369 517.483 627.911 549.457 634.888 572.873C637.463 581.514 633.87 590.818 625.829 594.894C625.279 595.174 624.742 595.423 624.225 595.637C601.988 604.849 581.783 618.348 564.761 635.364L545.873 654.253C511.329 688.797 464.424 707.743 415.572 707.933C367.216 708.123 320.894 727.417 286.701 761.61L260.605 787.706C296.721 801.656 335.297 810.637 375.52 813.754H375.552C386.099 814.569 396.742 815 407.497 815C632.549 815 814.997 632.552 814.997 407.5C814.997 182.448 632.552 0 407.5 0ZM661.492 247.137C638.497 247.137 619.848 228.504 619.848 205.508C619.848 182.512 638.497 163.879 661.492 163.879C684.488 163.879 703.121 182.512 703.121 205.508C703.121 228.504 684.488 247.137 661.492 247.137Z" fill="url(#paint1_linear_1_22)" />
-                <defs>
-                  <linearGradient id="paint0_linear_1_22" x1="196" y1="44" x2="377.5" y2="815" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#FF6FF5" />
-                    <stop offset="0.240339" stopColor="#FF6FF5" stopOpacity="0.35" />
-                    <stop offset="0.502204" stopColor="#FF6FF5" stopOpacity="0" />
-                    <stop offset="0.998" stopColor="#FF6FF5" stopOpacity="0" />
-                  </linearGradient>
-                  <linearGradient id="paint1_linear_1_22" x1="453" y1="767" x2="279.5" y2="-1.76497e-05" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#FF6FF5" stopOpacity="0" />
-                    <stop offset="0.468654" stopColor="#FF6FF5" stopOpacity="0" />
-                    <stop offset="0.762383" stopColor="#FF6FF5" stopOpacity="0.35" />
-                    <stop offset="0.998" stopColor="#FF6FF5" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <div className="relative mx-auto max-w-[44rem]">
+                <svg className="relative z-10 w-full aspect-square" width="815" height="815" viewBox="0 0 815 815" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M407.5 815C632.556 815 815 632.556 815 407.5C815 182.444 632.556 0 407.5 0C182.444 0 0 182.444 0 407.5C0 632.556 182.444 815 407.5 815Z" fill="url(#paint0_linear_1_22)" />
+                  <path d="M407.5 0C396.745 0 386.07 0.431471 375.523 1.24647L375.525 1.25446C388.824 1.96559 392.079 20.1673 380.014 25.4088C375.297 27.4619 370.456 29.2178 365.52 30.6664C349.843 35.2686 335.229 42.9203 322.516 53.1827C309.791 63.4376 299.212 76.1013 291.387 90.449L287.184 98.1675C271.376 127.135 244.71 148.639 213.051 157.95L208.464 159.293C192.789 163.901 178.175 171.553 165.458 181.81C152.741 192.068 142.169 204.731 134.347 219.075L111.527 260.896C107.276 268.694 117.024 276.557 123.752 270.772C134.044 261.919 145.214 254.2 157.071 247.744C168.929 241.288 181.473 236.094 194.497 232.259L273.536 209.024C285.7 205.448 297.04 199.51 306.909 191.55C316.777 183.59 324.98 173.764 331.05 162.632C337.126 151.507 345.33 141.684 355.196 133.724C365.062 125.765 376.401 119.83 388.563 116.257L465.988 93.4853C490.438 85.9266 505.508 72.8706 514.409 61.924C522.799 51.5847 537.485 48.8041 548.974 55.5159C549.15 55.6278 549.342 55.7236 549.518 55.8355C564.891 64.8484 567.735 85.8626 555.127 98.4712L510.029 143.569C498.79 154.808 481.686 157.164 467.471 150.051C458.289 145.457 447.807 143.076 436.725 143.608C404.739 145.144 378.871 171.455 377.839 203.461C377.641 209.392 378.294 215.322 379.777 221.068C385.695 243.938 370.344 266.876 347.145 271.325C338.2 273.04 329.112 273.898 320.004 273.888C281.41 273.843 244.55 289.964 217.26 317.254L184.773 349.74C157.807 376.706 121.233 391.855 83.098 391.855H0.335588C0.127843 397.049 0 402.258 0 407.5C0 437.687 3.30794 467.075 9.54029 495.392H48.9C68.8617 495.392 88.6279 491.461 107.07 483.822C125.512 476.183 142.269 464.986 156.384 450.871L159.229 448.026C173.344 433.911 190.101 422.715 208.543 415.076C226.985 407.437 246.751 403.505 266.713 403.505H357.32C377.282 403.505 397.048 399.574 415.49 391.935C433.932 384.296 450.689 373.099 464.804 358.984L494.352 329.436C534.543 286.049 607.749 281.479 610.897 281.015C683.416 270.436 749.798 327.438 750.997 400.708C751.029 402.978 751.045 405.231 751.045 407.5V408.216C750.989 440.659 730.264 469.325 699.766 480.39C690.283 483.83 680.739 488.923 671.709 495.645C642.369 517.483 627.911 549.457 634.888 572.873C637.463 581.514 633.87 590.818 625.829 594.894C625.279 595.174 624.742 595.423 624.225 595.637C601.988 604.849 581.783 618.348 564.761 635.364L545.873 654.253C511.329 688.797 464.424 707.743 415.572 707.933C367.216 708.123 320.894 727.417 286.701 761.61L260.605 787.706C296.721 801.656 335.297 810.637 375.52 813.754H375.552C386.099 814.569 396.742 815 407.497 815C632.549 815 814.997 632.552 814.997 407.5C814.997 182.448 632.552 0 407.5 0ZM661.492 247.137C638.497 247.137 619.848 228.504 619.848 205.508C619.848 182.512 638.497 163.879 661.492 163.879C684.488 163.879 703.121 182.512 703.121 205.508C703.121 228.504 684.488 247.137 661.492 247.137Z" fill="url(#paint1_linear_1_22)" />
+                  <defs>
+                    <linearGradient id="paint0_linear_1_22" x1="196" y1="44" x2="377.5" y2="815" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FF6FF5" />
+                      <stop offset="0.240339" stopColor="#FF6FF5" stopOpacity="0.35" />
+                      <stop offset="0.502204" stopColor="#FF6FF5" stopOpacity="0" />
+                      <stop offset="0.998" stopColor="#FF6FF5" stopOpacity="0" />
+                    </linearGradient>
+                    <linearGradient id="paint1_linear_1_22" x1="453" y1="767" x2="279.5" y2="-1.76497e-05" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FF6FF5" stopOpacity="0" />
+                      <stop offset="0.468654" stopColor="#FF6FF5" stopOpacity="0" />
+                      <stop offset="0.762383" stopColor="#FF6FF5" stopOpacity="0.35" />
+                      <stop offset="0.998" stopColor="#FF6FF5" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
             </div>
 
             {/* Dots */}
@@ -279,7 +298,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                 targetId="home-page-end"
                 pixelsPerSecond={600}
                 aria-label="Cuộn xuống cuối trang"
-                className="group pointer-events-auto flex cursor-pointer flex-col items-center gap-y-5 border-0 bg-transparent p-0 text-[#231f27] transition-colors duration-300 hover:text-[#FF6FF5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6FF5]"
+                className="group pointer-events-auto flex cursor-pointer flex-col items-center gap-y-5 border-0 bg-transparent p-0 transition-colors duration-300 hover:text-[#FF6FF5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6FF5]"
               >
                 <span className="breathe-element flex justify-center whitespace-nowrap text-sm font-medium uppercase lg:text-base [--puramu-animation-length:3s]" style={{ writingMode: "sideways-lr" }}>
                   cuộn xuống
@@ -408,45 +427,20 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
       {hasEventPlannerSection ? (
         <section id="home-event-planner" className="overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,171,196,0.22),transparent_32%),linear-gradient(180deg,#fff7f8_0%,#ffffff_48%,#fff8f4_100%)] py-14 lg:py-20">
           <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-6xl space-y-10 lg:space-y-14">
+            <div className="mx-auto space-y-5 lg:space-y-7.5">
               {(eventPlannerEyebrow || eventPlannerTitle || eventPlannerHighlight || eventPlannerSuffix) ? (
-                <div className="text-center">
-                  <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-2 text-[#231f27]">
-                    {eventPlannerEyebrow ? (
-                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
-                        {eventPlannerEyebrow}
-                      </span>
-                    ) : null}
-                    {eventPlannerArrowLabel ? (
-                      <span className="inline-flex items-center gap-2 px-1 text-[#dc5561]">
-                        <span className="text-sm font-medium italic sm:text-base">{eventPlannerArrowLabel}</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          viewBox="0 0 88 40"
-                          className="h-7 w-16 sm:h-8 sm:w-20"
-                          fill="none"
-                        >
-                          <path d="M3 13c14-13 43-13 53 8 4 8 1 13-4 13-8 0-8-13 4-13 8 0 18 5 26 15" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" />
-                          <path d="m74 29 8 7-2-10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
-                        </svg>
-                      </span>
-                    ) : null}
-                    {eventPlannerTitle ? (
-                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
-                        {eventPlannerTitle}
-                      </span>
-                    ) : null}
-                    {eventPlannerHighlight ? (
-                      <span className="font-['Brush_Script_MT','Segoe_Script',cursive] text-[4rem] leading-none text-[#dc5561] sm:text-[5.5rem] lg:text-[7rem]">
-                        {eventPlannerHighlight}
-                      </span>
-                    ) : null}
-                    {eventPlannerSuffix ? (
-                      <span className="text-2xl font-black uppercase tracking-tight sm:text-4xl lg:text-[3.25rem]">
-                        {eventPlannerSuffix}
-                      </span>
-                    ) : null}
+                <div className="flex justify-center gap-5">
+                  <div className="flex flex-col items-end gap-2">
+                    {eventPlannerEyebrow ? <span className="text-lg lg:text-3xl 2xl:text-4xl font-black uppercase tracking-tight">{eventPlannerEyebrow}</span> : null}
+                    {eventPlannerTitle ? <span className="relative text-lg lg:text-3xl 2xl:text-4xl font-black uppercase tracking-tight">
+                      <EventPlannerTitleAccent
+                        className="absolute right-[calc(100%+20px)] top-1/2 -translate-y-1/2 w-25 h-auto"
+                      />
+                      {eventPlannerTitle}</span> : null}
+                  </div>
+                  <div className="flex items-end gap-2">
+                    {eventPlannerHighlight ? <span className="font-['Brush_Script_MT','Segoe_Script',cursive] text-2xl lg:text-[100px] leading-[60px] text-guest-primary">{eventPlannerHighlight}</span> : null}
+                    {eventPlannerSuffix ? <span className="text-lg lg:text-3xl 2xl:text-4xl font-black uppercase">{eventPlannerSuffix}</span> : null}
                   </div>
                 </div>
               ) : null}
@@ -473,7 +467,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                           </div>
                         )}
                       </div>
-                      <h3 className="text-lg font-extrabold text-[#231f27] sm:text-xl">{item.title}</h3>
+                      <h3 className="text-lg font-extrabold sm:text-xl">{item.title}</h3>
                       <p className="mt-2 text-sm leading-7 text-[#63606d] sm:text-base">{item.description}</p>
                     </article>
                   ))}
@@ -483,7 +477,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               {(eventPlannerSolutionTitle || eventPlannerSolutionDescription || eventPlannerCtaText) ? (
                 <div className="mx-auto max-w-5xl text-center">
                   {eventPlannerSolutionTitle ? (
-                    <h2 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-tight tracking-tight text-[#231f27]">
+                    <h2 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-tight tracking-tight">
                       {eventPlannerTitleParts.length > 1 ? (
                         eventPlannerTitleParts.map((part, index) => (
                           <span key={`${part}-${index}`}>
@@ -518,30 +512,30 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               {eventPlannerFeatures.length ? (
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                   {eventPlannerFeatures.map((item, index) => (
-                      <article
-                        key={`${item.title}-${index}`}
-                        className="relative min-h-[320px] overflow-hidden rounded-[28px] border border-[#f2e8ea] bg-white p-7 shadow-[0_18px_40px_rgba(45,35,66,0.08)]"
-                      >
-                        <div className="max-w-[15rem]">
-                          <h3 className="text-2xl font-black leading-tight tracking-tight text-[#231f27]">
-                            {item.title}
-                          </h3>
-                          <p className="mt-5 text-base leading-8 text-[#63606d]">
-                            {item.description}
-                          </p>
+                    <article
+                      key={`${item.title}-${index}`}
+                      className="relative min-h-[320px] overflow-hidden rounded-[28px] border border-[#f2e8ea] bg-white p-7 shadow-[0_18px_40px_rgba(45,35,66,0.08)]"
+                    >
+                      <div className="max-w-[15rem]">
+                        <h3 className="text-2xl font-black leading-tight tracking-tight">
+                          {item.title}
+                        </h3>
+                        <p className="mt-5 text-base leading-8 text-[#63606d]">
+                          {item.description}
+                        </p>
+                      </div>
+                      {item.accentImage ? (
+                        <div className="pointer-events-none absolute bottom-5 right-5 flex size-24 select-none items-center justify-center opacity-90">
+                          <Image
+                            src={item.accentImage}
+                            alt=""
+                            width={120}
+                            height={120}
+                            className="h-full w-full object-contain"
+                          />
                         </div>
-                        {item.accentImage ? (
-                          <div className="pointer-events-none absolute bottom-5 right-5 flex size-24 select-none items-center justify-center opacity-90">
-                            <Image
-                              src={item.accentImage}
-                              alt=""
-                              width={120}
-                              height={120}
-                              className="h-full w-full object-contain"
-                            />
-                          </div>
-                        ) : null}
-                      </article>
+                      ) : null}
+                    </article>
                   ))}
                 </div>
               ) : null}
@@ -561,7 +555,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   </div>
                 ) : null}
                 {invitationGalleryTitle ? (
-                  <h2 className="inline-block max-w-4xl text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-[1.08] tracking-tight text-[#231f27]">
+                  <h2 className="inline-block max-w-4xl text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-[1.08] tracking-tight">
                     {invitationGalleryTitle}
                   </h2>
                 ) : null}
@@ -629,7 +623,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   </div>
                 ) : null}
                 {sharedInvitationsTitle ? (
-                  <h2 className="inline-block max-w-4xl text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-[1.08] tracking-tight text-[#231f27]">
+                  <h2 className="inline-block max-w-4xl text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold uppercase leading-[1.08] tracking-tight">
                     {sharedInvitationsTitle}
                   </h2>
                 ) : null}
