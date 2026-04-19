@@ -33,22 +33,14 @@ export async function GlobalFaqSection({ className, containerClassName }: Global
   return (
     <section className={className}>
       <div className={containerClassName}>
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 2xl:gap-14">
-          <div className="space-y-6 lg:space-y-8">
+        <div className="grid grid-cols-12 gap-4 lg:gap-7.5">
+          <div className="col-span-12 lg:col-span-6 space-y-5 lg:space-y-7.5">
             <div className="inline-flex items-center gap-3 rounded-full border border-stone-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-rose-400" />
-              FAQ · ZENLOVE
-            </div>
+              <span className="h-2 w-2 rounded-full bg-primary" />FAQ · ZENLOVE</div>
 
-            <div className="max-w-2xl space-y-4">
-              <h2 className="text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                {faqTitle}
-              </h2>
-              {faqDescription ? (
-                <p className="max-w-xl text-base leading-8 text-slate-500 lg:text-lg">
-                  {faqDescription}
-                </p>
-              ) : null}
+            <div className="space-y-4">
+              <h2 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold">{faqTitle}</h2>
+              {faqDescription ? <p className="text-sm lg:text-base leading-8">{faqDescription}</p> : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -80,27 +72,18 @@ export async function GlobalFaqSection({ className, containerClassName }: Global
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-stone-200 bg-white/90 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.08)] lg:p-5">
+          <div className="col-span-12 lg:col-span-6 rounded-xl lg:rounded-2xl border border-stone-200 p-2.5 lg:p-5">
             {faqItems.map((item, index) => (
-              <details
-                key={item.question}
-                className="group border-b border-stone-200/80 last:border-b-0"
-                open={index === 0}
-              >
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-3 py-5 text-left marker:hidden [&::-webkit-details-marker]:hidden">
-                  <span className="text-xl font-semibold leading-snug text-slate-800">
-                    {item.question}
-                  </span>
-                  <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-2xl font-light text-slate-400">
+              <details key={item.question} className="group border-b border-stone-200/80 last:border-b-0" open={index === 0}>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-3 py-2.5 text-left marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span className="text-sm lg:text-base font-medium">{item.question}</span>
+                  <span className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-lg font-light">
                     <span className="group-open:hidden">+</span>
-                    <span className="hidden text-rose-400 group-open:inline">−</span>
+                    <span className="hidden text-primary group-open:inline">−</span>
                   </span>
                 </summary>
                 <div className="px-3 pb-5">
-                  <div
-                    className={`${RICH_TEXT_CONTENT_CLASSNAME} max-w-none text-base leading-8 text-slate-500`}
-                    dangerouslySetInnerHTML={createRichTextMarkup(item.answer ?? "")}
-                  />
+                  <div className={`${RICH_TEXT_CONTENT_CLASSNAME} max-w-none text-xs lg:text-sm`} dangerouslySetInnerHTML={createRichTextMarkup(item.answer ?? "")} />
                 </div>
               </details>
             ))}

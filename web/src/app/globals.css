@@ -359,3 +359,33 @@
 [data-ui-density] textarea {
   padding-inline: var(--ui-control-padding-x) !important;
 }
+
+@keyframes cta-sparkle-float {
+  0%, 100% {
+    opacity: 0.82;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(0, -8px, 0) rotate(14deg) scale(1.14);
+  }
+}
+
+@keyframes cta-heart-pop {
+  0%, 100% {
+    opacity: 0.78;
+    transform: translate3d(0, 0, 0) rotate(-8deg) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(0, -6px, 0) rotate(8deg) scale(1.12);
+  }
+}
+
+.cta-sparkle-float {
+  animation: cta-sparkle-float 2.4s ease-in-out infinite;
+}
+
+.cta-heart-pop {
+  animation: cta-heart-pop 2.8s ease-in-out infinite;
+}

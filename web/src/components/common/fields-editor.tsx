@@ -281,6 +281,7 @@ function renderLeafField(
           <textarea
             value={String(fieldValue ?? "")}
             onChange={(e) => onChange(field.name, e.target.value)}
+            rows={field.rows}
             className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             placeholder={field.label}
           />
@@ -288,6 +289,7 @@ function renderLeafField(
           <textarea
             name={field.name}
             defaultValue={String(fieldValue ?? "")}
+            rows={field.rows}
             className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             placeholder={field.label}
           />

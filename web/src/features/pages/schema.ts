@@ -9,6 +9,7 @@ export type TextFieldSchema = BaseFieldSchema & {
   name: string;
   type: "text" | "textarea" | "media" | "wysiwyg";
   multiple?: boolean;
+  rows?: number;
 };
 
 export type ProductSelectFieldSchema = BaseFieldSchema & {

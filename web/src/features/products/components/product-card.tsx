@@ -33,7 +33,7 @@ export function LoopProductCard({
       <Link
         href={href}
         className={cn(
-          "group relative block h-[24rem] w-[15rem] overflow-hidden rounded-[22px] border border-[#efe8ea] bg-white p-0 shadow-[0_18px_40px_rgba(35,31,39,0.1)]",
+          "group relative block h-[24rem] w-[15rem] overflow-hidden rounded-[22px] border border-[#efe8ea] bg-white p-0 shadow-[0_18px_40px_rgba(35,31,39,0.1)] transition-transform duration-300 ease-out hover:-translate-y-2",
           className
         )}
       >

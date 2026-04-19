@@ -99,7 +99,7 @@ export default async function AdminLayout({
             const Icon = standaloneIconMap[item.iconName];
 
             return (
-              <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
+              <Link key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
                 <Icon className="h-5 w-5" />
                 {item.label}
               </Link>
