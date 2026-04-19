@@ -382,10 +382,29 @@
   }
 }
 
+@keyframes hero-invitation-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 .cta-sparkle-float {
   animation: cta-sparkle-float 2.4s ease-in-out infinite;
 }
 
 .cta-heart-pop {
   animation: cta-heart-pop 2.8s ease-in-out infinite;
+}
+
+.hero-invitation-marquee {
+  animation: hero-invitation-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+.hero-invitation-marquee-reverse {
+  animation: hero-invitation-marquee 38s linear infinite reverse;
+  will-change: transform;
 }
