@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { listAllPayments } from "@/features/ecommerce/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
+import { getPaymentMethodLabel } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -28,7 +29,9 @@ export default async function AdminPaymentsPage() {
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px_180px_auto] lg:items-end">
                 <div>
                   <p className="font-medium">{payment.id}</p>
-                  <p className="text-sm text-muted-foreground">{payment.method} • {formatCurrency(payment.amount, settings.ecommerce)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {getPaymentMethodLabel(payment.method, settings.ecommerce)} • {formatCurrency(payment.amount, settings.ecommerce)}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trạng thái</label>

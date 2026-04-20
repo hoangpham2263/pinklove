@@ -84,6 +84,11 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
       },
       {
+        title: "API nội bộ",
+        description: "Trung tâm quản lý các API nội bộ dùng để import, đồng bộ và mở rộng kết nối dữ liệu hệ thống.",
+        href: ROUTES.ADMIN.CONFIG_INTERNAL_APIS,
+      },
+      {
         title: "Hooks",
         description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
         href: ROUTES.ADMIN.HOOKS,

@@ -17,7 +17,7 @@ Use this file as the entrypoint for project documentation.
 
 ## Read Order
 
-1. [conventions](./conventions.md)
+1. [CONVENTIONS](./CONVENTIONS.md)
 2. [structure](./structure.md)
 3. [schema](./schema.md)
 4. [fields](./fields.md)
@@ -32,7 +32,7 @@ Use this file as the entrypoint for project documentation.
 
 - `docs/index.md`
   Project-level navigation, doc ownership, and high-level shared standards only.
-- `docs/conventions.md`
+- `docs/CONVENTIONS.md`
   Repo workflow, naming, routing, import/export, runtime, and cross-cutting engineering rules.
 - `docs/structure.md`
   Folder structure, route groups, architecture layout, and implemented feature map.
@@ -79,7 +79,7 @@ Use this file as the entrypoint for project documentation.
   - admin area: `admin.md`
   - partner area: `partner.md`
 - If code and docs conflict, update docs in the same task.
-- Keep all files in `docs/` lowercase.
+- Keep new files in `docs/` lowercase. The existing repo-wide rules file remains `docs/CONVENTIONS.md` for compatibility with workspace tooling.
 
 ## Verification Baseline
 

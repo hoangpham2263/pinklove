@@ -27,7 +27,7 @@ export type OrderStatus =
 
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "failed" | "refunded";
 export type FulfillmentStatus = "not_required" | "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-export type PaymentMethod = "mock_online" | "bank_transfer" | "cod";
+export type PaymentMethod = string;
 export type ShipmentStatus = "pending" | "packing" | "shipped" | "delivered" | "returned" | "cancelled";
 
 export type EcommerceOrderItem = {

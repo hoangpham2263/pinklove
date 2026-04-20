@@ -39,6 +39,18 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import type { Product, ProductType } from "@/features/products/types";
+import { getProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
+
+function getProductTypeLabel(productType: ProductType) {
+  switch (productType) {
+    case "builder_template":
+      return "Builder Template";
+    case "general_product":
+      return "Sản phẩm";
+    default:
+      return "Coded Template";
+  }
+}
 
 type AdminProductListProps = {
   products: Product[];
@@ -46,6 +58,9 @@ type AdminProductListProps = {
   status: "" | Product["status"];
   productType: "" | ProductType;
   title?: string;
+  permalinkConfig: PublicPermalinkConfig;
+  returnTo?: string;
+  lockProductType?: boolean;
 };
 
 export function AdminProductList({
@@ -54,6 +69,9 @@ export function AdminProductList({
   status,
   productType,
   title,
+  permalinkConfig,
+  returnTo = ROUTES.ADMIN.PRODUCT_LIST,
+  lockProductType = false,
 }: AdminProductListProps) {
   const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -146,9 +164,7 @@ export function AdminProductList({
           return row.getValue<string>(columnId) === filterValue;
         },
         cell: ({ row }) => (
-          <Badge variant="secondary">
-            {row.original.productType === "builder_template" ? "Builder Template" : "Coded Template"}
-          </Badge>
+          <Badge variant="secondary">{getProductTypeLabel(row.original.productType)}</Badge>
         ),
       },
       {
@@ -197,14 +213,37 @@ export function AdminProductList({
         cell: ({ row }) => <div className="text-right font-medium">{row.original.price}</div>,
       },
       {
+        id: "inventory",
+        header: () => <div className="text-right">Kho</div>,
+        cell: ({ row }) => {
+          const product = row.original;
+          if (!product.trackInventory) {
+            return <div className="text-right text-sm text-muted-foreground">Khong gioi han</div>;
+          }
+
+          const tone =
+            product.stockQuantity <= 0
+              ? "text-red-600"
+              : product.stockQuantity <= product.lowStockThreshold
+                ? "text-amber-600"
+                : "text-foreground";
+
+          return (
+            <div className={`text-right text-sm font-medium ${tone}`}>
+              {product.stockQuantity}
+              {product.allowBackorder ? " • backorder" : ""}
+            </div>
+          );
+        },
+      },
+      {
         id: "actions",
         enableSorting: false,
         enableColumnFilter: false,
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const product = row.original;
-          const publicHref =
-            product.productType === "builder_template" ? `/builder/${product.slug}` : `/templates/${product.slug}`;
+          const publicHref = getProductPath(product, permalinkConfig);
 
           return (
             <div className="flex justify-end gap-2">
@@ -221,7 +260,7 @@ export function AdminProductList({
                 <ExternalLink className="h-4 w-4" />
               </Link>
               <Link
-                href={ROUTES.ADMIN.PRODUCT(product.slug)}
+                href={`${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`}
                 title="Chỉnh sửa"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               >
@@ -247,6 +286,7 @@ export function AdminProductList({
                 }}
               >
                 <input type="hidden" name="slug" value={product.slug} />
+                <input type="hidden" name="returnTo" value={returnTo} />
                 <Button
                   type="submit"
                   variant="destructive"
@@ -262,7 +302,7 @@ export function AdminProductList({
         },
       },
     ],
-    [router]
+    [router, permalinkConfig]
   );
 
   const table = useReactTable({
@@ -304,7 +344,7 @@ export function AdminProductList({
   const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
   const typeFilterValue = (table.getColumn("productType")?.getFilterValue() as string | undefined) ?? "";
   const hasFilters =
-    globalFilter.trim().length > 0 || statusFilterValue.length > 0 || typeFilterValue.length > 0;
+    globalFilter.trim().length > 0 || statusFilterValue.length > 0 || (!lockProductType && typeFilterValue.length > 0);
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const previewProduct = previewProductId ? products.find((product) => product.id === previewProductId) ?? null : null;
@@ -330,15 +370,20 @@ export function AdminProductList({
             <option value="published">Published</option>
             <option value="draft">Draft</option>
           </select>
-          <select
-            value={typeFilterValue}
-            onChange={(event) => table.getColumn("productType")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
-          >
-            <option value="">Tất cả loại</option>
-            <option value="coded_template">Coded Template</option>
-            <option value="builder_template">Builder Template</option>
-          </select>
+          {lockProductType ? (
+            <input type="hidden" value={typeFilterValue} />
+          ) : (
+            <select
+              value={typeFilterValue}
+              onChange={(event) => table.getColumn("productType")?.setFilterValue(event.target.value)}
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Tất cả loại</option>
+              <option value="coded_template">Coded Template</option>
+              <option value="builder_template">Builder Template</option>
+              <option value="general_product">Sản phẩm</option>
+            </select>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -372,6 +417,7 @@ export function AdminProductList({
             {selectedRows.map((row) => (
               <input key={row.id} type="hidden" name="slugs" value={row.original.slug} />
             ))}
+            <input type="hidden" name="returnTo" value={returnTo} />
             <span className="text-muted-foreground text-sm">
               Đã chọn {selectedCount}
             </span>
@@ -398,7 +444,9 @@ export function AdminProductList({
               onClick={() => {
                 setGlobalFilter("");
                 table.getColumn("status")?.setFilterValue("");
-                table.getColumn("productType")?.setFilterValue("");
+                if (!lockProductType) {
+                  table.getColumn("productType")?.setFilterValue("");
+                }
               }}
             >
               <X className="h-4 w-4" />
@@ -467,11 +515,19 @@ export function AdminProductList({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Loại</p>
-                  <p className="text-sm text-muted-foreground">{previewProduct.productType}</p>
+                  <p className="text-sm text-muted-foreground">{getProductTypeLabel(previewProduct.productType)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Giá</p>
                   <p className="text-sm text-muted-foreground">{previewProduct.price}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Kho</p>
+                  <p className="text-sm text-muted-foreground">
+                    {previewProduct.trackInventory
+                      ? `${previewProduct.stockQuantity} • cảnh báo thấp ${previewProduct.lowStockThreshold}${previewProduct.allowBackorder ? " • cho phép backorder" : ""}`
+                      : "Không giới hạn tồn kho"}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Template Key</p>

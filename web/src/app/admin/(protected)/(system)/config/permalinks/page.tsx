@@ -2,7 +2,16 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
 import { requireAdmin } from "@/lib/auth";
-import { ALLOWED_BLOG_POST_PATTERNS, getBlogCategoryPath, getBlogPostPath, getBuilderProductPath, getInvitationPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import {
+  ALLOWED_BLOG_POST_PATTERNS,
+  getBlogCategoryPath,
+  getBlogPostPath,
+  getBuilderProductPath,
+  getInvitationPath,
+  getGeneralProductPath,
+  getTemplateProductPath,
+  sanitizePermalinkConfig,
+} from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -16,6 +25,7 @@ export default async function AdminPermalinkSettingsPage() {
     { label: "Blog Category", value: getBlogCategoryPath("tin-tuc", permalinkConfig) },
     { label: "Template", value: getTemplateProductPath("sample-template", permalinkConfig) },
     { label: "Builder", value: getBuilderProductPath("sample-builder", permalinkConfig) },
+    { label: "Product", value: getGeneralProductPath("sample-product", permalinkConfig) },
     { label: "Invitation", value: getInvitationPath("thiep-cuoi-mau", permalinkConfig) },
   ];
 
@@ -142,6 +152,13 @@ export default async function AdminPermalinkSettingsPage() {
                 description: "Base public cho builder starter products.",
                 type: "text",
                 value: settings.permalink.builderBase,
+              },
+              {
+                id: "productBase",
+                label: "Product Base",
+                description: "Base public cho nhóm sản phẩm thường trong catalog.",
+                type: "text",
+                value: settings.permalink.productBase,
               },
               {
                 id: "invitationBase",

@@ -7,6 +7,9 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.BLOG_POSTS)) return "Blog Posts";
   if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
   if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
+  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_CODED)) return "Mẫu coded";
+  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_BUILDER)) return "Mẫu builder";
+  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_GENERAL)) return "Sản phẩm";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Cat";
   if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
@@ -26,6 +29,8 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS)) return "API Import Sản phẩm";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_APIS)) return "API nội bộ";
   if (pathname.startsWith(ROUTES.ADMIN.HOOKS)) return "Hooks";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG)) return "Cấu hình";
   return "Admin";

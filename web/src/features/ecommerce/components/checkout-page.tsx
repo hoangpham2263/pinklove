@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
 import type { CartItem } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
+import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import type { SystemSettings } from "@/lib/system-settings";
 
@@ -32,6 +34,7 @@ export function CheckoutPageView({
       ? settings.ecommerce.flatShippingFee
       : 0;
   const totalAmount = subtotal + shippingAmount;
+  const paymentMethods = getEnabledPaymentMethods(settings.ecommerce, requiresShipping);
 
   if (items.length === 0) {
     return (
@@ -151,33 +154,33 @@ export function CheckoutPageView({
             <CardTitle>Thanh toán</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <label className="flex items-start gap-3 rounded-md border p-4">
-              <input type="radio" name="paymentMethod" value="mock_online" defaultChecked className="mt-1" />
-              <div>
-                <p className="font-medium">Thanh toán online mô phỏng</p>
-                <p className="text-muted-foreground">
-                  Phục vụ dev/test, tự động chuyển đơn sang trạng thái đã thanh toán nếu cấu hình cho phép.
-                </p>
+            {paymentMethods.length === 0 ? (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                Chưa có phương thức thanh toán nào đang bật trong admin.
               </div>
-            </label>
-            {settings.ecommerce.allowBankTransfer ? (
-              <label className="flex items-start gap-3 rounded-md border p-4">
-                <input type="radio" name="paymentMethod" value="bank_transfer" className="mt-1" />
-                <div>
-                  <p className="font-medium">Chuyển khoản</p>
-                  <p className="text-muted-foreground">{settings.ecommerce.bankTransferInstructions}</p>
+            ) : null}
+            {paymentMethods.map((method, index) => (
+              <label key={method.code} className="flex items-start gap-3 rounded-md border p-4">
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={method.code}
+                  defaultChecked={index === 0}
+                  className="mt-1"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{method.label}</p>
+                  <p className="text-muted-foreground">{method.description}</p>
+                  <PaymentMethodGuide
+                    method={method.code}
+                    settings={settings.ecommerce}
+                    amount={totalAmount}
+                    requiresShipping={requiresShipping}
+                    className="mt-3"
+                  />
                 </div>
               </label>
-            ) : null}
-            {settings.ecommerce.allowCod && requiresShipping ? (
-              <label className="flex items-start gap-3 rounded-md border p-4">
-                <input type="radio" name="paymentMethod" value="cod" className="mt-1" />
-                <div>
-                  <p className="font-medium">Thanh toán khi nhận hàng</p>
-                  <p className="text-muted-foreground">Phù hợp với đơn có vận chuyển.</p>
-                </div>
-              </label>
-            ) : null}
+            ))}
             <div className="space-y-2">
               <label className="font-medium">Ghi chú</label>
               <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
@@ -217,7 +220,7 @@ export function CheckoutPageView({
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button type="submit" form="checkout-form" className="w-full">
+            <Button type="submit" form="checkout-form" className="w-full" disabled={paymentMethods.length === 0}>
               Tạo đơn hàng
             </Button>
             <Button

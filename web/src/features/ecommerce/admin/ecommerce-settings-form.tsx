@@ -19,13 +19,13 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Bank Transfer</CardTitle>
+            <CardTitle className="text-base">Payment Methods</CardTitle>
           </CardHeader>
-          <CardContent>{settings.ecommerce.allowBankTransfer ? "On" : "Off"}</CardContent>
+          <CardContent>{settings.ecommerce.paymentMethods.filter((item) => item.enabled).length}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">COD</CardTitle>
+            <CardTitle className="text-base">Cash</CardTitle>
           </CardHeader>
           <CardContent>{settings.ecommerce.allowCod ? "On" : "Off"}</CardContent>
         </Card>
@@ -61,15 +61,15 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                   className="mt-1"
                 />
                 <div>
-                  <p className="font-medium">Cho phép chuyển khoản</p>
-                  <p className="text-muted-foreground">Hiển thị phương thức chuyển khoản trong checkout.</p>
+                  <p className="font-medium">Cho phép chuyển khoản QR</p>
+                  <p className="text-muted-foreground">Hiển thị phương thức quét QR/chuyển khoản trong checkout.</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 rounded-md border p-4">
                 <input type="checkbox" name="allowCod" defaultChecked={settings.ecommerce.allowCod} className="mt-1" />
                 <div>
-                  <p className="font-medium">Cho phép COD</p>
-                  <p className="text-muted-foreground">Áp dụng cho đơn cần vận chuyển.</p>
+                  <p className="font-medium">Cho phép tiền mặt</p>
+                  <p className="text-muted-foreground">Dùng cho thanh toán trực tiếp hoặc khi bàn giao.</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 rounded-md border p-4">
@@ -155,13 +155,70 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
               </div>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <label className="font-medium">Tên ngân hàng</label>
+                <input
+                  name="bankName"
+                  defaultValue={settings.ecommerce.bankName}
+                  className="h-10 w-full rounded-md border bg-background px-3"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Mã ngân hàng VietQR</label>
+                <input
+                  name="bankQrBankId"
+                  defaultValue={settings.ecommerce.bankQrBankId}
+                  className="h-10 w-full rounded-md border bg-background px-3"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Số tài khoản</label>
+                <input
+                  name="bankAccountNumber"
+                  defaultValue={settings.ecommerce.bankAccountNumber}
+                  className="h-10 w-full rounded-md border bg-background px-3"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Chủ tài khoản</label>
+                <input
+                  name="bankAccountName"
+                  defaultValue={settings.ecommerce.bankAccountName}
+                  className="h-10 w-full rounded-md border bg-background px-3"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="font-medium">Hướng dẫn chuyển khoản</label>
+              <label className="font-medium">Hướng dẫn chuyển khoản QR</label>
               <textarea
                 name="bankTransferInstructions"
                 defaultValue={settings.ecommerce.bankTransferInstructions}
                 className="min-h-28 w-full rounded-md border bg-background px-3 py-2"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-medium">Hướng dẫn thanh toán tiền mặt</label>
+              <textarea
+                name="cashPaymentInstructions"
+                defaultValue={settings.ecommerce.cashPaymentInstructions}
+                className="min-h-24 w-full rounded-md border bg-background px-3 py-2"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-medium">Danh sách phương thức thanh toán</label>
+              <textarea
+                name="paymentMethodsJson"
+                defaultValue={JSON.stringify(settings.ecommerce.paymentMethods, null, 2)}
+                className="min-h-72 w-full rounded-md border bg-background px-3 py-2 font-mono text-xs"
+              />
+              <p className="text-sm text-muted-foreground">
+                Quản lý toàn bộ phương thức thanh toán ở đây. Có thể thêm nhiều cách thanh toán mới bằng JSON với các key:
+                `code`, `label`, `description`, `instructions`, `enabled`, `provider`, `type`, `requiresShipping`.
+              </p>
             </div>
 
             <Button type="submit">Lưu cấu hình ecommerce</Button>

@@ -8,6 +8,7 @@ export type InvitationTemplateDefinition = {
   defaultTitle: string;
   fields: FieldSchema[];
   defaults: Record<string, unknown>;
+  allowProduct?: boolean;
 };
 
 const INVITATION_TEMPLATE_BASE_FIELDS: FieldSchema[] = [
@@ -29,41 +30,143 @@ const INVITATION_TEMPLATE_BASE_DEFAULTS = {
 } satisfies Record<string, unknown>;
 
 export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> = {
-  romantic_bloom: {
-    label: "Romantic Bloom",
+  aurora_veil: {
+    label: "Aurora Veil",
     productType: "coded_template",
-    defaultTitle: "Thiệp cưới Romantic Bloom",
+    defaultTitle: "Thiệp cưới Aurora Veil",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
       { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
     ],
     defaults: {
-      storyTitle: "Chuyện của chúng mình",
-      storyBody: "Từ một lần gặp gỡ rất tình cờ, chúng mình đã cùng nhau đi qua nhiều kỷ niệm đẹp.",
+      storyTitle: "Ngày mình chọn nhau",
+      storyBody: "Một khởi đầu dịu dàng, một lời mời chân thành và một ngày cưới thật ấm áp đang chờ phía trước.",
     },
   },
-  classic_garden: {
-    label: "Classic Garden",
+  golden_aisle: {
+    label: "Golden Aisle",
     productType: "coded_template",
-    defaultTitle: "Thiệp cưới Classic Garden",
+    defaultTitle: "Thiệp cưới Golden Aisle",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
       { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
     ],
     defaults: {
-      brideName: "Trâm",
-      groomName: "Huy",
-      heroSubtitle: "Một lời mời ấm áp dành cho người thân yêu trong ngày cưới của chúng tôi.",
-      eventDate: "20.01.2027",
-      venue: "Garden Hall, Đà Lạt",
-      storyTitle: "Hành trình yêu thương",
-      storyBody: "Chúng mình mong được chia sẻ niềm vui này với tất cả bạn bè và người thân.",
+      storyTitle: "Lối đi dẫn đến ngày hạnh phúc",
+      storyBody: "Mọi chi tiết được sắp đặt để kể lại hành trình yêu thương theo phong cách trang nhã và sang trọng.",
+    },
+  },
+  blush_sonata: {
+    label: "Blush Sonata",
+    productType: "coded_template",
+    defaultTitle: "Thiệp cưới Blush Sonata",
+    fields: [
+      { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
+      { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
+    ],
+    defaults: {
+      storyTitle: "Khúc nhạc màu hồng",
+      storyBody: "Một bản phối nhẹ nhàng giữa kỷ niệm, hình ảnh và lời mời dành cho những người thân yêu nhất.",
+    },
+  },
+  moonlight_garden: {
+    label: "Moonlight Garden",
+    productType: "coded_template",
+    defaultTitle: "Thiệp cưới Moonlight Garden",
+    fields: [
+      { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
+      { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
+    ],
+    defaults: {
+      storyTitle: "Dạ tiệc dưới ánh trăng",
+      storyBody: "Phù hợp cho những lễ cưới buổi tối, nhiều cảm xúc và muốn nhấn mạnh không khí lãng mạn.",
+    },
+  },
+  pearl_manor: {
+    label: "Pearl Manor",
+    productType: "coded_template",
+    defaultTitle: "Thiệp cưới Pearl Manor",
+    fields: [
+      { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
+      { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
+    ],
+    defaults: {
+      storyTitle: "Tinh giản và sang trọng",
+      storyBody: "Một mẫu dành cho cặp đôi thích nhịp đọc ngắn gọn, khoảng trắng đẹp và cảm giác editorial hiện đại.",
+    },
+  },
+  linen_vows: {
+    label: "Linen Vows",
+    productType: "coded_template",
+    defaultTitle: "Thiệp cưới Linen Vows",
+    fields: [
+      { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
+      { name: "storyBody", label: "Nội dung câu chuyện", type: "textarea" },
+    ],
+    defaults: {
+      storyTitle: "Lời hẹn ước trên nền linen",
+      storyBody: "Thiết kế sáng và thoáng, phù hợp cho những lời mời tinh tế với nhiều cảm xúc nhưng vẫn rất gọn gàng.",
     },
   },
   freeform_sections: {
-    label: "Builder Starter",
+    label: "Builder Trống Hệ Thống",
     productType: "builder_template",
     defaultTitle: "Thiệp cưới tự tạo",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+    allowProduct: false,
+  },
+  editorial_story_builder: {
+    label: "Editorial Story",
+    productType: "builder_template",
+    defaultTitle: "Builder Editorial Story",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+  },
+  floral_scroll_builder: {
+    label: "Floral Scroll",
+    productType: "builder_template",
+    defaultTitle: "Builder Floral Scroll",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+  },
+  timeline_ceremony_builder: {
+    label: "Timeline Ceremony",
+    productType: "builder_template",
+    defaultTitle: "Builder Timeline Ceremony",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+  },
+  minimal_portrait_builder: {
+    label: "Minimal Portrait",
+    productType: "builder_template",
+    defaultTitle: "Builder Minimal Portrait",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+  },
+  velvet_chapel_builder: {
+    label: "Velvet Chapel",
+    productType: "builder_template",
+    defaultTitle: "Builder Velvet Chapel",
+    fields: [],
+    defaults: {
+      builderDocument: createDefaultBuilderDocument(),
+    },
+  },
+  ivory_atelier_builder: {
+    label: "Ivory Atelier",
+    productType: "builder_template",
+    defaultTitle: "Builder Ivory Atelier",
     fields: [],
     defaults: {
       builderDocument: createDefaultBuilderDocument(),
@@ -106,6 +209,7 @@ export function getInvitationTemplateProductType(templateKey: string): ProductTy
 
 export function getInvitationTemplateOptions(productType?: ProductType) {
   return Object.entries(INVITATION_TEMPLATES)
+    .filter(([, config]) => config.allowProduct !== false)
     .filter(([, config]) => !productType || config.productType === productType)
     .map(([value, config]) => ({
       value,

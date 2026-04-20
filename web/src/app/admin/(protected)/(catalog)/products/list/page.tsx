@@ -4,5 +4,5 @@ import { ROUTES } from "@/lib/routes";
 
 export default async function AdminProductListPage() {
   await requireAdmin();
-  redirect(ROUTES.ADMIN.PRODUCT_LIST);
+  redirect(ROUTES.ADMIN.PRODUCT_LIST_CODED);
 }

@@ -1,5 +1,6 @@
-export type ProductType = "coded_template" | "builder_template";
+export type ProductType = "coded_template" | "builder_template" | "general_product";
 export type ProductFulfillmentType = "digital" | "physical" | "service";
+export type ProductOwnerType = "internal" | "vendor";
 
 export type ProductCategory = {
   id: string;
@@ -26,7 +27,29 @@ export type Product = {
   thumbnailUrl?: string;
   price: number;
   fulfillmentType: ProductFulfillmentType;
+  trackInventory: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  allowBackorder: boolean;
+  ownerType: ProductOwnerType;
+  ownerVendorUserId?: string;
   config: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 };
+
+export function isProductInStock(product: Pick<Product, "trackInventory" | "stockQuantity" | "allowBackorder">) {
+  return !product.trackInventory || product.allowBackorder || product.stockQuantity > 0;
+}
+
+export function isInvitationProductType(productType: ProductType) {
+  return productType === "coded_template" || productType === "builder_template";
+}
+
+export function isBuilderProductType(productType: ProductType) {
+  return productType === "builder_template";
+}
+
+export function isGeneralProductType(productType: ProductType) {
+  return productType === "general_product";
+}

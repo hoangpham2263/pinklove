@@ -56,7 +56,7 @@ export async function RomanticBloomTemplate({ site }: { site: InvitationSite }) 
                   alt=""
                   width={800}
                   height={1000}
-                  className="aspect-[4/5] w-full rounded-xl object-cover"
+                  className="aspect-4/5 w-full rounded-xl object-cover"
                 />
               ))}
             </div>
@@ -134,9 +134,13 @@ export async function renderInvitationSite(site: InvitationSite) {
   }
 
   switch (site.templateKey) {
-    case "classic_garden":
+    case "golden_aisle":
+    case "moonlight_garden":
+    case "pearl_manor":
       return <ClassicGardenTemplate site={site} />;
-    case "romantic_bloom":
+    case "aurora_veil":
+    case "blush_sonata":
+    case "linen_vows":
     default:
       return <RomanticBloomTemplate site={site} />;
   }

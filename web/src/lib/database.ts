@@ -7,6 +7,7 @@ import { AUTH_PAGES } from "@/features/auth/page-registry";
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
  initPromise?: Promise<void>;
+ ensurePromise?: Promise<void>;
   roleMigrationDone?: boolean;
   userWishlistMigrationDone?: boolean;
   userProfilesMigrationDone?: boolean;
@@ -18,6 +19,7 @@ const globalForDb = globalThis as unknown as {
   productTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
   commerceTablesMigrationDone?: boolean;
+  productVendorPaperTypeMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
@@ -284,7 +286,8 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS seo_opengraph JSONB,
     ADD COLUMN IF NOT EXISTS seo_favicon JSONB,
     ADD COLUMN IF NOT EXISTS global_fields_config JSONB,
-    ADD COLUMN IF NOT EXISTS commerce_config JSONB;
+    ADD COLUMN IF NOT EXISTS commerce_config JSONB,
+    ADD COLUMN IF NOT EXISTS internal_api_config JSONB;
   `);
 
   await pool.query(`
@@ -640,34 +643,55 @@ async function ensureProductTablesMigration() {
       thumbnail_url TEXT,
       price NUMERIC(12, 2) NOT NULL DEFAULT 0,
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
+      track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
+      stock_quantity INT NOT NULL DEFAULT 0,
+      low_stock_threshold INT NOT NULL DEFAULT 0,
+      allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
-      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template')),
-      CONSTRAINT products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
+      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template', 'general_product')),
+      CONSTRAINT products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
   `);
 
   await pool.query(`
     ALTER TABLE products
     ADD COLUMN IF NOT EXISTS category_id TEXT,
-    ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'digital';
+    ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'digital',
+    ADD COLUMN IF NOT EXISTS track_inventory BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS low_stock_threshold INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS allow_backorder BOOLEAN DEFAULT FALSE;
   `);
 
   await pool.query(`
     UPDATE products
-    SET fulfillment_type = COALESCE(NULLIF(fulfillment_type, ''), 'digital');
+    SET
+      fulfillment_type = COALESCE(NULLIF(fulfillment_type, ''), 'digital'),
+      track_inventory = COALESCE(track_inventory, FALSE),
+      stock_quantity = COALESCE(stock_quantity, 0),
+      low_stock_threshold = COALESCE(low_stock_threshold, 0),
+      allow_backorder = COALESCE(allow_backorder, FALSE);
   `);
 
   await pool.query(`
     ALTER TABLE products
-    ALTER COLUMN fulfillment_type SET NOT NULL;
+    ALTER COLUMN fulfillment_type SET NOT NULL,
+    ALTER COLUMN track_inventory SET NOT NULL,
+    ALTER COLUMN stock_quantity SET NOT NULL,
+    ALTER COLUMN low_stock_threshold SET NOT NULL,
+    ALTER COLUMN allow_backorder SET NOT NULL;
   `);
 
   await pool.query(`
     ALTER TABLE products
-    DROP CONSTRAINT IF EXISTS products_fulfillment_type_check;
+    DROP CONSTRAINT IF EXISTS products_fulfillment_type_check,
+    DROP CONSTRAINT IF EXISTS products_stock_quantity_check,
+    DROP CONSTRAINT IF EXISTS products_low_stock_threshold_check;
   `);
 
   await pool.query(`
@@ -676,6 +700,32 @@ async function ensureProductTablesMigration() {
       ALTER TABLE products
       ADD CONSTRAINT products_fulfillment_type_check
       CHECK (fulfillment_type IN ('digital', 'physical', 'service'));
+    EXCEPTION
+      WHEN duplicate_object THEN
+      NULL;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      ALTER TABLE products
+      ADD CONSTRAINT products_stock_quantity_check
+      CHECK (stock_quantity >= 0 OR allow_backorder = TRUE);
+    EXCEPTION
+      WHEN duplicate_object THEN
+      NULL;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      ALTER TABLE products
+      ADD CONSTRAINT products_low_stock_threshold_check
+      CHECK (low_stock_threshold >= 0);
     EXCEPTION
       WHEN duplicate_object THEN
       NULL;
@@ -702,6 +752,10 @@ async function ensureProductTablesMigration() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS products_category_id_idx
     ON products(category_id);
+  `);
+
+  await pool.query(`
+    DROP INDEX IF EXISTS products_template_key_unique_idx;
   `);
 
   await pool.query(`
@@ -857,7 +911,7 @@ async function ensureCommerceTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT commerce_order_items_quantity_check CHECK (quantity > 0),
-      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder_template')),
+      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder_template', 'general_product')),
       CONSTRAINT commerce_order_items_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
@@ -880,9 +934,13 @@ async function ensureCommerceTablesMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT commerce_payments_status_check CHECK (status IN ('pending', 'paid', 'failed', 'refunded')),
-      CONSTRAINT commerce_payments_method_check CHECK (method IN ('mock_online', 'bank_transfer', 'cod'))
+      CONSTRAINT commerce_payments_status_check CHECK (status IN ('pending', 'paid', 'failed', 'refunded'))
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE commerce_payments
+    DROP CONSTRAINT IF EXISTS commerce_payments_method_check;
   `);
 
   await pool.query(`
@@ -985,6 +1043,32 @@ async function ensureVendorOrdersMigration() {
   `);
 }
 
+async function ensureProductVendorPaperTypeMigration() {
+  const pool = getPool();
+  await pool.query(`
+    UPDATE products
+    SET product_type = 'general_product'
+    WHERE product_type = 'vendor_paper'
+  `);
+  await pool.query(`
+    UPDATE commerce_order_items
+    SET product_type = 'general_product'
+    WHERE product_type = 'vendor_paper'
+  `);
+  await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
+  await pool.query(`
+    ALTER TABLE products
+    ADD CONSTRAINT products_type_check
+    CHECK (product_type IN ('coded_template', 'builder_template', 'general_product'))
+  `);
+  await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_product_type_check`);
+  await pool.query(`
+    ALTER TABLE commerce_order_items
+    ADD CONSTRAINT commerce_order_items_product_type_check
+    CHECK (product_type IN ('coded_template', 'builder_template', 'general_product'))
+  `);
+}
+
 async function ensureProductSeed() {
   const pool = getPool();
 
@@ -999,6 +1083,12 @@ async function ensureProductSeed() {
       slug: "builder-templates",
       name: "Mẫu thiệp tự chỉnh sửa",
       description: "Catalog starter cho builder với preview dài để xem flow toàn trang.",
+      status: "published",
+    },
+    {
+      slug: "general-products",
+      name: "Sản phẩm",
+      description: "Các sản phẩm bán trực tiếp, có thể là hàng nội bộ hoặc gắn đối tác cung ứng.",
       status: "published",
     },
   ] as const;
@@ -1027,7 +1117,7 @@ async function ensureProductSeed() {
       excerpt: "Mẫu landing page cưới tông kem hồng với preview dài toàn trang để hover cuộn dọc.",
       description: "Template code sẵn với bố cục hero, câu chuyện, gallery và RSVP theo nhịp đọc mềm mại.",
       productType: "coded_template",
-      templateKey: "romantic_bloom",
+      templateKey: "aurora_veil",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
       price: "1190000",
       fulfillmentType: "digital",
@@ -1048,7 +1138,7 @@ async function ensureProductSeed() {
       excerpt: "Phong cách sang trọng với preview dài như một website cưới đầy đủ section.",
       description: "Template code sẵn cho lễ cưới trang nhã, nhấn vào hero lớn, timeline và gallery dọc.",
       productType: "coded_template",
-      templateKey: "classic_garden",
+      templateKey: "golden_aisle",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
       price: "1390000",
       fulfillmentType: "digital",
@@ -1069,7 +1159,7 @@ async function ensureProductSeed() {
       excerpt: "Bản phối pastel và typography mềm với ảnh preview dọc rất dài để hover scroll mượt hơn.",
       description: "Template code sẵn tối ưu cho cô dâu chú rể muốn landing page nữ tính và rõ thông tin.",
       productType: "coded_template",
-      templateKey: "romantic_bloom",
+      templateKey: "blush_sonata",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
       price: "1090000",
       fulfillmentType: "digital",
@@ -1090,7 +1180,7 @@ async function ensureProductSeed() {
       excerpt: "Mẫu thiệp cưới đêm vườn ánh trăng với preview website dài, rõ từng section nội dung.",
       description: "Template code sẵn phù hợp với lễ cưới buổi tối và phần gallery ảnh chân dung dài.",
       productType: "coded_template",
-      templateKey: "classic_garden",
+      templateKey: "moonlight_garden",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
       price: "1490000",
       fulfillmentType: "digital",
@@ -1111,7 +1201,7 @@ async function ensureProductSeed() {
       excerpt: "Bố cục tinh gọn, ảnh dài kiểu editorial và nhịp cuộn phù hợp card gallery hover-scroll.",
       description: "Template code sẵn cho cặp đôi thích phong cách tối giản sang trọng và câu chuyện ngắn gọn.",
       productType: "coded_template",
-      templateKey: "classic_garden",
+      templateKey: "pearl_manor",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
       price: "1290000",
       fulfillmentType: "digital",
@@ -1132,7 +1222,7 @@ async function ensureProductSeed() {
       excerpt: "Tông linen sáng, preview website rất dài và khoảng trắng đẹp cho hiệu ứng cuộn dọc.",
       description: "Template code sẵn dành cho cặp đôi muốn một landing page nhẹ, tinh tế và dễ đọc trên mobile.",
       productType: "coded_template",
-      templateKey: "romantic_bloom",
+      templateKey: "linen_vows",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
       price: "990000",
       fulfillmentType: "digital",
@@ -1153,7 +1243,7 @@ async function ensureProductSeed() {
       excerpt: "Starter builder theo phong cách tạp chí với preview dài như landing page nhiều section.",
       description: "Builder starter thiên về kể chuyện, phù hợp với flow hero lớn, story, timeline và gallery.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "editorial_story_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
       price: "390000",
       fulfillmentType: "digital",
@@ -1171,7 +1261,7 @@ async function ensureProductSeed() {
       excerpt: "Builder mềm mại với ảnh preview dài liên tục để người xem cảm giác như đang xem một website thật.",
       description: "Starter builder tông hoa lá, dễ kéo thành flow romantic với nhiều section ảnh dọc.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "floral_scroll_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
       price: "420000",
       fulfillmentType: "digital",
@@ -1189,7 +1279,7 @@ async function ensureProductSeed() {
       excerpt: "Builder preview dạng timeline dọc dài, rất hợp hiệu ứng hover scroll top-to-bottom.",
       description: "Starter builder tập trung vào lịch trình, tiện cho lễ cưới có nhiều cột mốc và CTA RSVP.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "timeline_ceremony_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
       price: "350000",
       fulfillmentType: "digital",
@@ -1207,7 +1297,7 @@ async function ensureProductSeed() {
       excerpt: "Bản builder tối giản với thumbnail dài kiểu editorial portrait để hover lướt mượt.",
       description: "Starter builder sạch và gọn, ưu tiên ảnh lớn, text ít và nhịp section thoáng.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "minimal_portrait_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
       price: "290000",
       fulfillmentType: "digital",
@@ -1225,7 +1315,7 @@ async function ensureProductSeed() {
       excerpt: "Builder tone trầm sang với screenshot dọc dài như một homepage cưới hoàn chỉnh.",
       description: "Starter builder dành cho giao diện trong nhà, nhấn typography mạnh và section gallery lớn.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "velvet_chapel_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
       price: "450000",
       fulfillmentType: "digital",
@@ -1243,7 +1333,7 @@ async function ensureProductSeed() {
       excerpt: "Builder sáng, thoáng và có thumbnail preview rất dài để thể hiện rõ flow toàn trang.",
       description: "Starter builder theo hướng studio hiện đại với các section nhẹ, gallery và thông tin RSVP.",
       productType: "builder_template",
-      templateKey: "freeform_sections",
+      templateKey: "ivory_atelier_builder",
       thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
       price: "320000",
       fulfillmentType: "digital",
@@ -1251,6 +1341,29 @@ async function ensureProductSeed() {
         siteDefaults: {
           heroTitle: "Ivory atelier",
           sectionOneTitle: "Welcome screen",
+        },
+      },
+    },
+    {
+      categorySlug: "general-products",
+      slug: "thiep-giay-linen-catalog",
+      name: "Thiệp giấy linen catalog",
+      excerpt: "Sản phẩm thiệp giấy vật lý, giao sau khi xác nhận đơn hàng.",
+      description:
+        "Sản phẩm catalog thông thường. Không tạo thiệp web online; phù hợp cho đơn hàng vật lý hoặc sản phẩm nhập từ bên thứ ba.",
+      productType: "general_product",
+      templateKey: "general_product",
+      thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
+      price: "890000",
+      fulfillmentType: "physical",
+      config: {
+        generalProduct: {
+          ownerType: "vendor",
+        },
+        productDetails: {
+          supplierName: "Xưởng in liên kết PinkLove",
+          spec: "Linen 300gsm, in offset 4 màu, bo góc.",
+          leadTimeNote: "7-10 ngày làm việc sau khi chốt nội dung in.",
         },
       },
     },
@@ -1297,10 +1410,35 @@ async function ensureProductSeed() {
   }
 }
 
+async function ensureProductTemplateKeyUniqueness() {
+  const pool = getPool();
+  const duplicates = await pool.query<{ product_type: string; template_key: string; total: string }>(`
+    SELECT product_type, template_key, COUNT(*)::text AS total
+    FROM products
+    GROUP BY product_type, template_key
+    HAVING COUNT(*) > 1
+  `);
+
+  if (duplicates.rows.length > 0) {
+    console.warn(
+      "Skipping products(product_type, template_key) unique index because duplicate template keys still exist:",
+      duplicates.rows
+    );
+    return;
+  }
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS products_product_type_template_key_unique_idx
+    ON products(product_type, template_key);
+  `);
+}
+
 export async function ensureProductCatalogReady() {
   await ensureDb();
   await ensureProductTablesMigration();
+  await ensureProductVendorPaperTypeMigration();
   await ensureProductSeed();
+  await ensureProductTemplateKeyUniqueness();
 }
 
 async function ensureManagedPagesSeed() {
@@ -1430,93 +1568,107 @@ async function ensureBlogSeed() {
 }
 
 export async function ensureDb() {
-  if (!globalForDb.initPromise) {
-    globalForDb.initPromise = initSchema();
-  }
-  await globalForDb.initPromise;
+  if (!globalForDb.ensurePromise) {
+    globalForDb.ensurePromise = (async () => {
+      if (!globalForDb.initPromise) {
+        globalForDb.initPromise = initSchema();
+      }
+      await globalForDb.initPromise;
 
-  if (!globalForDb.roleMigrationDone) {
-    await ensureUsersRoleMigration();
-    globalForDb.roleMigrationDone = true;
+      if (!globalForDb.roleMigrationDone) {
+        await ensureUsersRoleMigration();
+        globalForDb.roleMigrationDone = true;
+      }
+
+      if (!globalForDb.userWishlistMigrationDone) {
+        await ensureUserWishlistMigration();
+        globalForDb.userWishlistMigrationDone = true;
+      }
+
+      if (!globalForDb.userProfilesMigrationDone) {
+        await ensureUserProfilesMigration();
+        globalForDb.userProfilesMigrationDone = true;
+      }
+
+      if (!globalForDb.userSettingsDensityMigrationDone) {
+        await ensureUserSettingsDensityMigration();
+        globalForDb.userSettingsDensityMigrationDone = true;
+      }
+
+      await ensureAppSettingsMigration();
+
+      if (!globalForDb.oauthAccountsMigrationDone) {
+        await ensureOauthAccountsMigration();
+        globalForDb.oauthAccountsMigrationDone = true;
+      }
+
+      if (!(globalForDb as Record<string, unknown>).managedPagesMigrationDone) {
+        await ensureManagedPagesMigration();
+        (globalForDb as Record<string, unknown>).managedPagesMigrationDone = true;
+      }
+
+      if (!globalForDb.menuTablesMigrationDone) {
+        await ensureMenuTablesMigration();
+        globalForDb.menuTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.affiliateTablesMigrationDone) {
+        await ensureAffiliateTablesMigration();
+        globalForDb.affiliateTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.internalAccountsMigrationDone) {
+        await ensureInternalAccountsMigration();
+        globalForDb.internalAccountsMigrationDone = true;
+      }
+
+      if (!globalForDb.productTablesMigrationDone) {
+        await ensureProductTablesMigration();
+        globalForDb.productTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.blogTablesMigrationDone) {
+        await ensureBlogTablesMigration();
+        globalForDb.blogTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.commerceTablesMigrationDone) {
+        await ensureCommerceTablesMigration();
+        globalForDb.commerceTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.productVendorPaperTypeMigrationDone) {
+        await ensureProductVendorPaperTypeMigration();
+        globalForDb.productVendorPaperTypeMigrationDone = true;
+      }
+
+      if (!globalForDb.vendorOrdersMigrationDone) {
+        await ensureVendorOrdersMigration();
+        globalForDb.vendorOrdersMigrationDone = true;
+      }
+
+      const managedPagesSeedSignature = getManagedPagesSeedSignature();
+      if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
+        await ensureManagedPagesSeed();
+        globalForDb.managedPagesSeedSignature = managedPagesSeedSignature;
+      }
+
+      if (!globalForDb.productSeedDone) {
+        await ensureProductSeed();
+        globalForDb.productSeedDone = true;
+      }
+
+      if (!globalForDb.blogSeedDone) {
+        await ensureBlogSeed();
+        globalForDb.blogSeedDone = true;
+      }
+    })().catch((error) => {
+      globalForDb.ensurePromise = undefined;
+      throw error;
+    });
   }
 
-  if (!globalForDb.userWishlistMigrationDone) {
-    await ensureUserWishlistMigration();
-    globalForDb.userWishlistMigrationDone = true;
-  }
-
-  if (!globalForDb.userProfilesMigrationDone) {
-    await ensureUserProfilesMigration();
-    globalForDb.userProfilesMigrationDone = true;
-  }
-
-  if (!globalForDb.userSettingsDensityMigrationDone) {
-    await ensureUserSettingsDensityMigration();
-    globalForDb.userSettingsDensityMigrationDone = true;
-  }
-
-  await ensureAppSettingsMigration();
-
-  if (!globalForDb.oauthAccountsMigrationDone) {
-    await ensureOauthAccountsMigration();
-    globalForDb.oauthAccountsMigrationDone = true;
-  }
-
-  if (!(globalForDb as Record<string, unknown>).managedPagesMigrationDone) {
-    await ensureManagedPagesMigration();
-    (globalForDb as Record<string, unknown>).managedPagesMigrationDone = true;
-  }
-
-  if (!globalForDb.menuTablesMigrationDone) {
-    await ensureMenuTablesMigration();
-    globalForDb.menuTablesMigrationDone = true;
-  }
-
-  if (!globalForDb.affiliateTablesMigrationDone) {
-    await ensureAffiliateTablesMigration();
-    globalForDb.affiliateTablesMigrationDone = true;
-  }
-
-  if (!globalForDb.internalAccountsMigrationDone) {
-    await ensureInternalAccountsMigration();
-    globalForDb.internalAccountsMigrationDone = true;
-  }
-
-  if (!globalForDb.productTablesMigrationDone) {
-    await ensureProductTablesMigration();
-    globalForDb.productTablesMigrationDone = true;
-  }
-
-  if (!globalForDb.blogTablesMigrationDone) {
-    await ensureBlogTablesMigration();
-    globalForDb.blogTablesMigrationDone = true;
-  }
-
-  if (!globalForDb.commerceTablesMigrationDone) {
-    await ensureCommerceTablesMigration();
-    globalForDb.commerceTablesMigrationDone = true;
-  }
-
-  if (!globalForDb.vendorOrdersMigrationDone) {
-    await ensureVendorOrdersMigration();
-    globalForDb.vendorOrdersMigrationDone = true;
-  }
-
-  const managedPagesSeedSignature = getManagedPagesSeedSignature();
-  if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
-    await ensureManagedPagesSeed();
-    globalForDb.managedPagesSeedSignature = managedPagesSeedSignature;
-  }
-
-  if (!globalForDb.productSeedDone) {
-    await ensureProductSeed();
-    globalForDb.productSeedDone = true;
-  }
-
-  if (!globalForDb.blogSeedDone) {
-    await ensureBlogSeed();
-    globalForDb.blogSeedDone = true;
-  }
+  await globalForDb.ensurePromise;
 }
 
 export async function query<T extends import("pg").QueryResultRow>(text: string, values?: unknown[]) {

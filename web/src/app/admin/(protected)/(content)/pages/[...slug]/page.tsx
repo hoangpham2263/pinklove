@@ -37,7 +37,13 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
   const productOptions = products.map((product) => ({
     value: product.slug,
     label: product.name,
-    description: `${product.productType === "builder_template" ? "Builder" : "Template"} • ${product.status}`,
+    description: `${
+      product.productType === "builder_template"
+        ? "Builder"
+        : product.productType === "general_product"
+          ? "Sản phẩm"
+          : "Template"
+    } • ${product.status}`,
   }));
 
   return (

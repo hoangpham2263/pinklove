@@ -33,10 +33,10 @@ web/
           search/page.tsx
           blog/[slug]/page.tsx
           blog/post/[slug]/page.tsx
-      tools/
-        page.tsx
-        qr-builder/page.tsx
-        wedding-budget/page.tsx
+        tools/
+          page.tsx
+          qr-builder/page.tsx
+          wedding-budget/page.tsx
       admin/
         page.tsx
         (auth)/
@@ -145,10 +145,8 @@ web/
         media/route.ts
         customer/
           affiliate/apply/route.ts
-          cart/add/route.ts
-          cart/remove/route.ts
-          cart/update/route.ts
           checkout/route.ts
+          wishlist/route.ts
           profile/route.ts
           invitations/create-builder/route.ts
           invitations/create-from-product/route.ts
@@ -202,15 +200,34 @@ web/
         components/
         server/
         types.ts
+      search/
+        server/
+      website-hooks/
+        catalog.ts
     lib/
       auth.ts
-      cms.ts
-      cms-fields.ts
+      action-response.ts
+      client-mutation.ts
+      currency.ts
       database.ts
+      global-fields.ts
       google-oauth.ts
-      media.ts
+      internal-accounts.ts
+      managed-pages.ts
+      media-resolver.ts
       menu.ts
+      navigation.ts
+      page-fields.ts
+      page-paths.ts
+      public-paths.ts
+      rich-text.ts
+      robots.ts
       routes.ts
+      roles.ts
+      seo.ts
+      sitemap.ts
+      status-labels.ts
+      system-settings.ts
       utils.ts
 ```
 
@@ -265,15 +282,17 @@ web/
 
 ## Feature map
 
-- `src/features/admin`: shared admin shell layout, route metadata, and admin-only modules that are not owned by a business domain
+- `src/features/admin`: shared admin shell layout, navigation, route metadata, and admin-only modules that are not owned by a business domain
 - `src/features/pages`: managed content page registry, managed-page config, and admin page editing UI
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/blog`: public blog renderers/services plus admin blog forms
 - `src/features/media`: media library UI and server storage
 - `src/features/affiliate`: affiliate flows for customer and admin
-- `src/features/ecommerce`: cart, checkout, orders, payments, shipments, and entitlement services
+- `src/features/ecommerce`: wishlist-backed checkout, orders, payments, shipments, and entitlement services
 - `src/features/products`: invitation catalog products plus admin product/category management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
+- `src/features/search`: guest-facing search services and result aggregation
+- `src/features/website-hooks`: outbound website integration/webhook inventory surfaced in admin
 
 ## Current implementation notes
 

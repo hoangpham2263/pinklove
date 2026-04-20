@@ -18,5 +18,5 @@ export default async function CustomerOrderDetailPage({
     notFound();
   }
 
-  return <CustomerOrderDetail order={order} currencyFormat={settings.ecommerce} />;
+  return <CustomerOrderDetail order={order} ecommerceSettings={settings.ecommerce} />;
 }

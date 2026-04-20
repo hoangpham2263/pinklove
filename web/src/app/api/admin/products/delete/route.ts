@@ -10,12 +10,13 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const slug = String(formData.get("slug") ?? "").trim();
+  const returnTo = String(formData.get("returnTo") ?? "").trim() || ROUTES.ADMIN.PRODUCT_LIST;
 
   if (!slug) {
-    return respondError(request, { error: "missing_slug", message: "Thiếu slug sản phẩm để xóa.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=missing_slug` });
+    return respondError(request, { error: "missing_slug", message: "Thiếu slug sản phẩm để xóa.", location: `${returnTo}?error=missing_slug` });
   }
 
   await deleteProduct(slug);
 
-  return respondSuccess(request, { location: ROUTES.ADMIN.PRODUCT_LIST, message: "Đã xóa sản phẩm." });
+  return respondSuccess(request, { location: returnTo, message: "Đã xóa sản phẩm." });
 }

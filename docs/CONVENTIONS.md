@@ -5,8 +5,8 @@ This file is the repo-wide source of truth.
 ## Documentation workflow
 
 - `docs/index.md` is the docs entrypoint.
-- `docs/conventions.md` is the repo-wide rules file.
-- All documentation filenames in `docs/` must use lowercase.
+- `docs/CONVENTIONS.md` is the repo-wide rules file.
+- Prefer lowercase filenames for new documentation files in `docs/`. The existing `CONVENTIONS.md` filename remains the workspace-compatible exception.
 - If code changes affect structure, roles, routes, schema, or workflows, update the matching doc files in the same change.
 - If a change affects more than one app area, update every affected convention file instead of leaving the rule only in one place.
 - If code and docs conflict, update the docs in the same task so they stay aligned with the repository.
@@ -33,6 +33,8 @@ This file is the repo-wide source of truth.
 - Keep shared app-level components in `src/components/common`.
 - Keep shared infra and helpers in `src/lib`.
 - Prefer feature-owned `server/*` modules for domain services.
+- Keep shared admin shell, navigation, and platform-wide admin utilities in `src/features/admin`. Keep domain-owned admin forms/tables close to their domain feature under `src/features/<feature>/admin`.
+- Use `src/features/website-hooks` for outbound website integration catalogs; reserve `hooks` for actual React-hook semantics.
 
 ## Routing
 
@@ -57,8 +59,8 @@ This file is the repo-wide source of truth.
 ## Naming
 
 - Use lowercase filenames in `docs/`.
-- Use `kebab-case` for folders and non-component files in app code.
-- Use `PascalCase` for component filenames.
+- Use `kebab-case` for folders and app code filenames, including component files.
+- Keep React component symbols in `PascalCase` even when the file name is `kebab-case`.
 - Use `camelCase` for variables and functions.
 - Use `UPPER_SNAKE_CASE` for constants.
 
@@ -86,6 +88,7 @@ This file is the repo-wide source of truth.
 - Public content routes are code-managed explicit files under `src/app/(guest)`.
 - Managed content-page config lives in `src/features/pages/registry.ts`.
 - Auth-page config lives in `src/features/auth/page-registry.ts`.
+- Keep `src/app/(guest)/[...slug]/page.tsx` thin by delegating public content resolution to helpers under `src/features/pages/server/`.
 - When a managed page is registered in the page registries, CMS seeding and sitemap inclusion must update automatically from that registry data rather than requiring a second hardcoded sitemap edit.
 - Template-specific fields are stored in `managed_pages.custom_fields`.
 - Use `getPageFields(page)` from `src/lib/page-fields.ts` when a page object is already loaded.
@@ -98,6 +101,14 @@ This file is the repo-wide source of truth.
 - For auth system pages like `login` and `register`, draft access is allowed only for logged-in admins through the shared helper path.
 - Protected system slugs currently include `home`, `login`, and `register`.
 - System-page status must still be respected publicly. Draft pages are previewable only by admins.
+
+## Invitation product model
+
+- Treat `products` as the sellable catalog layer shown to guests.
+- Treat `wedding_sites` as customer-specific invitation instances cloned from a product.
+- `coded_template` products represent fixed coded invitation designs.
+- `builder_template` products represent editable builder starters that customers clone and customize.
+- Each invitation `template_key` may belong to only one catalog product per `product_type`. Do not create multiple products that reuse the same template identity.
 
 ## Media
 
@@ -136,7 +147,7 @@ This file is the repo-wide source of truth.
 
 ## Agent workflow
 
-- When `docs/index.md` is referenced, read `docs/conventions.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
+- When `docs/index.md` is referenced, read `docs/CONVENTIONS.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
 - Treat the docs as describing the repository as it exists now, including incomplete product areas.
 - If a code change affects documented behavior, update the docs in the same task.
 - Database access is raw SQL through `web/src/lib/database.ts`.
@@ -147,6 +158,7 @@ This file is the repo-wide source of truth.
   - `web/src/features/auth/page-registry.ts`
   - `web/src/features/auth/auth-page-loader.ts`
 - Affiliate foundation lives in `web/src/features/affiliate/`.
+- Website integration catalog lives in `web/src/features/website-hooks/`.
 - Wedding product foundation lives in:
   - `web/src/features/products/`
   - `web/src/features/invitations/`

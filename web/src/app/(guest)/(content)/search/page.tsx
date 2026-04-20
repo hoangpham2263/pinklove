@@ -12,7 +12,7 @@ import { BlogCard } from "@/features/blog/components/blog-card";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { searchGuestContent } from "@/features/search/server/service";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { getBlogCategoryPath, getBlogPostPath, getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { getBlogCategoryPath, getBlogPostPath, sanitizePermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -113,9 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <LoopProductCard
                 key={product.id}
                 product={product}
-                href={product.productType === "builder_template"
-                  ? getBuilderProductPath(product, permalinkConfig)
-                  : getTemplateProductPath(product, permalinkConfig)}
+                permalinkConfig={permalinkConfig}
               />
             ))}
           </div>

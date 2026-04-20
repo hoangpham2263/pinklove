@@ -217,6 +217,10 @@ export async function createInvitationFromProduct(input: {
   userId: string;
   product: Product;
 }): Promise<InvitationSite> {
+  if (input.product.productType === "general_product") {
+    throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_PRODUCT");
+  }
+
   const defaults = {
     ...getInvitationTemplateDefaults(input.product.templateKey),
     ...((input.product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),

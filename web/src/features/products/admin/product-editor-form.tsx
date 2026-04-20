@@ -15,15 +15,19 @@ import {
 } from "@/features/invitations/templates/registry";
 import type { Product, ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
 import { finishMutation, postForm } from "@/lib/client-mutation";
+import type { AccountUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 
 type ProductEditorFormProps = {
   product: Product;
   categories: ProductCategory[];
+  usedTemplateKeys: string[];
+  vendors: AccountUser[];
+  returnTo?: string;
 };
 
-export function ProductEditorForm({ product, categories }: ProductEditorFormProps) {
+export function ProductEditorForm({ product, categories, usedTemplateKeys, vendors, returnTo = ROUTES.ADMIN.PRODUCT_LIST }: ProductEditorFormProps) {
   const router = useRouter();
   const [slug, setSlug] = useState(product.slug);
   const [name, setName] = useState(product.name);
@@ -31,14 +35,28 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
   const [productType, setProductType] = useState<ProductType>(product.productType);
   const [fulfillmentType, setFulfillmentType] = useState<ProductFulfillmentType>(product.fulfillmentType);
   const [templateKey, setTemplateKey] = useState(product.templateKey);
+  const [trackInventory, setTrackInventory] = useState(product.trackInventory);
+  const [stockQuantity, setStockQuantity] = useState(product.stockQuantity);
+  const [lowStockThreshold, setLowStockThreshold] = useState(product.lowStockThreshold);
+  const [allowBackorder, setAllowBackorder] = useState(product.allowBackorder);
+  const [ownerType, setOwnerType] = useState<"internal" | "vendor">(product.ownerType);
+  const [ownerVendorUserId, setOwnerVendorUserId] = useState(product.ownerVendorUserId || "");
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const templateOptions = useMemo(() => getInvitationTemplateOptions(productType), [productType]);
-  const templateFields = getInvitationTemplateFields(templateKey);
+  const templateOptions = useMemo(
+    () =>
+      productType === "general_product"
+        ? []
+        : getInvitationTemplateOptions(productType).filter(
+            (template) => template.value === templateKey || !usedTemplateKeys.includes(template.value)
+          ),
+    [productType, templateKey, usedTemplateKeys]
+  );
+  const templateFields = productType === "general_product" ? [] : getInvitationTemplateFields(templateKey);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +82,7 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
     try {
       const formData = new FormData();
       formData.append("slug", product.slug);
+      formData.append("returnTo", returnTo);
       const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, formData);
       toast.success(result.message ?? "Đã xóa sản phẩm.");
       finishMutation(router, result, { redirect: "push", refresh: false });
@@ -86,15 +105,16 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
       <input type="hidden" name="originalSlug" value={product.slug} />
       <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
       <input type="hidden" name="siteDefaults" value={JSON.stringify(siteDefaults)} />
+      <input type="hidden" name="returnTo" value={returnTo} />
 
       <Card className="min-w-0 rounded-lg lg:col-span-9">
         <CardHeader>
-          <CardTitle>Thông tin sản phẩm</CardTitle>
+          <CardTitle>Thông tin mẫu gốc</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="font-medium">Tên sản phẩm</label>
+              <label className="font-medium">Tên mẫu / tên sản phẩm</label>
               <Input
                 name="name"
                 value={name}
@@ -137,31 +157,82 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
                 onChange={(e) => {
                   const nextType = e.target.value as ProductType;
                   setProductType(nextType);
-                  const nextTemplate = getInvitationTemplateOptions(nextType)[0]?.value || "";
-                  setTemplateKey(nextTemplate);
-                  setSiteDefaults({});
+                  if (nextType === "general_product") {
+                    setTemplateKey("general_product");
+                    setSiteDefaults({});
+                    setOwnerType("internal");
+                    setOwnerVendorUserId("");
+                  } else {
+                    const nextTemplate = getInvitationTemplateOptions(nextType).find(
+                      (template) => !usedTemplateKeys.includes(template.value)
+                    )?.value || "";
+                    setTemplateKey(nextTemplate);
+                    setSiteDefaults({});
+                  }
                 }}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <option value="coded_template">Coded Template</option>
                 <option value="builder_template">Builder Template</option>
+                <option value="general_product">Sản phẩm</option>
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="font-medium">Template</label>
-              <select
-                name="templateKey"
-                value={templateKey}
-                onChange={(e) => setTemplateKey(e.target.value)}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                {templateOptions.map((template) => (
-                  <option key={template.value} value={template.value}>
-                    {template.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {productType === "general_product" ? (
+              <>
+                <input type="hidden" name="templateKey" value="general_product" />
+                <div className="space-y-2">
+                  <label className="font-medium">Nguồn hàng / chủ sở hữu</label>
+                  <select
+                    name="ownerType"
+                    value={ownerType}
+                    onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="internal">Sản phẩm của tôi / nội bộ</option>
+                    <option value="vendor">Sản phẩm của đối tác</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="font-medium">Đối tác</label>
+                  <select
+                    name="ownerVendorUserId"
+                    value={ownerVendorUserId}
+                    onChange={(e) => setOwnerVendorUserId(e.target.value)}
+                    disabled={ownerType !== "vendor"}
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                  >
+                    <option value="">Chọn đối tác</option>
+                    {vendors.map((vendor) => (
+                      <option key={vendor.id} value={vendor.id}>
+                        {vendor.displayName || vendor.fullName || vendor.username}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-sm text-muted-foreground">
+                    Nhóm sản phẩm này không sinh invitation site và chạy như sản phẩm bán ra bình thường.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <label className="font-medium">Template source</label>
+                <select
+                  name="templateKey"
+                  value={templateKey}
+                  onChange={(e) => setTemplateKey(e.target.value)}
+                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {templateOptions.map((template) => (
+                    <option key={template.value} value={template.value}>
+                      {template.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-sm text-muted-foreground">
+                  Mỗi template chỉ được gắn với một sản phẩm gốc duy nhất.
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <label className="font-medium">Hình thức bàn giao</label>
               <select
@@ -174,6 +245,60 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
                 <option value="physical">Cần vận chuyển</option>
                 <option value="service">Dịch vụ</option>
               </select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="font-medium">Quản lý kho</label>
+              <label className="flex items-start gap-3 rounded-md border bg-card p-4">
+                <input
+                  type="checkbox"
+                  name="trackInventory"
+                  checked={trackInventory}
+                  onChange={(e) => setTrackInventory(e.target.checked)}
+                  className="mt-1 rounded border-input"
+                />
+                <span className="space-y-1">
+                  <span className="block font-medium">Theo dõi tồn kho và trừ kho khi phát sinh đơn</span>
+                  <span className="block text-sm text-muted-foreground">Nếu tắt, sản phẩm được xem là không giới hạn tồn kho trong checkout.</span>
+                </span>
+              </label>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3 md:col-span-2">
+              <div className="space-y-2">
+                <label className="font-medium">Tồn kho hiện tại</label>
+                <Input
+                  name="stockQuantity"
+                  type="number"
+                  min={allowBackorder ? undefined : 0}
+                  value={stockQuantity}
+                  disabled={!trackInventory}
+                  onChange={(e) => setStockQuantity(Number(e.target.value || "0"))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Ngưỡng cảnh báo thấp</label>
+                <Input
+                  name="lowStockThreshold"
+                  type="number"
+                  min="0"
+                  value={lowStockThreshold}
+                  disabled={!trackInventory}
+                  onChange={(e) => setLowStockThreshold(Math.max(0, Number(e.target.value || "0")))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="font-medium">Cho phép backorder</label>
+                <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                  <input
+                    type="checkbox"
+                    name="allowBackorder"
+                    checked={allowBackorder}
+                    disabled={!trackInventory}
+                    onChange={(e) => setAllowBackorder(e.target.checked)}
+                    className="mt-1 rounded border-input"
+                  />
+                  <span className="block text-sm text-muted-foreground">Cho phép đơn đi tiếp kể cả khi tồn kho không đủ.</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -197,7 +322,9 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
 
           {templateFields.length > 0 && (
             <div className="space-y-3 border-t pt-4">
-              <h3 className="font-semibold">Dữ liệu mặc định khi tạo site</h3>
+              <h3 className="font-semibold">
+                Dữ liệu mặc định khi tạo site
+              </h3>
               <FieldsEditor
                 fields={templateFields}
                 values={siteDefaults}
@@ -216,7 +343,7 @@ export function ProductEditorForm({ product, categories }: ProductEditorFormProp
       <div className="min-w-0 space-y-6 lg:col-span-3">
         <Card className="min-w-0 rounded-lg lg:self-start">
           <CardHeader>
-            <CardTitle>Xuất bản</CardTitle>
+            <CardTitle>Sản phẩm bán ra</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

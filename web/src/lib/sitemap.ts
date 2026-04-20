@@ -10,9 +10,8 @@ import { getManagedPagePath } from "@/lib/page-paths";
 import {
   getBlogCategoryPath,
   getBlogPostPath,
-  getBuilderProductPath,
   getInvitationPath,
-  getTemplateProductPath,
+  getProductPath,
   sanitizePermalinkConfig,
 } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
@@ -189,11 +188,7 @@ export async function getProductSitemapItems(siteUrl: string): Promise<SitemapUr
   const products = await listPublishedProducts();
 
   return products.map((product) => ({
-    loc: `${siteUrl}${
-      product.productType === "builder_template"
-        ? getBuilderProductPath(product, permalinkConfig)
-        : getTemplateProductPath(product, permalinkConfig)
-    }`,
+    loc: `${siteUrl}${getProductPath(product, permalinkConfig)}`,
     lastmod: toIsoDate(product.updatedAt),
     changefreq: "weekly",
     priority: "0.8",

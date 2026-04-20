@@ -2,14 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BadgePercent,
+  Blocks,
   BookOpenText,
+  CreditCard,
   ExternalLink,
+  FileCode2,
   Files,
   Image as ImageIcon,
   LayoutDashboard,
   Menu,
+  Package,
+  ReceiptText,
   Settings,
   ShoppingBag,
+  Store,
+  Tags,
+  Truck,
   Users,
 } from "lucide-react";
 
@@ -28,11 +36,19 @@ import { getSystemSettings } from "@/lib/system-settings";
 const standaloneIconMap = {
   "layout-dashboard": LayoutDashboard,
   files: Files,
+  "file-code-2": FileCode2,
+  blocks: Blocks,
+  package: Package,
+  tags: Tags,
+  "receipt-text": ReceiptText,
+  "credit-card": CreditCard,
+  truck: Truck,
   "shopping-bag": ShoppingBag,
   menu: Menu,
   image: ImageIcon,
   "book-open-text": BookOpenText,
   users: Users,
+  store: Store,
   "badge-percent": BadgePercent,
   settings: Settings,
   "external-link": ExternalLink,
@@ -49,13 +65,19 @@ export default async function AdminLayout({
     <div className="min-h-screen md:grid md:grid-cols-12">
       <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
         <div className="mb-6 shrink-0 px-3">
-          <Image
-            src={settings.branding.brandLogo}
-            alt="PinkLove"
-            width={120}
-            height={40}
-            className="h-10 w-auto max-w-[120px] object-contain"
-          />
+          {settings.branding.brandLogo ? (
+            <Image
+              src={settings.branding.brandLogo}
+              alt={settings.branding.siteName || "PinkLove"}
+              width={120}
+              height={40}
+              className="h-10 w-auto max-w-[120px] object-contain"
+            />
+          ) : (
+            <h2 className="text-lg font-bold tracking-tight">
+              {settings.branding.siteName || "PinkLove"}
+            </h2>
+          )}
         </div>
 
         <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">

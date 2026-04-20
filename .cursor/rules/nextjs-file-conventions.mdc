@@ -10,26 +10,27 @@ Apply these conventions for this repository:
 - `docs/CONVENTIONS.md` is the single source of truth for project conventions.
 - Whenever adding/changing a convention, update `docs/CONVENTIONS.md` in the same task.
 - Keep route files in `web/src/app` only (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`).
-- Use route group `web/src/app/(client)` for public pages.
-- Keep admin pages under `web/src/app/(admin)/admin/*` for a cleaner tree.
-- Keep authenticated user pages under `web/src/app/(user)/user/*` (separate from admin).
+- Use route group `web/src/app/(guest)` for public pages.
+- Keep admin pages under `web/src/app/admin/*`.
+- Keep customer-authenticated pages under `web/src/app/customer/*`.
+- Keep partner pages under `web/src/app/partner/*`.
 - Keep domain logic in `web/src/features/<feature-name>`.
 - Keep shared UI in `web/src/components/ui`; keep shared layout/widgets in `web/src/components/common`.
-- Keep technical helpers in `web/src/lib` (`env.ts`, `db.ts`, `auth.ts`, `utils.ts`).
-- Keep shared types in `web/src/types`.
-- Media library UI should live at `web/src/app/(admin)/admin/(protected)/media/page.tsx`.
+- Keep technical helpers and orchestration utilities in `web/src/lib`.
+- Keep feature-owned server logic under `web/src/features/<feature>/server/*`.
+- Media library UI should live at `web/src/app/admin/(protected)/(system)/media/page.tsx`.
 - Media API should live at `web/src/app/api/media/route.ts`.
 - Local uploads should be stored in `web/public/uploads/*` with metadata in `web/storage/media.json`.
-- User Login page should live at `web/src/app/(user)/user/(auth)/login/page.tsx`.
-- User Register page should live at `web/src/app/(user)/user/(auth)/register/page.tsx`.
-- Admin Login page should live at `web/src/app/(admin)/admin/(auth)/login/page.tsx`.
+- User Login page should live at `web/src/app/customer/(auth)/login/page.tsx` or the current canonical customer auth path.
+- User Register page should live at `web/src/app/customer/(auth)/register/page.tsx` or the current canonical customer auth path.
+- Admin Login page should live at `web/src/app/admin/(auth)/login/page.tsx` or the current canonical admin auth path.
 - Auth APIs should live under `web/src/app/api/auth/*`.
 - Admin account/role APIs should live under `web/src/app/api/admin/users/*`.
 
 ## Naming
 
-- Folders and utility files: `kebab-case`.
-- React component files: `PascalCase.tsx`.
+- Folders and app code files, including React component files: `kebab-case`.
+- React component symbols: `PascalCase`.
 - Variables/functions: `camelCase`.
 - Constants: `UPPER_SNAKE_CASE`.
 
@@ -38,15 +39,15 @@ Apply these conventions for this repository:
 - Prefer Server Components by default; add `"use client"` only when needed.
 - Keep API handlers under `web/src/app/api/**/route.ts`.
 - Route-specific components stay in that route folder, e.g. `_components`.
-- Prefer route groups for layout separation where needed (currently `(client)`).
+- Prefer route groups for layout separation where needed (currently `(guest)` and nested concern groups such as `(marketing)`, `(catalog)`, `(content)`).
 
 ## Feature module pattern
 
 Inside `web/src/features/<feature-name>/`, prefer:
 
 - `components/`
-- `actions.ts`
-- `service.ts`
+- `server/`
+- `admin/` when a domain owns its admin UI
 - `schema.ts`
 - `types.ts`
 

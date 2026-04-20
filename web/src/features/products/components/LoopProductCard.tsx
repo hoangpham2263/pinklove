@@ -4,17 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, Heart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { WishlistToggleButton } from "@/features/products/components/wishlist-toggle-button";
 import type { Product } from "@/features/products/types";
 import { createWishlistProductSnapshot } from "@/features/products/wishlist";
-import { ROUTES } from "@/lib/routes";
+import { getProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
 import { cn } from "@/lib/utils";
 
 type LoopProductCardProps = {
   product: Product;
-  href?: string;
-  variant?: "default" | "gallery";
+  permalinkConfig: PublicPermalinkConfig;
   className?: string;
   imageClassName?: string;
   wishlistCount?: number;
@@ -91,8 +89,7 @@ function ProductCardImage({ src, alt, className, isHovered }: ProductCardImagePr
 
 export function LoopProductCard({
   product,
-  href = ROUTES.CATALOG.TEMPLATE(product.slug),
-  variant = "default",
+  permalinkConfig,
   className,
   imageClassName,
   wishlistCount,
@@ -100,46 +97,12 @@ export function LoopProductCard({
 }: LoopProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const wishlistProduct = createWishlistProductSnapshot(product);
-
-  if (variant === "gallery") {
-    return (
-      <div
-        className={cn(
-          "group relative block h-[24rem] w-[15rem] overflow-hidden rounded-md border border-[#efe8ea] bg-white p-0 shadow-[0_18px_40px_rgba(35,31,39,0.1)] transition-transform duration-300 ease-out hover:-translate-y-2",
-          className
-        )}
-        onPointerEnter={() => setIsHovered(true)}
-        onPointerLeave={() => setIsHovered(false)}
-        onFocusCapture={() => setIsHovered(true)}
-        onBlurCapture={() => setIsHovered(false)}
-      >
-        <Link href={href} aria-label={`Xem chi tiet ${product.name}`} className="absolute inset-0 z-10 rounded-md" />
-        {product.thumbnailUrl ? (
-          <ProductCardImage
-            src={product.thumbnailUrl}
-            alt={product.name}
-            className={imageClassName}
-            isHovered={isHovered}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400">
-            Preview
-          </div>
-        )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-[#231f27]/82 via-[#231f27]/32 to-transparent px-5 pb-5 pt-16 text-left text-white">
-          <h3 className="text-lg font-bold leading-tight">{product.name}</h3>
-          <p className="mt-1 text-sm text-white/88">
-            {product.excerpt || getInvitationTemplateLabel(product.templateKey)}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const href = getProductPath(product, permalinkConfig);
 
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-md border border-[#efe8ea] bg-white shadow-[0_18px_40px_rgba(35,31,39,0.08)] transition-transform duration-300 ease-out hover:-translate-y-1",
+        "group relative aspect-2/3 overflow-hidden rounded-md border border-[#efe8ea] bg-white shadow-[0_18px_40px_rgba(35,31,39,0.08)] transition-transform duration-300 ease-out hover:-translate-y-1",
         className
       )}
       onPointerEnter={() => setIsHovered(true)}
@@ -153,7 +116,7 @@ export function LoopProductCard({
         className="absolute inset-0 z-10 block rounded-md"
       />
 
-      <div className="relative aspect-2/3 overflow-hidden bg-[linear-gradient(180deg,#fff7fb_0%,#f8eef7_100%)]">
+      <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#fff7fb_0%,#f8eef7_100%)]">
         {product.thumbnailUrl ? (
           <ProductCardImage
             src={product.thumbnailUrl}

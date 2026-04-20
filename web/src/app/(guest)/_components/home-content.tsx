@@ -1,15 +1,15 @@
 import Image from "next/image";
-import { EventPlannerTitleAccent } from "@/app/(guest)/_components/EventPlannerTitleAccent";
+import { EventPlannerTitleAccent } from "@/app/(guest)/_components/event-planner-title-accent";
 import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated-cta-button";
-import { HeroAnimatedTitle } from "@/app/(guest)/_components/HeroAnimatedTitle";
+import { HeroAnimatedTitle } from "@/app/(guest)/_components/hero-animated-title";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
 import { listPublishedProducts } from "@/features/products/server/service";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
-import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { getPageFields } from "@/lib/page-fields";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
@@ -614,10 +614,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                         <LoopProductCard
                           key={product.id}
                           product={product}
-                          href={product.productType === "builder_template"
-                            ? getBuilderProductPath(product, permalinkConfig)
-                            : getTemplateProductPath(product, permalinkConfig)}
-                          variant="gallery"
+                          permalinkConfig={permalinkConfig}
+                          className="h-[24rem] w-[15rem] shrink-0"
                         />
                       ))}
                     </div>
@@ -682,10 +680,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                         <LoopProductCard
                           key={product.id}
                           product={product}
-                          href={product.productType === "builder_template"
-                            ? getBuilderProductPath(product, permalinkConfig)
-                            : getTemplateProductPath(product, permalinkConfig)}
-                          variant="gallery"
+                          permalinkConfig={permalinkConfig}
+                          className="h-[24rem] w-[15rem] shrink-0"
                         />
                       ))}
                     </div>

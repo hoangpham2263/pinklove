@@ -25,7 +25,7 @@ import {
   type ManagedPage,
 } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 import { getCurrentUser } from "@/lib/auth";
@@ -214,9 +214,7 @@ export async function renderManagedPage(page: ManagedPage) {
                   <LoopProductCard
                     key={product.id}
                     product={product}
-                    href={product.productType === "builder_template"
-                      ? getBuilderProductPath(product, permalinkConfig)
-                      : getTemplateProductPath(product, permalinkConfig)}
+                    permalinkConfig={permalinkConfig}
                   />
                 ))}
               </div>
@@ -250,7 +248,7 @@ export async function renderManagedPage(page: ManagedPage) {
               <LoopProductCard
                 key={product.id}
                 product={product}
-                href={getBuilderProductPath(product, permalinkConfig)}
+                permalinkConfig={permalinkConfig}
               />
             ))}
           </div>

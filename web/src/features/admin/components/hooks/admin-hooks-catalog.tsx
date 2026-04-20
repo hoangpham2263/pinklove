@@ -32,8 +32,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { WebsiteHook } from "@/features/hooks/catalog";
-import { WEBSITE_HOOKS } from "@/features/hooks/catalog";
+import type { WebsiteHook } from "@/features/website-hooks/catalog";
+import { WEBSITE_HOOKS } from "@/features/website-hooks/catalog";
 import { cn } from "@/lib/utils";
 
 type AdminHooksCatalogProps = {

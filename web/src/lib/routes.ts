@@ -26,6 +26,7 @@ export const ROUTES = {
   CATALOG: {
     TEMPLATE: (slug: string) => `/templates/${slug}`,
     BUILDER: (slug: string) => `/builder/${slug}`,
+    PRODUCT: (slug: string) => `/products/${slug}`,
   },
   INVITATIONS: {
     PUBLIC: (slug: string) => `/invitations/${slug}`,
@@ -99,8 +100,13 @@ export const ROUTES = {
     CONFIG_OPENGRAPH: "/admin/config/opengraph",
     CONFIG_FAVICON: "/admin/config/favicon",
     CONFIG_SITEMAP: "/admin/config/sitemap",
+    CONFIG_INTERNAL_APIS: "/admin/config/internal-apis",
+    CONFIG_INTERNAL_API_PRODUCTS: "/admin/config/internal-apis/products",
     PRODUCTS: "/admin/products/new",
     PRODUCT_LIST: "/admin/products",
+    PRODUCT_LIST_CODED: "/admin/products/coded-templates",
+    PRODUCT_LIST_BUILDER: "/admin/products/builder-templates",
+    PRODUCT_LIST_GENERAL: "/admin/products/san-pham",
     PRODUCT_CATEGORIES: "/admin/product-cat",
     PRODUCT_CATEGORY: (slug: string) => `/admin/product-cat/${slug}`,
     PRODUCT: (slug: string) => `/admin/products/${slug}`,
@@ -162,6 +168,9 @@ export const ROUTES = {
       },
       CONFIG: {
         UPDATE: "/api/admin/config/update",
+      },
+      INTERNAL: {
+        PRODUCTS_IMPORT: "/api/internal/products/import",
       },
       GLOBAL_FIELDS: {
         UPDATE: "/api/admin/global-fields/update",

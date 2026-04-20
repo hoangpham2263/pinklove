@@ -2,13 +2,21 @@
 
 import {
   BadgePercent,
+  Blocks,
   BookOpenText,
+  CreditCard,
   ChevronRight,
+  FileCode2,
   Files,
   Image as ImageIcon,
   Menu as MenuIcon,
+  Package,
   Settings,
   ShoppingBag,
+  Store,
+  ReceiptText,
+  Tags,
+  Truck,
   Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -18,11 +26,19 @@ import { isRouteActive } from "@/lib/navigation";
 
 type AdminSidebarIconName =
   | "files"
+  | "file-code-2"
+  | "blocks"
+  | "package"
+  | "tags"
+  | "receipt-text"
+  | "credit-card"
+  | "truck"
   | "shopping-bag"
   | "menu"
   | "image"
   | "book-open-text"
   | "users"
+  | "store"
   | "badge-percent"
   | "settings";
 
@@ -41,11 +57,19 @@ type AdminSidebarGroupProps = {
 
 const iconMap = {
   files: Files,
+  "file-code-2": FileCode2,
+  blocks: Blocks,
+  package: Package,
+  tags: Tags,
+  "receipt-text": ReceiptText,
+  "credit-card": CreditCard,
+  truck: Truck,
   "shopping-bag": ShoppingBag,
   menu: MenuIcon,
   image: ImageIcon,
   "book-open-text": BookOpenText,
   users: Users,
+  store: Store,
   "badge-percent": BadgePercent,
   settings: Settings,
 } satisfies Record<AdminSidebarIconName, React.ComponentType<{ className?: string }>>;

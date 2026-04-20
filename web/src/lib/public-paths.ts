@@ -19,9 +19,10 @@ export type PublicPermalinkConfig = Pick<
     blogCategoryBase: string;
     templateBase: string;
     builderBase: string;
+    productBase: string;
     invitationBase: string;
   },
-  "enforceLeadingSlash" | "stripTrailingSlash" | "blogPostPattern" | "blogCategoryBase" | "templateBase" | "builderBase" | "invitationBase"
+  "enforceLeadingSlash" | "stripTrailingSlash" | "blogPostPattern" | "blogCategoryBase" | "templateBase" | "builderBase" | "productBase" | "invitationBase"
 >;
 
 function normalizeSegment(input: string) {
@@ -78,6 +79,7 @@ export function sanitizePermalinkConfig(input: PublicPermalinkConfig): PublicPer
     blogCategoryBase: normalizeSegment(input.blogCategoryBase) || "blog",
     templateBase: normalizeSegment(input.templateBase) || "templates",
     builderBase: normalizeSegment(input.builderBase) || "builder",
+    productBase: normalizeSegment(input.productBase) || "products",
     invitationBase: normalizeSegment(input.invitationBase) || "invitations",
   };
 }
@@ -110,6 +112,25 @@ export function getBuilderProductPath(product: Pick<Product, "slug"> | string, i
   const config = sanitizePermalinkConfig(input);
   const slug = typeof product === "string" ? product : product.slug;
   return normalizePath(`/${config.builderBase}/${slug}`, config);
+}
+
+export function getGeneralProductPath(product: Pick<Product, "slug"> | string, input: PublicPermalinkConfig) {
+  const config = sanitizePermalinkConfig(input);
+  const slug = typeof product === "string" ? product : product.slug;
+  return normalizePath(`/${config.productBase}/${slug}`, config);
+}
+
+export function getProductPath(
+  product: Pick<Product, "slug" | "productType">,
+  input: PublicPermalinkConfig
+) {
+  if (product.productType === "builder_template") {
+    return getBuilderProductPath(product, input);
+  }
+  if (product.productType === "general_product") {
+    return getGeneralProductPath(product, input);
+  }
+  return getTemplateProductPath(product, input);
 }
 
 export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string, input: PublicPermalinkConfig) {

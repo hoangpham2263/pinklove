@@ -88,7 +88,11 @@ export function WishlistPageClient({ products, permalinkConfig }: WishlistPageCl
                   <GuestPanelHeader className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="text-xs uppercase tracking-[0.3em] text-stone-400">
-                        {item.productType === "builder_template" ? "Tu tao thiep" : "Thiep mau san"}
+                        {item.productType === "builder_template"
+                          ? "Tu tao thiep"
+                          : item.productType === "general_product"
+                            ? "San pham"
+                            : "Thiep mau san"}
                       </p>
                       <GuestPanelTitle>{item.name}</GuestPanelTitle>
                     </div>

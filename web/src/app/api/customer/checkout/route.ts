@@ -2,6 +2,7 @@ import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { createOrderFromCart, syncCartWithWishlist } from "@/features/ecommerce/server/service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
+import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -33,18 +34,13 @@ export async function POST(request: Request) {
   }
 
   const paymentMethod = String(formData.get("paymentMethod") ?? "mock_online");
-  if (paymentMethod === "bank_transfer" && !settings.ecommerce.allowBankTransfer) {
-    return respondError(request, {
-      error: "payment_method_disabled",
-      message: "Phương thức chuyển khoản hiện chưa được bật.",
-      location: ROUTES.CHECKOUT.INDEX,
-    });
-  }
+  const enabledPaymentMethods = getEnabledPaymentMethods(settings.ecommerce, Boolean(String(formData.get("shippingLine1") ?? "").trim()));
+  const selectedPaymentMethod = enabledPaymentMethods.find((item) => item.code === paymentMethod);
 
-  if (paymentMethod === "cod" && !settings.ecommerce.allowCod) {
+  if (!selectedPaymentMethod) {
     return respondError(request, {
       error: "payment_method_disabled",
-      message: "Phương thức COD hiện chưa được bật.",
+      message: "Phương thức thanh toán hiện không khả dụng.",
       location: ROUTES.CHECKOUT.INDEX,
     });
   }
@@ -55,7 +51,7 @@ export async function POST(request: Request) {
       customerName: String(formData.get("customerName") ?? "").trim(),
       customerEmail: String(formData.get("customerEmail") ?? "").trim() || `${user.username}@pinklove.local`,
       customerPhone: String(formData.get("customerPhone") ?? "").trim(),
-      paymentMethod: paymentMethod === "bank_transfer" || paymentMethod === "cod" ? paymentMethod : "mock_online",
+      paymentMethod: selectedPaymentMethod.code,
       notes: String(formData.get("notes") ?? ""),
       affiliateCode: decodeURIComponent(getCookieValue(request, AFFILIATE_REF_COOKIE_NAME)),
       shippingName: String(formData.get("shippingName") ?? "").trim(),
@@ -74,9 +70,12 @@ export async function POST(request: Request) {
       message: "Đã tạo đơn hàng thành công.",
     });
   } catch (error) {
-    const message = error instanceof Error && error.message === "CART_EMPTY"
-      ? "Danh sách yêu thích đang trống."
-      : "Không thể tạo đơn hàng.";
+    const message =
+      error instanceof Error && error.message === "CART_EMPTY"
+        ? "Danh sách yêu thích đang trống."
+        : error instanceof Error && error.message.startsWith("OUT_OF_STOCK:")
+          ? `Sản phẩm đã hết hàng hoặc không đủ tồn kho: ${error.message.replace("OUT_OF_STOCK:", "")}.`
+          : "Không thể tạo đơn hàng.";
 
     return respondError(request, {
       error: "checkout_failed",

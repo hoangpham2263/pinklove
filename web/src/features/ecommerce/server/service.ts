@@ -17,7 +17,7 @@ import type {
 import { getAffiliateAccountByCode } from "@/features/affiliate/server/service";
 import { listPublishedProductsByIds } from "@/features/products/server/service";
 import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
-import type { ProductFulfillmentType, ProductType } from "@/features/products/types";
+import { isInvitationProductType, type ProductFulfillmentType, type ProductType } from "@/features/products/types";
 import { query, withTransaction } from "@/lib/database";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -34,6 +34,15 @@ type CartItemRow = {
   fulfillment_type: ProductFulfillmentType;
   price: string;
   thumbnail_url: string | null;
+};
+
+type CartInventoryRow = {
+  product_id: string;
+  product_name: string;
+  quantity: string;
+  track_inventory: boolean;
+  stock_quantity: string;
+  allow_backorder: boolean;
 };
 
 type OrderRow = {
@@ -440,7 +449,7 @@ async function ensureEntitlementsForOrder(orderId: string) {
   }
 
   for (const item of order.items) {
-    if (!item.productId || item.fulfillmentType !== "digital") {
+    if (!item.productId || item.fulfillmentType !== "digital" || !isInvitationProductType(item.productType)) {
       continue;
     }
 
@@ -498,6 +507,31 @@ export async function createOrderFromCart(input: {
   const status = getOrderStatusFromState(paymentStatus, fulfillmentStatus);
 
   const order = await withTransaction(async (execute) => {
+    const inventoryRows = await execute<CartInventoryRow>(
+      `
+        SELECT
+          cart.product_id,
+          products.name AS product_name,
+          cart.quantity::text,
+          products.track_inventory,
+          products.stock_quantity::text,
+          products.allow_backorder
+        FROM shopping_cart_items cart
+        JOIN products ON products.id = cart.product_id
+        WHERE cart.user_id = $1
+        FOR UPDATE OF products
+      `,
+      [input.userId]
+    );
+
+    for (const row of inventoryRows.rows) {
+      const requested = Number(row.quantity ?? "0");
+      const stockQuantity = Number(row.stock_quantity ?? "0");
+      if (row.track_inventory && !row.allow_backorder && stockQuantity < requested) {
+        throw new Error(`OUT_OF_STOCK:${row.product_name}`);
+      }
+    }
+
     const orderResult = await execute<OrderRow>(
       `
         INSERT INTO commerce_orders (
@@ -593,6 +627,22 @@ export async function createOrderFromCart(input: {
           item.price * item.quantity,
         ]
       );
+
+      if (item.productId) {
+        await execute(
+          `
+            UPDATE products
+            SET
+              stock_quantity = CASE
+                WHEN track_inventory THEN stock_quantity - $2
+                ELSE stock_quantity
+              END,
+              updated_at = NOW()
+            WHERE id = $1
+          `,
+          [item.productId, item.quantity]
+        );
+      }
     }
 
     await execute(

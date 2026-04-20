@@ -2,18 +2,23 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
 import type { EcommerceOrder } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
+import { getPaymentMethodLabel } from "@/lib/payment-methods";
 import { getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import type { EcommerceSettings } from "@/lib/system-settings";
+import { isBuilderProductType, isInvitationProductType } from "@/features/products/types";
 
 type CustomerOrderDetailProps = {
   order: EcommerceOrder;
-  currencyFormat: EcommerceSettings;
+  ecommerceSettings: EcommerceSettings;
 };
 
-export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDetailProps) {
+export function CustomerOrderDetail({ order, ecommerceSettings }: CustomerOrderDetailProps) {
+  const primaryPayment = order.payments[0];
+
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -43,9 +48,29 @@ export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDeta
           <CardHeader>
             <CardTitle className="text-base">Tổng tiền</CardTitle>
           </CardHeader>
-          <CardContent className="font-semibold">{formatCurrency(order.totalAmount, currencyFormat)}</CardContent>
+          <CardContent className="font-semibold">{formatCurrency(order.totalAmount, ecommerceSettings)}</CardContent>
         </Card>
       </div>
+
+      {primaryPayment ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Hướng dẫn thanh toán</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Phương thức đã chọn: <span className="font-medium text-foreground">{getPaymentMethodLabel(primaryPayment.method, ecommerceSettings)}</span>
+            </p>
+            <PaymentMethodGuide
+              method={primaryPayment.method}
+              settings={ecommerceSettings}
+              amount={order.totalAmount}
+              orderNumber={order.orderNumber}
+              requiresShipping={order.fulfillmentStatus !== "not_required"}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -54,9 +79,9 @@ export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDeta
         <CardContent className="space-y-4">
           {order.items.map((item) => {
             const canUseProduct =
-              order.paymentStatus === "paid" && item.fulfillmentType === "digital" && item.productId;
+              order.paymentStatus === "paid" && item.fulfillmentType === "digital" && Boolean(item.productId) && isInvitationProductType(item.productType);
             const createAction =
-              item.productType === "builder_template"
+              isBuilderProductType(item.productType)
                 ? ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER
                 : ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_PRODUCT;
 
@@ -69,19 +94,19 @@ export function CustomerOrderDetail({ order, currencyFormat }: CustomerOrderDeta
                       {item.productType} • {item.fulfillmentType} • SL {item.quantity}
                     </p>
                   </div>
-                  <p className="font-medium">{formatCurrency(item.lineTotal, currencyFormat)}</p>
+                  <p className="font-medium">{formatCurrency(item.lineTotal, ecommerceSettings)}</p>
                 </div>
 
                 {canUseProduct ? (
                   <form action={createAction} method="POST" className="mt-4">
                     <input type="hidden" name="productSlug" value={item.productSlug} />
                     <Button type="submit">
-                      {item.productType === "builder_template" ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
+                      {isBuilderProductType(item.productType) ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
                     </Button>
                   </form>
                 ) : (
                   <p className="mt-4 text-muted-foreground">
-                    {item.fulfillmentType === "digital"
+                    {item.fulfillmentType === "digital" && isInvitationProductType(item.productType)
                       ? "Sản phẩm sẽ dùng được sau khi đơn chuyển sang trạng thái đã thanh toán."
                       : "Sản phẩm này không tạo thiệp trực tiếp trong hệ thống."}
                   </p>

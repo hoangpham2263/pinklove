@@ -32,6 +32,7 @@ type DashboardSummaryRow = {
   draft_products: string;
   builder_products: string;
   coded_products: string;
+  general_products: string;
   total_posts: string;
   published_posts: string;
   draft_posts: string;
@@ -85,6 +86,7 @@ export default async function AdminDashboardPage() {
         (SELECT COUNT(*)::text FROM products WHERE status = 'draft') AS draft_products,
         (SELECT COUNT(*)::text FROM products WHERE product_type = 'builder_template') AS builder_products,
         (SELECT COUNT(*)::text FROM products WHERE product_type = 'coded_template') AS coded_products,
+        (SELECT COUNT(*)::text FROM products WHERE product_type = 'general_product') AS general_products,
         (SELECT COUNT(*)::text FROM blog_posts) AS total_posts,
         (SELECT COUNT(*)::text FROM blog_posts WHERE status = 'published') AS published_posts,
         (SELECT COUNT(*)::text FROM blog_posts WHERE status = 'draft') AS draft_posts,
@@ -157,7 +159,7 @@ export default async function AdminDashboardPage() {
       title: "Danh mục đang vận hành",
       value: totalProducts,
       description: `${asNumber(summary?.published_products)} đã xuất bản, ${asNumber(summary?.draft_products)} bản nháp`,
-      detail: `${asNumber(summary?.builder_products)} mẫu builder / ${asNumber(summary?.coded_products)} mẫu coded`,
+      detail: `${asNumber(summary?.builder_products)} builder / ${asNumber(summary?.coded_products)} coded / ${asNumber(summary?.general_products)} san pham`,
       icon: Box,
       href: ROUTES.ADMIN.PRODUCT_LIST,
     },
@@ -422,7 +424,7 @@ export default async function AdminDashboardPage() {
                   <p className="font-medium">Mức sẵn sàng của builder</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Hiện có {asNumber(summary?.builder_products)} mẫu builder song song với {asNumber(summary?.coded_products)} mẫu coded để tăng độ linh hoạt khi triển khai.
+                  Hiện có {asNumber(summary?.builder_products)} mẫu builder, {asNumber(summary?.coded_products)} mẫu coded và {asNumber(summary?.general_products)} sản phẩm trong catalog.
                 </p>
               </div>
             </CardContent>

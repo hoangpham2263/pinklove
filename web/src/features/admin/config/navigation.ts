@@ -2,11 +2,19 @@ import { ROUTES } from "@/lib/routes";
 
 export type AdminNavIconName =
   | "files"
+  | "file-code-2"
+  | "blocks"
+  | "package"
+  | "tags"
+  | "receipt-text"
+  | "credit-card"
+  | "truck"
   | "shopping-bag"
   | "menu"
   | "image"
   | "book-open-text"
   | "users"
+  | "store"
   | "badge-percent"
   | "settings";
 
@@ -46,11 +54,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
   {
     label: "Blog",
-    iconName: "files",
+    iconName: "book-open-text",
     defaultOpen: false,
     children: [
       { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS, iconName: "files" },
-      { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "files" },
+      { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "book-open-text" },
     ],
   },
   {
@@ -58,11 +66,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "shopping-bag",
     defaultOpen: false,
     children: [
-      { label: "Product", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "shopping-bag" },
-      { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "shopping-bag" },
-      { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "shopping-bag" },
-      { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "shopping-bag" },
-      { label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "shopping-bag" },
+      { label: "Mẫu coded", href: ROUTES.ADMIN.PRODUCT_LIST_CODED, iconName: "file-code-2" },
+      { label: "Mẫu builder", href: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, iconName: "blocks" },
+      { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
+      { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
+      { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "receipt-text" },
+      { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "credit-card" },
+      { label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "truck" },
     ],
   },
   {
@@ -86,9 +96,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
   {
     label: "Vendor",
-    iconName: "users",
+    iconName: "store",
     defaultOpen: false,
-    children: [{ label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "users" }],
+    children: [{ label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "store" }],
   },
 ];
 

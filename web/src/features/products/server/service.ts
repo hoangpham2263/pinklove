@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Product, ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
+import type { Product, ProductCategory, ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
 import { ensureProductCatalogReady, query } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 
@@ -16,6 +16,10 @@ type ProductInput = {
   thumbnailUrl?: string;
   price?: number;
   fulfillmentType?: ProductFulfillmentType;
+  trackInventory?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  allowBackorder?: boolean;
   config?: Record<string, unknown>;
 };
 
@@ -51,9 +55,18 @@ type ProductRow = {
   thumbnail_url: string | null;
   price: string;
   fulfillment_type: ProductFulfillmentType;
+  track_inventory: boolean;
+  stock_quantity: string;
+  low_stock_threshold: string;
+  allow_backorder: boolean;
   config: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+};
+
+type ProductTemplateUsageRow = {
+  slug: string;
+  name: string;
 };
 
 function mapProductCategoryRow(row: ProductCategoryRow): ProductCategory {
@@ -69,6 +82,18 @@ function mapProductCategoryRow(row: ProductCategoryRow): ProductCategory {
 }
 
 function mapProductRow(row: ProductRow): Product {
+  const config = row.config ?? {};
+  const generalProductConfig =
+    typeof config.generalProduct === "object" && config.generalProduct
+      ? (config.generalProduct as Record<string, unknown>)
+      : null;
+  const ownerType =
+    generalProductConfig?.ownerType === "vendor" ? "vendor" : "internal";
+  const ownerVendorUserId =
+    ownerType === "vendor" && typeof generalProductConfig?.vendorUserId === "string"
+      ? generalProductConfig.vendorUserId
+      : undefined;
+
   return {
     id: row.id,
     slug: row.slug,
@@ -84,7 +109,13 @@ function mapProductRow(row: ProductRow): Product {
     thumbnailUrl: row.thumbnail_url ?? undefined,
     price: Number(row.price ?? "0"),
     fulfillmentType: row.fulfillment_type,
-    config: row.config ?? {},
+    trackInventory: Boolean(row.track_inventory),
+    stockQuantity: Number(row.stock_quantity ?? "0"),
+    lowStockThreshold: Number(row.low_stock_threshold ?? "0"),
+    allowBackorder: Boolean(row.allow_backorder),
+    ownerType: ownerType as ProductOwnerType,
+    ownerVendorUserId,
+    config,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -129,6 +160,32 @@ async function mapProductRows(rows: ProductRow[]): Promise<Product[]> {
       thumbnailUrl: await resolveMediaUrl(row.thumbnail_url),
     }))
   );
+}
+
+async function getProductUsingTemplateKey(input: {
+  templateKey: string;
+  productType: ProductType;
+  excludeSlug?: string;
+}) {
+  if (!input.templateKey) {
+    return null;
+  }
+
+  const result = await withProductCatalogRetry(() =>
+    query<ProductTemplateUsageRow>(
+      `
+        SELECT slug, name
+        FROM products
+        WHERE template_key = $1
+          AND product_type = $2
+          AND ($3::text IS NULL OR slug <> $3)
+        LIMIT 1
+      `,
+      [input.templateKey, input.productType, input.excludeSlug ?? null]
+    )
+  );
+
+  return result.rows[0] ?? null;
 }
 
 export async function listPublishedProducts(): Promise<Product[]> {
@@ -263,13 +320,24 @@ export async function listPublishedProductsByIds(ids: string[]): Promise<Product
 }
 
 export async function createProduct(input: ProductInput): Promise<Product> {
+  if (input.productType !== "general_product") {
+    const existingTemplateProduct = await getProductUsingTemplateKey({
+      templateKey: input.templateKey,
+      productType: input.productType,
+    });
+
+    if (existingTemplateProduct) {
+      throw new Error("PRODUCT_TEMPLATE_KEY_IN_USE");
+    }
+  }
+
   await withProductCatalogRetry(() =>
     query<ProductRow>(
       `
         INSERT INTO products (
-          slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, config
+          slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, track_inventory, stock_quantity, low_stock_threshold, allow_backorder, config
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING id
       `,
       [
@@ -284,6 +352,10 @@ export async function createProduct(input: ProductInput): Promise<Product> {
         input.thumbnailUrl || null,
         input.price ?? 0,
         input.fulfillmentType ?? "digital",
+        input.trackInventory ?? false,
+        input.stockQuantity ?? 0,
+        input.lowStockThreshold ?? 0,
+        input.allowBackorder ?? false,
         input.config || {},
       ]
     )
@@ -303,6 +375,20 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
     return null;
   }
 
+  const nextTemplateKey = input.templateKey ?? existing.templateKey;
+  const nextProductType = input.productType ?? existing.productType;
+  if (nextProductType !== "general_product") {
+    const existingTemplateProduct = await getProductUsingTemplateKey({
+      templateKey: nextTemplateKey,
+      productType: nextProductType,
+      excludeSlug: slug,
+    });
+
+    if (existingTemplateProduct) {
+      throw new Error("PRODUCT_TEMPLATE_KEY_IN_USE");
+    }
+  }
+
   const result = await withProductCatalogRetry(() =>
     query<ProductRow>(
       `
@@ -319,9 +405,13 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
           thumbnail_url = $9,
           price = COALESCE($10, price),
           fulfillment_type = COALESCE($11, fulfillment_type),
-          config = $12,
+          track_inventory = COALESCE($12, track_inventory),
+          stock_quantity = COALESCE($13, stock_quantity),
+          low_stock_threshold = COALESCE($14, low_stock_threshold),
+          allow_backorder = COALESCE($15, allow_backorder),
+          config = $16,
           updated_at = NOW()
-        WHERE slug = $13
+        WHERE slug = $17
         RETURNING id
       `,
       [
@@ -336,6 +426,10 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
         input.thumbnailUrl !== undefined ? input.thumbnailUrl : existing.thumbnailUrl ?? null,
         input.price,
         input.fulfillmentType,
+        input.trackInventory,
+        input.stockQuantity,
+        input.lowStockThreshold,
+        input.allowBackorder,
         input.config !== undefined ? input.config : existing.config,
         slug,
       ]

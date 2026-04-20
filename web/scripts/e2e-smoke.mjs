@@ -327,7 +327,7 @@ async function main() {
         title: "Smoke Coded Site",
         slug: state.codedSiteSlug,
         status: "published",
-        templateKey: "classic_garden",
+        templateKey: "golden_aisle",
         brideName: "Alice",
         groomName: "Bob",
         heroSubtitle: "Thu moi smoke test",
@@ -590,59 +590,21 @@ async function main() {
       assert(gone === null, "Admin user delete did not remove the account");
     });
 
-    await step("admin can create, update, and delete products", async () => {
+    await step("admin rejects duplicate template keys for catalog products", async () => {
       const create = await admin.postForm("/api/admin/products/create", {
         name: "Smoke Product",
         slug: state.productSlug,
         productType: "coded_template",
-        templateKey: "classic_garden",
+        templateKey: "golden_aisle",
       });
-      expectLocation(create.location, `/admin/products/${state.productSlug}`);
-
-      const update = await admin.postForm("/api/admin/products/update", {
-        originalSlug: state.productSlug,
-        slug: state.productSlug,
-        name: "Smoke Product Published",
-        excerpt: `Excerpt ${runId}`,
-        description: `Description ${runId}`,
-        status: "published",
-        productType: "coded_template",
-        templateKey: "classic_garden",
-        thumbnailUrl: "https://example.com/thumb.jpg",
-        price: "990000",
-        siteDefaults: JSON.stringify({
-          brideName: "Product Bride",
-          groomName: "Product Groom",
-          heroSubtitle: "Product Subtitle",
-          eventDate: "10.10.2026",
-          venue: "Product Venue",
-          gallery: [],
-          storyTitle: "Product Story",
-          storyBody: "Product Body",
-        }),
-      });
-      expectLocation(update.location, `/admin/products/${state.productSlug}?saved=1`);
-
-      const product = await fetchRow(
-        db,
-        "SELECT name, status, price, config FROM products WHERE slug = $1 LIMIT 1",
-        [state.productSlug]
-      );
-      assert(product?.name === "Smoke Product Published", "Product name was not updated");
-      assert(product?.status === "published", "Product status was not updated");
-      assert(Number(product?.price) === 990000, "Product price was not updated");
-
-      const remove = await admin.postForm("/api/admin/products/delete", {
-        slug: state.productSlug,
-      });
-      expectLocation(remove.location, "/admin/products?deleted=1");
+      expectLocation(create.location, "/admin/products/new?error=template_in_use");
 
       const gone = await fetchValue(
         db,
         "SELECT slug AS value FROM products WHERE slug = $1 LIMIT 1",
         [state.productSlug]
       );
-      assert(gone === null, "Product delete did not remove the product");
+      assert(gone === null, "Duplicate template key should not create a new product");
     });
 
     await step("admin can update CMS page and published page reflects it", async () => {

@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { ProductType } from "@/features/products/types";
 import { query } from "@/lib/database";
 
 export type PermalinkSettings = {
@@ -10,6 +11,7 @@ export type PermalinkSettings = {
   blogCategoryBase: string;
   templateBase: string;
   builderBase: string;
+  productBase: string;
   invitationBase: string;
 };
 
@@ -68,10 +70,38 @@ export type EcommerceSettings = {
   flatShippingFee: number;
   freeShippingThreshold: number;
   bankTransferInstructions: string;
+  bankName: string;
+  bankQrBankId: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
+  cashPaymentInstructions: string;
   currency: string;
   currencySymbol: string;
   thousandSeparator: "," | ".";
   decimalSeparator: "," | ".";
+  paymentMethods: EcommercePaymentMethodSettings[];
+};
+
+export type EcommercePaymentMethodSettings = {
+  code: string;
+  label: string;
+  description: string;
+  instructions: string;
+  enabled: boolean;
+  provider: string;
+  type: "manual" | "offline" | "mock";
+  requiresShipping: boolean | null;
+};
+
+export type InternalProductImportApiSettings = {
+  enabled: boolean;
+  token: string;
+  defaultStatus: "draft" | "published";
+  allowedProductTypes: ProductType[];
+};
+
+export type InternalApisSettings = {
+  productsImport: InternalProductImportApiSettings;
 };
 
 export type SystemSettings = {
@@ -83,6 +113,7 @@ export type SystemSettings = {
   opengraph: OpenGraphSettings;
   favicon: FaviconSettings;
   ecommerce: EcommerceSettings;
+  internalApis: InternalApisSettings;
 };
 
 type SettingRow = {
@@ -94,6 +125,7 @@ type SettingRow = {
   seo_opengraph?: Record<string, unknown> | null;
   seo_favicon?: Record<string, unknown> | null;
   commerce_config?: Record<string, unknown> | null;
+  internal_api_config?: Record<string, unknown> | null;
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -105,6 +137,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
     blogCategoryBase: "blog",
     templateBase: "templates",
     builderBase: "builder",
+    productBase: "products",
     invitationBase: "invitations",
   },
   breadcrumb: {
@@ -155,11 +188,56 @@ const DEFAULT_SETTINGS: SystemSettings = {
     supportShipping: true,
     flatShippingFee: 30000,
     freeShippingThreshold: 1500000,
-    bankTransferInstructions: "Chuyển khoản vào tài khoản công ty và ghi rõ mã đơn hàng trong nội dung.",
+    bankTransferInstructions: "Quét mã QR hoặc chuyển khoản vào tài khoản của PinkLove, sau đó ghi đúng mã đơn hàng trong nội dung chuyển khoản để đội ngũ xác nhận nhanh hơn.",
+    bankName: "MB Bank",
+    bankQrBankId: "970422",
+    bankAccountNumber: "0123456789",
+    bankAccountName: "PINKLOVE STUDIO",
+    cashPaymentInstructions: "Thanh toán tiền mặt trực tiếp tại studio hoặc khi đội ngũ PinkLove xác nhận lịch bàn giao.",
     currency: "VND",
     currencySymbol: "₫",
     thousandSeparator: ".",
     decimalSeparator: ",",
+    paymentMethods: [
+      {
+        code: "bank_transfer",
+        label: "Chuyển khoản QR",
+        description: "Quét mã QR hoặc chuyển khoản thủ công rồi gửi đúng nội dung đơn hàng để hệ thống đối soát nhanh hơn.",
+        instructions: "Quét mã QR hoặc chuyển khoản vào tài khoản của PinkLove, sau đó ghi đúng mã đơn hàng trong nội dung chuyển khoản để đội ngũ xác nhận nhanh hơn.",
+        enabled: true,
+        provider: "manual_bank_transfer",
+        type: "manual",
+        requiresShipping: null,
+      },
+      {
+        code: "cod",
+        label: "Thanh toán tiền mặt",
+        description: "Thanh toán trực tiếp khi nhận hàng hoặc khi bàn giao.",
+        instructions: "Thanh toán tiền mặt trực tiếp tại studio hoặc khi đội ngũ PinkLove xác nhận lịch bàn giao.",
+        enabled: true,
+        provider: "cash",
+        type: "offline",
+        requiresShipping: null,
+      },
+      {
+        code: "mock_online",
+        label: "Thanh toán online mô phỏng",
+        description: "Phục vụ dev/test, có thể tự động chuyển đơn sang trạng thái đã thanh toán nếu cấu hình cho phép.",
+        instructions: "Phương thức nội bộ dành cho môi trường dev/test.",
+        enabled: false,
+        provider: "mock",
+        type: "mock",
+        requiresShipping: null,
+      },
+    ],
+  },
+  internalApis: {
+    productsImport: {
+      enabled: false,
+      token: "",
+      defaultStatus: "draft",
+      allowedProductTypes: ["general_product"],
+    },
   },
 };
 
@@ -180,6 +258,7 @@ function parsePermalinkSettings(value: Record<string, unknown> | null | undefine
     blogCategoryBase: String(merged.blogCategoryBase ?? DEFAULT_SETTINGS.permalink.blogCategoryBase),
     templateBase: String(merged.templateBase ?? DEFAULT_SETTINGS.permalink.templateBase),
     builderBase: String(merged.builderBase ?? DEFAULT_SETTINGS.permalink.builderBase),
+    productBase: String(merged.productBase ?? merged.paperBase ?? DEFAULT_SETTINGS.permalink.productBase),
     invitationBase: String(merged.invitationBase ?? DEFAULT_SETTINGS.permalink.invitationBase),
   };
 }
@@ -263,6 +342,36 @@ function parseFaviconSettings(value: Record<string, unknown> | null | undefined)
 
 function parseEcommerceSettings(value: Record<string, unknown> | null | undefined): EcommerceSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.ecommerce as Record<string, unknown>, value);
+  const configuredPaymentMethods = Array.isArray(merged.paymentMethods)
+    ? merged.paymentMethods
+        .map((item) => (typeof item === "object" && item ? (item as Record<string, unknown>) : null))
+        .filter(Boolean)
+        .map((item): EcommercePaymentMethodSettings => ({
+          code: String(item?.code ?? "").trim(),
+          label: String(item?.label ?? "").trim(),
+          description: String(item?.description ?? "").trim(),
+          instructions: String(item?.instructions ?? "").trim(),
+          enabled: Boolean(item?.enabled),
+          provider: String(item?.provider ?? "").trim() || "manual",
+          type: item?.type === "mock" ? "mock" : item?.type === "offline" ? "offline" : "manual",
+          requiresShipping:
+            item?.requiresShipping === true ? true : item?.requiresShipping === false ? false : null,
+        }))
+        .filter((item) => item.code && item.label)
+    : [];
+  const paymentMethods =
+    configuredPaymentMethods.length > 0
+      ? configuredPaymentMethods
+      : DEFAULT_SETTINGS.ecommerce.paymentMethods.map((item) => ({
+          ...item,
+          enabled:
+            item.code === "bank_transfer"
+              ? Boolean(merged.allowBankTransfer)
+              : item.code === "cod"
+                ? Boolean(merged.allowCod)
+                : item.enabled,
+        }));
+
   return {
     enabled: Boolean(merged.enabled),
     allowBankTransfer: Boolean(merged.allowBankTransfer),
@@ -272,6 +381,11 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
     flatShippingFee: Number(merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee),
     freeShippingThreshold: Number(merged.freeShippingThreshold ?? DEFAULT_SETTINGS.ecommerce.freeShippingThreshold),
     bankTransferInstructions: String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.ecommerce.bankTransferInstructions),
+    bankName: String(merged.bankName ?? DEFAULT_SETTINGS.ecommerce.bankName),
+    bankQrBankId: String(merged.bankQrBankId ?? DEFAULT_SETTINGS.ecommerce.bankQrBankId),
+    bankAccountNumber: String(merged.bankAccountNumber ?? DEFAULT_SETTINGS.ecommerce.bankAccountNumber),
+    bankAccountName: String(merged.bankAccountName ?? DEFAULT_SETTINGS.ecommerce.bankAccountName),
+    cashPaymentInstructions: String(merged.cashPaymentInstructions ?? DEFAULT_SETTINGS.ecommerce.cashPaymentInstructions),
     currency: String(merged.currency ?? DEFAULT_SETTINGS.ecommerce.currency),
     currencySymbol: String(merged.currencySymbol ?? DEFAULT_SETTINGS.ecommerce.currencySymbol),
     thousandSeparator:
@@ -286,6 +400,39 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
         : merged.decimalSeparator === "."
           ? "."
           : DEFAULT_SETTINGS.ecommerce.decimalSeparator,
+    paymentMethods,
+  };
+}
+
+function parseInternalApisSettings(value: Record<string, unknown> | null | undefined): InternalApisSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.internalApis as Record<string, unknown>, value);
+  const productsImportInput =
+    typeof merged.productsImport === "object" && merged.productsImport
+      ? (merged.productsImport as Record<string, unknown>)
+      : {};
+  const productsImportMerged = mergeRecord(
+    DEFAULT_SETTINGS.internalApis.productsImport as unknown as Record<string, unknown>,
+    productsImportInput
+  );
+  const allowedProductTypes = Array.isArray(productsImportMerged.allowedProductTypes)
+    ? productsImportMerged.allowedProductTypes
+        .map((value) => String(value))
+        .filter(
+          (value): value is ProductType =>
+            value === "coded_template" || value === "builder_template" || value === "general_product"
+        )
+    : DEFAULT_SETTINGS.internalApis.productsImport.allowedProductTypes;
+
+  return {
+    productsImport: {
+      enabled: Boolean(productsImportMerged.enabled),
+      token: String(productsImportMerged.token ?? ""),
+      defaultStatus: productsImportMerged.defaultStatus === "published" ? "published" : "draft",
+      allowedProductTypes:
+        allowedProductTypes.length > 0
+          ? allowedProductTypes
+          : DEFAULT_SETTINGS.internalApis.productsImport.allowedProductTypes,
+    },
   };
 }
 
@@ -299,6 +446,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   try {
     const result = await query<SettingRow>(`
       SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, seo_favicon, commerce_config
+      , internal_api_config
       FROM app_settings
       WHERE id = 1
       LIMIT 1
@@ -317,6 +465,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     opengraph: parseOpenGraphSettings(row?.seo_opengraph),
     favicon: parseFaviconSettings(row?.seo_favicon),
     ecommerce: parseEcommerceSettings(row?.commerce_config),
+    internalApis: parseInternalApisSettings(row?.internal_api_config),
   };
 }
 
@@ -454,4 +603,27 @@ export async function updateEcommerceSettings(input: Partial<EcommerceSettings>)
   );
 
   return next;
+}
+
+export async function updateInternalProductImportApiSettings(input: Partial<InternalProductImportApiSettings>) {
+  const current = await getSystemSettings();
+  const next = {
+    ...current.internalApis,
+    productsImport: {
+      ...current.internalApis.productsImport,
+      ...input,
+    },
+  };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET internal_api_config = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next.productsImport;
 }

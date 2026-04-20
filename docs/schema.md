@@ -200,9 +200,17 @@ Index:
 - `created_at`: `timestamptz`
 - `updated_at`: `timestamptz`
 
+Business rule:
+
+- Each `(product_type, template_key)` pair should map to exactly one catalog product. In practice this means one coded template source has one product gốc, and one builder starter source has one product gốc.
+
 ### `wedding_sites`
 
 Current business meaning: invitation instances created by users and published at `/invitations/[slug]`.
+
+Business rule:
+
+- A `wedding_site` is a customer-specific copy created from a catalog product or from the system blank builder flow. It is not itself the catalog product.
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
 - `user_id`: FK to `users.id`

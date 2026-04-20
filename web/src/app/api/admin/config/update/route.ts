@@ -7,6 +7,7 @@ import {
   updateBreadcrumbSettings,
   updateEcommerceSettings,
   updateFaviconSettings,
+  updateInternalProductImportApiSettings,
   updateOpenGraphSettings,
   updatePermalinkSettings,
   updateSitemapSettings,
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
         blogCategoryBase: String(formData.get("blogCategoryBase") ?? "").trim() || "blog",
         templateBase: String(formData.get("templateBase") ?? "").trim() || "templates",
         builderBase: String(formData.get("builderBase") ?? "").trim() || "builder",
+        productBase: String(formData.get("productBase") ?? "").trim() || "products",
         invitationBase: String(formData.get("invitationBase") ?? "").trim() || "invitations",
       });
 
@@ -119,22 +121,74 @@ export async function POST(request: Request) {
     }
 
     if (section === "ecommerce") {
+      let paymentMethods: import("@/lib/system-settings").EcommercePaymentMethodSettings[] = [];
+
+      try {
+        const parsed = JSON.parse(String(formData.get("paymentMethodsJson") ?? "[]")) as Array<Record<string, unknown>>;
+        paymentMethods = Array.isArray(parsed)
+          ? parsed
+              .map((item): import("@/lib/system-settings").EcommercePaymentMethodSettings => ({
+                code: String(item.code ?? "").trim(),
+                label: String(item.label ?? "").trim(),
+                description: String(item.description ?? "").trim(),
+                instructions: String(item.instructions ?? "").trim(),
+                enabled: Boolean(item.enabled),
+                provider: String(item.provider ?? "").trim() || "manual",
+                type: item.type === "mock" ? "mock" : item.type === "offline" ? "offline" : "manual",
+                requiresShipping:
+                  item.requiresShipping === true ? true : item.requiresShipping === false ? false : null,
+              }))
+              .filter((item) => item.code && item.label)
+          : [];
+      } catch {
+        return respondError(request, {
+          error: "invalid_payment_methods",
+          message: "JSON phương thức thanh toán không hợp lệ.",
+          location: ROUTES.ADMIN.CONFIG_ECOMMERCE,
+        });
+      }
+
       await updateEcommerceSettings({
         enabled: isChecked(formData, "enabled"),
-        allowBankTransfer: isChecked(formData, "allowBankTransfer"),
-        allowCod: isChecked(formData, "allowCod"),
+        allowBankTransfer: paymentMethods.some((item) => item.code === "bank_transfer" && item.enabled),
+        allowCod: paymentMethods.some((item) => item.code === "cod" && item.enabled),
         autoApproveMockPayments: isChecked(formData, "autoApproveMockPayments"),
         supportShipping: isChecked(formData, "supportShipping"),
         flatShippingFee: Number(formData.get("flatShippingFee") ?? "30000"),
         freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? "1500000"),
         bankTransferInstructions: String(formData.get("bankTransferInstructions") ?? ""),
+        bankName: String(formData.get("bankName") ?? "").trim(),
+        bankQrBankId: String(formData.get("bankQrBankId") ?? "").trim(),
+        bankAccountNumber: String(formData.get("bankAccountNumber") ?? "").trim(),
+        bankAccountName: String(formData.get("bankAccountName") ?? "").trim(),
+        cashPaymentInstructions: String(formData.get("cashPaymentInstructions") ?? "").trim(),
         currency: String(formData.get("currency") ?? "VND").trim() || "VND",
         currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",
         thousandSeparator: formData.get("thousandSeparator") === "," ? "," : ".",
         decimalSeparator: formData.get("decimalSeparator") === "." ? "." : ",",
+        paymentMethods,
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });
+    }
+
+    if (section === "internal_api_products") {
+      const allowedProductTypes = formData
+        .getAll("allowedProductTypes")
+        .map((value) => String(value))
+        .filter(
+          (value): value is "coded_template" | "builder_template" | "general_product" =>
+            value === "coded_template" || value === "builder_template" || value === "general_product"
+        );
+
+      await updateInternalProductImportApiSettings({
+        enabled: isChecked(formData, "enabled"),
+        token: String(formData.get("token") ?? "").trim(),
+        defaultStatus: formData.get("defaultStatus") === "published" ? "published" : "draft",
+        allowedProductTypes: allowedProductTypes.length > 0 ? allowedProductTypes : ["general_product"],
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình API import sản phẩm." });
     }
 
     return respondError(request, {

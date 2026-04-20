@@ -17,6 +17,14 @@ export async function POST(request: Request) {
     return respondError(request, { error: "product_not_found", message: "Không tìm thấy template khả dụng.", location: `${ROUTES.TEMPLATES}?error=product_not_found` });
   }
 
+  if (product.productType === "general_product") {
+    return respondError(request, {
+      error: "not_invitation_product",
+      message: "Sản phẩm này không tạo thiệp web trong hệ thống.",
+      location: ROUTES.WISHLIST,
+    });
+  }
+
   const entitled = await userHasActiveEntitlement(user.id, product.id);
   if (!entitled) {
     return respondError(request, {
