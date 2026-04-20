@@ -3,9 +3,10 @@ import { EventPlannerTitleAccent } from "@/app/(guest)/_components/EventPlannerT
 import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
 import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated-cta-button";
+import { HeroAnimatedTitle } from "@/app/(guest)/_components/HeroAnimatedTitle";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
 import { listPublishedProducts } from "@/features/products/server/service";
-import { LoopProductCard } from "@/features/products/components/product-card";
+import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getBuilderProductPath, getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
@@ -18,6 +19,11 @@ import { getSystemSettings } from "@/lib/system-settings";
 export async function HomeContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
     bannerTitle?: string;
+    bannerTopLine?: string;
+    bannerLine1Prefix?: string;
+    bannerLine1Rotating?: string;
+    bannerLine1Suffix?: string;
+    bannerLine2?: string;
     bannerShortDescription?: string;
     bannerDescription?: string;
     heroTitle?: string;
@@ -110,7 +116,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
       }))
   );
 
-  const bannerTitle = fields.bannerTitle || fields.heroTitle || page.title;
+  const bannerTitle = fields.bannerTitle || fields.heroTitle || page.title || "";
   const bannerShortDescription = fields.bannerShortDescription || page.excerpt;
   const bannerDescription = fields.bannerDescription || fields.heroDescription;
   const aboutImage = await resolveMediaUrl(fields.aboutImage);
@@ -231,25 +237,54 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
   return (
     <div>
-      <section id="home-hero" className="relative h-screen overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF]">
+      <section id="home-hero" className="relative h-screen overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] py-12 sm:py-16 lg:py-0">
         <div className="pointer-events-none absolute inset-0 z-0 hidden lg:block">
-          <div className="absolute left-[7%] top-[22%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
-          <div className="absolute right-[14%] top-[30%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
-          <div className="absolute bottom-[14%] left-[28%] size-24 rounded-full bg-white/35 blur-3xl" />
-          <span className="cta-sparkle-float absolute left-[5%] top-[20%] text-4xl text-guest-primary/70">✦</span>
-          <span className="cta-sparkle-float absolute left-[34%] top-[18%] text-2xl text-[#ffb8fb]">✧</span>
-          <span className="cta-heart-pop absolute left-[8%] bottom-[24%] text-3xl text-[#d94dce]/75">♥</span>
-          <span className="cta-sparkle-float absolute left-[46%] bottom-[18%] text-5xl text-white/80 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
-          <span className="cta-sparkle-float absolute right-[28%] top-[21%] text-3xl text-guest-primary/65">✦</span>
-          <span className="cta-heart-pop absolute right-[18%] bottom-[28%] text-2xl text-[#d94dce]/70">♥</span>
-          <span className="cta-sparkle-float absolute right-[9%] top-[52%] text-4xl text-white/75 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
-          <span className="absolute left-[55%] top-[16%] size-2 rounded-full bg-white shadow-[0_0_20px_rgba(255,111,245,0.7)]" />
-          <span className="absolute right-[10%] bottom-[18%] size-3 rounded-full bg-guest-primary/50 shadow-[0_0_24px_rgba(255,111,245,0.55)]" />
+          <div className="absolute left-[8%] top-[20%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
+          <div className="absolute right-[12%] top-[28%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
+          <div className="absolute bottom-[16%] left-[38%] size-24 rounded-full bg-white/35 blur-3xl" />
+          <span
+            className="cta-sparkle-float absolute left-[8%] top-[18%] bg-clip-text text-4xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.2)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 26%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 62%, white) 46%, color-mix(in srgb, var(--color-guest-primary) 88%, white) 100%)" }}
+          >✦</span>
+          <span
+            className="cta-sparkle-float absolute left-[31%] top-[14%] bg-clip-text text-2xl text-transparent drop-shadow-[0_6px_14px_rgba(255,184,251,0.18)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 18%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 54%, white) 46%, color-mix(in srgb, var(--color-guest-primary) 82%, white) 100%)" }}
+          >✧</span>
+          <span
+            className="cta-heart-pop absolute left-[13%] bottom-[26%] bg-clip-text text-3xl text-transparent drop-shadow-[0_8px_18px_rgba(217,77,206,0.24)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 28%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 66%, white) 50%, color-mix(in srgb, var(--color-guest-primary) 90%, white) 100%)" }}
+          >♥</span>
+          <span
+            className="cta-sparkle-float absolute left-[41%] bottom-[14%] bg-clip-text text-5xl text-transparent drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 22%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 60%, white) 45%, color-mix(in srgb, var(--color-guest-primary) 86%, white) 100%)" }}
+          >✦</span>
+          <span
+            className="cta-sparkle-float absolute right-[24%] top-[18%] bg-clip-text text-3xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.2)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 24%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 62%, white) 46%, color-mix(in srgb, var(--color-guest-primary) 88%, white) 100%)" }}
+          >✦</span>
+          <span
+            className="cta-heart-pop absolute right-[16%] bottom-[24%] bg-clip-text text-2xl text-transparent drop-shadow-[0_8px_18px_rgba(217,77,206,0.22)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 30%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 68%, white) 50%, color-mix(in srgb, var(--color-guest-primary) 90%, white) 100%)" }}
+          >♥</span>
+          <span
+            className="cta-sparkle-float absolute right-[8%] top-[46%] bg-clip-text text-4xl text-transparent drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]"
+            style={{ backgroundImage: "linear-gradient(145deg, color-mix(in srgb, var(--color-guest-primary) 22%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 60%, white) 45%, color-mix(in srgb, var(--color-guest-primary) 86%, white) 100%)" }}
+          >✦</span>
+          <span className="absolute left-[55%] top-[12%] size-2 rounded-full bg-white shadow-[0_0_20px_rgba(255,111,245,0.7)]" />
+          <span className="absolute right-[12%] bottom-[14%] size-3 rounded-full bg-guest-primary/50 shadow-[0_0_24px_rgba(255,111,245,0.55)]" />
         </div>
-        <div className="relative z-10 container mx-auto px-4">
-          <div className="pl-20 relative grid grid-cols-12 gap-5 lg:gap-10">
-            <div className="col-start-12 lg:col-span-6 flex flex-col justify-center space-y-5">
-              <h1 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold bg-[linear-gradient(90deg,#000_0%,#FF61AF_50.09%,#000_100%)] bg-clip-text text-transparent">{bannerTitle}</h1>
+        <div className="relative z-10 container mx-auto h-full px-4 lg:flex">
+          <div className="relative grid h-full w-full grid-cols-1 gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-10 lg:pl-20">
+            <div className="flex flex-col justify-center space-y-5 text-center lg:col-span-6 lg:h-full lg:text-left">
+              <HeroAnimatedTitle
+                topLine={fields.bannerTopLine}
+                lineOnePrefix={fields.bannerLine1Prefix}
+                lineOneRotating={fields.bannerLine1Rotating}
+                lineOneSuffix={fields.bannerLine1Suffix}
+                lineTwo={fields.bannerLine2}
+                fallbackTitle={bannerTitle}
+                className="inline-block text-3xl sm:text-4xl lg:text-5xl 2xl:text-6xl font-semibold"
+              />
               {bannerShortDescription && (<p className="text-sm md:text-base lg:text-lg font-semibold">{bannerShortDescription}</p>)}
               {bannerDescription ? (
                 <div
@@ -257,7 +292,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   dangerouslySetInnerHTML={createRichTextMarkup(bannerDescription)}
                 />
               ) : null}
-              <div className="mt-5 lg:mt-7.5">
+              <div className="mt-5 flex justify-center lg:mt-7.5 lg:justify-start">
                 <GuestLinkButton href={fields.heroButtonLink || ROUTES.ABOUT} className="inline-flex items-center justify-center gap-2.5 uppercase font-semibold bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] hover:bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)]">
                   {fields.heroButtonText}
                   <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="size-5 animate-phone-ring" width="20" height="20" viewBox="0 0 24 24">
@@ -269,8 +304,10 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                 </GuestLinkButton>
               </div>
             </div>
-            <div className="col-start-12 lg:col-span-6">
-              <HeroInvitationOrb products={heroPreviewTrack} />
+            <div className="flex min-h-[280px] items-center lg:col-span-6 lg:h-full">
+              <div className="flex w-full items-center justify-center lg:h-full">
+                <HeroInvitationOrb products={heroPreviewTrack} />
+              </div>
             </div>
 
             {/* Dots */}

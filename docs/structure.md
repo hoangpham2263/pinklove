@@ -22,6 +22,7 @@ web/
           contact/page.tsx
           services/page.tsx
         (catalog)/
+          wishlist/page.tsx
           builder/page.tsx
           builder/[slug]/page.tsx
           sites/[slug]/page.tsx
@@ -29,6 +30,7 @@ web/
           templates/[slug]/page.tsx
         (content)/
           blog/page.tsx
+          search/page.tsx
           blog/[slug]/page.tsx
           blog/post/[slug]/page.tsx
       tools/
@@ -228,10 +230,12 @@ web/
 - The public website uses the `(guest)` route group.
 - Public content pages are explicit route files in `src/app/(guest)`.
 - Current public catalog flows:
+  - `src/app/(guest)/(catalog)/wishlist/page.tsx`
   - `src/app/(guest)/(catalog)/templates/page.tsx`
   - `src/app/(guest)/(catalog)/templates/[slug]/page.tsx`
   - `src/app/(guest)/(catalog)/builder/page.tsx`
   - `src/app/(guest)/(catalog)/builder/[slug]/page.tsx`
+- Public content search lives at `src/app/(guest)/(content)/search/page.tsx`.
 - Public invitation rendering lives at `src/app/(guest)/(catalog)/invitations/[slug]/page.tsx`.
 
 ## Customer Area

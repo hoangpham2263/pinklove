@@ -15,7 +15,9 @@ import type {
   ShipmentStatus,
 } from "@/features/ecommerce/types";
 import { getAffiliateAccountByCode } from "@/features/affiliate/server/service";
-import type { Product, ProductFulfillmentType } from "@/features/products/types";
+import { listPublishedProductsByIds } from "@/features/products/server/service";
+import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
+import type { ProductFulfillmentType, ProductType } from "@/features/products/types";
 import { query, withTransaction } from "@/lib/database";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -28,7 +30,7 @@ type CartItemRow = {
   updated_at: string;
   product_name: string;
   product_slug: string;
-  product_type: Product["productType"];
+  product_type: ProductType;
   fulfillment_type: ProductFulfillmentType;
   price: string;
   thumbnail_url: string | null;
@@ -74,7 +76,7 @@ type OrderItemRow = {
   product_id: string | null;
   product_name: string;
   product_slug: string;
-  product_type: Product["productType"];
+  product_type: ProductType;
   fulfillment_type: ProductFulfillmentType;
   quantity: string;
   unit_price: string;
@@ -306,45 +308,25 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
   return result.rows.map(mapCartItemRow);
 }
 
-export async function addCartItem(userId: string, product: Product, quantity = 1) {
-  const safeQty = Math.max(1, Math.floor(quantity));
+export async function syncCartWithWishlist(userId: string) {
+  const wishlistProductIds = await getUserWishlistProductIds(userId);
+  const products = await listPublishedProductsByIds(wishlistProductIds);
 
-  await query(
-    `
-      INSERT INTO shopping_cart_items (user_id, product_id, quantity)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (user_id, product_id)
-      DO UPDATE SET
-        quantity = shopping_cart_items.quantity + EXCLUDED.quantity,
-        updated_at = NOW()
-    `,
-    [userId, product.id, safeQty]
-  );
-}
+  await withTransaction(async (execute) => {
+    await execute("DELETE FROM shopping_cart_items WHERE user_id = $1", [userId]);
 
-export async function updateCartItemQuantity(userId: string, productId: string, quantity: number) {
-  const safeQty = Math.floor(quantity);
-  if (safeQty <= 0) {
-    await removeCartItem(userId, productId);
-    return;
-  }
+    for (const product of products) {
+      await execute(
+        `
+          INSERT INTO shopping_cart_items (user_id, product_id, quantity)
+          VALUES ($1, $2, 1)
+        `,
+        [userId, product.id]
+      );
+    }
+  });
 
-  await query(
-    `
-      UPDATE shopping_cart_items
-      SET quantity = $3, updated_at = NOW()
-      WHERE user_id = $1 AND product_id = $2
-    `,
-    [userId, productId, safeQty]
-  );
-}
-
-export async function removeCartItem(userId: string, productId: string) {
-  await query("DELETE FROM shopping_cart_items WHERE user_id = $1 AND product_id = $2", [userId, productId]);
-}
-
-export async function clearCart(userId: string) {
-  await query("DELETE FROM shopping_cart_items WHERE user_id = $1", [userId]);
+  return products;
 }
 
 export async function listEntitlementsForUser(userId: string): Promise<EcommerceEntitlement[]> {

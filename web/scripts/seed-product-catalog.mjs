@@ -69,7 +69,7 @@ const products = [
     description: "Template code sẵn với bố cục hero, câu chuyện, gallery và RSVP theo nhịp đọc mềm mại.",
     productType: "coded_template",
     templateKey: "romantic_bloom",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-aurora-veil.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
     price: "1190000",
     fulfillmentType: "digital",
     config: {
@@ -90,7 +90,7 @@ const products = [
     description: "Template code sẵn cho lễ cưới trang nhã, nhấn vào hero lớn, timeline và gallery dọc.",
     productType: "coded_template",
     templateKey: "classic_garden",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-golden-aisle.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
     price: "1390000",
     fulfillmentType: "digital",
     config: {
@@ -111,7 +111,7 @@ const products = [
     description: "Template code sẵn tối ưu cho cô dâu chú rể muốn landing page nữ tính và rõ thông tin.",
     productType: "coded_template",
     templateKey: "romantic_bloom",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-blush-sonata.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
     price: "1090000",
     fulfillmentType: "digital",
     config: {
@@ -132,7 +132,7 @@ const products = [
     description: "Template code sẵn phù hợp với lễ cưới buổi tối và phần gallery ảnh chân dung dài.",
     productType: "coded_template",
     templateKey: "classic_garden",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-moonlight-garden.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
     price: "1490000",
     fulfillmentType: "digital",
     config: {
@@ -153,7 +153,7 @@ const products = [
     description: "Template code sẵn cho cặp đôi thích phong cách tối giản sang trọng và câu chuyện ngắn gọn.",
     productType: "coded_template",
     templateKey: "classic_garden",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-pearl-manor.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
     price: "1290000",
     fulfillmentType: "digital",
     config: {
@@ -174,7 +174,7 @@ const products = [
     description: "Template code sẵn dành cho cặp đôi muốn một landing page nhẹ, tinh tế và dễ đọc trên mobile.",
     productType: "coded_template",
     templateKey: "romantic_bloom",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-linen-vows.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
     price: "990000",
     fulfillmentType: "digital",
     config: {
@@ -195,7 +195,7 @@ const products = [
     description: "Builder starter thiên về kể chuyện, phù hợp với flow hero lớn, story, timeline và gallery.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-editorial-story.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
     price: "390000",
     fulfillmentType: "digital",
     config: {
@@ -213,7 +213,7 @@ const products = [
     description: "Starter builder tông hoa lá, dễ kéo thành flow romantic với nhiều section ảnh dọc.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-floral-scroll.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
     price: "420000",
     fulfillmentType: "digital",
     config: {
@@ -231,7 +231,7 @@ const products = [
     description: "Starter builder tập trung vào lịch trình, tiện cho lễ cưới có nhiều cột mốc và CTA RSVP.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-timeline-ceremony.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
     price: "350000",
     fulfillmentType: "digital",
     config: {
@@ -249,7 +249,7 @@ const products = [
     description: "Starter builder sạch và gọn, ưu tiên ảnh lớn, text ít và nhịp section thoáng.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-minimal-portrait.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
     price: "290000",
     fulfillmentType: "digital",
     config: {
@@ -267,7 +267,7 @@ const products = [
     description: "Starter builder dành cho giao diện trong nhà, nhấn typography mạnh và section gallery lớn.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-velvet-chapel.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
     price: "450000",
     fulfillmentType: "digital",
     config: {
@@ -285,7 +285,7 @@ const products = [
     description: "Starter builder theo hướng studio hiện đại với các section nhẹ, gallery và thông tin RSVP.",
     productType: "builder_template",
     templateKey: "freeform_sections",
-    thumbnailUrl: "/uploads/seed-products/mau-thiep-cuoi-ivory-atelier.svg",
+    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
     price: "320000",
     fulfillmentType: "digital",
     config: {

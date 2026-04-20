@@ -42,9 +42,9 @@ export function CheckoutPageView({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Giỏ hàng đang trống. Hãy thêm sản phẩm trước khi tạo đơn hàng.
+              Danh sach yeu thich dang trong. Hay luu san pham truoc khi tao don hang.
             </p>
-            <Button render={<Link href={ROUTES.CHECKOUT.CART}>Quay lại giỏ hàng</Link>} />
+            <Button render={<Link href={ROUTES.WISHLIST}>Quay lai yeu thich</Link>} />
           </CardContent>
         </Card>
       </section>
@@ -223,7 +223,7 @@ export function CheckoutPageView({
             <Button
               variant="outline"
               className="w-full"
-              render={<Link href={ROUTES.CHECKOUT.CART}>Quay lại giỏ hàng</Link>}
+              render={<Link href={ROUTES.WISHLIST}>Quay lai yeu thich</Link>}
             />
           </div>
         </CardContent>

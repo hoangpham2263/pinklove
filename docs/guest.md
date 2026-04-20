@@ -16,6 +16,8 @@ This file covers the public `GUEST` area.
 - `Thiếp mẫu sẵn` routes should show only `coded_template` products.
 - `Tự tạo thiệp` routes should show only `builder_template` products.
 - Public invitation rendering should read from published invitation records. The current table name is still `wedding_sites`.
+- Guest wishlist is available at `/wishlist`, requires login, persists on the authenticated `users.wishlist_product_ids` field, and is the primary customer-facing purchase list in place of a separate cart screen.
+- Guest search is available at `/search`; the header search opens a quick search popover and submits to this public result page.
 - Guest heading convention:
   - `h1`: `text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold`
   - `h2`: `text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-semibold`
@@ -36,8 +38,10 @@ This file covers the public `GUEST` area.
 - `src/app/(guest)/(catalog)/templates/[slug]/page.tsx`
 - `src/app/(guest)/(catalog)/builder/page.tsx`
 - `src/app/(guest)/(catalog)/builder/[slug]/page.tsx`
+- `src/app/(guest)/(catalog)/wishlist/page.tsx`
 - `src/app/(guest)/(catalog)/invitations/[slug]/page.tsx`
 - `src/app/(guest)/(content)/blog/page.tsx`
+- `src/app/(guest)/(content)/search/page.tsx`
 - `src/app/(guest)/(content)/blog/[slug]/page.tsx`
 - `src/app/(guest)/(content)/blog/post/[slug]/page.tsx`
 - `src/app/(guest)/tools/page.tsx`

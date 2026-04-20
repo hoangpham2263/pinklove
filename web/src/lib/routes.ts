@@ -8,6 +8,8 @@ export const ROUTES = {
   CONTACT: "/contact",
   TEMPLATES: "/templates",
   BUILDER: "/builder",
+  WISHLIST: "/wishlist",
+  SEARCH: "/search",
   SERVICES: "/services",
   TOOLS: "/tools",
   BLOG: "/blog",
@@ -49,7 +51,6 @@ export const ROUTES = {
     LOGOUT_API: "/api/auth/logout",
   },
   CHECKOUT: {
-    CART: "/checkout/cart",
     INDEX: "/checkout",
     SUCCESS: (orderNumber: string) => `/checkout/success/${orderNumber}`,
   },
@@ -211,13 +212,9 @@ export const ROUTES = {
     },
     CUSTOMER: {
       PROFILE: "/api/customer/profile",
+      WISHLIST: "/api/customer/wishlist",
       AFFILIATE: {
         APPLY: "/api/customer/affiliate/apply",
-      },
-      CART: {
-        ADD: "/api/customer/cart/add",
-        UPDATE: "/api/customer/cart/update",
-        REMOVE: "/api/customer/cart/remove",
       },
       CHECKOUT: "/api/customer/checkout",
       INVITATIONS: {

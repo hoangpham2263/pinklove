@@ -50,7 +50,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 <input type="checkbox" name="enabled" defaultChecked={settings.ecommerce.enabled} className="mt-1" />
                 <div>
                   <p className="font-medium">Bật checkout</p>
-                  <p className="text-muted-foreground">Cho phép tạo order từ cart.</p>
+                  <p className="text-muted-foreground">Cho phép tạo order từ danh sách yêu thích đã đồng bộ ngầm.</p>
                 </div>
               </label>
               <label className="flex items-start gap-3 rounded-md border p-4">

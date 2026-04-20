@@ -16,6 +16,7 @@ This document describes the tables the current code uses or expects.
 - `username`: `text`, unique
 - `password_hash`: `text`
 - `role`: `text`, one of `ADMIN`, `CUSTOMER`, `AFFILIATE`, or `VENDOR`
+- `wishlist_product_ids`: `jsonb`, ordered list of favorited `products.id` values stored as strings
 - `created_at`: `timestamptz`
 
 ### `user_sessions`

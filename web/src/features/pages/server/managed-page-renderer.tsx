@@ -16,7 +16,7 @@ import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcru
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
-import { LoopProductCard } from "@/features/products/components/product-card";
+import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { listPublishedProducts, listPublishedProductsByType } from "@/features/products/server/service";
 import {
   buildManagedPageMetadata,
@@ -186,8 +186,6 @@ export async function renderManagedPage(page: ManagedPage) {
       );
     case "templates": {
       const products = await listPublishedProducts();
-      const codedTemplates = products.filter((product) => product.productType === "coded_template");
-      const builderTemplates = products.filter((product) => product.productType === "builder_template");
 
       return (
         <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,226,236,0.9),rgba(255,245,248,0.94)_28%,rgba(255,251,252,0.98)_58%,rgba(255,255,255,1)_100%)]">
@@ -198,42 +196,27 @@ export async function renderManagedPage(page: ManagedPage) {
               <PageHero
                 page={page}
                 fallbackTitle="Mẫu thiệp"
-                fallbackExcerpt="Hiện tại PinkLove có 2 loại mẫu thiệp để bạn bắt đầu nhanh hơn: mẫu code sẵn và mẫu builder linh hoạt."
+                fallbackExcerpt="Khám phá toàn bộ mẫu thiệp và builder starter để chọn sản phẩm phù hợp với phong cách cưới của bạn."
               />
             </section>
 
             <section className="space-y-6">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-rose-500">Loại 1</p>
-                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp code sẵn</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-rose-500">San pham</p>
+                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Tat ca mau thiep</h2>
                 <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-                  Phù hợp khi bạn muốn đi nhanh với bố cục đã hoàn chỉnh, chỉ cần chỉnh nội dung và xuất bản.
+                  Danh sach nay gom ca mau code san va builder starter, khong tach rieng thanh 2 nhom de ban de duyet va so sanh.
                 </p>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {codedTemplates.map((product) => (
-                  <LoopProductCard key={product.id} product={product} href={getTemplateProductPath(product, permalinkConfig)} />
-                ))}
-              </div>
-            </section>
-
-            <section className="space-y-6">
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-pink-500">Loại 2</p>
-                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Mẫu thiệp builder</h2>
-                <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-                  Phù hợp khi bạn muốn chủ động hơn trong cách sắp nội dung và dựng thiệp theo ý của mình.
-                </p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {builderTemplates.map((product) => (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+                {products.map((product) => (
                   <LoopProductCard
                     key={product.id}
                     product={product}
-                    href={getBuilderProductPath(product, permalinkConfig)}
-                    ctaLabel="Xem builder"
+                    href={product.productType === "builder_template"
+                      ? getBuilderProductPath(product, permalinkConfig)
+                      : getTemplateProductPath(product, permalinkConfig)}
                   />
                 ))}
               </div>
@@ -262,13 +245,12 @@ export async function renderManagedPage(page: ManagedPage) {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {builderProducts.map((product) => (
               <LoopProductCard
                 key={product.id}
                 product={product}
                 href={getBuilderProductPath(product, permalinkConfig)}
-                ctaLabel="Chọn starter"
               />
             ))}
           </div>

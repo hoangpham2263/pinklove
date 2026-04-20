@@ -100,6 +100,7 @@ export function AdminLoginForm() {
 export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
+  const returnTo = searchParams.get("returnTo");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   return (
@@ -122,6 +123,7 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
                   method="POST"
                   className="space-y-3"
                 >
+                  {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                   <Input name="username" placeholder="Tên đăng nhập" autoComplete="username" />
                   <div className="flex items-center gap-2">
                     <Input
@@ -158,7 +160,7 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
             </Card>
           </div>
 
-          <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl h-full relative overflow-hidden min-h-[500px]">
+          <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl h-full relative overflow-hidden min-h-125">
             {sideImage && (
               <Image 
                 src={sideImage} 
@@ -253,7 +255,7 @@ export function PartnerLoginForm({
         <div className="grid min-h-[calc(100vh-200px)] items-center gap-8 lg:grid-cols-2">
           {loginCard}
 
-          <div className="relative hidden min-h-[500px] overflow-hidden rounded-2xl bg-muted/30 p-8 lg:flex lg:items-center lg:justify-center">
+          <div className="relative hidden min-h-125 overflow-hidden rounded-2xl bg-muted/30 p-8 lg:flex lg:items-center lg:justify-center">
             <div className="relative z-10 max-w-md space-y-4">
               <h2 className="text-3xl font-semibold">Workspace riêng cho đối tác</h2>
               <p className="text-muted-foreground">
@@ -323,7 +325,7 @@ export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps =
             </Card>
           </div>
           
-          <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl h-full relative overflow-hidden min-h-[500px]">
+          <div className="hidden lg:flex flex-col items-center justify-center p-8 bg-muted/30 rounded-2xl h-full relative overflow-hidden min-h-125">
             {sideImage && (
               <Image 
                 src={sideImage} 

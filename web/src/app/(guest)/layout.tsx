@@ -1,5 +1,7 @@
 import { GuestFooter } from "@/app/(guest)/_components/guest-footer";
 import { GuestHeader, type GuestHeaderLink, type GuestHeaderNode } from "@/app/(guest)/_components/guest-header";
+import { WishlistProvider } from "@/features/products/components/wishlist-provider";
+import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getGlobalFields } from "@/lib/global-fields";
 import { listManagedPages } from "@/lib/managed-pages";
@@ -74,23 +76,26 @@ export default async function GuestLayout({
   const settingsHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.CONFIG : ROUTES.CUSTOMER.SETTINGS;
   const headerLinks = mapMenuLinks(headerMenu?.items, pagePathMap);
   const headerTree = buildNavTree(headerLinks);
+  const wishlistProductIds = user ? await getUserWishlistProductIds(user.id) : [];
 
   return (
     <div id="top" className="min-h-full w-full">
-      <GuestHeader
-        user={user ? { username: user.username, role: user.role } : null}
-        headerTree={headerTree}
-        dashboardHref={dashboardHref}
-        settingsHref={settingsHref}
-        siteName={settings.branding.siteName || "PinkLove"}
-        siteLogo={settings.branding.brandLogo || undefined}
-      />
-      <main>
-        {children}
-      </main>
-      <GuestFooter
-        globalFields={globalFields}
-      />
+      <WishlistProvider authenticated={Boolean(user)} initialProductIds={wishlistProductIds}>
+        <GuestHeader
+          user={user ? { username: user.username, role: user.role } : null}
+          headerTree={headerTree}
+          dashboardHref={dashboardHref}
+          settingsHref={settingsHref}
+          siteName={settings.branding.siteName || "PinkLove"}
+          siteLogo={settings.branding.brandLogo || undefined}
+        />
+        <main>
+          {children}
+        </main>
+        <GuestFooter
+          globalFields={globalFields}
+        />
+      </WishlistProvider>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { createOrderFromCart } from "@/features/ecommerce/server/service";
+import { createOrderFromCart, syncCartWithWishlist } from "@/features/ecommerce/server/service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -20,6 +20,7 @@ function getCookieValue(request: Request, name: string) {
 
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
+  await syncCartWithWishlist(user.id);
   const settings = await getSystemSettings();
   const formData = await request.formData();
 
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "ecommerce_disabled",
       message: "Checkout hiện đang tạm khóa.",
-      location: ROUTES.CHECKOUT.CART,
+      location: ROUTES.WISHLIST,
     });
   }
 
@@ -74,13 +75,13 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error && error.message === "CART_EMPTY"
-      ? "Giỏ hàng đang trống."
+      ? "Danh sách yêu thích đang trống."
       : "Không thể tạo đơn hàng.";
 
     return respondError(request, {
       error: "checkout_failed",
       message,
-      location: ROUTES.CHECKOUT.CART,
+      location: ROUTES.WISHLIST,
     });
   }
 }

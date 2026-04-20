@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "entitlement_required",
       message: "Bạn cần mua sản phẩm trước khi tạo thiệp từ template này.",
-      location: ROUTES.CHECKOUT.CART,
+      location: ROUTES.WISHLIST,
     });
   }
 

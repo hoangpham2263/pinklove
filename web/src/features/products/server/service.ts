@@ -193,6 +193,25 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return (await mapProductRows(result.rows))[0] ?? null;
 }
 
+export async function getProductById(id: string): Promise<Product | null> {
+  const result = await withProductCatalogRetry(() =>
+    query<ProductRow>(
+      `
+        ${PRODUCT_SELECT}
+        WHERE products.id::text = $1::text
+        LIMIT 1
+      `,
+      [id]
+    )
+  );
+
+  if (!result.rows[0]) {
+    return null;
+  }
+
+  return (await mapProductRows(result.rows))[0] ?? null;
+}
+
 export async function getPublishedProductBySlugAndType(
   slug: string,
   productType: ProductType
@@ -215,6 +234,32 @@ export async function getPublishedProductBySlugAndType(
   }
 
   return (await mapProductRows(result.rows))[0] ?? null;
+}
+
+export async function listPublishedProductsByIds(ids: string[]): Promise<Product[]> {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const result = await withProductCatalogRetry(() =>
+    query<ProductRow>(
+      `
+        ${PRODUCT_SELECT}
+        WHERE products.status = 'published'
+          AND products.id::text = ANY($1::text[])
+      `,
+      [ids]
+    )
+  );
+
+  const products = await mapProductRows(result.rows);
+  const orderMap = new Map(ids.map((id, index) => [id, index]));
+
+  return products.sort((left, right) => {
+    const leftIndex = orderMap.get(left.id) ?? Number.MAX_SAFE_INTEGER;
+    const rightIndex = orderMap.get(right.id) ?? Number.MAX_SAFE_INTEGER;
+    return leftIndex - rightIndex;
+  });
 }
 
 export async function createProduct(input: ProductInput): Promise<Product> {

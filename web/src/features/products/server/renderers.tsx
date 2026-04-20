@@ -9,7 +9,9 @@ import {
   GuestPanelHeader,
   GuestPanelTitle,
 } from "@/app/(guest)/_components/guest-ui";
+import { WishlistToggleButton } from "@/features/products/components/wishlist-toggle-button";
 import type { Product } from "@/features/products/types";
+import { createWishlistProductSnapshot } from "@/features/products/wishlist";
 import { getCurrentUser } from "@/lib/auth";
 import { getInvitationTemplateDefaults, getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import { getBuilderProductPath, getTemplateProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
@@ -97,10 +99,10 @@ export async function renderTemplateProductPage(product: Product, config: Public
                 alt={product.name}
                 width={1600}
                 height={900}
-                className="aspect-[16/9] w-full rounded-xl object-cover lg:rounded-2xl"
+                className="aspect-video w-full rounded-xl object-cover lg:rounded-2xl"
               />
             ) : (
-              <div className="flex aspect-[16/9] w-full items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-400 lg:rounded-2xl">
+              <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-stone-200 bg-stone-50 text-stone-400 lg:rounded-2xl">
                 Chưa có ảnh preview
               </div>
             )}
@@ -140,30 +142,29 @@ export async function renderTemplateProductPage(product: Product, config: Public
           </GuestPanelHeader>
           <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
-              Sản phẩm sẽ đi qua giỏ hàng và checkout trước. Sau khi đơn đã thanh toán, bạn có thể tạo thiệp từ khu vực đơn hàng của mình.
+              Hay luu mau nay vao danh sach yeu thich. Trong PinkLove, yeu thich dong vai tro nhu gio hang de ban chon va thanh toan ngay tu do.
             </p>
+            <WishlistToggleButton
+              product={createWishlistProductSnapshot(product)}
+              variant="button"
+            />
             {user ? (
               <div className="space-y-3">
-                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
-                  <input type="hidden" name="productSlug" value={product.slug} />
-                  <input type="hidden" name="quantity" value="1" />
-                  <input type="hidden" name="redirectTo" value={getTemplateProductPath(product, config)} />
+                <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST">
+                  <input type="hidden" name="intent" value="add" />
+                  <input type="hidden" name="productId" value={product.id} />
+                  <input type="hidden" name="returnTo" value={ROUTES.WISHLIST} />
                   <GuestButton type="submit" className="w-full">
-                    Thêm vào giỏ hàng
+                    Luu va mo yeu thich
                   </GuestButton>
                 </form>
-                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
-                  <input type="hidden" name="productSlug" value={product.slug} />
-                  <input type="hidden" name="quantity" value="1" />
-                  <input type="hidden" name="redirectTo" value={ROUTES.CHECKOUT.CART} />
-                  <GuestButton type="submit" className="w-full border border-stone-300 bg-white text-stone-900 hover:bg-stone-50">
-                    Mua ngay
-                  </GuestButton>
-                </form>
+                <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex w-full">
+                  Mua tu danh sach yeu thich
+                </GuestLinkButton>
               </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để mua</GuestLinkButton>
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getTemplateProductPath(product, config))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
@@ -239,30 +240,29 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
           </GuestPanelHeader>
           <GuestPanelBody className="space-y-4">
             <p className="text-sm leading-7 text-stone-600">
-              Builder starter cũng đi qua luồng ecommerce chung. Sau khi đơn được thanh toán, bạn có thể tạo thiệp builder từ khu vực đơn hàng.
+              Builder starter nay se duoc luu vao danh sach yeu thich de ban chon va thanh toan. Sau khi don hang hoan tat, ban co the tao thiep builder tu khu vuc don hang.
             </p>
+            <WishlistToggleButton
+              product={createWishlistProductSnapshot(product)}
+              variant="button"
+            />
             {user ? (
               <div className="space-y-3">
-                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
-                  <input type="hidden" name="productSlug" value={product.slug} />
-                  <input type="hidden" name="quantity" value="1" />
-                  <input type="hidden" name="redirectTo" value={getBuilderProductPath(product, config)} />
+                <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST">
+                  <input type="hidden" name="intent" value="add" />
+                  <input type="hidden" name="productId" value={product.id} />
+                  <input type="hidden" name="returnTo" value={ROUTES.WISHLIST} />
                   <GuestButton type="submit" className="w-full">
-                    Thêm vào giỏ hàng
+                    Luu va mo yeu thich
                   </GuestButton>
                 </form>
-                <form action={ROUTES.API.CUSTOMER.CART.ADD} method="POST">
-                  <input type="hidden" name="productSlug" value={product.slug} />
-                  <input type="hidden" name="quantity" value="1" />
-                  <input type="hidden" name="redirectTo" value={ROUTES.CHECKOUT.CART} />
-                  <GuestButton type="submit" className="w-full border border-stone-300 bg-white text-stone-900 hover:bg-stone-50">
-                    Mua ngay
-                  </GuestButton>
-                </form>
+                <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex w-full">
+                  Mua tu danh sach yeu thich
+                </GuestLinkButton>
               </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={ROUTES.AUTH.LOGIN} className="flex w-full">Đăng nhập để mua</GuestLinkButton>
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getBuilderProductPath(product, config))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}

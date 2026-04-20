@@ -8,7 +8,7 @@ export function HeroInvitationOrb({
 }) {
   const reverseProducts = [...products].reverse();
   const cardClassName =
-    "group relative shrink-0 overflow-hidden rounded-[14px] bg-transparent p-0 shadow-[0_8px_16px_rgba(255,111,245,0.03)] ring-1 ring-white/10";
+    "group relative shrink-0 overflow-hidden rounded-[16px] bg-transparent p-0 shadow-[0_10px_20px_rgba(255,111,245,0.035)] ring-1 ring-white/10";
   const imageClassName =
     "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]";
 
@@ -35,23 +35,23 @@ export function HeroInvitationOrb({
 
       {products.length ? (
         <>
-          <div className="pointer-events-none absolute left-[24%] top-[50%] z-[18] h-20 w-[42%] rounded-full bg-[radial-gradient(circle,rgba(255,111,245,0.08),rgba(255,111,245,0.025)_45%,rgba(255,111,245,0)_78%)] blur-2xl" />
-          <div className="pointer-events-none absolute left-[27%] top-[68%] z-[18] h-18 w-[36%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.14),rgba(255,255,255,0)_72%)] blur-2xl" />
+          <div className="pointer-events-none absolute left-[24%] top-[50%] z-[18] h-22 w-[42%] rounded-full bg-[radial-gradient(circle,rgba(255,111,245,0.08),rgba(255,111,245,0.025)_45%,rgba(255,111,245,0)_78%)] blur-2xl" />
+          <div className="pointer-events-none absolute left-[27%] top-[70%] z-[18] h-18 w-[36%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.14),rgba(255,255,255,0)_72%)] blur-2xl" />
 
-          <div className="absolute left-[14%] right-[6%] top-[53%] z-[19] -rotate-[8deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]">
+          <div className="absolute left-[14%] right-[6%] top-[52%] z-[19] -rotate-[8deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]">
             <div
               className="hero-invitation-marquee relative flex w-max items-center gap-3 py-2.5"
               style={{ animationDuration: "34s" }}
             >
               {products.map((product, index) => (
                 <article key={`${product.id}-${index}`} className={cardClassName}>
-                  <div className="relative h-[86px] w-[58px] overflow-hidden rounded-[14px]">
+                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-[16px]">
                     <Image
                       src={product.thumbnailUrl || ""}
                       alt={product.name}
                       fill
                       className={imageClassName}
-                      sizes="58px"
+                      sizes="70px"
                     />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0)_36%,rgba(35,31,39,0.04))]" />
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/12" />
@@ -61,20 +61,20 @@ export function HeroInvitationOrb({
             </div>
           </div>
 
-          <div className="absolute inset-x-[9%] top-[70%] z-20 rotate-[5deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_93%,transparent)]">
+          <div className="absolute inset-x-[9%] top-[69%] z-20 rotate-[5deg] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_93%,transparent)]">
             <div
               className="hero-invitation-marquee-reverse relative flex w-max items-center gap-3 py-2.5 opacity-82"
               style={{ animationDuration: "36s" }}
             >
               {reverseProducts.map((product, index) => (
                 <article key={`${product.id}-reverse-${index}`} className={cardClassName}>
-                  <div className="relative h-[86px] w-[58px] overflow-hidden rounded-[14px]">
+                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-[16px]">
                     <Image
                       src={product.thumbnailUrl || ""}
                       alt={product.name}
                       fill
                       className={imageClassName}
-                      sizes="58px"
+                      sizes="70px"
                     />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0)_36%,rgba(35,31,39,0.04))]" />
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
