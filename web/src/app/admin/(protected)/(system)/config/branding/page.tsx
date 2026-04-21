@@ -92,7 +92,7 @@ export default async function AdminBrandingSettingsPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Brand Assets</CardTitle>
+          <CardTitle>Brand Assets & Icons</CardTitle>
         </CardHeader>
         <CardContent>
           <SettingsDataTableForm
@@ -119,26 +119,6 @@ export default async function AdminBrandingSettingsPage() {
                 type: "media",
                 value: settings.branding.brandLogo,
               },
-            ]}
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Favicon & App Icons</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SettingsDataTableForm
-            section="favicon"
-            title="Favicon"
-            saveMessage="Đã lưu cài đặt favicon."
-            columnWidths={{
-              label: "w-[20%]",
-              description: "w-[40%]",
-              value: "w-[40%]",
-            }}
-            rows={[
               {
                 id: "siteFavicon",
                 label: "Browser Favicon",

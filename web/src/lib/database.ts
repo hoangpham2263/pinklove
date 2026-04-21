@@ -296,6 +296,30 @@ async function ensureAppSettingsMigration() {
     VALUES (1, 'pink', NOW())
     ON CONFLICT (id) DO NOTHING;
   `);
+
+  await pool.query(`
+    UPDATE app_settings
+    SET seo_branding = jsonb_strip_nulls(
+          COALESCE(seo_branding, '{}'::jsonb) ||
+          jsonb_build_object(
+            'siteFavicon',
+            CASE
+              WHEN NULLIF(BTRIM(COALESCE(seo_branding->>'siteFavicon', '')), '') IS NOT NULL
+                THEN seo_branding->>'siteFavicon'
+              ELSE NULLIF(BTRIM(COALESCE(seo_favicon->>'siteFavicon', '')), '')
+            END,
+            'appleTouchIcon',
+            CASE
+              WHEN NULLIF(BTRIM(COALESCE(seo_branding->>'appleTouchIcon', '')), '') IS NOT NULL
+                THEN seo_branding->>'appleTouchIcon'
+              ELSE NULLIF(BTRIM(COALESCE(seo_favicon->>'appleTouchIcon', '')), '')
+            END
+          )
+        ),
+        updated_at = NOW()
+    WHERE id = 1
+      AND seo_favicon IS NOT NULL;
+  `);
 }
 
 async function ensureOauthAccountsMigration() {

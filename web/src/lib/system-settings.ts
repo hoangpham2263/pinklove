@@ -116,6 +116,8 @@ export type SystemSettings = {
   internalApis: InternalApisSettings;
 };
 
+type BrandingStorageSettings = BrandingSettings & FaviconSettings;
+
 type SettingRow = {
   seo_permalink: Record<string, unknown> | null;
   seo_breadcrumb: Record<string, unknown> | null;
@@ -123,7 +125,6 @@ type SettingRow = {
   seo_indexing?: Record<string, unknown> | null;
   seo_branding?: Record<string, unknown> | null;
   seo_opengraph?: Record<string, unknown> | null;
-  seo_favicon?: Record<string, unknown> | null;
   commerce_config?: Record<string, unknown> | null;
   internal_api_config?: Record<string, unknown> | null;
 };
@@ -310,6 +311,13 @@ function parseBrandingSettings(value: Record<string, unknown> | null | undefined
   };
 }
 
+function parseBrandingStorageSettings(value: Record<string, unknown> | null | undefined): BrandingStorageSettings {
+  return {
+    ...parseBrandingSettings(value),
+    ...parseFaviconSettings(value),
+  };
+}
+
 function parseOpenGraphSettings(value: Record<string, unknown> | null | undefined): OpenGraphSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.opengraph as Record<string, unknown>, value);
   return {
@@ -434,7 +442,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   try {
     const result = await query<SettingRow>(`
-      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, seo_favicon, commerce_config
+      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
       , internal_api_config
       FROM app_settings
       WHERE id = 1
@@ -445,14 +453,22 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     return DEFAULT_SETTINGS;
   }
 
+  const brandingSettings = parseBrandingStorageSettings(row?.seo_branding);
+
   return {
     permalink: parsePermalinkSettings(row?.seo_permalink),
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
-    branding: parseBrandingSettings(row?.seo_branding),
+    branding: {
+      siteName: brandingSettings.siteName,
+      brandLogo: brandingSettings.brandLogo,
+    },
     opengraph: parseOpenGraphSettings(row?.seo_opengraph),
-    favicon: parseFaviconSettings(row?.seo_favicon),
+    favicon: {
+      siteFavicon: brandingSettings.siteFavicon,
+      appleTouchIcon: brandingSettings.appleTouchIcon,
+    },
     ecommerce: parseEcommerceSettings(row?.commerce_config),
     internalApis: parseInternalApisSettings(row?.internal_api_config),
   };
@@ -526,9 +542,17 @@ export async function updateIndexingSettings(input: Partial<IndexingSettings>) {
   return next;
 }
 
-export async function updateBrandingSettings(input: Partial<BrandingSettings>) {
-  const current = await getSystemSettings();
-  const next = { ...current.branding, ...input };
+async function updateBrandingStorageSettings(input: Partial<BrandingStorageSettings>) {
+  const result = await query<Pick<SettingRow, "seo_branding">>(
+    `
+    SELECT seo_branding
+    FROM app_settings
+    WHERE id = 1
+    LIMIT 1
+    `
+  );
+  const current = parseBrandingStorageSettings(result.rows[0]?.seo_branding);
+  const next = { ...current, ...input };
 
   await query(
     `
@@ -541,6 +565,10 @@ export async function updateBrandingSettings(input: Partial<BrandingSettings>) {
   );
 
   return next;
+}
+
+export async function updateBrandingSettings(input: Partial<BrandingSettings & FaviconSettings>) {
+  return updateBrandingStorageSettings(input);
 }
 
 export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>) {
@@ -561,20 +589,11 @@ export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>)
 }
 
 export async function updateFaviconSettings(input: Partial<FaviconSettings>) {
-  const current = await getSystemSettings();
-  const next = { ...current.favicon, ...input };
-
-  await query(
-    `
-    UPDATE app_settings
-    SET seo_favicon = $1::jsonb,
-        updated_at = NOW()
-    WHERE id = 1
-    `,
-    [JSON.stringify(next)]
-  );
-
-  return next;
+  const next = await updateBrandingStorageSettings(input);
+  return {
+    siteFavicon: next.siteFavicon,
+    appleTouchIcon: next.appleTouchIcon,
+  };
 }
 
 export async function updateEcommerceSettings(input: Partial<EcommerceSettings>) {

@@ -11,18 +11,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        source: "/favicon.ico",
-        destination: "/api/site-icons/favicon",
-      },
-      {
-        source: "/apple-touch-icon.png",
-        destination: "/api/site-icons/apple-touch-icon",
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {

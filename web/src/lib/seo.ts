@@ -73,6 +73,15 @@ function resolveMetadataImageUrl(image: string | undefined, baseUrl: string) {
   return absoluteUrl(trimmed, baseUrl);
 }
 
+function resolveMetadataIconUrl(icon: string | undefined, baseUrl: string) {
+  const trimmed = icon?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return absoluteUrl(trimmed, baseUrl);
+}
+
 type SeoMetadataInput = {
   title: string;
   description: string;
@@ -134,12 +143,8 @@ export async function createRootMetadata(): Promise<Metadata> {
   const siteUrl = await getCurrentSiteUrl();
   const canIndex = settings.indexing.siteIndexingEnabled;
   const defaultImage = resolveMetadataImageUrl(settings.opengraph.defaultImage, siteUrl);
-  const faviconVersion = encodeURIComponent(settings.favicon.siteFavicon.trim());
-  const appleTouchIconVersion = encodeURIComponent(settings.favicon.appleTouchIcon.trim());
-  const faviconUrl = faviconVersion ? `/favicon.ico?v=${faviconVersion}` : undefined;
-  const appleTouchIconUrl = appleTouchIconVersion
-    ? `/apple-touch-icon.png?v=${appleTouchIconVersion}`
-    : undefined;
+  const faviconUrl = resolveMetadataIconUrl(settings.favicon.siteFavicon, siteUrl);
+  const appleTouchIconUrl = resolveMetadataIconUrl(settings.favicon.appleTouchIcon, siteUrl);
   const defaultTitle = settings.opengraph.defaultTitle || DEFAULT_TITLE;
   const defaultDescription = settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
   const siteName = settings.branding.siteName || DEFAULT_SITE_NAME;

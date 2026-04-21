@@ -92,6 +92,8 @@ export async function POST(request: Request) {
       await updateBrandingSettings({
         siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
         brandLogo: String(formData.get("brandLogo") ?? "").trim(),
+        siteFavicon: String(formData.get("siteFavicon") ?? "").trim(),
+        appleTouchIcon: String(formData.get("appleTouchIcon") ?? "").trim(),
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt branding." });
