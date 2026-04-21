@@ -27,9 +27,13 @@ export function PaymentMethodGuide({
   if (method === "bank_transfer") {
     const qrUrl = getBankTransferQrUrl({
       settings,
+      method: configuredMethod,
       amount,
       addInfo: orderNumber ? `Thanh toan ${orderNumber}` : undefined,
     });
+    const bankName = configuredMethod?.bankName || settings.bankName;
+    const bankAccountNumber = configuredMethod?.bankAccountNumber || settings.bankAccountNumber;
+    const bankAccountName = configuredMethod?.bankAccountName || settings.bankAccountName;
 
     return (
       <div className={`rounded-xl border bg-muted/20 p-4 ${className}`.trim()}>
@@ -37,9 +41,9 @@ export function PaymentMethodGuide({
         <p className="mt-1 text-sm text-muted-foreground">{getPaymentMethodDescription(method, requiresShipping, settings)}</p>
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px]">
           <div className="space-y-2 text-sm">
-            <p><span className="font-medium text-foreground">Ngân hàng:</span> {settings.bankName || "Chưa cấu hình"}</p>
-            <p><span className="font-medium text-foreground">Số tài khoản:</span> {settings.bankAccountNumber || "Chưa cấu hình"}</p>
-            <p><span className="font-medium text-foreground">Chủ tài khoản:</span> {settings.bankAccountName || "Chưa cấu hình"}</p>
+            <p><span className="font-medium text-foreground">Ngân hàng:</span> {bankName || "Chưa cấu hình"}</p>
+            <p><span className="font-medium text-foreground">Số tài khoản:</span> {bankAccountNumber || "Chưa cấu hình"}</p>
+            <p><span className="font-medium text-foreground">Chủ tài khoản:</span> {bankAccountName || "Chưa cấu hình"}</p>
             {orderNumber ? (
               <p><span className="font-medium text-foreground">Nội dung chuyển khoản:</span> Thanh toan {orderNumber}</p>
             ) : null}
@@ -59,11 +63,15 @@ export function PaymentMethodGuide({
     );
   }
 
+  const instructions =
+    configuredMethod?.instructions ||
+    (method === "cod" ? settings.cashPaymentInstructions : "Đơn hàng sẽ được giữ ở trạng thái chờ thanh toán để đội ngũ xác nhận hoặc chuyển sang cổng thanh toán tương ứng.");
+
   return (
-      <div className={`rounded-xl border bg-muted/20 p-4 ${className}`.trim()}>
+    <div className={`rounded-xl border bg-muted/20 p-4 ${className}`.trim()}>
       <p className="text-sm font-semibold">{getPaymentMethodLabel(method, settings)}</p>
       <p className="mt-1 text-sm text-muted-foreground">{getPaymentMethodDescription(method, requiresShipping, settings)}</p>
-      <p className="mt-3 text-sm text-muted-foreground">{configuredMethod?.instructions || settings.cashPaymentInstructions}</p>
+      <p className="mt-3 text-sm text-muted-foreground">{instructions}</p>
     </div>
   );
 }

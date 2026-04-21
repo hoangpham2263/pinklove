@@ -19,7 +19,7 @@ import { listPublishedProductsByIds } from "@/features/products/server/service";
 import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
 import { isInvitationProductType, type ProductFulfillmentType, type ProductType } from "@/features/products/types";
 import { query, withTransaction } from "@/lib/database";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getSystemSettings, type EcommercePaymentMethodSettings } from "@/lib/system-settings";
 
 type CartItemRow = {
   id: string;
@@ -472,6 +472,8 @@ export async function createOrderFromCart(input: {
   customerEmail: string;
   customerPhone: string;
   paymentMethod: PaymentMethod;
+  paymentProvider?: string;
+  paymentType?: EcommercePaymentMethodSettings["type"];
   notes?: string;
   affiliateCode?: string;
   shippingName?: string;
@@ -499,10 +501,13 @@ export async function createOrderFromCart(input: {
   const totalAmount = subtotalAmount + shippingAmount;
   const orderNumber = await generateOrderNumber();
   const affiliateAccount = input.affiliateCode ? await getAffiliateAccountByCode(input.affiliateCode) : null;
+  const paymentMethodConfig = settings.ecommerce.paymentMethods.find((item) => item.code === input.paymentMethod);
+  const paymentProvider = input.paymentProvider ?? paymentMethodConfig?.provider ?? input.paymentMethod;
+  const paymentType = input.paymentType ?? paymentMethodConfig?.type ?? "manual";
   const autoApprove =
     totalAmount === 0 ||
-    (input.paymentMethod === "mock_online" && settings.ecommerce.autoApproveMockPayments);
-  const paymentStatus: PaymentStatus = autoApprove ? "paid" : input.paymentMethod === "cod" ? "pending" : "unpaid";
+    (paymentType === "mock" && settings.ecommerce.autoApproveMockPayments);
+  const paymentStatus: PaymentStatus = autoApprove ? "paid" : paymentType === "offline" ? "pending" : "unpaid";
   const fulfillmentStatus: FulfillmentStatus = requiresShipping ? "pending" : "not_required";
   const status = getOrderStatusFromState(paymentStatus, fulfillmentStatus);
 
@@ -648,13 +653,14 @@ export async function createOrderFromCart(input: {
     await execute(
       `
         INSERT INTO commerce_payments (order_id, method, provider, amount, status, external_ref, paid_at)
-        VALUES ($1, $2, 'mock', $3, $4, $5, ${autoApprove ? "NOW()" : "NULL"})
+        VALUES ($1, $2, $3, $4, $5, $6, ${autoApprove ? "NOW()" : "NULL"})
       `,
       [
         createdOrder.id,
         input.paymentMethod,
+        paymentProvider,
         totalAmount,
-        autoApprove ? "paid" : input.paymentMethod === "cod" ? "pending" : "pending",
+        autoApprove ? "paid" : "pending",
         `PAY-${randomUUID().slice(0, 8).toUpperCase()}`,
       ]
     );

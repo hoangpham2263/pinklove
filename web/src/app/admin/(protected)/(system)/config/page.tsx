@@ -75,14 +75,25 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "Nâng cao",
-    icon: "globe" as const,
+    title: "Ecommerce",
+    icon: "settings" as const,
     items: [
       {
         title: "Ecommerce",
-        description: "Kết nối sàn thương mại điện tử, catalog và các kênh bán hàng để mở rộng sau.",
+        description: "Cấu hình checkout, tiền tệ và vận chuyển dùng chung cho đơn hàng.",
         href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
       },
+      {
+        title: "Payment Methods",
+        description: "Quản lý phương thức thanh toán, provider, hướng dẫn và thông tin nhận thanh toán.",
+        href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+      },
+    ],
+  },
+  {
+    title: "Nâng cao",
+    icon: "globe" as const,
+    items: [
       {
         title: "API nội bộ",
         description: "Trung tâm quản lý các API nội bộ dùng để import, đồng bộ và mở rộng kết nối dữ liệu hệ thống.",

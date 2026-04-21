@@ -28,6 +28,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_PAYMENT_METHODS)) return "Payment Methods";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS)) return "API Import Sản phẩm";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_APIS)) return "API nội bộ";

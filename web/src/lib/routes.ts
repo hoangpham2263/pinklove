@@ -94,6 +94,9 @@ export const ROUTES = {
     SEO_RULES: "/admin/seo/rules",
     CONFIG: "/admin/config",
     CONFIG_ECOMMERCE: "/admin/config/ecommerce",
+    CONFIG_PAYMENT_METHODS: "/admin/config/payment-methods",
+    CONFIG_PAYMENT_METHOD_NEW: "/admin/config/payment-methods/new",
+    CONFIG_PAYMENT_METHOD: (code: string) => `/admin/config/payment-methods/${encodeURIComponent(code)}`,
     HOOKS: "/admin/hooks",
     CONFIG_BRANDING: "/admin/config/branding",
     CONFIG_PERMALINKS: "/admin/config/permalinks",
@@ -216,6 +219,9 @@ export const ROUTES = {
       },
       PAYMENTS: {
         UPDATE: "/api/admin/payments/update",
+      },
+      PAYMENT_METHODS: {
+        SAVE: "/api/admin/config/payment-methods/save",
       },
       SHIPMENTS: {
         UPDATE: "/api/admin/shipments/update",

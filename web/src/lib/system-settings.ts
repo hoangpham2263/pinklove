@@ -89,8 +89,12 @@ export type EcommercePaymentMethodSettings = {
   instructions: string;
   enabled: boolean;
   provider: string;
-  type: "manual" | "offline" | "mock";
+  type: "manual" | "offline" | "redirect" | "embedded" | "mock";
   requiresShipping: boolean | null;
+  bankName?: string;
+  bankQrBankId?: string;
+  bankAccountNumber?: string;
+  bankAccountName?: string;
 };
 
 export type InternalProductImportApiSettings = {
@@ -209,6 +213,10 @@ const DEFAULT_SETTINGS: SystemSettings = {
         provider: "manual_bank_transfer",
         type: "manual",
         requiresShipping: null,
+        bankName: "MB Bank",
+        bankQrBankId: "970422",
+        bankAccountNumber: "0123456789",
+        bankAccountName: "PINKLOVE STUDIO",
       },
       {
         code: "cod",
@@ -350,15 +358,44 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
           instructions: String(item?.instructions ?? "").trim(),
           enabled: Boolean(item?.enabled),
           provider: String(item?.provider ?? "").trim() || "manual",
-          type: item?.type === "mock" ? "mock" : item?.type === "offline" ? "offline" : "manual",
+          type:
+            item?.type === "mock"
+              ? "mock"
+              : item?.type === "offline"
+                ? "offline"
+                : item?.type === "redirect"
+                  ? "redirect"
+                  : item?.type === "embedded"
+                    ? "embedded"
+                    : "manual",
           requiresShipping:
             item?.requiresShipping === true ? true : item?.requiresShipping === false ? false : null,
+          bankName: String(item?.bankName ?? "").trim(),
+          bankQrBankId: String(item?.bankQrBankId ?? "").trim(),
+          bankAccountNumber: String(item?.bankAccountNumber ?? "").trim(),
+          bankAccountName: String(item?.bankAccountName ?? "").trim(),
         }))
         .filter((item) => item.code && item.label)
     : [];
   const paymentMethods =
     configuredPaymentMethods.length > 0
-      ? configuredPaymentMethods
+      ? configuredPaymentMethods.map((item) =>
+          item.code === "bank_transfer"
+            ? {
+                ...item,
+                bankName: item.bankName || String(merged.bankName ?? DEFAULT_SETTINGS.ecommerce.bankName),
+                bankQrBankId: item.bankQrBankId || String(merged.bankQrBankId ?? DEFAULT_SETTINGS.ecommerce.bankQrBankId),
+                bankAccountNumber: item.bankAccountNumber || String(merged.bankAccountNumber ?? DEFAULT_SETTINGS.ecommerce.bankAccountNumber),
+                bankAccountName: item.bankAccountName || String(merged.bankAccountName ?? DEFAULT_SETTINGS.ecommerce.bankAccountName),
+                instructions: item.instructions || String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.ecommerce.bankTransferInstructions),
+              }
+            : item.code === "cod"
+              ? {
+                  ...item,
+                  instructions: item.instructions || String(merged.cashPaymentInstructions ?? DEFAULT_SETTINGS.ecommerce.cashPaymentInstructions),
+                }
+              : item
+        )
       : DEFAULT_SETTINGS.ecommerce.paymentMethods.map((item) => ({
           ...item,
           enabled:

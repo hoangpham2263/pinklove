@@ -57,11 +57,12 @@ export function getPaymentMethodDescription(
 
 export function getBankTransferQrUrl(input: {
   settings: EcommerceSettings;
+  method?: EcommercePaymentMethodSettings | null;
   amount?: number;
   addInfo?: string;
 }) {
-  const bankId = input.settings.bankQrBankId.trim();
-  const accountNumber = input.settings.bankAccountNumber.trim();
+  const bankId = (input.method?.bankQrBankId || input.settings.bankQrBankId).trim();
+  const accountNumber = (input.method?.bankAccountNumber || input.settings.bankAccountNumber).trim();
 
   if (!bankId || !accountNumber) {
     return null;
@@ -74,8 +75,9 @@ export function getBankTransferQrUrl(input: {
   if (input.addInfo?.trim()) {
     params.set("addInfo", input.addInfo.trim());
   }
-  if (input.settings.bankAccountName.trim()) {
-    params.set("accountName", input.settings.bankAccountName.trim());
+  const accountName = (input.method?.bankAccountName || input.settings.bankAccountName).trim();
+  if (accountName) {
+    params.set("accountName", accountName);
   }
 
   const query = params.toString();

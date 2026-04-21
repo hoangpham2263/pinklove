@@ -52,6 +52,8 @@ export async function POST(request: Request) {
       customerEmail: String(formData.get("customerEmail") ?? "").trim() || `${user.username}@pinklove.local`,
       customerPhone: String(formData.get("customerPhone") ?? "").trim(),
       paymentMethod: selectedPaymentMethod.code,
+      paymentProvider: selectedPaymentMethod.provider,
+      paymentType: selectedPaymentMethod.type,
       notes: String(formData.get("notes") ?? ""),
       affiliateCode: decodeURIComponent(getCookieValue(request, AFFILIATE_REF_COOKIE_NAME)),
       shippingName: String(formData.get("shippingName") ?? "").trim(),

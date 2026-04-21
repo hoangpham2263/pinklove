@@ -17,6 +17,7 @@ This file covers the admin area and admin-controlled workflows.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin product flows operate on catalog entries in `products`.
 - Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
+- `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
 - Admin order detail should keep operational updates close to the top of the right column. `Cập nhật đơn hàng` is a first-class action surface and should not be buried below long secondary content.
 - Menu management expects `navigation_menus` and `navigation_menu_items`.
 - Current public guest navigation is still hardcoded even though menu management exists in admin.
@@ -59,6 +60,7 @@ This file covers the admin area and admin-controlled workflows.
 - cấu hình
   - branding
   - ecommerce
+  - payment methods
   - favicon
   - opengraph
   - permalinks

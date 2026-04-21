@@ -258,7 +258,7 @@ Index:
   - `id`: `text`
   - `order_id`: FK to `commerce_orders.id`
   - `method`: `text`
-  - `provider`: `text`
+  - `provider`: `text`, copied from the admin payment method configuration at order creation time
   - `amount`: `numeric(12,2)`
   - `status`: `text`
   - `external_ref`: `text`, nullable
@@ -283,6 +283,22 @@ Index:
 Compatibility note:
 
 - The ecommerce bootstrap derives the SQL type for `users.id`, `products.id`, and `affiliate_accounts.user_id` from the live database before creating the legacy `commerce_*` tables.
+
+### Ecommerce settings storage
+
+- `app_settings.commerce_config`: `jsonb`
+  - `enabled`: global checkout toggle
+  - currency, shipping, bank transfer, and cash instruction settings
+  - `paymentMethods`: ordered array of admin-managed payment method configs
+    - `code`: stable checkout/payment method identifier
+    - `label`: customer-facing label
+    - `description`: checkout description
+    - `instructions`: post-selection or post-order guidance
+    - `enabled`: availability toggle
+    - `provider`: gateway/provider identifier copied into `commerce_payments.provider`
+    - `type`: `manual`, `offline`, `redirect`, `embedded`, or `mock`
+    - `requiresShipping`: `true`, `false`, or `null`
+    - method-specific instructions and optional bank/VietQR account fields for manual payment methods
 
 ## Non-database storage
 

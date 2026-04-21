@@ -6,7 +6,7 @@ Use this file as the entrypoint for project documentation.
 
 - `docs/index.md` is the navigation map and ownership map for project documentation.
 - Put project-wide high-level rules here only.
-- Put feature-specific or system-specific rules in dedicated docs such as `fields.md`, `schema.md`, `realtime.md`, `admin.md`, `guest.md`, `customer.md`, and `partner.md`.
+- Put feature-specific or system-specific rules in dedicated docs such as `fields.md`, `schema.md`, `realtime.md`, `admin.md`, `ecommerce.md`, `guest.md`, `customer.md`, and `partner.md`.
 
 ## Project Snapshot
 
@@ -26,6 +26,7 @@ Use this file as the entrypoint for project documentation.
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
+   - [ecommerce](./ecommerce.md)
    - [partner](./partner.md)
 
 ## Doc Ownership
@@ -48,6 +49,8 @@ Use this file as the entrypoint for project documentation.
   Customer workspace, account area, and customer-owned invitation flow rules.
 - `docs/admin.md`
   Admin-only workflows, admin screen ownership, and admin config/control conventions.
+- `docs/ecommerce.md`
+  Checkout, payment method settings, gateway integration workflow, and order/payment state rules.
 - `docs/partner.md`
   Partner/vendor portal ownership, assignment flow, vendor order collaboration, and dedicated partner route rules.
 
@@ -77,6 +80,7 @@ Use this file as the entrypoint for project documentation.
   - public site: `guest.md`
   - customer area: `customer.md`
   - admin area: `admin.md`
+  - checkout/payment/order workflow: `ecommerce.md`
   - partner area: `partner.md`
 - If code and docs conflict, update docs in the same task.
 - Keep new files in `docs/` lowercase. The existing repo-wide rules file remains `docs/CONVENTIONS.md` for compatibility with workspace tooling.

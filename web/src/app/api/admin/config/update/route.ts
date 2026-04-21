@@ -123,52 +123,16 @@ export async function POST(request: Request) {
     }
 
     if (section === "ecommerce") {
-      let paymentMethods: import("@/lib/system-settings").EcommercePaymentMethodSettings[] = [];
-
-      try {
-        const parsed = JSON.parse(String(formData.get("paymentMethodsJson") ?? "[]")) as Array<Record<string, unknown>>;
-        paymentMethods = Array.isArray(parsed)
-          ? parsed
-              .map((item): import("@/lib/system-settings").EcommercePaymentMethodSettings => ({
-                code: String(item.code ?? "").trim(),
-                label: String(item.label ?? "").trim(),
-                description: String(item.description ?? "").trim(),
-                instructions: String(item.instructions ?? "").trim(),
-                enabled: Boolean(item.enabled),
-                provider: String(item.provider ?? "").trim() || "manual",
-                type: item.type === "mock" ? "mock" : item.type === "offline" ? "offline" : "manual",
-                requiresShipping:
-                  item.requiresShipping === true ? true : item.requiresShipping === false ? false : null,
-              }))
-              .filter((item) => item.code && item.label)
-          : [];
-      } catch {
-        return respondError(request, {
-          error: "invalid_payment_methods",
-          message: "JSON phương thức thanh toán không hợp lệ.",
-          location: ROUTES.ADMIN.CONFIG_ECOMMERCE,
-        });
-      }
-
       await updateEcommerceSettings({
         enabled: isChecked(formData, "enabled"),
-        allowBankTransfer: paymentMethods.some((item) => item.code === "bank_transfer" && item.enabled),
-        allowCod: paymentMethods.some((item) => item.code === "cod" && item.enabled),
         autoApproveMockPayments: isChecked(formData, "autoApproveMockPayments"),
         supportShipping: isChecked(formData, "supportShipping"),
         flatShippingFee: Number(formData.get("flatShippingFee") ?? "30000"),
         freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? "1500000"),
-        bankTransferInstructions: String(formData.get("bankTransferInstructions") ?? ""),
-        bankName: String(formData.get("bankName") ?? "").trim(),
-        bankQrBankId: String(formData.get("bankQrBankId") ?? "").trim(),
-        bankAccountNumber: String(formData.get("bankAccountNumber") ?? "").trim(),
-        bankAccountName: String(formData.get("bankAccountName") ?? "").trim(),
-        cashPaymentInstructions: String(formData.get("cashPaymentInstructions") ?? "").trim(),
         currency: String(formData.get("currency") ?? "VND").trim() || "VND",
         currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",
         thousandSeparator: formData.get("thousandSeparator") === "," ? "," : ".",
         decimalSeparator: formData.get("decimalSeparator") === "." ? "." : ",",
-        paymentMethods,
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });
