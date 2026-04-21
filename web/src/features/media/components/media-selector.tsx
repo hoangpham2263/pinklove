@@ -118,6 +118,20 @@ export function MediaSelector(props: MediaSelectorProps) {
     props.onChange(nextValues[0] ?? "");
   };
 
+  const selectMediaItem = (url: string, isSelected: boolean) => {
+    if (multiple) {
+      updateSelection(
+        isSelected
+          ? selectedValues.filter((value) => value !== url)
+          : [...selectedValues, url]
+      );
+      return;
+    }
+
+    updateSelection([url]);
+    window.setTimeout(() => setIsOpen(false), 0);
+  };
+
   const onDrop = async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
@@ -151,7 +165,7 @@ export function MediaSelector(props: MediaSelectorProps) {
       if (uploadedItems.length > 0) {
         if (multiple) {
           updateSelection(dedupeUrls([...selectedValues, ...uploadedItems.map((item) => item.url)]));
-        } else if (uploadedItems.length === 1) {
+        } else if (uploadedItems.length > 0) {
           updateSelection([uploadedItems[0].url]);
         }
       }
@@ -182,7 +196,7 @@ export function MediaSelector(props: MediaSelectorProps) {
             <div className="flex items-center gap-2">
               <SheetTrigger
                 render={
-                  <button className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
+                  <button type="button" className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
                     {multiple ? (
                       selectedValues.length > 0 ? (
                         <>
@@ -243,8 +257,8 @@ export function MediaSelector(props: MediaSelectorProps) {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <SheetTrigger render={<Button variant="secondary">Manage gallery</Button>} />
-                  <Button variant="destructive" onClick={() => updateSelection([])}>
+                  <SheetTrigger render={<Button type="button" variant="secondary">Manage gallery</Button>} />
+                  <Button type="button" variant="destructive" onClick={() => updateSelection([])}>
                     Clear
                   </Button>
                 </div>
@@ -254,8 +268,8 @@ export function MediaSelector(props: MediaSelectorProps) {
                 <MediaPreview url={selectedValue} />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
                   <div className="flex gap-2">
-                    <SheetTrigger render={<Button variant="secondary" size="sm">Upload</Button>} />
-                    <Button variant="destructive" size="sm" onClick={() => updateSelection([])}>
+                    <SheetTrigger render={<Button type="button" variant="secondary" size="sm">Upload</Button>} />
+                    <Button type="button" variant="destructive" size="sm" onClick={() => updateSelection([])}>
                       Remove
                     </Button>
                   </div>
@@ -265,7 +279,7 @@ export function MediaSelector(props: MediaSelectorProps) {
           ) : (
             <SheetTrigger
               render={
-                <button className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
+                <button type="button" className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
                   <ImageIcon className="h-8 w-8 text-muted-foreground" />
                   <span className="font-medium text-muted-foreground">
                     {multiple ? "Select gallery" : "Upload"}
@@ -275,7 +289,8 @@ export function MediaSelector(props: MediaSelectorProps) {
             />
           )}
 
-          {name
+          {name && !multiple ? <input type="hidden" name={name} value={selectedValue} /> : null}
+          {name && multiple
             ? selectedValues.map((url) => (
                 <input key={`${name}-${url}`} type="hidden" name={name} value={url} />
               ))
@@ -347,24 +362,13 @@ export function MediaSelector(props: MediaSelectorProps) {
                     const isSelected = selectedValues.includes(item.url);
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={item.id}
-                        className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-gray-200 transition-all hover:ring-1 hover:ring-primary ${
+                        className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-gray-200 text-left transition-all hover:ring-1 hover:ring-primary ${
                           isSelected ? "ring-1 ring-primary" : ""
                         }`}
-                        onClick={() => {
-                          if (multiple) {
-                            updateSelection(
-                              isSelected
-                                ? selectedValues.filter((value) => value !== item.url)
-                                : [...selectedValues, item.url]
-                            );
-                            return;
-                          }
-
-                          updateSelection([item.url]);
-                          setIsOpen(false);
-                        }}
+                        onClick={() => selectMediaItem(item.url, isSelected)}
                       >
                         {item.mimeType.startsWith("image/") ? (
                           <img
@@ -386,7 +390,7 @@ export function MediaSelector(props: MediaSelectorProps) {
                         <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1 px-2 opacity-0 transition-opacity group-hover:opacity-100">
                           <p className="truncate text-[10px] text-white">{item.originalName}</p>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

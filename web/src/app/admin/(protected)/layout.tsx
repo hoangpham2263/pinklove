@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   BadgePercent,
@@ -11,6 +10,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Menu,
+  MessageCircle,
   Package,
   ReceiptText,
   Settings,
@@ -45,6 +45,7 @@ const standaloneIconMap = {
   truck: Truck,
   "shopping-bag": ShoppingBag,
   menu: Menu,
+  "message-circle": MessageCircle,
   image: ImageIcon,
   "book-open-text": BookOpenText,
   users: Users,
@@ -66,11 +67,9 @@ export default async function AdminLayout({
       <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
         <div className="mb-6 shrink-0 px-3">
           {settings.branding.brandLogo ? (
-            <Image
+            <img
               src={settings.branding.brandLogo}
               alt={settings.branding.siteName || "PinkLove"}
-              width={120}
-              height={40}
               className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
@@ -132,12 +131,7 @@ export default async function AdminLayout({
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
         <AdminTopHeader username={user.username} />
-
-        <section className="min-h-screen">
-          <section className="min-h-screen">
-            <div>{children}</div>
-          </section>
-        </section>
+        <section className="min-h-screen pt-14">{children}</section>
       </main>
     </div>
   );

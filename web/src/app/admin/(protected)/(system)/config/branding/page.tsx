@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
@@ -48,11 +47,9 @@ export default async function AdminBrandingSettingsPage() {
           <CardContent>
             {hasBrandLogo ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
-                <Image
+                <img
                   src={settings.branding.brandLogo}
                   alt={settings.branding.siteName}
-                  width={120}
-                  height={80}
                   className="max-h-full w-auto object-contain"
                 />
               </div>
@@ -66,11 +63,9 @@ export default async function AdminBrandingSettingsPage() {
           <CardContent>
             {hasFaviconPreview ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
-                <Image
+                <img
                   src={settings.favicon.siteFavicon}
                   alt="Favicon preview"
-                  width={64}
-                  height={64}
                   className="max-h-full w-auto object-contain"
                 />
               </div>
@@ -84,11 +79,9 @@ export default async function AdminBrandingSettingsPage() {
           <CardContent>
             {hasAppleTouchIconPreview ? (
               <div className="flex h-20 items-center justify-center overflow-hidden rounded-lg border bg-muted p-3">
-                <Image
+                <img
                   src={settings.favicon.appleTouchIcon}
                   alt="Apple touch icon preview"
-                  width={96}
-                  height={96}
                   className="max-h-full w-auto object-contain"
                 />
               </div>

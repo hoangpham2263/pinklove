@@ -34,11 +34,12 @@ export type AdminNavGroup = {
 export type AdminStandaloneNavItem = {
   label: string;
   href: string;
-  iconName: AdminNavIconName | "layout-dashboard" | "external-link";
+  iconName: AdminNavIconName | "layout-dashboard" | "external-link" | "message-circle";
 };
 
 export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
+  { label: "Tin nhắn", href: ROUTES.ADMIN.MESSAGES, iconName: "message-circle" },
   { label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
 ];
 

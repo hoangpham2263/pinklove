@@ -21,6 +21,7 @@ const globalForDb = globalThis as unknown as {
   commerceTablesMigrationDone?: boolean;
   productVendorPaperTypeMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
+  chatTablesMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
@@ -1043,8 +1044,131 @@ async function ensureVendorOrdersMigration() {
   `);
 }
 
+async function ensureChatTablesMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id");
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_conversations (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   title TEXT NOT NULL DEFAULT '',
+   kind TEXT NOT NULL DEFAULT 'direct',
+   created_by_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   CONSTRAINT chat_conversations_kind_check
+   CHECK (kind IN ('direct', 'group', 'support'))
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_conversations_updated_at_idx
+  ON chat_conversations(updated_at DESC);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_conversation_participants (
+   conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   last_read_at TIMESTAMPTZ,
+   PRIMARY KEY (conversation_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_conversation_participants_user_id_idx
+  ON chat_conversation_participants(user_id, conversation_id);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_messages (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+   sender_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   body TEXT NOT NULL,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_messages_conversation_id_idx
+  ON chat_messages(conversation_id, created_at ASC);
+ `);
+
+ await pool.query(`
+  CREATE OR REPLACE FUNCTION app_notify_chat_message_realtime()
+  RETURNS TRIGGER AS $$
+  DECLARE
+   participant_record RECORD;
+  BEGIN
+   PERFORM pg_notify(
+    'app_realtime',
+    json_build_object('topic', 'chat-conversation', 'resourceId', NEW.conversation_id)::text
+   );
+
+   FOR participant_record IN
+    SELECT user_id::text AS user_id
+    FROM chat_conversation_participants
+    WHERE conversation_id = NEW.conversation_id
+   LOOP
+    PERFORM pg_notify(
+     'app_realtime',
+     json_build_object('topic', 'chat-inbox', 'resourceId', participant_record.user_id)::text
+    );
+   END LOOP;
+
+   RETURN NEW;
+  END
+  $$ LANGUAGE plpgsql;
+ `);
+
+ await pool.query(`
+  DROP TRIGGER IF EXISTS chat_messages_realtime_notify ON chat_messages;
+ `);
+
+ await pool.query(`
+  CREATE TRIGGER chat_messages_realtime_notify
+  AFTER INSERT ON chat_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION app_notify_chat_message_realtime();
+ `);
+
+ await pool.query(`
+  CREATE OR REPLACE FUNCTION app_notify_chat_participant_realtime()
+  RETURNS TRIGGER AS $$
+  BEGIN
+   PERFORM pg_notify(
+    'app_realtime',
+    json_build_object('topic', 'chat-inbox', 'resourceId', NEW.user_id::text)::text
+   );
+
+   PERFORM pg_notify(
+    'app_realtime',
+    json_build_object('topic', 'chat-conversation', 'resourceId', NEW.conversation_id)::text
+   );
+
+   RETURN NEW;
+  END
+  $$ LANGUAGE plpgsql;
+ `);
+
+ await pool.query(`
+  DROP TRIGGER IF EXISTS chat_participants_realtime_notify ON chat_conversation_participants;
+ `);
+
+ await pool.query(`
+  CREATE TRIGGER chat_participants_realtime_notify
+  AFTER INSERT ON chat_conversation_participants
+  FOR EACH ROW
+  EXECUTE FUNCTION app_notify_chat_participant_realtime();
+ `);
+}
+
 async function ensureProductVendorPaperTypeMigration() {
   const pool = getPool();
+  await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
+  await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_product_type_check`);
   await pool.query(`
     UPDATE products
     SET product_type = 'general_product'
@@ -1055,13 +1179,11 @@ async function ensureProductVendorPaperTypeMigration() {
     SET product_type = 'general_product'
     WHERE product_type = 'vendor_paper'
   `);
-  await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
   await pool.query(`
     ALTER TABLE products
     ADD CONSTRAINT products_type_check
     CHECK (product_type IN ('coded_template', 'builder_template', 'general_product'))
   `);
-  await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_product_type_check`);
   await pool.query(`
     ALTER TABLE commerce_order_items
     ADD CONSTRAINT commerce_order_items_product_type_check
@@ -1645,6 +1767,11 @@ export async function ensureDb() {
       if (!globalForDb.vendorOrdersMigrationDone) {
         await ensureVendorOrdersMigration();
         globalForDb.vendorOrdersMigrationDone = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationDone) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationDone = true;
       }
 
       const managedPagesSeedSignature = getManagedPagesSeedSignature();

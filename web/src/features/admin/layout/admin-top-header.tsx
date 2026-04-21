@@ -18,7 +18,7 @@ export function AdminTopHeader({ username }: AdminTopHeaderProps) {
     <header
       id="admin-top-header"
       data-slot="admin-top-header"
-      className="admin-top-header sticky top-0 z-50 h-14 w-full border-b border-border bg-background"
+      className="admin-top-header fixed left-0 right-0 top-0 z-50 h-14 border-b border-border bg-background md:left-[16.666667%]"
     >
       <div className="flex h-full w-full items-center justify-between px-5 md:px-7.5">
         <div className="flex items-center gap-3">

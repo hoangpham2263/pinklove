@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   BadgePercent,
   ExternalLink,
   FolderHeart,
   LayoutDashboard,
+  MessageCircle,
   Settings,
   ShoppingBag,
   Store,
@@ -24,6 +24,7 @@ const customerMobileIconMap = {
   "layout-dashboard": LayoutDashboard,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
+  "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,
   settings: Settings,
@@ -43,11 +44,9 @@ export default async function CustomerLayout({
       <aside className="admin-sidebar-scroll hidden overflow-y-auto border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:gap-3">
         <div className="mb-6 flex items-center gap-2 px-3">
           {settings.branding.brandLogo ? (
-            <Image
+            <img
               src={settings.branding.brandLogo}
               alt={settings.branding.siteName}
-              width={120}
-              height={40}
               className="h-10 w-auto object-contain"
             />
           ) : (
@@ -96,11 +95,10 @@ export default async function CustomerLayout({
         </nav>
       </aside>
 
-      <main className="min-h-screen bg-[#f9f9f9] bg-muted/30 md:col-span-10">
+      <main className="min-h-screen min-w-0 bg-[#f9f9f9] bg-muted/30 md:col-span-10">
         <CustomerTopHeader username={user.username} />
-
-        <section className="min-h-screen">
-          <section className="border-b bg-background px-4 py-2 md:hidden">
+        <section className="min-h-screen pt-14">
+          <section className="shrink-0 border-b bg-background px-4 py-2 md:hidden">
             <nav className="flex gap-4 overflow-x-auto py-1">
               {CUSTOMER_MOBILE_NAV.map((entry) => {
                 const Icon = customerMobileIconMap[entry.iconName];
@@ -128,9 +126,7 @@ export default async function CustomerLayout({
             </nav>
           </section>
 
-          <section className="min-h-screen">
-            <div>{children}</div>
-          </section>
+          {children}
         </section>
       </main>
     </div>

@@ -302,22 +302,11 @@ function parseIndexingSettings(value: Record<string, unknown> | null | undefined
   };
 }
 
-function parseBrandingSettings(
-  value: Record<string, unknown> | null | undefined,
-  legacyOpenGraph: Record<string, unknown> | null | undefined
-): BrandingSettings {
+function parseBrandingSettings(value: Record<string, unknown> | null | undefined): BrandingSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.branding as Record<string, unknown>, value);
   return {
-    siteName: String(
-      merged.siteName ||
-        legacyOpenGraph?.siteName ||
-        DEFAULT_SETTINGS.branding.siteName
-    ),
-    brandLogo: String(
-      merged.brandLogo ??
-        legacyOpenGraph?.siteLogo ??
-        DEFAULT_SETTINGS.branding.brandLogo
-    ),
+    siteName: String(merged.siteName || DEFAULT_SETTINGS.branding.siteName),
+    brandLogo: String(merged.brandLogo ?? DEFAULT_SETTINGS.branding.brandLogo),
   };
 }
 
@@ -461,7 +450,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
-    branding: parseBrandingSettings(row?.seo_branding, row?.seo_opengraph),
+    branding: parseBrandingSettings(row?.seo_branding),
     opengraph: parseOpenGraphSettings(row?.seo_opengraph),
     favicon: parseFaviconSettings(row?.seo_favicon),
     ecommerce: parseEcommerceSettings(row?.commerce_config),

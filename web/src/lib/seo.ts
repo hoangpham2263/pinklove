@@ -134,8 +134,12 @@ export async function createRootMetadata(): Promise<Metadata> {
   const siteUrl = await getCurrentSiteUrl();
   const canIndex = settings.indexing.siteIndexingEnabled;
   const defaultImage = resolveMetadataImageUrl(settings.opengraph.defaultImage, siteUrl);
-  const faviconUrl = resolveMetadataImageUrl(settings.favicon.siteFavicon, siteUrl);
-  const appleTouchIconUrl = resolveMetadataImageUrl(settings.favicon.appleTouchIcon, siteUrl);
+  const faviconVersion = encodeURIComponent(settings.favicon.siteFavicon.trim());
+  const appleTouchIconVersion = encodeURIComponent(settings.favicon.appleTouchIcon.trim());
+  const faviconUrl = faviconVersion ? `/favicon.ico?v=${faviconVersion}` : undefined;
+  const appleTouchIconUrl = appleTouchIconVersion
+    ? `/apple-touch-icon.png?v=${appleTouchIconVersion}`
+    : undefined;
   const defaultTitle = settings.opengraph.defaultTitle || DEFAULT_TITLE;
   const defaultDescription = settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
   const siteName = settings.branding.siteName || DEFAULT_SITE_NAME;

@@ -3,6 +3,7 @@ import { ROUTES } from "@/lib/routes";
 export type CustomerNavIconName =
   | "folder-heart"
   | "shopping-bag"
+  | "message-circle"
   | "user"
   | "badge-percent"
   | "settings";
@@ -35,6 +36,12 @@ export function getCustomerNavGroups(): CustomerNavGroup[] {
       children: [{ label: "Đơn hàng của tôi", href: ROUTES.CUSTOMER.ORDERS, iconName: "shopping-bag" }],
     },
     {
+      label: "Trao đổi",
+      iconName: "message-circle",
+      defaultOpen: false,
+      children: [{ label: "Tin nhắn", href: ROUTES.CUSTOMER.MESSAGES, iconName: "message-circle" }],
+    },
+    {
       label: "Thiệp",
       iconName: "folder-heart",
       defaultOpen: false,
@@ -62,6 +69,7 @@ export const CUSTOMER_MOBILE_NAV: CustomerMobileNavEntry[] = [
   { label: "Dashboard", href: ROUTES.CUSTOMER.DASHBOARD, iconName: "layout-dashboard" },
   { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS, iconName: "folder-heart" },
   { label: "Đơn hàng", href: ROUTES.CUSTOMER.ORDERS, iconName: "shopping-bag" },
+  { label: "Tin nhắn", href: ROUTES.CUSTOMER.MESSAGES, iconName: "message-circle" },
   { label: "Hồ sơ", href: ROUTES.CUSTOMER.PROFILE, iconName: "user" },
   { label: "Affiliate", href: ROUTES.CUSTOMER.AFFILIATE, iconName: "badge-percent" },
   { label: "Cài đặt", href: ROUTES.CUSTOMER.SETTINGS, iconName: "settings" },

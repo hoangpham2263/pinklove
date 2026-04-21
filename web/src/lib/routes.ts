@@ -60,6 +60,7 @@ export const ROUTES = {
     DASHBOARD: "/customer/dashboard",
     PROFILE: "/customer/profile",
     SETTINGS: "/customer/settings",
+    MESSAGES: "/customer/messages",
     AFFILIATE: "/customer/affiliate",
     VENDOR: "/customer/vendor",
     INVITATIONS: "/customer/invitations",
@@ -121,6 +122,7 @@ export const ROUTES = {
     VENDOR: (id: string) => `/admin/vendors/${id}`,
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
+    MESSAGES: "/admin/messages",
     AFFILIATES: "/admin/affiliates",
     ORDERS: "/admin/orders",
     ORDER: (id: string) => `/admin/orders/${id}`,
@@ -221,6 +223,7 @@ export const ROUTES = {
     },
     CUSTOMER: {
       PROFILE: "/api/customer/profile",
+      MESSAGES: "/api/chat/conversations",
       WISHLIST: "/api/customer/wishlist",
       AFFILIATE: {
         APPLY: "/api/customer/affiliate/apply",
@@ -236,5 +239,13 @@ export const ROUTES = {
       TRACK: "/api/affiliate/track",
     },
     MEDIA: "/api/media",
+    CHAT: {
+      CONVERSATIONS: "/api/chat/conversations",
+      CONVERSATION: (id: string) => `/api/chat/conversations/${id}`,
+      MESSAGES: (id: string) => `/api/chat/conversations/${id}/messages`,
+      PARTICIPANTS: (id: string) => `/api/chat/conversations/${id}/participants`,
+      REALTIME_INBOX: "/api/chat/realtime/inbox",
+      REALTIME_CONVERSATION: (id: string) => `/api/chat/realtime/conversations/${id}`,
+    },
   },
 } as const;

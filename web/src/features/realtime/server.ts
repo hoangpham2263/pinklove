@@ -37,17 +37,12 @@ export function createListenRealtimeStream<TState extends RealtimeStateSnapshot 
 }: RealtimeStreamOptions<TState>) {
   const encoder = new TextEncoder();
   let closed = false;
-  let keepAliveTimer: ReturnType<typeof setInterval> | null = null;
   let listenerClient: Awaited<ReturnType<typeof connectDbListener>> | null = null;
   let notificationHandler: ((message: { channel?: string; payload?: string }) => void) | null = null;
 
   const cleanup = () => {
     if (closed) return;
     closed = true;
-    if (keepAliveTimer) {
-      clearInterval(keepAliveTimer);
-      keepAliveTimer = null;
-    }
     if (listenerClient) {
       if (notificationHandler) {
         listenerClient.off("notification", notificationHandler);
@@ -118,15 +113,6 @@ export function createListenRealtimeStream<TState extends RealtimeStateSnapshot 
           }
         }
       };
-
-      keepAliveTimer = setInterval(() => {
-        if (closed) return;
-        try {
-          controller.enqueue(encoder.encode(": keepalive\n\n"));
-        } catch {
-          closeStream();
-        }
-      }, 25000);
 
       try {
         listenerClient = await connectDbListener();

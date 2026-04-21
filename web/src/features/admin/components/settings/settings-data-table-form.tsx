@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpDown, X } from "lucide-react";
 import { toast } from "sonner";
@@ -76,6 +76,10 @@ export function SettingsDataTableForm({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setRows(initialRows);
+  }, [initialRows]);
 
   const columns = useMemo<ColumnDef<SettingsRow>[]>(
     () => [
@@ -241,6 +245,14 @@ export function SettingsDataTableForm({
 
     try {
       const formData = new FormData(event.currentTarget);
+      for (const row of rows) {
+        if (row.type === "boolean") {
+          formData.set(row.id, Boolean(row.value) ? "on" : "");
+          continue;
+        }
+
+        formData.set(row.id, String(row.value));
+      }
       formData.append("section", section);
       const result = await postForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
       toast.success(result.message ?? saveMessage);
