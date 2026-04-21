@@ -303,11 +303,13 @@ export async function buildManagedPageMetadata(page: ManagedPage): Promise<Metad
   const canIndex = settings.indexing.siteIndexingEnabled && !page.noindex;
   const ogTitle = page.ogTitle || page.seoTitle || page.title || settings.opengraph.defaultTitle;
   const ogDescription = page.ogDescription || page.seoDescription || page.excerpt || settings.opengraph.defaultDescription;
+  const pageTitle = page.seoTitle || page.title || settings.opengraph.defaultTitle;
+  const pageDescription = page.seoDescription || page.excerpt || settings.opengraph.defaultDescription;
 
   return {
     metadataBase: new URL(siteUrl),
-    title: page.seoTitle || page.title || "Pinklove App",
-    description: page.seoDescription || page.excerpt || "",
+    title: pageTitle,
+    description: pageDescription,
     keywords: page.seoKeywords ? page.seoKeywords.split(",").map(k => k.trim()) : undefined,
     alternates: { canonical: canonicalUrl },
     robots: {

@@ -69,12 +69,12 @@ export default async function AdminLayout({
           {settings.branding.brandLogo ? (
             <img
               src={settings.branding.brandLogo}
-              alt={settings.branding.siteName || "PinkLove"}
+              alt={settings.branding.siteName}
               className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
             <h2 className="text-lg font-bold tracking-tight">
-              {settings.branding.siteName || "PinkLove"}
+              {settings.branding.siteName}
             </h2>
           )}
         </div>

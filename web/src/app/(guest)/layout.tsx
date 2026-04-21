@@ -86,7 +86,7 @@ export default async function GuestLayout({
           headerTree={headerTree}
           dashboardHref={dashboardHref}
           settingsHref={settingsHref}
-          siteName={settings.branding.siteName || "PinkLove"}
+          siteName={settings.branding.siteName}
           siteLogo={settings.branding.brandLogo || undefined}
         />
         <main>

@@ -27,7 +27,7 @@ function isImageUrl(value: string) {
 export default async function AdminOpenGraphSettingsPage() {
   await requireAdmin();
   const [settings, siteUrl] = await Promise.all([getSystemSettings(), getCurrentSiteUrl()]);
-  const previewTitle = settings.opengraph.defaultTitle || settings.branding.siteName;
+  const previewTitle = settings.opengraph.defaultTitle;
   const previewDescription = settings.opengraph.defaultDescription;
   const previewImage = settings.opengraph.defaultImage || "Chưa cấu hình";
   const hasPreviewImage = Boolean(settings.opengraph.defaultImage) && isImageUrl(settings.opengraph.defaultImage);
@@ -95,7 +95,7 @@ export default async function AdminOpenGraphSettingsPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Preview Fallback</CardTitle>
+          <CardTitle>Preview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-sm text-muted-foreground">
@@ -151,14 +151,14 @@ export default async function AdminOpenGraphSettingsPage() {
               {
                 id: "defaultTitle",
                 label: "Default Title",
-                description: "Tiêu đề fallback khi page chưa có OG title riêng.",
+                description: "Tiêu đề mặc định khi page chưa có OG title riêng.",
                 type: "text",
                 value: settings.opengraph.defaultTitle,
               },
               {
                 id: "defaultDescription",
                 label: "Default Description",
-                description: "Mô tả fallback khi page chưa có OG description riêng.",
+                description: "Mô tả mặc định khi page chưa có OG description riêng.",
                 type: "textarea",
                 value: settings.opengraph.defaultDescription,
               },

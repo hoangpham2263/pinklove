@@ -52,7 +52,7 @@ export default async function CustomerLayout({
           ) : (
             <>
               <div className="h-6 w-6 rounded-bg bg-primary" />
-              <h2 className="text-lg font-bold tracking-tight">{settings.branding.siteName || "PinkLove"}</h2>
+              <h2 className="text-lg font-bold tracking-tight">{settings.branding.siteName}</h2>
             </>
           )}
         </div>

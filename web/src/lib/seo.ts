@@ -2,10 +2,6 @@ import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getSystemSettings } from "@/lib/system-settings";
 
-const DEFAULT_SITE_NAME = "PinkLove";
-const DEFAULT_TITLE = "PinkLove";
-const DEFAULT_DESCRIPTION = "Thiệp cưới online, blog cưới, công cụ cưới và builder tạo thiệp tối ưu cho trải nghiệm chia sẻ.";
-
 export function getSiteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
@@ -106,8 +102,8 @@ export async function createSeoMetadata({
   const url = absoluteUrl(path, siteUrl);
   const imageUrl = resolveMetadataImageUrl(image || settings.opengraph.defaultImage, siteUrl);
   const canIndex = settings.indexing.siteIndexingEnabled && !noindex;
-  const ogTitle = title || settings.opengraph.defaultTitle || DEFAULT_TITLE;
-  const ogDescription = description || settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
+  const ogTitle = title || settings.opengraph.defaultTitle;
+  const ogDescription = description || settings.opengraph.defaultDescription;
 
   return {
     title,
@@ -125,8 +121,8 @@ export async function createSeoMetadata({
       url,
       title: ogTitle,
       description: ogDescription,
-      siteName: settings.branding.siteName || DEFAULT_SITE_NAME,
-      locale: settings.opengraph.locale || "vi_VN",
+      siteName: settings.branding.siteName,
+      locale: settings.opengraph.locale,
       images: imageUrl ? [{ url: imageUrl }] : undefined,
     },
     twitter: {
@@ -145,10 +141,10 @@ export async function createRootMetadata(): Promise<Metadata> {
   const defaultImage = resolveMetadataImageUrl(settings.opengraph.defaultImage, siteUrl);
   const faviconUrl = resolveMetadataIconUrl(settings.favicon.siteFavicon, siteUrl);
   const appleTouchIconUrl = resolveMetadataIconUrl(settings.favicon.appleTouchIcon, siteUrl);
-  const defaultTitle = settings.opengraph.defaultTitle || DEFAULT_TITLE;
-  const defaultDescription = settings.opengraph.defaultDescription || DEFAULT_DESCRIPTION;
-  const siteName = settings.branding.siteName || DEFAULT_SITE_NAME;
-  const locale = settings.opengraph.locale || "vi_VN";
+  const defaultTitle = settings.opengraph.defaultTitle;
+  const defaultDescription = settings.opengraph.defaultDescription;
+  const siteName = settings.branding.siteName;
+  const locale = settings.opengraph.locale;
 
   return {
     metadataBase: new URL(siteUrl),
