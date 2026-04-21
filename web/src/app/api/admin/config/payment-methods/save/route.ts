@@ -17,10 +17,59 @@ function parsePaymentMethodType(value: FormDataEntryValue | null): EcommercePaym
   return "manual";
 }
 
+function parsePaymentMethodCategory(value: FormDataEntryValue | null): EcommercePaymentMethodSettings["category"] {
+  const normalized = String(value ?? "").trim();
+  if (normalized === "offline" || normalized === "gateway") {
+    return normalized;
+  }
+  return "manual";
+}
+
 function parseRequiresShipping(value: FormDataEntryValue | null) {
   if (value === "shipping") return true;
   if (value === "no_shipping") return false;
   return null;
+}
+
+export async function savePaymentMethodEnabledState(request: Request, formData: FormData) {
+  const code = String(formData.get("code") ?? "").trim();
+  const enabled = formData.get("enabled") === "on";
+
+  if (!code) {
+    return respondError(request, {
+      error: "missing_payment_method",
+      message: "Thiếu phương thức thanh toán cần cập nhật.",
+      location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+    });
+  }
+
+  const settings = await getSystemSettings();
+  const currentMethods = settings.ecommerce.paymentMethods;
+  const exists = currentMethods.some((method) => method.code === code);
+
+  if (!exists) {
+    return respondError(request, {
+      status: 404,
+      error: "payment_method_not_found",
+      message: "Không tìm thấy phương thức thanh toán.",
+      location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+    });
+  }
+
+  const paymentMethods = currentMethods.map((method) =>
+    method.code === code ? { ...method, enabled } : method
+  );
+
+  await updateEcommerceSettings({
+    paymentMethods,
+    allowBankTransfer: paymentMethods.some((method) => method.code === "bank_transfer" && method.enabled),
+    allowCod: paymentMethods.some((method) => method.code === "cod" && method.enabled),
+  });
+
+  return respondSuccess(request, {
+    message: enabled ? "Đã bật phương thức thanh toán." : "Đã tắt phương thức thanh toán.",
+    location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+  });
 }
 
 export async function POST(request: Request) {
@@ -30,6 +79,10 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
+  if (formData.get("intent") === "toggle-enabled") {
+    return savePaymentMethodEnabledState(request, formData);
+  }
+
   const originalCode = String(formData.get("originalCode") ?? "").trim();
   const code = String(formData.get("code") ?? "").trim();
   const label = String(formData.get("label") ?? "").trim();
@@ -60,6 +113,7 @@ export async function POST(request: Request) {
     description: String(formData.get("description") ?? "").trim(),
     instructions: String(formData.get("instructions") ?? "").trim(),
     enabled: formData.get("enabled") === "on",
+    category: parsePaymentMethodCategory(formData.get("category")),
     provider: String(formData.get("provider") ?? "").trim() || code,
     type: parsePaymentMethodType(formData.get("type")),
     requiresShipping: parseRequiresShipping(formData.get("requiresShipping")),

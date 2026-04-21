@@ -16,19 +16,25 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
 ## Payment method settings
 
 - `Admin > Cấu hình > Payment Methods` is the source of truth for checkout payment methods.
-- The admin payment method UI should present a single table overview with quick view and edit actions. Editing should happen on a dedicated child page so the ecommerce settings hub stays clear.
+- The admin payment method UI should present three primary groups inspired by WooCommerce gateway settings:
+  - `manual`: bank transfer, VietQR, or any method that requires staff reconciliation.
+  - `offline`: cash, COD, studio handoff, or payment that happens outside an online processor.
+  - `gateway`: third-party online providers such as Stripe, PayPal, MoMo, VNPAY, ZaloPay, or OnePay.
+- Each group can contain multiple gateways/providers. The overview should show quick view and edit actions, while editing happens on a dedicated child page so the ecommerce settings hub stays clear.
 - Payment methods are stored in `app_settings.commerce_config.paymentMethods` so admins can enable, disable, rename, describe, and order methods without a schema migration.
 - Each payment method must have:
   - `code`: stable internal identifier, for example `bank_transfer`, `cod`, `stripe_card`, `paypal`, `momo`, or `vnpay`.
   - `label`: customer-facing name.
   - `description`: short checkout copy.
   - `instructions`: post-selection or post-order guidance.
+  - `category`: one of `manual`, `offline`, or `gateway`.
   - `provider`: integration owner, for example `manual_bank_transfer`, `cash`, `stripe`, `paypal`, `momo`, or `vnpay`.
   - `type`: one of `manual`, `offline`, `redirect`, `embedded`, or `mock`.
   - `requiresShipping`: `true`, `false`, or `null` to restrict method visibility by order type.
 - Method-specific payment instructions and account/QR details belong on the payment method itself, not in global checkout settings.
 - `Admin > Cấu hình > Ecommerce` should stay limited to checkout availability, currency formatting, and shipping calculation.
 - Payment method `code` values should not be renamed after real orders exist. Disable the old method and add a new method when changing an integration identity.
+- Payment methods can be deleted only before they are used by `commerce_payments`. Once used by an order/payment history, disable the method instead of deleting it.
 - Admin forms should stay structured. Do not require normal admin users to edit raw JSON for payment methods.
 
 ## Checkout workflow
@@ -75,6 +81,22 @@ For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
 8. Make webhook processing idempotent by checking local payment `external_ref`, current status, and provider event IDs before updating.
 9. Update `commerce_payments`, then sync `commerce_orders`, entitlements, affiliate conversion, and fulfillment eligibility.
 10. Surface reconciliation data in admin payments: method, provider, status, external ref, amount, and timestamps.
+
+### VNPAY setup
+
+- Add a payment method under `Cổng thanh toán trực tuyến` with:
+  - `code`: `vnpay`
+  - `provider`: `vnpay`
+  - `type`: `Chuyển khách sang cổng thanh toán`
+- Store secrets in environment variables, not in admin payment method fields:
+  - `VNPAY_TMN_CODE`
+  - `VNPAY_HASH_SECRET`
+  - `VNPAY_PAYMENT_URL`, optional; defaults to sandbox `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`
+  - `NEXT_PUBLIC_SITE_URL` or `SITE_URL`, required for VNPAY to call back to the correct public domain
+- Configure VNPAY merchant URLs:
+  - Return URL: `/api/payments/vnpay/return`
+  - IPN URL: `/api/payments/vnpay/ipn`
+- The checkout flow creates the local order first, redirects to VNPAY, then updates the payment from VNPAY Return/IPN callbacks after validating `vnp_SecureHash`.
 
 ## Admin operations
 

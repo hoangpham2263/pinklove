@@ -1,15 +1,37 @@
 export function getPaymentMethodTypeLabel(type: string) {
   switch (type) {
     case "offline":
-      return "Offline";
+      return "Thu trực tiếp";
     case "redirect":
-      return "Redirect";
+      return "Chuyển sang cổng thanh toán";
     case "embedded":
-      return "Embedded";
+      return "Nhúng cổng thanh toán";
     case "mock":
-      return "Mock";
+      return "Thanh toán thử nghiệm";
     default:
-      return "Manual";
+      return "Đối soát thủ công";
+  }
+}
+
+export function getPaymentMethodCategoryLabel(category: string) {
+  switch (category) {
+    case "offline":
+      return "Thanh toán trực tiếp / COD";
+    case "gateway":
+      return "Cổng thanh toán trực tuyến";
+    default:
+      return "Chuyển khoản / đối soát";
+  }
+}
+
+export function getPaymentMethodCategoryDescription(category: string) {
+  switch (category) {
+    case "offline":
+      return "Thu tiền khi giao hàng, tại studio hoặc các hình thức thanh toán không qua cổng online.";
+    case "gateway":
+      return "Stripe, PayPal, MoMo, VNPAY hoặc gateway bên thứ ba có redirect, embedded checkout, callback hoặc webhook.";
+    default:
+      return "Chuyển khoản ngân hàng, VietQR hoặc phương thức cần nhân sự đối soát trước khi duyệt đơn.";
   }
 }
 

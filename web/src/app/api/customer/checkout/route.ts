@@ -1,10 +1,16 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { createOrderFromCart, syncCartWithWishlist } from "@/features/ecommerce/server/service";
+import { createOrderFromCart, listCartItems, syncCartWithWishlist } from "@/features/ecommerce/server/service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
+import { getSiteUrlFromRequest } from "@/lib/seo";
 import { getSystemSettings } from "@/lib/system-settings";
+import {
+  createVnpayPaymentUrl,
+  getVnpayConfig,
+  getVnpayRequestIp,
+} from "@/lib/vnpay";
 
 export const runtime = "nodejs";
 
@@ -21,9 +27,13 @@ function getCookieValue(request: Request, name: string) {
 
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  await syncCartWithWishlist(user.id);
-  const settings = await getSystemSettings();
   const formData = await request.formData();
+  const selectedProductIds = formData
+    .getAll("selectedProductIds")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  await syncCartWithWishlist(user.id, selectedProductIds);
+  const settings = await getSystemSettings();
 
   if (!settings.ecommerce.enabled) {
     return respondError(request, {
@@ -34,13 +44,25 @@ export async function POST(request: Request) {
   }
 
   const paymentMethod = String(formData.get("paymentMethod") ?? "mock_online");
-  const enabledPaymentMethods = getEnabledPaymentMethods(settings.ecommerce, Boolean(String(formData.get("shippingLine1") ?? "").trim()));
+  const cartItems = await listCartItems(user.id);
+  const requiresShipping =
+    settings.ecommerce.supportShipping && cartItems.some((item) => item.fulfillmentType === "physical");
+  const enabledPaymentMethods = getEnabledPaymentMethods(settings.ecommerce, requiresShipping);
   const selectedPaymentMethod = enabledPaymentMethods.find((item) => item.code === paymentMethod);
 
   if (!selectedPaymentMethod) {
     return respondError(request, {
       error: "payment_method_disabled",
       message: "Phương thức thanh toán hiện không khả dụng.",
+      location: ROUTES.CHECKOUT.INDEX,
+    });
+  }
+
+  const vnpayConfig = selectedPaymentMethod.provider === "vnpay" ? getVnpayConfig() : null;
+  if (selectedPaymentMethod.provider === "vnpay" && !vnpayConfig) {
+    return respondError(request, {
+      error: "vnpay_not_configured",
+      message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY_TMN_CODE và VNPAY_HASH_SECRET.",
       location: ROUTES.CHECKOUT.INDEX,
     });
   }
@@ -66,6 +88,31 @@ export async function POST(request: Request) {
       shippingPostalCode: String(formData.get("shippingPostalCode") ?? "").trim(),
       shippingCountry: String(formData.get("shippingCountry") ?? "VN").trim() || "VN",
     });
+
+    if (selectedPaymentMethod.provider === "vnpay") {
+      const primaryPayment = order.payments[0];
+
+      if (!vnpayConfig || !primaryPayment) {
+        return respondError(request, {
+          error: "vnpay_not_configured",
+          message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY_TMN_CODE và VNPAY_HASH_SECRET.",
+          location: ROUTES.CHECKOUT.SUCCESS(order.orderNumber),
+        });
+      }
+
+      const paymentUrl = createVnpayPaymentUrl({
+        order,
+        paymentId: primaryPayment.id,
+        requestIp: getVnpayRequestIp(request),
+        returnUrl: `${getSiteUrlFromRequest(request)}${ROUTES.API.PAYMENTS.VNPAY.RETURN}`,
+        config: vnpayConfig,
+      });
+
+      return respondSuccess(request, {
+        location: paymentUrl,
+        message: "Chuyển sang VNPAY để thanh toán.",
+      });
+    }
 
     return respondSuccess(request, {
       location: ROUTES.CHECKOUT.SUCCESS(order.orderNumber),

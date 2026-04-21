@@ -317,9 +317,11 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
   return result.rows.map(mapCartItemRow);
 }
 
-export async function syncCartWithWishlist(userId: string) {
+export async function syncCartWithWishlist(userId: string, selectedProductIds?: string[]) {
   const wishlistProductIds = await getUserWishlistProductIds(userId);
-  const products = await listPublishedProductsByIds(wishlistProductIds);
+  const selectedSet = selectedProductIds?.length ? new Set(selectedProductIds) : null;
+  const productIds = selectedSet ? wishlistProductIds.filter((id) => selectedSet.has(id)) : wishlistProductIds;
+  const products = await listPublishedProductsByIds(productIds);
 
   await withTransaction(async (execute) => {
     await execute("DELETE FROM shopping_cart_items WHERE user_id = $1", [userId]);
@@ -803,6 +805,40 @@ export async function adminUpdatePaymentState(input: {
   );
 
   await ensureEntitlementsForOrder(payment.order_id);
+}
+
+export async function applyGatewayPaymentResult(input: {
+  paymentId: string;
+  provider: string;
+  amount: number;
+  status: EcommercePayment["status"];
+  externalRef?: string;
+}) {
+  const paymentResult = await query<PaymentRow>(
+    "SELECT * FROM commerce_payments WHERE id = $1 AND provider = $2 LIMIT 1",
+    [input.paymentId, input.provider]
+  );
+  const payment = paymentResult.rows[0];
+
+  if (!payment) {
+    return { ok: false as const, reason: "not_found" as const };
+  }
+
+  if (Number(payment.amount) !== input.amount) {
+    return { ok: false as const, reason: "invalid_amount" as const };
+  }
+
+  if (payment.status === "paid" || payment.status === "refunded") {
+    return { ok: true as const, alreadyProcessed: true, orderId: payment.order_id };
+  }
+
+  await adminUpdatePaymentState({
+    paymentId: payment.id,
+    status: input.status,
+    externalRef: input.externalRef,
+  });
+
+  return { ok: true as const, alreadyProcessed: false, orderId: payment.order_id };
 }
 
 export async function adminUpdateShipmentState(input: {

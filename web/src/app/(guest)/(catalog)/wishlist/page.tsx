@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { WishlistPageClient } from "@/features/products/components/wishlist-page-client";
 import { listPublishedProductsByIds } from "@/features/products/server/service";
 import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
-import { requireAppUser } from "@/lib/auth";
+import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
@@ -19,15 +19,20 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function WishlistPage() {
   const user = await requireAppUser(`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`);
   const wishlistProductIds = await getUserWishlistProductIds(user.id);
-  const [products, settings] = await Promise.all([
+  const [products, settings, profile] = await Promise.all([
     listPublishedProductsByIds(wishlistProductIds),
     getSystemSettings(),
+    getUserProfile(user.id),
   ]);
 
   return (
     <WishlistPageClient
       products={products}
       permalinkConfig={sanitizePermalinkConfig(settings.permalink)}
+      ecommerceSettings={settings.ecommerce}
+      customerName={profile.displayName || profile.fullName || user.username}
+      customerPhone={profile.phone}
+      customerEmail={`${user.username}@pinklove.local`}
     />
   );
 }

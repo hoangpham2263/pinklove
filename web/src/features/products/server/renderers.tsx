@@ -183,7 +183,7 @@ export async function renderTemplateProductPage(product: Product, config: Public
                   </GuestButton>
                 </form>
                 <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex w-full">
-                  Mua tu danh sach yeu thich
+                  Mua tu danh sach yêu thích
                 </GuestLinkButton>
               </div>
             ) : (
@@ -277,11 +277,11 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
                   <input type="hidden" name="productId" value={product.id} />
                   <input type="hidden" name="returnTo" value={ROUTES.WISHLIST} />
                   <GuestButton type="submit" className="w-full">
-                    Luu va mo yeu thich
+                    Luu va mo yêu thích
                   </GuestButton>
                 </form>
                 <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex w-full">
-                  Mua tu danh sach yeu thich
+                  Mua tu danh sach yêu thích
                 </GuestLinkButton>
               </div>
             ) : (

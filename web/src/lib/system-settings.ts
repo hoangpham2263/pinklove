@@ -88,6 +88,7 @@ export type EcommercePaymentMethodSettings = {
   description: string;
   instructions: string;
   enabled: boolean;
+  category: "manual" | "offline" | "gateway";
   provider: string;
   type: "manual" | "offline" | "redirect" | "embedded" | "mock";
   requiresShipping: boolean | null;
@@ -210,6 +211,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
         description: "Quét mã QR hoặc chuyển khoản thủ công rồi gửi đúng nội dung đơn hàng để hệ thống đối soát nhanh hơn.",
         instructions: "Quét mã QR hoặc chuyển khoản vào tài khoản của PinkLove, sau đó ghi đúng mã đơn hàng trong nội dung chuyển khoản để đội ngũ xác nhận nhanh hơn.",
         enabled: true,
+        category: "manual",
         provider: "manual_bank_transfer",
         type: "manual",
         requiresShipping: null,
@@ -224,6 +226,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
         description: "Thanh toán trực tiếp khi nhận hàng hoặc khi bàn giao.",
         instructions: "Thanh toán tiền mặt trực tiếp tại studio hoặc khi đội ngũ PinkLove xác nhận lịch bàn giao.",
         enabled: true,
+        category: "offline",
         provider: "cash",
         type: "offline",
         requiresShipping: null,
@@ -234,8 +237,20 @@ const DEFAULT_SETTINGS: SystemSettings = {
         description: "Phục vụ dev/test, có thể tự động chuyển đơn sang trạng thái đã thanh toán nếu cấu hình cho phép.",
         instructions: "Phương thức nội bộ dành cho môi trường dev/test.",
         enabled: false,
+        category: "gateway",
         provider: "mock",
         type: "mock",
+        requiresShipping: null,
+      },
+      {
+        code: "vnpay",
+        label: "VNPAY",
+        description: "Thanh toán qua thẻ ATM nội địa, tài khoản ngân hàng, QR hoặc ví hỗ trợ bởi VNPAY.",
+        instructions: "Sau khi đặt hàng, hệ thống sẽ chuyển bạn sang VNPAY để hoàn tất thanh toán.",
+        enabled: false,
+        category: "gateway",
+        provider: "vnpay",
+        type: "redirect",
         requiresShipping: null,
       },
     ],
@@ -347,55 +362,72 @@ function parseFaviconSettings(value: Record<string, unknown> | null | undefined)
 
 function parseEcommerceSettings(value: Record<string, unknown> | null | undefined): EcommerceSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.ecommerce as Record<string, unknown>, value);
+  const parseMethodType = (type: unknown): EcommercePaymentMethodSettings["type"] => {
+    if (type === "mock" || type === "offline" || type === "redirect" || type === "embedded") {
+      return type;
+    }
+    return "manual";
+  };
+  const inferMethodCategory = (
+    category: unknown,
+    type: EcommercePaymentMethodSettings["type"]
+  ): EcommercePaymentMethodSettings["category"] => {
+    if (category === "manual" || category === "offline" || category === "gateway") {
+      return category;
+    }
+    if (type === "offline") return "offline";
+    if (type === "manual") return "manual";
+    return "gateway";
+  };
   const configuredPaymentMethods = Array.isArray(merged.paymentMethods)
     ? merged.paymentMethods
         .map((item) => (typeof item === "object" && item ? (item as Record<string, unknown>) : null))
         .filter(Boolean)
-        .map((item): EcommercePaymentMethodSettings => ({
-          code: String(item?.code ?? "").trim(),
-          label: String(item?.label ?? "").trim(),
-          description: String(item?.description ?? "").trim(),
-          instructions: String(item?.instructions ?? "").trim(),
-          enabled: Boolean(item?.enabled),
-          provider: String(item?.provider ?? "").trim() || "manual",
-          type:
-            item?.type === "mock"
-              ? "mock"
-              : item?.type === "offline"
-                ? "offline"
-                : item?.type === "redirect"
-                  ? "redirect"
-                  : item?.type === "embedded"
-                    ? "embedded"
-                    : "manual",
-          requiresShipping:
-            item?.requiresShipping === true ? true : item?.requiresShipping === false ? false : null,
-          bankName: String(item?.bankName ?? "").trim(),
-          bankQrBankId: String(item?.bankQrBankId ?? "").trim(),
-          bankAccountNumber: String(item?.bankAccountNumber ?? "").trim(),
-          bankAccountName: String(item?.bankAccountName ?? "").trim(),
-        }))
+        .map((item): EcommercePaymentMethodSettings => {
+          const type = parseMethodType(item?.type);
+          return {
+            code: String(item?.code ?? "").trim(),
+            label: String(item?.label ?? "").trim(),
+            description: String(item?.description ?? "").trim(),
+            instructions: String(item?.instructions ?? "").trim(),
+            enabled: Boolean(item?.enabled),
+            category: inferMethodCategory(item?.category, type),
+            provider: String(item?.provider ?? "").trim() || "manual",
+            type,
+            requiresShipping:
+              item?.requiresShipping === true ? true : item?.requiresShipping === false ? false : null,
+            bankName: String(item?.bankName ?? "").trim(),
+            bankQrBankId: String(item?.bankQrBankId ?? "").trim(),
+            bankAccountNumber: String(item?.bankAccountNumber ?? "").trim(),
+            bankAccountName: String(item?.bankAccountName ?? "").trim(),
+          };
+        })
         .filter((item) => item.code && item.label)
     : [];
   const paymentMethods =
     configuredPaymentMethods.length > 0
-      ? configuredPaymentMethods.map((item) =>
-          item.code === "bank_transfer"
-            ? {
-                ...item,
-                bankName: item.bankName || String(merged.bankName ?? DEFAULT_SETTINGS.ecommerce.bankName),
-                bankQrBankId: item.bankQrBankId || String(merged.bankQrBankId ?? DEFAULT_SETTINGS.ecommerce.bankQrBankId),
-                bankAccountNumber: item.bankAccountNumber || String(merged.bankAccountNumber ?? DEFAULT_SETTINGS.ecommerce.bankAccountNumber),
-                bankAccountName: item.bankAccountName || String(merged.bankAccountName ?? DEFAULT_SETTINGS.ecommerce.bankAccountName),
-                instructions: item.instructions || String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.ecommerce.bankTransferInstructions),
-              }
-            : item.code === "cod"
+      ? [
+          ...configuredPaymentMethods.map((item) =>
+            item.code === "bank_transfer"
               ? {
                   ...item,
-                  instructions: item.instructions || String(merged.cashPaymentInstructions ?? DEFAULT_SETTINGS.ecommerce.cashPaymentInstructions),
+                  bankName: item.bankName || String(merged.bankName ?? DEFAULT_SETTINGS.ecommerce.bankName),
+                  bankQrBankId: item.bankQrBankId || String(merged.bankQrBankId ?? DEFAULT_SETTINGS.ecommerce.bankQrBankId),
+                  bankAccountNumber: item.bankAccountNumber || String(merged.bankAccountNumber ?? DEFAULT_SETTINGS.ecommerce.bankAccountNumber),
+                  bankAccountName: item.bankAccountName || String(merged.bankAccountName ?? DEFAULT_SETTINGS.ecommerce.bankAccountName),
+                  instructions: item.instructions || String(merged.bankTransferInstructions ?? DEFAULT_SETTINGS.ecommerce.bankTransferInstructions),
                 }
-              : item
-        )
+              : item.code === "cod"
+                ? {
+                    ...item,
+                    instructions: item.instructions || String(merged.cashPaymentInstructions ?? DEFAULT_SETTINGS.ecommerce.cashPaymentInstructions),
+                  }
+                : item
+          ),
+          ...DEFAULT_SETTINGS.ecommerce.paymentMethods.filter(
+            (defaultMethod) => defaultMethod.code === "vnpay" && !configuredPaymentMethods.some((item) => item.code === defaultMethod.code)
+          ),
+        ]
       : DEFAULT_SETTINGS.ecommerce.paymentMethods.map((item) => ({
           ...item,
           enabled:

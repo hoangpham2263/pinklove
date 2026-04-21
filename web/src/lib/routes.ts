@@ -133,6 +133,12 @@ export const ROUTES = {
     SHIPMENTS: "/admin/shipments",
   },
   API: {
+    PAYMENTS: {
+      VNPAY: {
+        RETURN: "/api/payments/vnpay/return",
+        IPN: "/api/payments/vnpay/ipn",
+      },
+    },
     AUTH: {
       LOGIN: "/api/auth/login",
       REGISTER: "/api/auth/register",
@@ -222,6 +228,7 @@ export const ROUTES = {
       },
       PAYMENT_METHODS: {
         SAVE: "/api/admin/config/payment-methods/save",
+        DELETE: "/api/admin/config/payment-methods/delete",
       },
       SHIPMENTS: {
         UPDATE: "/api/admin/shipments/update",

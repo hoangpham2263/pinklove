@@ -31,7 +31,7 @@ export default async function EditConfigPaymentMethodPage({
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Sửa phương thức thanh toán</h1>
         <p className="text-sm text-muted-foreground">
-          Cấu hình tên hiển thị, provider, kiểu xử lý và điều kiện xuất hiện tại checkout.
+          Cấu hình nhóm chính, tên hiển thị, provider, kiểu xử lý và điều kiện xuất hiện tại checkout.
         </p>
       </div>
 
