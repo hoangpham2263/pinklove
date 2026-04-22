@@ -69,7 +69,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
 
   return (
     <>
-      <div className="space-y-5 lg:space-y-7.5">
+      <div className="space-y-5 lg:cspace-y-7.5">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((item) => {
             const Icon = item.Icon;

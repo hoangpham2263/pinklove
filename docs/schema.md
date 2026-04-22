@@ -50,6 +50,8 @@ Index:
 - `seo_favicon`: `jsonb`
 - `global_fields_config`: `jsonb`
 - `commerce_config`: `jsonb`
+- `internal_api_config`: `jsonb`
+- `email_config`: `jsonb`
 - `updated_at`: `timestamptz`
 
 Notes:
@@ -57,6 +59,7 @@ Notes:
 - Currently used for centralized SEO/system settings such as permalink, breadcrumb, and sitemap config.
 - Also stores site-wide indexing / robots settings.
 - Also stores whole-site shared global fields in `global_fields_config`.
+- Also stores reusable email sender settings in `email_config`.
 
 ### `internal_accounts`
 
@@ -299,6 +302,20 @@ Compatibility note:
     - `type`: `manual`, `offline`, `redirect`, `embedded`, or `mock`
     - `requiresShipping`: `true`, `false`, or `null`
     - method-specific instructions and optional bank/VietQR account fields for manual payment methods
+
+### Email settings storage
+
+- `app_settings.email_config`: `jsonb`
+  - `enabled`: global email sending toggle
+  - `transport`: `log` for demo/local logging or `smtp` for SMTP delivery
+  - `fromName`, `fromEmail`, and optional `replyTo`: default sender identity
+  - `smtpHost`, `smtpPort`, `smtpSecure`, `smtpUsername`, `smtpPassword`: SMTP transport fields
+  - `demoRecipient`: default recipient used by the admin email demo card
+
+Email template rendering:
+
+- Shared shortcode rendering lives in `src/lib/email-template.ts`.
+- The admin email demo supports raw HTML, plain text fallback, preview rendering, and click-to-copy shortcode tokens.
 
 ## Non-database storage
 

@@ -7,6 +7,7 @@ import {
   updateBreadcrumbSettings,
   updateEcommerceSettings,
   updateFaviconSettings,
+  updateEmailSettings,
   updateInternalProductImportApiSettings,
   updateOpenGraphSettings,
   updatePermalinkSettings,
@@ -92,6 +93,8 @@ export async function POST(request: Request) {
       await updateBrandingSettings({
         siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
         brandLogo: String(formData.get("brandLogo") ?? "").trim(),
+        chatTeamDisplayName: String(formData.get("chatTeamDisplayName") ?? "").trim() || "PinkLove",
+        supportInboxUsernames: String(formData.get("supportInboxUsernames") ?? "").trim(),
         siteFavicon: String(formData.get("siteFavicon") ?? "").trim(),
         appleTouchIcon: String(formData.get("appleTouchIcon") ?? "").trim(),
       });
@@ -136,6 +139,24 @@ export async function POST(request: Request) {
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });
+    }
+
+    if (section === "email") {
+      await updateEmailSettings({
+        enabled: isChecked(formData, "enabled"),
+        transport: formData.get("transport") === "smtp" ? "smtp" : "log",
+        fromName: String(formData.get("fromName") ?? "").trim() || "PinkLove",
+        fromEmail: String(formData.get("fromEmail") ?? "").trim(),
+        replyTo: String(formData.get("replyTo") ?? "").trim(),
+        smtpHost: String(formData.get("smtpHost") ?? "").trim(),
+        smtpPort: Number(formData.get("smtpPort") ?? "587"),
+        smtpSecure: isChecked(formData, "smtpSecure"),
+        smtpUsername: String(formData.get("smtpUsername") ?? "").trim(),
+        smtpPassword: String(formData.get("smtpPassword") ?? ""),
+        demoRecipient: String(formData.get("demoRecipient") ?? "").trim(),
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình email." });
     }
 
     if (section === "internal_api_products") {

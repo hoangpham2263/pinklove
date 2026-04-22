@@ -46,6 +46,8 @@ export type IndexingSettings = {
 export type BrandingSettings = {
   siteName: string;
   brandLogo: string;
+  chatTeamDisplayName: string;
+  supportInboxUsernames: string;
 };
 
 export type OpenGraphSettings = {
@@ -109,6 +111,20 @@ export type InternalApisSettings = {
   productsImport: InternalProductImportApiSettings;
 };
 
+export type EmailSettings = {
+  enabled: boolean;
+  transport: "log" | "smtp";
+  fromName: string;
+  fromEmail: string;
+  replyTo: string;
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUsername: string;
+  smtpPassword: string;
+  demoRecipient: string;
+};
+
 export type SystemSettings = {
   permalink: PermalinkSettings;
   breadcrumb: BreadcrumbSettings;
@@ -119,6 +135,7 @@ export type SystemSettings = {
   favicon: FaviconSettings;
   ecommerce: EcommerceSettings;
   internalApis: InternalApisSettings;
+  email: EmailSettings;
 };
 
 type BrandingStorageSettings = BrandingSettings & FaviconSettings;
@@ -132,6 +149,7 @@ type SettingRow = {
   seo_opengraph?: Record<string, unknown> | null;
   commerce_config?: Record<string, unknown> | null;
   internal_api_config?: Record<string, unknown> | null;
+  email_config?: Record<string, unknown> | null;
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -174,6 +192,8 @@ const DEFAULT_SETTINGS: SystemSettings = {
   branding: {
     siteName: "PinkLove",
     brandLogo: "",
+    chatTeamDisplayName: "PinkLove",
+    supportInboxUsernames: "",
   },
   opengraph: {
     locale: "vi_VN",
@@ -263,6 +283,19 @@ const DEFAULT_SETTINGS: SystemSettings = {
       allowedProductTypes: ["general_product"],
     },
   },
+  email: {
+    enabled: false,
+    transport: "log",
+    fromName: "PinkLove",
+    fromEmail: "",
+    replyTo: "",
+    smtpHost: "",
+    smtpPort: 587,
+    smtpSecure: false,
+    smtpUsername: "",
+    smtpPassword: "",
+    demoRecipient: "",
+  },
 };
 
 function mergeRecord<T extends Record<string, unknown>>(base: T, input: Record<string, unknown> | null | undefined): T {
@@ -331,6 +364,8 @@ function parseBrandingSettings(value: Record<string, unknown> | null | undefined
   return {
     siteName: String(merged.siteName || DEFAULT_SETTINGS.branding.siteName),
     brandLogo: String(merged.brandLogo ?? DEFAULT_SETTINGS.branding.brandLogo),
+    chatTeamDisplayName: String(merged.chatTeamDisplayName || merged.siteName || DEFAULT_SETTINGS.branding.chatTeamDisplayName),
+    supportInboxUsernames: String(merged.supportInboxUsernames ?? DEFAULT_SETTINGS.branding.supportInboxUsernames),
   };
 }
 
@@ -502,6 +537,25 @@ function parseInternalApisSettings(value: Record<string, unknown> | null | undef
   };
 }
 
+function parseEmailSettings(value: Record<string, unknown> | null | undefined): EmailSettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.email as unknown as Record<string, unknown>, value);
+  const smtpPort = Number(merged.smtpPort ?? DEFAULT_SETTINGS.email.smtpPort);
+
+  return {
+    enabled: Boolean(merged.enabled),
+    transport: merged.transport === "smtp" ? "smtp" : "log",
+    fromName: String(merged.fromName ?? DEFAULT_SETTINGS.email.fromName).trim(),
+    fromEmail: String(merged.fromEmail ?? DEFAULT_SETTINGS.email.fromEmail).trim(),
+    replyTo: String(merged.replyTo ?? DEFAULT_SETTINGS.email.replyTo).trim(),
+    smtpHost: String(merged.smtpHost ?? DEFAULT_SETTINGS.email.smtpHost).trim(),
+    smtpPort: Number.isFinite(smtpPort) && smtpPort > 0 ? smtpPort : DEFAULT_SETTINGS.email.smtpPort,
+    smtpSecure: Boolean(merged.smtpSecure),
+    smtpUsername: String(merged.smtpUsername ?? DEFAULT_SETTINGS.email.smtpUsername).trim(),
+    smtpPassword: String(merged.smtpPassword ?? DEFAULT_SETTINGS.email.smtpPassword),
+    demoRecipient: String(merged.demoRecipient ?? DEFAULT_SETTINGS.email.demoRecipient).trim(),
+  };
+}
+
 export async function getSystemSettings(): Promise<SystemSettings> {
   if (!process.env.DATABASE_URL) {
     return DEFAULT_SETTINGS;
@@ -512,7 +566,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   try {
     const result = await query<SettingRow>(`
       SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
-      , internal_api_config
+      , internal_api_config, email_config
       FROM app_settings
       WHERE id = 1
       LIMIT 1
@@ -532,6 +586,8 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     branding: {
       siteName: brandingSettings.siteName,
       brandLogo: brandingSettings.brandLogo,
+      chatTeamDisplayName: brandingSettings.chatTeamDisplayName,
+      supportInboxUsernames: brandingSettings.supportInboxUsernames,
     },
     opengraph: parseOpenGraphSettings(row?.seo_opengraph),
     favicon: {
@@ -540,6 +596,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     },
     ecommerce: parseEcommerceSettings(row?.commerce_config),
     internalApis: parseInternalApisSettings(row?.internal_api_config),
+    email: parseEmailSettings(row?.email_config),
   };
 }
 
@@ -703,4 +760,21 @@ export async function updateInternalProductImportApiSettings(input: Partial<Inte
   );
 
   return next.productsImport;
+}
+
+export async function updateEmailSettings(input: Partial<EmailSettings>) {
+  const current = await getSystemSettings();
+  const next = { ...current.email, ...input };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET email_config = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next;
 }

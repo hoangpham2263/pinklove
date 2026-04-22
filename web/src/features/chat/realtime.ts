@@ -14,6 +14,7 @@ type ChatConversationRealtimeState = {
   latestMessageId: string;
   latestMessageCreatedAt: string;
   messageCount: number;
+  latestTypingUpdatedAt: string;
 };
 
 type ChatInboxRealtimeState = {
@@ -35,6 +36,7 @@ export async function getChatConversationRealtimeState(
     latest_message_id: string | null;
     latest_message_created_at: string | null;
     message_count: string;
+    latest_typing_updated_at: string | null;
   }>(
     `
       SELECT
@@ -59,6 +61,13 @@ export async function getChatConversationRealtimeState(
           FROM chat_messages m
           WHERE m.conversation_id = c.id
         ) AS message_count
+        ,
+        (
+          SELECT MAX(t.updated_at)::text
+          FROM chat_typing_states t
+          WHERE t.conversation_id = c.id
+            AND t.updated_at >= NOW() - INTERVAL '8 seconds'
+        ) AS latest_typing_updated_at
       FROM chat_conversations c
       JOIN chat_conversation_participants p ON p.conversation_id = c.id
       WHERE c.id = $1 AND p.user_id = $2
@@ -76,22 +85,25 @@ export async function getChatConversationRealtimeState(
       row.latest_message_id ?? "",
       row.latest_message_created_at ?? "",
       row.message_count,
+      row.latest_typing_updated_at ?? "",
     ].join("|"),
     conversationId: row.conversation_id,
     updatedAt: row.updated_at,
     latestMessageId: row.latest_message_id ?? "",
     latestMessageCreatedAt: row.latest_message_created_at ?? "",
     messageCount: Number(row.message_count),
+    latestTypingUpdatedAt: row.latest_typing_updated_at ?? "",
   };
 }
 
 export async function getChatInboxRealtimeState(userId: string): Promise<ChatInboxRealtimeState> {
   const result = await query<{
-    latest_conversation_updated_at: string | null;
-    latest_message_id: string | null;
-    latest_message_created_at: string | null;
-    conversation_count: string;
-  }>(
+      latest_conversation_updated_at: string | null;
+      latest_message_id: string | null;
+      latest_message_created_at: string | null;
+      conversation_count: string;
+      latest_typing_updated_at: string | null;
+    }>(
     `
       SELECT
         MAX(c.updated_at)::text AS latest_conversation_updated_at,
@@ -111,6 +123,14 @@ export async function getChatInboxRealtimeState(userId: string): Promise<ChatInb
           ORDER BY m.created_at DESC, m.id DESC
           LIMIT 1
         ) AS latest_message_created_at,
+        (
+          SELECT MAX(t.updated_at)::text
+          FROM chat_typing_states t
+          JOIN chat_conversation_participants tp ON tp.conversation_id = t.conversation_id
+          WHERE tp.user_id = $1
+            AND t.user_id <> $1
+            AND t.updated_at >= NOW() - INTERVAL '8 seconds'
+        ) AS latest_typing_updated_at,
         COUNT(DISTINCT c.id)::text AS conversation_count
       FROM chat_conversations c
       JOIN chat_conversation_participants p ON p.conversation_id = c.id
@@ -126,6 +146,7 @@ export async function getChatInboxRealtimeState(userId: string): Promise<ChatInb
       row?.latest_conversation_updated_at ?? "",
       row?.latest_message_id ?? "",
       row?.latest_message_created_at ?? "",
+      row?.latest_typing_updated_at ?? "",
       row?.conversation_count ?? "0",
     ].join("|"),
     userId,

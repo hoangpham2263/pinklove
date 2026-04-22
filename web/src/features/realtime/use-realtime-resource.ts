@@ -42,7 +42,6 @@ export function useRealtimeResource<TData>({
   useEffect(() => {
     if (!enabled) {
       latestRequestIdRef.current += 1;
-      setStatus("live");
       return;
     }
 
@@ -60,12 +59,17 @@ export function useRealtimeResource<TData>({
       syncResource();
     };
 
+    const handleReady = () => {
+      syncResource();
+    };
+
     const handleDeleted = () => {
       handleDeletedEvent();
     };
 
     eventSource.addEventListener("open", handleOpen);
     eventSource.addEventListener("error", handleError);
+    eventSource.addEventListener("ready", handleReady);
     eventSource.addEventListener(changedEvent, handleChanged);
 
     if (deletedEvent) {
@@ -76,15 +80,16 @@ export function useRealtimeResource<TData>({
       latestRequestIdRef.current += 1;
       eventSource.removeEventListener("open", handleOpen);
       eventSource.removeEventListener("error", handleError);
+      eventSource.removeEventListener("ready", handleReady);
       eventSource.removeEventListener(changedEvent, handleChanged);
       if (deletedEvent) {
         eventSource.removeEventListener(deletedEvent, handleDeleted);
       }
       eventSource.close();
     };
-  }, [changedEvent, deletedEvent, enabled, streamUrl, syncResource, handleDeletedEvent]);
+  }, [changedEvent, deletedEvent, enabled, streamUrl]);
 
   return {
-    status,
+    status: enabled ? status : "live",
   };
 }

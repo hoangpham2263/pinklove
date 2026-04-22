@@ -85,6 +85,7 @@ web/
             config/opengraph/page.tsx
             config/sitemap/page.tsx
             config/ecommerce/page.tsx
+            config/email/page.tsx
       customer/
         page.tsx
         (auth)/

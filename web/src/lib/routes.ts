@@ -94,6 +94,7 @@ export const ROUTES = {
     SEO_RULES: "/admin/seo/rules",
     CONFIG: "/admin/config",
     CONFIG_ECOMMERCE: "/admin/config/ecommerce",
+    CONFIG_EMAIL: "/admin/config/email",
     CONFIG_PAYMENT_METHODS: "/admin/config/payment-methods",
     CONFIG_PAYMENT_METHOD_NEW: "/admin/config/payment-methods/new",
     CONFIG_PAYMENT_METHOD: (code: string) => `/admin/config/payment-methods/${encodeURIComponent(code)}`,
@@ -230,6 +231,9 @@ export const ROUTES = {
         SAVE: "/api/admin/config/payment-methods/save",
         DELETE: "/api/admin/config/payment-methods/delete",
       },
+      EMAIL: {
+        TEST: "/api/admin/config/email/test",
+      },
       SHIPMENTS: {
         UPDATE: "/api/admin/shipments/update",
       },
@@ -257,6 +261,7 @@ export const ROUTES = {
       CONVERSATION: (id: string) => `/api/chat/conversations/${id}`,
       MESSAGES: (id: string) => `/api/chat/conversations/${id}/messages`,
       PARTICIPANTS: (id: string) => `/api/chat/conversations/${id}/participants`,
+      TYPING: (id: string) => `/api/chat/conversations/${id}/typing`,
       REALTIME_INBOX: "/api/chat/realtime/inbox",
       REALTIME_CONVERSATION: (id: string) => `/api/chat/realtime/conversations/${id}`,
     },

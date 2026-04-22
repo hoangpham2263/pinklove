@@ -58,6 +58,14 @@ export default async function AdminBrandingSettingsPage() {
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Chat Team Name</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-semibold">{settings.branding.chatTeamDisplayName}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">Browser Favicon</CardTitle>
           </CardHeader>
           <CardContent>
@@ -118,6 +126,21 @@ export default async function AdminBrandingSettingsPage() {
                 description: "Logo hiển thị trong header hoặc sidebar. Đây không phải favicon và cũng không phải ảnh social share mặc định.",
                 type: "media",
                 value: settings.branding.brandLogo,
+              },
+              {
+                id: "chatTeamDisplayName",
+                label: "Chat Team Name",
+                description: "Tên phía khách hàng sẽ luôn nhìn thấy trong khung chat, bất kể account nội bộ nào đang trả lời.",
+                type: "text",
+                value: settings.branding.chatTeamDisplayName,
+              },
+              {
+                id: "supportInboxUsernames",
+                label: "Support Inbox Accounts",
+                description:
+                  "Danh sách username admin sẽ tự động được thêm vào hội thoại hỗ trợ mới. Nhập mỗi dòng một username; để trống sẽ dùng admin đầu tiên.",
+                type: "textarea",
+                value: settings.branding.supportInboxUsernames,
               },
               {
                 id: "siteFavicon",

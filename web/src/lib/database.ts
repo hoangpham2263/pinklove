@@ -22,6 +22,12 @@ const globalForDb = globalThis as unknown as {
   productVendorPaperTypeMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
   chatTablesMigrationDone?: boolean;
+  chatTablesMigrationV2Done?: boolean;
+  chatTablesMigrationV3Done?: boolean;
+  chatTablesMigrationV4Done?: boolean;
+  chatTablesMigrationV5Done?: boolean;
+  chatTablesMigrationV6Done?: boolean;
+  chatTablesMigrationV7Done?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
@@ -288,7 +294,8 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS seo_favicon JSONB,
     ADD COLUMN IF NOT EXISTS global_fields_config JSONB,
     ADD COLUMN IF NOT EXISTS commerce_config JSONB,
-    ADD COLUMN IF NOT EXISTS internal_api_config JSONB;
+    ADD COLUMN IF NOT EXISTS internal_api_config JSONB,
+    ADD COLUMN IF NOT EXISTS email_config JSONB;
   `);
 
   await pool.query(`
@@ -1091,6 +1098,91 @@ async function ensureChatTablesMigration() {
  `);
 
  await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS owner_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'open';
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS request_category TEXT;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS requester_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS priority TEXT NOT NULL DEFAULT 'normal';
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD COLUMN IF NOT EXISTS is_legacy BOOLEAN NOT NULL DEFAULT FALSE;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  DROP CONSTRAINT IF EXISTS chat_conversations_status_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD CONSTRAINT chat_conversations_status_check
+  CHECK (status IN ('open', 'pending', 'resolved', 'closed'));
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  DROP CONSTRAINT IF EXISTS chat_conversations_request_category_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD CONSTRAINT chat_conversations_request_category_check
+  CHECK (
+   request_category IS NULL OR
+   request_category IN ('general', 'bug_report', 'order_support', 'billing', 'affiliate_support', 'vendor_support', 'other')
+  );
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  DROP CONSTRAINT IF EXISTS chat_conversations_priority_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversations
+  ADD CONSTRAINT chat_conversations_priority_check
+  CHECK (priority IN ('low', 'normal', 'high', 'urgent'));
+ `);
+
+ await pool.query(`
+  UPDATE chat_conversations
+  SET requester_user_id = created_by_user_id
+  WHERE kind = 'support'
+    AND requester_user_id IS NULL;
+ `);
+
+ await pool.query(`
+  UPDATE chat_conversations
+  SET is_legacy = TRUE
+  WHERE kind = 'support'
+    AND request_category IS NULL;
+ `);
+
+ await pool.query(`
   CREATE TABLE IF NOT EXISTS chat_conversation_participants (
    conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
    user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1116,8 +1208,113 @@ async function ensureChatTablesMigration() {
  `);
 
  await pool.query(`
+  ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS visibility TEXT NOT NULL DEFAULT 'all';
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS attachment_url TEXT;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS attachment_kind TEXT;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS reply_to_message_id TEXT REFERENCES chat_messages(id) ON DELETE SET NULL;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  DROP CONSTRAINT IF EXISTS chat_messages_visibility_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  ADD CONSTRAINT chat_messages_visibility_check
+  CHECK (visibility IN ('all', 'internal'));
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  DROP CONSTRAINT IF EXISTS chat_messages_attachment_kind_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_messages
+  ADD CONSTRAINT chat_messages_attachment_kind_check
+  CHECK (attachment_kind IS NULL OR attachment_kind IN ('image', 'file'));
+ `);
+
+ await pool.query(`
   CREATE INDEX IF NOT EXISTS chat_messages_conversation_id_idx
   ON chat_messages(conversation_id, created_at ASC);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_message_user_states (
+   message_id TEXT NOT NULL REFERENCES chat_messages(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   PRIMARY KEY (message_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_message_user_states_user_pinned_idx
+  ON chat_message_user_states(user_id, is_pinned);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_conversation_user_states (
+   conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+   is_marked_unread BOOLEAN NOT NULL DEFAULT FALSE,
+   priority TEXT NOT NULL DEFAULT 'none',
+   is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   PRIMARY KEY (conversation_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversation_user_states
+  ADD COLUMN IF NOT EXISTS is_marked_unread BOOLEAN NOT NULL DEFAULT FALSE;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversation_user_states
+  DROP CONSTRAINT IF EXISTS chat_conversation_user_states_priority_check;
+ `);
+
+ await pool.query(`
+  ALTER TABLE chat_conversation_user_states
+  ADD CONSTRAINT chat_conversation_user_states_priority_check
+  CHECK (priority IN ('none', 'low', 'normal', 'high', 'urgent'));
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_conversation_user_states_user_sort_idx
+  ON chat_conversation_user_states(user_id, is_hidden, is_pinned, priority);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_typing_states (
+   conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   PRIMARY KEY (conversation_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS chat_typing_states_updated_at_idx
+  ON chat_typing_states(updated_at DESC);
  `);
 
  await pool.query(`
@@ -1186,6 +1383,35 @@ async function ensureChatTablesMigration() {
   AFTER INSERT ON chat_conversation_participants
   FOR EACH ROW
   EXECUTE FUNCTION app_notify_chat_participant_realtime();
+ `);
+
+ await pool.query(`
+  CREATE OR REPLACE FUNCTION app_notify_chat_typing_realtime()
+  RETURNS TRIGGER AS $$
+  DECLARE
+   target_conversation_id TEXT;
+  BEGIN
+   target_conversation_id := COALESCE(NEW.conversation_id, OLD.conversation_id);
+
+   PERFORM pg_notify(
+    'app_realtime',
+    json_build_object('topic', 'chat-conversation', 'resourceId', target_conversation_id)::text
+   );
+
+   RETURN COALESCE(NEW, OLD);
+  END
+  $$ LANGUAGE plpgsql;
+ `);
+
+ await pool.query(`
+  DROP TRIGGER IF EXISTS chat_typing_states_realtime_notify ON chat_typing_states;
+ `);
+
+ await pool.query(`
+  CREATE TRIGGER chat_typing_states_realtime_notify
+  AFTER INSERT OR UPDATE OR DELETE ON chat_typing_states
+  FOR EACH ROW
+  EXECUTE FUNCTION app_notify_chat_typing_realtime();
  `);
 }
 
@@ -1798,6 +2024,36 @@ export async function ensureDb() {
         globalForDb.chatTablesMigrationDone = true;
       }
 
+      if (!globalForDb.chatTablesMigrationV2Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV2Done = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationV3Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV3Done = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationV4Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV4Done = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationV5Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV5Done = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationV6Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV6Done = true;
+      }
+
+      if (!globalForDb.chatTablesMigrationV7Done) {
+        await ensureChatTablesMigration();
+        globalForDb.chatTablesMigrationV7Done = true;
+      }
+
       const managedPagesSeedSignature = getManagedPagesSeedSignature();
       if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
         await ensureManagedPagesSeed();
@@ -1820,6 +2076,21 @@ export async function ensureDb() {
   }
 
   await globalForDb.ensurePromise;
+
+  if (!globalForDb.chatTablesMigrationV5Done) {
+    await ensureChatTablesMigration();
+    globalForDb.chatTablesMigrationV5Done = true;
+  }
+
+  if (!globalForDb.chatTablesMigrationV6Done) {
+    await ensureChatTablesMigration();
+    globalForDb.chatTablesMigrationV6Done = true;
+  }
+
+  if (!globalForDb.chatTablesMigrationV7Done) {
+    await ensureChatTablesMigration();
+    globalForDb.chatTablesMigrationV7Done = true;
+  }
 }
 
 export async function query<T extends import("pg").QueryResultRow>(text: string, values?: unknown[]) {

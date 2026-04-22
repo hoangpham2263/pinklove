@@ -1,0 +1,193 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { Copy, Eye, Send } from "lucide-react";
+import { toast } from "sonner";
+import { NativeForm } from "@/components/common/native-form";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { postForm } from "@/lib/client-mutation";
+import {
+  DEFAULT_EMAIL_TEMPLATE_VARIABLES,
+  EMAIL_SHORTCODES,
+  renderEmailTemplateSet,
+} from "@/lib/email-template";
+import { ROUTES } from "@/lib/routes";
+
+type EmailDemoFormProps = {
+  defaultRecipient: string;
+  siteName: string;
+  supportEmail: string;
+};
+
+const DEFAULT_SUBJECT = "Xin chào {{customerName}} từ {{siteName}}";
+const DEFAULT_HTML = `<div style="font-family: Arial, sans-serif; color: #171717; line-height: 1.6;">
+  <h1 style="font-size: 24px; margin: 0 0 12px;">Xin chào {{customerName}}</h1>
+  <p>Cảm ơn bạn đã quan tâm đến {{siteName}}.</p>
+  <p>Mã đơn demo: <strong>{{orderNumber}}</strong></p>
+  <p>Tổng tiền: <strong>{{orderTotal}}</strong></p>
+  <p><a href="{{checkoutUrl}}" style="display: inline-block; background: #111827; color: #ffffff; padding: 10px 14px; text-decoration: none;">Xem chi tiết</a></p>
+  <p style="font-size: 13px; color: #6b7280;">Cần hỗ trợ? Liên hệ {{supportEmail}}.</p>
+</div>`;
+const DEFAULT_TEXT = "Xin chào {{customerName}}, đơn {{orderNumber}} có tổng {{orderTotal}}. Xem thêm tại {{checkoutUrl}}.";
+
+export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: EmailDemoFormProps) {
+  const [recipient, setRecipient] = useState(defaultRecipient);
+  const [subject, setSubject] = useState(DEFAULT_SUBJECT);
+  const [html, setHtml] = useState(DEFAULT_HTML);
+  const [text, setText] = useState(DEFAULT_TEXT);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  const rendered = renderEmailTemplateSet(
+    {
+      subject,
+      text,
+      html,
+    },
+    {
+      ...DEFAULT_EMAIL_TEMPLATE_VARIABLES,
+      siteName: siteName || DEFAULT_EMAIL_TEMPLATE_VARIABLES.siteName,
+      supportEmail: supportEmail || DEFAULT_EMAIL_TEMPLATE_VARIABLES.supportEmail,
+      currentDate: new Intl.DateTimeFormat("vi-VN").format(new Date()),
+    }
+  );
+
+  async function copyShortcode(token: string) {
+    await navigator.clipboard.writeText(token);
+    toast.success(`Đã copy ${token}.`);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSending(true);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const result = await postForm(ROUTES.API.ADMIN.EMAIL.TEST, formData);
+      toast.success(result.message ?? "Đã chạy demo email.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể chạy demo email.");
+    } finally {
+      setIsSending(false);
+    }
+  }
+
+  return (
+    <>
+    <NativeForm action={ROUTES.API.ADMIN.EMAIL.TEST} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+      <div className="grid gap-2">
+        <label htmlFor="recipient" className="text-sm font-medium">
+          Demo recipient
+        </label>
+        <Input
+          id="recipient"
+          name="recipient"
+          type="email"
+          value={recipient}
+          onChange={(event) => setRecipient(event.target.value)}
+          placeholder="name@example.com"
+          className="h-9"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <label htmlFor="subject" className="text-sm font-medium">
+          Subject
+        </label>
+        <Input
+          id="subject"
+          name="subject"
+          value={subject}
+          onChange={(event) => setSubject(event.target.value)}
+          className="h-9"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor="html" className="text-sm font-medium">
+            Raw HTML
+          </label>
+          <Button type="button" variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)}>
+            <Eye className="h-4 w-4" />
+            Preview
+          </Button>
+        </div>
+        <textarea
+          id="html"
+          name="html"
+          value={html}
+          onChange={(event) => setHtml(event.target.value)}
+          className="min-h-60 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm"
+          spellCheck={false}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <label htmlFor="text" className="text-sm font-medium">
+          Plain text fallback
+        </label>
+        <textarea
+          id="text"
+          name="text"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <div className="text-sm font-medium">Shortcodes</div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {EMAIL_SHORTCODES.map((shortcode) => (
+            <button
+              key={shortcode.key}
+              type="button"
+              onClick={() => copyShortcode(shortcode.token)}
+              className="flex min-w-0 items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{shortcode.token}</span>
+                <span className="block truncate text-xs text-muted-foreground">{shortcode.label}</span>
+              </span>
+              <Copy className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Button type="submit" className="h-9" disabled={isSending}>
+        <Send className="h-4 w-4" />
+        {isSending ? "Đang gửi..." : "Gửi demo"}
+      </Button>
+    </NativeForm>
+
+    <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+      <DialogContent className="max-w-4xl p-0">
+        <DialogHeader className="border-b px-5 py-4">
+          <DialogTitle>Email Preview</DialogTitle>
+          <DialogDescription className="break-all">{rendered.subject}</DialogDescription>
+        </DialogHeader>
+        <div className="bg-muted/40 p-4">
+          <div className="overflow-hidden rounded-md border bg-white">
+            <iframe
+              title="Email HTML preview"
+              srcDoc={rendered.html}
+              sandbox=""
+              className="h-[70vh] w-full bg-white"
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
+  );
+}

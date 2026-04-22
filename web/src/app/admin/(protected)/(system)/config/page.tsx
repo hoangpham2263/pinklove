@@ -19,6 +19,11 @@ const CONFIG_SECTIONS = [
         description: "Quản lý thông báo toàn site hiển thị dùng chung cho người dùng.",
         href: ROUTES.ADMIN.GLOBAL_FIELDS,
       },
+      {
+        title: "Email",
+        description: "Cấu hình sender, SMTP transport và card gửi demo cho email dùng chung toàn hệ thống.",
+        href: ROUTES.ADMIN.CONFIG_EMAIL,
+      },
     ],
   },
   {
@@ -114,6 +119,7 @@ export default async function AdminSettingsPage() {
   const enabledCount = [
     settings.breadcrumb.enabled,
     settings.sitemap.enabled,
+    settings.email.enabled,
     settings.permalink.legacyRedirects,
     settings.branding.siteName.trim().length > 0,
     settings.favicon.siteFavicon.trim().length > 0,
