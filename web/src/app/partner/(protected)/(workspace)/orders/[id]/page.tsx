@@ -5,6 +5,7 @@ import { ArrowLeft, Store } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { PartnerVendorAssignmentPanel } from "@/features/vendor-orders/components/partner-vendor-assignment-panel";
 import { getVendorOrderDetailForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
@@ -68,6 +69,7 @@ export default async function PartnerOrderDetailPage({
                   </p>
                 </div>
               </div>
+              <NotificationBell />
             </div>
 
             <div className="grid gap-3 text-sm md:grid-cols-3">

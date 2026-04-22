@@ -37,6 +37,32 @@ Index:
 - `ui_density`: `text`, `small`, `medium`, or `large`
 - `updated_at`: `timestamptz`
 
+### `notifications`
+
+- `id`: `text`
+- `title`: `text`
+- `body`: `text`
+- `link_url`: `text`, optional internal destination opened from the notice
+- `audience_type`: `text`, one of `all`, `role`, or `users`
+- `created_by_user_id`: nullable FK to `users.id`
+- `status`: `text`, one of `draft`, `scheduled`, `sent`, or `archived`
+- `scheduled_at`: nullable `timestamptz`, future send time for scheduled notices
+- `metadata`: `jsonb`
+- `created_at`: `timestamptz`
+- `updated_at`: `timestamptz`
+
+Related notification tables:
+
+- `notification_target_roles`: target roles for role-scoped notices
+- `notification_target_users`: target user ids for personal notices
+- `notification_user_states`: per-user read/dismissed state for every visible notice
+
+Notes:
+
+- All-role and role notices do not fan out rows per user at creation time; visibility is resolved at read time and read state is stored separately.
+- Notification realtime uses the shared `app_realtime` channel with a per-user resource id.
+- Scheduled notices stay hidden until they are promoted to `sent`; user inbox API calls and admin management refreshes publish due scheduled rows and emit realtime notices.
+
 ### `app_settings`
 
 - `id`: `integer`, fixed to row `1`

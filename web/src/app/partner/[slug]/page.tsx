@@ -4,6 +4,7 @@ import { ShieldCheck, Store, PackageCheck, ArrowRight } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { PartnerVendorPortalPanel } from "@/features/vendor-orders/components/partner-vendor-portal-panel";
 import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
 import { PartnerLoginForm } from "@/features/auth/components/login-forms";
@@ -92,8 +93,13 @@ export default async function PartnerVendorEntryPage({ params, searchParams }: P
               </div>
             </div>
             <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Link làm việc</p>
-              <p className="mt-2 break-all text-sm font-medium text-zinc-900">{partnerPortalUrl}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Link làm việc</p>
+                  <p className="mt-2 break-all text-sm font-medium text-zinc-900">{partnerPortalUrl}</p>
+                </div>
+                <NotificationBell />
+              </div>
             </div>
           </div>
 

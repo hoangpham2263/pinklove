@@ -2,6 +2,7 @@
 
 import {
   BadgePercent,
+  Bell,
   Blocks,
   BookOpenText,
   CreditCard,
@@ -37,6 +38,7 @@ type AdminSidebarIconName =
   | "menu"
   | "image"
   | "book-open-text"
+  | "bell"
   | "users"
   | "store"
   | "badge-percent"
@@ -68,6 +70,7 @@ const iconMap = {
   menu: MenuIcon,
   image: ImageIcon,
   "book-open-text": BookOpenText,
+  bell: Bell,
   users: Users,
   store: Store,
   "badge-percent": BadgePercent,

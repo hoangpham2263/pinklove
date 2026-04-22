@@ -1,11 +1,13 @@
 import { requireAdmin } from "@/lib/auth";
-import { updateProduct } from "@/features/products/server/service";
+import { getProductBySlug, updateProduct } from "@/features/products/server/service";
+import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationTemplateProductType } from "@/features/invitations/templates/registry";
 import type { ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
+const BUILDER_TEMPLATE_KEY = "freeform_sections";
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -20,32 +22,100 @@ export async function POST(request: Request) {
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
-  const templateKey = String(formData.get("templateKey") ?? "").trim();
+  const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
+  const templateKey = productType === "builder_template" ? BUILDER_TEMPLATE_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
-  const trackInventory = formData.get("trackInventory") === "on";
-  const stockQuantity = Math.max(0, Number(formData.get("stockQuantity") ?? "0"));
-  const lowStockThreshold = Math.max(0, Number(formData.get("lowStockThreshold") ?? "0"));
-  const allowBackorder = formData.get("allowBackorder") === "on";
+  const supportsInventory = productType === "general_product";
+  const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
+  const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
+  const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
+  const allowBackorder = supportsInventory && formData.get("allowBackorder") === "on";
   const siteDefaultsRaw = String(formData.get("siteDefaults") ?? "{}");
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
   const returnTo = String(formData.get("returnTo") ?? "").trim();
-  const editorLocation = `${ROUTES.ADMIN.PRODUCT(originalSlug)}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
+  const editorBaseLocation =
+    productType === "builder_template"
+      ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(originalSlug)
+      : ROUTES.ADMIN.PRODUCT(originalSlug);
+  const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
 
   if (!originalSlug || !slug || !name || (productType !== "general_product" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để lưu sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_fields` });
+  }
+
+  const existingProduct = await getProductBySlug(originalSlug);
+
+  if (!existingProduct) {
+    return respondError(request, { error: "product_not_found", message: "Không tìm thấy sản phẩm.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=product_not_found` });
+  }
+
+  if (productType !== existingProduct.productType) {
+    return respondError(request, {
+      error: "product_type_locked",
+      message: "Loại sản phẩm đã được cố định theo bản ghi gốc và không thể đổi trong màn hình sửa.",
+      location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=product_type_locked`,
+    });
   }
 
   if (productType !== "general_product" && getInvitationTemplateProductType(templateKey) !== productType) {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
+  if (productType === "coded_template" && templateKey !== existingProduct.templateKey) {
+    return respondError(request, {
+      error: "template_source_locked",
+      message: "Template source của bản mẫu chuẩn đã bị khóa, chỉ cho phép chỉnh nội dung và trạng thái.",
+      location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=template_source_locked`,
+    });
+  }
+
+  if (productType !== "general_product" && fulfillmentType !== existingProduct.fulfillmentType) {
+    return respondError(request, {
+      error: "fulfillment_locked",
+      message: "Hình thức bàn giao của mẫu chuẩn đã bị khóa.",
+      location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=fulfillment_locked`,
+    });
+  }
+
   if (ownerType === "vendor" && !ownerVendorUserId) {
     return respondError(request, { error: "missing_vendor", message: "Hãy chọn đối tác sở hữu nguồn hàng cho sản phẩm này.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_vendor` });
   }
 
-  const siteDefaults = JSON.parse(siteDefaultsRaw) as Record<string, unknown>;
+  let siteDefaults: Record<string, unknown>;
+  try {
+    siteDefaults = JSON.parse(siteDefaultsRaw) as Record<string, unknown>;
+  } catch {
+    return respondError(request, {
+      error: "invalid_site_defaults",
+      message: "Dữ liệu mặc định không hợp lệ.",
+      location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_site_defaults`,
+    });
+  }
+
+  const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
+  let builderDocument: unknown = null;
+
+  if (productType === "builder_template" && builderDocumentRaw) {
+    try {
+      builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
+    } catch {
+      return respondError(request, {
+        error: "invalid_builder_document",
+        message: "Dữ liệu builder không hợp lệ.",
+        location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_builder_document`,
+      });
+    }
+  }
+
+  const normalizedSiteDefaults =
+    productType === "builder_template"
+      ? {
+          ...siteDefaults,
+          ...(builderDocument ? { builderDocument } : {}),
+        }
+      : siteDefaults;
   const resolvedTemplateKey = productType === "general_product" ? "general_product" : templateKey;
   const ownerConfig = {
     ownerType: ownerType as ProductOwnerType,
@@ -73,7 +143,7 @@ export async function POST(request: Request) {
       config: {
         ...(productType === "general_product"
           ? { generalProduct: ownerConfig }
-          : { siteDefaults }),
+          : { siteDefaults: normalizedSiteDefaults }),
       },
     });
   } catch (error) {
@@ -92,8 +162,13 @@ export async function POST(request: Request) {
     return respondError(request, { error: "product_not_found", message: "Không tìm thấy sản phẩm.", location: `${ROUTES.ADMIN.PRODUCT_LIST}?error=product_not_found` });
   }
 
+  const nextLocation =
+    product.productType === "builder_template"
+      ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)
+      : ROUTES.ADMIN.PRODUCT(product.slug);
+
   return respondSuccess(request, {
-    location: `${ROUTES.ADMIN.PRODUCT(product.slug)}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
+    location: `${nextLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
     message: "Đã lưu sản phẩm.",
   });
 }

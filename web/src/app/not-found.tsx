@@ -54,8 +54,9 @@ const fallbackCards = [
 ];
 
 export default async function NotFoundPage() {
-  const user = await getCurrentUser();
-  const page = await getPageBySlug("not-found");
+  const { user, page } = await Promise.all([getCurrentUser(), getPageBySlug("not-found")])
+    .then(([resolvedUser, resolvedPage]) => ({ user: resolvedUser, page: resolvedPage }))
+    .catch(() => ({ user: null, page: null }));
   const canUseDraft = page?.status === "published" || isAdminRole(user?.role);
   const resolvedPage = canUseDraft ? page : null;
   const fields = getPageFields<NotFoundFields>(resolvedPage);

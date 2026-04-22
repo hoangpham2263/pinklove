@@ -39,5 +39,10 @@ export async function POST(request: Request) {
     product,
   });
 
-  return respondSuccess(request, { location: `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}`, message: "Đã tạo thiệp mời từ template." });
+  const nextLocation =
+    site.siteType === "builder_template"
+      ? ROUTES.CUSTOMER.DESIGN(site.id)
+      : `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}`;
+
+  return respondSuccess(request, { location: nextLocation, message: "Đã tạo thiệp mời từ template." });
 }

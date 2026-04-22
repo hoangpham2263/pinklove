@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { Product, ProductCategory, ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
-import { ensureProductCatalogReady, query } from "@/lib/database";
+import { ensureProductCatalogReady, query, withTransaction } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 
 type ProductInput = {
@@ -59,6 +59,17 @@ type ProductRow = {
   stock_quantity: string;
   low_stock_threshold: string;
   allow_backorder: boolean;
+  coded_template_key: string | null;
+  coded_site_defaults: Record<string, unknown> | null;
+  builder_template_key: string | null;
+  builder_site_defaults: Record<string, unknown> | null;
+  general_fulfillment_type: ProductFulfillmentType | null;
+  general_track_inventory: boolean | null;
+  general_stock_quantity: string | null;
+  general_low_stock_threshold: string | null;
+  general_allow_backorder: boolean | null;
+  general_owner_type: ProductOwnerType | null;
+  general_owner_vendor_user_id: string | null;
   config: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
@@ -82,17 +93,50 @@ function mapProductCategoryRow(row: ProductCategoryRow): ProductCategory {
 }
 
 function mapProductRow(row: ProductRow): Product {
-  const config = row.config ?? {};
-  const generalProductConfig =
-    typeof config.generalProduct === "object" && config.generalProduct
-      ? (config.generalProduct as Record<string, unknown>)
+  const baseConfig = row.config ?? {};
+  const rawGeneralProductConfig =
+    typeof baseConfig.generalProduct === "object" && baseConfig.generalProduct
+      ? (baseConfig.generalProduct as Record<string, unknown>)
       : null;
   const ownerType =
-    generalProductConfig?.ownerType === "vendor" ? "vendor" : "internal";
+    row.general_owner_type === "vendor" || rawGeneralProductConfig?.ownerType === "vendor"
+      ? "vendor"
+      : "internal";
   const ownerVendorUserId =
-    ownerType === "vendor" && typeof generalProductConfig?.vendorUserId === "string"
-      ? generalProductConfig.vendorUserId
+    ownerType === "vendor"
+      ? row.general_owner_vendor_user_id ??
+        (typeof rawGeneralProductConfig?.vendorUserId === "string" ? rawGeneralProductConfig.vendorUserId : undefined)
       : undefined;
+  const templateKey =
+    row.product_type === "coded_template"
+      ? row.coded_template_key ?? row.template_key
+      : row.product_type === "builder_template"
+        ? row.builder_template_key ?? row.template_key
+        : row.template_key;
+  const siteDefaults =
+    row.product_type === "coded_template"
+      ? row.coded_site_defaults
+      : row.product_type === "builder_template"
+        ? row.builder_site_defaults
+        : null;
+  const fulfillmentType = row.general_fulfillment_type ?? row.fulfillment_type;
+  const trackInventory = row.general_track_inventory ?? row.track_inventory;
+  const stockQuantity = row.general_stock_quantity ?? row.stock_quantity;
+  const lowStockThreshold = row.general_low_stock_threshold ?? row.low_stock_threshold;
+  const allowBackorder = row.general_allow_backorder ?? row.allow_backorder;
+  const config: Record<string, unknown> = {
+    ...baseConfig,
+    ...(siteDefaults ? { siteDefaults } : {}),
+    ...(row.product_type === "general_product"
+      ? {
+          generalProduct: {
+            ...(rawGeneralProductConfig ?? {}),
+            ownerType,
+            ...(ownerVendorUserId ? { vendorUserId: ownerVendorUserId } : {}),
+          },
+        }
+      : {}),
+  };
 
   return {
     id: row.id,
@@ -105,14 +149,14 @@ function mapProductRow(row: ProductRow): Product {
     description: row.description ?? undefined,
     status: row.status,
     productType: row.product_type,
-    templateKey: row.template_key,
+    templateKey,
     thumbnailUrl: row.thumbnail_url ?? undefined,
     price: Number(row.price ?? "0"),
-    fulfillmentType: row.fulfillment_type,
-    trackInventory: Boolean(row.track_inventory),
-    stockQuantity: Number(row.stock_quantity ?? "0"),
-    lowStockThreshold: Number(row.low_stock_threshold ?? "0"),
-    allowBackorder: Boolean(row.allow_backorder),
+    fulfillmentType,
+    trackInventory: Boolean(trackInventory),
+    stockQuantity: Number(stockQuantity ?? "0"),
+    lowStockThreshold: Number(lowStockThreshold ?? "0"),
+    allowBackorder: Boolean(allowBackorder),
     ownerType: ownerType as ProductOwnerType,
     ownerVendorUserId,
     config,
@@ -123,11 +167,43 @@ function mapProductRow(row: ProductRow): Product {
 
 const PRODUCT_SELECT = `
   SELECT
-    products.*,
+    products.id,
+    products.slug,
+    products.category_id,
     categories.slug AS category_slug,
-    categories.name AS category_name
+    categories.name AS category_name,
+    products.name,
+    products.excerpt,
+    products.description,
+    products.status,
+    products.product_type,
+    products.template_key,
+    products.thumbnail_url,
+    products.price::text,
+    products.fulfillment_type,
+    products.track_inventory,
+    products.stock_quantity::text,
+    products.low_stock_threshold::text,
+    products.allow_backorder,
+    coded.template_key AS coded_template_key,
+    coded.site_defaults AS coded_site_defaults,
+    builder.template_key AS builder_template_key,
+    builder.site_defaults AS builder_site_defaults,
+    general.fulfillment_type AS general_fulfillment_type,
+    general.track_inventory AS general_track_inventory,
+    general.stock_quantity::text AS general_stock_quantity,
+    general.low_stock_threshold::text AS general_low_stock_threshold,
+    general.allow_backorder AS general_allow_backorder,
+    general.owner_type AS general_owner_type,
+    general.owner_vendor_user_id AS general_owner_vendor_user_id,
+    products.config,
+    products.created_at,
+    products.updated_at
   FROM products
   LEFT JOIN product_categories categories ON categories.id = products.category_id
+  LEFT JOIN coded_template_products coded ON coded.product_id = products.id
+  LEFT JOIN builder_products builder ON builder.product_id = products.id
+  LEFT JOIN general_products general ON general.product_id = products.id
 `;
 
 type PgLikeError = {
@@ -173,14 +249,25 @@ async function getProductUsingTemplateKey(input: {
 
   const result = await withProductCatalogRetry(() =>
     query<ProductTemplateUsageRow>(
-      `
-        SELECT slug, name
-        FROM products
-        WHERE template_key = $1
-          AND product_type = $2
-          AND ($3::text IS NULL OR slug <> $3)
-        LIMIT 1
-      `,
+      input.productType === "coded_template"
+        ? `
+            SELECT products.slug, products.name
+            FROM products
+            INNER JOIN coded_template_products coded ON coded.product_id = products.id
+            WHERE coded.template_key = $1
+              AND products.product_type = $2
+              AND ($3::text IS NULL OR products.slug <> $3)
+            LIMIT 1
+          `
+        : `
+            SELECT products.slug, products.name
+            FROM products
+            INNER JOIN builder_products builder ON builder.product_id = products.id
+            WHERE builder.template_key = $1
+              AND products.product_type = $2
+              AND ($3::text IS NULL OR products.slug <> $3)
+            LIMIT 1
+          `,
       [input.templateKey, input.productType, input.excludeSlug ?? null]
     )
   );
@@ -243,7 +330,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     )
   );
 
-  if (!result.rows[0]) {
+  if (!result) {
     return null;
   }
 
@@ -262,7 +349,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     )
   );
 
-  if (!result.rows[0]) {
+  if (!result) {
     return null;
   }
 
@@ -286,7 +373,7 @@ export async function getPublishedProductBySlugAndType(
     )
   );
 
-  if (!result.rows[0]) {
+  if (!result) {
     return null;
   }
 
@@ -320,7 +407,7 @@ export async function listPublishedProductsByIds(ids: string[]): Promise<Product
 }
 
 export async function createProduct(input: ProductInput): Promise<Product> {
-  if (input.productType !== "general_product") {
+  if (input.productType === "coded_template") {
     const existingTemplateProduct = await getProductUsingTemplateKey({
       templateKey: input.templateKey,
       productType: input.productType,
@@ -332,33 +419,112 @@ export async function createProduct(input: ProductInput): Promise<Product> {
   }
 
   await withProductCatalogRetry(() =>
-    query<ProductRow>(
-      `
-        INSERT INTO products (
-          slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, track_inventory, stock_quantity, low_stock_threshold, allow_backorder, config
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-        RETURNING id
-      `,
-      [
-        input.slug,
-        input.categoryId || null,
-        input.name,
-        input.excerpt || null,
-        input.description || null,
-        input.status || "draft",
-        input.productType,
-        input.templateKey,
-        input.thumbnailUrl || null,
-        input.price ?? 0,
-        input.fulfillmentType ?? "digital",
-        input.trackInventory ?? false,
-        input.stockQuantity ?? 0,
-        input.lowStockThreshold ?? 0,
-        input.allowBackorder ?? false,
-        input.config || {},
-      ]
-    )
+    withTransaction(async (execute) => {
+      const created = await execute<{ id: string }>(
+        `
+          INSERT INTO products (
+            slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, track_inventory, stock_quantity, low_stock_threshold, allow_backorder, config
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          RETURNING id
+        `,
+        [
+          input.slug,
+          input.categoryId || null,
+          input.name,
+          input.excerpt || null,
+          input.description || null,
+          input.status || "draft",
+          input.productType,
+          input.templateKey,
+          input.thumbnailUrl || null,
+          input.price ?? 0,
+          input.fulfillmentType ?? "digital",
+          input.trackInventory ?? false,
+          input.stockQuantity ?? 0,
+          input.lowStockThreshold ?? 0,
+          input.allowBackorder ?? false,
+          input.config || {},
+        ]
+      );
+
+      const productId = created.rows[0]?.id;
+      if (!productId) {
+        throw new Error("PRODUCT_CREATE_FAILED");
+      }
+
+      await execute("DELETE FROM coded_template_products WHERE product_id = $1", [productId]);
+      await execute("DELETE FROM builder_products WHERE product_id = $1", [productId]);
+      await execute("DELETE FROM general_products WHERE product_id = $1", [productId]);
+
+      if (input.productType === "coded_template") {
+        const siteDefaults =
+          typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
+            ? input.config.siteDefaults
+            : {};
+
+        await execute(
+          `
+            INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+            VALUES ($1, $2, $3::jsonb)
+          `,
+          [productId, input.templateKey, JSON.stringify(siteDefaults)]
+        );
+      }
+
+      if (input.productType === "builder_template") {
+        const siteDefaults =
+          typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
+            ? input.config.siteDefaults
+            : {};
+
+        await execute(
+          `
+            INSERT INTO builder_products (product_id, template_key, site_defaults)
+            VALUES ($1, $2, $3::jsonb)
+          `,
+          [productId, input.templateKey, JSON.stringify(siteDefaults)]
+        );
+      }
+
+      if (input.productType === "general_product") {
+        const generalConfig =
+          typeof input.config?.generalProduct === "object" && input.config.generalProduct
+            ? (input.config.generalProduct as Record<string, unknown>)
+            : null;
+        const ownerType = generalConfig?.ownerType === "vendor" ? "vendor" : "internal";
+        const ownerVendorUserId =
+          ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
+            ? generalConfig.vendorUserId
+            : null;
+
+        await execute(
+          `
+            INSERT INTO general_products (
+              product_id,
+              fulfillment_type,
+              track_inventory,
+              stock_quantity,
+              low_stock_threshold,
+              allow_backorder,
+              owner_type,
+              owner_vendor_user_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `,
+          [
+            productId,
+            input.fulfillmentType ?? "digital",
+            input.trackInventory ?? false,
+            input.stockQuantity ?? 0,
+            input.lowStockThreshold ?? 0,
+            input.allowBackorder ?? false,
+            ownerType,
+            ownerVendorUserId,
+          ]
+        );
+      }
+    })
   );
 
   const created = await getProductBySlug(input.slug);
@@ -377,7 +543,7 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
 
   const nextTemplateKey = input.templateKey ?? existing.templateKey;
   const nextProductType = input.productType ?? existing.productType;
-  if (nextProductType !== "general_product") {
+  if (nextProductType === "coded_template") {
     const existingTemplateProduct = await getProductUsingTemplateKey({
       templateKey: nextTemplateKey,
       productType: nextProductType,
@@ -389,54 +555,137 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
     }
   }
 
+  const nextConfig = input.config !== undefined ? input.config : existing.config;
+
   const result = await withProductCatalogRetry(() =>
-    query<ProductRow>(
-      `
-        UPDATE products
-        SET
-          slug = COALESCE($1, slug),
-          category_id = $2,
-          name = COALESCE($3, name),
-          excerpt = $4,
-          description = $5,
-          status = COALESCE($6, status),
-          product_type = COALESCE($7, product_type),
-          template_key = COALESCE($8, template_key),
-          thumbnail_url = $9,
-          price = COALESCE($10, price),
-          fulfillment_type = COALESCE($11, fulfillment_type),
-          track_inventory = COALESCE($12, track_inventory),
-          stock_quantity = COALESCE($13, stock_quantity),
-          low_stock_threshold = COALESCE($14, low_stock_threshold),
-          allow_backorder = COALESCE($15, allow_backorder),
-          config = $16,
-          updated_at = NOW()
-        WHERE slug = $17
-        RETURNING id
-      `,
-      [
-        input.slug,
-        input.categoryId !== undefined ? input.categoryId : existing.categoryId ?? null,
-        input.name,
-        input.excerpt !== undefined ? input.excerpt : existing.excerpt ?? null,
-        input.description !== undefined ? input.description : existing.description ?? null,
-        input.status,
-        input.productType,
-        input.templateKey,
-        input.thumbnailUrl !== undefined ? input.thumbnailUrl : existing.thumbnailUrl ?? null,
-        input.price,
-        input.fulfillmentType,
-        input.trackInventory,
-        input.stockQuantity,
-        input.lowStockThreshold,
-        input.allowBackorder,
-        input.config !== undefined ? input.config : existing.config,
-        slug,
-      ]
-    )
+    withTransaction(async (execute) => {
+      const updated = await execute<{ id: string }>(
+        `
+          UPDATE products
+          SET
+            slug = COALESCE($1, slug),
+            category_id = $2,
+            name = COALESCE($3, name),
+            excerpt = $4,
+            description = $5,
+            status = COALESCE($6, status),
+            product_type = COALESCE($7, product_type),
+            template_key = COALESCE($8, template_key),
+            thumbnail_url = $9,
+            price = COALESCE($10, price),
+            fulfillment_type = COALESCE($11, fulfillment_type),
+            track_inventory = COALESCE($12, track_inventory),
+            stock_quantity = COALESCE($13, stock_quantity),
+            low_stock_threshold = COALESCE($14, low_stock_threshold),
+            allow_backorder = COALESCE($15, allow_backorder),
+            config = $16,
+            updated_at = NOW()
+          WHERE slug = $17
+          RETURNING id
+        `,
+        [
+          input.slug,
+          input.categoryId !== undefined ? input.categoryId : existing.categoryId ?? null,
+          input.name,
+          input.excerpt !== undefined ? input.excerpt : existing.excerpt ?? null,
+          input.description !== undefined ? input.description : existing.description ?? null,
+          input.status,
+          input.productType,
+          input.templateKey,
+          input.thumbnailUrl !== undefined ? input.thumbnailUrl : existing.thumbnailUrl ?? null,
+          input.price,
+          input.fulfillmentType,
+          input.trackInventory,
+          input.stockQuantity,
+          input.lowStockThreshold,
+          input.allowBackorder,
+          nextConfig,
+          slug,
+        ]
+      );
+
+      const productId = updated.rows[0]?.id;
+      if (!productId) {
+        return null;
+      }
+
+      await execute("DELETE FROM coded_template_products WHERE product_id = $1", [productId]);
+      await execute("DELETE FROM builder_products WHERE product_id = $1", [productId]);
+      await execute("DELETE FROM general_products WHERE product_id = $1", [productId]);
+
+      if (nextProductType === "coded_template") {
+        const siteDefaults =
+          typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
+            ? nextConfig.siteDefaults
+            : {};
+
+        await execute(
+          `
+            INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+            VALUES ($1, $2, $3::jsonb)
+          `,
+          [productId, nextTemplateKey, JSON.stringify(siteDefaults)]
+        );
+      }
+
+      if (nextProductType === "builder_template") {
+        const siteDefaults =
+          typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
+            ? nextConfig.siteDefaults
+            : {};
+
+        await execute(
+          `
+            INSERT INTO builder_products (product_id, template_key, site_defaults)
+            VALUES ($1, $2, $3::jsonb)
+          `,
+          [productId, nextTemplateKey, JSON.stringify(siteDefaults)]
+        );
+      }
+
+      if (nextProductType === "general_product") {
+        const generalConfig =
+          typeof nextConfig?.generalProduct === "object" && nextConfig.generalProduct
+            ? (nextConfig.generalProduct as Record<string, unknown>)
+            : null;
+        const ownerType = generalConfig?.ownerType === "vendor" ? "vendor" : "internal";
+        const ownerVendorUserId =
+          ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
+            ? generalConfig.vendorUserId
+            : null;
+
+        await execute(
+          `
+            INSERT INTO general_products (
+              product_id,
+              fulfillment_type,
+              track_inventory,
+              stock_quantity,
+              low_stock_threshold,
+              allow_backorder,
+              owner_type,
+              owner_vendor_user_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `,
+          [
+            productId,
+            input.fulfillmentType ?? existing.fulfillmentType,
+            input.trackInventory ?? existing.trackInventory,
+            input.stockQuantity ?? existing.stockQuantity,
+            input.lowStockThreshold ?? existing.lowStockThreshold,
+            input.allowBackorder ?? existing.allowBackorder,
+            ownerType,
+            ownerVendorUserId,
+          ]
+        );
+      }
+
+      return updated.rows[0];
+    })
   );
 
-  if (!result.rows[0]) {
+  if (!result) {
     return null;
   }
 

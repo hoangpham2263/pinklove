@@ -24,6 +24,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.INTERNAL_ACCOUNTS)) return "Tài khoản nội bộ";
   if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";
   if (pathname.startsWith(ROUTES.ADMIN.MEDIA)) return "Media";
+  if (pathname.startsWith(ROUTES.ADMIN.NOTIFICATIONS)) return "Thông báo";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_PAGES)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";

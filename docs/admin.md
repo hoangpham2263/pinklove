@@ -49,6 +49,7 @@ This file covers the admin area and admin-controlled workflows.
 - pages
 - menus
 - media
+- notifications
 - internal accounts
 - affiliates
 - products
@@ -67,3 +68,8 @@ This file covers the admin area and admin-controlled workflows.
   - permalinks
   - breadcrumbs
   - sitemap
+
+## Notifications
+
+- Admin notifications are created from `/admin/notifications` through a modal flow.
+- Targeting supports all users, selected stored roles, selected users, immediate send, and scheduled send.

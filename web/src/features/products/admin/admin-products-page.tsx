@@ -34,6 +34,11 @@ export async function AdminProductsPageView({
   const filteredProducts = products.filter((product) => product.productType === fixedProductType);
   const publishedCount = filteredProducts.filter((product) => product.status === "published").length;
   const draftCount = filteredProducts.length - publishedCount;
+  const canCreateProduct = fixedProductType === "general_product" || fixedProductType === "builder_template";
+  const createHref =
+    fixedProductType === "builder_template"
+      ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
+      : `${ROUTES.ADMIN.PRODUCTS}?type=${fixedProductType}&returnTo=${encodeURIComponent(returnTo)}`;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -42,13 +47,15 @@ export async function AdminProductsPageView({
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
-        <Button
-          render={
-            <Link href={`${ROUTES.ADMIN.PRODUCTS}?type=${fixedProductType}&returnTo=${encodeURIComponent(returnTo)}`}>
-              Tạo mẫu gốc
-            </Link>
-          }
-        />
+        {canCreateProduct ? (
+          <Button
+            render={
+              <Link href={createHref}>
+                {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
+              </Link>
+            }
+          />
+        ) : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

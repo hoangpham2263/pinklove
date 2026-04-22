@@ -28,6 +28,7 @@ const globalForDb = globalThis as unknown as {
   chatTablesMigrationV5Done?: boolean;
   chatTablesMigrationV6Done?: boolean;
   chatTablesMigrationV7Done?: boolean;
+  notificationTablesMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
@@ -647,6 +648,26 @@ async function ensureInternalAccountsMigration() {
 
 async function ensureProductTablesMigration() {
   const pool = getPool();
+  const productIdType = await getColumnTypeSql("products", "id", "TEXT");
+  const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+  const normalizedUserIdType = userIdType.toLowerCase();
+  const ownerVendorUserIdSelectSql =
+    normalizedUserIdType.includes("bigint") || normalizedUserIdType === "integer" || normalizedUserIdType === "int"
+      ? `
+          CASE
+            WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor'
+              AND COALESCE(products.config -> 'generalProduct' ->> 'vendorUserId', '') ~ '^[0-9]+$'
+              THEN NULLIF(products.config -> 'generalProduct' ->> 'vendorUserId', '')::${userIdType}
+            ELSE NULL
+          END
+        `
+      : `
+          CASE
+            WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor'
+              THEN NULLIF(products.config -> 'generalProduct' ->> 'vendorUserId', '')::${userIdType}
+            ELSE NULL
+          END
+        `;
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS product_categories (
@@ -788,6 +809,160 @@ async function ensureProductTablesMigration() {
 
   await pool.query(`
     DROP INDEX IF EXISTS products_template_key_unique_idx;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS coded_template_products (
+      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+      template_key TEXT NOT NULL,
+      site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS builder_products (
+      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+      template_key TEXT NOT NULL,
+      site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS general_products (
+      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+      fulfillment_type TEXT NOT NULL DEFAULT 'digital',
+      track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
+      stock_quantity INT NOT NULL DEFAULT 0,
+      low_stock_threshold INT NOT NULL DEFAULT 0,
+      allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
+      owner_type TEXT NOT NULL DEFAULT 'internal',
+      owner_vendor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT general_products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT general_products_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
+      CONSTRAINT general_products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT general_products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+    SELECT
+      products.id,
+      products.template_key,
+      CASE
+        WHEN jsonb_typeof(products.config -> 'siteDefaults') = 'object' THEN products.config -> 'siteDefaults'
+        ELSE '{}'::jsonb
+      END
+    FROM products
+    WHERE products.product_type = 'coded_template'
+    ON CONFLICT (product_id) DO UPDATE
+    SET
+      template_key = EXCLUDED.template_key,
+      site_defaults = EXCLUDED.site_defaults,
+      updated_at = NOW();
+  `);
+
+  await pool.query(`
+    INSERT INTO builder_products (product_id, template_key, site_defaults)
+    SELECT
+      products.id,
+      products.template_key,
+      CASE
+        WHEN jsonb_typeof(products.config -> 'siteDefaults') = 'object' THEN products.config -> 'siteDefaults'
+        ELSE '{}'::jsonb
+      END
+    FROM products
+    WHERE products.product_type = 'builder_template'
+    ON CONFLICT (product_id) DO UPDATE
+    SET
+      template_key = EXCLUDED.template_key,
+      site_defaults = EXCLUDED.site_defaults,
+      updated_at = NOW();
+  `);
+
+  await pool.query(`
+    INSERT INTO general_products (
+      product_id,
+      fulfillment_type,
+      track_inventory,
+      stock_quantity,
+      low_stock_threshold,
+      allow_backorder,
+      owner_type,
+      owner_vendor_user_id
+    )
+    SELECT
+      products.id,
+      products.fulfillment_type,
+      products.track_inventory,
+      products.stock_quantity,
+      products.low_stock_threshold,
+      products.allow_backorder,
+      CASE
+        WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor' THEN 'vendor'
+        ELSE 'internal'
+      END,
+      ${ownerVendorUserIdSelectSql}
+    FROM products
+    WHERE products.product_type = 'general_product'
+    ON CONFLICT (product_id) DO UPDATE
+    SET
+      fulfillment_type = EXCLUDED.fulfillment_type,
+      track_inventory = EXCLUDED.track_inventory,
+      stock_quantity = EXCLUDED.stock_quantity,
+      low_stock_threshold = EXCLUDED.low_stock_threshold,
+      allow_backorder = EXCLUDED.allow_backorder,
+      owner_type = EXCLUDED.owner_type,
+      owner_vendor_user_id = EXCLUDED.owner_vendor_user_id,
+      updated_at = NOW();
+  `);
+
+  await pool.query(`
+    DELETE FROM coded_template_products
+    WHERE product_id IN (
+      SELECT id
+      FROM products
+      WHERE product_type <> 'coded_template'
+    );
+  `);
+
+  await pool.query(`
+    DELETE FROM builder_products
+    WHERE product_id IN (
+      SELECT id
+      FROM products
+      WHERE product_type <> 'builder_template'
+    );
+  `);
+
+  await pool.query(`
+    DELETE FROM general_products
+    WHERE product_id IN (
+      SELECT id
+      FROM products
+      WHERE product_type <> 'general_product'
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS coded_template_products_template_key_idx
+    ON coded_template_products(template_key);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS builder_products_template_key_idx
+    ON builder_products(template_key);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS general_products_owner_vendor_user_id_idx
+    ON general_products(owner_vendor_user_id);
   `);
 
   await pool.query(`
@@ -1415,6 +1590,89 @@ async function ensureChatTablesMigration() {
  `);
 }
 
+async function ensureNotificationTablesMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id");
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS notifications (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   title TEXT NOT NULL,
+   body TEXT NOT NULL DEFAULT '',
+   link_url TEXT NOT NULL DEFAULT '',
+   audience_type TEXT NOT NULL DEFAULT 'all',
+   created_by_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+   status TEXT NOT NULL DEFAULT 'sent',
+   scheduled_at TIMESTAMPTZ,
+   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   CONSTRAINT notifications_audience_type_check CHECK (audience_type IN ('all', 'role', 'users')),
+   CONSTRAINT notifications_status_check CHECK (status IN ('draft', 'scheduled', 'sent', 'archived'))
+  );
+ `);
+
+ await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ`);
+ await pool.query(`ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_status_check`);
+ await pool.query(`
+  ALTER TABLE notifications
+  ADD CONSTRAINT notifications_status_check CHECK (status IN ('draft', 'scheduled', 'sent', 'archived'))
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS notifications_created_at_idx
+  ON notifications(status, created_at DESC);
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS notifications_scheduled_at_idx
+  ON notifications(status, scheduled_at);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS notification_target_roles (
+   notification_id TEXT NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+   role TEXT NOT NULL,
+   PRIMARY KEY (notification_id, role),
+   CONSTRAINT notification_target_roles_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'VENDOR'))
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS notification_target_roles_role_idx
+  ON notification_target_roles(role, notification_id);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS notification_target_users (
+   notification_id TEXT NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   PRIMARY KEY (notification_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS notification_target_users_user_id_idx
+  ON notification_target_users(user_id, notification_id);
+ `);
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS notification_user_states (
+   notification_id TEXT NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+   user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   read_at TIMESTAMPTZ,
+   dismissed_at TIMESTAMPTZ,
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   PRIMARY KEY (notification_id, user_id)
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS notification_user_states_user_unread_idx
+  ON notification_user_states(user_id, read_at, updated_at DESC);
+ `);
+}
+
 async function ensureProductVendorPaperTypeMigration() {
   const pool = getPool();
   await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
@@ -1784,24 +2042,28 @@ async function ensureProductSeed() {
 
 async function ensureProductTemplateKeyUniqueness() {
   const pool = getPool();
-  const duplicates = await pool.query<{ product_type: string; template_key: string; total: string }>(`
-    SELECT product_type, template_key, COUNT(*)::text AS total
+  await pool.query(`DROP INDEX IF EXISTS products_product_type_template_key_unique_idx`);
+
+  const duplicates = await pool.query<{ template_key: string; total: string }>(`
+    SELECT template_key, COUNT(*)::text AS total
     FROM products
-    GROUP BY product_type, template_key
+    WHERE product_type = 'coded_template'
+    GROUP BY template_key
     HAVING COUNT(*) > 1
   `);
 
   if (duplicates.rows.length > 0) {
     console.warn(
-      "Skipping products(product_type, template_key) unique index because duplicate template keys still exist:",
+      "Skipping coded template unique index because duplicate template keys still exist:",
       duplicates.rows
     );
     return;
   }
 
   await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS products_product_type_template_key_unique_idx
-    ON products(product_type, template_key);
+    CREATE UNIQUE INDEX IF NOT EXISTS products_coded_template_key_unique_idx
+    ON products(template_key)
+    WHERE product_type = 'coded_template';
   `);
 }
 
@@ -2054,6 +2316,11 @@ export async function ensureDb() {
         globalForDb.chatTablesMigrationV7Done = true;
       }
 
+      if (!globalForDb.notificationTablesMigrationDone) {
+        await ensureNotificationTablesMigration();
+        globalForDb.notificationTablesMigrationDone = true;
+      }
+
       const managedPagesSeedSignature = getManagedPagesSeedSignature();
       if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
         await ensureManagedPagesSeed();
@@ -2090,6 +2357,11 @@ export async function ensureDb() {
   if (!globalForDb.chatTablesMigrationV7Done) {
     await ensureChatTablesMigration();
     globalForDb.chatTablesMigrationV7Done = true;
+  }
+
+  if (!globalForDb.notificationTablesMigrationDone) {
+    await ensureNotificationTablesMigration();
+    globalForDb.notificationTablesMigrationDone = true;
   }
 }
 

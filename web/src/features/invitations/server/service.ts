@@ -10,6 +10,8 @@ import {
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import type { InvitationSite, InvitationStatus, InvitationType } from "@/features/invitations/types";
 
+const BUILDER_TEMPLATE_KEY = "freeform_sections";
+
 type InvitationRow = {
   id: string;
   user_id: string;
@@ -221,8 +223,11 @@ export async function createInvitationFromProduct(input: {
     throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_PRODUCT");
   }
 
+  const templateKey = input.product.productType === "builder_template"
+    ? BUILDER_TEMPLATE_KEY
+    : input.product.templateKey;
   const defaults = {
-    ...getInvitationTemplateDefaults(input.product.templateKey),
+    ...getInvitationTemplateDefaults(templateKey),
     ...((input.product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
   };
   const title = input.product.name;
@@ -254,7 +259,7 @@ export async function createInvitationFromProduct(input: {
       title,
       slug,
       input.product.productType,
-      input.product.templateKey,
+      templateKey,
       defaults,
     ]
   );
@@ -265,14 +270,14 @@ export async function createInvitationFromProduct(input: {
 export async function createBuilderInvitation(userId: string): Promise<InvitationSite> {
   const title = "Thiệp cưới tự tạo";
   const slug = await ensureUniqueInvitationSlug(title);
-  const defaults = getInvitationTemplateDefaults("freeform_sections");
+  const defaults = getInvitationTemplateDefaults(BUILDER_TEMPLATE_KEY);
 
   const result = await query<InvitationRow>(
     `
       INSERT INTO wedding_sites (
         user_id, product_id, title, slug, site_type, template_key, status, custom_data
       )
-      VALUES ($1, NULL, $2, $3, 'builder_template', 'freeform_sections', 'draft', $4)
+      VALUES ($1, NULL, $2, $3, 'builder_template', $4, 'draft', $5)
       RETURNING
         id,
         user_id,
@@ -287,7 +292,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
         created_at,
         updated_at
     `,
-    [userId, title, slug, defaults]
+    [userId, title, slug, BUILDER_TEMPLATE_KEY, defaults]
   );
 
   return mapInvitationRow(result.rows[0]);

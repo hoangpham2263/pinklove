@@ -19,6 +19,22 @@ services:
       timeout: 5s
       retries: 5
 
+  pgadmin:
+    container_name: ${COMPOSE_PROJECT_NAME:-app}-pgadmin
+    image: dpage/pgadmin4:9
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-4040}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pinklove@gmail.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
   web:
     container_name: ${COMPOSE_PROJECT_NAME:-app}-next
     build:

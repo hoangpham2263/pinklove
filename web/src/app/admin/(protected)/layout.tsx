@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BadgePercent,
+  Bell,
   Blocks,
   BookOpenText,
   CreditCard,
@@ -46,6 +47,7 @@ const standaloneIconMap = {
   "shopping-bag": ShoppingBag,
   menu: Menu,
   "message-circle": MessageCircle,
+  bell: Bell,
   image: ImageIcon,
   "book-open-text": BookOpenText,
   users: Users,

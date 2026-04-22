@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 import { AdminHeaderMenu } from "@/features/admin/layout/admin-header-menu";
 import { getAdminPageTitle } from "@/features/admin/config/route-meta";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { ROUTES } from "@/lib/routes";
 
 type AdminTopHeaderProps = {
   username: string;
@@ -26,6 +28,7 @@ export function AdminTopHeader({ username }: AdminTopHeaderProps) {
           <p className="font-medium">{pageTitle}</p>
         </div>
         <div className="flex items-center gap-3">
+          <NotificationBell listHref={ROUTES.ADMIN.NOTIFICATIONS} />
           <span>{username}</span>
           <AdminHeaderMenu />
         </div>

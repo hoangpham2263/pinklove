@@ -10,6 +10,7 @@
     "lint": "eslint",
     "seed:products": "node scripts/seed-product-catalog.mjs",
     "seed:website": "node scripts/seed-website-demo.mjs",
+    "seed:notifications": "node scripts/seed-notifications.mjs",
     "seed:partner": "node scripts/seed-partner-portal-fixtures.mjs",
     "seed:partner:smoke": "node scripts/seed-vendor-portal-smoke.mjs"
   },

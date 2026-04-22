@@ -303,11 +303,12 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
         products.name AS product_name,
         products.slug AS product_slug,
         products.product_type,
-        products.fulfillment_type,
+        COALESCE(general.fulfillment_type, products.fulfillment_type) AS fulfillment_type,
         products.price::text,
         products.thumbnail_url
       FROM shopping_cart_items cart
       JOIN products ON products.id = cart.product_id
+      LEFT JOIN general_products general ON general.product_id = products.id
       WHERE cart.user_id = $1
       ORDER BY cart.updated_at DESC
     `,
@@ -520,13 +521,14 @@ export async function createOrderFromCart(input: {
           cart.product_id,
           products.name AS product_name,
           cart.quantity::text,
-          products.track_inventory,
-          products.stock_quantity::text,
-          products.allow_backorder
+          COALESCE(general.track_inventory, products.track_inventory) AS track_inventory,
+          COALESCE(general.stock_quantity, products.stock_quantity)::text AS stock_quantity,
+          COALESCE(general.allow_backorder, products.allow_backorder) AS allow_backorder
         FROM shopping_cart_items cart
         JOIN products ON products.id = cart.product_id
+        LEFT JOIN general_products general ON general.product_id = cart.product_id
         WHERE cart.user_id = $1
-        FOR UPDATE OF products
+        FOR UPDATE OF products, general
       `,
       [input.userId]
     );
@@ -638,14 +640,14 @@ export async function createOrderFromCart(input: {
       if (item.productId) {
         await execute(
           `
-            UPDATE products
+            UPDATE general_products
             SET
               stock_quantity = CASE
                 WHEN track_inventory THEN stock_quantity - $2
                 ELSE stock_quantity
               END,
               updated_at = NOW()
-            WHERE id = $1
+            WHERE product_id = $1
           `,
           [item.productId, item.quantity]
         );

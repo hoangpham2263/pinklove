@@ -2,6 +2,7 @@
 
 import { useMemo } from"react";
 import { usePathname } from"next/navigation";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ROUTES } from "@/lib/routes";
 
 type CustomerTopHeaderProps = {
@@ -34,6 +35,7 @@ export function CustomerTopHeader({ username }: CustomerTopHeaderProps) {
    <p className="font-medium">{pageTitle}</p>
   </div>
   <div className="flex items-center gap-3">
+   <NotificationBell />
    <span>{username}</span>
    <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
    <button type="submit" className="hover:underline">

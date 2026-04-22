@@ -74,6 +74,7 @@ export function AdminProductList({
   lockProductType = false,
 }: AdminProductListProps) {
   const router = useRouter();
+  const showInventoryColumn = productType === "general_product";
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -212,30 +213,32 @@ export function AdminProductList({
         ),
         cell: ({ row }) => <div className="text-right font-medium">{row.original.price}</div>,
       },
-      {
-        id: "inventory",
-        header: () => <div className="text-right">Kho</div>,
-        cell: ({ row }) => {
-          const product = row.original;
-          if (!product.trackInventory) {
-            return <div className="text-right text-sm text-muted-foreground">Khong gioi han</div>;
-          }
+      ...(showInventoryColumn
+        ? [{
+            id: "inventory",
+            header: () => <div className="text-right">Kho</div>,
+            cell: ({ row }: { row: { original: Product } }) => {
+              const product = row.original;
+              if (!product.trackInventory) {
+                return <div className="text-right text-sm text-muted-foreground">Khong gioi han</div>;
+              }
 
-          const tone =
-            product.stockQuantity <= 0
-              ? "text-red-600"
-              : product.stockQuantity <= product.lowStockThreshold
-                ? "text-amber-600"
-                : "text-foreground";
+              const tone =
+                product.stockQuantity <= 0
+                  ? "text-red-600"
+                  : product.stockQuantity <= product.lowStockThreshold
+                    ? "text-amber-600"
+                    : "text-foreground";
 
-          return (
-            <div className={`text-right text-sm font-medium ${tone}`}>
-              {product.stockQuantity}
-              {product.allowBackorder ? " • backorder" : ""}
-            </div>
-          );
-        },
-      },
+              return (
+                <div className={`text-right text-sm font-medium ${tone}`}>
+                  {product.stockQuantity}
+                  {product.allowBackorder ? " • backorder" : ""}
+                </div>
+              );
+            },
+          } satisfies ColumnDef<Product>]
+        : []),
       {
         id: "actions",
         enableSorting: false,
@@ -244,12 +247,22 @@ export function AdminProductList({
         cell: ({ row }) => {
           const product = row.original;
           const publicHref = getProductPath(product, permalinkConfig);
+          const adminEditHref =
+            product.productType === "builder_template"
+              ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
+              : `${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`;
 
           return (
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setPreviewProductId(product.id)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 w-8"
+                title="Xem sản phẩm"
+                onClick={() => setPreviewProductId(product.id)}
+              >
                 <Eye className="h-4 w-4" />
-                Xem
               </Button>
               <Link
                 href={publicHref}
@@ -260,7 +273,7 @@ export function AdminProductList({
                 <ExternalLink className="h-4 w-4" />
               </Link>
               <Link
-                href={`${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`}
+                href={adminEditHref}
                 title="Chỉnh sửa"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               >
@@ -302,7 +315,7 @@ export function AdminProductList({
         },
       },
     ],
-    [router, permalinkConfig]
+    [router, permalinkConfig, showInventoryColumn, returnTo]
   );
 
   const table = useReactTable({
@@ -418,9 +431,6 @@ export function AdminProductList({
               <input key={row.id} type="hidden" name="slugs" value={row.original.slug} />
             ))}
             <input type="hidden" name="returnTo" value={returnTo} />
-            <span className="text-muted-foreground text-sm">
-              Đã chọn {selectedCount}
-            </span>
             <select
               name="bulkAction"
               value={bulkAction}
@@ -491,6 +501,10 @@ export function AdminProductList({
         </Table>
       </div>
 
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">Đã chọn {selectedCount}</span>
+      </div>
+
       <Dialog open={Boolean(previewProduct)} onOpenChange={(open) => !open && setPreviewProductId(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           {previewProduct ? (
@@ -521,14 +535,16 @@ export function AdminProductList({
                   <p className="text-sm font-medium">Giá</p>
                   <p className="text-sm text-muted-foreground">{previewProduct.price}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Kho</p>
-                  <p className="text-sm text-muted-foreground">
-                    {previewProduct.trackInventory
-                      ? `${previewProduct.stockQuantity} • cảnh báo thấp ${previewProduct.lowStockThreshold}${previewProduct.allowBackorder ? " • cho phép backorder" : ""}`
-                      : "Không giới hạn tồn kho"}
-                  </p>
-                </div>
+                {previewProduct.productType === "general_product" ? (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Kho</p>
+                    <p className="text-sm text-muted-foreground">
+                      {previewProduct.trackInventory
+                        ? `${previewProduct.stockQuantity} • cảnh báo thấp ${previewProduct.lowStockThreshold}${previewProduct.allowBackorder ? " • cho phép backorder" : ""}`
+                        : "Không giới hạn tồn kho"}
+                    </p>
+                  </div>
+                ) : null}
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Template Key</p>
                   <p className="text-sm text-muted-foreground">{previewProduct.templateKey}</p>

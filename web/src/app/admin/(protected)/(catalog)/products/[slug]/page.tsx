@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
-import { getProductBySlug, listAllProductCategories, listAllProducts } from "@/features/products/server/service";
+import { getProductBySlug, listAllProductCategories } from "@/features/products/server/service";
 import { ProductEditorForm } from "@/features/products/admin/product-editor-form";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -18,10 +18,9 @@ export default async function AdminProductEditorPage({
   await requireAdmin();
   const { slug } = await params;
   const query = (await searchParams) ?? {};
-  const [product, categories, products, vendors] = await Promise.all([
+  const [product, categories, vendors] = await Promise.all([
     getProductBySlug(slug),
     listAllProductCategories(),
-    listAllProducts(),
     listAccountsByRole(USER_ROLES.VENDOR),
   ]);
 
@@ -31,9 +30,9 @@ export default async function AdminProductEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.PRODUCT_LIST;
 
-  const usedTemplateKeys = products
-    .filter((item) => item.slug !== product.slug)
-    .map((item) => item.templateKey);
+  if (product.productType === "builder_template") {
+    redirect(`${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
+  }
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -45,10 +44,12 @@ export default async function AdminProductEditorPage({
           >
             ← Back
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Product: {product.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {product.productType === "general_product" ? "Edit Product" : "Edit Template"}: {product.name}
+          </h1>
         </div>
       </div>
-      <ProductEditorForm product={product} categories={categories} usedTemplateKeys={usedTemplateKeys} vendors={vendors} returnTo={returnTo} />
+      <ProductEditorForm product={product} categories={categories} vendors={vendors} returnTo={returnTo} />
     </section>
   );
 }

@@ -13,6 +13,7 @@ export type AdminNavIconName =
   | "menu"
   | "image"
   | "book-open-text"
+  | "bell"
   | "users"
   | "store"
   | "badge-percent"
@@ -40,6 +41,7 @@ export type AdminStandaloneNavItem = {
 export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
   { label: "Tin nhắn", href: ROUTES.ADMIN.MESSAGES, iconName: "message-circle" },
+  { label: "Thông báo", href: ROUTES.ADMIN.NOTIFICATIONS, iconName: "bell" },
   { label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
 ];
 

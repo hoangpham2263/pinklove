@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   BadgePercent,
+  Bell,
   Blocks,
   BookOpenText,
   ChevronRight,
@@ -54,6 +55,7 @@ const adminMobileIconMap = {
   truck: Truck,
   menu: MenuIcon,
   "message-circle": MessageCircle,
+  bell: Bell,
   image: ImageIcon,
   "shopping-bag": ShoppingBag,
   users: Users,

@@ -278,7 +278,7 @@ web/
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, affiliates, vendors, products, ecommerce operations, SEO, blog management, and config.
+- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, products, ecommerce operations, SEO, blog management, and config.
 - Admin product management works at the catalog level, while order/payment/shipment operations live in the dedicated ecommerce section.
 
 ## Feature map
@@ -290,6 +290,7 @@ web/
 - `src/features/media`: media library UI and server storage
 - `src/features/affiliate`: affiliate flows for customer and admin
 - `src/features/ecommerce`: wishlist-backed checkout, orders, payments, shipments, and entitlement services
+- `src/features/notifications`: user notice inbox, admin notice creation, read state, and realtime notice adapters
 - `src/features/products`: invitation catalog products plus admin product/category management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 - `src/features/search`: guest-facing search services and result aggregation

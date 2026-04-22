@@ -1,0 +1,570 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { ArrowUpDown, Eye, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type RowSelectionState,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+import { NativeForm } from "@/components/common/native-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { finishMutation, postForm } from "@/lib/client-mutation";
+import { getRoleLabel } from "@/lib/roles";
+import { ROUTES } from "@/lib/routes";
+import type { AdminNotification, NotificationAudienceType, NotificationStatus } from "@/features/notifications/types";
+import { AdminNotificationUpsertDialog } from "@/features/notifications/components/admin-notification-upsert-dialog";
+import type { UserRole } from "@/lib/roles";
+
+type AccountOption = {
+  id: string;
+  username: string;
+  role: UserRole;
+};
+
+type RoleOption = {
+  value: UserRole;
+  label: string;
+};
+
+type AdminNotificationsTableProps = {
+  notifications: AdminNotification[];
+  accounts: AccountOption[];
+  roles: RoleOption[];
+  statusOptions?: NotificationStatus[];
+  hideStatusFilter?: boolean;
+  emptyMessage?: string;
+};
+
+function getAudienceLabel(audienceType: NotificationAudienceType) {
+  if (audienceType === "role") {
+    return "Theo role";
+  }
+
+  if (audienceType === "users") {
+    return "Cá nhân";
+  }
+
+  return "Toàn bộ";
+}
+
+function getStatusLabel(status: NotificationStatus) {
+  if (status === "sent") {
+    return "Đã gửi";
+  }
+
+  if (status === "scheduled") {
+    return "Đã lên lịch";
+  }
+
+  if (status === "archived") {
+    return "Lưu trữ";
+  }
+
+  return "Bản nháp";
+}
+
+function getStatusVariant(status: NotificationStatus): "default" | "secondary" | "destructive" | "outline" {
+  if (status === "sent") {
+    return "default";
+  }
+
+  if (status === "archived") {
+    return "outline";
+  }
+
+  return "secondary";
+}
+
+function formatDateTime(value: string) {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  const parts = new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.hour ?? "00"}:${values.minute ?? "00"} ${values.day ?? "00"}/${values.month ?? "00"}/${values.year ?? "0000"}`;
+}
+
+export function AdminNotificationsTable({
+  notifications,
+  accounts,
+  roles,
+  statusOptions = ["draft", "scheduled", "sent", "archived"],
+  hideStatusFilter = false,
+  emptyMessage = "Không có thông báo phù hợp với bộ lọc hiện tại.",
+}: AdminNotificationsTableProps) {
+  const router = useRouter();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkAction, setBulkAction] = useState("");
+  const [previewNotificationId, setPreviewNotificationId] = useState<string | null>(null);
+
+  const columns = useMemo<ColumnDef<AdminNotification>[]>(
+    () => [
+      {
+        id: "select",
+        enableSorting: false,
+        enableColumnFilter: false,
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            aria-label="Select all"
+            className="h-4 w-4 rounded border border-input"
+            checked={table.getIsAllPageRowsSelected()}
+            ref={(element) => {
+              if (element) {
+                element.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+              }
+            }}
+            onChange={(event) => table.toggleAllPageRowsSelected(event.target.checked)}
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            aria-label={`Select ${row.original.title}`}
+            className="h-4 w-4 rounded border border-input"
+            checked={row.getIsSelected()}
+            onChange={(event) => row.toggleSelected(event.target.checked)}
+          />
+        ),
+      },
+      {
+        accessorKey: "title",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 h-8 px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Tiêu đề
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => <p className="whitespace-normal break-words">{row.original.title}</p>,
+      },
+      {
+        accessorKey: "audienceType",
+        header: "Đối tượng",
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
+        cell: ({ row }) => (
+          <div className="min-w-28">
+            <Badge variant="secondary">{getAudienceLabel(row.original.audienceType)}</Badge>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 h-8 px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Trạng thái
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
+        cell: ({ row }) => (
+          <Badge variant={getStatusVariant(row.original.status)}>
+            {getStatusLabel(row.original.status)}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 h-8 px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Tạo lúc
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateTime(row.original.createdAt)}</span>,
+      },
+      {
+        id: "actions",
+        enableSorting: false,
+        enableColumnFilter: false,
+        header: () => <div className="text-right">Hành động</div>,
+        cell: ({ row }) => {
+          const notification = row.original;
+
+          return (
+            <div className="flex flex-wrap items-center justify-end gap-2 min-w-[220px]">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 w-8"
+                title="Xem thông báo"
+                onClick={() => setPreviewNotificationId(notification.id)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <AdminNotificationUpsertDialog
+                accounts={accounts}
+                roles={roles}
+                notification={notification}
+                triggerLabel="Sửa thông báo"
+                triggerVariant="outline"
+                triggerClassName="h-8 w-8"
+                iconOnly
+              />
+              <NativeForm
+                action={ROUTES.API.ADMIN.NOTIFICATIONS.DELETE}
+                method="POST"
+                className="inline-block"
+                onSubmit={async (event) => {
+                  event.preventDefault();
+                  if (!confirm(`Bạn có chắc chắn muốn xóa thông báo: ${notification.title}?`)) {
+                    return;
+                  }
+
+                  try {
+                    const result = await postForm(ROUTES.API.ADMIN.NOTIFICATIONS.DELETE, new FormData(event.currentTarget));
+                    toast.success(result.message ?? "Đã xóa thông báo.");
+                    finishMutation(router, result, { redirect: false });
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : "Không thể xóa thông báo.");
+                  }
+                }}
+              >
+                <input type="hidden" name="id" value={notification.id} />
+                <input type="hidden" name="returnTo" value={ROUTES.ADMIN.NOTIFICATIONS} />
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8 border border-destructive/50"
+                  title="Xóa thông báo"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </NativeForm>
+            </div>
+          );
+        },
+      },
+    ],
+    [accounts, roles, router]
+  );
+
+  const table = useReactTable({
+    data: notifications,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+      rowSelection,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const keyword = String(filterValue).trim().toLowerCase();
+      if (!keyword) return true;
+
+      const notification = row.original;
+      return [
+        notification.title,
+        notification.body,
+        notification.linkUrl,
+        notification.status,
+        notification.audienceType,
+        notification.createdByUsername,
+        ...notification.roles,
+        ...notification.targetUsers.map((user) => user.username),
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(keyword));
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
+    enableRowSelection: true,
+  });
+
+  const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
+  const audienceFilterValue = (table.getColumn("audienceType")?.getFilterValue() as string | undefined) ?? "";
+  const hasFilters =
+    globalFilter.trim().length > 0 || (!hideStatusFilter && statusFilterValue.length > 0) || audienceFilterValue.length > 0;
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+  const previewNotification = previewNotificationId
+    ? notifications.find((notification) => notification.id === previewNotificationId) ?? null
+    : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className={`grid flex-1 gap-3 ${hideStatusFilter ? "md:grid-cols-[minmax(0,1fr)_220px]" : "md:grid-cols-[52%_20%_20%]"}`}>
+          <Input
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            placeholder="Tìm theo tiêu đề, người tạo, role, username..."
+          />
+          {hideStatusFilter ? null : (
+            <select
+              value={statusFilterValue}
+              onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
+              className="w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Tất cả trạng thái</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {getStatusLabel(status)}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            value={audienceFilterValue}
+            onChange={(event) => table.getColumn("audienceType")?.setFilterValue(event.target.value)}
+            className="w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Tất cả đối tượng</option>
+            <option value="all">Toàn bộ</option>
+            <option value="role">Theo role</option>
+            <option value="users">Cá nhân</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <select
+              value={bulkAction}
+              onChange={(event) => setBulkAction(event.target.value)}
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring md:w-44"
+            >
+              <option value="">Tác vụ hàng loạt</option>
+              <option value="sent">Đánh dấu đã gửi</option>
+              <option value="draft">Chuyển thành nháp</option>
+              <option value="archived">Lưu trữ</option>
+              <option value="delete">Xóa</option>
+            </select>
+            <Button
+              type="button"
+              className="h-9 md:min-w-24"
+              disabled={!bulkAction || selectedCount === 0}
+              onClick={async () => {
+                if (!bulkAction || selectedCount === 0) {
+                  return;
+                }
+
+                if (bulkAction === "delete" && !confirm(`Xóa ${selectedCount} thông báo đã chọn?`)) {
+                  return;
+                }
+
+                const formData = new FormData();
+                selectedRows.forEach((row) => {
+                  formData.append("ids", row.original.id);
+                });
+                formData.append("returnTo", ROUTES.ADMIN.NOTIFICATIONS);
+                formData.append("bulkAction", bulkAction);
+
+                try {
+                  const result = await postForm(ROUTES.API.ADMIN.NOTIFICATIONS.BULK, formData);
+                  toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
+                  finishMutation(router, result, { redirect: false });
+                  setRowSelection({});
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "Không thể áp dụng tác vụ hàng loạt.");
+                } finally {
+                  setBulkAction("");
+                }
+              }}
+            >
+              Áp dụng
+            </Button>
+          </div>
+
+          {hasFilters ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setGlobalFilter("");
+                if (!hideStatusFilter) {
+                  table.getColumn("status")?.setFilterValue("");
+                }
+                table.getColumn("audienceType")?.setFilterValue("");
+              }}
+            >
+              <X className="h-4 w-4" />
+              Xóa bộ lọc
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table className="w-full">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="align-middle whitespace-normal break-words">
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="align-middle whitespace-normal break-words">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  {emptyMessage}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">Đã chọn {selectedCount}</span>
+      </div>
+
+      <Dialog open={Boolean(previewNotification)} onOpenChange={(open) => !open && setPreviewNotificationId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {previewNotification ? (
+            <div className="space-y-6">
+              <DialogHeader>
+                <DialogTitle>Chi tiết thông báo</DialogTitle>
+                <DialogDescription>Xem đầy đủ nội dung và cấu hình phát hành.</DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tiêu đề</p>
+                  <p className="text-sm text-muted-foreground">{previewNotification.title}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Trạng thái</p>
+                  <p className="text-sm text-muted-foreground">{getStatusLabel(previewNotification.status)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Đối tượng</p>
+                  <p className="text-sm text-muted-foreground">{getAudienceLabel(previewNotification.audienceType)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Người tạo</p>
+                  <p className="text-sm text-muted-foreground">{previewNotification.createdByUsername}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Link điều hướng</p>
+                  <p className="text-sm text-muted-foreground">{previewNotification.linkUrl || "-"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Lịch gửi</p>
+                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.scheduledAt)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tạo lúc</p>
+                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.createdAt)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Cập nhật lúc</p>
+                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.updatedAt)}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Nội dung</p>
+                <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
+                  {previewNotification.body || "Không có nội dung"}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Người nhận</p>
+                <div className="flex flex-wrap gap-2">
+                  {previewNotification.audienceType === "all" ? (
+                    <Badge variant="secondary">Tất cả người dùng</Badge>
+                  ) : null}
+                  {previewNotification.roles.map((role) => (
+                    <Badge key={role} variant="secondary">{getRoleLabel(role)}</Badge>
+                  ))}
+                  {previewNotification.targetUsers.map((user) => (
+                    <Badge key={user.id} variant="secondary">{user.username}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

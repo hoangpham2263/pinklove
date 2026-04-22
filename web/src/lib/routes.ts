@@ -115,6 +115,8 @@ export const ROUTES = {
     PRODUCT_CATEGORIES: "/admin/product-cat",
     PRODUCT_CATEGORY: (slug: string) => `/admin/product-cat/${slug}`,
     PRODUCT: (slug: string) => `/admin/products/${slug}`,
+    BUILDER_TEMPLATE_CREATE: "/admin/builder-templates/new",
+    BUILDER_TEMPLATE_EDITOR: (slug: string) => `/admin/builder-templates/${slug}`,
     USERS: "/admin/users",
     USERS_CREATE: "/admin/users/create",
     CUSTOMERS: "/admin/customers",
@@ -127,6 +129,7 @@ export const ROUTES = {
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
     MESSAGES: "/admin/messages",
+    NOTIFICATIONS: "/admin/notifications",
     AFFILIATES: "/admin/affiliates",
     ORDERS: "/admin/orders",
     ORDER: (id: string) => `/admin/orders/${id}`,
@@ -224,6 +227,12 @@ export const ROUTES = {
       REALTIME: {
         ASSIGNMENT: (id: string) => `/api/admin/realtime/assignments/${id}`,
       },
+      NOTIFICATIONS: {
+        CREATE: "/api/admin/notifications/create",
+        UPDATE: "/api/admin/notifications/update",
+        DELETE: "/api/admin/notifications/delete",
+        BULK: "/api/admin/notifications/bulk",
+      },
       PAYMENTS: {
         UPDATE: "/api/admin/payments/update",
       },
@@ -264,6 +273,12 @@ export const ROUTES = {
       TYPING: (id: string) => `/api/chat/conversations/${id}/typing`,
       REALTIME_INBOX: "/api/chat/realtime/inbox",
       REALTIME_CONVERSATION: (id: string) => `/api/chat/realtime/conversations/${id}`,
+    },
+    NOTIFICATIONS: {
+      INDEX: "/api/notifications",
+      PUBLIC: "/api/notifications/public",
+      READ: "/api/notifications/read",
+      REALTIME: "/api/notifications/realtime",
     },
   },
 } as const;

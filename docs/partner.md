@@ -39,6 +39,7 @@ Use this file for the dedicated vendor/partner portal.
 - Vendor updates status, vendor reference, and vendor note from partner order detail.
 - Admin reads vendor progress back on the admin order detail page.
 - Vendor also sees admin-driven order-state changes from the partner order detail without a page reload.
+- Vendor receives realtime account notifications from the partner portal header bell without switching to another page.
 - Internal links from admin or customer bridge pages should prefer the canonical vendor portal link, not the legacy aliases.
 
 ## Realtime Direction

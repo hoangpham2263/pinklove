@@ -78,6 +78,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Good resource examples in the current codebase:
   - vendor assignment detail
   - vendor portal summary/list
+  - user notification inbox summary
 - Additional JSON resource examples now in use:
   - admin order state detail
   - partner vendor assignment detail

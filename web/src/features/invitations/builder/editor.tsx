@@ -399,7 +399,7 @@ function BuilderGroupNodeView({
 
 export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const [document, setDocument] = useState<BuilderDocument>(() => ensureBuilderDocument(initialValue));
-  const [selectedIds, setSelectedIds] = useState<string[]>(document.nodes[0]?.id ? [document.nodes[0].id] : []);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const stageWrapperRef = useRef<HTMLDivElement>(null);
   const textEditorRef = useRef<HTMLTextAreaElement>(null);
   const [zoom, setZoom] = useState(0.56);
@@ -708,6 +708,12 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
     transform: `rotate(${editingTextNode.rotation}deg)`,
     transformOrigin: "top left",
   } as const : null;
+  const editableNode = selectedIds.length === 1 ? selectedNode : null;
+  const editableBounds = editableNode ? getNodeBounds(editableNode) : null;
+  const editableTextNode = editableNode?.type === "text" ? editableNode : null;
+  const editableShapeNode = editableNode?.type === "shape" ? editableNode : null;
+  const editableImageNode = editableNode?.type === "image" ? editableNode : null;
+  const canEditNodeFields = Boolean(editableNode);
 
   return (
     <div className="space-y-5">
@@ -899,93 +905,102 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
             </div>
 
             <div className="mt-5 border-t pt-5">
-              {selectedIds.length > 1 ? (
-                <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
-                  Đang chọn {selectedIds.length} item.
-                  {canGroup ? " Dùng Ctrl/Cmd + G hoặc nút group để gom các item này." : " Group lồng nhau hiện chưa hỗ trợ trong editor."}
+              <div className="mb-4 flex min-h-6 items-center text-sm text-muted-foreground">
+                {selectedIds.length > 1
+                  ? `Đang chọn ${selectedIds.length} item. ${canGroup ? "Có thể group các item này." : "Group lồng nhau hiện chưa hỗ trợ."}`
+                  : editableNode
+                    ? `Đang chỉnh ${editableNode.type}.`
+                    : "Chưa chọn item nào."}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-6">
+                <div className="space-y-2">
+                  <label className="font-medium">X</label>
+                  <Input
+                    type="number"
+                    value={String(Math.round(editableNode?.x ?? 0))}
+                    disabled={!canEditNodeFields}
+                    onChange={(e) => patchSelectedNode({ x: Number(e.target.value) })}
+                  />
                 </div>
-              ) : selectedNode ? (
-                <div className="grid gap-4 md:grid-cols-6">
-                  <div className="space-y-2">
-                    <label className="font-medium">X</label>
-                    <Input type="number" value={String(Math.round(selectedNode.x))} onChange={(e) => patchSelectedNode({ x: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Y</label>
-                    <Input type="number" value={String(Math.round(selectedNode.y))} onChange={(e) => patchSelectedNode({ y: Number(e.target.value) })} />
-                  </div>
-
-                  {selectedNode.type === "group" ? (
-                    <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground md:col-span-4">
-                      Group có thể kéo và resize trực tiếp trên canvas, bao gồm kéo chiều cao.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <label className="font-medium">Opacity</label>
-                      <Input type="number" min="0" max="1" step="0.1" value={String(selectedNode.opacity)} onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })} />
-                    </div>
-                  )}
-
-                  {selectedNode.type === "text" ? (
-                    <>
-                      <div className="space-y-2 md:col-span-3">
-                        <label className="font-medium">Nội dung</label>
-                        <textarea
-                          value={selectedNode.text}
-                          onChange={(e) => patchSelectedNode({ text: e.target.value } as Partial<BuilderTextNode>)}
-                          className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Cỡ chữ</label>
-                        <Input type="number" value={String(selectedNode.fontSize)} onChange={(e) => patchSelectedNode({ fontSize: Number(e.target.value) } as Partial<BuilderTextNode>)} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Màu chữ</label>
-                        <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)} className="h-12" />
-                      </div>
-                    </>
-                  ) : null}
-
-                  {selectedNode.type === "shape" ? (
-                    <>
-                      <div className="space-y-2">
-                        <label className="font-medium">Width</label>
-                        <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Height</label>
-                        <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Màu shape</label>
-                        <Input type="color" value={selectedNode.fill} onChange={(e) => patchSelectedNode({ fill: e.target.value })} className="h-12" />
-                      </div>
-                    </>
-                  ) : null}
-
-                  {selectedNode.type === "image" ? (
-                    <>
-                      <div className="space-y-2 md:col-span-3">
-                        <label className="font-medium">URL ảnh</label>
-                        <Input value={selectedNode.src} onChange={(e) => patchSelectedNode({ src: e.target.value })} placeholder="https://..." />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Width</label>
-                        <Input type="number" value={String(selectedNode.width)} onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Height</label>
-                        <Input type="number" value={String(selectedNode.height)} onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })} />
-                      </div>
-                    </>
-                  ) : null}
+                <div className="space-y-2">
+                  <label className="font-medium">Y</label>
+                  <Input
+                    type="number"
+                    value={String(Math.round(editableNode?.y ?? 0))}
+                    disabled={!canEditNodeFields}
+                    onChange={(e) => patchSelectedNode({ y: Number(e.target.value) })}
+                  />
                 </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed px-4 py-5 text-sm text-muted-foreground">
-                  Chọn một item trong canvas để chỉnh thuộc tính. Nếu đang bắt đầu từ đầu, hãy thêm text, shape hoặc khung ảnh từ cột bên trái.
+                <div className="space-y-2">
+                  <label className="font-medium">Opacity</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={editableNode?.type === "group" ? "0" : String(editableNode?.opacity ?? 0)}
+                    disabled={!editableNode || editableNode.type === "group"}
+                    onChange={(e) => patchSelectedNode({ opacity: Number(e.target.value) })}
+                  />
                 </div>
-              )}
+                <div className="space-y-2">
+                  <label className="font-medium">Width</label>
+                  <Input
+                    type="number"
+                    value={String(Math.round(editableBounds?.width ?? 0))}
+                    disabled={!editableShapeNode && !editableImageNode}
+                    onChange={(e) => patchSelectedNode({ width: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-medium">Height</label>
+                  <Input
+                    type="number"
+                    value={String(Math.round(editableBounds?.height ?? 0))}
+                    disabled={!editableShapeNode && !editableImageNode}
+                    onChange={(e) => patchSelectedNode({ height: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-medium">Cỡ chữ</label>
+                  <Input
+                    type="number"
+                    value={String(editableTextNode?.fontSize ?? 0)}
+                    disabled={!editableTextNode}
+                    onChange={(e) => patchSelectedNode({ fontSize: Number(e.target.value) } as Partial<BuilderTextNode>)}
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-3">
+                  <label className="font-medium">Nội dung</label>
+                  <textarea
+                    value={editableTextNode?.text ?? ""}
+                    disabled={!editableTextNode}
+                    onChange={(e) => patchSelectedNode({ text: e.target.value } as Partial<BuilderTextNode>)}
+                    className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="font-medium">URL ảnh</label>
+                  <Input
+                    value={editableImageNode?.src ?? ""}
+                    disabled={!editableImageNode}
+                    onChange={(e) => patchSelectedNode({ src: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="font-medium">Màu</label>
+                  <Input
+                    type="color"
+                    value={editableTextNode?.fill ?? editableShapeNode?.fill ?? "#000000"}
+                    disabled={!editableTextNode && !editableShapeNode}
+                    onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)}
+                    className="h-12"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1072,7 +1087,21 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
               }}
             >
               <Layer>
-                <Rect x={0} y={0} width={document.width} height={document.height} fill={document.background} />
+                <Rect
+                  x={0}
+                  y={0}
+                  width={document.width}
+                  height={document.height}
+                  fill={document.background}
+                  onMouseDown={() => {
+                    setSelectedIds([]);
+                    setEditingTextId(null);
+                  }}
+                  onTap={() => {
+                    setSelectedIds([]);
+                    setEditingTextId(null);
+                  }}
+                />
                 {verticalGridLines.map((line) => (
                   <Line key={line.key} points={line.points} stroke="#dbeafe" strokeWidth={0.7} listening={false} />
                 ))}

@@ -1,30 +1,25 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getInvitationTemplateOptions } from "@/features/invitations/templates/registry";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
-import type { ProductCategory, ProductFulfillmentType, ProductType } from "@/features/products/types";
+import type { ProductCategory, ProductFulfillmentType } from "@/features/products/types";
 import type { AccountUser } from "@/lib/auth";
 
 export function QuickCreateProductForm({
   categories = [],
-  usedTemplateKeys = [],
   vendors = [],
-  defaultProductType = "coded_template",
-  returnTo = ROUTES.ADMIN.PRODUCT_LIST_CODED,
+  returnTo = ROUTES.ADMIN.PRODUCT_LIST_GENERAL,
 }: {
   categories?: ProductCategory[];
-  usedTemplateKeys?: string[];
   vendors?: AccountUser[];
-  defaultProductType?: ProductType;
   returnTo?: string;
 }) {
   const router = useRouter();
@@ -32,8 +27,6 @@ export function QuickCreateProductForm({
   const [slug, setSlug] = useState("");
   const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [status, setStatus] = useState<"draft" | "published">("draft");
-  const [productType, setProductType] = useState<ProductType>(defaultProductType);
-  const [templateKey, setTemplateKey] = useState("");
   const [fulfillmentType, setFulfillmentType] = useState<ProductFulfillmentType>("digital");
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQuantity, setStockQuantity] = useState(0);
@@ -42,31 +35,6 @@ export function QuickCreateProductForm({
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">("internal");
   const [ownerVendorUserId, setOwnerVendorUserId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const templateOptions = useMemo(
-    () =>
-      productType === "general_product"
-        ? []
-        : getInvitationTemplateOptions(productType).filter((template) => !usedTemplateKeys.includes(template.value)),
-    [productType, usedTemplateKeys]
-  );
-
-  useEffect(() => {
-    if (productType === "general_product") {
-      setTemplateKey("general_product");
-      return;
-    }
-
-    if (!templateOptions.some((template) => template.value === templateKey)) {
-      setTemplateKey(templateOptions[0]?.value ?? "");
-    }
-  }, [productType, templateKey, templateOptions]);
-
-  useEffect(() => {
-    if (productType === "general_product") {
-      setTemplateKey("general_product");
-    }
-  }, [productType]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,15 +59,18 @@ export function QuickCreateProductForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
+      <input type="hidden" name="productType" value="general_product" />
+      <input type="hidden" name="templateKey" value="general_product" />
+
       <Card className="min-w-0 rounded-lg lg:col-span-9">
         <CardHeader>
-          <CardTitle>Thông tin mẫu gốc</CardTitle>
+          <CardTitle>Thông tin sản phẩm</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="name" className="font-medium">
-                Tên mẫu / tên sản phẩm
+                Tên sản phẩm
               </label>
               <Input
                 id="name"
@@ -112,7 +83,7 @@ export function QuickCreateProductForm({
                     setSlug(slugify(next));
                   }
                 }}
-                placeholder="Ví dụ: Mẫu thiệp cưới Aurora Veil"
+                placeholder="Ví dụ: Hộp quà cưới Aurora"
                 required
               />
             </div>
@@ -129,7 +100,7 @@ export function QuickCreateProductForm({
                   setSlug(e.target.value);
                   setIsSlugEdited(true);
                 }}
-                placeholder="mau-thiep-cuoi-aurora-veil"
+                placeholder="hop-qua-cuoi-aurora"
                 required
               />
             </div>
@@ -155,101 +126,51 @@ export function QuickCreateProductForm({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="productType" className="font-medium">
-                Loại sản phẩm
+              <label htmlFor="productType" className="font-medium">Loại sản phẩm</label>
+              <div className="flex h-10 w-full items-center rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                Sản phẩm
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="ownerType" className="font-medium">
+                Nguồn hàng / chủ sở hữu
               </label>
               <select
-                id="productType"
-                name="productType"
-                value={productType}
-                onChange={(e) => {
-                  const nextType = e.target.value as ProductType;
-                  setProductType(nextType);
-                  if (nextType === "general_product") {
-                    setOwnerType("internal");
-                    setOwnerVendorUserId("");
-                  }
-                }}
+                id="ownerType"
+                name="ownerType"
+                value={ownerType}
+                onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                <option value="coded_template">Coded Template</option>
-                <option value="builder_template">Builder Template</option>
-                <option value="general_product">Sản phẩm</option>
+                <option value="internal">Sản phẩm của tôi / nội bộ</option>
+                <option value="vendor">Sản phẩm của đối tác</option>
               </select>
             </div>
 
-            {productType === "general_product" ? (
-              <>
-                <input type="hidden" name="templateKey" value="general_product" />
-                <div className="space-y-2">
-                  <label htmlFor="ownerType" className="font-medium">
-                    Nguồn hàng / chủ sở hữu
-                  </label>
-                  <select
-                    id="ownerType"
-                    name="ownerType"
-                    value={ownerType}
-                    onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="internal">Sản phẩm của tôi / nội bộ</option>
-                    <option value="vendor">Sản phẩm của đối tác</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="ownerVendorUserId" className="font-medium">
-                    Đối tác
-                  </label>
-                  <select
-                    id="ownerVendorUserId"
-                    name="ownerVendorUserId"
-                    value={ownerVendorUserId}
-                    onChange={(e) => setOwnerVendorUserId(e.target.value)}
-                    disabled={ownerType !== "vendor"}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-                  >
-                    <option value="">Chọn đối tác</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>
-                        {vendor.displayName || vendor.fullName || vendor.username}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-sm text-muted-foreground">
-                    Nhóm sản phẩm này không dùng invitation template source. Chỉ chọn đối tác khi nguồn hàng thuộc bên cung ứng.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <label htmlFor="templateKey" className="font-medium">
-                  Template source
-                </label>
-                <select
-                  id="templateKey"
-                  name="templateKey"
-                  value={templateKey}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  disabled={templateOptions.length === 0}
-                  onChange={(e) => setTemplateKey(e.target.value)}
-                >
-                  {templateOptions.map((template) => (
-                    <option key={template.value} value={template.value}>
-                      {template.label}
-                    </option>
-                  ))}
-                </select>
-                {templateOptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nhóm này đã dùng hết template có sẵn. Hãy thêm template mới trong code trước khi tạo tiếp.
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Chọn đúng source gốc. Sau khi tạo, source này sẽ không còn xuất hiện ở form tạo mới nữa.
-                  </p>
-                )}
-              </div>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="ownerVendorUserId" className="font-medium">
+                Đối tác
+              </label>
+              <select
+                id="ownerVendorUserId"
+                name="ownerVendorUserId"
+                value={ownerVendorUserId}
+                onChange={(e) => setOwnerVendorUserId(e.target.value)}
+                disabled={ownerType !== "vendor"}
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+              >
+                <option value="">Chọn đối tác</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor.id} value={vendor.id}>
+                    {vendor.displayName || vendor.fullName || vendor.username}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-muted-foreground">
+                Nhóm này không dùng template invitation source. Chỉ chọn đối tác khi nguồn hàng thuộc bên cung ứng.
+              </p>
+            </div>
 
             <div className="space-y-2">
               <label htmlFor="fulfillmentType" className="font-medium">
@@ -268,7 +189,7 @@ export function QuickCreateProductForm({
               </select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <label className="font-medium">Theo dõi tồn kho</label>
               <label className="flex items-start gap-3 rounded-md border bg-card p-3">
                 <input
@@ -285,7 +206,7 @@ export function QuickCreateProductForm({
               </label>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3 md:col-span-2">
+            <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
               <div className="space-y-2">
                 <label htmlFor="stockQuantity" className="font-medium">Tồn kho hiện tại</label>
                 <Input
@@ -356,9 +277,9 @@ export function QuickCreateProductForm({
             <Button
               type="submit"
               className="h-10 w-full rounded-md"
-              disabled={isSubmitting || (productType !== "general_product" && !templateKey) || (productType === "general_product" && ownerType === "vendor" && !ownerVendorUserId)}
+              disabled={isSubmitting || (ownerType === "vendor" && !ownerVendorUserId)}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo mẫu gốc"}
+              {isSubmitting ? "Đang tạo..." : "Tạo sản phẩm"}
             </Button>
           </CardContent>
         </Card>

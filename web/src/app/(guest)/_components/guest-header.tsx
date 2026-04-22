@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Heart, Search } from "lucide-react";
+import { GuestNotificationBell } from "@/features/notifications/components/guest-notification-bell";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { useWishlist } from "@/features/products/use-wishlist";
 import { getRoleLabel, isAdminRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -177,6 +179,7 @@ export function GuestHeader({
         </nav>
 
         <div className="flex items-center justify-end gap-x-5">
+          {user ? <NotificationBell /> : <GuestNotificationBell />}
           <Link
             href={ROUTES.WISHLIST}
             aria-label={`Wishlist (${count})`}

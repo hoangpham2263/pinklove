@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { createProduct } from "@/features/products/server/service";
+import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import {
@@ -9,6 +10,7 @@ import {
 import type { ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
 
 export const runtime = "nodejs";
+const BUILDER_TEMPLATE_KEY = "freeform_sections";
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -17,21 +19,38 @@ export async function POST(request: Request) {
   const name = String(formData.get("name") ?? "").trim();
   const slug = String(formData.get("slug") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "").trim();
+  const excerpt = String(formData.get("excerpt") ?? "");
+  const description = String(formData.get("description") ?? "");
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
-  const templateKey = String(formData.get("templateKey") ?? "").trim();
+  const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
+  const templateKey = productType === "builder_template" ? BUILDER_TEMPLATE_KEY : submittedTemplateKey;
+  const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
+  const price = Number(formData.get("price") ?? "0");
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
-  const trackInventory = formData.get("trackInventory") === "on";
-  const stockQuantity = Math.max(0, Number(formData.get("stockQuantity") ?? "0"));
-  const lowStockThreshold = Math.max(0, Number(formData.get("lowStockThreshold") ?? "0"));
-  const allowBackorder = formData.get("allowBackorder") === "on";
+  const supportsInventory = productType === "general_product";
+  const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
+  const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
+  const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
+  const allowBackorder = supportsInventory && formData.get("allowBackorder") === "on";
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
   const returnTo = String(formData.get("returnTo") ?? "").trim();
-  const createLocation = `${ROUTES.ADMIN.PRODUCTS}${returnTo || productType ? "?" : ""}${new URLSearchParams({
-    ...(productType ? { type: productType } : {}),
+  const createBaseLocation =
+    productType === "builder_template" ? ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE : ROUTES.ADMIN.PRODUCTS;
+  const createQuery = new URLSearchParams({
+    ...(productType !== "builder_template" ? { type: productType } : {}),
     ...(returnTo ? { returnTo } : {}),
-  }).toString()}`;
+  }).toString();
+  const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
+
+  if (productType === "coded_template") {
+    return respondError(request, {
+      error: "template_create_disabled",
+      message: "Coded template là mẫu cố định theo code, không tạo mới từ trang admin này.",
+      location: returnTo || ROUTES.ADMIN.PRODUCT_LIST,
+    });
+  }
 
   if (!name || !slug || (productType !== "general_product" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để tạo sản phẩm.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_fields` });
@@ -50,15 +69,33 @@ export async function POST(request: Request) {
     ownerType: ownerType as ProductOwnerType,
     vendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
   };
+  const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
+  let builderDocument: unknown = null;
+
+  if (productType === "builder_template" && builderDocumentRaw) {
+    try {
+      builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
+    } catch {
+      return respondError(request, {
+        error: "invalid_builder_document",
+        message: "Dữ liệu builder không hợp lệ.",
+        location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=invalid_builder_document`,
+      });
+    }
+  }
 
   try {
     const product = await createProduct({
       slug,
       categoryId: categoryId || undefined,
       name,
+      excerpt,
+      description,
       productType,
       templateKey: resolvedTemplateKey,
       status,
+      thumbnailUrl,
+      price,
       fulfillmentType,
       trackInventory,
       stockQuantity,
@@ -67,12 +104,22 @@ export async function POST(request: Request) {
       config: {
         ...(productType === "general_product"
           ? { generalProduct: ownerConfig }
-          : { siteDefaults: getInvitationTemplateDefaults(templateKey) }),
+          : {
+              siteDefaults: {
+                ...getInvitationTemplateDefaults(templateKey),
+                ...(builderDocument ? { builderDocument } : {}),
+              },
+            }),
       },
     });
 
+    const nextLocation =
+      product.productType === "builder_template"
+        ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)
+        : ROUTES.ADMIN.PRODUCT(product.slug);
+
     return respondSuccess(request, {
-      location: `${ROUTES.ADMIN.PRODUCT(product.slug)}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
+      location: `${nextLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
       message: "Đã tạo sản phẩm mới.",
     });
   } catch (error) {
