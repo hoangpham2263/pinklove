@@ -166,6 +166,75 @@ function getConversationStatusLabel(status: ChatConversationStatus) {
   }
 }
 
+type ChatConversationTrackingState =
+  | "new_message"
+  | "waiting_for_admin"
+  | "waiting_for_customer"
+  | "resolved"
+  | "closed";
+
+function isCustomerMessage(conversation: ChatConversationSummary, senderUserId: string) {
+  if (!senderUserId) return false;
+  if (conversation.requesterUserId) return conversation.requesterUserId === senderUserId;
+  const sender = conversation.participants.find((participant) => participant.id === senderUserId);
+  return sender ? !isAdminRole(sender.role) : false;
+}
+
+function getConversationTrackingState(conversation: ChatConversationSummary): ChatConversationTrackingState {
+  if (conversation.status === "closed") return "closed";
+  if (conversation.status === "resolved") return "resolved";
+  if (conversation.messageCount <= 1) return "new_message";
+  if (conversation.lastMessage && isCustomerMessage(conversation, conversation.lastMessage.senderUserId)) {
+    return "waiting_for_admin";
+  }
+  return "waiting_for_customer";
+}
+
+function getConversationTrackingLabel(conversation: ChatConversationSummary) {
+  switch (getConversationTrackingState(conversation)) {
+    case "new_message":
+      return "Tin nhắn đầu tiên";
+    case "waiting_for_admin":
+      return "Chờ admin phản hồi";
+    case "waiting_for_customer":
+      return "Chờ khách phản hồi";
+    case "resolved":
+      return "Đã xử lý";
+    case "closed":
+      return "Đã đóng";
+  }
+}
+
+function getConversationTrackingCompactLabel(conversation: ChatConversationSummary) {
+  switch (getConversationTrackingState(conversation)) {
+    case "new_message":
+      return "N";
+    case "waiting_for_admin":
+      return "A";
+    case "waiting_for_customer":
+      return "C";
+    case "resolved":
+      return "R";
+    case "closed":
+      return "D";
+  }
+}
+
+function getConversationTrackingBadgeClassName(conversation: ChatConversationSummary) {
+  switch (getConversationTrackingState(conversation)) {
+    case "new_message":
+      return "border-amber-300 bg-amber-50 text-amber-700";
+    case "waiting_for_admin":
+      return "border-rose-300 bg-rose-50 text-rose-700";
+    case "waiting_for_customer":
+      return "border-sky-300 bg-sky-50 text-sky-700";
+    case "resolved":
+      return "border-emerald-300 bg-emerald-50 text-emerald-700";
+    case "closed":
+      return "border-slate-300 bg-slate-100 text-slate-700";
+  }
+}
+
 function getMessagePreview(
   message?: ChatMessage,
   options: {
@@ -250,6 +319,7 @@ function toConversationSummary(detail: ChatConversationDetail): ChatConversation
     requesterUserId: detail.requesterUserId,
     requesterDisplayName: detail.requesterDisplayName,
     isLegacy: detail.isLegacy,
+    messageCount: detail.messageCount,
     typingDisplayNames: detail.typingDisplayNames,
     participants: detail.participants,
     lastMessage: detail.lastMessage,
@@ -376,7 +446,9 @@ export function ChatInboxClient({
   const [openConversationMenuId, setOpenConversationMenuId] = useState("");
   const [openMessageMenuId, setOpenMessageMenuId] = useState("");
   const [sidebarSearch, setSidebarSearch] = useState("");
-  const [sidebarFilter, setSidebarFilter] = useState<"all" | "unread" | "mine" | "active" | "resolved" | "closed">("all");
+  const [sidebarFilter, setSidebarFilter] = useState<
+    "all" | "unread" | "mine" | "active" | "first_message" | "waiting_admin" | "waiting_customer" | "resolved" | "closed"
+  >("all");
   const [isSending, setIsSending] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -423,9 +495,13 @@ export function ChatInboxClient({
   const filteredConversations = useMemo(() => {
     const keyword = sidebarSearch.trim().toLowerCase();
     return conversations.filter((item) => {
+      const trackingState = getConversationTrackingState(item);
       if (sidebarFilter === "unread" && item.unreadCount === 0 && !item.isMarkedUnread) return false;
       if (sidebarFilter === "mine" && item.ownerUserId !== currentUser.id) return false;
       if (sidebarFilter === "active" && (item.status === "resolved" || item.status === "closed")) return false;
+      if (sidebarFilter === "first_message" && trackingState !== "new_message") return false;
+      if (sidebarFilter === "waiting_admin" && trackingState !== "waiting_for_admin") return false;
+      if (sidebarFilter === "waiting_customer" && trackingState !== "waiting_for_customer") return false;
       if (sidebarFilter === "resolved" && item.status !== "resolved") return false;
       if (sidebarFilter === "closed" && item.status !== "closed") return false;
 
@@ -631,6 +707,7 @@ export function ChatInboxClient({
         ...current,
         updatedAt: createdAt,
         unreadCount: 0,
+        messageCount: current.messageCount + 1,
         typingDisplayNames: [],
         lastMessage: optimisticMessage,
         lastSeenByDisplayNames: [],
@@ -645,6 +722,7 @@ export function ChatInboxClient({
         ...matched,
         updatedAt: createdAt,
         unreadCount: 0,
+        messageCount: matched.messageCount + 1,
         typingDisplayNames: [],
         lastMessage: optimisticMessage,
       });
@@ -1141,16 +1219,12 @@ export function ChatInboxClient({
         <div className="shrink-0 border-b p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-semibold">Hội thoại</h2>
-              <p className="text-sm text-muted-foreground">
-                {conversations.length} cuộc trao đổi
-                {totalUnreadCount > 0 ? ` • ${totalUnreadCount} chưa xem` : ""}
-              </p>
+              <h2 className="font-semibold">{`Hội thoại (${conversations.length})`}</h2>
+              {totalUnreadCount > 0 ? (
+                <p className="text-sm text-muted-foreground">{`${totalUnreadCount} chưa xem`}</p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
-              <Badge className={`rounded-md border px-2 py-0.5 text-xs ${getRealtimeBadgeClassName(inboxRealtime.status)}`}>
-                Inbox {getRealtimeLabel(inboxRealtime.status)}
-              </Badge>
               {isAdmin ? (
                 <Button
                   type="button"
@@ -1193,6 +1267,9 @@ export function ChatInboxClient({
                 <option value="unread">Chưa xem</option>
                 <option value="mine">Của tôi</option>
                 <option value="active">Đang hoạt động</option>
+                <option value="first_message">Tin nhắn đầu</option>
+                <option value="waiting_admin">Chờ admin</option>
+                <option value="waiting_customer">Chờ khách</option>
                 <option value="resolved">Đã xử lý</option>
                 <option value="closed">Đã đóng</option>
               </select>
@@ -1208,6 +1285,9 @@ export function ChatInboxClient({
               (() => {
                 const hasUnreadSignal = item.unreadCount > 0 || item.isMarkedUnread;
                 const displayTitle = getConversationDisplayTitle(item, currentUser.id, isAdmin);
+                const trackingLabel = getConversationTrackingLabel(item);
+                const compactTrackingLabel = getConversationTrackingCompactLabel(item);
+                const trackingBadgeClassName = getConversationTrackingBadgeClassName(item);
                 return (
               <div
                 key={item.id}
@@ -1233,6 +1313,14 @@ export function ChatInboxClient({
                         <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Chưa xem" />
                       ) : null}
                       <p className={`truncate font-medium ${hasUnreadSignal ? "text-foreground" : ""}`}>{displayTitle}</p>
+                      {isAdmin ? (
+                        <Badge
+                          title={trackingLabel}
+                          className={`hidden min-w-5 justify-center rounded-md border px-1 py-0 text-[10px] leading-4 md:inline-flex ${trackingBadgeClassName}`}
+                        >
+                          {compactTrackingLabel}
+                        </Badge>
+                      ) : null}
                     </div>
                     <p className={`mt-1 line-clamp-2 text-sm ${hasUnreadSignal ? "font-medium text-foreground" : "text-muted-foreground"}`}>
                       {item.typingDisplayNames.length > 0
@@ -1274,7 +1362,7 @@ export function ChatInboxClient({
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-background">
           <header className="shrink-0 border-b p-4">
             {currentConversation ? (
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">
@@ -1286,8 +1374,10 @@ export function ChatInboxClient({
                     <Badge className={`rounded-md border px-2 py-1 text-xs ${getRealtimeBadgeClassName(conversationRealtime.status)}`}>
                       Chat {getRealtimeLabel(conversationRealtime.status)}
                     </Badge>
-                    <Badge className="rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-700">
-                      {getConversationStatusLabel(currentConversation.status)}
+                    <Badge
+                      className={`rounded-md border px-2 py-1 text-xs ${getConversationTrackingBadgeClassName(currentConversation)}`}
+                    >
+                      {getConversationTrackingLabel(currentConversation)}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -2022,6 +2112,25 @@ export function ChatInboxClient({
                           <p className="mt-1 text-sm text-muted-foreground">
                             Khung sẵn để thêm các cấu hình chung cho form chat ở các bước tiếp theo.
                           </p>
+                        </div>
+                      </div>
+                      <div className="rounded-md border p-3">
+                        <p className="text-xs uppercase text-muted-foreground">Ký hiệu danh sách</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {([
+                            { code: "N", label: "Tin nhắn đầu tiên", className: "border-amber-300 bg-amber-50 text-amber-700" },
+                            { code: "A", label: "Chờ admin phản hồi", className: "border-rose-300 bg-rose-50 text-rose-700" },
+                            { code: "C", label: "Chờ khách phản hồi", className: "border-sky-300 bg-sky-50 text-sky-700" },
+                            { code: "R", label: "Đã xử lý", className: "border-emerald-300 bg-emerald-50 text-emerald-700" },
+                            { code: "D", label: "Đã đóng", className: "border-slate-300 bg-slate-100 text-slate-700" },
+                          ] as const).map((item) => (
+                            <div key={item.code} className="inline-flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
+                              <Badge className={`min-w-5 justify-center rounded-md border px-1 py-0 text-[10px] leading-4 ${item.className}`}>
+                                {item.code}
+                              </Badge>
+                              <span>{item.label}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>

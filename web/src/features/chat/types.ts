@@ -63,6 +63,7 @@ export type ChatConversationSummary = {
   requesterUserId: string;
   requesterDisplayName: string;
   isLegacy: boolean;
+  messageCount: number;
   typingDisplayNames: string[];
   participants: ChatParticipant[];
   lastMessage?: ChatMessage;

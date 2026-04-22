@@ -14,12 +14,22 @@ export type CustomerNavChild = {
   iconName: CustomerNavIconName;
 };
 
-export type CustomerNavGroup = {
+export type CustomerNavGroupEntry = {
+  type: "group";
   label: string;
   iconName: CustomerNavIconName;
   children: CustomerNavChild[];
   defaultOpen?: boolean;
 };
+
+export type CustomerNavLinkEntry = {
+  type: "link";
+  label: string;
+  href: string;
+  iconName: CustomerNavIconName;
+};
+
+export type CustomerNavEntry = CustomerNavGroupEntry | CustomerNavLinkEntry;
 
 export type CustomerMobileNavEntry = {
   label: string;
@@ -27,27 +37,30 @@ export type CustomerMobileNavEntry = {
   iconName: CustomerNavIconName | "layout-dashboard" | "store";
 };
 
-export function getCustomerNavGroups(): CustomerNavGroup[] {
+export function getCustomerNavGroups(): CustomerNavEntry[] {
   return [
     {
+      type: "group",
       label: "Đơn hàng",
       iconName: "shopping-bag",
       defaultOpen: false,
       children: [{ label: "Đơn hàng của tôi", href: ROUTES.CUSTOMER.ORDERS, iconName: "shopping-bag" }],
     },
     {
-      label: "Trao đổi",
+      type: "link",
+      label: "Tin nhắn",
+      href: ROUTES.CUSTOMER.MESSAGES,
       iconName: "message-circle",
-      defaultOpen: false,
-      children: [{ label: "Tin nhắn", href: ROUTES.CUSTOMER.MESSAGES, iconName: "message-circle" }],
     },
     {
+      type: "group",
       label: "Thiệp",
       iconName: "folder-heart",
       defaultOpen: false,
       children: [{ label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS, iconName: "folder-heart" }],
     },
     {
+      type: "group",
       label: "Tài khoản",
       iconName: "user",
       defaultOpen: false,
@@ -57,6 +70,7 @@ export function getCustomerNavGroups(): CustomerNavGroup[] {
       ],
     },
     {
+      type: "group",
       label: "Hệ thống",
       iconName: "settings",
       defaultOpen: false,

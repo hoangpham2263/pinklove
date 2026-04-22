@@ -66,15 +66,31 @@ export default async function CustomerLayout({
             <span>Dashboard</span>
           </CustomerNavLink>
 
-          {customerNavGroups.map((group) => (
-            <CustomerSidebarGroup
-              key={group.label}
-              label={group.label}
-              iconName={group.iconName}
-              items={group.children}
-              defaultOpen={group.defaultOpen}
-            />
-          ))}
+          {customerNavGroups.map((entry) => {
+            if (entry.type === "link") {
+              const Icon = customerMobileIconMap[entry.iconName];
+              return (
+                <CustomerNavLink
+                  key={entry.href}
+                  href={entry.href}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{entry.label}</span>
+                </CustomerNavLink>
+              );
+            }
+
+            return (
+              <CustomerSidebarGroup
+                key={entry.label}
+                label={entry.label}
+                iconName={entry.iconName}
+                items={entry.children}
+                defaultOpen={entry.defaultOpen}
+              />
+            );
+          })}
 
           {isVendorRole(user.role) ? (
             <CustomerNavLink

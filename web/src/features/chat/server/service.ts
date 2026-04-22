@@ -41,6 +41,7 @@ type ConversationRow = {
   requester_display_name: string | null;
   is_legacy: boolean;
   tags: string[] | null;
+  message_count: string;
   unread_count: string;
   is_pinned: boolean | null;
   is_marked_unread: boolean | null;
@@ -358,6 +359,7 @@ function mapConversation(
     requesterUserId: row.requester_user_id ?? "",
     requesterDisplayName: row.requester_display_name ?? row.requester_username ?? "",
     isLegacy: row.is_legacy,
+    messageCount: Number(row.message_count ?? "0"),
     typingDisplayNames: mapTypingDisplayNames(row, context),
     participants,
     lastMessage: mapLastMessage(row, currentUserId, context),
@@ -511,6 +513,12 @@ function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRo
       COALESCE(NULLIF(BTRIM(requester_profile.display_name), ''), NULLIF(BTRIM(requester_profile.full_name), '')) AS requester_display_name,
       c.is_legacy,
       c.tags,
+      (
+        SELECT COUNT(*)::text
+        FROM chat_messages conversation_message
+        WHERE conversation_message.conversation_id = c.id
+          AND ${viewerRole === USER_ROLES.ADMIN ? "TRUE" : "conversation_message.visibility = 'all'"}
+      ) AS message_count,
       COALESCE(conversation_state.is_pinned, FALSE) AS is_pinned,
       COALESCE(conversation_state.is_marked_unread, FALSE) AS is_marked_unread,
       COALESCE(conversation_state.priority, 'none') AS user_priority,
