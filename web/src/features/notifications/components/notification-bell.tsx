@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,6 +43,7 @@ async function markRead(notificationId?: string) {
 export function NotificationBell({ listHref }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [summary, setSummary] = useState<NotificationSummary>({
     unreadCount: 0,
@@ -99,11 +100,29 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
     },
   });
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node) || rootRef.current?.contains(target)) {
+        return;
+      }
+
+      setOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
   const filteredNotifications = filter === "unread" ? notifications.filter((item) => !item.isRead) : notifications;
   const visibleNotifications = filteredNotifications.slice(0, 8);
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <Button
         type="button"
         variant="ghost"
