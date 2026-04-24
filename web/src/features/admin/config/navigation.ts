@@ -72,6 +72,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Mẫu coded", href: ROUTES.ADMIN.PRODUCT_LIST_CODED, iconName: "file-code-2" },
       { label: "Mẫu builder", href: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, iconName: "blocks" },
       { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
+      { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
       { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
       { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "receipt-text" },
       { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "credit-card" },

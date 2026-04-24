@@ -3,7 +3,7 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MenuItem } from "@/lib/menu";
 
@@ -37,6 +37,7 @@ function SortableMenuItem({
   index,
   depth,
   parentOptions,
+  onOpenEdit,
   onUpdateParent,
   onRemove,
 }: {
@@ -44,6 +45,7 @@ function SortableMenuItem({
   index: number;
   depth: number;
   parentOptions: MenuParentOption[];
+  onOpenEdit: (itemId: string) => void;
   onUpdateParent: (itemId: string, parentId: string | null) => void;
   onRemove: (index: number) => void;
 }) {
@@ -76,7 +78,6 @@ function SortableMenuItem({
         >
           <GripVertical className="h-4 w-4" />
         </button>
-
         <div className="min-w-0 flex flex-1 flex-row items-center gap-5">
           <p className="min-w-25 font-medium">{item.label}</p>
           <p className="flex min-w-0 items-center gap-1 text-sm">
@@ -103,6 +104,15 @@ function SortableMenuItem({
           type="button"
           variant="ghost"
           size="icon"
+          className="h-10 w-10"
+          onClick={() => onOpenEdit(item.id)}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           className="h-10 w-10 text-destructive hover:bg-destructive/10"
           onClick={() => onRemove(index)}
         >
@@ -117,6 +127,7 @@ export function MenuSortableList({
   items,
   itemDepths,
   parentOptionsByItemId,
+  onOpenEdit,
   onUpdateParent,
   onChange,
   onRemove,
@@ -124,6 +135,7 @@ export function MenuSortableList({
   items: EditableMenuItem[];
   itemDepths: Record<string, number>;
   parentOptionsByItemId: Record<string, MenuParentOption[]>;
+  onOpenEdit: (itemId: string) => void;
   onUpdateParent: (itemId: string, parentId: string | null) => void;
   onChange: (items: EditableMenuItem[]) => void;
   onRemove: (index: number) => void;
@@ -189,6 +201,7 @@ export function MenuSortableList({
               index={index}
               depth={itemDepths[item.id] ?? 0}
               parentOptions={parentOptionsByItemId[item.id] ?? []}
+              onOpenEdit={onOpenEdit}
               onUpdateParent={onUpdateParent}
               onRemove={onRemove}
             />

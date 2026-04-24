@@ -16,7 +16,7 @@ export default async function CustomerVendorPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Không gian nhà cung cấp</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Trang này dùng cho actor `VENDOR` để theo dõi thông tin vận hành nội bộ. Hiện tại hệ thống chưa có pipeline đơn hàng riêng cho nhà cung cấp, nên khu này tập trung vào thông tin tài khoản, điều phối và các điểm truy cập nhanh.
+          Trang này dùng cho actor `VENDOR` để đi nhanh vào khu vận hành riêng. Vendor hiện đã có portal đơn hàng, khu nhập hồ sơ sản phẩm và thông báo review từ admin, nên màn này chỉ giữ vai trò bridge điều hướng.
         </p>
       </div>
 
@@ -65,6 +65,12 @@ export default async function CustomerVendorPage() {
             {vendorPortalSlug ? (
               <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Mở portal riêng của đối tác</Link>} />
             ) : null}
+            {isVendorRole(user.role) ? (
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.PRODUCTS}>Quản lý hồ sơ sản phẩm vendor</Link>} />
+            ) : null}
+            {isVendorRole(user.role) ? (
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.LEGACY_ORDERS}>Mở danh sách đơn vendor</Link>} />
+            ) : null}
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.PROFILE}>Cập nhật hồ sơ nhà cung cấp</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.SETTINGS}>Mở cài đặt tài khoản</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Xem các thiệp đang quản lý</Link>} />
@@ -74,12 +80,12 @@ export default async function CustomerVendorPage() {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Gợi ý mở rộng tiếp theo</CardTitle>
+          <CardTitle>Flow hiện tại</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>Có thể bổ sung bảng đơn hàng cần xử lý cho vendor.</p>
-          <p>Có thể thêm phân công sản phẩm hoặc năng lực cung ứng theo từng nhà cung cấp.</p>
-          <p>Có thể thêm ghi chú nội bộ và đầu mối liên hệ cho từng vendor account trong admin.</p>
+          <p>Vendor tự tạo hoặc cập nhật hồ sơ sản phẩm ở khu partner.</p>
+          <p>Admin review theo dạng table, nhập giá bán thực tế rồi mới duyệt vào catalog live.</p>
+          <p>Mọi cập nhật review sẽ đi về thông báo để vendor xử lý tiếp mà không cần đụng trực tiếp vào sản phẩm đang bán.</p>
         </CardContent>
       </Card>
     </section>

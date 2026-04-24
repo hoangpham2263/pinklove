@@ -5,8 +5,8 @@ import { ArrowLeft, Store } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { PartnerVendorAssignmentPanel } from "@/features/vendor-orders/components/partner-vendor-assignment-panel";
+import { PartnerVendorHeader } from "@/features/vendor-orders/components/partner-vendor-header";
 import { getVendorOrderDetailForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -35,10 +35,19 @@ export default async function PartnerOrderDetailPage({
   }
 
   const partnerTitle = `Đối tác của ${settings.branding.siteName}`;
+  const portalHref = portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT;
+  const vendorName = detail.assignment.vendorDisplayName || detail.assignment.vendorUsername;
 
   return (
-    <section className="min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#fffdf9_42%,#ffffff_100%)] py-5 lg:py-7.5 2xl:py-10">
-      <div className="container mx-auto space-y-5 px-4">
+    <section className="min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#fffdf9_42%,#ffffff_100%)]">
+      <PartnerVendorHeader
+        vendorName={vendorName}
+        portalHref={portalHref}
+        currentPath={ROUTES.PARTNER.ORDER(detail.assignment.id)}
+        currentOrderLabel={detail.order.orderNumber}
+      />
+
+      <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
         {query.saved ? <PageToast message="Đã lưu cập nhật." variant="success" cleanupKeys={["saved"]} /> : null}
 
         <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
@@ -69,7 +78,6 @@ export default async function PartnerOrderDetailPage({
                   </p>
                 </div>
               </div>
-              <NotificationBell />
             </div>
 
             <div className="grid gap-3 text-sm md:grid-cols-3">
@@ -110,7 +118,7 @@ export default async function PartnerOrderDetailPage({
         <PartnerVendorAssignmentPanel
           detailUrl={`/api/partner/vendor-assignments/${detail.assignment.id}`}
           submitUrl={ROUTES.API.PARTNER.ORDERS.UPDATE}
-          portalHref={portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT}
+          portalHref={portalHref}
           initialDetail={detail}
         />
       </div>

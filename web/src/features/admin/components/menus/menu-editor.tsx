@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Menu, MenuItemType } from "@/lib/menu";
 import { ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { getMenuItemMeta, type EditableMenuItem, type MenuParentOption } from "./menu-sortable-list";
 
 type MenuEditorProps = {
@@ -41,6 +42,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
   const [newPageSlug, setNewPageSlug] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [newParentId, setNewParentId] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const normalizePositions = (nextItems: EditableMenuItem[]) =>
     nextItems.map((item, i) => ({
@@ -129,6 +131,8 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
   const parentOptionsByItemId = Object.fromEntries(
     orderedItems.map((item) => [item.id, buildParentOptions(items, item.id)])
   ) as Record<string, MenuParentOption[]>;
+  const editingItem = editingItemId ? orderedItems.find((item) => item.id === editingItemId) ?? null : null;
+  const editingParentOptions = editingItem ? parentOptionsByItemId[editingItem.id] ?? [] : [];
 
   const setOrderedItems = (nextItems: EditableMenuItem[]) => {
     const normalizedItems = flattenItems(nextItems).items;
@@ -146,6 +150,26 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
           }
           : item
       ))
+    );
+  };
+
+  const updateItemFields = (itemId: string, next: Partial<EditableMenuItem>) => {
+    setOrderedItems(
+      itemsRef.current.map((item) => {
+        if (item.id !== itemId) {
+          return item;
+        }
+
+        const nextType = (next.type ?? item.type) as MenuItemType;
+
+        return {
+          ...item,
+          ...next,
+          type: nextType,
+          pageSlug: nextType === "page" ? (next.pageSlug ?? item.pageSlug ?? null) : null,
+          url: nextType === "custom" ? (next.url ?? item.url ?? null) : null,
+        };
+      })
     );
   };
 
@@ -387,10 +411,19 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                               {(parentOptionsByItemId[item.id] ?? []).map((option) => (
                                 <option key={option.id} value={option.id}>
                                   {"— ".repeat(option.depth)}
-                                  {option.label}
-                                </option>
-                              ))}
+                                {option.label}
+                              </option>
+                            ))}
                             </select>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10"
+                              onClick={() => setEditingItemId(item.id)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <Button
                               type="button"
                               variant="ghost"
@@ -409,6 +442,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                         items={orderedItems}
                         itemDepths={itemDepths}
                         parentOptionsByItemId={parentOptionsByItemId}
+                        onOpenEdit={setEditingItemId}
                         onUpdateParent={updateItemParent}
                         onChange={setOrderedItems}
                         onRemove={handleRemoveItem}
@@ -424,6 +458,107 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                 </Button>
               </div>
             </form>
+
+            <Dialog open={Boolean(editingItem)} onOpenChange={(open) => !open && setEditingItemId(null)}>
+              {editingItem ? (
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Sửa menu item</DialogTitle>
+                    <DialogDescription>Chỉnh nhãn, loại link và trang đích hoặc URL của mục menu.</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Nhãn</label>
+                      <Input
+                        value={editingItem.label}
+                        onChange={(event) => updateItemFields(editingItem.id, { label: event.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Loại link</label>
+                      <select
+                        value={editingItem.type}
+                        onChange={(event) => {
+                          const nextType = event.target.value as MenuItemType;
+                          updateItemFields(editingItem.id, {
+                            type: nextType,
+                            pageSlug: nextType === "page" ? editingItem.pageSlug : null,
+                            url: nextType === "custom" ? editingItem.url : null,
+                          });
+                        }}
+                        className="h-10 w-full rounded-md border px-3"
+                      >
+                        <option value="page">Page</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
+
+                    {editingItem.type === "page" ? (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Trang đích</label>
+                        <select
+                          value={editingItem.pageSlug ?? ""}
+                          onChange={(event) => {
+                            const nextSlug = event.target.value || null;
+                            const selectedPage = availablePages.find((page) => page.slug === nextSlug);
+                            updateItemFields(editingItem.id, {
+                              pageSlug: nextSlug,
+                              url: null,
+                              label: editingItem.label.trim() ? editingItem.label : (selectedPage?.name ?? editingItem.label),
+                            });
+                          }}
+                          className="h-10 w-full rounded-md border px-3"
+                        >
+                          <option value="" disabled>Chọn trang</option>
+                          {availablePages.map((page) => (
+                            <option key={page.slug} value={page.slug}>
+                              {page.name} ({getManagedPagePath(page)})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">URL</label>
+                        <Input
+                          value={editingItem.url ?? ""}
+                          onChange={(event) => updateItemFields(editingItem.id, { url: event.target.value, pageSlug: null })}
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Parent</label>
+                      <select
+                        value={editingItem.parentId ?? ""}
+                        onChange={(event) => updateItemParent(editingItem.id, event.target.value || null)}
+                        className="h-10 w-full rounded-md border px-3"
+                      >
+                        <option value="">Gốc</option>
+                        {editingParentOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {"— ".repeat(option.depth)}
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                      {getMenuItemMeta(editingItem).typeLabel}: {getMenuItemMeta(editingItem).value || "—"}
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button type="button" onClick={() => setEditingItemId(null)}>
+                        Xong
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              ) : null}
+            </Dialog>
           </CardContent>
         </Card>
       </div>

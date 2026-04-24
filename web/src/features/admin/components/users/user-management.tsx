@@ -50,6 +50,34 @@ interface UserManagementProps {
   showVendorWorkspaceColumn?: boolean;
 }
 
+function getAccountStatusLabel(status: AccountUser["accountStatus"]) {
+  switch (status) {
+    case "blocked":
+      return "Blocked";
+    case "banned":
+      return "Banned";
+    case "deleted":
+      return "Deleted";
+    case "active":
+    default:
+      return "Active";
+  }
+}
+
+function getAccountStatusBadgeVariant(status: AccountUser["accountStatus"]): "default" | "secondary" | "destructive" | "outline" {
+  switch (status) {
+    case "blocked":
+      return "outline";
+    case "banned":
+      return "destructive";
+    case "deleted":
+      return "secondary";
+    case "active":
+    default:
+      return "default";
+  }
+}
+
 export function UserManagement({
   initialUsers,
   actor,
@@ -141,6 +169,20 @@ export function UserManagement({
           <Badge variant={isAdminRole(row.original.role) ? "default" : "secondary"}>
             {getRoleLabel(row.original.role)}
           </Badge>
+        ),
+      },
+      {
+        accessorKey: "accountStatus",
+        header: () => <span>Trạng thái</span>,
+        cell: ({ row }) => (
+          <div className="space-y-1">
+            <Badge variant={getAccountStatusBadgeVariant(row.original.accountStatus)}>
+              {getAccountStatusLabel(row.original.accountStatus)}
+            </Badge>
+            {row.original.accountStatusReason ? (
+              <p className="max-w-[220px] text-xs text-muted-foreground">{row.original.accountStatusReason}</p>
+            ) : null}
+          </div>
         ),
       },
       ...(showVendorWorkspaceColumn
@@ -263,6 +305,7 @@ export function UserManagement({
 
       const user = row.original;
       return [user.username, user.role, getRoleLabel(user.role)]
+        .concat(user.accountStatus, getAccountStatusLabel(user.accountStatus), user.accountStatusReason)
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     },

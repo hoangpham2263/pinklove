@@ -20,6 +20,8 @@ type ProductInput = {
   stockQuantity?: number;
   lowStockThreshold?: number;
   allowBackorder?: boolean;
+  costPrice?: number;
+  vendorSku?: string;
   config?: Record<string, unknown>;
 };
 
@@ -68,6 +70,8 @@ type ProductRow = {
   general_stock_quantity: string | null;
   general_low_stock_threshold: string | null;
   general_allow_backorder: boolean | null;
+  general_cost_price: string | null;
+  general_vendor_sku: string | null;
   general_owner_type: ProductOwnerType | null;
   general_owner_vendor_user_id: string | null;
   config: Record<string, unknown> | null;
@@ -124,6 +128,8 @@ function mapProductRow(row: ProductRow): Product {
   const stockQuantity = row.general_stock_quantity ?? row.stock_quantity;
   const lowStockThreshold = row.general_low_stock_threshold ?? row.low_stock_threshold;
   const allowBackorder = row.general_allow_backorder ?? row.allow_backorder;
+  const costPrice = row.general_cost_price ?? "0";
+  const vendorSku = row.general_vendor_sku ?? "";
   const config: Record<string, unknown> = {
     ...baseConfig,
     ...(siteDefaults ? { siteDefaults } : {}),
@@ -157,6 +163,8 @@ function mapProductRow(row: ProductRow): Product {
     stockQuantity: Number(stockQuantity ?? "0"),
     lowStockThreshold: Number(lowStockThreshold ?? "0"),
     allowBackorder: Boolean(allowBackorder),
+    costPrice: Number(costPrice ?? "0"),
+    vendorSku,
     ownerType: ownerType as ProductOwnerType,
     ownerVendorUserId,
     config,
@@ -194,6 +202,8 @@ const PRODUCT_SELECT = `
     general.stock_quantity::text AS general_stock_quantity,
     general.low_stock_threshold::text AS general_low_stock_threshold,
     general.allow_backorder AS general_allow_backorder,
+    general.cost_price::text AS general_cost_price,
+    general.vendor_sku AS general_vendor_sku,
     general.owner_type AS general_owner_type,
     general.owner_vendor_user_id AS general_owner_vendor_user_id,
     products.config,
@@ -497,6 +507,14 @@ export async function createProduct(input: ProductInput): Promise<Product> {
           ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
             ? generalConfig.vendorUserId
             : null;
+        const costPrice =
+          typeof generalConfig?.costPrice === "number"
+            ? generalConfig.costPrice
+            : input.costPrice ?? 0;
+        const vendorSku =
+          typeof generalConfig?.vendorSku === "string"
+            ? generalConfig.vendorSku
+            : input.vendorSku ?? "";
 
         await execute(
           `
@@ -507,10 +525,12 @@ export async function createProduct(input: ProductInput): Promise<Product> {
               stock_quantity,
               low_stock_threshold,
               allow_backorder,
+              cost_price,
+              vendor_sku,
               owner_type,
               owner_vendor_user_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           `,
           [
             productId,
@@ -519,6 +539,8 @@ export async function createProduct(input: ProductInput): Promise<Product> {
             input.stockQuantity ?? 0,
             input.lowStockThreshold ?? 0,
             input.allowBackorder ?? false,
+            costPrice,
+            vendorSku,
             ownerType,
             ownerVendorUserId,
           ]
@@ -653,6 +675,14 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
           ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
             ? generalConfig.vendorUserId
             : null;
+        const costPrice =
+          typeof generalConfig?.costPrice === "number"
+            ? generalConfig.costPrice
+            : input.costPrice ?? existing.costPrice;
+        const vendorSku =
+          typeof generalConfig?.vendorSku === "string"
+            ? generalConfig.vendorSku
+            : input.vendorSku ?? existing.vendorSku;
 
         await execute(
           `
@@ -663,10 +693,12 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
               stock_quantity,
               low_stock_threshold,
               allow_backorder,
+              cost_price,
+              vendor_sku,
               owner_type,
               owner_vendor_user_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           `,
           [
             productId,
@@ -675,6 +707,8 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
             input.stockQuantity ?? existing.stockQuantity,
             input.lowStockThreshold ?? existing.lowStockThreshold,
             input.allowBackorder ?? existing.allowBackorder,
+            costPrice,
+            vendorSku,
             ownerType,
             ownerVendorUserId,
           ]

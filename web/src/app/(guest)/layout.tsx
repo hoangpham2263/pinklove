@@ -64,9 +64,10 @@ function buildNavTree(links: GuestHeaderLink[]): GuestHeaderNode[] {
 export default async function GuestLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [user, headerMenu, managedPages, settings, globalFields] = await Promise.all([
+  const [user, headerMenu, footerMenu, managedPages, settings, globalFields] = await Promise.all([
     getCurrentUser(),
     getMenuByName("header"),
+    getMenuByName("footer"),
     listManagedPages(),
     getSystemSettings(),
     getGlobalFields(),
@@ -76,6 +77,14 @@ export default async function GuestLayout({
   const settingsHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.CONFIG : ROUTES.CUSTOMER.SETTINGS;
   const headerLinks = mapMenuLinks(headerMenu?.items, pagePathMap);
   const headerTree = buildNavTree(headerLinks);
+  const footerColumns = buildNavTree(mapMenuLinks(footerMenu?.items, pagePathMap)).map((item) => ({
+    id: item.id,
+    title: item.label,
+    links: item.children.map((child) => ({
+      label: child.label,
+      url: child.href,
+    })),
+  }));
   const wishlistProductIds = user ? await getUserWishlistProductIds(user.id) : [];
 
   return (
@@ -94,6 +103,7 @@ export default async function GuestLayout({
         </main>
         <GuestFooter
           globalFields={globalFields}
+          columns={footerColumns}
         />
       </WishlistProvider>
     </div>

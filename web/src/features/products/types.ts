@@ -31,6 +31,8 @@ export type Product = {
   stockQuantity: number;
   lowStockThreshold: number;
   allowBackorder: boolean;
+  costPrice: number;
+  vendorSku: string;
   ownerType: ProductOwnerType;
   ownerVendorUserId?: string;
   config: Record<string, unknown>;

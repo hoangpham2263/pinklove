@@ -11,10 +11,13 @@ import { ROUTES } from "@/lib/routes";
 export const SESSION_COOKIE_NAME = "pinklove_session";
 const SESSION_DURATION_DAYS = 7;
 
+export type AccountStatus = "active" | "blocked" | "banned" | "deleted";
+
 export type AuthUser = {
   id: string;
   username: string;
   role: UserRole;
+  accountStatus: AccountStatus;
 };
 
 export type UserProfile = {
@@ -29,6 +32,8 @@ export type AccountUser = {
   id: string;
   username: string;
   role: UserRole;
+  accountStatus: AccountStatus;
+  accountStatusReason: string;
   createdAt: string;
   fullName: string;
   displayName: string;
@@ -42,6 +47,7 @@ type UserRow = {
   username: string;
   password_hash: string;
   role: UserRole;
+  account_status: AccountStatus;
 };
 
 type OAuthAccountRow = {
@@ -146,7 +152,7 @@ export async function registerUser(
  `
   INSERT INTO users (username, password_hash, role)
   VALUES ($1, $2, $3)
-  RETURNING id, username, password_hash, role
+  RETURNING id, username, password_hash, role, account_status
  `,
  [username, passwordHash, role]
  );
@@ -155,6 +161,7 @@ export async function registerUser(
  id: result.rows[0].id,
  username: result.rows[0].username,
  role: result.rows[0].role,
+ accountStatus: result.rows[0].account_status,
  };
 }
 
@@ -163,11 +170,12 @@ export async function authenticateUser(
  password: string
 ): Promise<AuthUser | null> {
  const result = await query<UserRow>(
-"SELECT id, username, password_hash, role FROM users WHERE username = $1 LIMIT 1",
+"SELECT id, username, password_hash, role, account_status FROM users WHERE username = $1 LIMIT 1",
  [username]
  );
  const user = result.rows[0];
  if (!user) return null;
+ if (user.account_status !== "active") return null;
 
  if (!verifyPassword(password, user.password_hash)) {
  return null;
@@ -177,6 +185,7 @@ export async function authenticateUser(
  id: user.id,
  username: user.username,
  role: user.role,
+ accountStatus: user.account_status,
  };
 }
 
@@ -218,13 +227,13 @@ export async function authenticateGoogleUser(input: {
  );
 
  if (linked.rows[0]) {
- const user = await query<{ id: string; username: string; role: UserRole }>(
-"SELECT id, username, role FROM users WHERE id = $1 LIMIT 1",
+ const user = await query<{ id: string; username: string; role: UserRole; account_status: AccountStatus }>(
+"SELECT id, username, role, account_status FROM users WHERE id = $1 LIMIT 1",
   [linked.rows[0].user_id]
  );
   const row = user.rows[0];
  if (row) {
-  return { id: row.id, username: row.username, role: row.role };
+  return { id: row.id, username: row.username, role: row.role, accountStatus: row.account_status };
  }
  }
 
@@ -273,13 +282,14 @@ export async function invalidateSession(token: string): Promise<void> {
 async function getUserByToken(token: string): Promise<AuthUser | null> {
  const tokenHash = hashSessionToken(token);
 
- const result = await query<{ id: string; username: string; role: UserRole }>(
+ const result = await query<{ id: string; username: string; role: UserRole; account_status: AccountStatus }>(
  `
-  SELECT u.id, u.username, u.role
+  SELECT u.id, u.username, u.role, u.account_status
   FROM user_sessions s
   JOIN users u ON u.id = s.user_id
   WHERE s.token_hash = $1
   AND s.expires_at > NOW()
+  AND u.account_status = 'active'
   LIMIT 1
  `,
  [tokenHash]
@@ -292,6 +302,7 @@ async function getUserByToken(token: string): Promise<AuthUser | null> {
  id: row.id,
  username: row.username,
  role: row.role,
+ accountStatus: row.account_status,
  };
 }
 
@@ -425,6 +436,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
  id: string;
  username: string;
  role: UserRole;
+ account_status: AccountStatus;
+ account_status_reason: string | null;
  created_at: string;
  full_name: string | null;
  display_name: string | null;
@@ -437,6 +450,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
    u.id,
    u.username,
    u.role,
+   u.account_status,
+   u.account_status_reason,
    u.created_at,
    p.full_name,
    p.display_name,
@@ -453,6 +468,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
  id: row.id,
  username: row.username,
  role: row.role,
+ accountStatus: row.account_status,
+ accountStatusReason: row.account_status_reason ?? "",
  createdAt: row.created_at,
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
@@ -472,6 +489,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  id: string;
  username: string;
  role: UserRole;
+ account_status: AccountStatus;
+ account_status_reason: string | null;
  created_at: string;
  full_name: string | null;
  display_name: string | null;
@@ -484,6 +503,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
    u.id,
    u.username,
    u.role,
+   u.account_status,
+   u.account_status_reason,
    u.created_at,
    p.full_name,
    p.display_name,
@@ -504,6 +525,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  id: row.id,
  username: row.username,
  role: row.role,
+ accountStatus: row.account_status,
+ accountStatusReason: row.account_status_reason ?? "",
  createdAt: row.created_at,
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
@@ -517,10 +540,11 @@ export async function ensureVendorPortalSlug(userId: string): Promise<string | n
  const result = await query<{
  username: string;
  role: UserRole;
+ account_status: AccountStatus;
  vendor_portal_slug: string | null;
  }>(
  `
-  SELECT u.username, u.role, p.vendor_portal_slug
+  SELECT u.username, u.role, u.account_status, p.vendor_portal_slug
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
   WHERE u.id = $1
@@ -530,7 +554,7 @@ export async function ensureVendorPortalSlug(userId: string): Promise<string | n
  );
 
  const row = result.rows[0];
- if (!row || !isVendorRole(row.role)) {
+ if (!row || !isVendorRole(row.role) || row.account_status !== "active") {
   return null;
  }
 
@@ -560,6 +584,8 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
  id: string;
  username: string;
  role: UserRole;
+ account_status: AccountStatus;
+ account_status_reason: string | null;
  created_at: string;
  full_name: string | null;
  display_name: string | null;
@@ -572,6 +598,8 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
    u.id,
    u.username,
    u.role,
+   u.account_status,
+   u.account_status_reason,
    u.created_at,
    p.full_name,
    p.display_name,
@@ -581,6 +609,7 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
   FROM users u
   JOIN user_profiles p ON p.user_id = u.id
   WHERE u.role = $1
+  AND u.account_status = 'active'
   AND LOWER(p.vendor_portal_slug) = LOWER($2)
   LIMIT 1
  `,
@@ -594,6 +623,8 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
  id: row.id,
  username: row.username,
  role: row.role,
+ accountStatus: row.account_status,
+ accountStatusReason: row.account_status_reason ?? "",
  createdAt: row.created_at,
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
@@ -680,6 +711,80 @@ export async function adminUpdateAccount(
  }
 }
 
+export async function adminSetVendorAccountStatus(
+ actorId: string,
+ targetUserId: string,
+ nextStatus: AccountStatus,
+ reason?: string
+): Promise<void> {
+ const targetResult = await query<{ id: string; role: UserRole }>(
+"SELECT id, role FROM users WHERE id = $1 LIMIT 1",
+ [targetUserId]
+ );
+ const target = targetResult.rows[0];
+ if (!target) {
+  throw new Error("USER_NOT_FOUND");
+ }
+
+ if (!isVendorRole(target.role)) {
+  throw new Error("TARGET_NOT_VENDOR");
+ }
+
+ const normalizedReason = reason?.trim() ?? "";
+
+ await query(
+`
+ UPDATE users
+ SET account_status = $1,
+     account_status_reason = $2,
+     account_status_updated_at = NOW(),
+     account_status_updated_by = $3
+ WHERE id = $4
+`,
+  [nextStatus, normalizedReason || null, actorId, targetUserId]
+ );
+
+ await query("DELETE FROM user_sessions WHERE user_id = $1", [targetUserId]);
+
+ if (nextStatus !== "active") {
+  await query(
+`
+ UPDATE products
+ SET status = 'draft',
+     updated_at = NOW()
+ WHERE id IN (
+   SELECT product_id
+   FROM general_products
+   WHERE owner_type = 'vendor'
+     AND owner_vendor_user_id = $1
+ )
+`,
+   [targetUserId]
+  );
+
+  const archiveMessage = normalizedReason
+    ? `Hồ sơ supplier bị chuyển sang ${nextStatus}. Lý do: ${normalizedReason}`
+    : `Hồ sơ supplier bị chuyển sang ${nextStatus}.`;
+
+  await query(
+`
+ UPDATE vendor_product_submissions
+ SET review_status = 'archived',
+     review_note = CASE
+       WHEN BTRIM(COALESCE(review_note, '')) = '' THEN $2
+       ELSE review_note || E'\\n\\n' || $2
+     END,
+     reviewed_at = NOW(),
+     reviewed_by = $3,
+     updated_at = NOW()
+ WHERE vendor_user_id = $1
+   AND review_status <> 'archived'
+`,
+   [targetUserId, archiveMessage, actorId]
+  );
+ }
+}
+
 export async function adminDeleteAccount(actorId: string, targetUserId: string): Promise<void> {
  const targetResult = await query<{ id: string; role: UserRole }>(
 "SELECT id, role FROM users WHERE id = $1 LIMIT 1",
@@ -697,8 +802,13 @@ export async function adminDeleteAccount(actorId: string, targetUserId: string):
  if (isAdminRole(target.role)) {
  const admins = await countAdmins();
  if (admins <= 1) {
-  throw new Error("LAST_ADMIN_PROTECTED");
+ throw new Error("LAST_ADMIN_PROTECTED");
  }
+ }
+
+ if (isVendorRole(target.role)) {
+  await adminSetVendorAccountStatus(actorId, targetUserId, "deleted", "Nhà cung cấp đã bị xóa mềm khỏi hệ thống.");
+  return;
  }
 
  await query("DELETE FROM users WHERE id = $1", [targetUserId]);

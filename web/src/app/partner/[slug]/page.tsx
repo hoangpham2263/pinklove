@@ -4,7 +4,7 @@ import { ShieldCheck, Store, PackageCheck, ArrowRight } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { PartnerVendorHeader } from "@/features/vendor-orders/components/partner-vendor-header";
 import { PartnerVendorPortalPanel } from "@/features/vendor-orders/components/partner-vendor-portal-panel";
 import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
 import { PartnerLoginForm } from "@/features/auth/components/login-forms";
@@ -70,8 +70,14 @@ export default async function PartnerVendorEntryPage({ params, searchParams }: P
     ]);
 
     return (
-      <section className="py-5 lg:py-7.5 2xl:py-10 min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#fffdf9_42%,#ffffff_100%)]">
-        <div className="container px-4 mx-auto space-y-5">
+      <section className="min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#fffdf9_42%,#ffffff_100%)]">
+        <PartnerVendorHeader
+          vendorName={vendorName}
+          portalHref={ROUTES.PARTNER.PORTAL(vendorSlug)}
+          currentPath={ROUTES.PARTNER.PORTAL(vendorSlug)}
+        />
+
+        <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
           {query.error ? (
             <PageToast
               message={getPartnerPortalErrorMessage(String(query.error)) ?? "Không thể xử lý thao tác vendor lúc này."}
@@ -93,21 +99,20 @@ export default async function PartnerVendorEntryPage({ params, searchParams }: P
               </div>
             </div>
             <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Link làm việc</p>
-                  <p className="mt-2 break-all text-sm font-medium text-zinc-900">{partnerPortalUrl}</p>
-                </div>
-                <NotificationBell />
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Link làm việc</p>
+                <p className="mt-2 break-all text-sm font-medium text-zinc-900">{partnerPortalUrl}</p>
               </div>
             </div>
           </div>
 
-          <PartnerVendorPortalPanel
-            summaryUrl="/api/partner/portal-summary"
-            initialStats={stats}
-            initialAssignments={assignments}
-          />
+          <div id="assigned-orders" className="pt-2 lg:pt-4">
+            <PartnerVendorPortalPanel
+              summaryUrl="/api/partner/portal-summary"
+              initialStats={stats}
+              initialAssignments={assignments}
+            />
+          </div>
         </div>
       </section>
     );

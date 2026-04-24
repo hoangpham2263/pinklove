@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Menu } from "@/lib/menu";
+import { ROUTES } from "@/lib/routes";
 
 type MenuRow = Omit<Menu, "items">;
 
@@ -105,7 +106,7 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
               Xem
             </Button>
             <Link
-              href={`/admin/menus/${row.original.id}`}
+              href={ROUTES.ADMIN.MENU(row.original.name)}
               title="Sửa menu"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
             >

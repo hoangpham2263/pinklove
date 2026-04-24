@@ -32,6 +32,8 @@ export function QuickCreateProductForm({
   const [stockQuantity, setStockQuantity] = useState(0);
   const [lowStockThreshold, setLowStockThreshold] = useState(0);
   const [allowBackorder, setAllowBackorder] = useState(false);
+  const [costPrice, setCostPrice] = useState(0);
+  const [vendorSku, setVendorSku] = useState("");
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">("internal");
   const [ownerVendorUserId, setOwnerVendorUserId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -244,6 +246,31 @@ export function QuickCreateProductForm({
                   />
                   <span className="block text-sm text-muted-foreground">Cho phép tạo đơn dù tồn kho không đủ.</span>
                 </label>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="costPrice" className="font-medium">Giá nhập</label>
+                <Input
+                  id="costPrice"
+                  name="costPrice"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value || "0")))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="vendorSku" className="font-medium">Vendor SKU</label>
+                <Input
+                  id="vendorSku"
+                  name="vendorSku"
+                  value={vendorSku}
+                  onChange={(e) => setVendorSku(e.target.value)}
+                  placeholder="Mã nội bộ phía vendor"
+                />
               </div>
             </div>
           </div>

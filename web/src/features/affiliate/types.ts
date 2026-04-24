@@ -1,6 +1,7 @@
 export type AffiliateStatus = "pending" | "active" | "rejected" | "blocked";
 export type AffiliateCommissionType = "percent" | "fixed";
 export type AffiliateConversionStatus = "pending" | "approved" | "rejected" | "paid";
+export type AffiliateApplicationReviewStatus = "pending_review" | "contacted" | "approved" | "rejected" | "archived";
 
 export type AffiliateAccount = {
   userId: string;
@@ -38,6 +39,23 @@ export type AffiliateConversion = {
   orderValue: number;
   commissionAmount: number;
   status: AffiliateConversionStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AffiliateApplication = {
+  id: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  preferredCode?: string;
+  city?: string;
+  channelLink?: string;
+  audienceNote?: string;
+  notes?: string;
+  reviewStatus: AffiliateApplicationReviewStatus;
+  reviewNote?: string;
+  reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
 };

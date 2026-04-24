@@ -4,21 +4,24 @@ export type PagePathLike = {
 };
 
 const RESERVED_PREFIXES = ["/api", "/admin", "/customer", "/user"];
+const FIXED_PAGE_PATHS: Record<string, string> = {
+  home: "/",
+  login: "/login",
+  register: "/register",
+  "partner-apply": "/partner-apply",
+  "affiliate-apply": "/affiliate-apply",
+};
 
 export function getDefaultPagePath(slug: string): string {
-  if (slug === "home") {
-    return "/";
-  }
-
-  if (slug === "login" || slug === "register") {
-    return `/customer/${slug}`;
+  if (slug in FIXED_PAGE_PATHS) {
+    return FIXED_PAGE_PATHS[slug]!;
   }
 
   return `/${slug}`;
 }
 
 export function canCustomizePagePermalink(slug: string): boolean {
-  return slug !== "home" && slug !== "login" && slug !== "register" && slug !== "not-found";
+  return !(slug in FIXED_PAGE_PATHS) && slug !== "not-found";
 }
 
 export function normalizePagePermalinkInput(input: string | null | undefined, slug: string): string {

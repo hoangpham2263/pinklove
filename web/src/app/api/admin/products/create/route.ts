@@ -33,6 +33,8 @@ export async function POST(request: Request) {
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
   const allowBackorder = supportsInventory && formData.get("allowBackorder") === "on";
+  const costPrice = supportsInventory ? Math.max(0, Number(formData.get("costPrice") ?? "0")) : 0;
+  const vendorSku = supportsInventory ? String(formData.get("vendorSku") ?? "").trim() : "";
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
   const returnTo = String(formData.get("returnTo") ?? "").trim();
@@ -101,9 +103,11 @@ export async function POST(request: Request) {
       stockQuantity,
       lowStockThreshold,
       allowBackorder,
+      costPrice,
+      vendorSku,
       config: {
         ...(productType === "general_product"
-          ? { generalProduct: ownerConfig }
+          ? { generalProduct: { ...ownerConfig, costPrice, vendorSku } }
           : {
               siteDefaults: {
                 ...getInvitationTemplateDefaults(templateKey),

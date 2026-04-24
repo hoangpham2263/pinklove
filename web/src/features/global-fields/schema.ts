@@ -57,23 +57,6 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
       },
       {
         type: "section",
-        label: "Quick Links Column",
-        description: "Danh sách link cột Liên kết nhanh.",
-        fields: [
-          {
-            name: "footerQuickLinks",
-            type: "repeater",
-            label: "Footer Quick Links",
-            addLabel: "Thêm quick link",
-            fields: [
-              { name: "label", label: "Tên link", type: "text", width: 4 },
-              { name: "url", label: "Liên kết", type: "text", width: 8 },
-            ],
-          },
-        ],
-      },
-      {
-        type: "section",
         label: "Partners Column",
         description: "Danh sách link cột Đối tác.",
         fields: [

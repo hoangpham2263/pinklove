@@ -52,6 +52,8 @@ export function ProductEditorForm({
   const [stockQuantity, setStockQuantity] = useState(product.stockQuantity);
   const [lowStockThreshold, setLowStockThreshold] = useState(product.lowStockThreshold);
   const [allowBackorder, setAllowBackorder] = useState(product.allowBackorder);
+  const [costPrice, setCostPrice] = useState(product.costPrice);
+  const [vendorSku, setVendorSku] = useState(product.vendorSku);
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">(product.ownerType);
   const [ownerVendorUserId, setOwnerVendorUserId] = useState(product.ownerVendorUserId || "");
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
@@ -426,11 +428,36 @@ export function ProductEditorForm({
                     </label>
                   </div>
                 </div>
+
+                <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="font-medium">Giá nhập</label>
+                    <Input
+                      name="costPrice"
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={costPrice}
+                      onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value || "0")))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="font-medium">Vendor SKU</label>
+                    <Input
+                      name="vendorSku"
+                      value={vendorSku}
+                      onChange={(e) => setVendorSku(e.target.value)}
+                      placeholder="Mã nội bộ phía vendor"
+                    />
+                  </div>
+                </div>
               </>
             ) : (
               <>
                 <input type="hidden" name="stockQuantity" value="0" />
                 <input type="hidden" name="lowStockThreshold" value="0" />
+                <input type="hidden" name="costPrice" value="0" />
+                <input type="hidden" name="vendorSku" value="" />
               </>
             )}
           </div>

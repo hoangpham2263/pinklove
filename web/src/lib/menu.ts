@@ -72,16 +72,7 @@ export async function getMenus(): Promise<Omit<Menu,"items">[]> {
  itemCount:Number(row.item_count ?? "0"), }));
 }
 
-export async function getMenuById(id:string): Promise<Menu | null> {
- const storage = await getMenuStorage();
- const menuResult = await query<{ id:string; name:string; label:string }>(
- `SELECT id::text AS id, name, label FROM ${storage.menusTable} WHERE id = $1 LIMIT 1`,
- [id]
- );
-
- const menuRow = menuResult.rows[0];
- if (!menuRow) return null;
-
+async function loadMenuItems(storage: MenuStorage, id: string): Promise<MenuItem[]> {
  const itemsResult = await query<{ id:string;
  menu_id:string;
  parent_id:string | null;
@@ -97,7 +88,7 @@ export async function getMenuById(id:string): Promise<Menu | null> {
  [id]
  );
 
- const items:MenuItem[] = itemsResult.rows.map((row) => ({ id:row.id,
+ return itemsResult.rows.map((row) => ({ id:row.id,
  menuId:row.menu_id,
  parentId:row.parent_id,
  label:row.label,
@@ -105,11 +96,26 @@ export async function getMenuById(id:string): Promise<Menu | null> {
  pageSlug:row.page_slug,
  url:row.url,
  position:row.position, }));
+}
 
+function buildMenu(menuRow: { id: string; name: string; label: string }, items: MenuItem[]): Menu {
  return { id:menuRow.id,
  name:menuRow.name,
  label:menuRow.label,
  items, };
+}
+
+export async function getMenuById(id:string): Promise<Menu | null> {
+ const storage = await getMenuStorage();
+ const menuResult = await query<{ id:string; name:string; label:string }>(
+ `SELECT id::text AS id, name, label FROM ${storage.menusTable} WHERE id = $1 LIMIT 1`,
+ [id]
+ );
+
+ const menuRow = menuResult.rows[0];
+ if (!menuRow) return null;
+ const items = await loadMenuItems(storage, id);
+ return buildMenu(menuRow, items);
 }
 
 export async function getMenuByName(name:string): Promise<Menu | null> {
@@ -121,8 +127,8 @@ export async function getMenuByName(name:string): Promise<Menu | null> {
 
  const menuRow = menuResult.rows[0];
  if (!menuRow) return null;
-
- return getMenuById(menuRow.id);
+ const items = await loadMenuItems(storage, menuRow.id);
+ return buildMenu(menuRow, items);
 }
 
 export async function updateMenu(id:string, label:string, execute:DbExecutor = query): Promise<void> {

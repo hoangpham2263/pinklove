@@ -3,6 +3,8 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import type {
   AffiliateAccount,
+  AffiliateApplication,
+  AffiliateApplicationReviewStatus,
   AffiliateClick,
   AffiliateCommissionType,
   AffiliateConversion,
@@ -55,6 +57,23 @@ type AffiliateConversionRow = {
   updated_at: string;
 };
 
+type AffiliateApplicationRow = {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string;
+  preferred_code: string | null;
+  city: string | null;
+  channel_link: string | null;
+  audience_note: string | null;
+  notes: string | null;
+  review_status: AffiliateApplicationReviewStatus;
+  review_note: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 function mapAffiliateAccountRow(row: AffiliateAccountRow): AffiliateAccount {
   return {
     userId: row.user_id,
@@ -96,6 +115,25 @@ function mapAffiliateConversionRow(row: AffiliateConversionRow): AffiliateConver
     orderValue: Number(row.order_value ?? "0"),
     commissionAmount: Number(row.commission_amount ?? "0"),
     status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapAffiliateApplicationRow(row: AffiliateApplicationRow): AffiliateApplication {
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    phone: row.phone,
+    email: row.email,
+    preferredCode: row.preferred_code ?? undefined,
+    city: row.city ?? undefined,
+    channelLink: row.channel_link ?? undefined,
+    audienceNote: row.audience_note ?? undefined,
+    notes: row.notes ?? undefined,
+    reviewStatus: row.review_status,
+    reviewNote: row.review_note ?? undefined,
+    reviewedAt: row.reviewed_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -229,6 +267,108 @@ export async function getAffiliateProgramSummary() {
     clickCount: Number(row?.click_count ?? "0"),
     conversionCount: Number(row?.conversion_count ?? "0"),
   };
+}
+
+export async function listAffiliateApplications(): Promise<AffiliateApplication[]> {
+  const result = await query<AffiliateApplicationRow>(`
+    SELECT
+      id,
+      full_name,
+      phone,
+      email,
+      preferred_code,
+      city,
+      channel_link,
+      audience_note,
+      notes,
+      review_status,
+      review_note,
+      reviewed_at,
+      created_at,
+      updated_at
+    FROM affiliate_applications
+    ORDER BY
+      CASE review_status
+        WHEN 'pending_review' THEN 0
+        WHEN 'contacted' THEN 1
+        WHEN 'approved' THEN 2
+        WHEN 'rejected' THEN 3
+        ELSE 4
+      END,
+      created_at DESC
+  `);
+
+  return result.rows.map(mapAffiliateApplicationRow);
+}
+
+export async function getAffiliateApplicationSummary() {
+  const result = await query<{
+    pending_count: string;
+    contacted_count: string;
+    approved_count: string;
+    rejected_count: string;
+  }>(`
+    SELECT
+      (SELECT COUNT(*)::text FROM affiliate_applications WHERE review_status = 'pending_review') AS pending_count,
+      (SELECT COUNT(*)::text FROM affiliate_applications WHERE review_status = 'contacted') AS contacted_count,
+      (SELECT COUNT(*)::text FROM affiliate_applications WHERE review_status = 'approved') AS approved_count,
+      (SELECT COUNT(*)::text FROM affiliate_applications WHERE review_status = 'rejected') AS rejected_count
+  `);
+
+  const row = result.rows[0];
+  return {
+    pendingCount: Number(row?.pending_count ?? "0"),
+    contactedCount: Number(row?.contacted_count ?? "0"),
+    approvedCount: Number(row?.approved_count ?? "0"),
+    rejectedCount: Number(row?.rejected_count ?? "0"),
+  };
+}
+
+export async function adminUpdateAffiliateApplication(input: {
+  applicationId: string;
+  status: AffiliateApplicationReviewStatus;
+  reviewNote?: string;
+}) {
+  if (!["pending_review", "contacted", "approved", "rejected", "archived"].includes(input.status)) {
+    throw new Error("AFFILIATE_APPLICATION_STATUS_INVALID");
+  }
+
+  const result = await query<AffiliateApplicationRow>(
+    `
+      UPDATE affiliate_applications
+      SET
+        review_status = $2,
+        review_note = $3,
+        reviewed_at = CASE
+          WHEN $2 IN ('contacted', 'approved', 'rejected', 'archived') THEN NOW()
+          ELSE NULL
+        END,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING
+        id,
+        full_name,
+        phone,
+        email,
+        preferred_code,
+        city,
+        channel_link,
+        audience_note,
+        notes,
+        review_status,
+        review_note,
+        reviewed_at,
+        created_at,
+        updated_at
+    `,
+    [input.applicationId, input.status, input.reviewNote?.trim() || ""]
+  );
+
+  if (!result.rows[0]) {
+    throw new Error("AFFILIATE_APPLICATION_NOT_FOUND");
+  }
+
+  return mapAffiliateApplicationRow(result.rows[0]);
 }
 
 export async function applyForAffiliate(input: {

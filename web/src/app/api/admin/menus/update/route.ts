@@ -1,6 +1,6 @@
 import { getCurrentUserFromRequest, isAdminRole } from"@/lib/auth";
 import { withTransaction } from "@/lib/database";
-import { updateMenu, updateMenuItems, MenuItemInput } from"@/lib/menu";
+import { getMenuById, updateMenu, updateMenuItems, MenuItemInput } from"@/lib/menu";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
@@ -20,23 +20,29 @@ export async function POST(request:Request) { const actor = await getCurrentUser
   return respondError(request, { error: "INVALID_ID", message: "Thiếu menu id.", location: `${ROUTES.ADMIN.MENUS}?error=invalid_id` });
  }
 
+ const existingMenu = await getMenuById(menuId);
+ if (!existingMenu) {
+  return respondError(request, { error: "MENU_NOT_FOUND", message: "Không tìm thấy menu.", location: `${ROUTES.ADMIN.MENUS}?error=menu_not_found` });
+ }
+ const menuLocation = ROUTES.ADMIN.MENU(existingMenu.name);
+
  const label = String(formData.get("label") ??"").trim();
  if (!label) {
-  return respondError(request, { error: "MISSING_LABEL", message: "Thiếu tên menu.", location: `${ROUTES.ADMIN.MENUS}/${menuId}?error=missing_label` });
+  return respondError(request, { error: "MISSING_LABEL", message: "Thiếu tên menu.", location: `${menuLocation}?error=missing_label` });
  }
 
  const itemsRaw = String(formData.get("items") ??"[]");
  let items:MenuItemInput[] = [];
  try { items = JSON.parse(itemsRaw);
  if (!Array.isArray(items)) { items = []; } } catch {
-  return respondError(request, { error: "INVALID_ITEMS_FORMAT", message: "Dữ liệu menu không hợp lệ.", location: `${ROUTES.ADMIN.MENUS}/${menuId}?error=invalid_items_format` });
+  return respondError(request, { error: "INVALID_ITEMS_FORMAT", message: "Dữ liệu menu không hợp lệ.", location: `${menuLocation}?error=invalid_items_format` });
  }
 
  try { await withTransaction(async (execute) => {
  await updateMenu(menuId, label, execute);
  await updateMenuItems(menuId, items, execute);
  });
- return respondSuccess(request, { location: `${ROUTES.ADMIN.MENUS}/${menuId}`, message: "Đã lưu menu." }); } catch (error) { console.error("Menu update error:", error);
+ return respondSuccess(request, { location: menuLocation, message: "Đã lưu menu." }); } catch (error) { console.error("Menu update error:", error);
  const message = error instanceof Error ? error.message : "";
  const errorCode =
   message === "INVALID_MENU_HIERARCHY"
@@ -50,4 +56,4 @@ export async function POST(request:Request) { const actor = await getCurrentUser
    : errorCode === "invalid_items"
     ? "Menu item chưa hợp lệ. Item kiểu page phải có trang và custom link phải có URL."
     : "Không thể lưu menu.";
- return respondError(request, { error: errorCode, message: errorMessage, location: `${ROUTES.ADMIN.MENUS}/${menuId}?error=${errorCode}` }); } }
+ return respondError(request, { error: errorCode, message: errorMessage, location: `${menuLocation}?error=${errorCode}` }); } }

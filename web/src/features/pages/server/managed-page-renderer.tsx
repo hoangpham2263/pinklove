@@ -161,7 +161,6 @@ export async function renderManagedPage(page: ManagedPage) {
   const templatesPath = managedPathMap.get("templates") || ROUTES.TEMPLATES;
   const qrBuilderPath = managedPathMap.get("tools/qr-builder") || ROUTES.TOOLS_PAGES.QR_BUILDER;
   const weddingBudgetPath = managedPathMap.get("tools/wedding-budget") || ROUTES.TOOLS_PAGES.WEDDING_BUDGET;
-
   switch (page.slug) {
     case "home":
       return (

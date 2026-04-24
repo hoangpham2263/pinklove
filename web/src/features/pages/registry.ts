@@ -280,6 +280,18 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     label: "Trang gói dịch vụ",
     fields: [],
   },
+  "partner-apply": {
+    slug: "partner-apply",
+    name: "Nhà cung cấp",
+    label: "Trang nhà cung cấp",
+    fields: [],
+  },
+  "affiliate-apply": {
+    slug: "affiliate-apply",
+    name: "Affiliate",
+    label: "Trang affiliate",
+    fields: [],
+  },
   tools: {
     slug: "tools",
     name: "Công cụ",

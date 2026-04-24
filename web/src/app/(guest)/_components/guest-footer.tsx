@@ -45,9 +45,6 @@ type GuestFooterGlobalFields = {
   footerNewsletterPlaceholder?: string;
   footerCopyright?: string;
   footerIntroItems?: FooterIntroItem[];
-  footerServiceLinks?: FooterRepeaterLink[];
-  footerQuickLinks?: FooterRepeaterLink[];
-  footerPartnerLinks?: FooterRepeaterLink[];
   footerSocialLinks?: FooterSocialLink[];
   floatingBarItems?: FloatingBarItem[];
   pinkCloudMessages?: PinkCloudMessageItem[];
@@ -55,14 +52,12 @@ type GuestFooterGlobalFields = {
 
 type GuestFooterProps = {
   globalFields: GuestFooterGlobalFields;
+  columns: Array<{
+    id: string;
+    title: string;
+    links: Array<{ label: string; url: string }>;
+  }>;
 };
-
-function normalizeLinks(items: FooterRepeaterLink[] | undefined) {
-  return (Array.isArray(items) ? items : []).filter((item) => item.label?.trim() && item.url?.trim()).map((item) => ({
-    label: item.label!.trim(),
-    url: item.url!.trim(),
-  }));
-}
 
 function normalizeSocialLinks(items: FooterSocialLink[] | undefined) {
   return (Array.isArray(items) ? items : [])
@@ -166,13 +161,11 @@ function ScrollToTopButton() {
 
 export async function GuestFooter({
   globalFields,
+  columns,
 }: GuestFooterProps) {
   const footerBackgroundImage = await resolveMediaUrl(globalFields.footerBackgroundImage);
   const footerBrandImage = await resolveMediaUrl(globalFields.footerBrandImage);
   const introItems = await normalizeIntroItems(globalFields.footerIntroItems);
-  const serviceLinks = normalizeLinks(globalFields.footerServiceLinks);
-  const quickLinks = normalizeLinks(globalFields.footerQuickLinks);
-  const partnerLinks = normalizeLinks(globalFields.footerPartnerLinks);
   const socialLinks = normalizeSocialLinks(globalFields.footerSocialLinks);
   const brandTagline = globalFields.footerBrandTagline?.trim();
   const newsletterPlaceholder = globalFields.footerNewsletterPlaceholder?.trim();
@@ -222,32 +215,16 @@ export async function GuestFooter({
         <div className="relative flex flex-col gap-5 lg:gap-7.5 pt-10 lg:pt-15 2xl:pt-20 pb-5 lg:pb-7.5 2xl:pb-10">
           <div className="absolute inset-0 z-0 bg-linear-to-b from-[#FFD1F7] to-[#fefcff]" aria-hidden="true" />
           <div className="relative z-20 container mx-auto px-4 grid grid-cols-12 gap-10">
-              <div className="col-span-12 md:col-span-3 space-y-4">
-                <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
-                  Dịch vụ
-                </h3>
-                <div className="flex flex-col gap-3">
-                  {serviceLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
+              {columns.map((column) => (
+                <div key={column.id} className="col-span-12 md:col-span-3 space-y-4">
+                  <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
+                    {column.title}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {column.links.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="col-span-12 md:col-span-3 space-y-4">
-                <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
-                  Liên kết nhanh
-                </h3>
-                <div className="flex flex-col gap-3">
-                  {quickLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
-                </div>
-              </div>
-
-              <div className="col-span-12 md:col-span-3 space-y-4">
-                <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
-                  Đối tác
-                </h3>
-                <div className="flex flex-col gap-3">
-                  {partnerLinks.map((item) => renderFooterLink(item, "text-sm md:text-base hover:text-guest-primary transition"))}
-                </div>
-              </div>
+              ))}
 
               <div className="col-span-12 md:col-span-3 space-y-5">
                 <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">

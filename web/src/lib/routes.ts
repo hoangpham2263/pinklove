@@ -11,6 +11,7 @@ export const ROUTES = {
   WISHLIST: "/wishlist",
   SEARCH: "/search",
   SERVICES: "/services",
+  AFFILIATE_APPLY: "/affiliate-apply",
   TOOLS: "/tools",
   BLOG: "/blog",
   SITEMAP_XML: "/sitemap.xml",
@@ -47,8 +48,8 @@ export const ROUTES = {
     POST: (slug: string) => `/blog/post/${slug}`,
   },
   AUTH: {
-    LOGIN: "/customer/login",
-    REGISTER: "/customer/register",
+    LOGIN: "/login",
+    REGISTER: "/register",
     LOGOUT_API: "/api/auth/logout",
   },
   CHECKOUT: {
@@ -70,11 +71,16 @@ export const ROUTES = {
   },
   PARTNER: {
     ROOT: "/partner",
+    APPLY: "/partner-apply",
     LOGIN: "/partner/login",
     LEGACY_DASHBOARD: "/partner/dashboard",
     LEGACY_ORDERS: "/partner/orders",
     PORTAL: (slug: string) => `/partner/${slug}`,
     ORDER: (id: string) => `/partner/orders/${id}`,
+    PRODUCTS: "/partner/products",
+    PRODUCT_NEW: "/partner/products/new",
+    PRODUCT: (id: string) => `/partner/products/${id}`,
+    ACCOUNT: "/partner/account",
   },
   ADMIN: {
     ROOT: "/admin",
@@ -87,7 +93,7 @@ export const ROUTES = {
     BLOG_CATEGORIES: "/admin/blog/categories",
     BLOG_CATEGORY: (slug: string) => `/admin/blog/categories/${slug}`,
     MENUS: "/admin/menus",
-    MENU: (id: string) => `/admin/menus/${id}`,
+    MENU: (name: string) => `/admin/menus/${encodeURIComponent(name)}`,
     SEO_GUIDE: "/admin/seo-guide",
     SEO_PAGES: "/admin/seo/pages",
     SEO_SCHEMA: "/admin/seo/schema",
@@ -126,6 +132,8 @@ export const ROUTES = {
     VENDORS: "/admin/vendors",
     VENDORS_CREATE: "/admin/vendors/create",
     VENDOR: (id: string) => `/admin/vendors/${id}`,
+    VENDOR_PRODUCTS: "/admin/vendor-products",
+    VENDOR_PRODUCT: (id: string) => `/admin/vendor-products/${id}`,
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
     MESSAGES: "/admin/messages",
@@ -159,6 +167,11 @@ export const ROUTES = {
       },
       ORDERS: {
         UPDATE: "/api/partner/orders/update",
+      },
+      PRODUCTS: {
+        SUBMISSIONS: "/api/partner/products/submissions",
+        SUBMISSION: (id: string) => `/api/partner/products/submissions/${id}`,
+        SUBMIT: (id: string) => `/api/partner/products/submissions/${id}/submit`,
       },
     },
     ADMIN: {
@@ -196,6 +209,7 @@ export const ROUTES = {
       AFFILIATES: {
         UPDATE: "/api/admin/affiliates/update",
         BULK: "/api/admin/affiliates/bulk",
+        APPLICATIONS_UPDATE: "/api/admin/affiliates/applications/update",
       },
       INTERNAL_ACCOUNTS: {
         SAVE: "/api/admin/internal-accounts/save",
@@ -223,6 +237,15 @@ export const ROUTES = {
       ORDERS: {
         UPDATE: "/api/admin/orders/update",
         VENDOR_ASSIGNMENT: "/api/admin/orders/vendor-assignment",
+      },
+      VENDOR_PRODUCTS: {
+        INDEX: "/api/admin/vendor-products",
+        DETAIL: (id: string) => `/api/admin/vendor-products/${id}`,
+        REVIEW: (id: string) => `/api/admin/vendor-products/${id}/review`,
+        APPROVE: (id: string) => `/api/admin/vendor-products/${id}/approve`,
+      },
+      VENDORS: {
+        STATUS: "/api/admin/vendors/status",
       },
       REALTIME: {
         ASSIGNMENT: (id: string) => `/api/admin/realtime/assignments/${id}`,
@@ -260,6 +283,10 @@ export const ROUTES = {
         CREATE_BUILDER: "/api/customer/invitations/create-builder",
         UPDATE: "/api/customer/invitations/update",
       },
+    },
+    APPLICATIONS: {
+      PARTNER: "/api/applications/partner",
+      AFFILIATE: "/api/applications/affiliate",
     },
     AFFILIATE: {
       TRACK: "/api/affiliate/track",

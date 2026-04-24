@@ -9,6 +9,7 @@ const globalForDb = globalThis as unknown as {
  initPromise?: Promise<void>;
  ensurePromise?: Promise<void>;
   roleMigrationDone?: boolean;
+  userAccountStatusMigrationDone?: boolean;
   userWishlistMigrationDone?: boolean;
   userProfilesMigrationDone?: boolean;
   userSettingsDensityMigrationDone?: boolean;
@@ -20,7 +21,11 @@ const globalForDb = globalThis as unknown as {
   blogTablesMigrationDone?: boolean;
   commerceTablesMigrationDone?: boolean;
   productVendorPaperTypeMigrationDone?: boolean;
+  productVendorCostFieldsMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
+  vendorProductSubmissionsMigrationDone?: boolean;
+  vendorApplicationsMigrationDone?: boolean;
+  affiliateApplicationsMigrationDone?: boolean;
   chatTablesMigrationDone?: boolean;
   chatTablesMigrationV2Done?: boolean;
   chatTablesMigrationV3Done?: boolean;
@@ -105,6 +110,10 @@ async function initSchema() {
   id TEXT PRIMARY KEY DEFAULT app_random_id(),
   username TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  account_status TEXT NOT NULL DEFAULT 'active',
+  account_status_reason TEXT,
+  account_status_updated_at TIMESTAMPTZ,
+  account_status_updated_by TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
  );
  `);
@@ -174,6 +183,82 @@ async function ensureUsersRoleMigration() {
  BEGIN
   ALTER TABLE users
   ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'VENDOR'));
+ EXCEPTION
+  WHEN duplicate_object THEN
+  NULL;
+ END
+ $$;
+ `);
+}
+
+async function ensureUserAccountStatusMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+
+ await pool.query(`
+ ALTER TABLE users
+ ADD COLUMN IF NOT EXISTS account_status TEXT;
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ADD COLUMN IF NOT EXISTS account_status_reason TEXT;
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ADD COLUMN IF NOT EXISTS account_status_updated_at TIMESTAMPTZ;
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ADD COLUMN IF NOT EXISTS account_status_updated_by ${userIdType};
+ `);
+
+ await pool.query(`
+ DO $$
+ BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'users'::regclass
+      AND conname = 'users_account_status_updated_by_fkey'
+  ) THEN
+    ALTER TABLE users
+    ADD CONSTRAINT users_account_status_updated_by_fkey
+    FOREIGN KEY (account_status_updated_by) REFERENCES users(id) ON DELETE SET NULL;
+  END IF;
+ END
+ $$;
+ `);
+
+ await pool.query(`
+ UPDATE users
+ SET account_status = 'active'
+ WHERE account_status IS NULL OR BTRIM(account_status) = '';
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ALTER COLUMN account_status SET DEFAULT 'active';
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ ALTER COLUMN account_status SET NOT NULL;
+ `);
+
+ await pool.query(`
+ ALTER TABLE users
+ DROP CONSTRAINT IF EXISTS users_account_status_check;
+ `);
+
+ await pool.query(`
+ DO $$
+ BEGIN
+  ALTER TABLE users
+  ADD CONSTRAINT users_account_status_check
+  CHECK (account_status IN ('active', 'blocked', 'banned', 'deleted'));
  EXCEPTION
   WHEN duplicate_object THEN
   NULL;
@@ -839,15 +924,24 @@ async function ensureProductTablesMigration() {
       stock_quantity INT NOT NULL DEFAULT 0,
       low_stock_threshold INT NOT NULL DEFAULT 0,
       allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
+      cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      vendor_sku TEXT NOT NULL DEFAULT '',
       owner_type TEXT NOT NULL DEFAULT 'internal',
       owner_vendor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT general_products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
       CONSTRAINT general_products_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
+      CONSTRAINT general_products_cost_price_check CHECK (cost_price >= 0),
       CONSTRAINT general_products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
       CONSTRAINT general_products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE general_products
+    ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(`
@@ -894,6 +988,8 @@ async function ensureProductTablesMigration() {
       stock_quantity,
       low_stock_threshold,
       allow_backorder,
+      cost_price,
+      vendor_sku,
       owner_type,
       owner_vendor_user_id
     )
@@ -904,6 +1000,8 @@ async function ensureProductTablesMigration() {
       products.stock_quantity,
       products.low_stock_threshold,
       products.allow_backorder,
+      0,
+      '',
       CASE
         WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor' THEN 'vendor'
         ELSE 'internal'
@@ -1247,6 +1345,168 @@ async function ensureVendorOrdersMigration() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS vendor_order_events_assignment_id_idx
     ON vendor_order_events(assignment_id, created_at DESC);
+  `);
+}
+
+async function ensureVendorProductSubmissionsMigration() {
+  const pool = getPool();
+  const userIdType = await getColumnTypeSql("users", "id");
+  const productIdType = await getColumnTypeSql("products", "id");
+  const categoryIdType = await getColumnTypeSql("product_categories", "id");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_product_submissions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      linked_product_id ${productIdType} REFERENCES products(id) ON DELETE SET NULL,
+      category_id ${categoryIdType} REFERENCES product_categories(id) ON DELETE SET NULL,
+      submission_type TEXT NOT NULL DEFAULT 'create',
+      review_status TEXT NOT NULL DEFAULT 'draft',
+      name TEXT NOT NULL DEFAULT '',
+      slug_candidate TEXT NOT NULL DEFAULT '',
+      excerpt TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      thumbnail_url TEXT NOT NULL DEFAULT '',
+      fulfillment_type TEXT NOT NULL DEFAULT 'physical',
+      purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
+      proposed_stock_quantity INT NOT NULL DEFAULT 0,
+      low_stock_threshold INT NOT NULL DEFAULT 0,
+      allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
+      vendor_sku TEXT NOT NULL DEFAULT '',
+      vendor_note TEXT NOT NULL DEFAULT '',
+      admin_sell_price NUMERIC(12,2),
+      review_note TEXT NOT NULL DEFAULT '',
+      submitted_at TIMESTAMPTZ,
+      reviewed_at TIMESTAMPTZ,
+      reviewed_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_product_submissions_submission_type_check
+      CHECK (submission_type IN ('create', 'update', 'discontinue')),
+      CONSTRAINT vendor_product_submissions_review_status_check
+      CHECK (review_status IN ('draft', 'submitted', 'under_review', 'changes_requested', 'approved', 'rejected', 'archived')),
+      CONSTRAINT vendor_product_submissions_fulfillment_type_check
+      CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT vendor_product_submissions_purchase_cost_check
+      CHECK (purchase_cost >= 0),
+      CONSTRAINT vendor_product_submissions_admin_sell_price_check
+      CHECK (admin_sell_price IS NULL OR admin_sell_price >= 0),
+      CONSTRAINT vendor_product_submissions_stock_quantity_check
+      CHECK (proposed_stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT vendor_product_submissions_low_stock_threshold_check
+      CHECK (low_stock_threshold >= 0)
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_product_submissions_vendor_user_id_idx
+    ON vendor_product_submissions(vendor_user_id, review_status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_product_submissions_review_status_idx
+    ON vendor_product_submissions(review_status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_product_submission_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      submission_id TEXT NOT NULL REFERENCES vendor_product_submissions(id) ON DELETE CASCADE,
+      actor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      actor_type TEXT NOT NULL DEFAULT 'system',
+      event_type TEXT NOT NULL DEFAULT 'note_added',
+      message TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_product_submission_events_actor_type_check
+      CHECK (actor_type IN ('admin', 'vendor', 'system')),
+      CONSTRAINT vendor_product_submission_events_event_type_check
+      CHECK (event_type IN ('created', 'submitted', 'review_started', 'changes_requested', 'approved', 'rejected', 'updated', 'archived', 'note_added'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_product_submission_events_submission_id_idx
+    ON vendor_product_submission_events(submission_id, created_at DESC);
+  `);
+}
+
+async function ensureVendorApplicationsMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_applications (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      company_name TEXT NOT NULL,
+      contact_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      city TEXT,
+      categories TEXT,
+      website TEXT,
+      experience TEXT,
+      notes TEXT,
+      review_status TEXT NOT NULL DEFAULT 'pending_review',
+      review_note TEXT NOT NULL DEFAULT '',
+      reviewed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_applications_review_status_check
+      CHECK (review_status IN ('pending_review', 'contacted', 'approved', 'rejected', 'archived'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_applications_review_status_idx
+    ON vendor_applications(review_status, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_applications_email_idx
+    ON vendor_applications(lower(email));
+  `);
+}
+
+async function ensureAffiliateApplicationsMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS affiliate_applications (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      preferred_code TEXT,
+      city TEXT,
+      channel_link TEXT,
+      audience_note TEXT,
+      notes TEXT,
+      review_status TEXT NOT NULL DEFAULT 'pending_review',
+      review_note TEXT NOT NULL DEFAULT '',
+      reviewed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT affiliate_applications_review_status_check
+      CHECK (review_status IN ('pending_review', 'contacted', 'approved', 'rejected', 'archived'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS affiliate_applications_review_status_idx
+    ON affiliate_applications(review_status, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS affiliate_applications_email_idx
+    ON affiliate_applications(lower(email));
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS affiliate_applications_active_preferred_code_idx
+    ON affiliate_applications(preferred_code)
+    WHERE preferred_code IS NOT NULL
+      AND review_status IN ('pending_review', 'contacted', 'approved');
   `);
 }
 
@@ -1699,6 +1959,31 @@ async function ensureProductVendorPaperTypeMigration() {
   `);
 }
 
+async function ensureProductVendorCostFieldsMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    ALTER TABLE general_products
+    ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'general_products_cost_price_check'
+      ) THEN
+        ALTER TABLE general_products
+        ADD CONSTRAINT general_products_cost_price_check
+        CHECK (cost_price >= 0);
+      END IF;
+    END $$;
+  `);
+}
+
 async function ensureProductSeed() {
   const pool = getPool();
 
@@ -2079,31 +2364,52 @@ async function ensureManagedPagesSeed() {
   const pool = getPool();
 
   for (const [slug, config] of Object.entries(AUTH_PAGES)) {
+    const defaultPermalink =
+      slug === "login"
+        ? "/login"
+        : slug === "register"
+          ? "/register"
+          : null;
     await pool.query(
       `
-      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
-      VALUES ($1, $2, $3, 'published', '{}'::jsonb)
+      INSERT INTO managed_pages (slug, name, title, status, permalink, custom_fields)
+      VALUES ($1, $2, $3, 'published', $4, '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
         status = EXCLUDED.status,
+        permalink = CASE
+          WHEN EXCLUDED.slug IN ('login', 'register') THEN EXCLUDED.permalink
+          ELSE COALESCE(managed_pages.permalink, EXCLUDED.permalink)
+        END,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name]
+      [slug, config.name, config.name, defaultPermalink]
     );
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
+    const defaultStatus = slug === "partner-apply" || slug === "affiliate-apply" ? "published" : "draft";
+    const defaultPermalink =
+      slug === "partner-apply"
+        ? "/partner-apply"
+        : slug === "affiliate-apply"
+          ? "/affiliate-apply"
+          : null;
     await pool.query(
       `
-      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
-      VALUES ($1, $2, $3, 'draft', '{}'::jsonb)
+      INSERT INTO managed_pages (slug, name, title, status, permalink, custom_fields)
+      VALUES ($1, $2, $3, $4, $5, '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
+        permalink = CASE
+          WHEN EXCLUDED.slug IN ('partner-apply', 'affiliate-apply') THEN EXCLUDED.permalink
+          ELSE COALESCE(managed_pages.permalink, EXCLUDED.permalink)
+        END,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name]
+      [slug, config.name, config.name, defaultStatus, defaultPermalink]
     );
   }
 }
@@ -2214,6 +2520,11 @@ export async function ensureDb() {
         globalForDb.roleMigrationDone = true;
       }
 
+      if (!globalForDb.userAccountStatusMigrationDone) {
+        await ensureUserAccountStatusMigration();
+        globalForDb.userAccountStatusMigrationDone = true;
+      }
+
       if (!globalForDb.userWishlistMigrationDone) {
         await ensureUserWishlistMigration();
         globalForDb.userWishlistMigrationDone = true;
@@ -2276,9 +2587,29 @@ export async function ensureDb() {
         globalForDb.productVendorPaperTypeMigrationDone = true;
       }
 
+      if (!globalForDb.productVendorCostFieldsMigrationDone) {
+        await ensureProductVendorCostFieldsMigration();
+        globalForDb.productVendorCostFieldsMigrationDone = true;
+      }
+
       if (!globalForDb.vendorOrdersMigrationDone) {
         await ensureVendorOrdersMigration();
         globalForDb.vendorOrdersMigrationDone = true;
+      }
+
+      if (!globalForDb.vendorProductSubmissionsMigrationDone) {
+        await ensureVendorProductSubmissionsMigration();
+        globalForDb.vendorProductSubmissionsMigrationDone = true;
+      }
+
+      if (!globalForDb.vendorApplicationsMigrationDone) {
+        await ensureVendorApplicationsMigration();
+        globalForDb.vendorApplicationsMigrationDone = true;
+      }
+
+      if (!globalForDb.affiliateApplicationsMigrationDone) {
+        await ensureAffiliateApplicationsMigration();
+        globalForDb.affiliateApplicationsMigrationDone = true;
       }
 
       if (!globalForDb.chatTablesMigrationDone) {

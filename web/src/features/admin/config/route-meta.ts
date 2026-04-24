@@ -10,6 +10,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_CODED)) return "Mẫu coded";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_BUILDER)) return "Mẫu builder";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST_GENERAL)) return "Sản phẩm";
+  if (pathname.startsWith(ROUTES.ADMIN.VENDOR_PRODUCTS)) return "Vendor Product Review";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Cat";
   if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";

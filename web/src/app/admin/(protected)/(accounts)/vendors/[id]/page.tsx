@@ -20,6 +20,34 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function getVendorAccountStatusLabel(status: string) {
+  switch (status) {
+    case "blocked":
+      return "Đang block";
+    case "banned":
+      return "Đã ban";
+    case "deleted":
+      return "Đã xóa mềm";
+    case "active":
+    default:
+      return "Đang hoạt động";
+  }
+}
+
+function getVendorAccountStatusClassName(status: string) {
+  switch (status) {
+    case "blocked":
+      return "bg-amber-100 text-amber-900";
+    case "banned":
+      return "bg-rose-100 text-rose-900";
+    case "deleted":
+      return "bg-zinc-200 text-zinc-700";
+    case "active":
+    default:
+      return "bg-emerald-100 text-emerald-900";
+  }
+}
+
 type AdminVendorDetailPageProps = {
   params: Promise<{ id: string }>;
 };
@@ -58,12 +86,21 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
             <p className="text-sm text-muted-foreground">
               Trang điều phối riêng cho vendor `{vendor.username}`. Admin có thể theo dõi toàn bộ đơn đã giao cho đối tác này từ một chỗ.
             </p>
+            <div className="mt-2">
+              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getVendorAccountStatusClassName(vendor.accountStatus)}`}>
+                {getVendorAccountStatusLabel(vendor.accountStatus)}
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
             render={<Link href={`${ROUTES.ADMIN.USERS}/${vendor.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.VENDORS)}`}>Sửa tài khoản</Link>}
+          />
+          <Button
+            variant="outline"
+            render={<Link href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Hồ sơ sản phẩm chờ duyệt</Link>}
           />
           {vendorPortalSlug ? (
             <>
@@ -111,15 +148,58 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
             <div className="space-y-2">
               <p><span className="font-medium">Portal link:</span> {vendorPortalSlug ? ROUTES.PARTNER.PORTAL(vendorPortalSlug) : "Chưa có"}</p>
               {vendorPortalSlug ? (
-                <VendorPortalCopyButton
-                  label="Xem và copy thông tin"
-                  path={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}
-                  username={vendor.username}
-                  password="12313"
-                />
+                <div className="flex flex-wrap gap-2">
+                  <VendorPortalCopyButton
+                    label="Xem và copy thông tin"
+                    path={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}
+                    username={vendor.username}
+                    password="12313"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Review sản phẩm vendor</Link>}
+                  />
+                </div>
               ) : null}
             </div>
             <p><span className="font-medium">Bio:</span> {vendor.bio || "Chưa có"}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Kiểm soát supplier</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Khi `block`, `ban` hoặc `xóa mềm`, toàn bộ sản phẩm live thuộc supplier này sẽ bị hạ khỏi catalog và các hồ sơ vendor sẽ bị archive theo.
+            </p>
+
+            <form action={ROUTES.API.ADMIN.VENDORS.STATUS} method="POST" className="space-y-3">
+              <input type="hidden" name="vendorId" value={vendor.id} />
+              <input type="hidden" name="returnTo" value={ROUTES.ADMIN.VENDOR(vendor.id)} />
+              <textarea
+                name="reason"
+                defaultValue={vendor.accountStatusReason}
+                className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="Lý do block / ban / xóa mềm supplier"
+              />
+              <div className="grid gap-2">
+                <Button type="submit" name="nextStatus" value="active" variant="outline" className="justify-start">
+                  Mở lại supplier
+                </Button>
+                <Button type="submit" name="nextStatus" value="blocked" variant="outline" className="justify-start">
+                  Block supplier và ẩn catalog
+                </Button>
+                <Button type="submit" name="nextStatus" value="banned" variant="destructive" className="justify-start">
+                  Ban supplier
+                </Button>
+                <Button type="submit" name="nextStatus" value="deleted" variant="secondary" className="justify-start">
+                  Xóa mềm supplier
+                </Button>
+              </div>
+            </form>
           </CardContent>
         </Card>
 

@@ -196,6 +196,20 @@ export function AdminProductList({
           </Badge>
         ),
       },
+      ...(showInventoryColumn
+        ? [{
+            id: "owner",
+            header: "Nguồn hàng",
+            cell: ({ row }: { row: { original: Product } }) => (
+              <div className="space-y-1">
+                <p>{row.original.ownerType === "vendor" ? "Vendor" : "Nội bộ"}</p>
+                {row.original.ownerType === "vendor" ? (
+                  <p className="text-xs text-muted-foreground">{row.original.vendorSku || "Chưa có SKU"}</p>
+                ) : null}
+              </div>
+            ),
+          } satisfies ColumnDef<Product>]
+        : []),
       {
         accessorKey: "price",
         header: ({ column }) => (
@@ -213,6 +227,13 @@ export function AdminProductList({
         ),
         cell: ({ row }) => <div className="text-right font-medium">{row.original.price}</div>,
       },
+      ...(showInventoryColumn
+        ? [{
+            id: "costPrice",
+            header: () => <div className="text-right">Giá nhập</div>,
+            cell: ({ row }: { row: { original: Product } }) => <div className="text-right text-sm">{row.original.costPrice}</div>,
+          } satisfies ColumnDef<Product>]
+        : []),
       ...(showInventoryColumn
         ? [{
             id: "inventory",
