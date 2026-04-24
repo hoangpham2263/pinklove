@@ -28,6 +28,7 @@ import {
   ADMIN_NAV_PRIMARY_ITEMS,
   ADMIN_NAV_SECONDARY_ITEMS,
 } from "@/features/admin/config/navigation";
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { AdminNavLink } from "@/features/admin/layout/admin-nav-link";
 import { AdminSidebarGroup } from "@/features/admin/layout/admin-sidebar-group";
 import { AdminTopHeader } from "@/features/admin/layout/admin-top-header";
@@ -133,7 +134,10 @@ export default async function AdminLayout({
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
         <AdminTopHeader username={user.username} />
-        <section className="min-h-screen pt-14">{children}</section>
+        <section className="min-h-screen pt-14">
+          <RouteBreadcrumbs wrapperClassName="border-b bg-background/80 px-5 py-3 backdrop-blur md:px-7.5" />
+          {children}
+        </section>
       </main>
     </div>
   );

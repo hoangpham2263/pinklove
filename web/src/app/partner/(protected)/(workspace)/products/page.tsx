@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ensureVendorPortalSlug, getUserProfile, requireVendor } from "@/lib/auth";
@@ -36,6 +37,8 @@ export default async function PartnerProductsPage() {
       />
 
       <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
+        <RouteBreadcrumbs wrapperClassName="rounded-2xl border border-zinc-200/80 bg-white/92 px-4 py-3" />
+
         <div className="flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Sản phẩm vendor</h1>

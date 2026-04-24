@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PartnerVendorHeader } from "@/features/vendor-orders/components/partner-vendor-header";
@@ -24,6 +25,8 @@ export default async function PartnerAccountPage() {
       />
 
       <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
+        <RouteBreadcrumbs wrapperClassName="rounded-2xl border border-zinc-200/80 bg-white/92 px-4 py-3" />
+
         <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">Thông tin đối tác</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600 md:text-base">

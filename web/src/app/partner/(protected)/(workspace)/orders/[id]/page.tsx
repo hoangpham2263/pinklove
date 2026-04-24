@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Store } from "lucide-react";
 
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ export default async function PartnerOrderDetailPage({
 
       <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
         {query.saved ? <PageToast message="Đã lưu cập nhật." variant="success" cleanupKeys={["saved"]} /> : null}
+        <RouteBreadcrumbs wrapperClassName="rounded-2xl border border-zinc-200/80 bg-white/92 px-4 py-3" />
 
         <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
           <div className="flex flex-col gap-5">

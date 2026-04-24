@@ -1,3 +1,4 @@
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { ensureVendorPortalSlug, getUserProfile, requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { PartnerVendorHeader } from "@/features/vendor-orders/components/partner-vendor-header";
@@ -28,6 +29,8 @@ export default async function PartnerProductCreatePage() {
       />
 
       <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
+        <RouteBreadcrumbs wrapperClassName="rounded-2xl border border-zinc-200/80 bg-white/92 px-4 py-3" />
+
         <VendorProductSubmissionForm categories={categories} liveProducts={liveProducts} />
       </div>
     </section>

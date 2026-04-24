@@ -1,0 +1,271 @@
+import { ROUTES } from "@/lib/routes";
+
+export type BreadcrumbItem = {
+  label: string;
+  href?: string;
+};
+
+type BreadcrumbContext = {
+  pathname: string;
+  params: Record<string, string>;
+};
+
+type BreadcrumbSpec = {
+  pattern: string;
+  items: BreadcrumbItem[] | ((context: BreadcrumbContext) => BreadcrumbItem[]);
+};
+
+const SHELL_ROOT_LABELS: Record<string, string> = {
+  admin: "Admin",
+  customer: "Tài khoản",
+  partner: "Đối tác",
+};
+
+const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
+  { pattern: ROUTES.ADMIN.DASHBOARD, items: [{ label: "Admin" }, { label: "Dashboard" }] },
+  { pattern: ROUTES.ADMIN.MESSAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Tin nhắn" }] },
+  { pattern: ROUTES.ADMIN.NOTIFICATIONS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Thông báo" }] },
+  { pattern: ROUTES.ADMIN.MEDIA, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Media" }] },
+  { pattern: ROUTES.ADMIN.GLOBAL_FIELDS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Global Fields" }] },
+  { pattern: ROUTES.ADMIN.HOOKS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Hooks" }] },
+
+  { pattern: ROUTES.ADMIN.PAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh sách Trang" }] },
+  { pattern: "/admin/pages/[...slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh sách Trang", href: ROUTES.ADMIN.PAGES }, { label: "Chỉnh sửa trang" }] },
+  { pattern: ROUTES.ADMIN.MENUS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Navigation" }] },
+  { pattern: "/admin/menus/[name]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Navigation", href: ROUTES.ADMIN.MENUS }, { label: "Chỉnh sửa menu" }] },
+  { pattern: ROUTES.ADMIN.BLOG_POSTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Posts" }] },
+  { pattern: "/admin/blog/posts/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS }, { label: "Chỉnh sửa bài viết" }] },
+  { pattern: ROUTES.ADMIN.BLOG_CATEGORIES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Categories" }] },
+  { pattern: "/admin/blog/categories/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES }, { label: "Chỉnh sửa danh mục" }] },
+  { pattern: ROUTES.ADMIN.SEO_GUIDE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Guide" }] },
+  { pattern: ROUTES.ADMIN.SEO_PAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Pages" }] },
+  { pattern: ROUTES.ADMIN.SEO_SCHEMA, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Schema" }] },
+  { pattern: ROUTES.ADMIN.SEO_RULES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Rules" }] },
+
+  { pattern: ROUTES.ADMIN.PRODUCT_LIST, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm" }] },
+  { pattern: ROUTES.ADMIN.PRODUCTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST }, { label: "Tạo sản phẩm" }] },
+  { pattern: ROUTES.ADMIN.PRODUCT_LIST_CODED, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Mẫu coded" }] },
+  { pattern: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Mẫu builder" }] },
+  { pattern: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm" }] },
+  { pattern: "/admin/products/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST }, { label: "Chỉnh sửa sản phẩm" }] },
+  { pattern: ROUTES.ADMIN.PRODUCT_CATEGORIES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Product Cat" }] },
+  { pattern: "/admin/product-cat/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES }, { label: "Chỉnh sửa danh mục" }] },
+  { pattern: "/admin/products/categories", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh mục sản phẩm" }] },
+  { pattern: "/admin/products/categories/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh mục sản phẩm", href: "/admin/products/categories" }, { label: "Chỉnh sửa danh mục" }] },
+  { pattern: ROUTES.ADMIN.VENDOR_PRODUCTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Vendor Product Review" }] },
+  { pattern: "/admin/vendor-products/[id]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Vendor Product Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS }, { label: "Chi tiết hồ sơ vendor" }] },
+
+  { pattern: ROUTES.ADMIN.ORDERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders" }] },
+  { pattern: "/admin/orders/[id]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders", href: ROUTES.ADMIN.ORDERS }, { label: "Chi tiết đơn hàng" }] },
+  { pattern: ROUTES.ADMIN.PAYMENTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Payments" }] },
+  { pattern: ROUTES.ADMIN.SHIPMENTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Shipments" }] },
+
+  { pattern: ROUTES.ADMIN.USERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Người dùng" }] },
+  { pattern: ROUTES.ADMIN.USERS_CREATE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Người dùng", href: ROUTES.ADMIN.USERS }, { label: "Tạo người dùng" }] },
+  { pattern: "/admin/users/[id]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Người dùng", href: ROUTES.ADMIN.USERS }, { label: "Chi tiết người dùng" }] },
+  { pattern: ROUTES.ADMIN.CUSTOMERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Khách hàng" }] },
+  { pattern: ROUTES.ADMIN.CUSTOMERS_CREATE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS }, { label: "Tạo khách hàng" }] },
+  { pattern: ROUTES.ADMIN.AFFILIATE_USERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Đối tác / CTV" }] },
+  { pattern: ROUTES.ADMIN.AFFILIATE_USERS_CREATE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Đối tác / CTV", href: ROUTES.ADMIN.AFFILIATE_USERS }, { label: "Tạo đối tác / CTV" }] },
+  { pattern: ROUTES.ADMIN.AFFILIATES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Quản lý affiliate" }] },
+  { pattern: ROUTES.ADMIN.INTERNAL_ACCOUNTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Tài khoản nội bộ" }] },
+  { pattern: ROUTES.ADMIN.VENDORS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp" }] },
+  { pattern: ROUTES.ADMIN.VENDORS_CREATE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS }, { label: "Tạo nhà cung cấp" }] },
+  { pattern: "/admin/vendors/[id]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS }, { label: "Chi tiết nhà cung cấp" }] },
+
+  { pattern: ROUTES.ADMIN.CONFIG, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_BRANDING, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Branding" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_BREADCRUMBS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Breadcrumbs" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_ECOMMERCE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Ecommerce" }] },
+  { pattern: "/admin/config/commerce", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Commerce" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_EMAIL, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Email" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_FAVICON, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Favicon" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_INTERNAL_APIS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "API nội bộ" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "API nội bộ", href: ROUTES.ADMIN.CONFIG_INTERNAL_APIS }, { label: "API import sản phẩm" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_OPENGRAPH, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Open Graph" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Thêm phương thức thanh toán" }] },
+  { pattern: "/admin/config/payment-methods/[code]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Sửa phương thức thanh toán" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_PERMALINKS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Permalinks" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_SITEMAP, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Sitemap & Robots" }] },
+
+  { pattern: ROUTES.CUSTOMER.DASHBOARD, items: [{ label: "Tài khoản" }, { label: "Dashboard" }] },
+  { pattern: ROUTES.CUSTOMER.INVITATIONS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi" }] },
+  { pattern: "/customer/invitations/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS }, { label: "Chỉnh sửa thiệp" }] },
+  { pattern: ROUTES.CUSTOMER.ORDERS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Đơn hàng của tôi" }] },
+  { pattern: "/customer/orders/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Đơn hàng của tôi", href: ROUTES.CUSTOMER.ORDERS }, { label: "Chi tiết đơn hàng" }] },
+  { pattern: ROUTES.CUSTOMER.MESSAGES, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Tin nhắn" }] },
+  { pattern: ROUTES.CUSTOMER.PROFILE, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Hồ sơ" }] },
+  { pattern: ROUTES.CUSTOMER.AFFILIATE, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Tiếp thị liên kết" }] },
+  { pattern: ROUTES.CUSTOMER.SETTINGS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Cài đặt" }] },
+  { pattern: ROUTES.CUSTOMER.VENDOR, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Không gian nhà cung cấp" }] },
+  { pattern: "/customer/design/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS }, { label: "Thiết kế thiệp" }] },
+
+  { pattern: ROUTES.PARTNER.ACCOUNT, items: [{ label: "Đối tác" }, { label: "Thông tin đối tác" }] },
+  { pattern: ROUTES.PARTNER.PRODUCTS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor" }] },
+  { pattern: ROUTES.PARTNER.PRODUCT_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Tạo hồ sơ" }] },
+  { pattern: "/partner/products/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Chi tiết hồ sơ" }] },
+  { pattern: "/partner/orders/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Đơn được giao", href: ROUTES.PARTNER.LEGACY_ORDERS }, { label: "Chi tiết đơn hàng" }] },
+];
+
+function normalizePathname(pathname: string) {
+  if (!pathname) return "/";
+  const [rawPath] = pathname.split(/[?#]/, 1);
+  const trimmed = rawPath.replace(/\/+$/, "");
+  return trimmed || "/";
+}
+
+function splitPath(pathname: string) {
+  const normalized = normalizePathname(pathname);
+  if (normalized === "/") return [];
+  return normalized.slice(1).split("/");
+}
+
+function humanizeSegment(segment: string) {
+  const value = decodeURIComponent(segment)
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!value) return "";
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getPatternSpecificity(pattern: string) {
+  return splitPath(pattern).reduce((score, segment) => {
+    if (/^\[\.\.\..+\]$/.test(segment)) return score + 1;
+    if (/^\[.+\]$/.test(segment)) return score + 5;
+    return score + 10;
+  }, 0);
+}
+
+function matchPattern(pattern: string, pathname: string): Record<string, string> | null {
+  const patternSegments = splitPath(pattern);
+  const pathSegments = splitPath(pathname);
+  const params: Record<string, string> = {};
+
+  let pathIndex = 0;
+
+  for (let patternIndex = 0; patternIndex < patternSegments.length; patternIndex += 1) {
+    const patternSegment = patternSegments[patternIndex];
+    const pathSegment = pathSegments[pathIndex];
+
+    if (/^\[\.\.\.(.+)\]$/.test(patternSegment)) {
+      const key = patternSegment.slice(4, -1);
+      params[key] = pathSegments.slice(pathIndex).join("/");
+      return params;
+    }
+
+    if (pathSegment === undefined) {
+      return null;
+    }
+
+    if (/^\[(.+)\]$/.test(patternSegment)) {
+      params[patternSegment.slice(1, -1)] = pathSegment;
+      pathIndex += 1;
+      continue;
+    }
+
+    if (patternSegment !== pathSegment) {
+      return null;
+    }
+
+    pathIndex += 1;
+  }
+
+  return pathIndex === pathSegments.length ? params : null;
+}
+
+function getShellRootItem(pathname: string): BreadcrumbItem | null {
+  const [rootSegment] = splitPath(pathname);
+
+  if (!rootSegment) return null;
+
+  if (rootSegment === "admin") {
+    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.ADMIN.DASHBOARD };
+  }
+
+  if (rootSegment === "customer") {
+    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.CUSTOMER.DASHBOARD };
+  }
+
+  if (rootSegment === "partner") {
+    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.PARTNER.ACCOUNT };
+  }
+
+  return null;
+}
+
+function buildFallbackBreadcrumbs(pathname: string): BreadcrumbItem[] {
+  const segments = splitPath(pathname);
+
+  if (segments.length === 0) {
+    return [];
+  }
+
+  const items: BreadcrumbItem[] = [];
+  const rootItem = getShellRootItem(pathname);
+
+  if (rootItem) {
+    items.push(rootItem);
+  }
+
+  let currentPath = "";
+  segments.forEach((segment, index) => {
+    currentPath += `/${segment}`;
+
+    if (index === 0 && rootItem) {
+      return;
+    }
+
+    items.push({
+      label: humanizeSegment(segment),
+      href: index === segments.length - 1 ? undefined : currentPath,
+    });
+  });
+
+  return items;
+}
+
+export function getRouteBreadcrumbs(pathname: string): BreadcrumbItem[] {
+  const normalizedPathname = normalizePathname(pathname);
+  let bestMatch:
+    | {
+        specificity: number;
+        items: BreadcrumbItem[];
+      }
+    | null = null;
+
+  for (const spec of APP_BREADCRUMB_SPECS) {
+    const params = matchPattern(spec.pattern, normalizedPathname);
+
+    if (!params) {
+      continue;
+    }
+
+    const context: BreadcrumbContext = {
+      pathname: normalizedPathname,
+      params,
+    };
+    const resolvedItems = typeof spec.items === "function" ? spec.items(context) : spec.items;
+    const specificity = getPatternSpecificity(spec.pattern);
+
+    if (!bestMatch || specificity > bestMatch.specificity) {
+      bestMatch = {
+        specificity,
+        items: resolvedItems,
+      };
+    }
+  }
+
+  const items = bestMatch?.items ?? buildFallbackBreadcrumbs(normalizedPathname);
+
+  return items.filter((item, index, array) => {
+    if (!item.label.trim()) return false;
+    if (index === 0) return true;
+
+    const previous = array[index - 1];
+    return previous.label !== item.label || previous.href !== item.href;
+  });
+}

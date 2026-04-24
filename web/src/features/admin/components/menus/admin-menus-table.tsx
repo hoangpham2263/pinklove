@@ -81,19 +81,17 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
       {
         accessorKey: "itemCount",
         header: ({ column }) => (
-          <div className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Số mục
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-2 h-8 px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Số mục
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
         ),
-        cell: ({ row }) => <div className="text-right font-medium">{row.original.itemCount ?? 0}</div>,
+        cell: ({ row }) => <div className="font-medium">{row.original.itemCount ?? 0}</div>,
       },
       {
         id: "actions",
@@ -101,13 +99,21 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setPreviewMenuId(row.original.id)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              title="Xem menu"
+              aria-label="Xem menu"
+              onClick={() => setPreviewMenuId(row.original.id)}
+            >
               <Eye className="h-4 w-4" />
-              Xem
             </Button>
             <Link
               href={ROUTES.ADMIN.MENU(row.original.name)}
               title="Sửa menu"
+              aria-label="Sửa menu"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Pencil className="h-4 w-4" />
