@@ -7,8 +7,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { BreadcrumbSettings } from "@/lib/system-settings";
 
 export function BreadcrumbSettingsForm({ settings }: { settings: BreadcrumbSettings }) {
@@ -22,7 +22,7 @@ export function BreadcrumbSettingsForm({ settings }: { settings: BreadcrumbSetti
     try {
       const formData = new FormData(event.currentTarget);
       formData.append("section", "breadcrumb");
-      const result = await postForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
+      const result = await adminApi.updateConfig(formData);
       toast.success(result.message ?? "Đã lưu cài đặt breadcrumb.");
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -39,7 +39,7 @@ export function BreadcrumbSettingsForm({ settings }: { settings: BreadcrumbSetti
         <CardDescription>Thiết lập chung cho breadcrumb UI và breadcrumb schema kiểu Rank Math.</CardDescription>
       </CardHeader>
       <CardContent>
-        <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+        <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-4" onSubmit={handleSubmit}>
           <label className="flex items-start gap-3 rounded-md border bg-card p-4">
             <input type="checkbox" name="enabled" defaultChecked={settings.enabled} className="mt-1 rounded border-input" />
             <span className="space-y-1">

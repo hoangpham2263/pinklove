@@ -207,6 +207,11 @@ web/
       website-hooks/
         catalog.ts
     lib/
+      api.ts
+      api-client.admin.ts
+      api-client.customer.ts
+      api-client.public.ts
+      api-client.vendor.ts
       auth.ts
       action-response.ts
       client-mutation.ts
@@ -237,12 +242,30 @@ web/
 
 - The app is a monolithic Next.js application inside `web/`.
 - Route handlers and Server Components call shared infra in `src/lib/*` and feature-owned server services in `src/features/*/server/*`.
+- Client-side UI API calls are role-based:
+  - `src/lib/api.ts` is the low-level HTTP layer.
+  - `src/lib/api-client.admin.ts` owns admin-facing UI API methods.
+  - `src/lib/api-client.customer.ts` owns customer-facing UI API methods.
+  - `src/lib/api-client.vendor.ts` owns vendor/partner-facing UI API methods.
+  - `src/lib/api-client.public.ts` owns public/guest UI API methods.
+- Client components should call role APIs directly instead of importing feature-local API client wrappers.
 - Database access is raw SQL through `src/lib/database.ts`.
 - `database.ts` also performs limited auto-migrations and seed steps on first use.
 - Media files are stored on disk, not in PostgreSQL.
 - Shared custom-field architecture uses code-registered schemas.
   Managed-page field schemas live under `src/features/pages/*`.
   Whole-site global field schemas live under `src/features/global-fields/*`.
+
+## API client architecture
+
+- The intended client call flow is:
+  - `component -> role api-client file -> api.ts`
+- `src/lib/api.ts` is the only shared low-level wrapper for:
+  - `apiFetch`
+  - `apiJson`
+  - internal API constants such as shared header/cookie names
+- Do not re-introduce `src/features/*/api/client.ts` wrappers for UI usage.
+- When a client-side form needs a native `action=` fallback and already uses a role API module, prefer exporting an action constant from the same role file rather than duplicating `ROUTES.API.*` in the component.
 
 ## Public Guest Area
 

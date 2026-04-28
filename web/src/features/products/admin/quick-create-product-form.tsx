@@ -7,7 +7,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import type { ProductCategory, ProductFulfillmentType } from "@/features/products/types";
@@ -43,7 +44,7 @@ export function QuickCreateProductForm({
     setIsSubmitting(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.CREATE, new FormData(event.currentTarget));
+      const result = await adminApi.createProduct(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã tạo sản phẩm mới.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -55,7 +56,7 @@ export function QuickCreateProductForm({
 
   return (
     <NativeForm
-      action={ROUTES.API.ADMIN.PRODUCTS.CREATE}
+      action={adminApiActions.createProduct}
       method="POST"
       className="grid grid-cols-1 gap-6 lg:grid-cols-12"
       onSubmit={handleSubmit}

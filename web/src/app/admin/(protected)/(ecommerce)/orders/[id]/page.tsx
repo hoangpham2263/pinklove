@@ -118,8 +118,7 @@ export default async function AdminOrderDetailPage({
 
           <AdminVendorAssignmentPanel
             orderId={order.id}
-            submitUrl={ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT}
-            detailUrl={`/api/admin/orders/${order.id}/vendor-assignment`}
+            detailUrl={ROUTES.API.ADMIN.ORDERS.DETAIL_VENDOR_ASSIGNMENT(order.id)}
             initialDetail={vendorAssignment}
             vendorOptions={vendors.map((vendor) => ({
               id: vendor.id,
@@ -136,8 +135,7 @@ export default async function AdminOrderDetailPage({
             <CardContent className="space-y-4">
               <AdminOrderStatePanel
                 orderId={order.id}
-                submitUrl={ROUTES.API.ADMIN.ORDERS.UPDATE}
-                detailUrl={`/api/admin/orders/${order.id}/state`}
+                detailUrl={ROUTES.API.ADMIN.ORDERS.DETAIL_STATE(order.id)}
                 initialOrder={{
                   id: order.id,
                   status: order.status,

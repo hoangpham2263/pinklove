@@ -37,7 +37,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AccountUser, AuthUser } from "@/lib/auth";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { VendorPortalCopyButton } from "@/features/admin/components/vendors/vendor-portal-copy-button";
@@ -247,7 +248,7 @@ export function UserManagement({
               </Link>
 
               <NativeForm
-                action={ROUTES.API.ADMIN.USERS.DELETE}
+                action={adminApiActions.deleteUser}
                 method="POST"
                 className="inline-block"
                 onSubmit={async (event) => {
@@ -257,7 +258,7 @@ export function UserManagement({
                   }
 
                   try {
-                    const result = await postForm(ROUTES.API.ADMIN.USERS.DELETE, new FormData(event.currentTarget));
+                    const result = await adminApi.deleteUser(new FormData(event.currentTarget));
                     toast.success(result.message ?? "Đã xóa tài khoản.");
                     finishMutation(router, result, { redirect: false });
                   } catch (error) {
@@ -348,7 +349,7 @@ export function UserManagement({
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm
-            action={ROUTES.API.ADMIN.USERS.BULK}
+            action={adminApiActions.bulkUpdateUsers}
             method="POST"
             className="flex flex-col gap-3 md:flex-row md:items-center"
             onSubmit={async (event) => {
@@ -364,7 +365,7 @@ export function UserManagement({
               }
 
               try {
-                const result = await postForm(ROUTES.API.ADMIN.USERS.BULK, new FormData(event.currentTarget));
+                const result = await adminApi.bulkUpdateUsers(new FormData(event.currentTarget));
                 toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                 finishMutation(router, result, { redirect: false });
                 setRowSelection({});

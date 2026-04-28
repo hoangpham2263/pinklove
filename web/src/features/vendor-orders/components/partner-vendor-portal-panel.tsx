@@ -22,15 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import type { VendorAssignmentStatus, VendorOrderSummary } from "@/features/vendor-orders/types";
+import { vendorApi } from "@/lib/api-client.vendor";
+import type { VendorPortalStats } from "@/lib/api-client.vendor";
 import { ROUTES } from "@/lib/routes";
 import { getPaymentStatusLabel, getVendorAssignmentStatusLabel } from "@/lib/status-labels";
-
-type VendorPortalStats = {
-  total: number;
-  active: number;
-  review: number;
-  completed: number;
-};
 
 type PartnerVendorPortalPanelProps = {
   summaryUrl: string;
@@ -93,20 +88,7 @@ export function PartnerVendorPortalPanel({
   );
 
   const loadSummary = useCallback(async () => {
-    const response = await fetch(summaryUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-
-    if (!response.ok) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    return (await response.json()) as {
-      stats?: VendorPortalStats;
-      assignments?: VendorOrderSummary[];
-    };
+    return vendorApi.fetchVendorPortalSummary(summaryUrl);
   }, [summaryUrl]);
 
   useRealtimeResource({

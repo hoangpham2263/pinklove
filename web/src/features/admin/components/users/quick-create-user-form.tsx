@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { USER_ROLE_OPTIONS, type UserRole, USER_ROLES, getRoleLabel } from "@/lib/roles";
-import { ROUTES } from "@/lib/routes";
 
 type QuickCreateUserFormProps = {
   defaultRole?: UserRole;
@@ -27,7 +27,7 @@ export function QuickCreateUserForm({
     setIsSubmitting(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.USERS.CREATE, new FormData(event.currentTarget));
+      const result = await adminApi.createUser(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã tạo tài khoản mới.");
       finishMutation(router, result, { redirect: false });
       event.currentTarget.reset();
@@ -39,7 +39,7 @@ export function QuickCreateUserForm({
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.USERS.CREATE} method="POST" className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.createUser} method="POST" className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <div className="space-y-2">
         <label>Tên đăng nhập</label>

@@ -77,10 +77,25 @@ This file is the repo-wide source of truth.
 - Prefer named exports elsewhere.
 - Avoid deep relative imports when `@/` works.
 
+## API client layering
+
+- Keep `src/lib/api.ts` as the only shared low-level HTTP wrapper for UI calls.
+- Use role-based client API modules for browser/UI code:
+  - `src/lib/api-client.admin.ts`
+  - `src/lib/api-client.customer.ts`
+  - `src/lib/api-client.vendor.ts`
+  - `src/lib/api-client.public.ts`
+- Client components should import API methods from the matching role file directly.
+- Do not add new feature-local UI wrappers like `src/features/*/api/client.ts`.
+- Do not call `fetch("/api/...")`, `apiFetch(...)`, `apiJson(...)`, or `postForm(...)` directly from feature UI components when the call belongs in a role API file.
+- If a client component uses a JS submit handler and still needs a native `action=` fallback, prefer an exported `*ApiActions` constant from the same role API file instead of duplicating `ROUTES.API.*` in the component.
+- Realtime stream URLs are the main exception: it is acceptable for UI components to consume `ROUTES.API.*` directly for SSE/realtime endpoints.
+
 ## Forms
 
 - Use `NativeForm` from `src/components/common/native-form.tsx` for POST forms that rely on redirect responses.
 - `NativeForm` should be preferred for browser-native submissions that need server redirects to behave predictably.
+- For client-managed mutation forms, keep the submit logic and fallback action aligned through the same role API module whenever possible.
 
 ## Managed Pages and content
 

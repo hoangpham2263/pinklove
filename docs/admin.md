@@ -32,6 +32,8 @@ This file covers the admin area and admin-controlled workflows.
 - Vendor management may also expose a dedicated public entry link per vendor account that routes into the shared partner portal after login.
 - Admin order state updates should use client-side mutation panels for operational screens when partial realtime refresh is available, instead of relying on native form redirects.
 - Admin-facing status displays may keep stored enum values in English internally, but visible management labels should be shown in Vietnamese for clarity.
+- Admin UI mutations and fetches should go through `src/lib/api-client.admin.ts`.
+- If an admin client form needs a native `action=` fallback, prefer `adminApiActions.*` from the same file instead of hardcoding `ROUTES.API.ADMIN.*` inside the component.
 
 ## Current admin sections
 

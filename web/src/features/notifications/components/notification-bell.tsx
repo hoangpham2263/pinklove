@@ -8,37 +8,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import type { NotificationSummary, UserNotification } from "@/features/notifications/types";
+import { customerApi } from "@/lib/api-client.customer";
 import { ROUTES } from "@/lib/routes";
 
 type NotificationBellProps = {
   listHref?: string;
 };
 
-type NotificationPayload = {
-  notifications: UserNotification[];
-  summary: NotificationSummary;
-};
-
-async function fetchNotifications(): Promise<NotificationPayload> {
-  const response = await fetch(ROUTES.API.NOTIFICATIONS.INDEX, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-    credentials: "same-origin",
-  });
-  if (!response.ok) {
-    throw new Error("NOTIFICATIONS_LOAD_FAILED");
-  }
-  return (await response.json()) as NotificationPayload;
-}
-
-async function markRead(notificationId?: string) {
-  await fetch(ROUTES.API.NOTIFICATIONS.READ, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    credentials: "same-origin",
-    body: JSON.stringify(notificationId ? { notificationId } : { all: true }),
-  });
-}
+type NotificationPayload = Awaited<ReturnType<typeof customerApi.fetchNotifications>>;
 
 export function NotificationBell({ listHref }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
@@ -61,7 +38,7 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
   }, []);
 
   useEffect(() => {
-    void fetchNotifications()
+    void customerApi.fetchNotifications()
       .then((payload) => {
         setNotifications(payload.notifications);
         setSummary(payload.summary);
@@ -77,12 +54,12 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
     const previousUnread = summary.unreadCount;
     const delay = new Date(summary.nextScheduledAt).getTime() - Date.now() + 1000;
     if (!Number.isFinite(delay) || delay <= 0) {
-      void fetchNotifications().then((payload) => applyPayload(payload, previousUnread)).catch(() => undefined);
+      void customerApi.fetchNotifications().then((payload) => applyPayload(payload, previousUnread)).catch(() => undefined);
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      void fetchNotifications().then((payload) => applyPayload(payload, previousUnread)).catch(() => undefined);
+      void customerApi.fetchNotifications().then((payload) => applyPayload(payload, previousUnread)).catch(() => undefined);
     }, Math.min(delay, 2_147_483_647));
 
     return () => window.clearTimeout(timeout);
@@ -91,7 +68,7 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
   useRealtimeResource({
     streamUrl: ROUTES.API.NOTIFICATIONS.REALTIME,
     changedEvent: "notifications.changed",
-    load: fetchNotifications,
+    load: customerApi.fetchNotifications,
     onData: (payload) => {
       applyPayload(payload, latestUnread);
     },
@@ -151,7 +128,7 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
               variant="ghost"
               size="sm"
               onClick={() => {
-                void markRead().then(() => fetchNotifications().then((payload) => applyPayload(payload, summary.unreadCount)));
+                void customerApi.markNotificationRead().then(() => customerApi.fetchNotifications().then((payload) => applyPayload(payload, summary.unreadCount)));
               }}
             >
               <CheckCheck className="h-3.5 w-3.5" />
@@ -207,7 +184,7 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
                       type="button"
                       className="block w-full border-b px-3 py-2.5 transition-colors hover:bg-muted"
                       onClick={() => {
-                        void markRead(item.id).then(() => fetchNotifications().then((payload) => applyPayload(payload, summary.unreadCount)));
+                        void customerApi.markNotificationRead(item.id).then(() => customerApi.fetchNotifications().then((payload) => applyPayload(payload, summary.unreadCount)));
                       }}
                     >
                       {content}
@@ -222,7 +199,7 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
                     className="block border-b px-3 py-2.5 transition-colors hover:bg-muted"
                     onClick={() => {
                       setOpen(false);
-                      void markRead(item.id);
+                      void customerApi.markNotificationRead(item.id);
                     }}
                   >
                     {content}

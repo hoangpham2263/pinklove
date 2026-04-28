@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
-import { postForm } from "@/lib/client-mutation";
+import { vendorApi } from "@/lib/api-client.vendor";
 import { ROUTES } from "@/lib/routes";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel, getVendorAssignmentStatusLabel } from "@/lib/status-labels";
 import type { VendorAssignmentStatus, VendorOrderDetail } from "@/features/vendor-orders/types";
@@ -29,7 +29,6 @@ const ACTOR_LABELS = {
 
 type PartnerVendorAssignmentPanelProps = {
   detailUrl: string;
-  submitUrl: string;
   portalHref: string;
   initialDetail: VendorOrderDetail;
 };
@@ -54,7 +53,6 @@ function formatVendorEventMessage(message: string) {
 
 export function PartnerVendorAssignmentPanel({
   detailUrl,
-  submitUrl,
   portalHref,
   initialDetail,
 }: PartnerVendorAssignmentPanelProps) {
@@ -73,27 +71,15 @@ export function PartnerVendorAssignmentPanel({
   }, [detail]);
 
   const loadDetail = useCallback(async () => {
-    const response = await fetch(detailUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-
-    if (response.status === 404) {
-      router.replace(`${portalHref}?error=assignment_not_found`);
-      throw new Error("ASSIGNMENT_NOT_FOUND");
+    try {
+      return await vendorApi.fetchRequiredVendorOrderDetail(detailUrl);
+    } catch (error) {
+      if (error instanceof Error && error.message === "not_found") {
+        router.replace(`${portalHref}?error=assignment_not_found`);
+        throw new Error("ASSIGNMENT_NOT_FOUND");
+      }
+      throw error;
     }
-
-    if (!response.ok) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    const data = (await response.json()) as { detail?: VendorOrderDetail };
-    if (!data.detail) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    return data.detail;
   }, [detailUrl, portalHref, router]);
 
   useRealtimeResource({
@@ -130,7 +116,7 @@ export function PartnerVendorAssignmentPanel({
       formData.set("vendorNote", vendorNote);
 
       skipNextRealtimeToastRef.current = true;
-      const result = await postForm(submitUrl, formData);
+      const result = await vendorApi.updateVendorAssignment(formData);
       toast.success(result.message ? String(result.message) : "Đã lưu cập nhật.");
 
       setDetail(await loadDetail());

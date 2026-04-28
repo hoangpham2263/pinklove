@@ -15,9 +15,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel } from "@/lib/roles";
-import { ROUTES } from "@/lib/routes";
 import type { NotificationAudienceType, AdminNotification } from "@/features/notifications/types";
 import type { UserRole } from "@/lib/roles";
 
@@ -123,10 +123,9 @@ export function AdminNotificationUpsertDialog({
 
             const formData = new FormData(event.currentTarget);
             try {
-              const result = await postForm(
-                isEditing ? ROUTES.API.ADMIN.NOTIFICATIONS.UPDATE : ROUTES.API.ADMIN.NOTIFICATIONS.CREATE,
-                formData
-              );
+              const result = isEditing
+                ? await adminApi.updateNotification(formData)
+                : await adminApi.createNotification(formData);
               toast.success(result.message ?? (isEditing ? "Đã cập nhật thông báo." : "Đã lưu thông báo."));
               setOpen(false);
               finishMutation(router, result, { redirect: false });

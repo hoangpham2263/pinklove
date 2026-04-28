@@ -13,10 +13,10 @@ import { getManagedPageFields, isManagedSitePageSlug } from "@/features/pages/co
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { STRUCTURED_DATA_FIELD } from "@/lib/page-fields";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { ROUTES } from "@/lib/routes";
 import { SeoPreview } from "./seo-preview";
 import type { ManagedPage } from "@/lib/managed-pages";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
 
 const TiptapRichTextEditor = dynamic(
@@ -90,7 +90,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
     setIsSaving(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.PAGES.UPDATE, new FormData(event.currentTarget));
+      const result = await adminApi.updatePage(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu thay đổi trang.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {
@@ -101,7 +101,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.PAGES.UPDATE} method="POST" className="grid grid-cols-1 gap-6 lg:grid-cols-12" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.updatePage} method="POST" className="grid grid-cols-1 gap-6 lg:grid-cols-12" onSubmit={handleSubmit}>
       <input type="hidden" name="originalSlug" value={page.slug} />
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />

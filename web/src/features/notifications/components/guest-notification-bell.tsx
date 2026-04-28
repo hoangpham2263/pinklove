@@ -5,13 +5,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 
 import type { UserNotification } from "@/features/notifications/types";
-import { ROUTES } from "@/lib/routes";
+import { publicApi } from "@/lib/api-client.public";
 
 const STORAGE_KEY = "pinklove:guest-notification-read-ids";
-
-type PublicNotificationPayload = {
-  notifications: UserNotification[];
-};
 
 function readStoredIds() {
   if (typeof window === "undefined") {
@@ -31,19 +27,6 @@ function writeStoredIds(ids: Set<string>) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids).slice(-200)));
 }
 
-async function fetchPublicNotifications(): Promise<PublicNotificationPayload> {
-  const response = await fetch(ROUTES.API.NOTIFICATIONS.PUBLIC, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("PUBLIC_NOTIFICATIONS_LOAD_FAILED");
-  }
-
-  return (await response.json()) as PublicNotificationPayload;
-}
-
 export function GuestNotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
@@ -60,7 +43,7 @@ export function GuestNotificationBell() {
   useEffect(() => {
     let cancelled = false;
 
-    void fetchPublicNotifications()
+    void publicApi.fetchPublicNotifications()
       .then((payload) => {
         if (cancelled) {
           return;

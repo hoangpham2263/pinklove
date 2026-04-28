@@ -7,7 +7,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import type { InternalProductImportApiSettings } from "@/lib/system-settings";
 
@@ -27,7 +28,7 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
     try {
       const formData = new FormData(event.currentTarget);
       formData.append("section", "internal_api_products");
-      const result = await postForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
+      const result = await adminApi.updateConfig(formData);
       toast.success(result.message ?? "Đã lưu cấu hình API import sản phẩm.");
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -74,7 +75,7 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5" onSubmit={handleSubmit}>
+          <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-5" onSubmit={handleSubmit}>
             <label className="flex items-start gap-3 rounded-md border bg-card p-4">
               <input type="checkbox" name="enabled" defaultChecked={settings.enabled} className="mt-1 rounded border-input" />
               <span className="space-y-1">

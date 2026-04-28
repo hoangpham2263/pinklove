@@ -11,7 +11,8 @@ import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import { createDefaultBuilderDocument } from "@/features/invitations/builder/defaults";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import type { ProductCategory } from "@/features/products/types";
@@ -40,7 +41,7 @@ export function ProductBuilderTemplateCreateForm({
     setIsSubmitting(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.CREATE, new FormData(event.currentTarget));
+      const result = await adminApi.createProduct(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã tạo mẫu builder.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -52,7 +53,7 @@ export function ProductBuilderTemplateCreateForm({
 
   return (
     <NativeForm
-      action={ROUTES.API.ADMIN.PRODUCTS.CREATE}
+      action={adminApiActions.createProduct}
       method="POST"
       className="min-h-screen"
       onSubmit={handleSubmit}

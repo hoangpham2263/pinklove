@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { postForm, finishMutation } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { vendorApi } from "@/lib/api-client.vendor";
+import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
 import type { ProductCategory } from "@/features/products/types";
 import type { VendorProductSubmissionDetail, VendorProductSubmissionType } from "@/features/vendor-product-submissions/types";
@@ -46,7 +46,7 @@ export function VendorProductSubmissionForm({
     setIsSaving(true);
 
     try {
-      const result = await postForm(ROUTES.API.PARTNER.PRODUCTS.SUBMISSIONS, new FormData(event.currentTarget));
+      const result = await vendorApi.saveProductSubmission(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu hồ sơ sản phẩm.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -62,7 +62,7 @@ export function VendorProductSubmissionForm({
 
     try {
       const formData = new FormData();
-      const result = await postForm(ROUTES.API.PARTNER.PRODUCTS.SUBMIT(submission.id), formData);
+      const result = await vendorApi.submitProductSubmission(submission.id, formData);
       toast.success(result.message ?? "Đã gửi duyệt.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {

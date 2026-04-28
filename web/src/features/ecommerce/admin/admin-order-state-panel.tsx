@@ -4,7 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { postForm } from "@/lib/client-mutation";
+import { adminApi } from "@/lib/api-client.admin";
+import type { AdminOrderStateSnapshot } from "@/lib/api-client.admin";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 
@@ -22,18 +23,8 @@ const ORDER_STATUSES: OrderStatus[] = [
 const PAYMENT_STATUSES: PaymentStatus[] = ["unpaid", "pending", "paid", "failed", "refunded"];
 const FULFILLMENT_STATUSES: FulfillmentStatus[] = ["not_required", "pending", "processing", "shipped", "delivered", "cancelled"];
 
-type AdminOrderStateSnapshot = {
-  id: string;
-  status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  fulfillmentStatus: FulfillmentStatus;
-  notes: string;
-  updatedAt: string;
-};
-
 type AdminOrderStatePanelProps = {
   orderId: string;
-  submitUrl: string;
   detailUrl: string;
   initialOrder: AdminOrderStateSnapshot;
 };
@@ -46,7 +37,7 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrder }: AdminOrderStatePanelProps) {
+export function AdminOrderStatePanel({ orderId, detailUrl, initialOrder }: AdminOrderStatePanelProps) {
   const [order, setOrder] = useState(initialOrder);
   const [status, setStatus] = useState<OrderStatus>(initialOrder.status);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(initialOrder.paymentStatus);
@@ -55,26 +46,12 @@ export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrd
   const [isSaving, setIsSaving] = useState(false);
 
   async function loadOrder() {
-    const response = await fetch(detailUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-
-    if (!response.ok) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    const data = (await response.json()) as { order?: AdminOrderStateSnapshot };
-    if (!data.order) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    setOrder(data.order);
-    setStatus(data.order.status);
-    setPaymentStatus(data.order.paymentStatus);
-    setFulfillmentStatus(data.order.fulfillmentStatus);
-    setNotes(data.order.notes);
+    const data = await adminApi.fetchAdminOrderState(detailUrl);
+    setOrder(data);
+    setStatus(data.status);
+    setPaymentStatus(data.paymentStatus);
+    setFulfillmentStatus(data.fulfillmentStatus);
+    setNotes(data.notes);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -89,7 +66,7 @@ export function AdminOrderStatePanel({ orderId, submitUrl, detailUrl, initialOrd
       formData.set("fulfillmentStatus", fulfillmentStatus);
       formData.set("notes", notes);
 
-      const result = await postForm(submitUrl, formData);
+      const result = await adminApi.updateOrderState(formData);
       toast.success(result.message ? String(result.message) : "Da cap nhat trang thai don hang.");
       await loadOrder();
     } catch (error) {

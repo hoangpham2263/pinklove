@@ -35,7 +35,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type AffiliateAccount } from "@/features/affiliate/types";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 
 type AdminAffiliatesTableProps = {
@@ -269,13 +270,13 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               </Button>
 
               <NativeForm
-                action={ROUTES.API.ADMIN.AFFILIATES.UPDATE}
+                action={adminApiActions.updateAffiliate}
                 method="POST"
                 onSubmit={async (event) => {
                   event.preventDefault();
 
                   try {
-                    const result = await postForm(ROUTES.API.ADMIN.AFFILIATES.UPDATE, new FormData(event.currentTarget));
+                    const result = await adminApi.updateAffiliate(new FormData(event.currentTarget));
                     toast.success(result.message ?? "Đã cập nhật cấu hình affiliate.");
                     finishMutation(router, result, { redirect: false });
                   } catch (error) {
@@ -362,7 +363,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm
-            action={ROUTES.API.ADMIN.AFFILIATES.BULK}
+            action={adminApiActions.bulkUpdateAffiliates}
             method="POST"
             className="flex flex-col gap-3 md:flex-row md:items-center"
             onSubmit={async (event) => {
@@ -374,7 +375,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               event.preventDefault();
 
               try {
-                const result = await postForm(ROUTES.API.ADMIN.AFFILIATES.BULK, new FormData(event.currentTarget));
+                const result = await adminApi.bulkUpdateAffiliates(new FormData(event.currentTarget));
                 toast.success(result.message ?? "Đã cập nhật tài khoản affiliate.");
                 finishMutation(router, result, { redirect: false });
                 setRowSelection({});

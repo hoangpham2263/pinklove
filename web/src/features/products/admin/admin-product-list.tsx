@@ -37,7 +37,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ROUTES } from "@/lib/routes";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { Product, ProductType } from "@/features/products/types";
 import { getProductPath } from "@/lib/public-paths";
 
@@ -299,7 +300,7 @@ export function AdminProductList({
                 <Pencil className="h-4 w-4" />
               </Link>
               <NativeForm
-                action={ROUTES.API.ADMIN.PRODUCTS.DELETE}
+                action={adminApiActions.deleteProduct}
                 method="POST"
                 className="inline-block"
                 onSubmit={async (event) => {
@@ -309,7 +310,7 @@ export function AdminProductList({
                   }
 
                   try {
-                    const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, new FormData(event.currentTarget));
+                    const result = await adminApi.deleteProduct(new FormData(event.currentTarget));
                     toast.success(result.message ?? "Đã xóa sản phẩm.");
                     finishMutation(router, result, { redirect: false });
                   } catch (error) {
@@ -420,7 +421,7 @@ export function AdminProductList({
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm
-            action={ROUTES.API.ADMIN.PRODUCTS.BULK}
+            action={adminApiActions.bulkUpdateProducts}
             method="POST"
             className="flex flex-col gap-3 md:flex-row md:items-center"
             onSubmit={async (event) => {
@@ -436,7 +437,7 @@ export function AdminProductList({
               }
 
               try {
-                const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.BULK, new FormData(event.currentTarget));
+                const result = await adminApi.bulkUpdateProducts(new FormData(event.currentTarget));
                 toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                 finishMutation(router, result, { redirect: false });
                 setRowSelection({});

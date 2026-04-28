@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { AccountUser, AuthUser, UserProfile } from "@/lib/auth";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { USER_ROLE_OPTIONS, getRoleLabel } from "@/lib/roles";
 
 type EditUserFormProps = {
@@ -27,7 +28,7 @@ export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormPro
     setIsSaving(true);
 
     try {
-      const result = await postForm("/api/admin/users/update", new FormData(event.currentTarget));
+      const result = await adminApi.updateUser(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã cập nhật tài khoản.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {
@@ -38,7 +39,7 @@ export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormPro
   }
 
   return (
-    <NativeForm action="/api/admin/users/update" method="POST" className="flex flex-col gap-6 lg:flex-row" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.updateUser} method="POST" className="flex flex-col gap-6 lg:flex-row" onSubmit={handleSubmit}>
       <input type="hidden" name="userId" value={user.id} />
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
 

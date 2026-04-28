@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { postForm } from "@/lib/client-mutation";
+import { customerApi } from "@/lib/api-client.customer";
 import { WishlistContext } from "@/features/products/use-wishlist";
 import type { WishlistProductInput } from "@/features/products/wishlist";
 import { ROUTES } from "@/lib/routes";
@@ -45,7 +45,7 @@ export function WishlistProvider({
     formData.set("returnTo", typeof window === "undefined" ? ROUTES.WISHLIST : `${window.location.pathname}${window.location.search}${window.location.hash}`);
 
     try {
-      const result = await postForm(ROUTES.API.CUSTOMER.WISHLIST, formData);
+      const result = await customerApi.updateWishlist(formData);
       const nextProductIds = Array.isArray(result.productIds)
         ? result.productIds.map((item) => String(item))
         : [];
@@ -77,7 +77,7 @@ export function WishlistProvider({
     formData.set("productId", product.id);
 
     try {
-      const result = await postForm(ROUTES.API.CUSTOMER.WISHLIST, formData);
+      const result = await customerApi.updateWishlist(formData);
       const nextProductIds = Array.isArray(result.productIds)
         ? result.productIds.map((item) => String(item))
         : [];

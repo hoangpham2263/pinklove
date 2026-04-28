@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
+import { vendorApi } from "@/lib/api-client.vendor";
 import type { UserProfile, UserShippingProfile } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
@@ -90,17 +91,7 @@ export function PartnerAccountSettingsForm({
 
     setIsSaving(true);
     try {
-      const response = await fetch("/api/partner/shipping-profile", {
-        method: "POST",
-        body: formData,
-        headers: { Accept: "application/json" },
-      });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(data?.error ?? "Save failed");
-      }
-
+      await vendorApi.updateShippingProfile(formData);
       toast.success("Đã cập nhật hồ sơ lấy và hoàn hàng.");
       window.location.reload();
     } catch (error) {

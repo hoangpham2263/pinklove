@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { customerApi, customerApiActions } from "@/lib/api-client.customer";
+import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -26,7 +27,7 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
     event.preventDefault();
 
     try {
-      const result = await postForm(ROUTES.API.CUSTOMER.INVITATIONS.UPDATE, new FormData(event.currentTarget));
+      const result = await customerApi.updateInvitation(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu.");
       finishMutation(router, result, { redirect: false });
     } catch (error) {
@@ -35,7 +36,7 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
   }
 
   return (
-    <NativeForm action={ROUTES.API.CUSTOMER.INVITATIONS.UPDATE} method="POST" className="flex min-h-screen flex-col" onSubmit={handleSubmit}>
+    <NativeForm action={customerApiActions.updateInvitation} method="POST" className="flex min-h-screen flex-col" onSubmit={handleSubmit}>
       <input type="hidden" name="siteId" value={String(invitation.id)} />
       <input type="hidden" name="templateKey" value={invitation.templateKey} />
 

@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MediaSelector } from "@/features/media/components/media-selector";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 
 export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categories: BlogCategory[] }) {
@@ -23,7 +23,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
     setIsSaving(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.BLOG.POSTS.UPDATE, new FormData(event.currentTarget));
+      const result = await adminApi.updateBlogPost(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu bài viết.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {
@@ -42,7 +42,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
     try {
       const formData = new FormData();
       formData.append("slug", post.slug);
-      const result = await postForm(ROUTES.API.ADMIN.BLOG.POSTS.DELETE, formData);
+      const result = await adminApi.deleteBlogPost(formData);
       toast.success(result.message ?? "Đã xóa bài viết.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -53,7 +53,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.BLOG.POSTS.UPDATE} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSave}>
+    <NativeForm action={adminApiActions.updateBlogPost} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSave}>
       <input type="hidden" name="originalSlug" value={post.slug} />
       <input type="hidden" name="coverImage" value={coverImage} />
 

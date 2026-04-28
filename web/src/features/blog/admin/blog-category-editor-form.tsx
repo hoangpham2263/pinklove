@@ -7,8 +7,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { BlogCategory } from "@/features/blog/types";
 
 export function BlogCategoryEditorForm({ category }: { category: BlogCategory }) {
@@ -21,7 +21,7 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
     setIsSaving(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.BLOG.CATEGORIES.UPDATE, new FormData(event.currentTarget));
+      const result = await adminApi.updateBlogCategory(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu danh mục.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {
@@ -40,7 +40,7 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
     try {
       const formData = new FormData();
       formData.append("slug", category.slug);
-      const result = await postForm(ROUTES.API.ADMIN.BLOG.CATEGORIES.DELETE, formData);
+      const result = await adminApi.deleteBlogCategory(formData);
       toast.success(result.message ?? "Đã xóa danh mục.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -51,7 +51,7 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.BLOG.CATEGORIES.UPDATE} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSave}>
+    <NativeForm action={adminApiActions.updateBlogCategory} method="POST" className="grid gap-6 lg:grid-cols-12" onSubmit={handleSave}>
       <input type="hidden" name="originalSlug" value={category.slug} />
 
       <Card className="rounded-lg lg:col-span-9">

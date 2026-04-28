@@ -19,8 +19,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type AffiliateApplication } from "@/features/affiliate/types";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 
 type AdminAffiliateApplicationsTableProps = {
   applications: AffiliateApplication[];
@@ -144,12 +144,12 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
         return (
           <div className="flex justify-end">
             <NativeForm
-              action={ROUTES.API.ADMIN.AFFILIATES.APPLICATIONS_UPDATE}
+              action={adminApiActions.updateAffiliateApplication}
               method="POST"
               onSubmit={async (event) => {
                 event.preventDefault();
                 try {
-                  const result = await postForm(ROUTES.API.ADMIN.AFFILIATES.APPLICATIONS_UPDATE, new FormData(event.currentTarget));
+                  const result = await adminApi.updateAffiliateApplication(new FormData(event.currentTarget));
                   toast.success(result.message ?? "Đã cập nhật hồ sơ affiliate.");
                   finishMutation(router, result, { redirect: false });
                 } catch (error) {

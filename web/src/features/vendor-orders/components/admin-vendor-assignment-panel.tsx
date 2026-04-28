@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
-import { postForm } from "@/lib/client-mutation";
+import { adminApi } from "@/lib/api-client.admin";
 import { ROUTES } from "@/lib/routes";
 import { getVendorAssignmentStatusLabel } from "@/lib/status-labels";
 import type { VendorOrderDetail } from "@/features/vendor-orders/types";
@@ -19,7 +19,6 @@ type VendorOption = {
 
 type AdminVendorAssignmentPanelProps = {
   orderId: string;
-  submitUrl: string;
   detailUrl: string;
   initialDetail: VendorOrderDetail | null;
   vendorOptions: VendorOption[];
@@ -36,7 +35,6 @@ function formatDateTime(value?: string) {
 
 export function AdminVendorAssignmentPanel({
   orderId,
-  submitUrl,
   detailUrl,
   initialDetail,
   vendorOptions,
@@ -53,18 +51,7 @@ export function AdminVendorAssignmentPanel({
   }, [detail]);
 
   const loadDetail = useCallback(async () => {
-    const response = await fetch(detailUrl, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-
-    if (!response.ok) {
-      throw new Error("LOAD_FAILED");
-    }
-
-    const data = (await response.json()) as { detail?: VendorOrderDetail | null };
-    return data.detail ?? null;
+    return adminApi.fetchVendorOrderDetail(detailUrl);
   }, [detailUrl]);
 
   useRealtimeResource({
@@ -101,7 +88,7 @@ export function AdminVendorAssignmentPanel({
       formData.set("internalNote", internalNote);
 
       skipNextRealtimeToastRef.current = true;
-      const result = await postForm(submitUrl, formData);
+      const result = await adminApi.saveVendorAssignment(formData);
       toast.success(result.message ? String(result.message) : "Da luu phan cong vendor.");
 
       setDetail(await loadDetail());

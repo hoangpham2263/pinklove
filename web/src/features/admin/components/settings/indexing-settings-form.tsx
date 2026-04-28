@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { IndexingSettings } from "@/lib/system-settings";
 
 export function IndexingSettingsForm({ settings }: { settings: IndexingSettings }) {
@@ -21,7 +21,7 @@ export function IndexingSettingsForm({ settings }: { settings: IndexingSettings 
     try {
       const formData = new FormData(event.currentTarget);
       formData.append("section", "indexing");
-      const result = await postForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
+      const result = await adminApi.updateConfig(formData);
       toast.success(result.message ?? "Đã lưu cài đặt indexing.");
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -38,7 +38,7 @@ export function IndexingSettingsForm({ settings }: { settings: IndexingSettings 
         <CardDescription>Điều khiển robots và khả năng index toàn website.</CardDescription>
       </CardHeader>
       <CardContent>
-        <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+        <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-4" onSubmit={handleSubmit}>
           <label className="flex items-start gap-3 rounded-md border bg-card p-4">
             <input type="checkbox" name="siteIndexingEnabled" defaultChecked={settings.siteIndexingEnabled} className="mt-1 rounded border-input" />
             <span className="space-y-1">

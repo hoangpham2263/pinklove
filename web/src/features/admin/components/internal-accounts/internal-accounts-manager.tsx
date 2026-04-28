@@ -16,7 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { type InternalAccount } from "@/lib/internal-accounts";
 import { ROUTES } from "@/lib/routes";
 
@@ -94,7 +95,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
     event.preventDefault();
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE, new FormData(event.currentTarget));
+      const result = await adminApi.saveInternalAccount(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã thêm tài khoản nội bộ.");
       resetCreateDraft();
       finishMutation(router, result, { redirect: false });
@@ -107,7 +108,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
     event.preventDefault();
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE, new FormData(event.currentTarget));
+      const result = await adminApi.saveInternalAccount(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã cập nhật tài khoản nội bộ.");
       cancelEditing();
       finishMutation(router, result, { redirect: false });
@@ -124,7 +125,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
     }
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.DELETE, new FormData(event.currentTarget));
+      const result = await adminApi.removeInternalAccount(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã xóa tài khoản nội bộ.");
       if (editingId) {
         cancelEditing();
@@ -163,7 +164,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
         </div>
 
         <NativeForm
-          action={ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE}
+          action={adminApiActions.saveInternalAccount}
           method="POST"
           className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
           onSubmit={handleCreate}
@@ -365,7 +366,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                       {isEditing ? (
                         <>
                           <NativeForm
-                            action={ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE}
+                            action={adminApiActions.saveInternalAccount}
                             method="POST"
                             onSubmit={handleUpdate}
                           >
@@ -394,7 +395,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                             Sửa
                           </Button>
                           <NativeForm
-                            action={ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.DELETE}
+                            action={adminApiActions.removeInternalAccount}
                             method="POST"
                             onSubmit={(event) => handleDelete(event, account.label)}
                           >

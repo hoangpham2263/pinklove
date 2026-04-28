@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { adminApi } from "@/lib/api-client.admin";
 import { Menu, MenuItemType } from "@/lib/menu";
 import { ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
@@ -249,20 +250,8 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
     setIsSaving(true);
 
     try {
-      const response = await fetch("/api/admin/menus/update", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      const data = (await response.json().catch(() => null)) as { message?: string } | null;
-      if (!response.ok) {
-        throw new Error(data?.message ?? "Không thể lưu menu.");
-      }
-
-      toast.success(data?.message ?? "Đã lưu menu.");
+      const result = await adminApi.updateMenu(formData);
+      toast.success(result.message ? String(result.message) : "Đã lưu menu.");
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể lưu menu.");

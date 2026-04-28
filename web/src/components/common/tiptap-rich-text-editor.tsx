@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { MediaAsset } from "@/features/media/types";
+import { adminApi } from "@/lib/api-client.admin";
 import { cn } from "@/lib/utils";
 import { normalizeRichTextHtml, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 
@@ -168,14 +169,9 @@ export function TiptapRichTextEditor({
       setLoading(true);
 
       try {
-        const response = await fetch("/api/media?limit=50");
-        if (!response.ok) {
-          return;
-        }
-
-        const data = (await response.json()) as { items?: MediaAsset[] };
+        const data = await adminApi.listMedia({ limit: 50 });
         if (!ignore) {
-          setItems(data.items ?? []);
+          setItems(data.items);
         }
       } finally {
         if (!ignore) {
@@ -270,22 +266,8 @@ export function TiptapRichTextEditor({
       const uploadedItems: MediaAsset[] = [];
 
       for (const file of files) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/media", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          continue;
-        }
-
-        const data = (await response.json()) as { item?: MediaAsset };
-        if (data.item) {
-          uploadedItems.push(data.item);
-        }
+        const data = await adminApi.uploadMedia(file);
+        uploadedItems.push(data.item);
       }
 
       if (uploadedItems.length > 0) {

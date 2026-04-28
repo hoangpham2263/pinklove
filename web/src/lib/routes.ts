@@ -177,7 +177,9 @@ export const ROUTES = {
       },
       ORDERS: {
         UPDATE: "/api/partner/orders/update",
+        VENDOR_ASSIGNMENT: (id: string) => `/api/partner/vendor-assignments/${id}`,
       },
+      SHIPPING_PROFILE: "/api/partner/shipping-profile",
       PRODUCTS: {
         SUBMISSIONS: "/api/partner/products/submissions",
         SUBMISSION: (id: string) => `/api/partner/products/submissions/${id}`,
@@ -247,6 +249,8 @@ export const ROUTES = {
       ORDERS: {
         UPDATE: "/api/admin/orders/update",
         VENDOR_ASSIGNMENT: "/api/admin/orders/vendor-assignment",
+        DETAIL_STATE: (id: string) => `/api/admin/orders/${id}/state`,
+        DETAIL_VENDOR_ASSIGNMENT: (id: string) => `/api/admin/orders/${id}/vendor-assignment`,
       },
       VENDOR_PRODUCTS: {
         INDEX: "/api/admin/vendor-products",

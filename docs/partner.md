@@ -29,6 +29,8 @@ Use this file for the dedicated vendor/partner portal.
 - Each vendor has a dedicated canonical portal link at `/partner/[slug]`.
 - After vendor login, redirects should resolve back to the canonical portal link when possible.
 - Non-vendor users must not enter the partner workspace.
+- Vendor/partner UI mutations and fetches should go through `src/lib/api-client.vendor.ts`.
+- If a vendor client form needs a native `action=` fallback, prefer `vendorApiActions.*` from the same role API file when the endpoint is fixed.
 
 ## Vendor Order Flow
 

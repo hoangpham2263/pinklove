@@ -26,6 +26,9 @@ This file covers the normal customer area and customer-owned site flows.
 - Current builder limitations:
   - element height is not draggable/resizable yet
   - editor grouping is not implemented yet
+- Customer UI mutations and fetches should go through `src/lib/api-client.customer.ts`.
+- Public/guest-only UI flows should use `src/lib/api-client.public.ts`, not the customer client file.
+- If a customer client form needs a native `action=` fallback, prefer `customerApiActions.*` from the same role API file.
 
 ## Current customer routes
 

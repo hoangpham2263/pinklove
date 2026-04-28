@@ -13,13 +13,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import {
   DEFAULT_EMAIL_TEMPLATE_VARIABLES,
   EMAIL_SHORTCODES,
   renderEmailTemplateSet,
 } from "@/lib/email-template";
-import { ROUTES } from "@/lib/routes";
 
 type EmailDemoFormProps = {
   defaultRecipient: string;
@@ -71,7 +70,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
 
     try {
       const formData = new FormData(event.currentTarget);
-      const result = await postForm(ROUTES.API.ADMIN.EMAIL.TEST, formData);
+      const result = await adminApi.sendTestEmail(formData);
       toast.success(result.message ?? "Đã chạy demo email.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể chạy demo email.");
@@ -82,7 +81,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
 
   return (
     <>
-    <NativeForm action={ROUTES.API.ADMIN.EMAIL.TEST} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.sendTestEmail} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="grid gap-2">
         <label htmlFor="recipient" className="text-sm font-medium">
           Demo recipient

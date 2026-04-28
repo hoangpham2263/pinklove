@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac } from "node:crypto";
 import type { EcommerceOrder } from "@/features/ecommerce/types";
+import { ROUTES } from "@/lib/routes";
 
 type VnpayParams = Record<string, string>;
 
@@ -72,11 +73,11 @@ export function verifyVnpayParams(params: VnpayParams, hashSecret: string) {
 }
 
 export function getVnpayReturnPath() {
-  return "/api/payments/vnpay/return";
+  return ROUTES.API.PAYMENTS.VNPAY.RETURN;
 }
 
 export function getVnpayIpnPath() {
-  return "/api/payments/vnpay/ipn";
+  return ROUTES.API.PAYMENTS.VNPAY.IPN;
 }
 
 export function createVnpayPaymentUrl(input: {

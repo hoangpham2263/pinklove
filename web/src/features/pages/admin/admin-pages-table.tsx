@@ -20,7 +20,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NativeForm } from "@/components/common/native-form";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { Input } from "@/components/ui/input";
 import { getManagedPagePath } from "@/lib/page-paths";
 import {
@@ -32,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ManagedPage } from "@/lib/managed-pages";
+import { ROUTES } from "@/lib/routes";
 
 type AdminPagesTableProps = {
   pages: ManagedPage[];
@@ -226,7 +228,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <NativeForm
-            action="/api/admin/pages/bulk"
+            action={adminApiActions.bulkUpdatePages}
             method="POST"
             className="flex flex-col gap-3 md:flex-row md:items-center"
             onSubmit={async (event) => {
@@ -238,7 +240,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               event.preventDefault();
 
               try {
-                const result = await postForm("/api/admin/pages/bulk", new FormData(event.currentTarget));
+                const result = await adminApi.bulkUpdatePages(new FormData(event.currentTarget));
                 toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                 finishMutation(router, result, { redirect: false });
                 setRowSelection({});

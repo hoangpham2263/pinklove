@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
 import type { BlogCategory } from "@/features/blog/types";
 
@@ -23,7 +23,7 @@ export function QuickCreateBlogPostForm({ categories }: { categories: BlogCatego
     setIsSubmitting(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.BLOG.POSTS.CREATE, new FormData(event.currentTarget));
+      const result = await adminApi.createBlogPost(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã tạo blog post.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -34,7 +34,7 @@ export function QuickCreateBlogPostForm({ categories }: { categories: BlogCatego
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.BLOG.POSTS.CREATE} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.createBlogPost} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
         <label className="font-medium text-sm">Tiêu đề</label>
         <Input

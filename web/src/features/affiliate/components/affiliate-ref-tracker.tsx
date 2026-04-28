@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { publicApi } from "@/lib/api-client.public";
 import { ROUTES } from "@/lib/routes";
 
 export function AffiliateRefTracker() {
@@ -25,16 +26,9 @@ export function AffiliateRefTracker() {
 
     window.sessionStorage.setItem(key, "1");
 
-    void fetch(ROUTES.API.AFFILIATE.TRACK, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        code,
-        landingPath: `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
-      }),
+    void publicApi.trackAffiliateReferral({
+      code,
+      landingPath: `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
     }).catch(() => {
       window.sessionStorage.removeItem(key);
     });

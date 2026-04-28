@@ -42,6 +42,8 @@ import type {
   ChatSupportRequestCategory,
 } from "@/features/chat/types";
 import type { RealtimeStatus } from "@/features/realtime/types";
+import { adminApi } from "@/lib/api-client.admin";
+import { customerApi } from "@/lib/api-client.customer";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -431,6 +433,7 @@ export function ChatInboxClient({
   mode,
 }: ChatInboxClientProps) {
   const isAdmin = mode === "admin" && isAdminRole(currentUser.role);
+  const chatApi = isAdmin ? adminApi : customerApi;
   const [conversations, setConversations] = useState(() => sortConversationSummaries(initialConversations));
   const [selectedConversationId, setSelectedConversationId] = useState(
     initialConversation?.id ?? initialConversations[0]?.id ?? ""
@@ -520,28 +523,14 @@ export function ChatInboxClient({
   }, [conversations, currentUser.id, sidebarFilter, sidebarSearch]);
 
   const loadConversations = useCallback(async () => {
-    const response = await fetch(ROUTES.API.CHAT.CONVERSATIONS, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-    if (!response.ok) throw new Error("LOAD_CONVERSATIONS_FAILED");
-    const data = (await response.json()) as { conversations?: ChatConversationSummary[] };
-    return sortConversationSummaries(data.conversations ?? []);
-  }, []);
+    const data = await chatApi.fetchChatConversations();
+    return sortConversationSummaries(data);
+  }, [chatApi]);
 
   const loadConversation = useCallback(async () => {
     if (!selectedConversationId) return null;
-    const response = await fetch(ROUTES.API.CHAT.CONVERSATION(selectedConversationId), {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      credentials: "same-origin",
-    });
-    if (response.status === 404) return null;
-    if (!response.ok) throw new Error("LOAD_CONVERSATION_FAILED");
-    const data = (await response.json()) as { conversation?: ChatConversationDetail };
-    return data.conversation ?? null;
-  }, [selectedConversationId]);
+    return chatApi.fetchChatConversation(selectedConversationId);
+  }, [chatApi, selectedConversationId]);
 
   useEffect(() => {
     if (!selectedConversationId) {
@@ -646,17 +635,7 @@ export function ChatInboxClient({
   async function refreshAfterMutation(conversationId?: string) {
     const [nextConversations, nextConversation] = await Promise.all([
       loadConversations(),
-      conversationId
-        ? fetch(ROUTES.API.CHAT.CONVERSATION(conversationId), {
-            headers: { Accept: "application/json" },
-            cache: "no-store",
-            credentials: "same-origin",
-          }).then(async (response) => {
-            if (!response.ok) return null;
-            const data = (await response.json()) as { conversation?: ChatConversationDetail };
-            return data.conversation ?? null;
-          })
-        : Promise.resolve(null),
+      conversationId ? chatApi.fetchChatConversation(conversationId) : Promise.resolve(null),
     ]);
 
     setConversations(sortConversationSummaries(nextConversations));
@@ -732,19 +711,11 @@ export function ChatInboxClient({
   const pushTyping = useCallback(async (nextIsTyping: boolean) => {
     if (!selectedConversationId) return;
     try {
-      await fetch(ROUTES.API.CHAT.TYPING(selectedConversationId), {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({ isTyping: nextIsTyping }),
-      });
+      await chatApi.sendChatTyping(selectedConversationId, nextIsTyping);
     } catch {
       return;
     }
-  }, [selectedConversationId]);
+  }, [chatApi, selectedConversationId]);
 
   useEffect(() => {
     if (!isAdmin || typeof window === "undefined") return;
@@ -804,25 +775,12 @@ export function ChatInboxClient({
     setIsSending(true);
 
     try {
-      const response = await fetch(ROUTES.API.CHAT.MESSAGES(selectedConversationId), {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          body: nextBody,
-          attachmentUrl: nextAttachmentUrl,
-          replyToMessageId: replyTarget?.id ?? "",
-          visibility: messageVisibility,
-        }),
+      await chatApi.sendChatMessage(selectedConversationId, {
+        body: nextBody,
+        attachmentUrl: nextAttachmentUrl,
+        replyToMessageId: replyTarget?.id ?? "",
+        visibility: messageVisibility,
       });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { message?: string };
-        throw new Error(data.message ?? "Không thể gửi tin nhắn.");
-      }
 
       applyOptimisticSentMessage({
         conversationId,
@@ -851,21 +809,7 @@ export function ChatInboxClient({
     if (!confirmed) return;
 
     try {
-      const response = await fetch(ROUTES.API.CHAT.MESSAGES(selectedConversationId), {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({ messageId }),
-      });
-
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
-      if (!response.ok) {
-        throw new Error(data.message ?? "Không thể xóa tin nhắn.");
-      }
-
+      await chatApi.deleteChatMessage(selectedConversationId, messageId);
       setReplyTarget((current) => (current?.id === messageId ? null : current));
       await refreshAfterMutation(selectedConversationId);
       toast.success("Đã xóa tin nhắn.");
@@ -892,23 +836,10 @@ export function ChatInboxClient({
     });
 
     try {
-      const response = await fetch(ROUTES.API.CHAT.MESSAGES(selectedConversationId), {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          messageId: message.id,
-          isPinned: nextIsPinned,
-        }),
+      await chatApi.updateChatMessage(selectedConversationId, {
+        messageId: message.id,
+        isPinned: nextIsPinned,
       });
-
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
-      if (!response.ok) {
-        throw new Error(data.message ?? "Không thể cập nhật đánh dấu tin nhắn.");
-      }
       await refreshAfterMutation(selectedConversationId);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể cập nhật đánh dấu tin nhắn.");
@@ -956,25 +887,10 @@ export function ChatInboxClient({
 
     setIsCreating(true);
     try {
-      const response = await fetch(ROUTES.API.CHAT.CONVERSATIONS, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          title: groupTitle,
-          participantUserIds: selectedAccountIds,
-        }),
+      const data = await adminApi.createChatConversation({
+        title: groupTitle,
+        participantUserIds: selectedAccountIds,
       });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { message?: string };
-        throw new Error(data.message ?? "Không thể tạo hội thoại.");
-      }
-
-      const data = (await response.json()) as { conversationId: string };
       setGroupTitle("");
       setSelectedAccountIds([]);
       setCreateDialogOpen(false);
@@ -996,23 +912,7 @@ export function ChatInboxClient({
 
     setIsCreating(true);
     try {
-      const response = await fetch(ROUTES.API.CHAT.PARTICIPANTS(selectedConversationId), {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          participantUserIds: selectedMemberIds,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { message?: string };
-        throw new Error(data.message ?? "Không thể thêm thành viên.");
-      }
-
+      await adminApi.addChatParticipants(selectedConversationId, selectedMemberIds);
       setSelectedMemberIds([]);
       await refreshAfterMutation(selectedConversationId);
       toast.success("Đã thêm thành viên.");
@@ -1027,29 +927,14 @@ export function ChatInboxClient({
     if (!selectedConversationId) return;
     setIsSavingMeta(true);
     try {
-      const response = await fetch(ROUTES.API.CHAT.CONVERSATION(selectedConversationId), {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          ownerUserId,
-          status: statusValue,
-          tags: dedupeTags(tagsInput),
-        }),
+      const nextConversation = await chatApi.updateChatConversation(selectedConversationId, {
+        ownerUserId,
+        status: statusValue,
+        tags: dedupeTags(tagsInput),
       });
-      const data = (await response.json().catch(() => ({}))) as {
-        message?: string;
-        conversation?: ChatConversationDetail;
-      };
-      if (!response.ok) {
-        throw new Error(data.message ?? "Không thể lưu workflow.");
-      }
-      if (data.conversation) {
-        setConversation(data.conversation);
-        setConversations((current) => upsertConversationSummary(current, toConversationSummary(data.conversation!)));
+      if (nextConversation) {
+        setConversation(nextConversation);
+        setConversations((current) => upsertConversationSummary(current, toConversationSummary(nextConversation)));
       } else {
         await refreshAfterMutation(selectedConversationId);
       }
@@ -1096,28 +981,12 @@ export function ChatInboxClient({
     }
 
     try {
-      const response = await fetch(ROUTES.API.CHAT.CONVERSATION(item.id), {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          isPinned: patch.isPinned,
-          userPriority: patch.userPriority,
-          isHidden: patch.isHidden,
-          markUnread: patch.markUnread,
-        }),
+      await chatApi.updateChatConversation(item.id, {
+        isPinned: patch.isPinned,
+        userPriority: patch.userPriority,
+        isHidden: patch.isHidden,
+        markUnread: patch.markUnread,
       });
-
-      const data = (await response.json().catch(() => ({}))) as {
-        message?: string;
-        conversation?: ChatConversationDetail | null;
-      };
-      if (!response.ok) {
-        throw new Error(data.message ?? "Không thể cập nhật hội thoại.");
-      }
       setConversations(await loadConversations());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể cập nhật hội thoại.");
@@ -1129,24 +998,11 @@ export function ChatInboxClient({
     event?.preventDefault();
     setIsCreating(true);
     try {
-      const response = await fetch(ROUTES.API.CHAT.CONVERSATIONS, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          mode: "support_request",
-          category: supportRequestCategory,
-          title: supportRequestTitle.trim(),
-        }),
+      const data = await chatApi.createChatConversation({
+        mode: "support_request",
+        category: supportRequestCategory,
+        title: supportRequestTitle.trim(),
       });
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { message?: string };
-        throw new Error(data.message ?? "Không thể mở hội thoại hỗ trợ.");
-      }
-      const data = (await response.json()) as { conversationId: string };
       setCreateDialogOpen(false);
       setSupportRequestCategory(getDefaultSupportRequestCategory(currentUser.role));
       setSupportRequestTitle("");

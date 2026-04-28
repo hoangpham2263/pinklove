@@ -5,7 +5,7 @@ import { toast } from"sonner";
 
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
-import { ROUTES } from"@/lib/routes";
+import { customerApi } from "@/lib/api-client.customer";
 
 type CustomerProfileFormProps = {
  initialProfile: {
@@ -27,21 +27,7 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
 
  setIsSaving(true);
  try {
-  const response = await fetch(ROUTES.API.CUSTOMER.PROFILE, {
-  method:"POST",
-  body: formData,
-  headers: {
-   Accept:"application/json",
-  },
-  });
-
-  if (!response.ok) {
-  const data = (await response.json().catch(() => null)) as
-   | { error?: string }
-   | null;
-  throw new Error(data?.error ??"Save failed");
-  }
-
+  await customerApi.updateCustomerProfile(formData);
   toast.success("Profile saved successfully.");
  } catch (error) {
   const message = error instanceof Error ? error.message :"Save failed";

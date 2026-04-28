@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { adminApi } from "@/lib/api-client.admin";
 import type { MediaAsset } from "../types";
 
 type UploadState = "idle" | "uploading";
@@ -44,17 +45,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
   const fetchItems = async (targetPage: number, targetLimit: number) => {
     try {
-      const response = await fetch(`/api/media?page=${targetPage}&limit=${targetLimit}`);
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(data?.message ?? "Không thể tải lại thư viện media.");
-      }
-      const data = (await response.json()) as {
-        items: MediaAsset[];
-        total: number;
-        page: number;
-        limit: number;
-      };
+      const data = await adminApi.listMedia({ page: targetPage, limit: targetLimit });
       setItems(data.items);
       setTotal(data.total);
       setPage(data.page);
@@ -115,18 +106,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
     try {
       for (const file of files) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/media", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const data = (await response.json()) as { message?: string };
-          throw new Error(data.message ?? `Tải lên thất bại cho ${file.name}`);
-        }
+        await adminApi.uploadMedia(file);
       }
       await fetchItems(1, limit);
       toast.success(files.length === 1 ? "Đã tải media lên." : `Đã tải lên ${files.length} file.`);
@@ -149,11 +129,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
   async function handleXóa(id: string) {
     try {
-      const response = await fetch(`/api/media?id=${id}`, { method: "DELETE" });
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(data?.message ?? "Không thể xóa media.");
-      }
+      await adminApi.deleteMedia(id);
       const nextTotal = Math.max(0, total - 1);
       const nextTotalPages = Math.max(1, Math.ceil(nextTotal / limit));
       const targetPage = Math.min(page, nextTotalPages);
@@ -171,11 +147,7 @@ export function MediaLibraryManager({ initialData }: MediaLibraryManagerProps) {
 
     try {
       for (const id of selectedIds) {
-        const response = await fetch(`/api/media?id=${id}`, { method: "DELETE" });
-        if (!response.ok) {
-          const data = (await response.json().catch(() => null)) as { message?: string } | null;
-          throw new Error(data?.message ?? "Không thể xóa media.");
-        }
+        await adminApi.deleteMedia(id);
       }
 
       const nextTotal = Math.max(0, total - selectedIds.length);

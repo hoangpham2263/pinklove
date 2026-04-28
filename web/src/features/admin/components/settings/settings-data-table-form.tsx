@@ -26,8 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { MediaSelector } from "@/features/media/components/media-selector";
 
 declare module "@tanstack/react-table" {
@@ -254,7 +254,7 @@ export function SettingsDataTableForm({
         formData.set(row.id, String(row.value));
       }
       formData.append("section", section);
-      const result = await postForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
+      const result = await adminApi.updateConfig(formData);
       toast.success(result.message ?? saveMessage);
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -265,7 +265,7 @@ export function SettingsDataTableForm({
   }
 
   return (
-    <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-4" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="grid gap-3 md:grid-cols-[minmax(0,320px)]">
           <Input

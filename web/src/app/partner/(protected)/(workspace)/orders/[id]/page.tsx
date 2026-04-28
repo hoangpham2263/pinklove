@@ -102,8 +102,7 @@ export default async function PartnerOrderDetailPage({
         </Card>
 
         <PartnerVendorAssignmentPanel
-          detailUrl={`/api/partner/vendor-assignments/${detail.assignment.id}`}
-          submitUrl={ROUTES.API.PARTNER.ORDERS.UPDATE}
+          detailUrl={ROUTES.API.PARTNER.ORDERS.VENDOR_ASSIGNMENT(detail.assignment.id)}
           portalHref={portalHref}
           initialDetail={detail}
         />

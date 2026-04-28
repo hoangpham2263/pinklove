@@ -35,7 +35,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import type { AdminNotification, NotificationAudienceType, NotificationStatus } from "@/features/notifications/types";
@@ -268,7 +269,7 @@ export function AdminNotificationsTable({
                 iconOnly
               />
               <NativeForm
-                action={ROUTES.API.ADMIN.NOTIFICATIONS.DELETE}
+                action={adminApiActions.deleteNotification}
                 method="POST"
                 className="inline-block"
                 onSubmit={async (event) => {
@@ -278,7 +279,7 @@ export function AdminNotificationsTable({
                   }
 
                   try {
-                    const result = await postForm(ROUTES.API.ADMIN.NOTIFICATIONS.DELETE, new FormData(event.currentTarget));
+                    const result = await adminApi.deleteNotification(new FormData(event.currentTarget));
                     toast.success(result.message ?? "Đã xóa thông báo.");
                     finishMutation(router, result, { redirect: false });
                   } catch (error) {
@@ -423,7 +424,7 @@ export function AdminNotificationsTable({
                 formData.append("bulkAction", bulkAction);
 
                 try {
-                  const result = await postForm(ROUTES.API.ADMIN.NOTIFICATIONS.BULK, formData);
+                  const result = await adminApi.bulkUpdateNotifications(formData);
                   toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                   finishMutation(router, result, { redirect: false });
                   setRowSelection({});

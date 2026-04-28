@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { adminApi } from "@/lib/api-client.admin";
 import type { MediaAsset } from "../types";
 
 type MediaSelectorCommonProps = {
@@ -55,11 +56,8 @@ export function MediaSelector(props: MediaSelectorProps) {
   const fetchMedia = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/media?limit=50");
-      if (response.ok) {
-        const data = (await response.json()) as { items: MediaAsset[] };
-        setItems(data.items);
-      }
+      const data = await adminApi.listMedia({ limit: 50 });
+      setItems(data.items);
     } catch (error) {
       console.error("Failed to fetch media:", error);
     } finally {
@@ -89,9 +87,7 @@ export function MediaSelector(props: MediaSelectorProps) {
 
     const fetchCurrentMediaName = async () => {
       try {
-        const response = await fetch(`/api/media?url=${encodeURIComponent(selectedValue)}`);
-        if (!response.ok) return;
-        const data = (await response.json()) as { item?: MediaAsset | null };
+        const data = await adminApi.getMediaByUrl(selectedValue);
         if (!ignore) {
           setDisplayName(data.item?.originalName || getFileLabel(selectedValue));
         }
@@ -140,26 +136,8 @@ export function MediaSelector(props: MediaSelectorProps) {
       const uploadedItems: MediaAsset[] = [];
 
       for (const file of acceptedFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/media", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = (await response.json().catch(() => null)) as {
-          item?: MediaAsset;
-          message?: string;
-        } | null;
-
-        if (!response.ok) {
-          throw new Error(data?.message ?? "Upload failed");
-        }
-
-        if (data?.item) {
-          uploadedItems.push(data.item);
-        }
+        const data = await adminApi.uploadMedia(file);
+        uploadedItems.push(data.item);
       }
 
       if (uploadedItems.length > 0) {

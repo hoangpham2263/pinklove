@@ -14,7 +14,8 @@ import { BuilderEditorClient } from "@/features/invitations/builder/editor-clien
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
 import type { Product, ProductCategory, ProductFulfillmentType } from "@/features/products/types";
-import { finishMutation, postForm } from "@/lib/client-mutation";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 import type { AccountUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
@@ -77,7 +78,7 @@ export function ProductEditorForm({
     setIsSaving(true);
 
     try {
-      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.UPDATE, new FormData(event.currentTarget));
+      const result = await adminApi.updateProduct(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã lưu sản phẩm.");
       finishMutation(router, result, { redirect: "replace", refresh: false });
     } catch (error) {
@@ -97,7 +98,7 @@ export function ProductEditorForm({
       const formData = new FormData();
       formData.append("slug", product.slug);
       formData.append("returnTo", returnTo);
-      const result = await postForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, formData);
+      const result = await adminApi.deleteProduct(formData);
       toast.success(result.message ?? "Đã xóa sản phẩm.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
@@ -111,7 +112,7 @@ export function ProductEditorForm({
     return (
       <NativeForm
         id="product-update-form"
-        action={ROUTES.API.ADMIN.PRODUCTS.UPDATE}
+        action={adminApiActions.updateProduct}
         method="POST"
         className="flex min-h-screen flex-col"
         onSubmit={handleSave}
@@ -240,7 +241,7 @@ export function ProductEditorForm({
   return (
     <NativeForm
       id="product-update-form"
-      action={ROUTES.API.ADMIN.PRODUCTS.UPDATE}
+      action={adminApiActions.updateProduct}
       method="POST"
       className="grid gap-6 lg:grid-cols-12"
       onSubmit={handleSave}

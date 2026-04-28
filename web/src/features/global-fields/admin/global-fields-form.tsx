@@ -7,8 +7,8 @@ import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Button } from "@/components/ui/button";
 import type { FieldSchema } from "@/features/pages/schema";
-import { finishMutation, postForm } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
+import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { finishMutation } from "@/lib/client-mutation";
 
 type GlobalFieldsFormProps = {
   fields: FieldSchema[];
@@ -26,7 +26,7 @@ export function GlobalFieldsForm({ fields, initialValues }: GlobalFieldsFormProp
 
     try {
       const formData = new FormData(event.currentTarget);
-      const result = await postForm(ROUTES.API.ADMIN.GLOBAL_FIELDS.UPDATE, formData);
+      const result = await adminApi.updateGlobalFields(formData);
       toast.success(result.message ?? "Đã lưu Global Fields.");
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -38,7 +38,7 @@ export function GlobalFieldsForm({ fields, initialValues }: GlobalFieldsFormProp
 
   return (
     <NativeForm
-      action={ROUTES.API.ADMIN.GLOBAL_FIELDS.UPDATE}
+      action={adminApiActions.updateGlobalFields}
       method="POST"
       className="space-y-6"
       onSubmit={handleSubmit}
