@@ -1,5 +1,5 @@
 import type { Product, ProductType } from "@/features/products/types";
-import { getProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
+import { getProductPath } from "@/lib/public-paths";
 
 export type WishlistProductInput = {
   id: string;
@@ -26,8 +26,7 @@ export function createWishlistProductSnapshot(
 }
 
 export function getWishlistProductHref(
-  product: Pick<WishlistProductInput, "slug" | "productType">,
-  config: PublicPermalinkConfig
+  product: Pick<WishlistProductInput, "slug" | "productType">
 ) {
-  return getProductPath(product, config);
+  return getProductPath(product);
 }

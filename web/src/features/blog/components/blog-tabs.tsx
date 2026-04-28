@@ -5,16 +5,14 @@ import Link from "next/link";
 import { GuestPanel, GuestPanelBody, GuestPanelHeader } from "@/app/(guest)/_components/guest-ui";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
-import { getBlogCategoryPath, getBlogPostPath, type PublicPermalinkConfig } from "@/lib/public-paths";
-import { ROUTES } from "@/lib/routes";
+import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 
 type BlogTabsProps = {
   categories: BlogCategory[];
   posts: BlogPost[];
-  permalinkConfig?: PublicPermalinkConfig;
 };
 
-export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) {
+export function BlogTabs({ categories, posts }: BlogTabsProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
   const filteredPosts = useMemo(() => {
@@ -28,10 +26,8 @@ export function BlogTabs({ categories, posts, permalinkConfig }: BlogTabsProps) 
   const featuredPost = filteredPosts[0];
   const recentPosts = filteredPosts.slice(1);
   const visiblePosts = recentPosts.length ? recentPosts : filteredPosts;
-  const getCategoryHref = (slug: string) =>
-    permalinkConfig ? getBlogCategoryPath(slug, permalinkConfig) : ROUTES.BLOG_PAGES.CATEGORY(slug);
-  const getPostHref = (post: BlogPost) =>
-    permalinkConfig ? getBlogPostPath(post, permalinkConfig) : ROUTES.BLOG_PAGES.POST(post.slug);
+  const getCategoryHref = (slug: string) => getBlogCategoryPath(slug);
+  const getPostHref = (post: BlogPost) => getBlogPostPath(post);
 
   return (
     <>

@@ -6,8 +6,7 @@ import {
   listPublishedBlogCategories,
   listPublishedBlogPosts,
 } from "@/features/blog/server/service";
-import { getBlogCategoryPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getBlogCategoryPath } from "@/lib/public-paths";
 
 export async function generateMetadata({
   params,
@@ -16,8 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const category = await getPublishedBlogCategoryBySlug(slug);
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-  return await generateBlogCategoryMetadata(category, permalinkConfig);
+  return await generateBlogCategoryMetadata(category);
 }
 
 export default async function BlogCategoryPage({
@@ -36,15 +34,10 @@ export default async function BlogCategoryPage({
     return notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  const targetPath = getBlogCategoryPath(category, permalinkConfig);
+  const targetPath = getBlogCategoryPath(category);
   if (targetPath !== `/blog/${category.slug}`) {
-    if (settings.permalink.legacyRedirects) {
-      redirect(targetPath);
-    }
-    notFound();
+    redirect(targetPath);
   }
 
-  return renderBlogCategoryPage({ category, categories, posts, config: permalinkConfig });
+  return renderBlogCategoryPage({ category, categories, posts });
 }

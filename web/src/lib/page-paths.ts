@@ -1,9 +1,10 @@
+import { AUTH_PAGES } from "@/features/auth/page-registry";
+import { listContentPageSlugs } from "@/features/pages/registry";
+
 export type PagePathLike = {
   slug: string;
-  permalink?: string | null;
 };
 
-const RESERVED_PREFIXES = ["/api", "/admin", "/customer", "/user"];
 const FIXED_PAGE_PATHS: Record<string, string> = {
   home: "/",
   login: "/login",
@@ -11,6 +12,33 @@ const FIXED_PAGE_PATHS: Record<string, string> = {
   "partner-apply": "/partner-apply",
   "affiliate-apply": "/affiliate-apply",
 };
+const RESERVED_EXACT_PATHS = new Set([
+  "/admin",
+  "/customer",
+  "/partner",
+  "/search",
+  "/wishlist",
+  "/checkout",
+  "/sitemap.xml",
+  "/robots.txt",
+]);
+const RESERVED_PREFIXES = [
+  "/api",
+  "/admin",
+  "/customer",
+  "/user",
+  "/partner",
+  "/checkout",
+  "/templates",
+  "/builder",
+  "/products",
+  "/paper",
+  "/invitations",
+] as const;
+const RESERVED_BRANCH_PREFIXES = [
+  "/blog/",
+  "/cong-cu/",
+] as const;
 
 export function getDefaultPagePath(slug: string): string {
   if (slug in FIXED_PAGE_PATHS) {
@@ -20,49 +48,29 @@ export function getDefaultPagePath(slug: string): string {
   return `/${slug}`;
 }
 
-export function canCustomizePagePermalink(slug: string): boolean {
-  return !(slug in FIXED_PAGE_PATHS) && slug !== "not-found";
-}
-
-export function normalizePagePermalinkInput(input: string | null | undefined, slug: string): string {
-  if (!canCustomizePagePermalink(slug)) {
-    return getDefaultPagePath(slug);
-  }
-
-  const fallback = getDefaultPagePath(slug);
-  const rawValue = (input ?? "").trim();
-  const value = rawValue || fallback;
-
-  let pathname = value;
-
-  try {
-    if (/^https?:\/\//i.test(value)) {
-      pathname = new URL(value).pathname;
-    }
-  } catch {
-    pathname = value;
-  }
-
-  pathname = pathname.split("#")[0]?.split("?")[0] ?? fallback;
-  pathname = pathname.replace(/\/{2,}/g, "/").trim();
-
-  if (!pathname.startsWith("/")) {
-    pathname = `/${pathname}`;
-  }
-
-  if (pathname.length > 1 && pathname.endsWith("/")) {
-    pathname = pathname.slice(0, -1);
-  }
-
-  return pathname || fallback;
-}
-
 export function getManagedPagePath(page: PagePathLike): string {
-  return normalizePagePermalinkInput(page.permalink, page.slug);
+  return getDefaultPagePath(page.slug);
 }
 
-export function isReservedPagePermalink(path: string): boolean {
-  return RESERVED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+export function isReservedPagePath(path: string): boolean {
+  const normalizedPath = path === "/" ? path : path.replace(/\/+$/g, "") || "/";
+  const knownManagedPaths = new Set(
+    [...Object.keys(AUTH_PAGES), ...listContentPageSlugs()].map((slug) => getDefaultPagePath(slug))
+  );
+
+  if (knownManagedPaths.has(normalizedPath)) {
+    return false;
+  }
+
+  if (RESERVED_EXACT_PATHS.has(normalizedPath)) {
+    return true;
+  }
+
+  if (RESERVED_PREFIXES.some((prefix) => normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`))) {
+    return true;
+  }
+
+  return RESERVED_BRANCH_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix));
 }
 
 export function isPageExcludedFromSitemap(slug: string): boolean {

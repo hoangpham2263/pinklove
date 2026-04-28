@@ -2,9 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { requireAppUser } from "@/lib/auth";
-import { getInvitationPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 import { getInvitationByIdForUser } from "@/features/invitations/server/service";
 import { InvitationEditorForm } from "@/features/invitations/components/invitation-editor-form";
 
@@ -21,8 +20,7 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
   if (!invitation) {
     notFound();
   }
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-  const publicHref = getInvitationPath(invitation, permalinkConfig);
+  const publicHref = getInvitationPath(invitation);
 
   if (invitation.siteType === "builder_template") {
     redirect(ROUTES.CUSTOMER.DESIGN(invitation.id));

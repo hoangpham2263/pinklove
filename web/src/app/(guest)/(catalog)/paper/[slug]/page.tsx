@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
-import { getGeneralProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getGeneralProductPath } from "@/lib/public-paths";
 
 type PaperDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -20,7 +19,5 @@ export default async function VendorPaperDetailPage({ params }: PaperDetailPageP
     notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  redirect(getGeneralProductPath(product, permalinkConfig));
+  redirect(getGeneralProductPath(product));
 }

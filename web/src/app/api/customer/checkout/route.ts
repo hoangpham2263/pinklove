@@ -1,5 +1,6 @@
 import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { getUserAddressById } from "@/features/account/server/address-service";
 import { createOrderFromCart, listCartItems, syncCartWithWishlist } from "@/features/ecommerce/server/service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
@@ -68,6 +69,25 @@ export async function POST(request: Request) {
   }
 
   try {
+    const addressId = String(formData.get("addressId") ?? "").trim();
+    const savedAddress = requiresShipping && addressId ? await getUserAddressById(user.id, addressId) : null;
+
+    if (requiresShipping && addressId && !savedAddress) {
+      return respondError(request, {
+        error: "address_not_found",
+        message: "Địa chỉ giao hàng không tồn tại hoặc không thuộc tài khoản của bạn.",
+        location: ROUTES.CHECKOUT.INDEX,
+      });
+    }
+
+    if (requiresShipping && !savedAddress) {
+      return respondError(request, {
+        error: "address_required",
+        message: "Vui lòng chọn địa chỉ giao hàng đã lưu.",
+        location: ROUTES.CHECKOUT.INDEX,
+      });
+    }
+
     const order = await createOrderFromCart({
       userId: user.id,
       customerName: String(formData.get("customerName") ?? "").trim(),
@@ -78,15 +98,15 @@ export async function POST(request: Request) {
       paymentType: selectedPaymentMethod.type,
       notes: String(formData.get("notes") ?? ""),
       affiliateCode: decodeURIComponent(getCookieValue(request, AFFILIATE_REF_COOKIE_NAME)),
-      shippingName: String(formData.get("shippingName") ?? "").trim(),
-      shippingPhone: String(formData.get("shippingPhone") ?? "").trim(),
-      shippingLine1: String(formData.get("shippingLine1") ?? "").trim(),
-      shippingLine2: String(formData.get("shippingLine2") ?? "").trim(),
-      shippingWard: String(formData.get("shippingWard") ?? "").trim(),
-      shippingDistrict: String(formData.get("shippingDistrict") ?? "").trim(),
-      shippingCity: String(formData.get("shippingCity") ?? "").trim(),
-      shippingPostalCode: String(formData.get("shippingPostalCode") ?? "").trim(),
-      shippingCountry: String(formData.get("shippingCountry") ?? "VN").trim() || "VN",
+      shippingName: savedAddress?.recipientName,
+      shippingPhone: savedAddress?.phone,
+      shippingLine1: savedAddress?.line1,
+      shippingLine2: savedAddress?.line2,
+      shippingWard: savedAddress?.ward,
+      shippingDistrict: savedAddress?.district,
+      shippingCity: savedAddress?.city,
+      shippingPostalCode: savedAddress?.postalCode,
+      shippingCountry: savedAddress?.country,
     });
 
     if (selectedPaymentMethod.provider === "vnpay") {
@@ -122,6 +142,8 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error && error.message === "CART_EMPTY"
         ? "Danh sách yêu thích đang trống."
+        : error instanceof Error && error.message === "SHIPPING_ADDRESS_REQUIRED"
+          ? "Vui lòng chọn hoặc nhập đầy đủ địa chỉ giao hàng."
         : error instanceof Error && error.message.startsWith("OUT_OF_STOCK:")
           ? `Sản phẩm đã hết hàng hoặc không đủ tồn kho: ${error.message.replace("OUT_OF_STOCK:", "")}.`
           : "Không thể tạo đơn hàng.";
@@ -129,7 +151,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "checkout_failed",
       message,
-      location: ROUTES.WISHLIST,
+      location: ROUTES.CHECKOUT.INDEX,
     });
   }
 }

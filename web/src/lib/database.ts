@@ -1,7 +1,7 @@
 import"server-only";
 
 import { Pool, type PoolClient, type QueryResultRow } from"pg";
-import { CONTENT_PAGES } from "@/features/pages/registry";
+import { CONTENT_PAGE_SLUG_ALIASES, CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 
 const globalForDb = globalThis as unknown as {
@@ -12,6 +12,8 @@ const globalForDb = globalThis as unknown as {
   userAccountStatusMigrationDone?: boolean;
   userWishlistMigrationDone?: boolean;
   userProfilesMigrationDone?: boolean;
+  userAddressesMigrationDone?: boolean;
+  userShippingProfilesMigrationDone?: boolean;
   userSettingsDensityMigrationDone?: boolean;
   oauthAccountsMigrationDone?: boolean;
   menuTablesMigrationDone?: boolean;
@@ -295,10 +297,11 @@ async function ensureUserWishlistMigration() {
 
 async function ensureUserProfilesMigration() {
  const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
 
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_profiles (
-  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  user_id ${userIdType} PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   full_name TEXT,
   display_name TEXT,
   phone TEXT,
@@ -314,10 +317,160 @@ async function ensureUserProfilesMigration() {
   `);
 
   await pool.query(`
+  ALTER TABLE user_profiles
+  ADD COLUMN IF NOT EXISTS business_name TEXT,
+  ADD COLUMN IF NOT EXISTS store_name TEXT,
+  ADD COLUMN IF NOT EXISTS contact_email TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_contact_name TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_phone TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_address_line1 TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_ward TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_district TEXT,
+  ADD COLUMN IF NOT EXISTS pickup_province TEXT,
+  ADD COLUMN IF NOT EXISTS return_same_as_pickup BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS return_contact_name TEXT,
+  ADD COLUMN IF NOT EXISTS return_phone TEXT,
+  ADD COLUMN IF NOT EXISTS return_address_line1 TEXT,
+  ADD COLUMN IF NOT EXISTS return_ward TEXT,
+  ADD COLUMN IF NOT EXISTS return_district TEXT,
+  ADD COLUMN IF NOT EXISTS return_province TEXT;
+  `);
+
+  await pool.query(`
+  ALTER TABLE user_profiles
+  DROP COLUMN IF EXISTS shipping_provider,
+  DROP COLUMN IF EXISTS shipping_shop_id,
+  DROP COLUMN IF EXISTS shipping_token,
+  DROP COLUMN IF EXISTS shipping_pickup_address_id;
+  `);
+
+  await pool.query(`
   CREATE UNIQUE INDEX IF NOT EXISTS user_profiles_vendor_portal_slug_uidx
   ON user_profiles (LOWER(vendor_portal_slug))
   WHERE vendor_portal_slug IS NOT NULL;
   `);
+}
+
+async function ensureUserShippingProfilesMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS user_shipping_profiles (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  profile_type TEXT NOT NULL DEFAULT 'primary',
+  business_name TEXT,
+  store_name TEXT,
+  contact_email TEXT,
+  pickup_contact_name TEXT,
+  pickup_phone TEXT,
+  pickup_address_line1 TEXT,
+  pickup_ward TEXT,
+  pickup_district TEXT,
+  pickup_province TEXT,
+  return_same_as_pickup BOOLEAN NOT NULL DEFAULT TRUE,
+  return_contact_name TEXT,
+  return_phone TEXT,
+  return_address_line1 TEXT,
+  return_ward TEXT,
+  return_district TEXT,
+  return_province TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, profile_type)
+ );
+ `);
+
+ await pool.query(`
+ ALTER TABLE user_shipping_profiles
+ DROP COLUMN IF EXISTS shipping_provider,
+ DROP COLUMN IF EXISTS shipping_shop_id,
+ DROP COLUMN IF EXISTS shipping_token,
+ DROP COLUMN IF EXISTS shipping_pickup_address_id;
+ `);
+
+ await pool.query(`
+ INSERT INTO user_shipping_profiles (
+  user_id,
+  profile_type,
+  business_name,
+  store_name,
+  contact_email,
+  pickup_contact_name,
+  pickup_phone,
+  pickup_address_line1,
+  pickup_ward,
+  pickup_district,
+  pickup_province,
+  return_same_as_pickup,
+  return_contact_name,
+  return_phone,
+  return_address_line1,
+  return_ward,
+  return_district,
+  return_province
+ )
+ SELECT
+  user_id,
+  'primary',
+  business_name,
+  store_name,
+  contact_email,
+  pickup_contact_name,
+  pickup_phone,
+  pickup_address_line1,
+  pickup_ward,
+  pickup_district,
+  pickup_province,
+  COALESCE(return_same_as_pickup, TRUE),
+  return_contact_name,
+  return_phone,
+  return_address_line1,
+  return_ward,
+  return_district,
+  return_province
+ FROM user_profiles
+ WHERE
+  COALESCE(NULLIF(BTRIM(business_name), ''), NULLIF(BTRIM(store_name), ''), NULLIF(BTRIM(contact_email), ''), NULLIF(BTRIM(pickup_contact_name), ''), NULLIF(BTRIM(pickup_phone), ''), NULLIF(BTRIM(pickup_address_line1), ''), NULLIF(BTRIM(pickup_district), ''), NULLIF(BTRIM(pickup_province), ''), NULLIF(BTRIM(return_contact_name), ''), NULLIF(BTRIM(return_phone), ''), NULLIF(BTRIM(return_address_line1), ''), NULLIF(BTRIM(return_district), ''), NULLIF(BTRIM(return_province), '')) IS NOT NULL
+ ON CONFLICT (user_id, profile_type) DO NOTHING;
+ `);
+}
+
+async function ensureUserAddressesMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS user_addresses (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  label TEXT NOT NULL DEFAULT '',
+  recipient_name TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  line1 TEXT NOT NULL DEFAULT '',
+  line2 TEXT NOT NULL DEFAULT '',
+  ward TEXT NOT NULL DEFAULT '',
+  district TEXT NOT NULL DEFAULT '',
+  city TEXT NOT NULL DEFAULT '',
+  postal_code TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT 'VN',
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS user_addresses_user_id_idx
+ ON user_addresses(user_id, is_default DESC, updated_at DESC);
+ `);
+
+ await pool.query(`
+ CREATE UNIQUE INDEX IF NOT EXISTS user_addresses_one_default_uidx
+ ON user_addresses(user_id)
+ WHERE is_default = TRUE;
+ `);
 }
 
 async function ensureUserSettingsDensityMigration() {
@@ -371,7 +524,6 @@ async function ensureAppSettingsMigration() {
 
   await pool.query(`
     ALTER TABLE app_settings
-    ADD COLUMN IF NOT EXISTS seo_permalink JSONB,
     ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
     ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
     ADD COLUMN IF NOT EXISTS seo_indexing JSONB,
@@ -382,6 +534,11 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS commerce_config JSONB,
     ADD COLUMN IF NOT EXISTS internal_api_config JSONB,
     ADD COLUMN IF NOT EXISTS email_config JSONB;
+  `);
+
+  await pool.query(`
+    ALTER TABLE app_settings
+    DROP COLUMN IF EXISTS seo_permalink;
   `);
 
   await pool.query(`
@@ -417,11 +574,12 @@ async function ensureAppSettingsMigration() {
 
 async function ensureOauthAccountsMigration() {
  const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
 
  await pool.query(`
  CREATE TABLE IF NOT EXISTS user_oauth_accounts (
   id TEXT PRIMARY KEY DEFAULT app_random_id(),
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   provider TEXT NOT NULL,
   provider_user_id TEXT NOT NULL,
   email TEXT,
@@ -463,7 +621,6 @@ async function ensureManagedPagesMigration() {
       seo_description TEXT,
       seo_keywords TEXT,
       canonical_url TEXT,
-      permalink TEXT,
       breadcrumb_title TEXT,
       breadcrumb_parent_slug TEXT,
       og_title TEXT,
@@ -488,7 +645,6 @@ async function ensureManagedPagesMigration() {
     ADD COLUMN IF NOT EXISTS seo_description TEXT,
     ADD COLUMN IF NOT EXISTS seo_keywords TEXT,
     ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-    ADD COLUMN IF NOT EXISTS permalink TEXT,
     ADD COLUMN IF NOT EXISTS breadcrumb_title TEXT,
     ADD COLUMN IF NOT EXISTS breadcrumb_parent_slug TEXT,
     ADD COLUMN IF NOT EXISTS og_title TEXT,
@@ -506,14 +662,6 @@ async function ensureManagedPagesMigration() {
     SET
       status = COALESCE(status, 'draft'),
       template = COALESCE(template, 'default'),
-      permalink = COALESCE(
-        NULLIF(permalink, ''),
-        CASE
-          WHEN slug = 'home' THEN '/'
-          WHEN slug IN ('login', 'register') THEN '/customer/' || slug
-          ELSE '/' || slug
-        END
-      ),
       noindex = COALESCE(noindex, false),
       nofollow = COALESCE(nofollow, false),
       custom_fields = COALESCE(custom_fields, '{}'::jsonb),
@@ -521,9 +669,11 @@ async function ensureManagedPagesMigration() {
       updated_at = COALESCE(updated_at, NOW());
   `);
 
+  await pool.query(`DROP INDEX IF EXISTS managed_pages_permalink_idx;`);
+
   await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS managed_pages_permalink_idx
-    ON managed_pages(permalink);
+    ALTER TABLE managed_pages
+    DROP COLUMN IF EXISTS permalink;
   `);
 
   await pool.query(`
@@ -609,16 +759,17 @@ async function ensureMenuTablesMigration() {
 
 async function ensureAffiliateTablesMigration() {
   const pool = getPool();
+  const userIdType = await getColumnTypeSql("users", "id", "TEXT");
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS affiliate_accounts (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      user_id ${userIdType} PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       code TEXT NOT NULL UNIQUE,
       status TEXT NOT NULL DEFAULT 'pending',
       commission_type TEXT NOT NULL DEFAULT 'percent',
       commission_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
       notes TEXT,
-      approved_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+      approved_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       approved_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -1066,7 +1217,7 @@ async function ensureProductTablesMigration() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_sites (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
       title TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
@@ -2363,53 +2514,87 @@ export async function ensureProductCatalogReady() {
 async function ensureManagedPagesSeed() {
   const pool = getPool();
 
-  for (const [slug, config] of Object.entries(AUTH_PAGES)) {
-    const defaultPermalink =
-      slug === "login"
-        ? "/login"
-        : slug === "register"
-          ? "/register"
-          : null;
+  for (const [legacySlug, nextSlug] of Object.entries(CONTENT_PAGE_SLUG_ALIASES)) {
     await pool.query(
       `
-      INSERT INTO managed_pages (slug, name, title, status, permalink, custom_fields)
-      VALUES ($1, $2, $3, 'published', $4, '{}'::jsonb)
+      UPDATE managed_pages
+      SET
+        slug = $2,
+        updated_at = NOW()
+      WHERE slug = $1
+        AND NOT EXISTS (
+          SELECT 1
+          FROM managed_pages existing
+          WHERE existing.slug = $2
+        )
+      `,
+      [legacySlug, nextSlug]
+    );
+
+    await pool.query(
+      `
+      UPDATE managed_pages
+      SET breadcrumb_parent_slug = $2,
+          updated_at = NOW()
+      WHERE breadcrumb_parent_slug = $1
+      `,
+      [legacySlug, nextSlug]
+    );
+
+    try {
+      await pool.query(
+        `
+        UPDATE navigation_menu_items
+        SET page_slug = $2
+        WHERE page_slug = $1
+        `,
+        [legacySlug, nextSlug]
+      );
+    } catch {
+      // Ignore legacy table absence during transitional menu storage migrations.
+    }
+
+    try {
+      await pool.query(
+        `
+        UPDATE cms_menu_items
+        SET page_slug = $2
+        WHERE page_slug = $1
+        `,
+        [legacySlug, nextSlug]
+      );
+    } catch {
+      // Ignore legacy table absence during transitional menu storage migrations.
+    }
+  }
+
+  for (const [slug, config] of Object.entries(AUTH_PAGES)) {
+    await pool.query(
+      `
+      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
+      VALUES ($1, $2, $3, 'published', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
         status = EXCLUDED.status,
-        permalink = CASE
-          WHEN EXCLUDED.slug IN ('login', 'register') THEN EXCLUDED.permalink
-          ELSE COALESCE(managed_pages.permalink, EXCLUDED.permalink)
-        END,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name, defaultPermalink]
+      [slug, config.name, config.name]
     );
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
     const defaultStatus = slug === "partner-apply" || slug === "affiliate-apply" ? "published" : "draft";
-    const defaultPermalink =
-      slug === "partner-apply"
-        ? "/partner-apply"
-        : slug === "affiliate-apply"
-          ? "/affiliate-apply"
-          : null;
     await pool.query(
       `
-      INSERT INTO managed_pages (slug, name, title, status, permalink, custom_fields)
-      VALUES ($1, $2, $3, $4, $5, '{}'::jsonb)
+      INSERT INTO managed_pages (slug, name, title, status, custom_fields)
+      VALUES ($1, $2, $3, $4, '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
-        permalink = CASE
-          WHEN EXCLUDED.slug IN ('partner-apply', 'affiliate-apply') THEN EXCLUDED.permalink
-          ELSE COALESCE(managed_pages.permalink, EXCLUDED.permalink)
-        END,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name, defaultStatus, defaultPermalink]
+      [slug, config.name, config.name, defaultStatus]
     );
   }
 }
@@ -2533,6 +2718,16 @@ export async function ensureDb() {
       if (!globalForDb.userProfilesMigrationDone) {
         await ensureUserProfilesMigration();
         globalForDb.userProfilesMigrationDone = true;
+      }
+
+      if (!globalForDb.userAddressesMigrationDone) {
+        await ensureUserAddressesMigration();
+        globalForDb.userAddressesMigrationDone = true;
+      }
+
+      if (!globalForDb.userShippingProfilesMigrationDone) {
+        await ensureUserShippingProfilesMigration();
+        globalForDb.userShippingProfilesMigrationDone = true;
       }
 
       if (!globalForDb.userSettingsDensityMigrationDone) {

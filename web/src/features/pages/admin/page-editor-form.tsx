@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { getManagedPageFields, isManagedSitePageSlug } from "@/features/pages/config/managed-pages";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { STRUCTURED_DATA_FIELD } from "@/lib/page-fields";
-import { canCustomizePagePermalink, getManagedPagePath, getDefaultPagePath, normalizePagePermalinkInput } from "@/lib/page-paths";
+import { getManagedPagePath } from "@/lib/page-paths";
 import { ROUTES } from "@/lib/routes";
 import { SeoPreview } from "./seo-preview";
 import type { ManagedPage } from "@/lib/managed-pages";
@@ -40,7 +40,6 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
   const [seoTitle, setSeoTitle] = useState(page.seoTitle || "");
   const [seoDescription, setSeoDescription] = useState(page.seoDescription || "");
   const [slug, setSlug] = useState(page.slug || "");
-  const [permalink, setPermalink] = useState(page.permalink || getDefaultPagePath(page.slug));
   const [pageTitle, setPageTitle] = useState(page.title || "");
   const [pageName, setPageName] = useState(page.name || "");
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!page.slug);
@@ -79,13 +78,11 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
   };
 
   const isProtectedSlug = isManagedSitePageSlug(page.slug);
-  const canCustomizePermalink = canCustomizePagePermalink(page.slug);
   const templateFields = getManagedPageFields(page.slug);
 
   const previewPage: ManagedPage = {
     ...page,
     slug,
-    permalink: normalizePagePermalinkInput(permalink, slug),
   };
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -145,26 +142,6 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                   className={isProtectedSlug ? "bg-muted cursor-not-allowed opacity-70" : ""}
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="permalink" className="font-medium">
-                Custom Permalink
-              </label>
-              <Input
-                id="permalink"
-                name="permalink"
-                value={permalink}
-                onChange={(e) => setPermalink(e.target.value)}
-                readOnly={!canCustomizePermalink}
-                className={!canCustomizePermalink ? "bg-muted cursor-not-allowed opacity-70" : ""}
-                placeholder="/ten-trang-seo"
-              />
-              <p className="text-[10px] text-muted-foreground italic">
-                {!canCustomizePermalink
-                  ? "Trang system đặc biệt dùng URL cố định."
-                  : "Nhập đường dẫn public như WordPress/Rank Math, ví dụ /gioi-thieu hoặc /dich-vu."}
-              </p>
             </div>
 
             <div className="space-y-2">
@@ -277,7 +254,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                       id="canonicalUrl"
                       name="canonicalUrl"
                       defaultValue={page.canonicalUrl}
-                      placeholder="Để trống để dùng permalink hiện tại"
+                      placeholder="Để trống để dùng đường dẫn hiện tại"
                     />
                   </div>
 

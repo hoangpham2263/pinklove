@@ -2,6 +2,8 @@
 
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
+import { apiFetch } from "./api";
+
 export type MutationResult = {
   ok: boolean;
   message?: string;
@@ -11,12 +13,9 @@ export type MutationResult = {
 };
 
 export async function postForm(action: string, formData: FormData): Promise<MutationResult> {
-  const response = await fetch(action, {
+  const response = await apiFetch(action, {
     method: "POST",
     body: formData,
-    headers: {
-      Accept: "application/json",
-    },
   });
 
   const data = (await response.json().catch(() => null)) as MutationResult | null;

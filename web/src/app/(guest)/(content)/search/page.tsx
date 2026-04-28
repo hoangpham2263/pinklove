@@ -12,10 +12,9 @@ import { BlogCard } from "@/features/blog/components/blog-card";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { searchGuestContent } from "@/features/search/server/service";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { getBlogCategoryPath, getBlogPostPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
-import { getSystemSettings } from "@/lib/system-settings";
 
 type SearchPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -42,8 +41,6 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = getSearchQuery((await searchParams)?.q);
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
   const results = query ? await searchGuestContent(query) : { products: [], posts: [], pages: [] };
   const totalResults = results.products.length + results.posts.length + results.pages.length;
 
@@ -113,7 +110,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <LoopProductCard
                 key={product.id}
                 product={product}
-                permalinkConfig={permalinkConfig}
               />
             ))}
           </div>
@@ -131,8 +127,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <BlogCard
                 key={post.id}
                 post={post}
-                postHref={getBlogPostPath(post, permalinkConfig)}
-                categoryHref={getBlogCategoryPath(post.categorySlug, permalinkConfig)}
+                postHref={getBlogPostPath(post)}
+                categoryHref={getBlogCategoryPath(post.categorySlug)}
               />
             ))}
           </div>

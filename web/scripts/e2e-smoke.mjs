@@ -216,11 +216,11 @@ async function main() {
     await step("public pages respond", async () => {
       for (const path of [
         "/",
-        "/about",
-        "/contact",
-        "/templates",
+        "/gioi-thieu",
+        "/lien-he",
+        "/mau-thiep",
         "/templates/mau-thiep-cuoi-golden-aisle",
-        "/builder",
+        "/tu-tao-thiep",
         "/builder/mau-thiep-cuoi-editorial-story",
         "/user/login",
         "/user/register",
@@ -471,7 +471,7 @@ async function main() {
         "/admin/products",
         "/admin/products/mau-thiep-cuoi-golden-aisle",
         "/admin/pages",
-        "/admin/pages/about-us",
+        "/admin/pages/gioi-thieu",
         "/admin/menus",
         "/admin/menus/1",
         "/admin/affiliates",
@@ -615,15 +615,15 @@ async function main() {
                  seo_keywords, canonical_url, og_title, og_description, og_image,
                  noindex, nofollow, custom_fields
           FROM cms_pages
-          WHERE slug = 'about-us'
+          WHERE slug = 'gioi-thieu'
           LIMIT 1
         `
       );
-      assert(restore.page, "about-us page not found for restore");
+      assert(restore.page, "gioi-thieu page not found for restore");
 
       const update = await admin.postForm("/api/admin/pages/update", {
-        originalSlug: "about-us",
-        slug: "about-us",
+        originalSlug: "gioi-thieu",
+        slug: "gioi-thieu",
         name: restore.page.name,
         title: "About Us Smoke",
         excerpt: restore.page.excerpt ?? "",
@@ -640,10 +640,10 @@ async function main() {
         nofollow: restore.page.nofollow ? "on" : "",
         customFields: JSON.stringify(restore.page.custom_fields ?? {}),
       });
-      expectLocation(update.location, "/admin/pages/about-us?saved=1");
+      expectLocation(update.location, "/admin/pages/gioi-thieu?saved=1");
 
-      const publicHtml = await guest.getText("/about");
-      assert(publicHtml.includes(state.pageMarker), "Published about-us page did not reflect updated body");
+      const publicHtml = await guest.getText("/gioi-thieu");
+      assert(publicHtml.includes(state.pageMarker), "Published gioi-thieu page did not reflect updated body");
     });
 
     await step("admin can update menus", async () => {
@@ -678,7 +678,7 @@ async function main() {
       assert(restore.menu?.id, "Header menu not found");
 
       const items = [
-        { label: "About Us", type: "page", pageSlug: "about-us", url: null, position: 0 },
+        { label: "About Us", type: "page", pageSlug: "gioi-thieu", url: null, position: 0 },
         { label: `Smoke Link ${runId}`, type: "custom", pageSlug: null, url: "/smoke-link", position: 1 },
       ];
 

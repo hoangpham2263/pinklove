@@ -9,12 +9,10 @@ import { listPublishedProducts } from "@/features/products/server/service";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
-import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { getPageFields } from "@/lib/page-fields";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 
 export async function HomeContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
@@ -147,8 +145,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         accentImage: await resolveMediaUrl(item.accentImage),
       }))
   );
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
   const publishedProducts = await listPublishedProducts();
   const invitationGalleryProductSlugs = Array.isArray(fields.invitationGalleryProductSlugs)
     ? fields.invitationGalleryProductSlugs.map((item) => String(item).trim()).filter(Boolean)
@@ -614,7 +610,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                         <LoopProductCard
                           key={product.id}
                           product={product}
-                          permalinkConfig={permalinkConfig}
                           className="h-[24rem] w-[15rem] shrink-0"
                         />
                       ))}
@@ -680,7 +675,6 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                         <LoopProductCard
                           key={product.id}
                           product={product}
-                          permalinkConfig={permalinkConfig}
                           className="h-[24rem] w-[15rem] shrink-0"
                         />
                       ))}

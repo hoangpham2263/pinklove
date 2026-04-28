@@ -71,8 +71,8 @@ export default async function CustomerVendorPage() {
             {isVendorRole(user.role) ? (
               <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.LEGACY_ORDERS}>Mở danh sách đơn vendor</Link>} />
             ) : null}
-            <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.PROFILE}>Cập nhật hồ sơ nhà cung cấp</Link>} />
-            <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.SETTINGS}>Mở cài đặt tài khoản</Link>} />
+            <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.CONFIG_PROFILE}>Cập nhật hồ sơ nhà cung cấp</Link>} />
+            <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.CONFIG}>Mở configs tài khoản</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Xem các thiệp đang quản lý</Link>} />
           </CardContent>
         </Card>

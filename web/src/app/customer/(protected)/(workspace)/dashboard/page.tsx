@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireAppUser } from "@/lib/auth";
 import { isVendorRole } from "@/lib/roles";
-import { getInvitationPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 import { listInvitationsForUser } from "@/features/invitations/server/service";
 import { getAffiliateAccountForUser } from "@/features/affiliate/server/service";
 import { InvitationCard } from "@/features/invitations/components/invitation-card";
@@ -21,12 +20,10 @@ function getAffiliateStatusLabel(status: string) {
 
 export default async function CustomerDashboardPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  const [invitations, affiliateAccount, settings] = await Promise.all([
+  const [invitations, affiliateAccount] = await Promise.all([
     listInvitationsForUser(user.id),
     getAffiliateAccountForUser(user.id),
-    getSystemSettings(),
   ]);
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
 
   const publishedInvitations = invitations.filter((invitation) => invitation.status === "published").length;
   const draftInvitations = invitations.length - publishedInvitations;
@@ -112,7 +109,7 @@ export default async function CustomerDashboardPage() {
                 </div>
               </div>
             </Link>
-            <Link href={ROUTES.CUSTOMER.PROFILE} className="rounded-lg border p-4 transition-colors hover:bg-muted">
+            <Link href={ROUTES.CUSTOMER.CONFIG_PROFILE} className="rounded-lg border p-4 transition-colors hover:bg-muted">
               <div className="flex items-center gap-3">
                 <UserIcon className="h-5 w-5" />
                 <div>
@@ -223,7 +220,7 @@ export default async function CustomerDashboardPage() {
           ) : (
             <div className="grid gap-5 lg:grid-cols-2">
               {recentInvitations.map((invitation) => (
-                <InvitationCard key={invitation.id} invitation={invitation} publicHref={getInvitationPath(invitation, permalinkConfig)} />
+                <InvitationCard key={invitation.id} invitation={invitation} publicHref={getInvitationPath(invitation)} />
               ))}
             </div>
           )}

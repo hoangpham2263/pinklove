@@ -42,15 +42,15 @@ export async function generateMetadata({ params, searchParams }: DynamicManagedP
 
   switch (resolvedContent.type) {
     case "blog-post":
-      return generateBlogPostMetadata(resolvedContent.post, resolvedContent.config);
+      return generateBlogPostMetadata(resolvedContent.post);
     case "blog-category":
-      return generateBlogCategoryMetadata(resolvedContent.category, resolvedContent.config);
+      return generateBlogCategoryMetadata(resolvedContent.category);
     case "template-product":
-      return generateTemplateProductMetadata(resolvedContent.product, resolvedContent.config);
+      return generateTemplateProductMetadata(resolvedContent.product);
     case "builder-product":
-      return generateBuilderProductMetadata(resolvedContent.product, resolvedContent.config);
+      return generateBuilderProductMetadata(resolvedContent.product);
     case "general-product":
-      return generateGeneralProductMetadata(resolvedContent.product, resolvedContent.config);
+      return generateGeneralProductMetadata(resolvedContent.product);
     default:
       return {};
   }
@@ -75,21 +75,20 @@ export default async function DynamicManagedPage({ params, searchParams }: Dynam
   switch (resolvedContent.type) {
     case "blog-post": {
       const relatedPosts = await listRelatedBlogPosts(resolvedContent.post);
-      return renderBlogPostPage({ post: resolvedContent.post, relatedPosts, config: resolvedContent.config });
+      return renderBlogPostPage({ post: resolvedContent.post, relatedPosts });
     }
     case "blog-category":
       return renderBlogCategoryPage({
         category: resolvedContent.category,
         categories: resolvedContent.categories,
         posts: resolvedContent.posts,
-        config: resolvedContent.config,
       });
     case "template-product":
-      return renderTemplateProductPage(resolvedContent.product, resolvedContent.config);
+      return renderTemplateProductPage(resolvedContent.product);
     case "builder-product":
-      return renderBuilderProductPage(resolvedContent.product, resolvedContent.config);
+      return renderBuilderProductPage(resolvedContent.product);
     case "general-product":
-      return renderGeneralProductPage(resolvedContent.product, resolvedContent.config);
+      return renderGeneralProductPage(resolvedContent.product);
     case "invitation": {
       const { invitation } = resolvedContent;
       if (invitation.status !== "published") {

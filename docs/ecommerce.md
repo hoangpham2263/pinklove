@@ -41,19 +41,21 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
 
 1. Customer wishlist is synced into `shopping_cart_items`.
 2. Checkout loads customer profile, cart items, and ecommerce settings.
-3. Checkout determines whether the cart requires shipping from product fulfillment type.
-4. Checkout filters enabled payment methods by `requiresShipping`.
-5. Customer submits contact, optional shipping data, selected payment method, and notes.
-6. The API re-loads ecommerce settings and validates that the selected method is still enabled.
-7. `createOrderFromCart` creates:
+3. Checkout loads the user's address book and defaults to the user's default address when a physical order requires shipping.
+4. Checkout determines whether the cart requires shipping from product fulfillment type.
+5. Checkout filters enabled payment methods by `requiresShipping`.
+6. Customer submits contact, either a saved `addressId` or one-off shipping data, selected payment method, and notes.
+7. The API re-loads ecommerce settings and validates that the selected method is still enabled.
+8. For physical orders, the API resolves `addressId` by user ownership or validates the one-off shipping fields before creating the order snapshot.
+9. `createOrderFromCart` creates:
    - `commerce_orders`
    - `commerce_order_items`
    - one initial `commerce_payments` row with the configured method and provider
    - `commerce_shipments` when physical fulfillment requires shipping
-8. Inventory is decremented inside the transaction.
-9. Cart rows are cleared after successful order creation.
-10. Digital invitation entitlements are granted only when payment status becomes `paid`.
-11. Affiliate conversion is created or updated after the order is paid.
+10. Inventory is decremented inside the transaction.
+11. Cart rows are cleared after successful order creation.
+12. Digital invitation entitlements are granted only when payment status becomes `paid`.
+13. Affiliate conversion is created or updated after the order is paid.
 
 ## Payment state rules
 

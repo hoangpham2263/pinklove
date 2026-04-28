@@ -145,6 +145,7 @@ web/
           register/route.ts
         media/route.ts
         customer/
+          addresses/route.ts
           affiliate/apply/route.ts
           checkout/route.ts
           wishlist/route.ts
@@ -260,6 +261,7 @@ web/
 
 - The customer shell lives under `src/app/customer`.
 - Protected customer flows include dashboard, profile, settings, affiliate, orders, and site management.
+- Customer address management lives at `src/app/customer/(protected)/(account)/addresses/page.tsx` and uses the shared address book component for `user_addresses`.
 - Customer invitation flows live at:
   - `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
   - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
@@ -274,6 +276,7 @@ web/
   - signed in as that vendor: assigned-order working surface
 - `src/app/partner/(protected)/(workspace)/orders/[id]/page.tsx` serves the public URL `/partner/orders/[id]` for per-assignment collaboration detail.
 - `src/app/partner/dashboard/page.tsx` and `src/app/partner/orders/page.tsx` are legacy redirect-only aliases back to the canonical vendor portal route.
+- Protected partner workspace routes share the same sidebar/top-header shell pattern as admin and customer through `src/app/partner/(protected)/(workspace)/layout.tsx`.
 
 ## Admin area
 

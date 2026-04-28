@@ -28,6 +28,25 @@ export type UserProfile = {
   bio: string;
 };
 
+export type UserShippingProfile = {
+  businessName: string;
+  storeName: string;
+  contactEmail: string;
+  pickupContactName: string;
+  pickupPhone: string;
+  pickupAddressLine1: string;
+  pickupWard: string;
+  pickupDistrict: string;
+  pickupProvince: string;
+  returnSameAsPickup: boolean;
+  returnContactName: string;
+  returnPhone: string;
+  returnAddressLine1: string;
+  returnWard: string;
+  returnDistrict: string;
+  returnProvince: string;
+};
+
 export type AccountUser = {
   id: string;
   username: string;
@@ -53,6 +72,18 @@ type UserRow = {
 type OAuthAccountRow = {
   user_id: string;
 };
+
+const globalForAuth = globalThis as unknown as {
+  userShippingProfilesStorageReady?: boolean;
+};
+
+async function ensureUserShippingProfilesStorageReady() {
+  if (globalForAuth.userShippingProfilesStorageReady) {
+    return;
+  }
+
+  globalForAuth.userShippingProfilesStorageReady = true;
+}
 
 function hashPassword(password: string): string {
  const salt = randomBytes(16).toString("hex");
@@ -382,7 +413,12 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  bio: string | null;
  }>(
  `
-  SELECT full_name, display_name, phone, vendor_portal_slug, bio
+  SELECT
+    full_name,
+    display_name,
+    phone,
+    vendor_portal_slug,
+    bio
   FROM user_profiles
   WHERE user_id = $1
   LIMIT 1
@@ -429,6 +465,168 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
   bio.length > 0 ? bio : null,
  ]
  );
+}
+
+export async function getUserShippingProfile(
+  userId: string,
+  profileType = "primary"
+): Promise<UserShippingProfile> {
+  await ensureUserShippingProfilesStorageReady();
+  const result = await query<{
+    business_name: string | null;
+    store_name: string | null;
+    contact_email: string | null;
+    pickup_contact_name: string | null;
+    pickup_phone: string | null;
+    pickup_address_line1: string | null;
+    pickup_ward: string | null;
+    pickup_district: string | null;
+    pickup_province: string | null;
+    return_same_as_pickup: boolean | null;
+    return_contact_name: string | null;
+    return_phone: string | null;
+    return_address_line1: string | null;
+    return_ward: string | null;
+    return_district: string | null;
+    return_province: string | null;
+  }>(
+    `
+      SELECT
+        business_name,
+        store_name,
+        contact_email,
+        pickup_contact_name,
+        pickup_phone,
+        pickup_address_line1,
+        pickup_ward,
+        pickup_district,
+        pickup_province,
+        return_same_as_pickup,
+        return_contact_name,
+        return_phone,
+        return_address_line1,
+        return_ward,
+        return_district,
+        return_province
+      FROM user_shipping_profiles
+      WHERE user_id = $1 AND profile_type = $2
+      LIMIT 1
+    `,
+    [userId, profileType]
+  );
+
+  const row = result.rows[0];
+  return {
+    businessName: row?.business_name ?? "",
+    storeName: row?.store_name ?? "",
+    contactEmail: row?.contact_email ?? "",
+    pickupContactName: row?.pickup_contact_name ?? "",
+    pickupPhone: row?.pickup_phone ?? "",
+    pickupAddressLine1: row?.pickup_address_line1 ?? "",
+    pickupWard: row?.pickup_ward ?? "",
+    pickupDistrict: row?.pickup_district ?? "",
+    pickupProvince: row?.pickup_province ?? "",
+    returnSameAsPickup: row?.return_same_as_pickup ?? true,
+    returnContactName: row?.return_contact_name ?? "",
+    returnPhone: row?.return_phone ?? "",
+    returnAddressLine1: row?.return_address_line1 ?? "",
+    returnWard: row?.return_ward ?? "",
+    returnDistrict: row?.return_district ?? "",
+    returnProvince: row?.return_province ?? "",
+  };
+}
+
+export async function setUserShippingProfile(
+  userId: string,
+  profile: UserShippingProfile,
+  profileType = "primary"
+): Promise<void> {
+  await ensureUserShippingProfilesStorageReady();
+
+  const businessName = profile.businessName.trim();
+  const storeName = profile.storeName.trim();
+  const contactEmail = profile.contactEmail.trim();
+  const pickupContactName = profile.pickupContactName.trim();
+  const pickupPhone = profile.pickupPhone.trim();
+  const pickupAddressLine1 = profile.pickupAddressLine1.trim();
+  const pickupWard = profile.pickupWard.trim();
+  const pickupDistrict = profile.pickupDistrict.trim();
+  const pickupProvince = profile.pickupProvince.trim();
+  const returnSameAsPickup = profile.returnSameAsPickup;
+  const returnContactName = profile.returnContactName.trim();
+  const returnPhone = profile.returnPhone.trim();
+  const returnAddressLine1 = profile.returnAddressLine1.trim();
+  const returnWard = profile.returnWard.trim();
+  const returnDistrict = profile.returnDistrict.trim();
+  const returnProvince = profile.returnProvince.trim();
+
+  await query(
+    `
+      INSERT INTO user_shipping_profiles (
+        user_id,
+        profile_type,
+        business_name,
+        store_name,
+        contact_email,
+        pickup_contact_name,
+        pickup_phone,
+        pickup_address_line1,
+        pickup_ward,
+        pickup_district,
+        pickup_province,
+        return_same_as_pickup,
+        return_contact_name,
+        return_phone,
+        return_address_line1,
+        return_ward,
+        return_district,
+        return_province
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+        $12, $13, $14, $15, $16, $17, $18
+      )
+      ON CONFLICT (user_id, profile_type)
+      DO UPDATE SET
+        business_name = EXCLUDED.business_name,
+        store_name = EXCLUDED.store_name,
+        contact_email = EXCLUDED.contact_email,
+        pickup_contact_name = EXCLUDED.pickup_contact_name,
+        pickup_phone = EXCLUDED.pickup_phone,
+        pickup_address_line1 = EXCLUDED.pickup_address_line1,
+        pickup_ward = EXCLUDED.pickup_ward,
+        pickup_district = EXCLUDED.pickup_district,
+        pickup_province = EXCLUDED.pickup_province,
+        return_same_as_pickup = EXCLUDED.return_same_as_pickup,
+        return_contact_name = EXCLUDED.return_contact_name,
+        return_phone = EXCLUDED.return_phone,
+        return_address_line1 = EXCLUDED.return_address_line1,
+        return_ward = EXCLUDED.return_ward,
+        return_district = EXCLUDED.return_district,
+        return_province = EXCLUDED.return_province,
+        updated_at = NOW()
+    `,
+    [
+      userId,
+      profileType,
+      businessName || null,
+      storeName || null,
+      contactEmail || null,
+      pickupContactName || null,
+      pickupPhone || null,
+      pickupAddressLine1 || null,
+      pickupWard || null,
+      pickupDistrict || null,
+      pickupProvince || null,
+      returnSameAsPickup,
+      returnContactName || null,
+      returnPhone || null,
+      returnAddressLine1 || null,
+      returnWard || null,
+      returnDistrict || null,
+      returnProvince || null,
+    ]
+  );
 }
 
 export async function listAccounts(): Promise<AccountUser[]> {

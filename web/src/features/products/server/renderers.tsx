@@ -18,12 +18,11 @@ import {
   getBuilderProductPath,
   getGeneralProductPath,
   getTemplateProductPath,
-  type PublicPermalinkConfig,
 } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
 
-export async function generateTemplateProductMetadata(product: Product | null, config: PublicPermalinkConfig): Promise<Metadata> {
+export async function generateTemplateProductMetadata(product: Product | null): Promise<Metadata> {
   if (!product) {
     return await createSeoMetadata({
       title: "Mẫu thiệp cưới",
@@ -36,13 +35,13 @@ export async function generateTemplateProductMetadata(product: Product | null, c
   return await createSeoMetadata({
     title: product.name,
     description: product.description || product.excerpt || `Chi tiết mẫu thiệp cưới ${product.name}.`,
-    path: getTemplateProductPath(product, config),
+    path: getTemplateProductPath(product),
     image: product.thumbnailUrl,
     keywords: ["mẫu thiệp cưới", getInvitationTemplateLabel(product.templateKey).toLowerCase(), product.name.toLowerCase()],
   });
 }
 
-export async function generateGeneralProductMetadata(product: Product | null, config: PublicPermalinkConfig): Promise<Metadata> {
+export async function generateGeneralProductMetadata(product: Product | null): Promise<Metadata> {
   if (!product) {
     return await createSeoMetadata({
       title: "Sản phẩm",
@@ -55,13 +54,13 @@ export async function generateGeneralProductMetadata(product: Product | null, co
   return await createSeoMetadata({
     title: product.name,
     description: product.description || product.excerpt || `Chi tiết sản phẩm ${product.name}.`,
-    path: getGeneralProductPath(product, config),
+    path: getGeneralProductPath(product),
     image: product.thumbnailUrl,
     keywords: ["san pham", product.name.toLowerCase()],
   });
 }
 
-export async function generateBuilderProductMetadata(product: Product | null, config: PublicPermalinkConfig): Promise<Metadata> {
+export async function generateBuilderProductMetadata(product: Product | null): Promise<Metadata> {
   if (!product) {
     return await createSeoMetadata({
       title: "Builder thiệp cưới",
@@ -74,13 +73,13 @@ export async function generateBuilderProductMetadata(product: Product | null, co
   return await createSeoMetadata({
     title: product.name,
     description: product.description || product.excerpt || `Chi tiết starter builder ${product.name}.`,
-    path: getBuilderProductPath(product, config),
+    path: getBuilderProductPath(product),
     image: product.thumbnailUrl,
     keywords: ["builder thiệp cưới", getInvitationTemplateLabel(product.templateKey).toLowerCase(), product.name.toLowerCase()],
   });
 }
 
-export async function renderTemplateProductPage(product: Product, config: PublicPermalinkConfig) {
+export async function renderTemplateProductPage(product: Product) {
   const user = await getCurrentUser();
   const defaults = {
     ...getInvitationTemplateDefaults(product.templateKey),
@@ -98,7 +97,7 @@ export async function renderTemplateProductPage(product: Product, config: Public
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getTemplateProductPath(product, config),
+      url: getTemplateProductPath(product),
     },
   };
 
@@ -188,7 +187,7 @@ export async function renderTemplateProductPage(product: Product, config: Public
               </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getTemplateProductPath(product, config))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getTemplateProductPath(product))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
@@ -199,7 +198,7 @@ export async function renderTemplateProductPage(product: Product, config: Public
   );
 }
 
-export async function renderBuilderProductPage(product: Product, config: PublicPermalinkConfig) {
+export async function renderBuilderProductPage(product: Product) {
   const user = await getCurrentUser();
   const defaults = {
     ...getInvitationTemplateDefaults(product.templateKey),
@@ -217,7 +216,7 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getBuilderProductPath(product, config),
+      url: getBuilderProductPath(product),
     },
   };
 
@@ -286,7 +285,7 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
               </div>
             ) : (
               <div className="space-y-3">
-                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getBuilderProductPath(product, config))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getBuilderProductPath(product))}`} className="flex w-full">Dang nhap de luu va mua</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary" className="flex w-full">Tạo tài khoản mới</GuestLinkButton>
               </div>
             )}
@@ -297,7 +296,7 @@ export async function renderBuilderProductPage(product: Product, config: PublicP
   );
 }
 
-export async function renderGeneralProductPage(product: Product, config: PublicPermalinkConfig) {
+export async function renderGeneralProductPage(product: Product) {
   const user = await getCurrentUser();
   const details =
     typeof product.config.productDetails === "object" && product.config.productDetails
@@ -315,7 +314,7 @@ export async function renderGeneralProductPage(product: Product, config: PublicP
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getGeneralProductPath(product, config),
+      url: getGeneralProductPath(product),
     },
   };
 
@@ -417,7 +416,7 @@ export async function renderGeneralProductPage(product: Product, config: PublicP
             ) : (
               <div className="space-y-3">
                 <GuestLinkButton
-                  href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getGeneralProductPath(product, config))}`}
+                  href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getGeneralProductPath(product))}`}
                   className="flex w-full"
                 >
                   Đăng nhập để lưu và mua

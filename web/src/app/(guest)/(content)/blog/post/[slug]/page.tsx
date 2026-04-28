@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { generateBlogPostMetadata, renderBlogPostPage } from "@/features/blog/server/renderers";
 import { getPublishedBlogPostBySlug, listRelatedBlogPosts } from "@/features/blog/server/service";
-import { getBlogPostPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getBlogPostPath } from "@/lib/public-paths";
 
 export async function generateMetadata({
   params,
@@ -12,8 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedBlogPostBySlug(slug);
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-  return await generateBlogPostMetadata(post, permalinkConfig);
+  return await generateBlogPostMetadata(post);
 }
 
 export default async function BlogPostPage({
@@ -28,16 +26,11 @@ export default async function BlogPostPage({
     return notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  const targetPath = getBlogPostPath(post, permalinkConfig);
+  const targetPath = getBlogPostPath(post);
   if (targetPath !== `/blog/post/${post.slug}`) {
-    if (settings.permalink.legacyRedirects) {
-      redirect(targetPath);
-    }
-    notFound();
+    redirect(targetPath);
   }
 
   const relatedPosts = await listRelatedBlogPosts(post);
-  return renderBlogPostPage({ post, relatedPosts, config: permalinkConfig });
+  return renderBlogPostPage({ post, relatedPosts });
 }

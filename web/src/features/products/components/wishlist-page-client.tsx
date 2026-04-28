@@ -23,14 +23,12 @@ import { getWishlistProductHref } from "@/features/products/wishlist";
 import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/currency";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
-import type { PublicPermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import type { EcommerceSettings } from "@/lib/system-settings";
 import { toast } from "sonner";
 
 type WishlistPageClientProps = {
   products: Array<Pick<Product, "id" | "slug" | "productType" | "fulfillmentType" | "name" | "excerpt" | "thumbnailUrl" | "price">>;
-  permalinkConfig: PublicPermalinkConfig;
   ecommerceSettings: EcommerceSettings;
   customerName: string;
   customerPhone?: string;
@@ -51,7 +49,6 @@ function getProductTypeLabel(productType: Product["productType"]) {
 
 export function WishlistPageClient({
   products,
-  permalinkConfig,
   ecommerceSettings,
   customerName,
   customerPhone,
@@ -62,7 +59,7 @@ export function WishlistPageClient({
     .filter((product) => isWishlisted(product.id))
     .map((product) => ({
       ...product,
-      href: getWishlistProductHref(product, permalinkConfig),
+      href: getWishlistProductHref(product),
     }));
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const visibleSelectedIds = useMemo(() => {

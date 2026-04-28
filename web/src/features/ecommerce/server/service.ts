@@ -501,6 +501,20 @@ export async function createOrderFromCart(input: {
     requiresShipping && subtotalAmount < settings.ecommerce.freeShippingThreshold
       ? settings.ecommerce.flatShippingFee
       : 0;
+  const shippingName = input.shippingName?.trim() ?? input.customerName.trim();
+  const shippingPhone = input.shippingPhone?.trim() ?? input.customerPhone.trim();
+  const shippingLine1 = input.shippingLine1?.trim() ?? "";
+  const shippingLine2 = input.shippingLine2?.trim() ?? "";
+  const shippingWard = input.shippingWard?.trim() ?? "";
+  const shippingDistrict = input.shippingDistrict?.trim() ?? "";
+  const shippingCity = input.shippingCity?.trim() ?? "";
+  const shippingPostalCode = input.shippingPostalCode?.trim() ?? "";
+  const shippingCountry = input.shippingCountry?.trim() || "VN";
+
+  if (requiresShipping && (!shippingName || !shippingPhone || !shippingLine1 || !shippingDistrict || !shippingCity)) {
+    throw new Error("SHIPPING_ADDRESS_REQUIRED");
+  }
+
   const totalAmount = subtotalAmount + shippingAmount;
   const orderNumber = await generateOrderNumber();
   const affiliateAccount = input.affiliateCode ? await getAffiliateAccountByCode(input.affiliateCode) : null;
@@ -591,15 +605,15 @@ export async function createOrderFromCart(input: {
         subtotalAmount,
         shippingAmount,
         totalAmount,
-        input.shippingName ?? input.customerName,
-        input.shippingPhone ?? input.customerPhone,
-        input.shippingLine1 ?? "",
-        input.shippingLine2 ?? "",
-        input.shippingWard ?? "",
-        input.shippingDistrict ?? "",
-        input.shippingCity ?? "",
-        input.shippingPostalCode ?? "",
-        input.shippingCountry ?? "VN",
+        shippingName,
+        shippingPhone,
+        shippingLine1,
+        shippingLine2,
+        shippingWard,
+        shippingDistrict,
+        shippingCity,
+        shippingPostalCode,
+        shippingCountry,
         input.notes?.trim() ?? "",
         affiliateAccount?.userId ?? null,
         affiliateAccount?.code ?? null,

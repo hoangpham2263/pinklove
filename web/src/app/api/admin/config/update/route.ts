@@ -10,10 +10,8 @@ import {
   updateEmailSettings,
   updateInternalProductImportApiSettings,
   updateOpenGraphSettings,
-  updatePermalinkSettings,
   updateSitemapSettings,
 } from "@/lib/system-settings";
-import { normalizeBlogPostPattern } from "@/lib/public-paths";
 
 export const runtime = "nodejs";
 
@@ -31,22 +29,6 @@ export async function POST(request: Request) {
   const section = String(formData.get("section") ?? "").trim();
 
   try {
-    if (section === "permalink") {
-      await updatePermalinkSettings({
-        legacyRedirects: isChecked(formData, "legacyRedirects"),
-        enforceLeadingSlash: isChecked(formData, "enforceLeadingSlash"),
-        stripTrailingSlash: isChecked(formData, "stripTrailingSlash"),
-        blogPostPattern: normalizeBlogPostPattern(String(formData.get("blogPostPattern") ?? "")),
-        blogCategoryBase: String(formData.get("blogCategoryBase") ?? "").trim() || "blog",
-        templateBase: String(formData.get("templateBase") ?? "").trim() || "templates",
-        builderBase: String(formData.get("builderBase") ?? "").trim() || "builder",
-        productBase: String(formData.get("productBase") ?? "").trim() || "products",
-        invitationBase: String(formData.get("invitationBase") ?? "").trim() || "invitations",
-      });
-
-      return respondSuccess(request, { message: "Đã lưu cài đặt permalink." });
-    }
-
     if (section === "breadcrumb") {
       await updateBreadcrumbSettings({
         enabled: isChecked(formData, "enabled"),
@@ -136,6 +118,14 @@ export async function POST(request: Request) {
         currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",
         thousandSeparator: formData.get("thousandSeparator") === "," ? "," : ".",
         decimalSeparator: formData.get("decimalSeparator") === "." ? "." : ",",
+        shippingAccount: {
+          enabled: isChecked(formData, "shippingAccountEnabled"),
+          provider: String(formData.get("shippingAccountProvider") ?? "").trim(),
+          accountLabel: String(formData.get("shippingAccountLabel") ?? "").trim(),
+          shopId: String(formData.get("shippingAccountShopId") ?? "").trim(),
+          token: String(formData.get("shippingAccountToken") ?? ""),
+          pickupAddressId: String(formData.get("shippingAccountPickupAddressId") ?? "").trim(),
+        },
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });

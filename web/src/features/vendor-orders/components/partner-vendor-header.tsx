@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { BellRing, LayoutGrid, LogOut, PackageSearch, PackagePlus, Store, UserRound } from "lucide-react";
+import { LayoutGrid, LogOut, PackageSearch, PackagePlus, Settings, Store } from "lucide-react";
 
+import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ROUTES } from "@/lib/routes";
@@ -56,10 +57,10 @@ export function PartnerVendorHeader({
       matchPrefixes: [ROUTES.PARTNER.PRODUCTS],
     },
     {
-      href: ROUTES.PARTNER.ACCOUNT,
-      label: "Tài khoản",
-      icon: UserRound,
-      matchPrefixes: [ROUTES.PARTNER.ACCOUNT],
+      href: ROUTES.PARTNER.CONFIG_ACCOUNT,
+      label: "Configs",
+      icon: Settings,
+      matchPrefixes: [ROUTES.PARTNER.CONFIG],
     },
   ];
 
@@ -70,13 +71,22 @@ export function PartnerVendorHeader({
           <div className="w-full flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="size-10 flex shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-900"><Store className="size-5" /></div>
-              <div className="min-w-0">
+              <div className="min-w-0 space-y-1">
                 <p className="text-[10px] font-medium uppercase tracking-wide text-amber-900/80">Vendor Workspace</p>
                 <div className="flex items-center gap-2.5">
                   <p className="truncate text-sm lg:text-base font-semibold">{vendorName}</p>
                   {currentOrderLabel ? (
                     <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium ring-1 ring-zinc-200">{currentOrderLabel}</span>
                   ) : null}
+                </div>
+                <div className="flex min-w-0 items-center gap-2 text-sm">
+                  <span className="shrink-0 text-zinc-950">|</span>
+                  <RouteBreadcrumbs
+                    listClassName="flex-nowrap overflow-hidden whitespace-nowrap text-xs text-zinc-500"
+                    linkClassName="truncate hover:text-zinc-900"
+                    currentClassName="truncate font-medium text-zinc-950"
+                    separatorClassName="text-zinc-400"
+                  />
                 </div>
               </div>
             </div>

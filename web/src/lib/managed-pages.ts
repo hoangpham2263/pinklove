@@ -8,9 +8,7 @@ import { absoluteUrl, getCurrentSiteUrl } from "@/lib/seo";
 import { resolveSeoImageUrl } from "@/lib/media-resolver";
 import {
   getManagedPagePath,
-  getDefaultPagePath,
   isPageExcludedFromSitemap,
-  normalizePagePermalinkInput,
 } from "@/lib/page-paths";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -27,7 +25,6 @@ export type ManagedPage = {
   seoDescription?: string;
   seoKeywords?: string;
   canonicalUrl?: string;
-  permalink?: string;
   breadcrumbTitle?: string;
   breadcrumbParentSlug?: string;
   ogTitle?: string;
@@ -52,7 +49,6 @@ type ManagedPageRow = {
   seo_description: string | null;
   seo_keywords: string | null;
   canonical_url: string | null;
-  permalink: string | null;
   breadcrumb_title: string | null;
   breadcrumb_parent_slug: string | null;
   og_title: string | null;
@@ -88,7 +84,6 @@ function mapRowToPage(row: ManagedPageRow): ManagedPage {
     seoDescription: row.seo_description ?? undefined,
     seoKeywords: row.seo_keywords ?? undefined,
     canonicalUrl: row.canonical_url ?? undefined,
-    permalink: row.permalink ?? undefined,
     breadcrumbTitle: row.breadcrumb_title ?? undefined,
     breadcrumbParentSlug: row.breadcrumb_parent_slug ?? undefined,
     ogTitle: row.og_title ?? undefined,
@@ -152,18 +147,9 @@ export async function getPublishedPageBySlug(slug: string): Promise<ManagedPage 
   return null;
 }
 
-export async function getPageByPermalink(permalink: string): Promise<ManagedPage | null> {
-  const normalizedPermalink = normalizePagePermalinkInput(permalink, "temp");
-  const result = await query<ManagedPageRow>(
-    "SELECT * FROM managed_pages WHERE permalink = $1 LIMIT 1",
-    [normalizedPermalink]
-  );
-
-  if (result.rows.length === 0) {
-    return null;
-  }
-
-  return mapRowToPage(result.rows[0]);
+export async function getPageByPath(pathname: string): Promise<ManagedPage | null> {
+  const pages = await listPages();
+  return pages.find((page) => getManagedPagePath(page) === pathname) ?? null;
 }
 
 type AccessiblePageOptions = {
@@ -209,10 +195,6 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
       : existing.title || data.name?.trim() || existing.name;
 
   const nextSlug = data.slug ?? existing.slug;
-  const nextPermalink = normalizePagePermalinkInput(
-    data.permalink ?? existing.permalink ?? getDefaultPagePath(nextSlug),
-    nextSlug
-  );
 
   return withTransaction(async (execute) => {
     const result = await execute<ManagedPageRow>(
@@ -228,18 +210,17 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
         seo_description = $8,
         seo_keywords = $9,
         canonical_url = $10,
-        permalink = $11,
-        breadcrumb_title = $12,
-        breadcrumb_parent_slug = $13,
-        og_title = $14,
-        og_description = $15,
-        og_image = $16,
-        noindex = COALESCE($17, noindex),
-        nofollow = COALESCE($18, nofollow),
-        custom_fields = $19,
-        slug = COALESCE($20, slug),
+        breadcrumb_title = $11,
+        breadcrumb_parent_slug = $12,
+        og_title = $13,
+        og_description = $14,
+        og_image = $15,
+        noindex = COALESCE($16, noindex),
+        nofollow = COALESCE($17, nofollow),
+        custom_fields = $18,
+        slug = COALESCE($19, slug),
         updated_at = NOW()
-      WHERE slug = $21
+      WHERE slug = $20
       RETURNING *
       `,
       [
@@ -253,7 +234,6 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
         data.seoDescription !== undefined ? data.seoDescription : existing.seoDescription,
         data.seoKeywords !== undefined ? data.seoKeywords : existing.seoKeywords,
         data.canonicalUrl !== undefined ? data.canonicalUrl : existing.canonicalUrl,
-        nextPermalink,
         data.breadcrumbTitle !== undefined ? data.breadcrumbTitle : existing.breadcrumbTitle,
         data.breadcrumbParentSlug !== undefined ? data.breadcrumbParentSlug : existing.breadcrumbParentSlug,
         data.ogTitle !== undefined ? data.ogTitle : existing.ogTitle,

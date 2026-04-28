@@ -3,18 +3,6 @@ import "server-only";
 import type { ProductType } from "@/features/products/types";
 import { query } from "@/lib/database";
 
-export type PermalinkSettings = {
-  legacyRedirects: boolean;
-  enforceLeadingSlash: boolean;
-  stripTrailingSlash: boolean;
-  blogPostPattern: string;
-  blogCategoryBase: string;
-  templateBase: string;
-  builderBase: string;
-  productBase: string;
-  invitationBase: string;
-};
-
 export type BreadcrumbSettings = {
   enabled: boolean;
   showOnPage: boolean;
@@ -82,6 +70,16 @@ export type EcommerceSettings = {
   thousandSeparator: "," | ".";
   decimalSeparator: "," | ".";
   paymentMethods: EcommercePaymentMethodSettings[];
+  shippingAccount: ShippingAccountSettings;
+};
+
+export type ShippingAccountSettings = {
+  enabled: boolean;
+  provider: string;
+  accountLabel: string;
+  shopId: string;
+  token: string;
+  pickupAddressId: string;
 };
 
 export type EcommercePaymentMethodSettings = {
@@ -126,7 +124,6 @@ export type EmailSettings = {
 };
 
 export type SystemSettings = {
-  permalink: PermalinkSettings;
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
   indexing: IndexingSettings;
@@ -141,7 +138,6 @@ export type SystemSettings = {
 type BrandingStorageSettings = BrandingSettings & FaviconSettings;
 
 type SettingRow = {
-  seo_permalink: Record<string, unknown> | null;
   seo_breadcrumb: Record<string, unknown> | null;
   seo_sitemap: Record<string, unknown> | null;
   seo_indexing?: Record<string, unknown> | null;
@@ -153,17 +149,6 @@ type SettingRow = {
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
-  permalink: {
-    legacyRedirects: true,
-    enforceLeadingSlash: true,
-    stripTrailingSlash: true,
-    blogPostPattern: "/blog/post/%postname%",
-    blogCategoryBase: "blog",
-    templateBase: "templates",
-    builderBase: "builder",
-    productBase: "products",
-    invitationBase: "invitations",
-  },
   breadcrumb: {
     enabled: true,
     showOnPage: true,
@@ -274,6 +259,14 @@ const DEFAULT_SETTINGS: SystemSettings = {
         requiresShipping: null,
       },
     ],
+    shippingAccount: {
+      enabled: false,
+      provider: "",
+      accountLabel: "",
+      shopId: "",
+      token: "",
+      pickupAddressId: "",
+    },
   },
   internalApis: {
     productsImport: {
@@ -302,21 +295,6 @@ function mergeRecord<T extends Record<string, unknown>>(base: T, input: Record<s
   return {
     ...base,
     ...(input ?? {}),
-  };
-}
-
-function parsePermalinkSettings(value: Record<string, unknown> | null | undefined): PermalinkSettings {
-  const merged = mergeRecord(DEFAULT_SETTINGS.permalink as Record<string, unknown>, value);
-  return {
-    legacyRedirects: Boolean(merged.legacyRedirects),
-    enforceLeadingSlash: Boolean(merged.enforceLeadingSlash),
-    stripTrailingSlash: Boolean(merged.stripTrailingSlash),
-    blogPostPattern: String(merged.blogPostPattern ?? DEFAULT_SETTINGS.permalink.blogPostPattern),
-    blogCategoryBase: String(merged.blogCategoryBase ?? DEFAULT_SETTINGS.permalink.blogCategoryBase),
-    templateBase: String(merged.templateBase ?? DEFAULT_SETTINGS.permalink.templateBase),
-    builderBase: String(merged.builderBase ?? DEFAULT_SETTINGS.permalink.builderBase),
-    productBase: String(merged.productBase ?? merged.paperBase ?? DEFAULT_SETTINGS.permalink.productBase),
-    invitationBase: String(merged.invitationBase ?? DEFAULT_SETTINGS.permalink.invitationBase),
   };
 }
 
@@ -472,6 +450,14 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
                 ? Boolean(merged.allowCod)
                 : item.enabled,
         }));
+  const shippingAccountInput =
+    typeof merged.shippingAccount === "object" && merged.shippingAccount
+      ? (merged.shippingAccount as Record<string, unknown>)
+      : {};
+  const shippingAccountMerged = mergeRecord(
+    DEFAULT_SETTINGS.ecommerce.shippingAccount as unknown as Record<string, unknown>,
+    shippingAccountInput
+  );
 
   return {
     enabled: Boolean(merged.enabled),
@@ -502,6 +488,18 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
           ? "."
           : DEFAULT_SETTINGS.ecommerce.decimalSeparator,
     paymentMethods,
+    shippingAccount: {
+      enabled: Boolean(shippingAccountMerged.enabled),
+      provider: String(shippingAccountMerged.provider ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.provider).trim(),
+      accountLabel: String(
+        shippingAccountMerged.accountLabel ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.accountLabel
+      ).trim(),
+      shopId: String(shippingAccountMerged.shopId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.shopId).trim(),
+      token: String(shippingAccountMerged.token ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.token),
+      pickupAddressId: String(
+        shippingAccountMerged.pickupAddressId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.pickupAddressId
+      ).trim(),
+    },
   };
 }
 
@@ -565,7 +563,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   try {
     const result = await query<SettingRow>(`
-      SELECT seo_permalink, seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
+      SELECT seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
       , internal_api_config, email_config
       FROM app_settings
       WHERE id = 1
@@ -579,7 +577,6 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   const brandingSettings = parseBrandingStorageSettings(row?.seo_branding);
 
   return {
-    permalink: parsePermalinkSettings(row?.seo_permalink),
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
@@ -598,23 +595,6 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     internalApis: parseInternalApisSettings(row?.internal_api_config),
     email: parseEmailSettings(row?.email_config),
   };
-}
-
-export async function updatePermalinkSettings(input: Partial<PermalinkSettings>) {
-  const current = await getSystemSettings();
-  const next = { ...current.permalink, ...input };
-
-  await query(
-    `
-    UPDATE app_settings
-    SET seo_permalink = $1::jsonb,
-        updated_at = NOW()
-    WHERE id = 1
-    `,
-    [JSON.stringify(next)]
-  );
-
-  return next;
 }
 
 export async function updateBreadcrumbSettings(input: Partial<BreadcrumbSettings>) {

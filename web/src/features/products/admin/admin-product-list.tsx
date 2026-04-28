@@ -39,7 +39,7 @@ import {
 import { ROUTES } from "@/lib/routes";
 import { finishMutation, postForm } from "@/lib/client-mutation";
 import type { Product, ProductType } from "@/features/products/types";
-import { getProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
+import { getProductPath } from "@/lib/public-paths";
 
 function getProductTypeLabel(productType: ProductType) {
   switch (productType) {
@@ -58,7 +58,6 @@ type AdminProductListProps = {
   status: "" | Product["status"];
   productType: "" | ProductType;
   title?: string;
-  permalinkConfig: PublicPermalinkConfig;
   returnTo?: string;
   lockProductType?: boolean;
 };
@@ -69,7 +68,6 @@ export function AdminProductList({
   status,
   productType,
   title,
-  permalinkConfig,
   returnTo = ROUTES.ADMIN.PRODUCT_LIST,
   lockProductType = false,
 }: AdminProductListProps) {
@@ -267,7 +265,7 @@ export function AdminProductList({
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const product = row.original;
-          const publicHref = getProductPath(product, permalinkConfig);
+          const publicHref = getProductPath(product);
           const adminEditHref =
             product.productType === "builder_template"
               ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
@@ -336,7 +334,7 @@ export function AdminProductList({
         },
       },
     ],
-    [router, permalinkConfig, showInventoryColumn, returnTo]
+    [router, showInventoryColumn, returnTo]
   );
 
   const table = useReactTable({

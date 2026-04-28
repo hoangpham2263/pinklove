@@ -86,7 +86,6 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods" }] },
   { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Thêm phương thức thanh toán" }] },
   { pattern: "/admin/config/payment-methods/[code]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Sửa phương thức thanh toán" }] },
-  { pattern: ROUTES.ADMIN.CONFIG_PERMALINKS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Permalinks" }] },
   { pattern: ROUTES.ADMIN.CONFIG_SITEMAP, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Sitemap & Robots" }] },
 
   { pattern: ROUTES.CUSTOMER.DASHBOARD, items: [{ label: "Tài khoản" }, { label: "Dashboard" }] },
@@ -95,17 +94,29 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.CUSTOMER.ORDERS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Đơn hàng của tôi" }] },
   { pattern: "/customer/orders/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Đơn hàng của tôi", href: ROUTES.CUSTOMER.ORDERS }, { label: "Chi tiết đơn hàng" }] },
   { pattern: ROUTES.CUSTOMER.MESSAGES, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Tin nhắn" }] },
-  { pattern: ROUTES.CUSTOMER.PROFILE, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Hồ sơ" }] },
+  { pattern: ROUTES.CUSTOMER.CONFIG, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs" }] },
+  { pattern: ROUTES.CUSTOMER.CONFIG_PROFILE, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Hồ sơ" }] },
+  { pattern: ROUTES.CUSTOMER.CONFIG_ADDRESSES, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Địa chỉ" }] },
+  { pattern: ROUTES.CUSTOMER.CONFIG_ADDRESS_NEW, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES }, { label: "Thêm địa chỉ" }] },
+  { pattern: "/customer/config/addresses/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES }, { label: "Chi tiết địa chỉ" }] },
+  { pattern: "/customer/config/addresses/[id]/edit", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES }, { label: "Sửa địa chỉ" }] },
   { pattern: ROUTES.CUSTOMER.AFFILIATE, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Tiếp thị liên kết" }] },
-  { pattern: ROUTES.CUSTOMER.SETTINGS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Cài đặt" }] },
+  { pattern: ROUTES.CUSTOMER.CONFIG_SETTINGS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Configs", href: ROUTES.CUSTOMER.CONFIG }, { label: "Cài đặt" }] },
   { pattern: ROUTES.CUSTOMER.VENDOR, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Không gian nhà cung cấp" }] },
   { pattern: "/customer/design/[id]", items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS }, { label: "Thiết kế thiệp" }] },
 
-  { pattern: ROUTES.PARTNER.ACCOUNT, items: [{ label: "Đối tác" }, { label: "Thông tin đối tác" }] },
-  { pattern: ROUTES.PARTNER.PRODUCTS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor" }] },
-  { pattern: ROUTES.PARTNER.PRODUCT_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Tạo hồ sơ" }] },
-  { pattern: "/partner/products/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Chi tiết hồ sơ" }] },
-  { pattern: "/partner/orders/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.ACCOUNT }, { label: "Đơn được giao", href: ROUTES.PARTNER.LEGACY_ORDERS }, { label: "Chi tiết đơn hàng" }] },
+  { pattern: ROUTES.PARTNER.CONFIG, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs" }] },
+  { pattern: ROUTES.PARTNER.CONFIG_ACCOUNT, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Tài khoản" }] },
+  { pattern: ROUTES.PARTNER.CONFIG_ADDRESSES, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ" }] },
+  { pattern: ROUTES.PARTNER.CONFIG_ADDRESS_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: "Thêm địa chỉ" }] },
+  { pattern: "/partner/config/addresses/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: "Chi tiết địa chỉ" }] },
+  { pattern: "/partner/config/addresses/[id]/edit", items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: "Sửa địa chỉ" }] },
+  { pattern: ROUTES.PARTNER.LEGACY_DASHBOARD, items: [{ label: "Đối tác" }, { label: "Dashboard" }] },
+  { pattern: ROUTES.PARTNER.LEGACY_ORDERS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Đơn được giao" }] },
+  { pattern: ROUTES.PARTNER.PRODUCTS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Sản phẩm vendor" }] },
+  { pattern: ROUTES.PARTNER.PRODUCT_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Tạo hồ sơ" }] },
+  { pattern: "/partner/products/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Sản phẩm vendor", href: ROUTES.PARTNER.PRODUCTS }, { label: "Chi tiết hồ sơ" }] },
+  { pattern: "/partner/orders/[id]", items: [{ label: "Đối tác", href: ROUTES.PARTNER.LEGACY_DASHBOARD }, { label: "Đơn được giao", href: ROUTES.PARTNER.LEGACY_ORDERS }, { label: "Chi tiết đơn hàng" }] },
 ];
 
 function normalizePathname(pathname: string) {
@@ -191,7 +202,7 @@ function getShellRootItem(pathname: string): BreadcrumbItem | null {
   }
 
   if (rootSegment === "partner") {
-    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.PARTNER.ACCOUNT };
+    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.PARTNER.LEGACY_DASHBOARD };
   }
 
   return null;

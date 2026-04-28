@@ -7,12 +7,11 @@ import { useEffect, useRef, useState } from "react";
 import { WishlistToggleButton } from "@/features/products/components/wishlist-toggle-button";
 import type { Product } from "@/features/products/types";
 import { createWishlistProductSnapshot } from "@/features/products/wishlist";
-import { getProductPath, type PublicPermalinkConfig } from "@/lib/public-paths";
+import { getProductPath } from "@/lib/public-paths";
 import { cn } from "@/lib/utils";
 
 type LoopProductCardProps = {
   product: Product;
-  permalinkConfig: PublicPermalinkConfig;
   className?: string;
   imageClassName?: string;
   wishlistCount?: number;
@@ -89,7 +88,6 @@ function ProductCardImage({ src, alt, className, isHovered }: ProductCardImagePr
 
 export function LoopProductCard({
   product,
-  permalinkConfig,
   className,
   imageClassName,
   wishlistCount,
@@ -97,7 +95,7 @@ export function LoopProductCard({
 }: LoopProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const wishlistProduct = createWishlistProductSnapshot(product);
-  const href = getProductPath(product, permalinkConfig);
+  const href = getProductPath(product);
 
   return (
     <article

@@ -21,6 +21,8 @@ This file covers the normal customer area and customer-owned site flows.
 - Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
 - Invitation ownership now comes from ecommerce entitlements for paid products before customer create flows can instantiate new sites.
 - Customer purchase flow uses cart and checkout routes before order creation. The invitation/site table name remains `wedding_sites`.
+- Customer address management owns the reusable address book at `/customer/addresses`. A user may store multiple shipping addresses in `user_addresses`, with exactly one default address when at least one address exists.
+- Checkout should prefer the default saved address for physical orders, while still allowing a one-off shipping address snapshot on the order.
 - Current builder limitations:
   - element height is not draggable/resizable yet
   - editor grouping is not implemented yet

@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
 import { generateGeneralProductMetadata, renderGeneralProductPage } from "@/features/products/server/renderers";
-import { getGeneralProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getGeneralProductPath } from "@/lib/public-paths";
 
 type GeneralProductDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -12,8 +11,7 @@ type GeneralProductDetailPageProps = {
 export async function generateMetadata({ params }: GeneralProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublishedProductBySlugAndType(slug, "general_product");
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-  return await generateGeneralProductMetadata(product, permalinkConfig);
+  return await generateGeneralProductMetadata(product);
 }
 
 export default async function GeneralProductDetailPage({ params }: GeneralProductDetailPageProps) {
@@ -23,15 +21,10 @@ export default async function GeneralProductDetailPage({ params }: GeneralProduc
     notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  const targetPath = getGeneralProductPath(product, permalinkConfig);
+  const targetPath = getGeneralProductPath(product);
   if (targetPath !== `/products/${product.slug}`) {
-    if (settings.permalink.legacyRedirects) {
-      redirect(targetPath);
-    }
-    notFound();
+    redirect(targetPath);
   }
 
-  return renderGeneralProductPage(product, permalinkConfig);
+  return renderGeneralProductPage(product);
 }

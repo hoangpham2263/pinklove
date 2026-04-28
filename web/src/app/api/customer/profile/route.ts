@@ -26,5 +26,5 @@ export async function POST(request: Request) {
  if (wantsJson) {
  return NextResponse.json({ success: true });
  }
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.CUSTOMER.PROFILE}?saved=1` } });
+ return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.CUSTOMER.CONFIG_PROFILE}?saved=1` } });
 }

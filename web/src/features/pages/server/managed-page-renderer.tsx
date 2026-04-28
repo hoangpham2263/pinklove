@@ -25,11 +25,9 @@ import {
   type ManagedPage,
 } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 import { getCurrentUser } from "@/lib/auth";
-import { getSystemSettings } from "@/lib/system-settings";
 
 type ManagedSearchParams = Promise<Record<string, string | string[] | undefined>> | undefined;
 
@@ -104,9 +102,8 @@ export async function loadManagedPageForRoute(
   }
 
   const targetPath = getManagedPagePath(page);
-  const settings = await getSystemSettings();
 
-  if (!preview && settings.permalink.legacyRedirects && targetPath !== requestPath) {
+  if (!preview && targetPath !== requestPath) {
     redirect(targetPath);
   }
 
@@ -152,15 +149,13 @@ function GenericManagedPage({ page }: { page: ManagedPage }) {
 }
 
 export async function renderManagedPage(page: ManagedPage) {
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
   const managedPathMap = new Map(
     (await listManagedPages()).map((item) => [item.slug, getManagedPagePath(item)])
   );
-  const contactPath = managedPathMap.get("contact") || ROUTES.CONTACT;
-  const templatesPath = managedPathMap.get("templates") || ROUTES.TEMPLATES;
-  const qrBuilderPath = managedPathMap.get("tools/qr-builder") || ROUTES.TOOLS_PAGES.QR_BUILDER;
-  const weddingBudgetPath = managedPathMap.get("tools/wedding-budget") || ROUTES.TOOLS_PAGES.WEDDING_BUDGET;
+  const contactPath = managedPathMap.get("lien-he") || ROUTES.CONTACT;
+  const templatesPath = managedPathMap.get("mau-thiep") || ROUTES.TEMPLATES;
+  const qrBuilderPath = managedPathMap.get("cong-cu/tao-ma-qr") || ROUTES.TOOLS_PAGES.QR_BUILDER;
+  const weddingBudgetPath = managedPathMap.get("cong-cu/du-toan-cuoi") || ROUTES.TOOLS_PAGES.WEDDING_BUDGET;
   switch (page.slug) {
     case "home":
       return (
@@ -169,21 +164,21 @@ export async function renderManagedPage(page: ManagedPage) {
           <HomeContent page={page} />
         </>
       );
-    case "about-us":
+    case "gioi-thieu":
       return (
         <>
           <PageStructuredData page={page} />
           <AboutContent page={page} />
         </>
       );
-    case "contact":
+    case "lien-he":
       return (
         <>
           <PageStructuredData page={page} />
           <ContactContent page={page} />
         </>
       );
-    case "templates": {
+    case "mau-thiep": {
       const products = await listPublishedProducts();
 
       return (
@@ -213,7 +208,6 @@ export async function renderManagedPage(page: ManagedPage) {
                   <LoopProductCard
                     key={product.id}
                     product={product}
-                    permalinkConfig={permalinkConfig}
                   />
                 ))}
               </div>
@@ -222,7 +216,7 @@ export async function renderManagedPage(page: ManagedPage) {
         </section>
       );
     }
-    case "builder": {
+    case "tu-tao-thiep": {
       const [user, builderProducts] = await Promise.all([
         getCurrentUser(),
         listPublishedProductsByType("builder_template"),
@@ -247,7 +241,6 @@ export async function renderManagedPage(page: ManagedPage) {
               <LoopProductCard
                 key={product.id}
                 product={product}
-                permalinkConfig={permalinkConfig}
               />
             ))}
           </div>
@@ -261,7 +254,7 @@ export async function renderManagedPage(page: ManagedPage) {
         </GuestShell>
       );
     }
-    case "services":
+    case "dich-vu":
       return (
         <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
@@ -298,7 +291,7 @@ export async function renderManagedPage(page: ManagedPage) {
           </div>
         </GuestShell>
       );
-    case "tools": {
+    case "cong-cu": {
       const tools = [
         {
           title: "QR mừng cưới custom",
@@ -341,7 +334,7 @@ export async function renderManagedPage(page: ManagedPage) {
         </GuestShell>
       );
     }
-    case "tools/qr-builder":
+    case "cong-cu/tao-ma-qr":
       return (
         <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
@@ -399,7 +392,7 @@ export async function renderManagedPage(page: ManagedPage) {
           </div>
         </GuestShell>
       );
-    case "tools/wedding-budget":
+    case "cong-cu/du-toan-cuoi":
       return (
         <GuestShell className="gap-10 py-12">
           <PageStructuredData page={page} />
@@ -460,7 +453,7 @@ export async function renderManagedPage(page: ManagedPage) {
             fallbackTitle="Blog cưới"
             fallbackExcerpt="Chia sẻ kinh nghiệm chọn mẫu thiệp, lên ngân sách cưới, tối ưu nội dung và dùng công cụ đúng lúc để chuẩn bị nhanh hơn."
           />
-          <BlogTabs categories={categories} posts={posts} permalinkConfig={permalinkConfig} />
+          <BlogTabs categories={categories} posts={posts} />
         </GuestShell>
       );
     }

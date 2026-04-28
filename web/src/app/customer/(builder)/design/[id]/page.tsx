@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
-import { getInvitationPath, sanitizePermalinkConfig } from "@/lib/public-paths";
+import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 import { getInvitationByIdForUser } from "@/features/invitations/server/service";
 import { BuilderInvitationForm } from "@/features/invitations/builder/builder-invitation-form";
 
@@ -19,13 +18,10 @@ export default async function BuilderDesignPage({ params }: BuilderDesignPagePro
     notFound();
   }
 
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-
   return (
     <BuilderInvitationForm
       invitation={invitation}
-      publicHref={getInvitationPath(invitation, permalinkConfig)}
+      publicHref={getInvitationPath(invitation)}
     />
   );
 }
-

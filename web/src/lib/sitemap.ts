@@ -12,7 +12,6 @@ import {
   getBlogPostPath,
   getInvitationPath,
   getProductPath,
-  sanitizePermalinkConfig,
 } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { type SystemSettings, getSystemSettings } from "@/lib/system-settings";
@@ -153,18 +152,17 @@ export async function getManagedPageSitemapItems(siteUrl: string): Promise<Sitem
     loc: `${siteUrl}${getManagedPagePath(page)}`,
     lastmod: toIsoDate(page.updatedAt),
     changefreq: page.slug === "home" ? "daily" : "weekly",
-    priority: String(page.slug === "home" ? 1 : page.slug === "about-us" || page.slug === "contact" ? 0.8 : 0.7),
+    priority: String(page.slug === "home" ? 1 : page.slug === "gioi-thieu" || page.slug === "lien-he" ? 0.8 : 0.7),
   }));
 
   return [...pageItems, ...discoveredRoutes];
 }
 
 export async function getBlogCategorySitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
   const categories = await listPublishedBlogCategories();
 
   return categories.map((category) => ({
-    loc: `${siteUrl}${getBlogCategoryPath(category, permalinkConfig)}`,
+    loc: `${siteUrl}${getBlogCategoryPath(category)}`,
     lastmod: toIsoDate(category.updatedAt),
     changefreq: "weekly",
     priority: "0.7",
@@ -172,11 +170,10 @@ export async function getBlogCategorySitemapItems(siteUrl: string): Promise<Site
 }
 
 export async function getBlogPostSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
   const posts = await listPublishedBlogPosts();
 
   return posts.map((post) => ({
-    loc: `${siteUrl}${getBlogPostPath(post, permalinkConfig)}`,
+    loc: `${siteUrl}${getBlogPostPath(post)}`,
     lastmod: toIsoDate(post.updatedAt),
     changefreq: "monthly",
     priority: "0.8",
@@ -184,11 +181,10 @@ export async function getBlogPostSitemapItems(siteUrl: string): Promise<SitemapU
 }
 
 export async function getProductSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
   const products = await listPublishedProducts();
 
   return products.map((product) => ({
-    loc: `${siteUrl}${getProductPath(product, permalinkConfig)}`,
+    loc: `${siteUrl}${getProductPath(product)}`,
     lastmod: toIsoDate(product.updatedAt),
     changefreq: "weekly",
     priority: "0.8",
@@ -196,11 +192,10 @@ export async function getProductSitemapItems(siteUrl: string): Promise<SitemapUr
 }
 
 export async function getInvitationSiteSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
   const sites = await listPublishedInvitations();
 
   return sites.map((site) => ({
-    loc: `${siteUrl}${getInvitationPath(site, permalinkConfig)}`,
+    loc: `${siteUrl}${getInvitationPath(site)}`,
     lastmod: toIsoDate(site.updatedAt),
     changefreq: "monthly",
     priority: "0.6",

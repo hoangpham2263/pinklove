@@ -5,7 +5,7 @@ import { GuestPanel, GuestPanelBody, GuestPanelHeader, GuestPanelTitle, GuestShe
 import { JsonLd } from "@/components/common/json-ld";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
-import { getBlogCategoryPath, getBlogPostPath, type PublicPermalinkConfig } from "@/lib/public-paths";
+import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
 
@@ -21,7 +21,7 @@ function splitParagraphs(content?: string) {
   return (content ?? "").split("\n\n").filter(Boolean);
 }
 
-export async function generateBlogCategoryMetadata(category: BlogCategory | null, config: PublicPermalinkConfig): Promise<Metadata> {
+export async function generateBlogCategoryMetadata(category: BlogCategory | null): Promise<Metadata> {
   if (!category) {
     return await createSeoMetadata({
       title: "Danh mục blog",
@@ -34,12 +34,12 @@ export async function generateBlogCategoryMetadata(category: BlogCategory | null
   return await createSeoMetadata({
     title: category.name,
     description: category.description ?? `Khám phá các bài viết trong danh mục ${category.name}.`,
-    path: getBlogCategoryPath(category, config),
+    path: getBlogCategoryPath(category),
     keywords: ["blog cưới", category.name.toLowerCase()],
   });
 }
 
-export async function generateBlogPostMetadata(post: BlogPost | null, config: PublicPermalinkConfig): Promise<Metadata> {
+export async function generateBlogPostMetadata(post: BlogPost | null): Promise<Metadata> {
   if (!post) {
     return await createSeoMetadata({
       title: "Bài viết blog",
@@ -52,7 +52,7 @@ export async function generateBlogPostMetadata(post: BlogPost | null, config: Pu
   return await createSeoMetadata({
     title: post.title,
     description: post.excerpt ?? `Đọc bài viết ${post.title} trên blog cưới PinkLove.`,
-    path: getBlogPostPath(post, config),
+    path: getBlogPostPath(post),
     type: "article",
     image: post.coverImage,
     keywords: ["blog cưới", post.categoryName.toLowerCase(), post.title.toLowerCase()],
@@ -63,12 +63,10 @@ export function renderBlogCategoryPage({
   category,
   categories,
   posts,
-  config,
 }: {
   category: BlogCategory;
   categories: BlogCategory[];
   posts: BlogPost[];
-  config: PublicPermalinkConfig;
 }) {
   return (
     <GuestShell className="gap-10 py-12">
@@ -96,7 +94,7 @@ export function renderBlogCategoryPage({
         {categories.map((item) => (
           <Link
             key={item.id}
-            href={getBlogCategoryPath(item, config)}
+            href={getBlogCategoryPath(item)}
             className={`inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition lg:rounded-2xl ${
               item.slug === category.slug
                 ? "border border-stone-900 bg-stone-950 text-white"
@@ -114,8 +112,8 @@ export function renderBlogCategoryPage({
             <BlogCard
               key={post.id}
               post={post}
-              postHref={getBlogPostPath(post, config)}
-              categoryHref={getBlogCategoryPath(post.categorySlug, config)}
+              postHref={getBlogPostPath(post)}
+              categoryHref={getBlogCategoryPath(post.categorySlug)}
             />
           ))}
         </div>
@@ -127,11 +125,9 @@ export function renderBlogCategoryPage({
 export function renderBlogPostPage({
   post,
   relatedPosts,
-  config,
 }: {
   post: BlogPost;
   relatedPosts: BlogPost[];
-  config: PublicPermalinkConfig;
 }) {
   const paragraphs = splitParagraphs(post.content);
   const jsonLd = {
@@ -142,7 +138,7 @@ export function renderBlogPostPage({
     image: post.coverImage ? [post.coverImage] : undefined,
     datePublished: post.createdAt,
     dateModified: post.updatedAt,
-    mainEntityOfPage: getBlogPostPath(post, config),
+    mainEntityOfPage: getBlogPostPath(post),
     author: {
       "@type": "Organization",
       name: "PinkLove",
@@ -162,7 +158,7 @@ export function renderBlogPostPage({
             Blog
           </Link>
           <span className="mx-2">/</span>
-          <Link href={getBlogCategoryPath(post.categorySlug, config)} className="hover:text-stone-900">
+          <Link href={getBlogCategoryPath(post.categorySlug)} className="hover:text-stone-900">
             {post.categoryName}
           </Link>
         </p>
@@ -201,7 +197,7 @@ export function renderBlogPostPage({
             </GuestPanelHeader>
             <GuestPanelBody className="space-y-3">
               <Link
-                href={getBlogCategoryPath(post.categorySlug, config)}
+                href={getBlogCategoryPath(post.categorySlug)}
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-stone-300 bg-white px-5 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
               >
                 Xem danh mục {post.categoryName}
@@ -228,8 +224,8 @@ export function renderBlogPostPage({
               <BlogCard
                 key={item.id}
                 post={item}
-                postHref={getBlogPostPath(item, config)}
-                categoryHref={getBlogCategoryPath(item.categorySlug, config)}
+                postHref={getBlogPostPath(item)}
+                categoryHref={getBlogCategoryPath(item.categorySlug)}
               />
             ))}
           </div>

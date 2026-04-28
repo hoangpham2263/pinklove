@@ -112,7 +112,7 @@ export function SeoPagesGuideContent() {
             <CardTitle>Áp dụng cho đâu</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground">
-            <p>Trang này áp dụng cho các page nằm trong `Admin &gt; Pages` như home, about-us, contact, templates, builder, services, tools, blog, login, register.</p>
+            <p>Trang này áp dụng cho các page nằm trong `Admin &gt; Pages` như home, gioi-thieu, lien-he, mau-thiep, tu-tao-thiep, dich-vu, cong-cu, blog, login, register.</p>
             <p>Các route động như blog post, template detail, builder detail vẫn đi theo dữ liệu item thật, không lấy từ page tĩnh.</p>
           </CardContent>
         </Card>

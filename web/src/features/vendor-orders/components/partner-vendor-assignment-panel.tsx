@@ -145,46 +145,46 @@ export function PartnerVendorAssignmentPanel({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
       <div className="space-y-5 xl:col-span-8">
-        <Card className="border-zinc-200/80 bg-white/90">
+        <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold text-zinc-950">Tổng quan xử lý</CardTitle>
+            <CardTitle className="text-base font-semibold">Tổng quan xử lý</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 pt-5 text-sm sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-zinc-200/80 p-3">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Trạng thái</p>
-              <p className="mt-1 font-medium text-zinc-950">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
+            <div className="rounded-md border p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Trạng thái</p>
+              <p className="mt-1 font-medium">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
             </div>
-            <div className="rounded-xl border border-zinc-200/80 p-3">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Đơn hàng</p>
-              <p className="mt-1 font-medium text-zinc-950">{getOrderStatusLabel(detail.order.status)}</p>
+            <div className="rounded-md border p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Đơn hàng</p>
+              <p className="mt-1 font-medium">{getOrderStatusLabel(detail.order.status)}</p>
             </div>
-            <div className="rounded-xl border border-zinc-200/80 p-3">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Thanh toán</p>
-              <p className="mt-1 font-medium text-zinc-950">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
+            <div className="rounded-md border p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Thanh toán</p>
+              <p className="mt-1 font-medium">{getPaymentStatusLabel(detail.order.paymentStatus)}</p>
             </div>
-            <div className="rounded-xl border border-zinc-200/80 p-3">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Cập nhật gần nhất</p>
-              <p className="mt-1 font-medium text-zinc-950">{formatDateTime(detail.assignment.updatedAt)}</p>
+            <div className="rounded-md border p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Cập nhật gần nhất</p>
+              <p className="mt-1 font-medium">{formatDateTime(detail.assignment.updatedAt)}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-zinc-200/80 bg-white/90">
+        <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold text-zinc-950">Ghi chú đơn hàng</CardTitle>
+            <CardTitle className="text-base font-semibold">Ghi chú đơn hàng</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-5 text-sm">
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Khách hàng</p>
-                <p className="mt-1 font-medium text-zinc-950">{detail.order.customerName}</p>
-                <p className="text-zinc-600">{detail.order.customerPhone || "Chưa có số điện thoại"}</p>
-                <p className="text-zinc-600">{detail.order.customerEmail || "Chưa có email"}</p>
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Khách hàng</p>
+                <p className="mt-1 font-medium">{detail.order.customerName}</p>
+                <p className="text-muted-foreground">{detail.order.customerPhone || "Chưa có số điện thoại"}</p>
+                <p className="text-muted-foreground">{detail.order.customerEmail || "Chưa có email"}</p>
               </div>
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Giao hàng</p>
-                <p className="mt-1 font-medium text-zinc-950">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
-                <p className="text-zinc-600">
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Giao hàng</p>
+                <p className="mt-1 font-medium">{getFulfillmentStatusLabel(detail.order.fulfillmentStatus)}</p>
+                <p className="text-muted-foreground">
                   {[detail.order.shippingLine1, detail.order.shippingLine2, detail.order.shippingWard, detail.order.shippingDistrict, detail.order.shippingCity]
                     .filter(Boolean)
                     .join(", ") || "Không có thông tin giao hàng"}
@@ -193,29 +193,29 @@ export function PartnerVendorAssignmentPanel({
             </div>
 
             {detail.order.notes ? (
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Ghi chú từ đơn hàng</p>
-                <p className="mt-1 text-zinc-900">{detail.order.notes}</p>
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Ghi chú từ đơn hàng</p>
+                <p className="mt-1">{detail.order.notes}</p>
               </div>
             ) : null}
           </CardContent>
         </Card>
 
-        <Card className="border-zinc-200/80 bg-white/90">
+        <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold text-zinc-950">Lịch sử cập nhật</CardTitle>
+            <CardTitle className="text-base font-semibold">Lịch sử cập nhật</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-5">
             {detail.events.length === 0 ? (
-              <p className="text-sm text-zinc-500">Chưa có cập nhật nào.</p>
+              <p className="text-sm text-muted-foreground">Chưa có cập nhật nào.</p>
             ) : (
               detail.events.map((eventItem) => (
-                <div key={eventItem.id} className="rounded-xl border border-zinc-200/80 p-3 text-sm">
+                <div key={eventItem.id} className="rounded-md border p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-zinc-950">{formatVendorEventMessage(eventItem.message)}</p>
-                    <p className="text-xs text-zinc-500">{formatDateTime(eventItem.createdAt)}</p>
+                    <p className="font-medium">{formatVendorEventMessage(eventItem.message)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateTime(eventItem.createdAt)}</p>
                   </div>
-                  <p className="mt-1 text-zinc-600">
+                  <p className="mt-1 text-muted-foreground">
                     {ACTOR_LABELS[eventItem.actorType]}{eventItem.actorUsername ? ` • ${eventItem.actorUsername}` : ""}
                   </p>
                 </div>
@@ -226,15 +226,15 @@ export function PartnerVendorAssignmentPanel({
       </div>
 
       <div className="space-y-5 xl:col-span-4 xl:sticky xl:top-5 xl:self-start">
-        <Card className="border-zinc-200/80 bg-white/90">
+        <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold text-zinc-950">Cập nhật tiến độ</CardTitle>
+            <CardTitle className="text-base font-semibold">Cập nhật tiến độ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-5">
             <form onSubmit={handleSubmit} className="space-y-4">
               <input type="hidden" name="assignmentId" value={detail.assignment.id} />
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-950">Trạng thái xử lý</label>
+                <label className="text-sm font-medium">Trạng thái xử lý</label>
                 <select
                   name="status"
                   value={status}
@@ -250,7 +250,7 @@ export function PartnerVendorAssignmentPanel({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-950">Mã tham chiếu</label>
+                <label className="text-sm font-medium">Mã tham chiếu</label>
                 <input
                   name="vendorReference"
                   value={vendorReference}
@@ -261,7 +261,7 @@ export function PartnerVendorAssignmentPanel({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-950">Ghi chú cập nhật</label>
+                <label className="text-sm font-medium">Ghi chú cập nhật</label>
                 <textarea
                   name="vendorNote"
                   value={vendorNote}

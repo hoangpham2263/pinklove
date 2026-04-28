@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
 import { generateTemplateProductMetadata, renderTemplateProductPage } from "@/features/products/server/renderers";
-import { getTemplateProductPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getTemplateProductPath } from "@/lib/public-paths";
 
 type TemplateDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -12,8 +11,7 @@ type TemplateDetailPageProps = {
 export async function generateMetadata({ params }: TemplateDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublishedProductBySlugAndType(slug, "coded_template");
-  const permalinkConfig = sanitizePermalinkConfig((await getSystemSettings()).permalink);
-  return await generateTemplateProductMetadata(product, permalinkConfig);
+  return await generateTemplateProductMetadata(product);
 }
 
 export default async function TemplateDetailPage({ params }: TemplateDetailPageProps) {
@@ -23,15 +21,10 @@ export default async function TemplateDetailPage({ params }: TemplateDetailPageP
     notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  const targetPath = getTemplateProductPath(product, permalinkConfig);
+  const targetPath = getTemplateProductPath(product);
   if (targetPath !== `/templates/${product.slug}`) {
-    if (settings.permalink.legacyRedirects) {
-      redirect(targetPath);
-    }
-    notFound();
+    redirect(targetPath);
   }
 
-  return renderTemplateProductPage(product, permalinkConfig);
+  return renderTemplateProductPage(product);
 }

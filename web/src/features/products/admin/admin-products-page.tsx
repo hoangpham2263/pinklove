@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { listAllProducts } from "@/features/products/server/service";
 import type { Product, ProductType } from "@/features/products/types";
 import { AdminProductList } from "@/features/products/admin/admin-product-list";
-import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 
 type AdminProductsPageViewProps = {
   query: Record<string, string | string[] | undefined>;
@@ -27,8 +25,7 @@ export async function AdminProductsPageView({
   description,
   returnTo,
 }: AdminProductsPageViewProps) {
-  const [products, settings] = await Promise.all([listAllProducts(), getSystemSettings()]);
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
+  const products = await listAllProducts();
   const search = getQueryValue(query.q) ?? "";
   const status = (getQueryValue(query.status) ?? "") as "" | Product["status"];
   const filteredProducts = products.filter((product) => product.productType === fixedProductType);
@@ -91,7 +88,6 @@ export async function AdminProductsPageView({
         status={status}
         productType={fixedProductType}
         title={undefined}
-        permalinkConfig={permalinkConfig}
         returnTo={returnTo}
         lockProductType
       />

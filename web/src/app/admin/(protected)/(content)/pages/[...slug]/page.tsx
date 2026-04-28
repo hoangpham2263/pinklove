@@ -6,7 +6,7 @@ import { listAllProducts } from "@/features/products/server/service";
 import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
-import { isAuthPageSlug, isContentPageSlug } from "@/features/pages/config/managed-pages";
+import { isAuthPageSlug, isContentPageSlug, resolveContentPageSlugAlias } from "@/features/pages/config/managed-pages";
 import { ROUTES } from "@/lib/routes";
 
 type AdminPageEditorProps = {
@@ -20,7 +20,7 @@ function getPreviewHref(path: string) {
 export default async function AdminPageEditor({ params }: AdminPageEditorProps) {
   await requireAdmin();
   const { slug: rawSlug } = await params;
-  const slug = normalizeSlug(rawSlug);
+  const slug = resolveContentPageSlugAlias(normalizeSlug(rawSlug));
 
   if (!isAuthPageSlug(slug) && !isContentPageSlug(slug)) {
     notFound();

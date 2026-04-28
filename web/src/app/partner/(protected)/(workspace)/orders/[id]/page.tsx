@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Store } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
-import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PartnerVendorAssignmentPanel } from "@/features/vendor-orders/components/partner-vendor-assignment-panel";
-import { PartnerVendorHeader } from "@/features/vendor-orders/components/partner-vendor-header";
 import { getVendorOrderDetailForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -35,31 +33,21 @@ export default async function PartnerOrderDetailPage({
     notFound();
   }
 
-  const partnerTitle = `Đối tác của ${settings.branding.siteName}`;
   const portalHref = portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT;
-  const vendorName = detail.assignment.vendorDisplayName || detail.assignment.vendorUsername;
 
   return (
-    <section className="min-h-screen bg-[linear-gradient(180deg,#fff8f1_0%,#fffdf9_42%,#ffffff_100%)]">
-      <PartnerVendorHeader
-        vendorName={vendorName}
-        portalHref={portalHref}
-        currentPath={ROUTES.PARTNER.ORDER(detail.assignment.id)}
-        currentOrderLabel={detail.order.orderNumber}
-      />
-
-      <div className="container mx-auto space-y-5 px-4 py-5 lg:py-7.5 2xl:py-10">
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="space-y-5">
         {query.saved ? <PageToast message="Đã lưu cập nhật." variant="success" cleanupKeys={["saved"]} /> : null}
-        <RouteBreadcrumbs wrapperClassName="rounded-2xl border border-zinc-200/80 bg-white/92 px-4 py-3" />
 
-        <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
+        <div className="rounded-md border bg-background p-6">
           <div className="flex flex-col gap-5">
             <div className="flex justify-start">
               <Button
                 variant="outline"
                 className="gap-2"
                 render={
-                  <Link href={portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT}>
+                  <Link href={ROUTES.PARTNER.LEGACY_ORDERS}>
                     <ArrowLeft className="h-4 w-4" />
                     Danh sách đơn hàng
                   </Link>
@@ -69,13 +57,9 @@ export default async function PartnerOrderDetailPage({
 
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-amber-50 px-3 py-1.5 text-sm text-amber-900">
-                  <Store className="h-4 w-4" />
-                  {partnerTitle}
-                </div>
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 md:text-4xl">{detail.order.orderNumber}</h1>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600 md:text-base">
+                  <h1 className="text-2xl font-semibold tracking-tight">{detail.order.orderNumber}</h1>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
                     Theo dõi tiến độ xử lý đơn hàng và cập nhật ngay khi có thay đổi để đội ngũ quản lý nắm tiến độ theo thời gian thực.
                   </p>
                 </div>
@@ -83,35 +67,35 @@ export default async function PartnerOrderDetailPage({
             </div>
 
             <div className="grid gap-3 text-sm md:grid-cols-3">
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Khách hàng</p>
-                <p className="mt-1 font-medium text-zinc-950">{detail.order.customerName}</p>
-                <p className="text-zinc-600">{detail.order.customerPhone || "Chưa có số điện thoại"}</p>
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Khách hàng</p>
+                <p className="mt-1 font-medium">{detail.order.customerName}</p>
+                <p className="text-muted-foreground">{detail.order.customerPhone || "Chưa có số điện thoại"}</p>
               </div>
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Trạng thái xử lý</p>
-                <p className="mt-1 font-medium text-zinc-950">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Trạng thái xử lý</p>
+                <p className="mt-1 font-medium">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
               </div>
-              <div className="rounded-xl border border-zinc-200/80 p-3">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Email</p>
-                <p className="mt-1 font-medium text-zinc-950">{detail.order.customerEmail || "Chưa có email"}</p>
+              <div className="rounded-md border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                <p className="mt-1 font-medium">{detail.order.customerEmail || "Chưa có email"}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <Card className="border-zinc-200/80 bg-white/90">
+        <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold text-zinc-950">Sản phẩm được giao</CardTitle>
+            <CardTitle className="text-base font-semibold">Sản phẩm được giao</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-5">
             {detail.order.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-zinc-200/80 p-3">
+              <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
                 <div>
-                  <p className="font-medium text-zinc-950">{item.productName}</p>
-                  <p className="text-sm text-zinc-600">{item.fulfillmentType} • Số lượng {item.quantity}</p>
+                  <p className="font-medium">{item.productName}</p>
+                  <p className="text-sm text-muted-foreground">{item.fulfillmentType} • Số lượng {item.quantity}</p>
                 </div>
-                <div className="font-semibold text-zinc-950">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
+                <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
               </div>
             ))}
           </CardContent>

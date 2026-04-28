@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { updateManagedPage, getPageBySlug } from "@/lib/managed-pages";
-import { canCustomizePagePermalink, isReservedPagePermalink, normalizePagePermalinkInput } from "@/lib/page-paths";
+import { getDefaultPagePath, isReservedPagePath } from "@/lib/page-paths";
 import { normalizeRichTextHtml } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
   const seoDescription = String(formData.get("seoDescription") ?? "");
   const seoKeywords = String(formData.get("seoKeywords") ?? "");
   const canonicalUrl = String(formData.get("canonicalUrl") ?? "");
-  const permalink = String(formData.get("permalink") ?? "");
   const breadcrumbTitle = String(formData.get("breadcrumbTitle") ?? "");
   const breadcrumbParentSlug = String(formData.get("breadcrumbParentSlug") ?? "");
   const ogTitle = String(formData.get("ogTitle") ?? "");
@@ -58,16 +57,12 @@ export async function POST(request: Request) {
       return respondError(request, { error: "page_not_found", message: "Không tìm thấy trang.", location: `${ROUTES.ADMIN.PAGES}?error=page_not_found` });
     }
 
-    const normalizedPermalink = normalizePagePermalinkInput(
-      canCustomizePagePermalink(slug) ? permalink : existing.permalink,
-      slug
-    );
-
-    if (isReservedPagePermalink(normalizedPermalink)) {
+    const nextPagePath = getDefaultPagePath(slug);
+    if (isReservedPagePath(nextPagePath)) {
       return respondError(request, {
-        error: "invalid_permalink",
-        message: "Permalink đang trùng vùng route hệ thống. Hãy chọn đường dẫn khác.",
-        location: `${ROUTES.ADMIN.PAGES}/${originalSlug}?error=invalid_permalink`,
+        error: "invalid_page_path",
+        message: "Đường dẫn trang đang trùng vùng route hệ thống. Hãy đổi slug khác.",
+        location: `${ROUTES.ADMIN.PAGES}/${originalSlug}?error=invalid_page_path`,
       });
     }
 
@@ -82,7 +77,6 @@ export async function POST(request: Request) {
       seoDescription,
       seoKeywords,
       canonicalUrl,
-      permalink: normalizedPermalink,
       breadcrumbTitle,
       breadcrumbParentSlug: breadcrumbParentSlug || undefined,
       ogTitle,
@@ -97,8 +91,8 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Failed to update page:", error);
     const message =
-      error instanceof Error && /managed_pages_permalink_idx|cms_pages_permalink_idx|duplicate key/i.test(error.message)
-        ? "Permalink đang bị trùng với trang khác."
+      error instanceof Error && /managed_pages_slug_key|duplicate key/i.test(error.message)
+        ? "Slug đang bị trùng với trang khác."
         : "Không thể lưu trang.";
     return respondError(request, { error: "update_failed", message, location: `${ROUTES.ADMIN.PAGES}/${originalSlug}?error=update_failed` });
   }

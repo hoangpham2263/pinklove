@@ -27,17 +27,6 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "URLs",
-    icon: "link" as const,
-    items: [
-      {
-        title: "Permalinks",
-        description: "Quản lý chuẩn URL hệ thống cho managed pages và redirect từ URL cũ sang URL mới.",
-        href: ROUTES.ADMIN.CONFIG_PERMALINKS,
-      },
-    ],
-  },
-  {
     title: "SEO",
     icon: "link" as const,
     items: [
@@ -120,7 +109,6 @@ export default async function AdminSettingsPage() {
     settings.breadcrumb.enabled,
     settings.sitemap.enabled,
     settings.email.enabled,
-    settings.permalink.legacyRedirects,
     settings.branding.siteName.trim().length > 0,
     settings.favicon.siteFavicon.trim().length > 0,
   ].filter(Boolean).length;

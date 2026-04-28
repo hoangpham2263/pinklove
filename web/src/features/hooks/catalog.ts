@@ -214,7 +214,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route lưu managed page đang tồn tại.",
     triggerSource: "POST /api/admin/pages/update",
-    payloadKeys: ["page.id", "page.slug", "page.permalink", "page.updatedAt"],
+    payloadKeys: ["page.id", "page.slug", "page.updatedAt"],
   }),
   createHook({
     key: "pages.bulk_updated",
@@ -599,18 +599,6 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusReason: "Route upload media đang tồn tại.",
     triggerSource: "POST /api/media",
     payloadKeys: ["asset.id", "asset.url", "asset.mimeType", "asset.createdAt"],
-  }),
-  createHook({
-    key: "settings.permalink_updated",
-    label: "Permalink Settings Updated",
-    scope: "settings",
-    description: "Kích hoạt khi admin lưu cấu hình permalink.",
-    direction: "outbound_sync",
-    status: "active",
-    statusLabel: "Active",
-    statusReason: "Section `permalink` được xử lý trong route config update.",
-    triggerSource: "POST /api/admin/config/update?section=permalink",
-    payloadKeys: ["section", "updatedBy", "updatedAt"],
   }),
   createHook({
     key: "settings.breadcrumb_updated",

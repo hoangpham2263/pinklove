@@ -4,15 +4,15 @@
  */
 export const ROUTES = {
   HOME: "/",
-  ABOUT: "/about",
-  CONTACT: "/contact",
-  TEMPLATES: "/templates",
-  BUILDER: "/builder",
+  ABOUT: "/gioi-thieu",
+  CONTACT: "/lien-he",
+  TEMPLATES: "/mau-thiep",
+  BUILDER: "/tu-tao-thiep",
   WISHLIST: "/wishlist",
   SEARCH: "/search",
-  SERVICES: "/services",
+  SERVICES: "/dich-vu",
   AFFILIATE_APPLY: "/affiliate-apply",
-  TOOLS: "/tools",
+  TOOLS: "/cong-cu",
   BLOG: "/blog",
   SITEMAP_XML: "/sitemap.xml",
   ROBOTS_TXT: "/robots.txt",
@@ -40,8 +40,8 @@ export const ROUTES = {
     },
   },
   TOOLS_PAGES: {
-    QR_BUILDER: "/tools/qr-builder",
-    WEDDING_BUDGET: "/tools/wedding-budget",
+    QR_BUILDER: "/cong-cu/tao-ma-qr",
+    WEDDING_BUDGET: "/cong-cu/du-toan-cuoi",
   },
   BLOG_PAGES: {
     CATEGORY: (slug: string) => `/blog/${slug}`,
@@ -59,8 +59,13 @@ export const ROUTES = {
   CUSTOMER: {
     ROOT: "/customer",
     DASHBOARD: "/customer/dashboard",
-    PROFILE: "/customer/profile",
-    SETTINGS: "/customer/settings",
+    CONFIG: "/customer/config",
+    CONFIG_PROFILE: "/customer/config/profile",
+    CONFIG_SETTINGS: "/customer/config/settings",
+    CONFIG_ADDRESSES: "/customer/config/addresses",
+    CONFIG_ADDRESS_NEW: "/customer/config/addresses/new",
+    CONFIG_ADDRESS: (id: string) => `/customer/config/addresses/${id}`,
+    CONFIG_ADDRESS_EDIT: (id: string) => `/customer/config/addresses/${id}/edit`,
     MESSAGES: "/customer/messages",
     AFFILIATE: "/customer/affiliate",
     VENDOR: "/customer/vendor",
@@ -80,7 +85,12 @@ export const ROUTES = {
     PRODUCTS: "/partner/products",
     PRODUCT_NEW: "/partner/products/new",
     PRODUCT: (id: string) => `/partner/products/${id}`,
-    ACCOUNT: "/partner/account",
+    CONFIG: "/partner/config",
+    CONFIG_ACCOUNT: "/partner/config/account",
+    CONFIG_ADDRESSES: "/partner/config/addresses",
+    CONFIG_ADDRESS_NEW: "/partner/config/addresses/new",
+    CONFIG_ADDRESS: (id: string) => `/partner/config/addresses/${id}`,
+    CONFIG_ADDRESS_EDIT: (id: string) => `/partner/config/addresses/${id}/edit`,
   },
   ADMIN: {
     ROOT: "/admin",
@@ -106,7 +116,6 @@ export const ROUTES = {
     CONFIG_PAYMENT_METHOD: (code: string) => `/admin/config/payment-methods/${encodeURIComponent(code)}`,
     HOOKS: "/admin/hooks",
     CONFIG_BRANDING: "/admin/config/branding",
-    CONFIG_PERMALINKS: "/admin/config/permalinks",
     CONFIG_BREADCRUMBS: "/admin/config/breadcrumbs",
     CONFIG_OPENGRAPH: "/admin/config/opengraph",
     CONFIG_FAVICON: "/admin/config/favicon",
@@ -155,6 +164,7 @@ export const ROUTES = {
       LOGIN: "/api/auth/login",
       REGISTER: "/api/auth/register",
       GOOGLE_LOGIN: "/api/auth/google/login",
+      GOOGLE_CALLBACK: "/api/auth/google/callback",
       LOGOUT: "/api/auth/logout",
     },
     PARTNER: {
@@ -269,6 +279,9 @@ export const ROUTES = {
       SHIPMENTS: {
         UPDATE: "/api/admin/shipments/update",
       },
+    },
+    ACCOUNT: {
+      ADDRESSES: "/api/account/addresses",
     },
     CUSTOMER: {
       PROFILE: "/api/customer/profile",

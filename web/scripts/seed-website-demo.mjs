@@ -77,13 +77,13 @@ async function seedManagedPages(client) {
         heroDescription:
           "PinkLove giúp bạn quản lý catalogue thiệp cưới, đơn hàng khách hàng và luồng phối hợp vendor theo thời gian thực.",
         heroButtonText: "Xem mẫu thiệp",
-        heroButtonLink: "/templates",
+        heroButtonLink: "/mau-thiep",
         secondaryButtonText: "Mở công cụ",
-        secondaryButtonLink: "/tools",
+        secondaryButtonLink: "/cong-cu",
       },
     },
     {
-      slug: "about-us",
+      slug: "gioi-thieu",
       title: "Giới thiệu PinkLove",
       excerpt: "Nền tảng hỗ trợ thiệp cưới online, catalog sản phẩm và quy trình phối hợp vendor.",
       status: "published",
@@ -94,7 +94,7 @@ async function seedManagedPages(client) {
       },
     },
     {
-      slug: "contact",
+      slug: "lien-he",
       title: "Liên hệ PinkLove",
       excerpt: "Thông tin liên hệ demo của hệ thống PinkLove.",
       status: "published",
@@ -115,14 +115,14 @@ async function seedManagedPages(client) {
       },
     },
     {
-      slug: "services",
+      slug: "dich-vu",
       title: "Dịch vụ PinkLove",
       excerpt: "Gói dịch vụ thiệp cưới, builder và phối hợp vendor.",
       status: "published",
       customFields: {},
     },
     {
-      slug: "tools",
+      slug: "cong-cu",
       title: "Công cụ cưới",
       excerpt: "Bộ công cụ hỗ trợ QR và dự toán cưới.",
       status: "published",
@@ -485,21 +485,21 @@ async function main() {
 
     await upsertMenu(client, "header", "Header Menu", [
       { label: "Trang chủ", type: "page", pageSlug: "home", position: 0 },
-      { label: "Giới thiệu", type: "page", pageSlug: "about-us", position: 1 },
-      { label: "Mẫu thiệp", type: "page", pageSlug: "templates", position: 2 },
-      { label: "Tự tạo thiệp", type: "page", pageSlug: "builder", position: 3 },
-      { label: "Dịch vụ", type: "page", pageSlug: "services", position: 4 },
+      { label: "Giới thiệu", type: "page", pageSlug: "gioi-thieu", position: 1 },
+      { label: "Mẫu thiệp", type: "page", pageSlug: "mau-thiep", position: 2 },
+      { label: "Tự tạo thiệp", type: "page", pageSlug: "tu-tao-thiep", position: 3 },
+      { label: "Dịch vụ", type: "page", pageSlug: "dich-vu", position: 4 },
       { label: "Blog", type: "page", pageSlug: "blog", position: 5 },
-      { label: "Liên hệ", type: "page", pageSlug: "contact", position: 6 },
+      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 6 },
     ]);
 
     await upsertMenu(client, "footer", "Footer Menu", [
       { label: "Trang chủ", type: "page", pageSlug: "home", position: 0 },
-      { label: "Công cụ", type: "page", pageSlug: "tools", position: 1 },
-      { label: "QR Builder", type: "page", pageSlug: "tools/qr-builder", position: 2 },
-      { label: "Dự toán cưới", type: "page", pageSlug: "tools/wedding-budget", position: 3 },
+      { label: "Công cụ", type: "page", pageSlug: "cong-cu", position: 1 },
+      { label: "QR Builder", type: "page", pageSlug: "cong-cu/tao-ma-qr", position: 2 },
+      { label: "Dự toán cưới", type: "page", pageSlug: "cong-cu/du-toan-cuoi", position: 3 },
       { label: "Blog", type: "page", pageSlug: "blog", position: 4 },
-      { label: "Liên hệ", type: "page", pageSlug: "contact", position: 5 },
+      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
     ]);
 
     const vendorAlpha = await upsertUser(client, {
@@ -568,7 +568,7 @@ async function main() {
       approvedAt: "2026-04-08T08:30:00.000Z",
       clicks: [
         { landingPath: "/", referrer: "https://facebook.com", visitorToken: "seed-visitor-001", userAgent: "SeedAgent/1.0" },
-        { landingPath: "/templates", referrer: "https://instagram.com", visitorToken: "seed-visitor-002", userAgent: "SeedAgent/1.0" },
+        { landingPath: "/mau-thiep", referrer: "https://instagram.com", visitorToken: "seed-visitor-002", userAgent: "SeedAgent/1.0" },
       ],
       conversions: [
         {
@@ -748,10 +748,10 @@ async function main() {
           password: PASSWORD,
           website: {
             home: withBaseUrl("/"),
-            templates: withBaseUrl("/templates"),
-            builder: withBaseUrl("/builder"),
+            templates: withBaseUrl("/mau-thiep"),
+            builder: withBaseUrl("/tu-tao-thiep"),
             blog: withBaseUrl("/blog"),
-            contact: withBaseUrl("/contact"),
+            contact: withBaseUrl("/lien-he"),
           },
           vendors: [
             {

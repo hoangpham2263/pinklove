@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FolderHeart,
   LayoutDashboard,
+  MapPin,
   MessageCircle,
   Settings,
   ShoppingBag,
@@ -11,7 +12,6 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
-import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { CUSTOMER_MOBILE_NAV, getCustomerNavGroups } from "@/features/customer/config/navigation";
 import { CustomerNavLink } from "@/features/customer/components/customer-nav-link";
 import { CustomerSidebarGroup } from "@/features/customer/components/customer-sidebar-group";
@@ -23,6 +23,7 @@ import { getSystemSettings } from "@/lib/system-settings";
 
 const customerMobileIconMap = {
   "layout-dashboard": LayoutDashboard,
+  "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
   "message-circle": MessageCircle,
@@ -112,10 +113,9 @@ export default async function CustomerLayout({
         </nav>
       </aside>
 
-      <main className="min-h-screen min-w-0 bg-[#f9f9f9] bg-muted/30 md:col-span-10">
+      <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
         <CustomerTopHeader username={user.username} />
         <section className="min-h-screen pt-14">
-          <RouteBreadcrumbs wrapperClassName="border-b bg-background/80 px-4 py-3 backdrop-blur md:px-7.5" />
           <section className="shrink-0 border-b bg-background px-4 py-2 md:hidden">
             <nav className="flex gap-4 overflow-x-auto py-1">
               {CUSTOMER_MOBILE_NAV.map((entry) => {

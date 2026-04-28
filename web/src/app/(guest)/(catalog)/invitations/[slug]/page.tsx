@@ -2,8 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getPublicInvitationBySlug } from "@/features/invitations/server/service";
 import { renderInvitationSite } from "@/features/invitations/templates/renderers";
-import { getInvitationPath, sanitizePermalinkConfig } from "@/lib/public-paths";
-import { getSystemSettings } from "@/lib/system-settings";
+import { getInvitationPath } from "@/lib/public-paths";
 
 type InvitationSitePublicPageProps = {
   params: Promise<{ slug: string }>;
@@ -18,14 +17,9 @@ export default async function InvitationSitePublicPage({ params, searchParams }:
     notFound();
   }
 
-  const settings = await getSystemSettings();
-  const permalinkConfig = sanitizePermalinkConfig(settings.permalink);
-  const targetPath = getInvitationPath(site, permalinkConfig);
+  const targetPath = getInvitationPath(site);
   if (targetPath !== `/invitations/${site.slug}`) {
-    if (settings.permalink.legacyRedirects) {
-      redirect(targetPath);
-    }
-    notFound();
+    redirect(targetPath);
   }
 
   if (site.status !== "published") {

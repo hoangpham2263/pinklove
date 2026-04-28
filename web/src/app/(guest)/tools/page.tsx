@@ -4,17 +4,16 @@ import {
   loadManagedPageForRoute,
   renderManagedPage,
 } from "@/features/pages/server/managed-page-renderer";
-import { ROUTES } from "@/lib/routes";
 
 type ToolsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({ searchParams }: ToolsPageProps): Promise<Metadata> {
-  return generateManagedPageMetadata("tools", searchParams);
+  return generateManagedPageMetadata("cong-cu", searchParams);
 }
 
 export default async function ToolsPage({ searchParams }: ToolsPageProps) {
-  const page = await loadManagedPageForRoute("tools", ROUTES.TOOLS, searchParams);
+  const page = await loadManagedPageForRoute("cong-cu", "/tools", searchParams);
   return renderManagedPage(page);
 }

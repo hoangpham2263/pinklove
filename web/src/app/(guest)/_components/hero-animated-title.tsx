@@ -46,11 +46,7 @@ export function HeroAnimatedTitle({
   );
   const [activeRotatingIndex, setActiveRotatingIndex] = useState(0);
   const [exitingRotatingText, setExitingRotatingText] = useState<string | null>(null);
-
-  useEffect(() => {
-    setActiveRotatingIndex(0);
-    setExitingRotatingText(null);
-  }, [lineOneRotating]);
+  const safeActiveRotatingIndex = rotatingOptions.length > 0 ? activeRotatingIndex % rotatingOptions.length : 0;
 
   useEffect(() => {
     if (rotatingOptions.length <= 1) {
@@ -58,12 +54,12 @@ export function HeroAnimatedTitle({
     }
 
     const intervalId = window.setInterval(() => {
-      setExitingRotatingText(rotatingOptions[activeRotatingIndex] || null);
+      setExitingRotatingText(rotatingOptions[safeActiveRotatingIndex] || null);
       setActiveRotatingIndex((currentIndex) => (currentIndex + 1) % rotatingOptions.length);
     }, ROTATING_SEGMENT_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [activeRotatingIndex, rotatingOptions]);
+  }, [rotatingOptions, safeActiveRotatingIndex]);
 
   useEffect(() => {
     if (!exitingRotatingText) {
@@ -77,7 +73,7 @@ export function HeroAnimatedTitle({
     return () => window.clearTimeout(timeoutId);
   }, [exitingRotatingText]);
 
-  const rotatingSegment = rotatingOptions.length ? rotatingOptions[activeRotatingIndex] || "" : lineOneRotating?.trim() || "";
+  const rotatingSegment = rotatingOptions.length ? rotatingOptions[safeActiveRotatingIndex] || "" : lineOneRotating?.trim() || "";
   const structuredLineOne = [lineOnePrefix?.trim(), rotatingSegment].filter(Boolean).join(" ").trim();
   const structuredLineTwoPrefix = lineOneSuffix?.trim() || "";
   const structuredLineTwoBrand = lineTwo?.trim() || "";

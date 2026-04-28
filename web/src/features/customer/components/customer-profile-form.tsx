@@ -5,6 +5,7 @@ import { toast } from"sonner";
 
 import { Button } from"@/components/ui/button";
 import { Input } from"@/components/ui/input";
+import { ROUTES } from"@/lib/routes";
 
 type CustomerProfileFormProps = {
  initialProfile: {
@@ -26,7 +27,7 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
 
  setIsSaving(true);
  try {
-  const response = await fetch("/api/customer/profile", {
+  const response = await fetch(ROUTES.API.CUSTOMER.PROFILE, {
   method:"POST",
   body: formData,
   headers: {

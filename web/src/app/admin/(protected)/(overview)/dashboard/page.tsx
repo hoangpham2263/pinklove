@@ -1,14 +1,5 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  BadgePercent,
-  BookOpenText,
-  Box,
-  FileText,
-  LayoutTemplate,
-  MessageSquareQuote,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CreditCard, FileText, LayoutTemplate, Package } from "lucide-react";
 
 import {
   Card,
@@ -18,419 +9,372 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
 import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
 
-type DashboardSummaryRow = {
-  total_users: string;
-  admin_users: string;
-  customer_users: string;
-  affiliate_users: string;
-  vendor_users: string;
-  total_products: string;
+type RevenueSummaryRow = {
+  paid_revenue_30d: string;
+  paid_orders_30d: string;
+  pending_orders: string;
+  published_invitations: string;
   published_products: string;
   draft_products: string;
-  builder_products: string;
-  coded_products: string;
-  general_products: string;
-  total_posts: string;
   published_posts: string;
-  draft_posts: string;
-  total_pages: string;
   published_pages: string;
+  draft_posts: string;
   draft_pages: string;
-  total_invitations: string;
-  published_invitations: string;
-  draft_invitations: string;
-  affiliate_pending: string;
-  affiliate_active: string;
 };
 
-type ActivityRow = {
-  entity_type: "product" | "post" | "page" | "invitation" | "user";
-  title: string;
-  meta: string;
+type RevenueChartRow = {
+  day: string;
+  revenue: string;
+  orders: string;
+};
+
+type RecentOrderRow = {
+  id: string;
+  order_number: string;
+  customer_name: string;
   status: string;
-  updated_at: string;
+  payment_status: string;
+  total_amount: string;
+  created_at: string;
 };
 
 function asNumber(value: string | undefined) {
   return Number(value ?? "0");
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatCompactCurrency(value: number) {
+  if (value >= 1_000_000_000) {
+    return `${(value / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1)}K`;
+  }
+  return value.toLocaleString("vi-VN");
+}
+
+function formatDayLabel(value: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
+
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
 }
 
-function formatStatus(status: string) {
-  return status.replace(/_/g, " ");
+function formatStatus(value: string) {
+  return value.replace(/_/g, " ");
 }
 
 export default async function AdminDashboardPage() {
-  const [summaryResult, activityResult] = await Promise.all([
-    query<DashboardSummaryRow>(`
+  const [summaryResult, revenueResult, recentOrdersResult] = await Promise.all([
+    query<RevenueSummaryRow>(`
       SELECT
-        (SELECT COUNT(*)::text FROM users) AS total_users,
-        (SELECT COUNT(*)::text FROM users WHERE role = 'ADMIN') AS admin_users,
-        (SELECT COUNT(*)::text FROM users WHERE role = 'CUSTOMER') AS customer_users,
-        (SELECT COUNT(*)::text FROM users WHERE role = 'AFFILIATE') AS affiliate_users,
-        (SELECT COUNT(*)::text FROM users WHERE role = 'VENDOR') AS vendor_users,
-        (SELECT COUNT(*)::text FROM products) AS total_products,
-        (SELECT COUNT(*)::text FROM products WHERE status = 'published') AS published_products,
-        (SELECT COUNT(*)::text FROM products WHERE status = 'draft') AS draft_products,
-        (SELECT COUNT(*)::text FROM products WHERE product_type = 'builder_template') AS builder_products,
-        (SELECT COUNT(*)::text FROM products WHERE product_type = 'coded_template') AS coded_products,
-        (SELECT COUNT(*)::text FROM products WHERE product_type = 'general_product') AS general_products,
-        (SELECT COUNT(*)::text FROM blog_posts) AS total_posts,
-        (SELECT COUNT(*)::text FROM blog_posts WHERE status = 'published') AS published_posts,
-        (SELECT COUNT(*)::text FROM blog_posts WHERE status = 'draft') AS draft_posts,
-        (SELECT COUNT(*)::text FROM managed_pages) AS total_pages,
-        (SELECT COUNT(*)::text FROM managed_pages WHERE status = 'published') AS published_pages,
-        (SELECT COUNT(*)::text FROM managed_pages WHERE status = 'draft') AS draft_pages,
-        (SELECT COUNT(*)::text FROM wedding_sites) AS total_invitations,
-        (SELECT COUNT(*)::text FROM wedding_sites WHERE status = 'published') AS published_invitations,
-        (SELECT COUNT(*)::text FROM wedding_sites WHERE status = 'draft') AS draft_invitations,
-        (SELECT COUNT(*)::text FROM affiliate_accounts WHERE status = 'pending') AS affiliate_pending,
-        (SELECT COUNT(*)::text FROM affiliate_accounts WHERE status = 'active') AS affiliate_active
+        COALESCE((
+          SELECT SUM(total_amount)
+          FROM commerce_orders
+          WHERE payment_status = 'paid'
+            AND COALESCE(paid_at, created_at) >= NOW() - INTERVAL '30 days'
+        ), 0)::text AS paid_revenue_30d,
+        (
+          SELECT COUNT(*)::text
+          FROM commerce_orders
+          WHERE payment_status = 'paid'
+            AND COALESCE(paid_at, created_at) >= NOW() - INTERVAL '30 days'
+        ) AS paid_orders_30d,
+        (
+          SELECT COUNT(*)::text
+          FROM commerce_orders
+          WHERE payment_status IN ('unpaid', 'pending')
+        ) AS pending_orders,
+        (
+          SELECT COUNT(*)::text
+          FROM wedding_sites
+          WHERE status = 'published'
+        ) AS published_invitations,
+        (
+          SELECT COUNT(*)::text
+          FROM products
+          WHERE status = 'published'
+        ) AS published_products,
+        (
+          SELECT COUNT(*)::text
+          FROM products
+          WHERE status = 'draft'
+        ) AS draft_products,
+        (
+          SELECT COUNT(*)::text
+          FROM blog_posts
+          WHERE status = 'published'
+        ) AS published_posts,
+        (
+          SELECT COUNT(*)::text
+          FROM managed_pages
+          WHERE status = 'published'
+        ) AS published_pages,
+        (
+          SELECT COUNT(*)::text
+          FROM blog_posts
+          WHERE status = 'draft'
+        ) AS draft_posts,
+        (
+          SELECT COUNT(*)::text
+          FROM managed_pages
+          WHERE status = 'draft'
+        ) AS draft_pages
     `),
-    query<ActivityRow>(`
-      SELECT *
-      FROM (
-        SELECT
-          'product'::text AS entity_type,
-          name AS title,
-          COALESCE(product_type, 'product') AS meta,
-          status,
-          updated_at
-        FROM products
-        UNION ALL
-        SELECT
-          'post'::text AS entity_type,
-          title,
-          COALESCE(slug, 'blog-post') AS meta,
-          status,
-          updated_at
-        FROM blog_posts
-        UNION ALL
-        SELECT
-          'page'::text AS entity_type,
-          name AS title,
-          COALESCE(slug, 'page') AS meta,
-          status,
-          updated_at
-        FROM managed_pages
-        UNION ALL
-        SELECT
-          'invitation'::text AS entity_type,
-          title,
-          COALESCE(site_type, 'invitation') AS meta,
-          status,
-          updated_at
-        FROM wedding_sites
-        UNION ALL
-        SELECT
-          'user'::text AS entity_type,
-          username AS title,
-          role AS meta,
-          role AS status,
-          created_at AS updated_at
-        FROM users
-      ) activity_feed
-      ORDER BY updated_at DESC
-      LIMIT 8
+    query<RevenueChartRow>(`
+      WITH days AS (
+        SELECT generate_series(
+          date_trunc('day', NOW() - INTERVAL '6 days'),
+          date_trunc('day', NOW()),
+          INTERVAL '1 day'
+        )::date AS day
+      )
+      SELECT
+        to_char(days.day, 'YYYY-MM-DD') AS day,
+        COALESCE(SUM(o.total_amount), 0)::text AS revenue,
+        COUNT(o.id)::text AS orders
+      FROM days
+      LEFT JOIN commerce_orders o
+        ON date_trunc('day', COALESCE(o.paid_at, o.created_at))::date = days.day
+       AND o.payment_status = 'paid'
+      GROUP BY days.day
+      ORDER BY days.day ASC
+    `),
+    query<RecentOrderRow>(`
+      SELECT
+        id,
+        order_number,
+        customer_name,
+        status,
+        payment_status,
+        total_amount::text,
+        created_at
+      FROM commerce_orders
+      ORDER BY created_at DESC
+      LIMIT 5
     `),
   ]);
 
   const summary = summaryResult.rows[0];
-  const totalUsers = asNumber(summary?.total_users);
-  const totalProducts = asNumber(summary?.total_products);
-  const totalPosts = asNumber(summary?.total_posts);
-  const totalInvitations = asNumber(summary?.total_invitations);
-  const totalPages = asNumber(summary?.total_pages);
+  const paidRevenue30d = asNumber(summary?.paid_revenue_30d);
+  const paidOrders30d = asNumber(summary?.paid_orders_30d);
+  const pendingOrders = asNumber(summary?.pending_orders);
+  const publishedInvitations = asNumber(summary?.published_invitations);
+  const publishedProducts = asNumber(summary?.published_products);
+  const draftProducts = asNumber(summary?.draft_products);
+  const publishedContent = asNumber(summary?.published_posts) + asNumber(summary?.published_pages);
+  const draftContent = asNumber(summary?.draft_posts) + asNumber(summary?.draft_pages);
 
-  const spotlightCards = [
+  const chartData = revenueResult.rows.map((item) => ({
+    ...item,
+    label: formatDayLabel(item.day),
+    revenueValue: asNumber(item.revenue),
+    orderCount: asNumber(item.orders),
+  }));
+
+  const kpis = [
     {
-      title: "Danh mục đang vận hành",
-      value: totalProducts,
-      description: `${asNumber(summary?.published_products)} đã xuất bản, ${asNumber(summary?.draft_products)} bản nháp`,
-      detail: `${asNumber(summary?.builder_products)} builder / ${asNumber(summary?.coded_products)} coded / ${asNumber(summary?.general_products)} san pham`,
-      icon: Box,
-      href: ROUTES.ADMIN.PRODUCT_LIST,
+      title: "Doanh thu 30 ngày",
+      value: formatCompactCurrency(paidRevenue30d),
+      detail: formatCurrency(paidRevenue30d),
+      icon: CreditCard,
+      href: ROUTES.ADMIN.PAYMENTS,
     },
     {
-      title: "Dòng nội dung",
-      value: totalPosts + totalPages,
-      description: `${totalPosts} bài blog, ${totalPages} trang quản lý`,
-      detail: `${asNumber(summary?.published_posts) + asNumber(summary?.published_pages)} nội dung đang hiển thị`,
-      icon: FileText,
-      href: ROUTES.ADMIN.BLOG_POSTS,
+      title: "Đơn đã thanh toán",
+      value: paidOrders30d.toLocaleString("vi-VN"),
+      detail: `${pendingOrders.toLocaleString("vi-VN")} đơn đang chờ xử lý`,
+      icon: Package,
+      href: ROUTES.ADMIN.ORDERS,
     },
     {
-      title: "Triển khai khách hàng",
-      value: totalInvitations,
-      description: `${asNumber(summary?.published_invitations)} thiệp đã xuất bản`,
-      detail: `${asNumber(summary?.draft_invitations)} bản nháp đang hoàn thiện`,
+      title: "Thiệp đang chạy",
+      value: publishedInvitations.toLocaleString("vi-VN"),
+      detail: "Số wedding site đang public",
       icon: LayoutTemplate,
       href: ROUTES.CUSTOMER.INVITATIONS,
     },
     {
-      title: "Phạm vi tài khoản",
-      value: totalUsers,
-      description: `${asNumber(summary?.customer_users)} khách hàng, ${asNumber(summary?.vendor_users)} nhà cung cấp`,
-      detail: `${asNumber(summary?.affiliate_users)} cộng tác viên, ${asNumber(summary?.admin_users)} quản trị viên`,
-      icon: Users,
-      href: ROUTES.ADMIN.USERS,
-    },
-  ];
-
-  const operationalGroups = [
-    {
-      title: "Tài khoản",
-      icon: Users,
-      metrics: [
-        { label: "Quản trị viên", value: asNumber(summary?.admin_users) },
-        { label: "Khách hàng", value: asNumber(summary?.customer_users) },
-        { label: "Cộng tác viên", value: asNumber(summary?.affiliate_users) },
-        { label: "Nhà cung cấp", value: asNumber(summary?.vendor_users) },
-      ],
-      href: ROUTES.ADMIN.USERS,
-    },
-    {
-      title: "Chương trình affiliate",
-      icon: BadgePercent,
-      metrics: [
-        { label: "Chờ duyệt", value: asNumber(summary?.affiliate_pending) },
-        { label: "Đang hoạt động", value: asNumber(summary?.affiliate_active) },
-      ],
-      href: ROUTES.ADMIN.AFFILIATES,
-    },
-    {
-      title: "Trạng thái xuất bản",
-      icon: MessageSquareQuote,
-      metrics: [
-        { label: "Trang đang chạy", value: asNumber(summary?.published_pages) },
-        { label: "Trang nháp", value: asNumber(summary?.draft_pages) },
-        { label: "Bài viết đang chạy", value: asNumber(summary?.published_posts) },
-        { label: "Bài viết nháp", value: asNumber(summary?.draft_posts) },
-      ],
-      href: ROUTES.ADMIN.PAGES,
+      title: "Catalog đang chạy",
+      value: publishedProducts.toLocaleString("vi-VN"),
+      detail: `${draftProducts.toLocaleString("vi-VN")} sản phẩm còn ở draft`,
+      icon: FileText,
+      href: ROUTES.ADMIN.PRODUCT_LIST,
     },
   ];
 
   const quickLinks = [
-    { label: "Quản lý sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST },
-    { label: "Viết nội dung blog", href: ROUTES.ADMIN.BLOG_POSTS },
-    { label: "Rà soát tài khoản khách hàng", href: ROUTES.ADMIN.CUSTOMERS },
-    { label: "Kiểm tra affiliate", href: ROUTES.ADMIN.AFFILIATES },
-    { label: "Mở thư viện media", href: ROUTES.ADMIN.MEDIA },
-    { label: "Cập nhật cấu hình", href: ROUTES.ADMIN.CONFIG },
+    { label: "Đơn hàng", href: ROUTES.ADMIN.ORDERS },
+    { label: "Thanh toán", href: ROUTES.ADMIN.PAYMENTS },
+    { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST },
+    { label: "Blog", href: ROUTES.ADMIN.BLOG_POSTS },
+    { label: "Pages", href: ROUTES.ADMIN.PAGES },
+    { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG },
   ];
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-6 px-5 py-5 md:px-7 md:py-7">
-      <div className="overflow-hidden rounded-[28px] border border-border/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,244,246,0.94))] shadow-sm">
-        <div className="grid gap-5 px-5 py-6 md:grid-cols-[minmax(0,1.4fr)_360px] md:px-7 md:py-7">
-          <div className="space-y-4">
-            <div className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-medium tracking-[0.22em] text-primary uppercase">
-              Tổng quan admin
-            </div>
-            <div className="space-y-2">
-              <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                Góc nhìn vận hành rõ ràng hơn cho nội dung, danh mục và triển khai khách hàng.
-              </h1>
-              <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
-                Dashboard này lấy số liệu trực tiếp từ users, products, blog, managed pages, invitations và affiliate accounts để khu vực quản trị vận hành như một control panel thực tế thay vì giao diện mẫu.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button render={<Link href={ROUTES.ADMIN.PRODUCT_LIST}>Mở sản phẩm</Link>} />
-              <Button variant="outline" render={<Link href={ROUTES.ADMIN.BLOG_POSTS}>Xem luồng blog</Link>} />
-            </div>
-          </div>
-
-          <Card className="border-white/70 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardDescription>Điểm cần chú ý hôm nay</CardDescription>
-              <CardTitle>Trạng thái triển khai</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-                <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">Thiệp đã xuất bản</p>
-                <p className="mt-2 text-3xl font-semibold">{asNumber(summary?.published_invitations)}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-                  <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">Thiệp nháp</p>
-                  <p className="mt-2 text-2xl font-semibold">{asNumber(summary?.draft_invitations)}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-                  <p className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">Affiliate chờ duyệt</p>
-                  <p className="mt-2 text-2xl font-semibold">{asNumber(summary?.affiliate_pending)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Tập trung vào doanh thu, đơn hàng và mức sẵn sàng của catalog thay vì dàn trải quá nhiều số liệu.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Mở đơn hàng</Link>} />
+          <Button render={<Link href={ROUTES.ADMIN.PAYMENTS}>Mở thanh toán</Link>} />
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-4">
-        {spotlightCards.map((card) => {
-          const Icon = card.icon;
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((item) => {
+          const Icon = item.icon;
 
           return (
-            <Card key={card.title} className="border-border/70 shadow-sm">
-              <CardHeader className="gap-3">
+            <Card key={item.title} className="rounded-lg">
+              <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <CardDescription>{card.title}</CardDescription>
-                    <CardTitle className="mt-1 text-4xl">{card.value}</CardTitle>
+                    <CardDescription>{item.title}</CardDescription>
+                    <CardTitle className="mt-2 text-3xl">{item.value}</CardTitle>
                   </div>
-                  <div className="rounded-2xl bg-primary/8 p-3 text-primary">
-                    <Icon className="size-5" />
+                  <div className="rounded-lg border bg-muted/40 p-2.5">
+                    <Icon className="h-4 w-4" />
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium">{card.description}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{card.detail}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  className="h-auto justify-start px-0 text-sm font-medium text-primary hover:bg-transparent"
-                  render={
-                    <Link href={card.href}>
-                      Xem chi tiết
-                      <ArrowRight className="size-4" />
-                    </Link>
-                  }
-                />
+                <p className="text-sm text-muted-foreground">{item.detail}</p>
+                <Link href={item.href} className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary">
+                  Xem khu vực
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_380px]">
-        <div className="space-y-6">
-          <div className="grid gap-4 lg:grid-cols-3">
-            {operationalGroups.map((group) => {
-              const Icon = group.icon;
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_360px]">
+        <Card className="flex min-h-[380px] flex-col rounded-lg">
+          <CardHeader className="pb-3">
+            <CardDescription>7 ngày gần nhất</CardDescription>
+            <CardTitle>Biểu đồ doanh thu</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 pt-0">
+            <AdminRevenueLineChart data={chartData} />
+          </CardContent>
+        </Card>
 
-              return (
-                <Card key={group.title} className="border-border/70 shadow-sm">
-                  <CardHeader className="gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-muted p-3 text-foreground">
-                        <Icon className="size-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{group.title}</CardTitle>
-                        <CardDescription>Số liệu vận hành trực tiếp</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {group.metrics.map((metric) => (
-                      <div key={metric.label} className="flex items-center justify-between rounded-2xl border border-border/60 px-3 py-2.5">
-                        <span className="text-sm text-muted-foreground">{metric.label}</span>
-                        <span className="text-lg font-semibold">{metric.value}</span>
-                      </div>
-                    ))}
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      render={<Link href={group.href}>Mở khu vực</Link>}
-                    />
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          <Card className="border-border/70 shadow-sm">
+        <div className="space-y-5">
+          <Card className="rounded-lg">
             <CardHeader>
-              <CardDescription>Cập nhật mới trên toàn hệ thống</CardDescription>
-              <CardTitle>Hoạt động gần đây</CardTitle>
+              <CardDescription>Nội dung và catalog</CardDescription>
+              <CardTitle>Trạng thái xuất bản</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {activityResult.rows.map((item, index) => (
-                <div
-                  key={`${item.entity_type}-${item.title}-${item.updated_at}-${index}`}
-                  className="flex flex-col gap-2 rounded-2xl border border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.entity_type} • {formatStatus(item.meta)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
-                      {formatStatus(item.status)}
-                    </span>
-                    <span className="text-muted-foreground">{formatDateTime(item.updated_at)}</span>
-                  </div>
-                </div>
-              ))}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Nội dung đang live</span>
+                <span className="text-lg font-semibold">{publishedContent}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Nội dung còn draft</span>
+                <span className="text-lg font-semibold">{draftContent}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Sản phẩm live</span>
+                <span className="text-lg font-semibold">{publishedProducts}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Sản phẩm draft</span>
+                <span className="text-lg font-semibold">{draftProducts}</span>
+              </div>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="space-y-6">
-          <Card className="border-border/70 shadow-sm">
+          <Card className="rounded-lg">
             <CardHeader>
-              <CardDescription>Các thao tác thường dùng</CardDescription>
-              <CardTitle>Truy cập nhanh</CardTitle>
+              <CardDescription>Thao tác nhanh</CardDescription>
+              <CardTitle>Điều hướng</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3">
+            <CardContent className="grid gap-2">
               {quickLinks.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center justify-between rounded-2xl border border-border/60 px-4 py-3 text-sm font-medium transition hover:border-primary/35 hover:bg-primary/5"
+                  className="flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
                 >
                   <span>{item.label}</span>
-                  <ArrowRight className="size-4 text-muted-foreground" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
               ))}
             </CardContent>
           </Card>
-
-          <Card className="border-border/70 shadow-sm">
-            <CardHeader>
-              <CardDescription>Cân bằng giữa nội dung và storefront</CardDescription>
-              <CardTitle>Tỷ trọng hệ thống</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-2xl border border-border/60 px-4 py-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <BookOpenText className="size-4 text-primary" />
-                  <p className="font-medium">Bề mặt nội dung</p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {asNumber(summary?.published_pages)} trang đã xuất bản và {asNumber(summary?.published_posts)} bài viết đã xuất bản đang hỗ trợ tăng trưởng và SEO.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/60 px-4 py-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <LayoutTemplate className="size-4 text-primary" />
-                  <p className="font-medium">Mức sẵn sàng của builder</p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Hiện có {asNumber(summary?.builder_products)} mẫu builder, {asNumber(summary?.coded_products)} mẫu coded và {asNumber(summary?.general_products)} sản phẩm trong catalog.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
+
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardDescription>Đơn mới nhất</CardDescription>
+          <CardTitle>Hoạt động gần đây</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {recentOrdersResult.rows.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+              Chưa có dữ liệu đơn hàng để hiển thị.
+            </div>
+          ) : (
+            recentOrdersResult.rows.map((order) => (
+              <div
+                key={order.id}
+                className="flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">{order.order_number}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {order.customer_name} • {formatDateTime(order.created_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
+                    {formatStatus(order.status)}
+                  </span>
+                  <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
+                    {formatStatus(order.payment_status)}
+                  </span>
+                  <span className="font-semibold">{formatCurrency(asNumber(order.total_amount))}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }

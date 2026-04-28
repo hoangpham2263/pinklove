@@ -3,7 +3,6 @@ import { WishlistPageClient } from "@/features/products/components/wishlist-page
 import { listPublishedProductsByIds } from "@/features/products/server/service";
 import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
 import { getUserProfile, requireAppUser } from "@/lib/auth";
-import { sanitizePermalinkConfig } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -28,7 +27,6 @@ export default async function WishlistPage() {
   return (
     <WishlistPageClient
       products={products}
-      permalinkConfig={sanitizePermalinkConfig(settings.permalink)}
       ecommerceSettings={settings.ecommerce}
       customerName={profile.displayName || profile.fullName || user.username}
       customerPhone={profile.phone}

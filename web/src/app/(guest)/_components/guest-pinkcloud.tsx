@@ -438,8 +438,6 @@ export function GuestPinkCloud({ messages }: GuestPinkCloudProps) {
 
   useEffect(() => {
     if (!isReady || isBubbleHidden || bubbleMessages.length === 0) {
-      setShowBubbleMessage(false);
-      setBubbleMessageIndex(0);
       return;
     }
 
@@ -493,7 +491,7 @@ export function GuestPinkCloud({ messages }: GuestPinkCloudProps) {
             </button>
             {showBubbleMessage ? (
               <p className="px-2.5 py-2.5 text-center text-sm font-normal text-[color:var(--pinkcloud-primary-deep)]">
-                {bubbleMessages[bubbleMessageIndex]}
+                {bubbleMessages[bubbleMessageIndex % bubbleMessages.length]}
               </p>
             ) : (
               <div className="flex min-h-10 items-center justify-center gap-1.5 px-2.5 py-2.5" aria-label="PinkCloud đang soạn tin nhắn">

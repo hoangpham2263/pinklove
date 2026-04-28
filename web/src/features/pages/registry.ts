@@ -7,6 +7,17 @@ export type ContentPageConfig = {
   fields: FieldSchema[];
 };
 
+export const CONTENT_PAGE_SLUG_ALIASES: Record<string, string> = {
+  "about-us": "gioi-thieu",
+  contact: "lien-he",
+  templates: "mau-thiep",
+  builder: "tu-tao-thiep",
+  services: "dich-vu",
+  tools: "cong-cu",
+  "tools/qr-builder": "cong-cu/tao-ma-qr",
+  "tools/wedding-budget": "cong-cu/du-toan-cuoi",
+};
+
 export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   home: {
     slug: "home",
@@ -179,8 +190,8 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
     ],
   },
-  "about-us": {
-    slug: "about-us",
+  "gioi-thieu": {
+    slug: "gioi-thieu",
     name: "Giới thiệu",
     label: "Trang giới thiệu",
     fields: [
@@ -189,8 +200,8 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       { name: "introText", label: "Nội dung giới thiệu", type: "textarea" },
     ],
   },
-  contact: {
-    slug: "contact",
+  "lien-he": {
+    slug: "lien-he",
     name: "Liên hệ",
     label: "Trang liên hệ",
     fields: [
@@ -262,20 +273,20 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
     ],
   },
-  templates: {
-    slug: "templates",
+  "mau-thiep": {
+    slug: "mau-thiep",
     name: "Mẫu thiệp",
     label: "Trang mẫu thiệp",
     fields: [],
   },
-  builder: {
-    slug: "builder",
+  "tu-tao-thiep": {
+    slug: "tu-tao-thiep",
     name: "Tự tạo thiệp",
     label: "Trang builder",
     fields: [],
   },
-  services: {
-    slug: "services",
+  "dich-vu": {
+    slug: "dich-vu",
     name: "Dịch vụ",
     label: "Trang gói dịch vụ",
     fields: [],
@@ -292,20 +303,20 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     label: "Trang affiliate",
     fields: [],
   },
-  tools: {
-    slug: "tools",
+  "cong-cu": {
+    slug: "cong-cu",
     name: "Công cụ",
     label: "Trang công cụ",
     fields: [],
   },
-  "tools/qr-builder": {
-    slug: "tools/qr-builder",
+  "cong-cu/tao-ma-qr": {
+    slug: "cong-cu/tao-ma-qr",
     name: "Tạo mã QR",
     label: "Trang công cụ QR",
     fields: [],
   },
-  "tools/wedding-budget": {
-    slug: "tools/wedding-budget",
+  "cong-cu/du-toan-cuoi": {
+    slug: "cong-cu/du-toan-cuoi",
     name: "Dự toán cưới",
     label: "Trang công cụ chi phí cưới",
     fields: [],
@@ -346,16 +357,20 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   },
 };
 
+export function resolveContentPageSlugAlias(slug: string): string {
+  return CONTENT_PAGE_SLUG_ALIASES[slug] ?? slug;
+}
+
 export function isContentPageSlug(slug: string): boolean {
-  return slug in CONTENT_PAGES;
+  return resolveContentPageSlugAlias(slug) in CONTENT_PAGES;
 }
 
 export function getContentPageFields(slug: string): FieldSchema[] {
-  return CONTENT_PAGES[slug]?.fields ?? [];
+  return CONTENT_PAGES[resolveContentPageSlugAlias(slug)]?.fields ?? [];
 }
 
 export function getContentPageLabel(slug: string): string {
-  return CONTENT_PAGES[slug]?.label ?? slug;
+  return CONTENT_PAGES[resolveContentPageSlugAlias(slug)]?.label ?? slug;
 }
 
 export function listContentPageConfigs(): ContentPageConfig[] {

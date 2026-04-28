@@ -74,7 +74,7 @@ export default async function GuestLayout({
   ]);
   const pagePathMap = new Map(managedPages.map((page) => [page.slug, getManagedPagePath(page)]));
   const dashboardHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
-  const settingsHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.CONFIG : ROUTES.CUSTOMER.SETTINGS;
+  const settingsHref = user && isAdminRole(user.role) ? ROUTES.ADMIN.CONFIG : ROUTES.CUSTOMER.CONFIG;
   const headerLinks = mapMenuLinks(headerMenu?.items, pagePathMap);
   const headerTree = buildNavTree(headerLinks);
   const footerColumns = buildNavTree(mapMenuLinks(footerMenu?.items, pagePathMap)).map((item) => ({

@@ -4,6 +4,7 @@ import {
   BadgePercent,
   ChevronRight,
   FolderHeart,
+  MapPin,
   MessageCircle,
   Settings,
   ShoppingBag,
@@ -14,7 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CustomerNavLink } from "@/features/customer/components/customer-nav-link";
 import { isRouteActive } from "@/lib/navigation";
 
-type CustomerSidebarIconName = "folder-heart" | "shopping-bag" | "message-circle" | "user" | "badge-percent" | "settings";
+type CustomerSidebarIconName = "map-pin" | "folder-heart" | "shopping-bag" | "message-circle" | "user" | "badge-percent" | "settings";
 
 type CustomerSidebarChild = {
   label: string;
@@ -30,6 +31,7 @@ type CustomerSidebarGroupProps = {
 };
 
 const iconMap = {
+  "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
   "message-circle": MessageCircle,

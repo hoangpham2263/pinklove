@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { AddressBookManager } from "@/components/common/address-book-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatUserAddress, type UserAddress } from "@/features/account/address";
 import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
 import type { CartItem } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
@@ -14,7 +16,7 @@ type CheckoutPageProps = {
   customerName: string;
   customerPhone?: string;
   customerEmail: string;
-  shippingName?: string;
+  addresses?: UserAddress[];
   settings: SystemSettings;
 };
 
@@ -23,7 +25,7 @@ export function CheckoutPageView({
   customerName,
   customerPhone,
   customerEmail,
-  shippingName,
+  addresses = [],
   settings,
 }: CheckoutPageProps) {
   const requiresShipping =
@@ -35,6 +37,7 @@ export function CheckoutPageView({
       : 0;
   const totalAmount = subtotal + shippingAmount;
   const paymentMethods = getEnabledPaymentMethods(settings.ecommerce, requiresShipping);
+  const checkoutReturnTo = encodeURIComponent(ROUTES.CHECKOUT.INDEX);
 
   if (items.length === 0) {
     return (
@@ -56,138 +59,143 @@ export function CheckoutPageView({
 
   return (
     <section className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <form id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin khách hàng</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">Họ tên</label>
-              <input
-                type="text"
-                name="customerName"
-                defaultValue={customerName}
-                required
-                className="h-10 w-full rounded-md border bg-background px-3"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="font-medium">Số điện thoại</label>
-              <input
-                type="text"
-                name="customerPhone"
-                defaultValue={customerPhone}
-                required={requiresShipping}
-                className="h-10 w-full rounded-md border bg-background px-3"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="font-medium">Email</label>
-              <input
-                type="email"
-                name="customerEmail"
-                defaultValue={customerEmail}
-                required
-                className="h-10 w-full rounded-md border bg-background px-3"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="space-y-6">
         {requiresShipping ? (
+          <AddressBookManager
+            addresses={addresses}
+            actionUrl={ROUTES.API.ACCOUNT.ADDRESSES}
+            returnTo={ROUTES.CHECKOUT.INDEX}
+            createHref={`${ROUTES.CUSTOMER.CONFIG_ADDRESS_NEW}?returnTo=${checkoutReturnTo}`}
+            getViewHref={(addressId) => `${ROUTES.CUSTOMER.CONFIG_ADDRESS(addressId)}?returnTo=${checkoutReturnTo}`}
+            getEditHref={(addressId) => `${ROUTES.CUSTOMER.CONFIG_ADDRESS_EDIT(addressId)}?returnTo=${checkoutReturnTo}`}
+            title="Địa chỉ giao hàng"
+            description="Thêm, xem hoặc sửa địa chỉ ở trang quản lý chung. Checkout chỉ dùng địa chỉ đã lưu để tránh nhập trùng ở từng đơn."
+          />
+        ) : null}
+
+        <form id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin giao hàng</CardTitle>
+              <CardTitle>Thông tin khách hàng</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="font-medium">Người nhận</label>
+                <label className="font-medium">Họ tên</label>
                 <input
                   type="text"
-                  name="shippingName"
-                  defaultValue={shippingName}
+                  name="customerName"
+                  defaultValue={customerName}
                   required
                   className="h-10 w-full rounded-md border bg-background px-3"
                 />
               </div>
               <div className="space-y-2">
-                <label className="font-medium">Số điện thoại nhận hàng</label>
+                <label className="font-medium">Số điện thoại</label>
                 <input
                   type="text"
-                  name="shippingPhone"
+                  name="customerPhone"
                   defaultValue={customerPhone}
-                  required
+                  required={requiresShipping}
                   className="h-10 w-full rounded-md border bg-background px-3"
                 />
               </div>
               <div className="space-y-2 md:col-span-2">
-                <label className="font-medium">Địa chỉ dòng 1</label>
-                <input type="text" name="shippingLine1" required className="h-10 w-full rounded-md border bg-background px-3" />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="font-medium">Địa chỉ dòng 2</label>
-                <input type="text" name="shippingLine2" className="h-10 w-full rounded-md border bg-background px-3" />
-              </div>
-              <div className="space-y-2">
-                <label className="font-medium">Phường / xã</label>
-                <input type="text" name="shippingWard" className="h-10 w-full rounded-md border bg-background px-3" />
-              </div>
-              <div className="space-y-2">
-                <label className="font-medium">Quận / huyện</label>
-                <input type="text" name="shippingDistrict" required className="h-10 w-full rounded-md border bg-background px-3" />
-              </div>
-              <div className="space-y-2">
-                <label className="font-medium">Tỉnh / thành phố</label>
-                <input type="text" name="shippingCity" required className="h-10 w-full rounded-md border bg-background px-3" />
-              </div>
-              <div className="space-y-2">
-                <label className="font-medium">Mã bưu chính</label>
-                <input type="text" name="shippingPostalCode" className="h-10 w-full rounded-md border bg-background px-3" />
+                <label className="font-medium">Email</label>
+                <input
+                  type="email"
+                  name="customerEmail"
+                  defaultValue={customerEmail}
+                  required
+                  className="h-10 w-full rounded-md border bg-background px-3"
+                />
               </div>
             </CardContent>
           </Card>
-        ) : null}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Thanh toán</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {paymentMethods.length === 0 ? (
-              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                Chưa có phương thức thanh toán nào đang bật trong admin.
-              </div>
-            ) : null}
-            {paymentMethods.map((method, index) => (
-              <label key={method.code} className="flex items-start gap-3 rounded-md border p-4">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={method.code}
-                  defaultChecked={index === 0}
-                  className="mt-1"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{method.label}</p>
-                  <p className="text-muted-foreground">{method.description}</p>
-                  <PaymentMethodGuide
-                    method={method.code}
-                    settings={settings.ecommerce}
-                    amount={totalAmount}
-                    requiresShipping={requiresShipping}
-                    className="mt-3"
-                  />
+          {requiresShipping ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Chọn địa chỉ giao hàng</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {addresses.length > 0 ? (
+                  <div className="grid gap-3">
+                    {addresses.map((address, index) => (
+                      <label key={address.id} className="flex items-start gap-3 rounded-md border p-4">
+                        <input
+                          type="radio"
+                          name="addressId"
+                          value={address.id}
+                          required
+                          defaultChecked={address.isDefault || (!addresses.some((item) => item.isDefault) && index === 0)}
+                          className="mt-1"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium">{address.label || "Địa chỉ"}</p>
+                            {address.isDefault ? (
+                              <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                Mặc định
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {address.recipientName} • {address.phone}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{formatUserAddress(address)}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                    Chưa có địa chỉ giao hàng. Hãy thêm địa chỉ ở khối phía trên trước khi tạo đơn.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Thanh toán</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {paymentMethods.length === 0 ? (
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  Chưa có phương thức thanh toán nào đang bật trong admin.
                 </div>
-              </label>
-            ))}
-            <div className="space-y-2">
-              <label className="font-medium">Ghi chú</label>
-              <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
-            </div>
-          </CardContent>
-        </Card>
-      </form>
+              ) : null}
+              {paymentMethods.map((method, index) => (
+                <label key={method.code} className="flex items-start gap-3 rounded-md border p-4">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.code}
+                    defaultChecked={index === 0}
+                    className="mt-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{method.label}</p>
+                    <p className="text-muted-foreground">{method.description}</p>
+                    <PaymentMethodGuide
+                      method={method.code}
+                      settings={settings.ecommerce}
+                      amount={totalAmount}
+                      requiresShipping={requiresShipping}
+                      className="mt-3"
+                    />
+                  </div>
+                </label>
+              ))}
+              <div className="space-y-2">
+                <label className="font-medium">Ghi chú</label>
+                <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </div>
 
       <Card className="h-fit lg:sticky lg:top-24">
         <CardHeader>
@@ -220,7 +228,7 @@ export function CheckoutPageView({
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button type="submit" form="checkout-form" className="w-full" disabled={paymentMethods.length === 0}>
+            <Button type="submit" form="checkout-form" className="w-full" disabled={paymentMethods.length === 0 || (requiresShipping && addresses.length === 0)}>
               Tạo đơn hàng
             </Button>
             <Button

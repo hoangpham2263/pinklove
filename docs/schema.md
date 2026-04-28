@@ -109,6 +109,23 @@ Notes:
 - `bio`: `text`
 - `updated_at`: `timestamptz`
 
+### `user_addresses`
+
+- `id`: `text`
+- `user_id`: FK to `users.id`
+- `label`: `text`
+- `recipient_name`: `text`
+- `phone`: `text`
+- `line1`, `line2`, `ward`, `district`, `city`, `postal_code`, `country`: address fields
+- `is_default`: `boolean`; only one default address per user
+- `created_at`: `timestamptz`
+- `updated_at`: `timestamptz`
+
+Indexes:
+
+- `user_addresses_user_id_idx` on `(user_id, is_default DESC, updated_at DESC)`
+- `user_addresses_one_default_uidx` unique partial index on `user_id` where `is_default = true`
+
 ### `user_oauth_accounts`
 
 - `id`: `text` in current bootstrap, may be numeric in older databases
