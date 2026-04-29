@@ -14,7 +14,6 @@ export function QuickCreateBlogCategoryForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -42,9 +41,7 @@ export function QuickCreateBlogCategoryForm() {
           onChange={(event) => {
             const next = event.target.value;
             setName(next);
-            if (!isSlugEdited) {
-              setSlug(slugify(next));
-            }
+            setSlug(slugify(next));
           }}
           required
         />
@@ -54,10 +51,7 @@ export function QuickCreateBlogCategoryForm() {
         <Input
           name="slug"
           value={slug}
-          onChange={(event) => {
-            setSlug(event.target.value);
-            setIsSlugEdited(true);
-          }}
+          onChange={(event) => setSlug(event.target.value)}
           required
         />
       </div>

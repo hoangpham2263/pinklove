@@ -26,7 +26,6 @@ export function QuickCreateProductForm({
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [fulfillmentType, setFulfillmentType] = useState<ProductFulfillmentType>("digital");
   const [trackInventory, setTrackInventory] = useState(false);
@@ -82,9 +81,7 @@ export function QuickCreateProductForm({
                 onChange={(e) => {
                   const next = e.target.value;
                   setName(next);
-                  if (!isSlugEdited) {
-                    setSlug(slugify(next));
-                  }
+                  setSlug(slugify(next));
                 }}
                 placeholder="Ví dụ: Hộp quà cưới Aurora"
                 required
@@ -99,10 +96,7 @@ export function QuickCreateProductForm({
                 id="slug"
                 name="slug"
                 value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value);
-                  setIsSlugEdited(true);
-                }}
+                onChange={(e) => setSlug(e.target.value)}
                 placeholder="hop-qua-cuoi-aurora"
                 required
               />
@@ -112,14 +106,14 @@ export function QuickCreateProductForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="categoryId" className="font-medium">
-                Product Cat
+                Danh mục
               </label>
               <select
                 id="categoryId"
                 name="categoryId"
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                <option value="">Không chọn category</option>
+                <option value="">Không chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}

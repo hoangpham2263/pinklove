@@ -10,10 +10,13 @@ import { Input } from "@/components/ui/input";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
+import { slugify } from "@/lib/utils";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 
 export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categories: BlogCategory[] }) {
   const router = useRouter();
+  const [title, setTitle] = useState(post.title);
+  const [slug, setSlug] = useState(post.slug);
   const [coverImage, setCoverImage] = useState(post.coverImage || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -65,11 +68,20 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="font-medium">Tiêu đề</label>
-              <Input name="title" defaultValue={post.title} required />
+              <Input
+                name="title"
+                value={title}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setTitle(next);
+                  setSlug(slugify(next));
+                }}
+                required
+              />
             </div>
             <div className="space-y-2">
               <label className="font-medium">Slug</label>
-              <Input name="slug" defaultValue={post.slug} required />
+              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
             </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2">

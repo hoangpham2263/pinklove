@@ -20,7 +20,6 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
-  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -34,7 +33,6 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
       setSlug("");
       setDescription("");
       setStatus("draft");
-      setIsSlugEdited(false);
       onCreated?.();
       finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
@@ -54,9 +52,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
           onChange={(event) => {
             const next = event.target.value;
             setName(next);
-            if (!isSlugEdited) {
-              setSlug(slugify(next));
-            }
+            setSlug(slugify(next));
           }}
           required
         />
@@ -66,10 +62,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
         <Input
           name="slug"
           value={slug}
-          onChange={(event) => {
-            setSlug(event.target.value);
-            setIsSlugEdited(true);
-          }}
+          onChange={(event) => setSlug(event.target.value)}
           required
         />
       </div>

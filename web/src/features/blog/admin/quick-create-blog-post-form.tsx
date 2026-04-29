@@ -15,7 +15,6 @@ export function QuickCreateBlogPostForm({ categories }: { categories: BlogCatego
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
-  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -43,9 +42,7 @@ export function QuickCreateBlogPostForm({ categories }: { categories: BlogCatego
           onChange={(event) => {
             const next = event.target.value;
             setTitle(next);
-            if (!isSlugEdited) {
-              setSlug(slugify(next));
-            }
+            setSlug(slugify(next));
           }}
           required
         />
@@ -55,10 +52,7 @@ export function QuickCreateBlogPostForm({ categories }: { categories: BlogCatego
         <Input
           name="slug"
           value={slug}
-          onChange={(event) => {
-            setSlug(event.target.value);
-            setIsSlugEdited(true);
-          }}
+          onChange={(event) => setSlug(event.target.value)}
           required
         />
       </div>

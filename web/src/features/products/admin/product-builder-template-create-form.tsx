@@ -31,7 +31,6 @@ export function ProductBuilderTemplateCreateForm({
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [isSlugEdited, setIsSlugEdited] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initialBuilderDocument = useMemo(() => createDefaultBuilderDocument(), []);
@@ -73,12 +72,9 @@ export function ProductBuilderTemplateCreateForm({
         editor={<BuilderEditorClient initialValue={initialBuilderDocument} />}
         sidebar={
           <>
-            <div className="flex min-w-0 items-center gap-3">
-              <Button variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
-              <div className="min-w-0">
-                <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
-                <p className="text-sm text-muted-foreground">Catalog builder template</p>
-              </div>
+            <div className="space-y-3">
+              <Button className="w-full" variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
+              <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
             </div>
 
             <div className="space-y-3">
@@ -91,9 +87,7 @@ export function ProductBuilderTemplateCreateForm({
                   onChange={(e) => {
                     const next = e.target.value;
                     setName(next);
-                    if (!isSlugEdited) {
-                      setSlug(slugify(next));
-                    }
+                    setSlug(slugify(next));
                   }}
                   placeholder="Builder Garden Romance"
                   required
@@ -106,10 +100,7 @@ export function ProductBuilderTemplateCreateForm({
                   id="slug"
                   name="slug"
                   value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setIsSlugEdited(true);
-                  }}
+                  onChange={(e) => setSlug(e.target.value)}
                   placeholder="builder-garden-romance"
                   required
                 />
@@ -134,13 +125,13 @@ export function ProductBuilderTemplateCreateForm({
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="categoryId" className="text-sm font-medium">Product Cat</label>
+                <label htmlFor="categoryId" className="text-sm font-medium">Danh mục</label>
                 <select
                   id="categoryId"
                   name="categoryId"
                   className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  <option value="">Không chọn category</option>
+                  <option value="">Không chọn danh mục</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}

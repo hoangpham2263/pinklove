@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { customerApi, customerApiActions } from "@/lib/api-client.customer";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
+import { slugify } from "@/lib/utils";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
 import type { InvitationSite } from "@/features/invitations/types";
 
@@ -22,6 +23,8 @@ type InvitationEditorFormProps = {
 
 export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormProps) {
   const router = useRouter();
+  const [title, setTitle] = useState(site.title);
+  const [slug, setSlug] = useState(site.slug);
   const data = site.customData;
   const templateFields = getInvitationTemplateFields(site.templateKey);
 
@@ -50,12 +53,20 @@ export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormP
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="font-medium">Tiêu đề hiển thị</label>
-              <Input name="title" defaultValue={site.title} />
+              <Input
+                name="title"
+                value={title}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setTitle(next);
+                  setSlug(slugify(next));
+                }}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="font-medium">Slug public</label>
-              <Input name="slug" defaultValue={site.slug} />
+              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} />
             </div>
           </div>
 

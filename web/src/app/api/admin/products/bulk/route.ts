@@ -27,7 +27,21 @@ export async function POST(request: Request) {
   }
 
   if (action === "delete") {
-    const count = await deleteProducts(slugs);
+    let count = 0;
+    try {
+      count = await deleteProducts(slugs);
+    } catch (error) {
+      if (error instanceof Error && error.message === "CODED_TEMPLATE_DELETE_BLOCKED") {
+        return respondError(request, {
+          error: "coded_template_delete_blocked",
+          message: "Danh sách đang chọn có mẫu coded. Mẫu coded là template gốc trong code nên không thể xóa từ admin.",
+          location: `${returnTo}?error=coded_template_delete_blocked`,
+        });
+      }
+
+      throw error;
+    }
+
     return respondSuccess(request, { location: returnTo, message: `${count} sản phẩm đã bị xóa.`, data: { count, bulk: "deleted" } });
   }
 

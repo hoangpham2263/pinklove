@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { customerApi, customerApiActions } from "@/lib/api-client.customer";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
+import { slugify } from "@/lib/utils";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import type { InvitationSite } from "@/features/invitations/types";
@@ -21,6 +22,8 @@ type BuilderInvitationFormProps = {
 
 export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitationFormProps) {
   const router = useRouter();
+  const [title, setTitle] = useState(invitation.title);
+  const [slug, setSlug] = useState(invitation.slug);
   const data = invitation.customData;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -54,12 +57,21 @@ export function BuilderInvitationForm({ invitation, publicHref }: BuilderInvitat
 
             <div className="space-y-2">
               <label className="font-medium">Tên thiệp</label>
-              <Input name="title" defaultValue={invitation.title} placeholder="Tên thiệp" />
+              <Input
+                name="title"
+                value={title}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setTitle(next);
+                  setSlug(slugify(next));
+                }}
+                placeholder="Tên thiệp"
+              />
             </div>
 
             <div className="space-y-2">
               <label className="font-medium">Slug public</label>
-              <Input name="slug" defaultValue={invitation.slug} placeholder="Slug public" />
+              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} placeholder="Slug public" />
             </div>
 
             <div className="space-y-2">

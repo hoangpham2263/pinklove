@@ -64,6 +64,7 @@ export function ProductEditorForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const isGeneralProduct = product.productType === "general_product";
   const isBuilderTemplate = product.productType === "builder_template";
+  const canDeleteProduct = product.productType !== "coded_template";
   const templateFields = useMemo(
     () => (isGeneralProduct || isBuilderTemplate ? [] : getInvitationTemplateFields(product.templateKey)),
     [isGeneralProduct, isBuilderTemplate, product.templateKey]
@@ -147,9 +148,7 @@ export function ProductEditorForm({
                     onChange={(e) => {
                       const next = e.target.value;
                       setName(next);
-                      if (slug === product.slug || slug === slugify(product.name)) {
-                        setSlug(slugify(next));
-                      }
+                      setSlug(slugify(next));
                     }}
                   />
                 </div>
@@ -177,13 +176,13 @@ export function ProductEditorForm({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Product Cat</label>
+                  <label className="text-sm font-medium">Danh mục</label>
                   <select
                     name="categoryId"
                     defaultValue={product.categoryId ?? ""}
                     className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   >
-                    <option value="">Không chọn category</option>
+                    <option value="">Không chọn danh mục</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -267,9 +266,7 @@ export function ProductEditorForm({
                 onChange={(e) => {
                   const next = e.target.value;
                   setName(next);
-                  if (slug === product.slug || slug === slugify(product.name)) {
-                    setSlug(slugify(next));
-                  }
+                  setSlug(slugify(next));
                 }}
               />
             </div>
@@ -281,13 +278,13 @@ export function ProductEditorForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="font-medium">Product Cat</label>
+              <label className="font-medium">Danh mục</label>
               <select
                 name="categoryId"
                 defaultValue={product.categoryId ?? ""}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                <option value="">Không chọn category</option>
+                <option value="">Không chọn danh mục</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -526,20 +523,22 @@ export function ProductEditorForm({
               {isSaving ? "Đang lưu..." : "Lưu sản phẩm"}
             </Button>
 
-            <div className="border-t pt-4">
-              <p className="text-sm text-muted-foreground">
-                Xóa product catalog entry này. Các `wedding_site` đã tạo trước đó vẫn giữ dữ liệu riêng.
-              </p>
-              <Button
-                type="button"
-                variant="destructive"
-                className="mt-4 w-full rounded-md"
-                disabled={isDeleting}
-                onClick={() => void handleDelete()}
-              >
-                {isDeleting ? "Đang xóa..." : "Xóa sản phẩm"}
-              </Button>
-            </div>
+            {canDeleteProduct ? (
+              <div className="border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Xóa product catalog entry này. Các `wedding_site` đã tạo trước đó vẫn giữ dữ liệu riêng.
+                </p>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="mt-4 w-full rounded-md"
+                  disabled={isDeleting}
+                  onClick={() => void handleDelete()}
+                >
+                  {isDeleting ? "Đang xóa..." : "Xóa sản phẩm"}
+                </Button>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 

@@ -35,7 +35,6 @@ export function VendorProductSubmissionForm({
   const router = useRouter();
   const [name, setName] = useState(submission?.name ?? "");
   const [slugCandidate, setSlugCandidate] = useState(submission?.slugCandidate ?? "");
-  const [isSlugEdited, setIsSlugEdited] = useState(Boolean(submission?.slugCandidate));
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canEdit = !submission || ["draft", "changes_requested"].includes(submission.reviewStatus);
@@ -126,9 +125,7 @@ export function VendorProductSubmissionForm({
                 onChange={(event) => {
                   const next = event.target.value;
                   setName(next);
-                  if (!isSlugEdited) {
-                    setSlugCandidate(slugify(next));
-                  }
+                  setSlugCandidate(slugify(next));
                 }}
                 required
               />
@@ -140,10 +137,7 @@ export function VendorProductSubmissionForm({
                 name="slugCandidate"
                 value={slugCandidate}
                 disabled={!canEdit}
-                onChange={(event) => {
-                  setSlugCandidate(event.target.value);
-                  setIsSlugEdited(true);
-                }}
+                onChange={(event) => setSlugCandidate(event.target.value)}
                 required
               />
             </div>

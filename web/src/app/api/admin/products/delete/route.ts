@@ -16,7 +16,19 @@ export async function POST(request: Request) {
     return respondError(request, { error: "missing_slug", message: "Thiếu slug sản phẩm để xóa.", location: `${returnTo}?error=missing_slug` });
   }
 
-  await deleteProduct(slug);
+  try {
+    await deleteProduct(slug);
+  } catch (error) {
+    if (error instanceof Error && error.message === "CODED_TEMPLATE_DELETE_BLOCKED") {
+      return respondError(request, {
+        error: "coded_template_delete_blocked",
+        message: "Mẫu coded là template gốc trong code, không thể xóa từ admin.",
+        location: `${returnTo}?error=coded_template_delete_blocked`,
+      });
+    }
+
+    throw error;
+  }
 
   return respondSuccess(request, { location: returnTo, message: "Đã xóa sản phẩm." });
 }

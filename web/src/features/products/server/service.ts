@@ -727,18 +727,58 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
 }
 
 export async function deleteProduct(slug: string): Promise<boolean> {
-  const result = await withProductCatalogRetry(() =>
-    query(
+  return withProductCatalogRetry(async () => {
+    const existing = await query<{ id: string; product_type: ProductType }>(
       `
-        DELETE FROM products
+        SELECT id, product_type
+        FROM products
         WHERE slug = $1
-        RETURNING id
+        LIMIT 1
       `,
       [slug]
+    );
+
+    const product = existing.rows[0];
+    if (!product) {
+      return false;
+    }
+
+    if (product.product_type === "coded_template") {
+      throw new Error("CODED_TEMPLATE_DELETE_BLOCKED");
+    }
+
+    const result = await query(
+      `
+        DELETE FROM products
+        WHERE id = $1
+      `,
+      [product.id]
+    );
+
+    return (result.rowCount ?? 0) > 0;
+  });
+}
+
+export async function hasCodedTemplateProducts(slugs: string[]): Promise<boolean> {
+  if (slugs.length === 0) {
+    return false;
+  }
+
+  const result = await withProductCatalogRetry(() =>
+    query<{ exists: boolean }>(
+      `
+        SELECT EXISTS (
+          SELECT 1
+          FROM products
+          WHERE slug = ANY($1::text[])
+            AND product_type = 'coded_template'
+        ) AS exists
+      `,
+      [slugs]
     )
   );
 
-  return (result.rowCount ?? 0) > 0;
+  return result.rows[0]?.exists ?? false;
 }
 
 export async function updateProductsStatus(
@@ -770,17 +810,21 @@ export async function deleteProducts(slugs: string[]): Promise<number> {
     return 0;
   }
 
-  const result = await withProductCatalogRetry(() =>
-    query(
+  return withProductCatalogRetry(async () => {
+    if (await hasCodedTemplateProducts(slugs)) {
+      throw new Error("CODED_TEMPLATE_DELETE_BLOCKED");
+    }
+
+    const result = await query(
       `
         DELETE FROM products
         WHERE slug = ANY($1::text[])
       `,
       [slugs]
-    )
-  );
+    );
 
-  return result.rowCount ?? 0;
+    return result.rowCount ?? 0;
+  });
 }
 
 export async function listAllProductCategories(): Promise<ProductCategory[]> {
@@ -868,18 +912,56 @@ export async function updateProductCategory(
 }
 
 export async function deleteProductCategory(slug: string): Promise<boolean> {
-  const result = await withProductCatalogRetry(() =>
-    query(
-      `
-        DELETE FROM product_categories
-        WHERE slug = $1
-        RETURNING id
-      `,
-      [slug]
-    )
-  );
+  return withProductCatalogRetry(() =>
+    withTransaction(async (execute) => {
+      const category = await execute<{ id: string }>(
+        `
+          SELECT id
+          FROM product_categories
+          WHERE slug = $1
+          LIMIT 1
+        `,
+        [slug]
+      );
 
-  return (result.rowCount ?? 0) > 0;
+      const categoryId = category.rows[0]?.id;
+      if (!categoryId) {
+        return false;
+      }
+
+      await execute(
+        `
+          UPDATE products
+          SET
+            category_id = NULL,
+            updated_at = NOW()
+          WHERE category_id = $1
+        `,
+        [categoryId]
+      );
+
+      await execute(
+        `
+          UPDATE vendor_product_submissions
+          SET
+            category_id = NULL,
+            updated_at = NOW()
+          WHERE category_id = $1
+        `,
+        [categoryId]
+      );
+
+      const result = await execute(
+        `
+          DELETE FROM product_categories
+          WHERE id = $1
+        `,
+        [categoryId]
+      );
+
+      return (result.rowCount ?? 0) > 0;
+    })
+  );
 }
 
 export async function updateProductCategoriesStatus(
@@ -911,15 +993,53 @@ export async function deleteProductCategories(slugs: string[]): Promise<number> 
     return 0;
   }
 
-  const result = await withProductCatalogRetry(() =>
-    query(
-      `
-        DELETE FROM product_categories
-        WHERE slug = ANY($1::text[])
-      `,
-      [slugs]
-    )
-  );
+  return withProductCatalogRetry(() =>
+    withTransaction(async (execute) => {
+      const categories = await execute<{ id: string }>(
+        `
+          SELECT id
+          FROM product_categories
+          WHERE slug = ANY($1::text[])
+        `,
+        [slugs]
+      );
 
-  return result.rowCount ?? 0;
+      const categoryIds = categories.rows.map((category) => category.id);
+      if (categoryIds.length === 0) {
+        return 0;
+      }
+
+      await execute(
+        `
+          UPDATE products
+          SET
+            category_id = NULL,
+            updated_at = NOW()
+          WHERE category_id = ANY($1::text[])
+        `,
+        [categoryIds]
+      );
+
+      await execute(
+        `
+          UPDATE vendor_product_submissions
+          SET
+            category_id = NULL,
+            updated_at = NOW()
+          WHERE category_id = ANY($1::text[])
+        `,
+        [categoryIds]
+      );
+
+      const result = await execute(
+        `
+          DELETE FROM product_categories
+          WHERE id = ANY($1::text[])
+        `,
+        [categoryIds]
+      );
+
+      return result.rowCount ?? 0;
+    })
+  );
 }

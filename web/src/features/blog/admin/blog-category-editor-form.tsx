@@ -9,10 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
+import { slugify } from "@/lib/utils";
 import type { BlogCategory } from "@/features/blog/types";
 
 export function BlogCategoryEditorForm({ category }: { category: BlogCategory }) {
   const router = useRouter();
+  const [name, setName] = useState(category.name);
+  const [slug, setSlug] = useState(category.slug);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -62,11 +65,20 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="font-medium">Tên danh mục</label>
-              <Input name="name" defaultValue={category.name} required />
+              <Input
+                name="name"
+                value={name}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setName(next);
+                  setSlug(slugify(next));
+                }}
+                required
+              />
             </div>
             <div className="space-y-2">
               <label className="font-medium">Slug</label>
-              <Input name="slug" defaultValue={category.slug} required />
+              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
             </div>
           </div>
           <div className="space-y-2">

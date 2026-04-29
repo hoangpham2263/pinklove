@@ -42,7 +42,6 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
   const [slug, setSlug] = useState(page.slug || "");
   const [pageTitle, setPageTitle] = useState(page.title || "");
   const [pageName, setPageName] = useState(page.name || "");
-  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(!!page.slug);
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(!!page.title);
 
   // Template and Custom Fields
@@ -55,7 +54,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextName = e.target.value;
     setPageName(nextName);
-    if (!isSlugManuallyEdited) {
+    if (!isProtectedSlug) {
       setSlug(slugify(nextName));
     }
     if (!isTitleManuallyEdited) {
@@ -65,7 +64,6 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSlug(e.target.value);
-    setIsSlugManuallyEdited(true);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

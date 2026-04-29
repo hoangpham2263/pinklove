@@ -74,6 +74,7 @@ export function AdminProductList({
 }: AdminProductListProps) {
   const router = useRouter();
   const showInventoryColumn = productType === "general_product";
+  const canBulkDelete = productType !== "coded_template";
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -266,6 +267,7 @@ export function AdminProductList({
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const product = row.original;
+          const canDeleteProduct = product.productType !== "coded_template";
           const publicHref = getProductPath(product);
           const adminEditHref =
             product.productType === "builder_template"
@@ -299,37 +301,39 @@ export function AdminProductList({
               >
                 <Pencil className="h-4 w-4" />
               </Link>
-              <NativeForm
-                action={adminApiActions.deleteProduct}
-                method="POST"
-                className="inline-block"
-                onSubmit={async (event) => {
-                  event.preventDefault();
-                  if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${product.name}?`)) {
-                    return;
-                  }
+              {canDeleteProduct ? (
+                <NativeForm
+                  action={adminApiActions.deleteProduct}
+                  method="POST"
+                  className="inline-block"
+                  onSubmit={async (event) => {
+                    event.preventDefault();
+                    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${product.name}?`)) {
+                      return;
+                    }
 
-                  try {
-                    const result = await adminApi.deleteProduct(new FormData(event.currentTarget));
-                    toast.success(result.message ?? "Đã xóa sản phẩm.");
-                    finishMutation(router, result, { redirect: false });
-                  } catch (error) {
-                    toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm.");
-                  }
-                }}
-              >
-                <input type="hidden" name="slug" value={product.slug} />
-                <input type="hidden" name="returnTo" value={returnTo} />
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8 border border-destructive/50"
-                  title="Xóa sản phẩm"
+                    try {
+                      const result = await adminApi.deleteProduct(new FormData(event.currentTarget));
+                      toast.success(result.message ?? "Đã xóa sản phẩm.");
+                      finishMutation(router, result, { redirect: false });
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm.");
+                    }
+                  }}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </NativeForm>
+                  <input type="hidden" name="slug" value={product.slug} />
+                  <input type="hidden" name="returnTo" value={returnTo} />
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8 border border-destructive/50"
+                    title="Xóa sản phẩm"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </NativeForm>
+              ) : null}
             </div>
           );
         },
@@ -460,7 +464,7 @@ export function AdminProductList({
               <option value="">Tác vụ hàng loạt</option>
               <option value="publish">Published</option>
               <option value="draft">Draft</option>
-              <option value="delete">Delete</option>
+              {canBulkDelete ? <option value="delete">Delete</option> : null}
             </select>
             <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
