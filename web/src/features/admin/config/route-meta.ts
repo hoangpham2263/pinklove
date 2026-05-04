@@ -31,6 +31,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_PAYMENT_METHODS)) return "Payment Methods";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SHIPPING)) return "Shipping";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_THIRD_PARTY)) return "Đăng nhập bên thứ 3";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";

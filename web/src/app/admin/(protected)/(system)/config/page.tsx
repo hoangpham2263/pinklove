@@ -89,6 +89,11 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
       },
       {
+        title: "Shipping",
+        description: "Kết nối nhiều bên vận chuyển, cấu hình phí ship và mapping địa chỉ lấy hàng.",
+        href: ROUTES.ADMIN.CONFIG_SHIPPING,
+      },
+      {
         title: "Payment Methods",
         description: "Quản lý phương thức thanh toán, provider, hướng dẫn và thông tin nhận thanh toán.",
         href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,

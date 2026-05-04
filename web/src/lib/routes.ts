@@ -111,6 +111,9 @@ export const ROUTES = {
     SEO_RULES: "/admin/seo/rules",
     CONFIG: "/admin/config",
     CONFIG_ECOMMERCE: "/admin/config/ecommerce",
+    CONFIG_SHIPPING: "/admin/config/shipping",
+    CONFIG_SHIPPING_NEW: "/admin/config/shipping/new",
+    CONFIG_SHIPPING_CONNECTION: (code: string) => `/admin/config/shipping/${encodeURIComponent(code)}`,
     CONFIG_EMAIL: "/admin/config/email",
     CONFIG_PAYMENT_METHODS: "/admin/config/payment-methods",
     CONFIG_PAYMENT_METHOD_NEW: "/admin/config/payment-methods/new",
@@ -214,6 +217,8 @@ export const ROUTES = {
         UPDATE: "/api/admin/config/update",
         REDIRECTS_SAVE: "/api/admin/config/redirects/save",
         REDIRECTS_DELETE: "/api/admin/config/redirects/delete",
+        SHIPPING_SAVE: "/api/admin/config/shipping/save",
+        SHIPPING_DELETE: "/api/admin/config/shipping/delete",
       },
       INTERNAL: {
         PRODUCTS_IMPORT: "/api/internal/products/import",

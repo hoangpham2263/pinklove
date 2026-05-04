@@ -31,9 +31,12 @@ export function CheckoutPageView({
   const requiresShipping =
     settings.ecommerce.supportShipping && items.some((item) => item.fulfillmentType === "physical");
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shippingAccount = settings.ecommerce.shippingAccounts.find((account) => account.enabled);
+  const flatShippingFee = shippingAccount?.flatShippingFee ?? settings.ecommerce.flatShippingFee;
+  const freeShippingThreshold = shippingAccount?.freeShippingThreshold ?? settings.ecommerce.freeShippingThreshold;
   const shippingAmount =
-    requiresShipping && subtotal < settings.ecommerce.freeShippingThreshold
-      ? settings.ecommerce.flatShippingFee
+    requiresShipping && subtotal < freeShippingThreshold
+      ? flatShippingFee
       : 0;
   const totalAmount = subtotal + shippingAmount;
   const paymentMethods = getEnabledPaymentMethods(settings.ecommerce, requiresShipping);

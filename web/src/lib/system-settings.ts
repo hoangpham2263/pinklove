@@ -93,15 +93,19 @@ export type EcommerceSettings = {
   decimalSeparator: "," | ".";
   paymentMethods: EcommercePaymentMethodSettings[];
   shippingAccount: ShippingAccountSettings;
+  shippingAccounts: ShippingAccountSettings[];
 };
 
 export type ShippingAccountSettings = {
+  code: string;
   enabled: boolean;
   provider: string;
   accountLabel: string;
   shopId: string;
   token: string;
   pickupAddressId: string;
+  flatShippingFee: number;
+  freeShippingThreshold: number;
 };
 
 export type EcommercePaymentMethodSettings = {
@@ -330,13 +334,17 @@ const DEFAULT_SETTINGS: SystemSettings = {
       },
     ],
     shippingAccount: {
+      code: "default",
       enabled: false,
       provider: "",
       accountLabel: "",
       shopId: "",
       token: "",
       pickupAddressId: "",
+      flatShippingFee: 30000,
+      freeShippingThreshold: 1500000,
     },
+    shippingAccounts: [],
   },
   internalApis: {
     productsImport: {
@@ -592,6 +600,55 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
     DEFAULT_SETTINGS.ecommerce.shippingAccount as unknown as Record<string, unknown>,
     shippingAccountInput
   );
+  const legacyShippingAccount = {
+    code: String(shippingAccountMerged.code ?? "default").trim() || "default",
+    enabled: Boolean(shippingAccountMerged.enabled),
+    provider: String(shippingAccountMerged.provider ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.provider).trim(),
+    accountLabel: String(
+      shippingAccountMerged.accountLabel ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.accountLabel
+    ).trim(),
+    shopId: String(shippingAccountMerged.shopId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.shopId).trim(),
+    token: String(shippingAccountMerged.token ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.token),
+    pickupAddressId: String(
+      shippingAccountMerged.pickupAddressId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.pickupAddressId
+    ).trim(),
+    flatShippingFee: Number(
+      shippingAccountMerged.flatShippingFee ?? merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee
+    ),
+    freeShippingThreshold: Number(
+      shippingAccountMerged.freeShippingThreshold ??
+        merged.freeShippingThreshold ??
+        DEFAULT_SETTINGS.ecommerce.freeShippingThreshold
+    ),
+  };
+  const configuredShippingAccounts = Array.isArray(merged.shippingAccounts)
+    ? merged.shippingAccounts
+        .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
+        .map((item, index) => ({
+          code: String(item.code ?? item.provider ?? `carrier_${index + 1}`).trim() || `carrier_${index + 1}`,
+          enabled: Boolean(item.enabled),
+          provider: String(item.provider ?? "").trim(),
+          accountLabel: String(item.accountLabel ?? "").trim(),
+          shopId: String(item.shopId ?? "").trim(),
+          token: String(item.token ?? ""),
+          pickupAddressId: String(item.pickupAddressId ?? "").trim(),
+          flatShippingFee: Number(item.flatShippingFee ?? merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee),
+          freeShippingThreshold: Number(
+            item.freeShippingThreshold ?? merged.freeShippingThreshold ?? DEFAULT_SETTINGS.ecommerce.freeShippingThreshold
+          ),
+        }))
+        .filter((item) => item.code || item.provider || item.accountLabel || item.shopId || item.token || item.pickupAddressId)
+    : [];
+  const shippingAccounts =
+    configuredShippingAccounts.length > 0
+      ? configuredShippingAccounts
+      : legacyShippingAccount.provider ||
+          legacyShippingAccount.accountLabel ||
+          legacyShippingAccount.shopId ||
+          legacyShippingAccount.token ||
+          legacyShippingAccount.pickupAddressId
+        ? [legacyShippingAccount]
+        : [];
 
   return {
     enabled: Boolean(merged.enabled),
@@ -622,18 +679,8 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
           ? "."
           : DEFAULT_SETTINGS.ecommerce.decimalSeparator,
     paymentMethods,
-    shippingAccount: {
-      enabled: Boolean(shippingAccountMerged.enabled),
-      provider: String(shippingAccountMerged.provider ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.provider).trim(),
-      accountLabel: String(
-        shippingAccountMerged.accountLabel ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.accountLabel
-      ).trim(),
-      shopId: String(shippingAccountMerged.shopId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.shopId).trim(),
-      token: String(shippingAccountMerged.token ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.token),
-      pickupAddressId: String(
-        shippingAccountMerged.pickupAddressId ?? DEFAULT_SETTINGS.ecommerce.shippingAccount.pickupAddressId
-      ).trim(),
-    },
+    shippingAccount: shippingAccounts[0] ?? legacyShippingAccount,
+    shippingAccounts,
   };
 }
 

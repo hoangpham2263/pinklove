@@ -13,12 +13,16 @@ import {
   updateSitemapSettings,
   updateThirdPartySettings,
 } from "@/lib/system-settings";
-import type { BreadcrumbSettings, IndexingSettings, SitemapSettings } from "@/lib/system-settings";
+import type { BreadcrumbSettings, IndexingSettings, ShippingAccountSettings, SitemapSettings } from "@/lib/system-settings";
 
 export const runtime = "nodejs";
 
 function isChecked(formData: FormData, key: string) {
   return formData.get(key) === "on";
+}
+
+function getIndexedValues(formData: FormData, key: string) {
+  return formData.getAll(key).map((value) => String(value ?? ""));
 }
 
 export async function POST(request: Request) {
@@ -160,23 +164,77 @@ export async function POST(request: Request) {
         enabled: isChecked(formData, "enabled"),
         autoApproveMockPayments: isChecked(formData, "autoApproveMockPayments"),
         supportShipping: isChecked(formData, "supportShipping"),
-        flatShippingFee: Number(formData.get("flatShippingFee") ?? "30000"),
-        freeShippingThreshold: Number(formData.get("freeShippingThreshold") ?? "1500000"),
         currency: String(formData.get("currency") ?? "VND").trim() || "VND",
         currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",
         thousandSeparator: formData.get("thousandSeparator") === "," ? "," : ".",
         decimalSeparator: formData.get("decimalSeparator") === "." ? "." : ",",
-        shippingAccount: {
-          enabled: isChecked(formData, "shippingAccountEnabled"),
-          provider: String(formData.get("shippingAccountProvider") ?? "").trim(),
-          accountLabel: String(formData.get("shippingAccountLabel") ?? "").trim(),
-          shopId: String(formData.get("shippingAccountShopId") ?? "").trim(),
-          token: String(formData.get("shippingAccountToken") ?? ""),
-          pickupAddressId: String(formData.get("shippingAccountPickupAddressId") ?? "").trim(),
-        },
       });
 
       return respondSuccess(request, { message: "Đã lưu cài đặt ecommerce." });
+    }
+
+    if (section === "shipping_accounts") {
+      const codes = getIndexedValues(formData, "shippingAccountCode");
+      const providers = getIndexedValues(formData, "shippingAccountProvider");
+      const labels = getIndexedValues(formData, "shippingAccountLabel");
+      const shopIds = getIndexedValues(formData, "shippingAccountShopId");
+      const tokens = getIndexedValues(formData, "shippingAccountToken");
+      const pickupAddressIds = getIndexedValues(formData, "shippingAccountPickupAddressId");
+      const flatShippingFees = getIndexedValues(formData, "shippingAccountFlatShippingFee");
+      const freeShippingThresholds = getIndexedValues(formData, "shippingAccountFreeShippingThreshold");
+      const maxLength = Math.max(
+        codes.length,
+        providers.length,
+        labels.length,
+        shopIds.length,
+        tokens.length,
+        pickupAddressIds.length,
+        flatShippingFees.length,
+        freeShippingThresholds.length
+      );
+      const shippingAccounts: ShippingAccountSettings[] = [];
+
+      for (let index = 0; index < maxLength; index += 1) {
+        if (isChecked(formData, `shippingAccountRemove_${index}`)) {
+          continue;
+        }
+
+        const provider = (providers[index] ?? "").trim();
+        const accountLabel = (labels[index] ?? "").trim();
+        const shopId = (shopIds[index] ?? "").trim();
+        const token = tokens[index] ?? "";
+        const pickupAddressId = (pickupAddressIds[index] ?? "").trim();
+        const flatShippingFee = Number(flatShippingFees[index] ?? "30000");
+        const freeShippingThreshold = Number(freeShippingThresholds[index] ?? "1500000");
+        const code = ((codes[index] ?? provider) || `carrier_${index + 1}`)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+
+        if (!provider && !accountLabel && !shopId && !token && !pickupAddressId) {
+          continue;
+        }
+
+        shippingAccounts.push({
+          code: code || `carrier_${index + 1}`,
+          enabled: isChecked(formData, `shippingAccountEnabled_${index}`),
+          provider,
+          accountLabel,
+          shopId,
+          token,
+          pickupAddressId,
+          flatShippingFee,
+          freeShippingThreshold,
+        });
+      }
+
+      await updateEcommerceSettings({
+        shippingAccount: shippingAccounts[0],
+        shippingAccounts,
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình shipping." });
     }
 
     if (section === "email") {

@@ -497,9 +497,12 @@ export async function createOrderFromCart(input: {
 
   const subtotalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const requiresShipping = settings.ecommerce.supportShipping && cartItems.some((item) => item.fulfillmentType === "physical");
+  const shippingAccount = settings.ecommerce.shippingAccounts.find((account) => account.enabled);
+  const flatShippingFee = shippingAccount?.flatShippingFee ?? settings.ecommerce.flatShippingFee;
+  const freeShippingThreshold = shippingAccount?.freeShippingThreshold ?? settings.ecommerce.freeShippingThreshold;
   const shippingAmount =
-    requiresShipping && subtotalAmount < settings.ecommerce.freeShippingThreshold
-      ? settings.ecommerce.flatShippingFee
+    requiresShipping && subtotalAmount < freeShippingThreshold
+      ? flatShippingFee
       : 0;
   const shippingName = input.shippingName?.trim() ?? input.customerName.trim();
   const shippingPhone = input.shippingPhone?.trim() ?? input.customerPhone.trim();
