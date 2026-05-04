@@ -86,7 +86,9 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods" }] },
   { pattern: ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Thêm phương thức thanh toán" }] },
   { pattern: "/admin/config/payment-methods/[code]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS }, { label: "Sửa phương thức thanh toán" }] },
-  { pattern: ROUTES.ADMIN.CONFIG_SITEMAP, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Sitemap & Robots" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_SITEMAP_INDEX, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Sitemap Index" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Sitemap Settings" }] },
+  { pattern: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "SEO Redirects" }] },
 
   { pattern: ROUTES.CUSTOMER.DASHBOARD, items: [{ label: "Tài khoản" }, { label: "Dashboard" }] },
   { pattern: ROUTES.CUSTOMER.INVITATIONS, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi" }] },

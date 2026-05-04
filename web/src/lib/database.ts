@@ -552,6 +552,7 @@ async function ensureAppSettingsMigration() {
     ALTER TABLE app_settings
     ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
     ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
+    ADD COLUMN IF NOT EXISTS seo_redirects JSONB,
     ADD COLUMN IF NOT EXISTS seo_indexing JSONB,
     ADD COLUMN IF NOT EXISTS seo_branding JSONB,
     ADD COLUMN IF NOT EXISTS seo_opengraph JSONB,

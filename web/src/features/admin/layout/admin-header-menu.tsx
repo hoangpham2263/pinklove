@@ -14,6 +14,7 @@ import {
   Files,
   Image as ImageIcon,
   LayoutDashboard,
+  ListTree,
   LogOut,
   Menu as MenuIcon,
   MessageCircle,
@@ -64,6 +65,7 @@ const adminMobileIconMap = {
   settings: Settings,
   "external-link": ExternalLink,
   "book-open-text": BookOpenText,
+  "list-tree": ListTree,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
 function MenuChildItem({

@@ -91,6 +91,7 @@ Notes:
 - `seo_permalink`: `jsonb`
 - `seo_breadcrumb`: `jsonb`
 - `seo_sitemap`: `jsonb`
+- `seo_redirects`: `jsonb`
 - `seo_indexing`: `jsonb`
 - `seo_branding`: `jsonb`
 - `seo_opengraph`: `jsonb`

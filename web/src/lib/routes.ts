@@ -120,7 +120,9 @@ export const ROUTES = {
     CONFIG_BREADCRUMBS: "/admin/config/breadcrumbs",
     CONFIG_OPENGRAPH: "/admin/config/opengraph",
     CONFIG_FAVICON: "/admin/config/favicon",
-    CONFIG_SITEMAP: "/admin/config/sitemap",
+    CONFIG_SITEMAP_INDEX: "/admin/config/sitemap-index",
+    CONFIG_SITEMAP_SETTINGS: "/admin/config/sitemap-settings",
+    CONFIG_SEO_REDIRECTS: "/admin/config/seo-redirects",
     CONFIG_INTERNAL_APIS: "/admin/config/internal-apis",
     CONFIG_INTERNAL_API_PRODUCTS: "/admin/config/internal-apis/products",
     CONFIG_THIRD_PARTY: "/admin/config/third-party",
@@ -210,6 +212,8 @@ export const ROUTES = {
       },
       CONFIG: {
         UPDATE: "/api/admin/config/update",
+        REDIRECTS_SAVE: "/api/admin/config/redirects/save",
+        REDIRECTS_DELETE: "/api/admin/config/redirects/delete",
       },
       INTERNAL: {
         PRODUCTS_IMPORT: "/api/internal/products/import",

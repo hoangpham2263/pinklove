@@ -42,9 +42,19 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
       },
       {
-        title: "Sitemap & Robots",
-        description: "Quản lý sitemap.xml, robots.txt và các nhóm nội dung public được index.",
-        href: ROUTES.ADMIN.CONFIG_SITEMAP,
+        title: "Sitemap Index",
+        description: "Xem realtime sitemap.xml, các sitemap con và số URL đang được xuất.",
+        href: ROUTES.ADMIN.CONFIG_SITEMAP_INDEX,
+      },
+      {
+        title: "Sitemap Settings",
+        description: "Cấu hình sitemap groups, robots.txt và quyền index của website.",
+        href: ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS,
+      },
+      {
+        title: "SEO Redirects",
+        description: "Chuyển các URL sai, URL cũ hoặc link 404 về trang đích cần dùng.",
+        href: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS,
       },
     ],
   },

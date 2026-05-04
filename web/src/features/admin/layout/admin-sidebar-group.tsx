@@ -10,6 +10,7 @@ import {
   FileCode2,
   Files,
   Image as ImageIcon,
+  ListTree,
   Menu as MenuIcon,
   Package,
   Settings,
@@ -38,6 +39,7 @@ type AdminSidebarIconName =
   | "menu"
   | "image"
   | "book-open-text"
+  | "list-tree"
   | "bell"
   | "users"
   | "store"
@@ -70,6 +72,7 @@ const iconMap = {
   menu: MenuIcon,
   image: ImageIcon,
   "book-open-text": BookOpenText,
+  "list-tree": ListTree,
   bell: Bell,
   users: Users,
   store: Store,

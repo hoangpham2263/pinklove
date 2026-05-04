@@ -33,6 +33,9 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_PAYMENT_METHODS)) return "Payment Methods";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_THIRD_PARTY)) return "Đăng nhập bên thứ 3";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS)) return "Sitemap Settings";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_INDEX)) return "Sitemap Index";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS)) return "API Import Sản phẩm";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_APIS)) return "API nội bộ";
   if (pathname.startsWith(ROUTES.ADMIN.HOOKS)) return "Hooks";

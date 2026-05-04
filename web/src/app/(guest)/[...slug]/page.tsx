@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { generateBlogCategoryMetadata, generateBlogPostMetadata, renderBlogCategoryPage, renderBlogPostPage } from "@/features/blog/server/renderers";
 import { listRelatedBlogPosts } from "@/features/blog/server/service";
 import {
@@ -18,6 +18,7 @@ import {
   resolveGuestPublicContent,
   resolveManagedPublicPage,
 } from "@/features/pages/server/guest-public-content-resolver";
+import { getSeoRedirectForPath } from "@/lib/seo-redirects";
 
 type DynamicManagedPageProps = {
   params: Promise<{ slug?: string[] }>;
@@ -69,6 +70,14 @@ export default async function DynamicManagedPage({ params, searchParams }: Dynam
   const resolvedContent = await resolveGuestPublicContent(pathname, resolvedSearchParams.preview === "1");
 
   if (!resolvedContent) {
+    const redirectRule = await getSeoRedirectForPath(pathname);
+    if (redirectRule) {
+      if (redirectRule.statusCode === 301) {
+        permanentRedirect(redirectRule.targetPath);
+      }
+      redirect(redirectRule.targetPath);
+    }
+
     notFound();
   }
 

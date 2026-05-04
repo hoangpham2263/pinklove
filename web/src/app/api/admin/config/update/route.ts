@@ -13,7 +13,7 @@ import {
   updateSitemapSettings,
   updateThirdPartySettings,
 } from "@/lib/system-settings";
-import type { BreadcrumbSettings } from "@/lib/system-settings";
+import type { BreadcrumbSettings, IndexingSettings, SitemapSettings } from "@/lib/system-settings";
 
 export const runtime = "nodejs";
 
@@ -64,31 +64,49 @@ export async function POST(request: Request) {
     }
 
     if (section === "sitemap") {
-      await updateSitemapSettings({
-        enabled: isChecked(formData, "enabled"),
-        autoDiscovery: isChecked(formData, "autoDiscovery"),
-        includeDiscoveredRoutes: isChecked(formData, "includeDiscoveredRoutes"),
-        includeManagedPages:
-          isChecked(formData, "includeManagedPages") || isChecked(formData, "includeCmsPages"),
-        includeBlogCategories: isChecked(formData, "includeBlogCategories"),
-        includeBlogPosts: isChecked(formData, "includeBlogPosts"),
-        includeProducts: isChecked(formData, "includeProducts"),
-        includePublicSites:
-          isChecked(formData, "includePublicSites") || isChecked(formData, "includeInvitationSites"),
-      });
+      const sitemapInput: Partial<SitemapSettings> = {};
+
+      if (formData.has("enabled")) sitemapInput.enabled = isChecked(formData, "enabled");
+      if (formData.has("autoDiscovery")) sitemapInput.autoDiscovery = isChecked(formData, "autoDiscovery");
+      if (formData.has("includeDiscoveredRoutes")) {
+        sitemapInput.includeDiscoveredRoutes = isChecked(formData, "includeDiscoveredRoutes");
+      }
+      if (formData.has("includeManagedPages") || formData.has("includeCmsPages")) {
+        sitemapInput.includeManagedPages =
+          isChecked(formData, "includeManagedPages") || isChecked(formData, "includeCmsPages");
+      }
+      if (formData.has("includeBlogCategories")) {
+        sitemapInput.includeBlogCategories = isChecked(formData, "includeBlogCategories");
+      }
+      if (formData.has("includeBlogPosts")) sitemapInput.includeBlogPosts = isChecked(formData, "includeBlogPosts");
+      if (formData.has("includeProducts")) sitemapInput.includeProducts = isChecked(formData, "includeProducts");
+      if (formData.has("includePublicSites") || formData.has("includeInvitationSites")) {
+        sitemapInput.includePublicSites =
+          isChecked(formData, "includePublicSites") || isChecked(formData, "includeInvitationSites");
+      }
+
+      await updateSitemapSettings(sitemapInput);
 
       return respondSuccess(request, { message: "Đã lưu cài đặt sitemap." });
     }
 
     if (section === "indexing") {
-      await updateIndexingSettings({
-        siteIndexingEnabled: isChecked(formData, "siteIndexingEnabled"),
-        includeSitemapInRobots: isChecked(formData, "includeSitemapInRobots"),
-        disallowAdmin: isChecked(formData, "disallowAdmin"),
-        disallowUser: isChecked(formData, "disallowUser"),
-        disallowApi: isChecked(formData, "disallowApi"),
-        customRobotsRules: String(formData.get("customRobotsRules") ?? ""),
-      });
+      const indexingInput: Partial<IndexingSettings> = {};
+
+      if (formData.has("siteIndexingEnabled")) {
+        indexingInput.siteIndexingEnabled = isChecked(formData, "siteIndexingEnabled");
+      }
+      if (formData.has("includeSitemapInRobots")) {
+        indexingInput.includeSitemapInRobots = isChecked(formData, "includeSitemapInRobots");
+      }
+      if (formData.has("disallowAdmin")) indexingInput.disallowAdmin = isChecked(formData, "disallowAdmin");
+      if (formData.has("disallowUser")) indexingInput.disallowUser = isChecked(formData, "disallowUser");
+      if (formData.has("disallowApi")) indexingInput.disallowApi = isChecked(formData, "disallowApi");
+      if (formData.has("customRobotsRules")) {
+        indexingInput.customRobotsRules = String(formData.get("customRobotsRules") ?? "");
+      }
+
+      await updateIndexingSettings(indexingInput);
 
       return respondSuccess(request, { message: "Đã lưu cài đặt indexing." });
     }
