@@ -1,3 +1,4 @@
+import { PackageCheck, ShoppingCart, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
@@ -11,21 +12,24 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Checkout</CardTitle>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Checkout</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>{settings.ecommerce.enabled ? "On" : "Off"}</CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Shipping</CardTitle>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Shipping</CardTitle>
+            <Truck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>{settings.ecommerce.supportShipping ? "On" : "Off"}</CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Carrier Account</CardTitle>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Carrier Account</CardTitle>
+            <PackageCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>{settings.ecommerce.shippingAccount.enabled ? settings.ecommerce.shippingAccount.provider || "Configured" : "Off"}</CardContent>
         </Card>
@@ -34,21 +38,21 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
       <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
         <input type="hidden" name="section" value="ecommerce" />
 
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Tiền tệ</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <label className="font-medium">Tiền tệ</label>
-              <input name="currency" defaultValue={settings.ecommerce.currency} className="h-10 w-full rounded-md border bg-background px-3" />
+              <input name="currency" defaultValue={settings.ecommerce.currency} className="h-10 w-full rounded-md border bg-white px-3" />
             </div>
             <div className="space-y-2">
               <label className="font-medium">Ký hiệu tiền tệ</label>
               <input
                 name="currencySymbol"
                 defaultValue={settings.ecommerce.currencySymbol}
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
@@ -56,7 +60,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
               <select
                 name="thousandSeparator"
                 defaultValue={settings.ecommerce.thousandSeparator}
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               >
                 <option value=".">.</option>
                 <option value=",">,</option>
@@ -67,7 +71,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
               <select
                 name="decimalSeparator"
                 defaultValue={settings.ecommerce.decimalSeparator}
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               >
                 <option value=",">,</option>
                 <option value=".">.</option>
@@ -76,7 +80,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Vận chuyển</CardTitle>
           </CardHeader>
@@ -88,7 +92,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 type="number"
                 min="0"
                 defaultValue={settings.ecommerce.flatShippingFee}
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
@@ -98,12 +102,12 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 type="number"
                 min="0"
                 defaultValue={settings.ecommerce.freeShippingThreshold}
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
               <label className="font-medium">Trạng thái vận chuyển</label>
-              <label className="flex h-10 w-full items-center justify-between rounded-md border bg-background px-3">
+              <label className="flex h-10 w-full items-center justify-between rounded-md border bg-white px-3">
                 <span className="text-sm text-muted-foreground">
                   {settings.ecommerce.supportShipping ? "Đang bật" : "Đang tắt"}
                 </span>
@@ -122,14 +126,14 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg">
           <CardHeader>
             <CardTitle>Tài khoản vận chuyển hệ thống</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <label className="font-medium">Kích hoạt</label>
-              <label className="flex h-10 w-full items-center justify-between rounded-md border bg-background px-3">
+              <label className="flex h-10 w-full items-center justify-between rounded-md border bg-white px-3">
                 <span className="text-sm text-muted-foreground">
                   {settings.ecommerce.shippingAccount.enabled ? "Đang bật" : "Đang tắt"}
                 </span>
@@ -151,7 +155,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 name="shippingAccountProvider"
                 defaultValue={settings.ecommerce.shippingAccount.provider}
                 placeholder="GHN, GHTK, Viettel Post..."
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
@@ -160,7 +164,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 name="shippingAccountLabel"
                 defaultValue={settings.ecommerce.shippingAccount.accountLabel}
                 placeholder="PinkLove Fulfillment"
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
@@ -169,7 +173,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 name="shippingAccountShopId"
                 defaultValue={settings.ecommerce.shippingAccount.shopId}
                 placeholder="shop_12345"
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2 lg:col-span-2">
@@ -178,7 +182,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 name="shippingAccountToken"
                 defaultValue={settings.ecommerce.shippingAccount.token}
                 placeholder="token hoặc secret key"
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="space-y-2">
@@ -187,7 +191,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                 name="shippingAccountPickupAddressId"
                 defaultValue={settings.ecommerce.shippingAccount.pickupAddressId}
                 placeholder="ID địa chỉ lấy hàng trên hệ thống carrier"
-                className="h-10 w-full rounded-md border bg-background px-3"
+                className="h-10 w-full rounded-md border bg-white px-3"
               />
             </div>
             <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground lg:col-span-4">
