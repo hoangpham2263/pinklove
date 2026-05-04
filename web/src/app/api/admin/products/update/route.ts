@@ -43,6 +43,14 @@ export async function POST(request: Request) {
       : ROUTES.ADMIN.PRODUCT(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
 
+  if (!["coded_template", "builder_template", "general_product"].includes(productType)) {
+    return respondError(request, {
+      error: "invalid_product_type",
+      message: "Luồng sửa sản phẩm không hợp lệ.",
+      location: returnTo || ROUTES.ADMIN.PRODUCT_LIST,
+    });
+  }
+
   if (!originalSlug || !slug || !name || (productType !== "general_product" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để lưu sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
@@ -156,6 +164,13 @@ export async function POST(request: Request) {
         error: "template_in_use",
         message: "Template này đã có một sản phẩm gốc khác sử dụng.",
         location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=template_in_use`,
+      });
+    }
+    if (error instanceof Error && error.message === "PRODUCT_TYPE_LOCKED") {
+      return respondError(request, {
+        error: "product_type_locked",
+        message: "Loại sản phẩm đã được cố định theo bản ghi gốc và không thể đổi.",
+        location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=product_type_locked`,
       });
     }
 

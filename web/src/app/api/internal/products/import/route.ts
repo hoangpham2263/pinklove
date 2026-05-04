@@ -1,5 +1,5 @@
 import { createProduct, getProductBySlug, getProductCategoryBySlug, updateProduct } from "@/features/products/server/service";
-import type { ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
+import type { ProductFulfillmentType, ProductOwnerType } from "@/features/products/types";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export const runtime = "nodejs";
@@ -14,8 +14,6 @@ type ProductImportPayload = {
     excerpt?: string;
     description?: string;
     status?: "draft" | "published";
-    productType?: ProductType;
-    templateKey?: string;
     thumbnailUrl?: string;
     price?: number;
     fulfillmentType?: ProductFulfillmentType;
@@ -79,23 +77,13 @@ export async function POST(request: Request) {
 
   const slug = String(product.slug ?? "").trim();
   const name = String(product.name ?? "").trim();
-  const productType = (product.productType ?? "general_product") as ProductType;
-  const templateKey = String(
-    product.templateKey ?? (productType === "general_product" ? "general_product" : "")
-  ).trim();
+  const productType = "general_product";
+  const templateKey = "general_product";
   const status = product.status === "published" ? "published" : apiSettings.defaultStatus;
   const fulfillmentType = (product.fulfillmentType ?? "physical") as ProductFulfillmentType;
 
   if (!slug || !name) {
     return badRequest("Thiếu `slug` hoặc `name`.");
-  }
-
-  if (!apiSettings.allowedProductTypes.includes(productType)) {
-    return badRequest(`Loại sản phẩm \`${productType}\` chưa được cho phép ở cấu hình API nội bộ.`);
-  }
-
-  if (productType !== "general_product" && !templateKey) {
-    return badRequest("Thiếu `templateKey` cho loại sản phẩm template.");
   }
 
   let categoryId = String(product.categoryId ?? "").trim() || undefined;
@@ -110,6 +98,17 @@ export async function POST(request: Request) {
   }
 
   const existing = await getProductBySlug(slug);
+  if (existing && existing.productType !== "general_product") {
+    return Response.json(
+      {
+        ok: false,
+        error: "product_type_locked",
+        message: "API import nội bộ chỉ cập nhật sản phẩm thường, không cập nhật coded hoặc builder template.",
+      },
+      { status: 409 }
+    );
+  }
+
   if (mode === "create" && existing) {
     return Response.json({ ok: false, error: "already_exists", message: "Sản phẩm đã tồn tại." }, { status: 409 });
   }
@@ -197,6 +196,16 @@ export async function POST(request: Request) {
           ok: false,
           error: "template_in_use",
           message: "Template này đang được gắn với một sản phẩm khác.",
+        },
+        { status: 409 }
+      );
+    }
+    if (error instanceof Error && error.message === "PRODUCT_TYPE_LOCKED") {
+      return Response.json(
+        {
+          ok: false,
+          error: "product_type_locked",
+          message: "Loại sản phẩm đã cố định theo luồng tạo ban đầu.",
         },
         { status: 409 }
       );

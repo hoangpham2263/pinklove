@@ -8,7 +8,7 @@ export function HeroInvitationOrb({
 }) {
   const reverseProducts = [...products].reverse();
   const cardClassName =
-    "group relative shrink-0 overflow-hidden rounded-[16px] bg-transparent p-0 shadow-[0_10px_20px_rgba(255,111,245,0.035)] ring-1 ring-white/10";
+    "group relative shrink-0 overflow-hidden rounded-lg bg-transparent p-0 shadow-[0_10px_20px_rgba(255,111,245,0.035)] ring-1 ring-white/10";
   const imageClassName =
     "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]";
 
@@ -45,7 +45,7 @@ export function HeroInvitationOrb({
             >
               {products.map((product, index) => (
                 <article key={`${product.id}-${index}`} className={cardClassName}>
-                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-[16px]">
+                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-lg">
                     <Image
                       src={product.thumbnailUrl || ""}
                       alt={product.name}
@@ -68,7 +68,7 @@ export function HeroInvitationOrb({
             >
               {reverseProducts.map((product, index) => (
                 <article key={`${product.id}-reverse-${index}`} className={cardClassName}>
-                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-[16px]">
+                  <div className="relative h-[120px] w-[70px] overflow-hidden rounded-lg">
                     <Image
                       src={product.thumbnailUrl || ""}
                       alt={product.name}

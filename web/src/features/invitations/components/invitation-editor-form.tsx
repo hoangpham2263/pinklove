@@ -11,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { customerApi, customerApiActions } from "@/lib/api-client.customer";
 import { finishMutation } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
 import type { InvitationSite } from "@/features/invitations/types";
@@ -19,9 +18,10 @@ import type { InvitationSite } from "@/features/invitations/types";
 type InvitationEditorFormProps = {
   site: InvitationSite;
   publicHref: string;
+  canPublish: boolean;
 };
 
-export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormProps) {
+export function InvitationEditorForm({ site, publicHref, canPublish }: InvitationEditorFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(site.title);
   const [slug, setSlug] = useState(site.slug);
@@ -87,9 +87,15 @@ export function InvitationEditorForm({ site, publicHref }: InvitationEditorFormP
               className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="draft">draft</option>
-              <option value="published">published</option>
+              <option value="published" disabled={!canPublish}>published</option>
             </select>
           </div>
+
+          {!canPublish ? (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              Bản này đang là demo. Hãy mua mẫu trong danh sách yêu thích trước khi xuất bản public.
+            </div>
+          ) : null}
 
           <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
             Public URL: {publicHref}

@@ -742,6 +742,11 @@ export async function listAllPayments(): Promise<EcommercePayment[]> {
   return result.rows.map(mapPaymentRow);
 }
 
+export async function getPaymentById(paymentId: string): Promise<EcommercePayment | null> {
+  const result = await query<PaymentRow>("SELECT * FROM commerce_payments WHERE id = $1 LIMIT 1", [paymentId]);
+  return result.rows[0] ? mapPaymentRow(result.rows[0]) : null;
+}
+
 export async function listAllShipments(): Promise<EcommerceShipment[]> {
   const result = await query<ShipmentRow>("SELECT * FROM commerce_shipments ORDER BY updated_at DESC");
   return result.rows.map(mapShipmentRow);

@@ -33,7 +33,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ManagedPage } from "@/lib/managed-pages";
-import { ROUTES } from "@/lib/routes";
 
 type AdminPagesTableProps = {
   pages: ManagedPage[];

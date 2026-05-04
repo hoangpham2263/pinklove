@@ -81,15 +81,18 @@ export function GuestLinkButton({
   children,
   variant = "primary",
   className,
+  scroll,
 }: {
   href: string;
   children: ReactNode;
   variant?: "primary" | "secondary";
   className?: string;
+  scroll?: boolean;
 }) {
   return (
     <Link
       href={href}
+      scroll={scroll}
       className={cn(
         "inline-flex min-h-12 items-center justify-center px-6 text-sm lg:text-base transition rounded-sm lg:rounded-full",
         variant === "primary"

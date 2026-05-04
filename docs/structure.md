@@ -313,7 +313,7 @@ web/
 - `src/features/pages`: managed content page registry, managed-page config, and admin page editing UI
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/blog`: public blog renderers/services plus admin blog forms
-- `src/features/media`: media library UI and server storage
+- `src/features/media`: media library UI plus DB-backed metadata and upload-file handling
 - `src/features/affiliate`: affiliate flows for customer and admin
 - `src/features/ecommerce`: wishlist-backed checkout, orders, payments, shipments, and entitlement services
 - `src/features/notifications`: user notice inbox, admin notice creation, read state, and realtime notice adapters

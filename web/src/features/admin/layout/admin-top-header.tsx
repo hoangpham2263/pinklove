@@ -7,9 +7,15 @@ import { ROUTES } from "@/lib/routes";
 
 type AdminTopHeaderProps = {
   username: string;
+  breadcrumbEnabled?: boolean;
+  breadcrumbSeparator?: string;
 };
 
-export function AdminTopHeader({ username }: AdminTopHeaderProps) {
+export function AdminTopHeader({
+  username,
+  breadcrumbEnabled = true,
+  breadcrumbSeparator,
+}: AdminTopHeaderProps) {
   return (
     <header
       id="admin-top-header"
@@ -18,12 +24,17 @@ export function AdminTopHeader({ username }: AdminTopHeaderProps) {
     >
       <div className="flex h-full w-full items-center justify-between px-5 md:px-7.5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="shrink-0 text-foreground">|</span>
-          <RouteBreadcrumbs
-            listClassName="flex-nowrap overflow-hidden whitespace-nowrap text-sm"
-            linkClassName="truncate"
-            currentClassName="truncate font-medium text-foreground"
-          />
+          {breadcrumbEnabled ? (
+            <>
+              <span className="shrink-0 text-foreground">|</span>
+              <RouteBreadcrumbs
+                separator={breadcrumbSeparator}
+                listClassName="flex-nowrap overflow-hidden whitespace-nowrap text-sm"
+                linkClassName="truncate"
+                currentClassName="truncate font-medium text-foreground"
+              />
+            </>
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell listHref={ROUTES.ADMIN.NOTIFICATIONS} />

@@ -11,7 +11,7 @@ const GOOGLE_OAUTH_STATE_COOKIE ="pinklove_google_oauth_state";
 export async function GET() {
  try {
  const state = randomBytes(24).toString("hex");
- const authUrl = buildGoogleAuthUrl(state);
+ const authUrl = await buildGoogleAuthUrl(state);
  const response = NextResponse.redirect(authUrl, 303);
 
  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, state, {

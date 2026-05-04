@@ -63,7 +63,7 @@ export default async function DynamicManagedPage({ params, searchParams }: Dynam
   const page = await resolveManagedPublicPage(pathname, resolvedSearchParams.preview === "1");
 
   if (page) {
-    return renderManagedPage(page);
+    return renderManagedPage(page, searchParams);
   }
 
   const resolvedContent = await resolveGuestPublicContent(pathname, resolvedSearchParams.preview === "1");

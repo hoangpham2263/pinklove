@@ -1,6 +1,7 @@
 import { NextResponse } from"next/server";
 
 import {
+ countMediaAssets,
  deleteMediaAsset,
  findMediaAssetByUrl,
  listMediaAssets,
@@ -11,6 +12,14 @@ import { getCurrentUserFromRequest } from"@/lib/auth";
 export const runtime ="nodejs";
 export const dynamic ="force-dynamic";
 
+const DEFAULT_MEDIA_LIMIT = 100;
+const MAX_MEDIA_LIMIT = 200;
+
+function normalizePositiveInteger(value:string | null, fallback:number) {
+ const parsed = Number(value ?? String(fallback));
+ return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
 export async function GET(request: Request) {
  const user = await getCurrentUserFromRequest(request);
  if (!user) {
@@ -18,23 +27,20 @@ export async function GET(request: Request) {
  }
 
  const { searchParams } = new URL(request.url);
- const pageParam = Number(searchParams.get("page") ?? "1");
- const limitParam = Number(searchParams.get("limit") ?? "100");
  const url = searchParams.get("url");
- const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.floor(pageParam) : 1;
- const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.floor(limitParam) : 100;
+ const page = normalizePositiveInteger(searchParams.get("page"), 1);
+ const requestedLimit = normalizePositiveInteger(searchParams.get("limit"), DEFAULT_MEDIA_LIMIT);
+ const limit = Math.min(requestedLimit, MAX_MEDIA_LIMIT);
 
  if (url) {
  const item = await findMediaAssetByUrl(url);
  return NextResponse.json({ item });
  }
 
- const items = await listMediaAssets();
- const total = items.length;
+ const total = await countMediaAssets();
  const totalPages = Math.max(1, Math.ceil(total / limit));
  const normalizedPage = Math.min(page, totalPages);
- const offset = (normalizedPage - 1) * limit;
- const pagedItems = items.slice(offset, offset + limit);
+ const pagedItems = await listMediaAssets({ page:normalizedPage, limit });
 
  return NextResponse.json({ items: pagedItems, total, page: normalizedPage, limit });
 }

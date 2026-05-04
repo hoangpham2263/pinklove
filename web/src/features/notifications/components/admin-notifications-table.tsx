@@ -127,6 +127,10 @@ function formatDateTime(value: string) {
   return `${values.hour ?? "00"}:${values.minute ?? "00"} ${values.day ?? "00"}/${values.month ?? "00"}/${values.year ?? "0000"}`;
 }
 
+function isInteractiveElement(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("button, a, input, select, textarea, [role='button']"));
+}
+
 export function AdminNotificationsTable({
   notifications,
   accounts,
@@ -237,7 +241,7 @@ export function AdminNotificationsTable({
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateTime(row.original.createdAt)}</span>,
+        cell: ({ row }) => <span>{formatDateTime(row.original.createdAt)}</span>,
       },
       {
         id: "actions",
@@ -363,12 +367,13 @@ export function AdminNotificationsTable({
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder="Tìm theo tiêu đề, người tạo, role, username..."
+            className="h-9"
           />
           {hideStatusFilter ? null : (
             <select
               value={statusFilterValue}
               onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-              className="w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring"
             >
               <option value="">Tất cả trạng thái</option>
               {statusOptions.map((status) => (
@@ -381,7 +386,7 @@ export function AdminNotificationsTable({
           <select
             value={audienceFilterValue}
             onChange={(event) => table.getColumn("audienceType")?.setFilterValue(event.target.value)}
-            className="w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring"
           >
             <option value="">Tất cả đối tượng</option>
             <option value="all">Toàn bộ</option>
@@ -395,7 +400,7 @@ export function AdminNotificationsTable({
             <select
               value={bulkAction}
               onChange={(event) => setBulkAction(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring md:w-44"
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring md:w-44"
             >
               <option value="">Tác vụ hàng loạt</option>
               <option value="sent">Đánh dấu đã gửi</option>
@@ -443,6 +448,7 @@ export function AdminNotificationsTable({
             <Button
               variant="outline"
               size="sm"
+              className="h-9"
               onClick={() => {
                 setGlobalFilter("");
                 if (!hideStatusFilter) {
@@ -474,7 +480,18 @@ export function AdminNotificationsTable({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                  className="cursor-pointer"
+                  onClick={(event) => {
+                    if (isInteractiveElement(event.target)) {
+                      return;
+                    }
+
+                    row.toggleSelected();
+                  }}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="align-middle whitespace-normal break-words">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -494,7 +511,7 @@ export function AdminNotificationsTable({
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">Đã chọn {selectedCount}</span>
+        <span>Đã chọn {selectedCount}</span>
       </div>
 
       <Dialog open={Boolean(previewNotification)} onOpenChange={(open) => !open && setPreviewNotificationId(null)}>
@@ -509,41 +526,41 @@ export function AdminNotificationsTable({
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Tiêu đề</p>
-                  <p className="text-sm text-muted-foreground">{previewNotification.title}</p>
+                  <p>{previewNotification.title}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Trạng thái</p>
-                  <p className="text-sm text-muted-foreground">{getStatusLabel(previewNotification.status)}</p>
+                  <p>{getStatusLabel(previewNotification.status)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Đối tượng</p>
-                  <p className="text-sm text-muted-foreground">{getAudienceLabel(previewNotification.audienceType)}</p>
+                  <p>{getAudienceLabel(previewNotification.audienceType)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Người tạo</p>
-                  <p className="text-sm text-muted-foreground">{previewNotification.createdByUsername}</p>
+                  <p>{previewNotification.createdByUsername}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Link điều hướng</p>
-                  <p className="text-sm text-muted-foreground">{previewNotification.linkUrl || "-"}</p>
+                  <p>{previewNotification.linkUrl || "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Lịch gửi</p>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.scheduledAt)}</p>
+                  <p>{formatDateTime(previewNotification.scheduledAt)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Tạo lúc</p>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.createdAt)}</p>
+                  <p>{formatDateTime(previewNotification.createdAt)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Cập nhật lúc</p>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(previewNotification.updatedAt)}</p>
+                  <p>{formatDateTime(previewNotification.updatedAt)}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Nội dung</p>
-                <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
+                <div className="rounded-lg border bg-muted/20 p-4">
                   {previewNotification.body || "Không có nội dung"}
                 </div>
               </div>

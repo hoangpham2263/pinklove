@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
@@ -9,9 +10,17 @@ export function InvitationCard({ invitation, publicHref }: { invitation: Invitat
   const editHref = invitation.siteType === "builder_template"
     ? ROUTES.CUSTOMER.DESIGN(invitation.id)
     : `${ROUTES.CUSTOMER.INVITATIONS}/${invitation.id}`;
+  const previewImage =
+    invitation.productThumbnailUrl ||
+    (typeof invitation.customData.previewImage === "string" ? invitation.customData.previewImage : "");
 
   return (
     <Card className="h-full">
+      {previewImage ? (
+        <div className="relative aspect-video overflow-hidden rounded-t-lg bg-muted">
+          <Image src={previewImage} alt={invitation.title} fill className="object-cover" />
+        </div>
+      ) : null}
       <CardHeader>
         <CardTitle>{invitation.title}</CardTitle>
         <p className="text-sm text-muted-foreground">

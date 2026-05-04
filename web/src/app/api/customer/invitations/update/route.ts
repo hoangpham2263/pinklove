@@ -1,7 +1,8 @@
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { buildInvitationPayload, updateInvitationForUser } from "@/features/invitations/server/service";
+import { buildInvitationPayload, getInvitationByIdForUser, updateInvitationForUser } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { userHasActiveEntitlement } from "@/features/ecommerce/server/service";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,22 @@ export async function POST(request: Request) {
 
   if (!siteId || !title) {
     return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu thiệp mời bắt buộc.", location: `${ROUTES.CUSTOMER.INVITATIONS}/${siteId}?error=missing_fields` });
+  }
+
+  const existing = await getInvitationByIdForUser(user.id, siteId);
+  if (!existing) {
+    return respondError(request, { error: "site_not_found", message: "Không tìm thấy thiệp mời.", location: `${ROUTES.CUSTOMER.INVITATIONS}?error=site_not_found` });
+  }
+
+  if (status === "published" && existing.productId) {
+    const entitled = await userHasActiveEntitlement(user.id, existing.productId);
+    if (!entitled) {
+      return respondError(request, {
+        error: "purchase_required",
+        message: "Bản này đang là demo. Bạn cần mua mẫu trước khi xuất bản public.",
+        location: `${ROUTES.CUSTOMER.INVITATIONS}/${siteId}?error=purchase_required`,
+      });
+    }
   }
 
   const site = await updateInvitationForUser({

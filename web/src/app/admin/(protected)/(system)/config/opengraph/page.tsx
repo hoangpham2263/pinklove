@@ -52,8 +52,8 @@ export default async function AdminOpenGraphSettingsPage() {
             <CardTitle className="text-base font-medium">Branding Source</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{settings.branding.siteName}</p>
-            <p className="text-sm text-muted-foreground">Lấy từ cấu hình Branding</p>
+            <p>{settings.branding.siteName}</p>
+            <p className="text-muted-foreground">Lấy từ cấu hình Branding</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">

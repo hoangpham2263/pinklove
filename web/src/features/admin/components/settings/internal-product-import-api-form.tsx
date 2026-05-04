@@ -61,9 +61,9 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
         </Card>
         <Card className="rounded-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Loại được phép</CardTitle>
+            <CardTitle className="text-base">Luồng import</CardTitle>
           </CardHeader>
-          <CardContent>{settings.allowedProductTypes.join(", ")}</CardContent>
+          <CardContent>Sản phẩm thường</CardContent>
         </Card>
       </div>
 
@@ -113,49 +113,8 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="font-medium">Loại sản phẩm được phép import</p>
-              <div className="grid gap-3 md:grid-cols-3">
-                <label className="flex items-start gap-3 rounded-md border bg-card p-4">
-                  <input
-                    type="checkbox"
-                    name="allowedProductTypes"
-                    value="coded_template"
-                    defaultChecked={settings.allowedProductTypes.includes("coded_template")}
-                    className="mt-1 rounded border-input"
-                  />
-                  <span className="space-y-1">
-                    <span className="block font-medium">Coded template</span>
-                    <span className="block text-sm text-muted-foreground">Cho phép tạo hoặc cập nhật sản phẩm dạng coded template.</span>
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 rounded-md border bg-card p-4">
-                  <input
-                    type="checkbox"
-                    name="allowedProductTypes"
-                    value="builder_template"
-                    defaultChecked={settings.allowedProductTypes.includes("builder_template")}
-                    className="mt-1 rounded border-input"
-                  />
-                  <span className="space-y-1">
-                    <span className="block font-medium">Builder template</span>
-                    <span className="block text-sm text-muted-foreground">Cho phép import sản phẩm dùng builder template.</span>
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 rounded-md border bg-card p-4">
-                  <input
-                    type="checkbox"
-                    name="allowedProductTypes"
-                    value="general_product"
-                    defaultChecked={settings.allowedProductTypes.includes("general_product")}
-                    className="mt-1 rounded border-input"
-                  />
-                  <span className="space-y-1">
-                    <span className="block font-medium">Sản phẩm</span>
-                    <span className="block text-sm text-muted-foreground">Cho phép import sản phẩm catalog thường, không tạo site online.</span>
-                  </span>
-                </label>
-              </div>
+            <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
+              Endpoint này cố định cho sản phẩm thường. Coded template được tạo từ code/seed, builder template được tạo từ trình builder riêng.
             </div>
 
             <div className="space-y-2 rounded-lg border bg-muted/30 p-4 text-sm">
@@ -169,8 +128,6 @@ Content-Type: application/json
   "product": {
     "slug": "san-pham-demo",
     "name": "Sản phẩm demo",
-    "productType": "general_product",
-    "templateKey": "general_product",
     "status": "draft",
     "price": 250000,
     "fulfillmentType": "physical",

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac } from "node:crypto";
 import type { EcommerceOrder } from "@/features/ecommerce/types";
+import type { EcommercePaymentMethodSettings } from "@/lib/system-settings";
 import { ROUTES } from "@/lib/routes";
 
 type VnpayParams = Record<string, string>;
@@ -12,16 +13,16 @@ export type VnpayConfig = {
   hashSecret: string;
 };
 
-export function getVnpayConfig(): VnpayConfig | null {
-  const tmnCode = process.env.VNPAY_TMN_CODE?.trim();
-  const hashSecret = process.env.VNPAY_HASH_SECRET?.trim();
+export function getVnpayConfig(method: EcommercePaymentMethodSettings): VnpayConfig | null {
+  const tmnCode = method.vnpayTmnCode?.trim();
+  const hashSecret = method.vnpayHashSecret?.trim();
 
   if (!tmnCode || !hashSecret) {
     return null;
   }
 
   return {
-    paymentUrl: process.env.VNPAY_PAYMENT_URL?.trim() || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+    paymentUrl: method.vnpayPaymentUrl?.trim() || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
     tmnCode,
     hashSecret,
   };

@@ -6,6 +6,7 @@ export type InvitationSite = {
   userId: string;
   productId?: string;
   productName?: string;
+  productThumbnailUrl?: string;
   title: string;
   slug: string;
   siteType: InvitationType;

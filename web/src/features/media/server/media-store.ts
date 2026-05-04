@@ -2,33 +2,59 @@ import { randomUUID } from"node:crypto";
 import { promises as fs } from"node:fs";
 import path from"node:path";
 
+import { query } from"@/lib/database";
 import type { MediaAsset } from"../types";
 
 const UPLOAD_ROOT_DIR = path.join(process.cwd(),"public","uploads");
-const STORE_DIR = path.join(process.cwd(),"storage");
-const STORE_FILE = path.join(STORE_DIR,"media.json");
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const MEDIA_ASSET_SELECT = "id, url, file_name, original_name, mime_type, size_bytes, created_at";
 
-async function ensureMediaStore() {
+type MediaAssetRow = {
+ id:string;
+ url:string;
+ file_name:string;
+ original_name:string;
+ mime_type:string;
+ size_bytes:string | number;
+ created_at:Date | string;
+};
+
+function mapMediaAsset(row:MediaAssetRow): MediaAsset {
+ const createdAt = row.created_at instanceof Date ? row.created_at.toISOString() : new Date(row.created_at).toISOString();
+ return {
+  id:row.id,
+  url:row.url,
+  fileName:row.file_name,
+  originalName:row.original_name,
+  mimeType:row.mime_type,
+  sizeBytes:Number(row.size_bytes),
+  createdAt,
+ };
+}
+
+async function ensureUploadDir() {
  await fs.mkdir(UPLOAD_ROOT_DIR, { recursive:true });
- await fs.mkdir(STORE_DIR, { recursive:true });
+}
 
+function getUploadPathFromUrl(url:string): string | null {
+ let pathname:string;
  try {
- await fs.access(STORE_FILE);
+  pathname = new URL(url,"http://local").pathname;
  } catch {
- await fs.writeFile(STORE_FILE,"[]","utf8");
+  return null;
  }
-}
 
-async function readStore(): Promise<MediaAsset[]> {
- await ensureMediaStore();
- const raw = await fs.readFile(STORE_FILE,"utf8");
- const parsed = JSON.parse(raw) as MediaAsset[];
- return parsed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
+ if (!pathname.startsWith("/uploads/")) return null;
 
-async function writeStore(items:MediaAsset[]) {
- await fs.writeFile(STORE_FILE, JSON.stringify(items, null, 2),"utf8");
+ const relativeUploadPath = pathname.replace(/^\/uploads\/+/,"");
+ const absolutePath = path.resolve(UPLOAD_ROOT_DIR, relativeUploadPath);
+ const uploadRoot = path.resolve(UPLOAD_ROOT_DIR);
+
+ if (absolutePath !== uploadRoot && !absolutePath.startsWith(`${uploadRoot}${path.sep}`)) {
+  return null;
+ }
+
+ return absolutePath;
 }
 
 function getFileExtension(file:File): string {
@@ -42,19 +68,59 @@ function getFileExtension(file:File): string {
  return"";
 }
 
-export async function listMediaAssets(): Promise<MediaAsset[]> {
- return readStore();
+export async function listMediaAssets(options:{ page?:number; limit?:number } = {}): Promise<MediaAsset[]> {
+ const page = Number.isFinite(options.page) && options.page && options.page > 0 ? Math.floor(options.page) : 1;
+ const limit = Number.isFinite(options.limit) && options.limit && options.limit > 0 ? Math.floor(options.limit) : undefined;
+ const offset = (page - 1) * (limit ?? 0);
+ const result = limit
+  ? await query<MediaAssetRow>(
+   `SELECT ${MEDIA_ASSET_SELECT}
+    FROM media_assets
+    ORDER BY created_at DESC
+    LIMIT $1 OFFSET $2`,
+   [limit, offset]
+  )
+  : await query<MediaAssetRow>(
+   `SELECT ${MEDIA_ASSET_SELECT}
+    FROM media_assets
+    ORDER BY created_at DESC`
+  );
+ return result.rows.map(mapMediaAsset);
+}
+
+export async function countMediaAssets(): Promise<number> {
+ const result = await query<{ total:string }>(`SELECT COUNT(*)::text AS total FROM media_assets`);
+ return Number(result.rows[0]?.total ??"0");
 }
 
 export async function findMediaAssetByUrl(url:string): Promise<MediaAsset | null> {
- const items = await readStore();
- return items.find((item) => item.url === url) ?? null;
+ const result = await query<MediaAssetRow>(
+  `SELECT ${MEDIA_ASSET_SELECT}
+   FROM media_assets
+   WHERE url = $1
+   LIMIT 1`,
+  [url]
+ );
+ return result.rows[0] ? mapMediaAsset(result.rows[0]) : null;
+}
+
+export async function findMediaAssetByIdOrFileName(value:string): Promise<MediaAsset | null> {
+ const result = await query<MediaAssetRow>(
+  `SELECT ${MEDIA_ASSET_SELECT}
+   FROM media_assets
+   WHERE id = $1 OR file_name = $1
+   LIMIT 1`,
+  [value]
+ );
+ return result.rows[0] ? mapMediaAsset(result.rows[0]) : null;
 }
 
 export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
  if (file.size > MAX_FILE_SIZE_BYTES) {
  throw new Error("File is too large. Maximum size is 20MB.");
  }
+
+ await ensureUploadDir();
 
  const now = new Date();
  const year = String(now.getUTCFullYear());
@@ -81,27 +147,42 @@ export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
  createdAt:now.toISOString(),
  };
 
- const items = await readStore();
- await writeStore([item, ...items]);
+ try {
+  await query(
+   `INSERT INTO media_assets (id, url, file_name, original_name, mime_type, size_bytes, created_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+   [item.id, item.url, item.fileName, item.originalName, item.mimeType, item.sizeBytes, item.createdAt]
+  );
+ } catch (error) {
+  try {
+   await fs.unlink(absoluteTargetPath);
+  } catch {
+   // Ignore cleanup failure and surface the database error.
+  }
+  throw error;
+ }
+
  return item;
 }
 
 export async function deleteMediaAsset(id:string): Promise<boolean> {
- const items = await readStore();
- const target = items.find((item) => item.id === id);
+ const deletedResult = await query<MediaAssetRow>(
+  `DELETE FROM media_assets
+   WHERE id = $1
+   RETURNING ${MEDIA_ASSET_SELECT}`,
+  [id]
+ );
+ const target = deletedResult.rows[0] ? mapMediaAsset(deletedResult.rows[0]) : null;
  if (!target) return false;
 
- if (target.url.startsWith("/uploads/")) {
- const relativePath = target.url.replace(/^\/+/,"");
- const absolutePath = path.join(process.cwd(),"public", relativePath);
+ const absolutePath = getUploadPathFromUrl(target.url);
+ if (absolutePath) {
  try {
   await fs.unlink(absolutePath);
  } catch {
-  // Ignore missing files
- }
+  // Keep deletion idempotent when the file was already removed.
+  }
  }
 
- const nextItems = items.filter((item) => item.id !== id);
- await writeStore(nextItems);
  return true;
 }

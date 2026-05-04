@@ -37,7 +37,6 @@ import {
 import { type AffiliateAccount } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import { ROUTES } from "@/lib/routes";
 
 type AdminAffiliatesTableProps = {
   accounts: AffiliateAccount[];

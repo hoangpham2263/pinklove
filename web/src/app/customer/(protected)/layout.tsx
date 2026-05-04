@@ -114,7 +114,11 @@ export default async function CustomerLayout({
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
-        <CustomerTopHeader username={user.username} />
+        <CustomerTopHeader
+          username={user.username}
+          breadcrumbEnabled={settings.breadcrumb.customerEnabled}
+          breadcrumbSeparator={settings.breadcrumb.customerSeparator}
+        />
         <section className="min-h-screen pt-14">
           <section className="shrink-0 border-b bg-background px-4 py-2 md:hidden">
             <nav className="flex gap-4 overflow-x-auto py-1">

@@ -379,9 +379,7 @@ export function AdminProductList({
   });
 
   const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
-  const typeFilterValue = (table.getColumn("productType")?.getFilterValue() as string | undefined) ?? "";
-  const hasFilters =
-    globalFilter.trim().length > 0 || statusFilterValue.length > 0 || (!lockProductType && typeFilterValue.length > 0);
+  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const previewProduct = previewProductId ? products.find((product) => product.id === previewProductId) ?? null : null;
@@ -391,7 +389,7 @@ export function AdminProductList({
       {title ? <h2 className="text-xl font-semibold tracking-tight">{title}</h2> : null}
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_220px]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
@@ -407,20 +405,6 @@ export function AdminProductList({
             <option value="published">Published</option>
             <option value="draft">Draft</option>
           </select>
-          {lockProductType ? (
-            <input type="hidden" value={typeFilterValue} />
-          ) : (
-            <select
-              value={typeFilterValue}
-              onChange={(event) => table.getColumn("productType")?.setFilterValue(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Tất cả loại</option>
-              <option value="coded_template">Coded Template</option>
-              <option value="builder_template">Builder Template</option>
-              <option value="general_product">Sản phẩm</option>
-            </select>
-          )}
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">

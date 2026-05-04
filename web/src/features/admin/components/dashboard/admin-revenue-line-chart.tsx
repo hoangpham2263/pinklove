@@ -3,8 +3,8 @@
 import {
   Area,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -68,7 +68,7 @@ export function AdminRevenueLineChart({ data }: AdminRevenueLineChartProps) {
   return (
     <div className="h-full min-h-[280px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
+        <ComposedChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
           <defs>
             <linearGradient id="admin-revenue-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.24} />
@@ -116,7 +116,7 @@ export function AdminRevenueLineChart({ data }: AdminRevenueLineChartProps) {
             dot={{ r: 4, fill: "var(--primary)", stroke: "var(--background)", strokeWidth: 2 }}
             activeDot={{ r: 6, fill: "var(--primary)", stroke: "var(--background)", strokeWidth: 2 }}
           />
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

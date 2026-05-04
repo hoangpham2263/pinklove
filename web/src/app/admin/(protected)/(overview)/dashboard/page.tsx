@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, CreditCard, FileText, LayoutTemplate, Package } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  FileText,
+  Image as ImageIcon,
+  LayoutTemplate,
+  Package,
+  ShoppingCart,
+  Users,
+} from "lucide-react";
 
 import {
   Card,
@@ -16,14 +25,19 @@ import { ROUTES } from "@/lib/routes";
 type RevenueSummaryRow = {
   paid_revenue_30d: string;
   paid_orders_30d: string;
+  pending_orders_30d: string;
   pending_orders: string;
   published_invitations: string;
+  draft_invitations: string;
   published_products: string;
   draft_products: string;
   published_posts: string;
   published_pages: string;
   draft_posts: string;
   draft_pages: string;
+  active_users: string;
+  inactive_users: string;
+  media_assets: string;
 };
 
 type RevenueChartRow = {
@@ -109,12 +123,23 @@ export default async function AdminDashboardPage() {
           SELECT COUNT(*)::text
           FROM commerce_orders
           WHERE payment_status IN ('unpaid', 'pending')
+            AND created_at >= NOW() - INTERVAL '30 days'
+        ) AS pending_orders_30d,
+        (
+          SELECT COUNT(*)::text
+          FROM commerce_orders
+          WHERE payment_status IN ('unpaid', 'pending')
         ) AS pending_orders,
         (
           SELECT COUNT(*)::text
           FROM wedding_sites
           WHERE status = 'published'
         ) AS published_invitations,
+        (
+          SELECT COUNT(*)::text
+          FROM wedding_sites
+          WHERE status = 'draft'
+        ) AS draft_invitations,
         (
           SELECT COUNT(*)::text
           FROM products
@@ -144,7 +169,21 @@ export default async function AdminDashboardPage() {
           SELECT COUNT(*)::text
           FROM managed_pages
           WHERE status = 'draft'
-        ) AS draft_pages
+        ) AS draft_pages,
+        (
+          SELECT COUNT(*)::text
+          FROM users
+          WHERE account_status = 'active'
+        ) AS active_users,
+        (
+          SELECT COUNT(*)::text
+          FROM users
+          WHERE account_status <> 'active'
+        ) AS inactive_users,
+        (
+          SELECT COUNT(*)::text
+          FROM media_assets
+        ) AS media_assets
     `),
     query<RevenueChartRow>(`
       WITH days AS (
@@ -183,12 +222,17 @@ export default async function AdminDashboardPage() {
   const summary = summaryResult.rows[0];
   const paidRevenue30d = asNumber(summary?.paid_revenue_30d);
   const paidOrders30d = asNumber(summary?.paid_orders_30d);
+  const pendingOrders30d = asNumber(summary?.pending_orders_30d);
   const pendingOrders = asNumber(summary?.pending_orders);
   const publishedInvitations = asNumber(summary?.published_invitations);
+  const draftInvitations = asNumber(summary?.draft_invitations);
   const publishedProducts = asNumber(summary?.published_products);
   const draftProducts = asNumber(summary?.draft_products);
   const publishedContent = asNumber(summary?.published_posts) + asNumber(summary?.published_pages);
   const draftContent = asNumber(summary?.draft_posts) + asNumber(summary?.draft_pages);
+  const activeUsers = asNumber(summary?.active_users);
+  const inactiveUsers = asNumber(summary?.inactive_users);
+  const mediaAssets = asNumber(summary?.media_assets);
 
   const chartData = revenueResult.rows.map((item) => ({
     ...item,
@@ -213,11 +257,24 @@ export default async function AdminDashboardPage() {
       href: ROUTES.ADMIN.ORDERS,
     },
     {
+      title: "Đơn chờ 30 ngày",
+      value: pendingOrders30d.toLocaleString("vi-VN"),
+      detail: `${pendingOrders.toLocaleString("vi-VN")} đơn chờ tổng`,
+      icon: ShoppingCart,
+      href: ROUTES.ADMIN.ORDERS,
+    },
+    {
+      title: "Tài khoản active",
+      value: activeUsers.toLocaleString("vi-VN"),
+      detail: `${inactiveUsers.toLocaleString("vi-VN")} tài khoản không active`,
+      icon: Users,
+      href: ROUTES.ADMIN.USERS,
+    },
+    {
       title: "Thiệp đang chạy",
       value: publishedInvitations.toLocaleString("vi-VN"),
-      detail: "Số wedding site đang public",
+      detail: `${draftInvitations.toLocaleString("vi-VN")} thiệp còn draft`,
       icon: LayoutTemplate,
-      href: ROUTES.CUSTOMER.INVITATIONS,
     },
     {
       title: "Catalog đang chạy",
@@ -225,6 +282,20 @@ export default async function AdminDashboardPage() {
       detail: `${draftProducts.toLocaleString("vi-VN")} sản phẩm còn ở draft`,
       icon: FileText,
       href: ROUTES.ADMIN.PRODUCT_LIST,
+    },
+    {
+      title: "Nội dung live",
+      value: publishedContent.toLocaleString("vi-VN"),
+      detail: `${draftContent.toLocaleString("vi-VN")} nội dung còn draft`,
+      icon: FileText,
+      href: ROUTES.ADMIN.PAGES,
+    },
+    {
+      title: "Media assets",
+      value: mediaAssets.toLocaleString("vi-VN"),
+      detail: "Tệp đang có trong thư viện",
+      icon: ImageIcon,
+      href: ROUTES.ADMIN.MEDIA,
     },
   ];
 
@@ -271,10 +342,12 @@ export default async function AdminDashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">{item.detail}</p>
-                <Link href={item.href} className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary">
-                  Xem khu vực
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                {item.href ? (
+                  <Link href={item.href} className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary">
+                    Xem khu vực
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : null}
               </CardContent>
             </Card>
           );
@@ -314,6 +387,14 @@ export default async function AdminDashboardPage() {
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <span className="text-sm text-muted-foreground">Sản phẩm draft</span>
                 <span className="text-lg font-semibold">{draftProducts}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Thiệp live</span>
+                <span className="text-lg font-semibold">{publishedInvitations}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <span className="text-sm text-muted-foreground">Thiệp draft</span>
+                <span className="text-lg font-semibold">{draftInvitations}</span>
               </div>
             </CardContent>
           </Card>

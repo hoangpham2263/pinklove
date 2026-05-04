@@ -123,13 +123,6 @@ export function QuickCreateProductForm({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="productType" className="font-medium">Loại sản phẩm</label>
-              <div className="flex h-10 w-full items-center rounded-md border bg-muted/40 px-3 py-2 text-sm">
-                Sản phẩm
-              </div>
-            </div>
-
-            <div className="space-y-2">
               <label htmlFor="ownerType" className="font-medium">
                 Nguồn hàng / chủ sở hữu
               </label>

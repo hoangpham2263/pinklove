@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from"next/link";
+import { notFound } from"next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { PaymentMethodEditorForm } from "@/features/ecommerce/admin/payment-method-editor-form";
-import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
+import { Button } from"@/components/ui/button";
+import { PaymentMethodEditorForm } from"@/features/ecommerce/admin/payment-method-editor-form";
+import { requireAdmin } from"@/lib/auth";
+import { ROUTES } from"@/lib/routes";
+import { getSystemSettings } from"@/lib/system-settings";
 
 export default async function EditConfigPaymentMethodPage({
   params,
@@ -29,8 +29,8 @@ export default async function EditConfigPaymentMethodPage({
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Sửa phương thức thanh toán</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1>Sửa phương thức thanh toán</h1>
+        <p className="text-muted-foreground">
           Cấu hình nhóm chính, tên hiển thị, provider, kiểu xử lý và điều kiện xuất hiện tại checkout.
         </p>
       </div>

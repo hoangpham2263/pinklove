@@ -7,6 +7,7 @@ export const ROUTES = {
   ABOUT: "/gioi-thieu",
   CONTACT: "/lien-he",
   TEMPLATES: "/mau-thiep",
+  PAPER: "/thiep-giay",
   BUILDER: "/tu-tao-thiep",
   WISHLIST: "/wishlist",
   SEARCH: "/search",
@@ -27,7 +28,7 @@ export const ROUTES = {
   CATALOG: {
     TEMPLATE: (slug: string) => `/templates/${slug}`,
     BUILDER: (slug: string) => `/builder/${slug}`,
-    PRODUCT: (slug: string) => `/products/${slug}`,
+    PRODUCT: (slug: string) => `/thiep-giay/${slug}`,
   },
   INVITATIONS: {
     PUBLIC: (slug: string) => `/invitations/${slug}`,
@@ -122,6 +123,7 @@ export const ROUTES = {
     CONFIG_SITEMAP: "/admin/config/sitemap",
     CONFIG_INTERNAL_APIS: "/admin/config/internal-apis",
     CONFIG_INTERNAL_API_PRODUCTS: "/admin/config/internal-apis/products",
+    CONFIG_THIRD_PARTY: "/admin/config/third-party",
     PRODUCTS: "/admin/products/new",
     PRODUCT_LIST: "/admin/products",
     PRODUCT_LIST_CODED: "/admin/products/coded-templates",

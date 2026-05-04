@@ -590,21 +590,21 @@ async function main() {
       assert(gone === null, "Admin user delete did not remove the account");
     });
 
-    await step("admin rejects duplicate template keys for catalog products", async () => {
+    await step("admin cannot create coded template products from admin", async () => {
       const create = await admin.postForm("/api/admin/products/create", {
         name: "Smoke Product",
         slug: state.productSlug,
         productType: "coded_template",
         templateKey: "golden_aisle",
       });
-      expectLocation(create.location, "/admin/products/new?error=template_in_use");
+      expectLocation(create.location, "/admin/products?error=template_create_disabled");
 
       const gone = await fetchValue(
         db,
         "SELECT slug AS value FROM products WHERE slug = $1 LIMIT 1",
         [state.productSlug]
       );
-      assert(gone === null, "Duplicate template key should not create a new product");
+      assert(gone === null, "Coded template admin create should not create a new product");
     });
 
     await step("admin can update CMS page and published page reflects it", async () => {

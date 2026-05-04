@@ -6,7 +6,7 @@ const BLOG_CATEGORY_BASE = "blog";
 const BLOG_POST_PATTERN = "/blog/post/%postname%";
 const TEMPLATE_BASE = "templates";
 const BUILDER_BASE = "builder";
-const PRODUCT_BASE = "products";
+const PRODUCT_BASE = "thiep-giay";
 const INVITATION_BASE = "invitations";
 
 function normalizeSegment(input: string) {

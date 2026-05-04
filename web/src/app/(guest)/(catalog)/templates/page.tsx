@@ -15,5 +15,5 @@ export async function generateMetadata({ searchParams }: TemplatesPageProps): Pr
 
 export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
   const page = await loadManagedPageForRoute("mau-thiep", "/templates", searchParams);
-  return renderManagedPage(page);
+  return renderManagedPage(page, searchParams);
 }

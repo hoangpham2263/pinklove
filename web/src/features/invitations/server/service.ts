@@ -17,6 +17,7 @@ type InvitationRow = {
   user_id: string;
   product_id: string | null;
   product_name: string | null;
+  product_thumbnail_url: string | null;
   title: string;
   slug: string;
   site_type: InvitationType;
@@ -33,6 +34,7 @@ function mapInvitationRow(row: InvitationRow): InvitationSite {
     userId: row.user_id,
     productId: row.product_id ?? undefined,
     productName: row.product_name ?? undefined,
+    productThumbnailUrl: row.product_thumbnail_url ?? undefined,
     title: row.title,
     slug: row.slug,
     siteType: row.site_type,
@@ -76,6 +78,7 @@ export async function listInvitationsForUser(userId: string): Promise<Invitation
         ws.user_id,
         ws.product_id,
         p.name AS product_name,
+        p.thumbnail_url AS product_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -103,6 +106,7 @@ export async function getInvitationByIdForUser(userId: string, siteId: string): 
         ws.user_id,
         ws.product_id,
         p.name AS product_name,
+        p.thumbnail_url AS product_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -135,6 +139,7 @@ export async function getInvitationById(siteId: string): Promise<InvitationSite 
         ws.user_id,
         ws.product_id,
         p.name AS product_name,
+        p.thumbnail_url AS product_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -166,6 +171,7 @@ export async function getPublicInvitationBySlug(slug: string): Promise<Invitatio
         ws.user_id,
         ws.product_id,
         p.name AS product_name,
+        p.thumbnail_url AS product_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -197,6 +203,7 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
         ws.user_id,
         ws.product_id,
         p.name AS product_name,
+        p.thumbnail_url AS product_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -218,6 +225,8 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
 export async function createInvitationFromProduct(input: {
   userId: string;
   product: Product;
+  title?: string;
+  customData?: Record<string, unknown>;
 }): Promise<InvitationSite> {
   if (input.product.productType === "general_product") {
     throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_PRODUCT");
@@ -229,8 +238,10 @@ export async function createInvitationFromProduct(input: {
   const defaults = {
     ...getInvitationTemplateDefaults(templateKey),
     ...((input.product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
+    ...(input.product.thumbnailUrl ? { previewImage: input.product.thumbnailUrl } : {}),
+    ...(input.customData ?? {}),
   };
-  const title = input.product.name;
+  const title = input.title || input.product.name;
   const slug = await ensureUniqueInvitationSlug(title);
 
   const result = await query<InvitationRow>(
@@ -244,6 +255,7 @@ export async function createInvitationFromProduct(input: {
         user_id,
         product_id,
         NULL::text AS product_name,
+        NULL::text AS product_thumbnail_url,
         title,
         slug,
         site_type,
@@ -283,6 +295,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
         user_id,
         product_id,
         NULL::text AS product_name,
+        NULL::text AS product_thumbnail_url,
         title,
         slug,
         site_type,
@@ -343,6 +356,7 @@ export async function updateInvitationForUser(input: {
         user_id,
         product_id,
         NULL::text AS product_name,
+        NULL::text AS product_thumbnail_url,
         title,
         slug,
         site_type,

@@ -1,9 +1,8 @@
-import Link from "next/link";
+import { AtSign, MailCheck, Send, ServerCog, UserRoundCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailDemoForm } from "@/features/admin/components/settings/email-demo-form";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
 import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function AdminEmailSettingsPage() {
@@ -13,51 +12,57 @@ export default async function AdminEmailSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link href={ROUTES.ADMIN.CONFIG} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
-            ← Back
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Email</h1>
-            <p className="text-muted-foreground">Cấu hình gửi email dùng chung cho xác thực, đơn hàng, liên hệ và workflow hệ thống.</p>
-          </div>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Email Sending</CardTitle>
+            <MailCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{email.enabled ? "On" : "Off"}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Transport</CardTitle>
+            <ServerCog className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{email.transport === "log" ? "Log server" : email.smtpHost || "SMTP chưa cấu hình"}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Default Sender</CardTitle>
+            <UserRoundCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {email.fromEmail ? (
+              <>
+                <p className="break-all">{email.fromEmail}</p>
+                <p>{email.fromName || "PinkLove"}</p>
+              </>
+            ) : (
+              <p>Chưa cấu hình</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Demo Recipient</CardTitle>
+            <AtSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="break-all">{email.demoRecipient || "Chưa cấu hình"}</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Email Sending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{email.enabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Transport</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold uppercase">{email.transport}</p>
-            <p className="text-muted-foreground">{email.transport === "log" ? "Demo ghi log server" : email.smtpHost || "Chưa cấu hình SMTP host"}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Default Sender</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="break-all text-sm font-medium">{email.fromEmail || "Chưa cấu hình"}</p>
-            <p className="text-muted-foreground">{email.fromName || "PinkLove"}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(420px,520px)]">
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Email Transport</CardTitle>
+      <div className="grid grid-cols-12 gap-4">
+        <Card className="col-span-12 rounded-lg xl:col-span-7">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Email Transport</CardTitle>
+            <ServerCog className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <SettingsDataTableForm
@@ -156,14 +161,12 @@ export default async function AdminEmailSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-lg">
-          <CardHeader>
-            <CardTitle>Custom Template Demo</CardTitle>
+        <Card className="col-span-12 rounded-lg xl:col-span-5">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Custom Template Demo</CardTitle>
+            <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-              Nhập HTML thuần, preview với shortcode mẫu, rồi gửi thử qua core `sendEmail`.
-            </p>
             <EmailDemoForm
               defaultRecipient={email.demoRecipient}
               siteName={email.fromName || settings.branding.siteName}

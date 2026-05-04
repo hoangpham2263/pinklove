@@ -3,9 +3,37 @@ import { getProductBySlug } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
 import { createInvitationFromProduct } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { userHasActiveEntitlement } from "@/features/ecommerce/server/service";
+import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
+import type { FieldSchema } from "@/features/pages/schema";
 
 export const runtime = "nodejs";
+
+function collectFieldValues(fields: FieldSchema[], formData: FormData) {
+  const values: Record<string, unknown> = {};
+
+  for (const field of fields) {
+    if (field.type === "section") {
+      Object.assign(values, collectFieldValues(field.fields, formData));
+      continue;
+    }
+
+    if (field.type === "repeater") {
+      continue;
+    }
+
+    if (field.type === "media" && field.multiple) {
+      values[field.name] = formData.getAll(field.name).map((item) => String(item).trim()).filter(Boolean);
+      continue;
+    }
+
+    const value = String(formData.get(field.name) ?? "").trim();
+    if (value) {
+      values[field.name] = value;
+    }
+  }
+
+  return values;
+}
 
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
@@ -25,18 +53,19 @@ export async function POST(request: Request) {
     });
   }
 
-  const entitled = await userHasActiveEntitlement(user.id, product.id);
-  if (!entitled) {
-    return respondError(request, {
-      error: "entitlement_required",
-      message: "Bạn cần mua sản phẩm trước khi tạo thiệp từ template này.",
-      location: ROUTES.WISHLIST,
-    });
-  }
+  const customData: Record<string, unknown> = {
+    ...collectFieldValues(getInvitationTemplateFields(product.templateKey), formData),
+    ...(product.thumbnailUrl ? { previewImage: product.thumbnailUrl } : {}),
+  };
+  const brideName = String(customData.brideName ?? "").trim();
+  const groomName = String(customData.groomName ?? "").trim();
+  const title = [groomName, brideName].filter(Boolean).join(" & ") || product.name;
 
   const site = await createInvitationFromProduct({
     userId: user.id,
     product,
+    title,
+    customData,
   });
 
   const nextLocation =

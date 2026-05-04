@@ -13,6 +13,7 @@ export type AdminNavIconName =
   | "menu"
   | "image"
   | "book-open-text"
+  | "list-tree"
   | "bell"
   | "users"
   | "store"
@@ -76,6 +77,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
       { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "receipt-text" },
       { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "credit-card" },
+      { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, iconName: "credit-card" },
       { label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "truck" },
     ],
   },
@@ -107,7 +109,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
 ];
 
 export const ADMIN_NAV_SECONDARY_ITEMS: AdminStandaloneNavItem[] = [
-  { label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "book-open-text" },
+  { label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "list-tree" },
   { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
 ];
 

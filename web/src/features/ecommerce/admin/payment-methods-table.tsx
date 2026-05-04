@@ -1,19 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { Banknote, CreditCard, Eye, Landmark, Pencil, Plus, Trash2 } from "lucide-react";
+import Link from"next/link";
+import { useState } from"react";
+import { Banknote, CreditCard, Eye, Landmark, Pencil, Plus, Trash2 } from"lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Badge } from"@/components/ui/badge";
+import { Button } from"@/components/ui/button";
+import { Switch } from"@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from"@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -21,20 +21,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from"@/components/ui/table";
 import {
   getPaymentMethodCategoryLabel,
   getPaymentMethodTypeLabel,
   getRequiresShippingLabel,
-} from "@/features/ecommerce/admin/payment-method-labels";
-import { ROUTES } from "@/lib/routes";
-import type { EcommercePaymentMethodSettings } from "@/lib/system-settings";
+} from"@/features/ecommerce/admin/payment-method-labels";
+import { ROUTES } from"@/lib/routes";
+import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
 type PaymentMethodsTableProps = {
   methods: EcommercePaymentMethodSettings[];
 };
 
-const METHOD_CATEGORY_ORDER: Array<EcommercePaymentMethodSettings["category"]> = ["manual", "offline", "gateway"];
+const METHOD_CATEGORY_ORDER: Array<EcommercePaymentMethodSettings["category"]> = ["manual","offline","gateway"];
 
 const METHOD_CATEGORY_ICONS = {
   manual: Landmark,
@@ -52,8 +52,8 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
   const enabledCount = methods.filter((method) => method.enabled).length;
   const stats = [
     {
-      key: "all",
-      label: "Tất cả phương thức",
+      key:"all",
+      label:"Tất cả phương thức",
       total: methods.length,
       enabled: enabledCount,
       Icon: CreditCard,
@@ -77,14 +77,14 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
               <div key={item.key} className="rounded-md border bg-background p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
-                    <p className="mt-2 text-2xl font-semibold">{item.total}</p>
+                    <p className="text-muted-foreground">{item.label}</p>
+                    <p className="mt-2">{item.total}</p>
                   </div>
                   <span className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
                     <Icon className="h-4 w-4" />
                   </span>
                 </div>
-                <p className="mt-3 text-sm text-muted-foreground">{item.enabled} đang bật</p>
+                <p className="mt-3 text-muted-foreground">{item.enabled} đang bật</p>
               </div>
             );
           })}
@@ -101,7 +101,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                     <Icon className="h-4 w-4" />
                   </span>
                   <div>
-                    <h3 className="font-semibold">{getPaymentMethodCategoryLabel(group.category)}</h3>
+                    <h3>{getPaymentMethodCategoryLabel(group.category)}</h3>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -135,16 +135,13 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                       group.methods.map((method) => (
                         <TableRow key={method.code}>
                           <TableCell>
-                            <div className="space-y-1">
-                              <p className="font-medium">{method.label}</p>
-                              <code className="text-xs text-muted-foreground">{method.code}</code>
-                            </div>
+                            {method.label}
                           </TableCell>
-                          <TableCell>{method.provider || "-"}</TableCell>
+                          <TableCell>{method.provider ||"-"}</TableCell>
                           <TableCell>
                             <Badge variant="secondary">{getPaymentMethodTypeLabel(method.type)}</Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="text-muted-foreground">
                             {getRequiresShippingLabel(method.requiresShipping)}
                           </TableCell>
                           <TableCell>
@@ -156,11 +153,11 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                             >
                               <input type="hidden" name="intent" value="toggle-enabled" />
                               <input type="hidden" name="code" value={method.code} />
-                              <input type="hidden" name="enabled" value={method.enabled ? "off" : "on"} />
+                              <input type="hidden" name="enabled" value={method.enabled ?"off" :"on"} />
                               <Switch
                                 checked={method.enabled}
-                                aria-label={method.enabled ? "Tắt phương thức thanh toán" : "Bật phương thức thanh toán"}
-                                onCheckedChange={(_checked) => {
+                                aria-label={method.enabled ?"Tắt phương thức thanh toán" :"Bật phương thức thanh toán"}
+                                onCheckedChange={() => {
                                   const form = document.getElementById(`payment-method-toggle-${method.code}`) as HTMLFormElement | null;
                                   form?.requestSubmit();
                                 }}
@@ -190,7 +187,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                                 action={ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE}
                                 method="POST"
                                 onSubmit={(event) => {
-                                  if (!confirm(`Xóa phương thức thanh toán "${method.label}"? Nếu đã có đơn hàng sử dụng, hệ thống sẽ không cho xóa.`)) {
+                                  if (!confirm(`Xóa phương thức thanh toán"${method.label}"? Nếu đã có đơn hàng sử dụng, hệ thống sẽ không cho xóa.`)) {
                                     event.preventDefault();
                                   }
                                 }}
@@ -233,7 +230,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 <DialogTitle>{previewMethod.label}</DialogTitle>
                 <DialogDescription>Xem nhanh cấu hình phương thức thanh toán.</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-3 text-sm">
+              <div className="grid gap-3">
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                   <span className="text-muted-foreground">Code</span>
                   <code>{previewMethod.code}</code>
@@ -244,7 +241,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 </div>
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                   <span className="text-muted-foreground">Provider</span>
-                  <span>{previewMethod.provider || "-"}</span>
+                  <span>{previewMethod.provider ||"-"}</span>
                 </div>
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                   <span className="text-muted-foreground">Kiểu</span>
@@ -256,35 +253,77 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 </div>
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                   <span className="text-muted-foreground">Trạng thái</span>
-                  <span>{previewMethod.enabled ? "Đang bật" : "Đang tắt"}</span>
+                  <span>{previewMethod.enabled ?"Đang bật" :"Đang tắt"}</span>
                 </div>
                 <div className="space-y-1 border-t pt-3">
                   <p className="text-muted-foreground">Mô tả checkout</p>
-                  <p>{previewMethod.description || "-"}</p>
+                  <p>{previewMethod.description ||"-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-muted-foreground">Hướng dẫn</p>
-                  <p className="whitespace-pre-wrap">{previewMethod.instructions || "-"}</p>
+                  <p className="whitespace-pre-wrap">{previewMethod.instructions ||"-"}</p>
                 </div>
                 {previewMethod.bankName || previewMethod.bankAccountNumber || previewMethod.bankAccountName ? (
                   <div className="space-y-2 border-t pt-3">
-                    <p className="font-medium">Thông tin nhận thanh toán</p>
+                    <p>Thông tin nhận thanh toán</p>
                     <div className="grid gap-2">
                       <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                         <span className="text-muted-foreground">Ngân hàng</span>
-                        <span>{previewMethod.bankName || "-"}</span>
+                        <span>{previewMethod.bankName ||"-"}</span>
                       </div>
                       <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                         <span className="text-muted-foreground">VietQR</span>
-                        <span>{previewMethod.bankQrBankId || "-"}</span>
+                        <span>{previewMethod.bankQrBankId ||"-"}</span>
                       </div>
                       <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                         <span className="text-muted-foreground">Số tài khoản</span>
-                        <span>{previewMethod.bankAccountNumber || "-"}</span>
+                        <span>{previewMethod.bankAccountNumber ||"-"}</span>
                       </div>
                       <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                         <span className="text-muted-foreground">Chủ tài khoản</span>
-                        <span>{previewMethod.bankAccountName || "-"}</span>
+                        <span>{previewMethod.bankAccountName ||"-"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                {previewMethod.provider ==="pay2s" ? (
+                  <div className="space-y-2 border-t pt-3">
+                    <p>Pay2S</p>
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Endpoint</span>
+                        <span className="break-all">{previewMethod.pay2sEndpoint ||"-"}</span>
+                      </div>
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Partner Code</span>
+                        <span>{previewMethod.pay2sPartnerCode ||"-"}</span>
+                      </div>
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Access Key</span>
+                        <span>{previewMethod.pay2sAccessKey ?"Đã cấu hình" :"-"}</span>
+                      </div>
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Secret Key</span>
+                        <span>{previewMethod.pay2sSecretKey ?"Đã cấu hình" :"-"}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                {previewMethod.provider ==="vnpay" ? (
+                  <div className="space-y-2 border-t pt-3">
+                    <p>VNPAY</p>
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Payment URL</span>
+                        <span className="break-all">{previewMethod.vnpayPaymentUrl ||"-"}</span>
+                      </div>
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">TMN Code</span>
+                        <span>{previewMethod.vnpayTmnCode ||"-"}</span>
+                      </div>
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                        <span className="text-muted-foreground">Hash Secret</span>
+                        <span>{previewMethod.vnpayHashSecret ?"Đã cấu hình" :"-"}</span>
                       </div>
                     </div>
                   </div>

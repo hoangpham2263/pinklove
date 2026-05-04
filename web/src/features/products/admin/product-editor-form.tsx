@@ -27,17 +27,6 @@ type ProductEditorFormProps = {
   returnTo?: string;
 };
 
-function getProductTypeLabel(productType: Product["productType"]) {
-  switch (productType) {
-    case "coded_template":
-      return "Coded Template";
-    case "builder_template":
-      return "Builder Template";
-    default:
-      return "Sản phẩm";
-  }
-}
-
 export function ProductEditorForm({
   product,
   categories,
@@ -291,13 +280,6 @@ export function ProductEditorForm({
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="font-medium">Loại sản phẩm</label>
-              <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                {getProductTypeLabel(product.productType)}
-              </div>
             </div>
 
             {!isGeneralProduct ? (

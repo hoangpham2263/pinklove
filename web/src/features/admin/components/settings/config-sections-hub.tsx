@@ -11,7 +11,6 @@ import {
   Settings2,
   ShieldCheck,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type ConfigHubItem = {
@@ -65,17 +64,17 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="Tìm kiếm cấu hình hoặc tài liệu..."
-            className="h-10 pl-9"
+            className="h-9 pl-9"
           />
         </div>
-        <div className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-muted-foreground">
+        <div className="inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3">
           <ShieldCheck className="h-4 w-4" />
           Quản lý tập trung cho toàn bộ cấu hình hệ thống
         </div>
       </div>
 
-      <Card className="rounded-xl">
-        <CardContent className="grid gap-8 p-6 lg:grid-cols-3">
+      <div className="rounded-md border bg-background">
+        <div className="grid gap-8 p-4 lg:grid-cols-3">
           {filteredSections.map((section) => {
             const SectionIcon = iconMap[section.icon];
 
@@ -113,8 +112,8 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
               </div>
             </div>
           ) : null}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

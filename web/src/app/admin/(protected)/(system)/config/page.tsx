@@ -1,3 +1,4 @@
+import { CheckCircle2, FileCode2, ListChecks, SearchCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
 import { requireAdmin } from "@/lib/auth";
@@ -17,7 +18,7 @@ const CONFIG_SECTIONS = [
       {
         title: "Thông báo",
         description: "Quản lý thông báo toàn site hiển thị dùng chung cho người dùng.",
-        href: ROUTES.ADMIN.GLOBAL_FIELDS,
+        href: ROUTES.ADMIN.NOTIFICATIONS,
       },
       {
         title: "Email",
@@ -94,6 +95,11 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_INTERNAL_APIS,
       },
       {
+        title: "Đăng nhập bên thứ 3",
+        description: "Cấu hình OAuth và các nhà cung cấp đăng nhập ngoài như Google.",
+        href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
+      },
+      {
         title: "Hooks",
         description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
         href: ROUTES.ADMIN.HOOKS,
@@ -115,46 +121,41 @@ export default async function AdminSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Configuration</h1>
-          <p className="text-muted-foreground">Trung tâm cấu hình thương hiệu, vận hành hệ thống, SEO và tài liệu dùng chung.</p>
-        </div>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Total Items</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng mục cấu hình</CardTitle>
+            <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
+            <p>{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Active Settings</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Cấu hình đang bật</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{enabledCount}</p>
-            <p className="text-muted-foreground">Theo cấu hình hiện tại</p>
+            <p>{enabledCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Sitemap</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Sitemap XML</CardTitle>
+            <FileCode2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{settings.sitemap.enabled ? "On" : "Off"}</p>
+            <p>{settings.sitemap.enabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Site Indexing</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Cho phép index</CardTitle>
+            <SearchCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
-            <p className="text-muted-foreground">Quản lý trong Sitemap</p>
+            <p>{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
           </CardContent>
         </Card>
       </div>

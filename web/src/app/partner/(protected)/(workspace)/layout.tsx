@@ -67,7 +67,12 @@ export default async function PartnerWorkspaceLayout({
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
-        <VendorWorkspaceTopHeader username={vendor.username} portalHref={portalHref} />
+        <VendorWorkspaceTopHeader
+          username={vendor.username}
+          portalHref={portalHref}
+          breadcrumbEnabled={settings.breadcrumb.partnerEnabled}
+          breadcrumbSeparator={settings.breadcrumb.partnerSeparator}
+        />
         <section className="min-h-screen pt-14">{children}</section>
       </main>
     </div>

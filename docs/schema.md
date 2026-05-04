@@ -37,6 +37,27 @@ Index:
 - `ui_density`: `text`, `small`, `medium`, or `large`
 - `updated_at`: `timestamptz`
 
+### `media_assets`
+
+- `id`: `text`
+- `url`: `text`, internal upload path such as `/uploads/YYYY/MM/file.ext`
+- `file_name`: `text`
+- `original_name`: `text`
+- `mime_type`: `text`
+- `size_bytes`: `bigint`
+- `created_at`: `timestamptz`
+
+Indexes:
+
+- `idx_media_assets_created_at` on `created_at DESC`
+- `idx_media_assets_url` on `url`
+- `idx_media_assets_file_name` on `file_name`
+
+Notes:
+
+- Media metadata is database-backed and should stay in `media_assets`.
+- Uploaded files are stored separately under `web/public/uploads/YYYY/MM`.
+
 ### `notifications`
 
 - `id`: `text`
@@ -238,7 +259,7 @@ Index:
 - `excerpt`: `text`, nullable
 - `description`: `text`, nullable
 - `status`: `text`, `draft` or `published`
-- `product_type`: `text`, `coded_template` or `builder_template`
+- `product_type`: `text`, `coded_template`, `builder_template`, or `general_product`
 - `template_key`: `text`
 - `thumbnail_url`: `text`, nullable
 - `price`: `numeric(12,2)`
@@ -248,7 +269,9 @@ Index:
 
 Business rule:
 
-- Each `(product_type, template_key)` pair should map to exactly one catalog product. In practice this means one coded template source has one product gốc, and one builder starter source has one product gốc.
+- Product type determines the fixed workflow for a catalog product. `coded_template` products are created from code/seed, `builder_template` products can be seeded or created from the builder flow, and `general_product` products are added through admin/vendor/API paths.
+- Public catalog views should filter by product type first, then by category/price/sort.
+- Each coded invitation template identity should map to exactly one catalog product.
 
 ### `wedding_sites`
 
@@ -365,7 +388,3 @@ Email template rendering:
 ### Uploaded files
 
 - Directory: `web/public/uploads/YYYY/MM`
-
-### Media metadata
-
-- File: `web/storage/media.json`

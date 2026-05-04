@@ -8,24 +8,33 @@ import { ROUTES } from "@/lib/routes";
 type VendorWorkspaceTopHeaderProps = {
   username: string;
   portalHref: string;
+  breadcrumbEnabled?: boolean;
+  breadcrumbSeparator?: string;
 };
 
 export function VendorWorkspaceTopHeader({
   username,
   portalHref,
+  breadcrumbEnabled = true,
+  breadcrumbSeparator,
 }: VendorWorkspaceTopHeaderProps) {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 h-14 border-b border-border bg-background md:left-[16.666667%]">
       <div className="flex h-full w-full items-center justify-between px-5 md:px-7.5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="shrink-0 text-foreground">|</span>
-          <div className="min-w-0">
-            <RouteBreadcrumbs
-              listClassName="flex-nowrap overflow-hidden whitespace-nowrap text-sm"
-              linkClassName="truncate"
-              currentClassName="truncate font-medium text-foreground"
-            />
-          </div>
+          {breadcrumbEnabled ? (
+            <>
+              <span className="shrink-0 text-foreground">|</span>
+              <div className="min-w-0">
+                <RouteBreadcrumbs
+                  separator={breadcrumbSeparator}
+                  listClassName="flex-nowrap overflow-hidden whitespace-nowrap text-sm"
+                  linkClassName="truncate"
+                  currentClassName="truncate font-medium text-foreground"
+                />
+              </div>
+            </>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-3">

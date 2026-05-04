@@ -1,8 +1,10 @@
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
 
 const rootDir = path.resolve(process.cwd(), "..");
+const seedDataPath = path.join(process.cwd(), "src/lib/product-seed-data.json");
+const seedCatalog = JSON.parse(readFileSync(seedDataPath, "utf8"));
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) {
@@ -45,286 +47,73 @@ function getDatabaseUrl() {
   return `postgresql://${user}:${password}@localhost:${port}/${db}`;
 }
 
-const categories = [
-  {
-    slug: "coded-templates",
-    name: "Mẫu thiệp code sẵn",
-    description: "Catalog template cưới hoàn thiện với preview dài như landing page.",
-    status: "published",
-  },
-  {
-    slug: "builder-templates",
-    name: "Mẫu thiệp tự chỉnh sửa",
-    description: "Catalog starter cho builder với preview dài để xem flow toàn trang.",
-    status: "published",
-  },
-  {
-    slug: "general-products",
-    name: "Sản phẩm",
-    description: "Sản phẩm bán trực tiếp, có thể là hàng nội bộ hoặc gắn đối tác cung ứng.",
-    status: "published",
-  },
-];
+function getSiteDefaults(product) {
+  const siteDefaults = product.config?.siteDefaults;
+  return siteDefaults && typeof siteDefaults === "object" ? siteDefaults : {};
+}
 
-const products = [
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-aurora-veil",
-    name: "Mẫu thiệp cưới Aurora Veil",
-    excerpt: "Mẫu landing page cưới tông kem hồng với preview dài toàn trang để hover cuộn dọc.",
-    description: "Template code sẵn với bố cục hero, câu chuyện, gallery và RSVP theo nhịp đọc mềm mại.",
-    productType: "coded_template",
-    templateKey: "aurora_veil",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
-    price: "1190000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "An",
-        groomName: "Khang",
-        heroSubtitle: "Trân trọng mời bạn cùng chúng tôi bước vào ngày hạnh phúc nhất.",
-        eventDate: "18.01.2027",
-        venue: "White Palace, TP.HCM",
-      },
-    },
-  },
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-golden-aisle",
-    name: "Mẫu thiệp cưới Golden Aisle",
-    excerpt: "Phong cách sang trọng với preview dài như một website cưới đầy đủ section.",
-    description: "Template code sẵn cho lễ cưới trang nhã, nhấn vào hero lớn, timeline và gallery dọc.",
-    productType: "coded_template",
-    templateKey: "golden_aisle",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
-    price: "1390000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "Thao",
-        groomName: "Long",
-        heroSubtitle: "Một lời mời ấm áp đến những người chúng tôi yêu quý nhất.",
-        eventDate: "05.03.2027",
-        venue: "Park Hyatt Saigon",
-      },
-    },
-  },
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-blush-sonata",
-    name: "Mẫu thiệp cưới Blush Sonata",
-    excerpt: "Bản phối pastel và typography mềm với ảnh preview dọc rất dài để hover scroll mượt hơn.",
-    description: "Template code sẵn tối ưu cho cô dâu chú rể muốn landing page nữ tính và rõ thông tin.",
-    productType: "coded_template",
-    templateKey: "blush_sonata",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
-    price: "1090000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "Linh",
-        groomName: "Hieu",
-        heroSubtitle: "Mời bạn cùng chúng tôi ghi nhớ một ngày thật dịu dàng và đáng nhớ.",
-        eventDate: "28.03.2027",
-        venue: "Mia Saigon, Thu Duc",
-      },
-    },
-  },
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-moonlight-garden",
-    name: "Mẫu thiệp cưới Moonlight Garden",
-    excerpt: "Mẫu thiệp cưới đêm vườn ánh trăng với preview website dài, rõ từng section nội dung.",
-    description: "Template code sẵn phù hợp với lễ cưới buổi tối và phần gallery ảnh chân dung dài.",
-    productType: "coded_template",
-    templateKey: "moonlight_garden",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
-    price: "1490000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "Vy",
-        groomName: "Minh",
-        heroSubtitle: "Xin mời bạn đến chung vui cùng chúng tôi dưới những ánh đèn dịu nhẹ.",
-        eventDate: "12.06.2027",
-        venue: "The Reverie Saigon",
-      },
-    },
-  },
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-pearl-manor",
-    name: "Mẫu thiệp cưới Pearl Manor",
-    excerpt: "Bố cục tinh gọn, ảnh dài kiểu editorial và nhịp cuộn phù hợp card gallery hover-scroll.",
-    description: "Template code sẵn cho cặp đôi thích phong cách tối giản sang trọng và câu chuyện ngắn gọn.",
-    productType: "coded_template",
-    templateKey: "pearl_manor",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
-    price: "1290000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "Nhi",
-        groomName: "Phat",
-        heroSubtitle: "Rất mong được gặp bạn trong ngày lễ thành hôn của chúng tôi.",
-        eventDate: "21.08.2027",
-        venue: "Sheraton Saigon Grand Opera",
-      },
-    },
-  },
-  {
-    categorySlug: "coded-templates",
-    slug: "mau-thiep-cuoi-linen-vows",
-    name: "Mẫu thiệp cưới Linen Vows",
-    excerpt: "Tông linen sáng, preview website rất dài và khoảng trắng đẹp cho hiệu ứng cuộn dọc.",
-    description: "Template code sẵn dành cho cặp đôi muốn một landing page nhẹ, tinh tế và dễ đọc trên mobile.",
-    productType: "coded_template",
-    templateKey: "linen_vows",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
-    price: "990000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        brideName: "Ha",
-        groomName: "Tung",
-        heroSubtitle: "Một trang thiệp tinh giản để gửi đi lời mời chân thành nhất của chúng tôi.",
-        eventDate: "03.10.2027",
-        venue: "An Lam Retreats Saigon River",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-editorial-story",
-    name: "Mẫu thiệp cưới Editorial Story",
-    excerpt: "Starter builder theo phong cách tạp chí với preview dài như landing page nhiều section.",
-    description: "Builder starter thiên về kể chuyện, phù hợp với flow hero lớn, story, timeline và gallery.",
-    productType: "builder_template",
-    templateKey: "editorial_story_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
-    price: "390000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Editorial wedding story",
-        sectionOneTitle: "Our cover story",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-floral-scroll",
-    name: "Mẫu thiệp cưới Floral Scroll",
-    excerpt: "Builder mềm mại với ảnh preview dài liên tục để người xem cảm giác như đang xem một website thật.",
-    description: "Starter builder tông hoa lá, dễ kéo thành flow romantic với nhiều section ảnh dọc.",
-    productType: "builder_template",
-    templateKey: "floral_scroll_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
-    price: "420000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Floral wedding scroll",
-        sectionOneTitle: "Hero bloom",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-timeline-ceremony",
-    name: "Mẫu thiệp cưới Timeline Ceremony",
-    excerpt: "Builder preview dạng timeline dọc dài, rất hợp hiệu ứng hover scroll top-to-bottom.",
-    description: "Starter builder tập trung vào lịch trình, tiện cho lễ cưới có nhiều cột mốc và CTA RSVP.",
-    productType: "builder_template",
-    templateKey: "timeline_ceremony_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
-    price: "350000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Timeline ceremony",
-        sectionOneTitle: "Wedding schedule",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-minimal-portrait",
-    name: "Mẫu thiệp cưới Minimal Portrait",
-    excerpt: "Bản builder tối giản với thumbnail dài kiểu editorial portrait để hover lướt mượt.",
-    description: "Starter builder sạch và gọn, ưu tiên ảnh lớn, text ít và nhịp section thoáng.",
-    productType: "builder_template",
-    templateKey: "minimal_portrait_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
-    price: "290000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Minimal portrait",
-        sectionOneTitle: "Essential details",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-velvet-chapel",
-    name: "Mẫu thiệp cưới Velvet Chapel",
-    excerpt: "Builder tone trầm sang với screenshot dọc dài như một homepage cưới hoàn chỉnh.",
-    description: "Starter builder dành cho giao diện trong nhà, nhấn typography mạnh và section gallery lớn.",
-    productType: "builder_template",
-    templateKey: "velvet_chapel_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-01.png",
-    price: "450000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Velvet chapel",
-        sectionOneTitle: "Opening scene",
-      },
-    },
-  },
-  {
-    categorySlug: "builder-templates",
-    slug: "mau-thiep-cuoi-ivory-atelier",
-    name: "Mẫu thiệp cưới Ivory Atelier",
-    excerpt: "Builder sáng, thoáng và có thumbnail preview rất dài để thể hiện rõ flow toàn trang.",
-    description: "Starter builder theo hướng studio hiện đại với các section nhẹ, gallery và thông tin RSVP.",
-    productType: "builder_template",
-    templateKey: "ivory_atelier_builder",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-02.png",
-    price: "320000",
-    fulfillmentType: "digital",
-    config: {
-      siteDefaults: {
-        heroTitle: "Ivory atelier",
-        sectionOneTitle: "Welcome screen",
-      },
-    },
-  },
-  {
-    categorySlug: "general-products",
-    slug: "thiep-giay-linen-catalog",
-    name: "Thiệp giấy linen catalog",
-    excerpt: "Sản phẩm thiệp giấy vật lý, giao sau khi xác nhận đơn hàng.",
-    description:
-      "Sản phẩm catalog thông thường. Không tạo thiệp web online; phù hợp cho đơn hàng vật lý hoặc sản phẩm nhập từ bên thứ ba.",
-    productType: "general_product",
-    templateKey: "general_product",
-    thumbnailUrl: "/uploads/seed-products/seed-red-wedding-web-03.png",
-    price: "890000",
-    fulfillmentType: "physical",
-    config: {
-      generalProduct: {
-        ownerType: "vendor",
-      },
-      productDetails: {
-        supplierName: "Xưởng in liên kết PinkLove",
-        spec: "Linen 300gsm, in offset 4 màu, bo góc.",
-        leadTimeNote: "7-10 ngày làm việc sau khi chốt nội dung in.",
-      },
-    },
-  },
-];
+function getGeneralProductConfig(product) {
+  const generalProduct = product.config?.generalProduct;
+  return generalProduct && typeof generalProduct === "object" ? generalProduct : {};
+}
+
+async function syncProductTypeDetails(client, productId, product) {
+  await client.query("DELETE FROM coded_template_products WHERE product_id = $1", [productId]);
+  await client.query("DELETE FROM builder_products WHERE product_id = $1", [productId]);
+  await client.query("DELETE FROM general_products WHERE product_id = $1", [productId]);
+
+  if (product.productType === "coded_template") {
+    await client.query(
+      `
+        INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+        VALUES ($1, $2, $3::jsonb)
+      `,
+      [productId, product.templateKey, JSON.stringify(getSiteDefaults(product))]
+    );
+  }
+
+  if (product.productType === "builder_template") {
+    await client.query(
+      `
+        INSERT INTO builder_products (product_id, template_key, site_defaults)
+        VALUES ($1, $2, $3::jsonb)
+      `,
+      [productId, product.templateKey, JSON.stringify(getSiteDefaults(product))]
+    );
+  }
+
+  if (product.productType === "general_product") {
+    const generalProduct = getGeneralProductConfig(product);
+    await client.query(
+      `
+        INSERT INTO general_products (
+          product_id,
+          fulfillment_type,
+          track_inventory,
+          stock_quantity,
+          low_stock_threshold,
+          allow_backorder,
+          cost_price,
+          vendor_sku,
+          owner_type,
+          owner_vendor_user_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL)
+      `,
+      [
+        productId,
+        product.fulfillmentType ?? "physical",
+        product.trackInventory ?? false,
+        product.stockQuantity ?? 0,
+        product.lowStockThreshold ?? 0,
+        product.allowBackorder ?? false,
+        generalProduct.costPrice ?? 0,
+        generalProduct.vendorSku ?? "",
+        generalProduct.ownerType === "vendor" ? "vendor" : "internal",
+      ]
+    );
+  }
+}
 
 async function main() {
   const client = new Client({ connectionString: getDatabaseUrl() });
@@ -333,33 +122,60 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    await client.query("DELETE FROM products");
+    const deletedProducts = await client.query("DELETE FROM products");
+    const deletedCategories = await client.query("DELETE FROM product_categories");
 
-    for (const category of categories) {
+    for (const category of seedCatalog.categories) {
       await client.query(
         `
           INSERT INTO product_categories (slug, name, description, status)
           VALUES ($1, $2, $3, $4)
-          ON CONFLICT (slug) DO UPDATE
-          SET
-            name = EXCLUDED.name,
-            description = EXCLUDED.description,
-            status = EXCLUDED.status,
-            updated_at = NOW()
         `,
         [category.slug, category.name, category.description, category.status]
       );
     }
 
-    for (const product of products) {
-      await client.query(
+    for (const product of seedCatalog.products) {
+      const created = await client.query(
         `
           INSERT INTO products (
-            slug, category_id, name, excerpt, description, status, product_type, template_key, thumbnail_url, price, fulfillment_type, config
+            slug,
+            category_id,
+            name,
+            excerpt,
+            description,
+            status,
+            product_type,
+            template_key,
+            thumbnail_url,
+            price,
+            fulfillment_type,
+            track_inventory,
+            stock_quantity,
+            low_stock_threshold,
+            allow_backorder,
+            config
           )
-          SELECT $1, categories.id, $2, $3, $4, 'published', $5, $6, $7, $8, $9, $10::jsonb
+          SELECT
+            $1,
+            categories.id,
+            $2,
+            $3,
+            $4,
+            'published',
+            $5,
+            $6,
+            $7,
+            $8,
+            $9,
+            $10,
+            $11,
+            $12,
+            $13,
+            $14::jsonb
           FROM product_categories categories
-          WHERE categories.slug = $11
+          WHERE categories.slug = $15
+          RETURNING id
         `,
         [
           product.slug,
@@ -371,16 +187,30 @@ async function main() {
           product.thumbnailUrl,
           product.price,
           product.fulfillmentType,
-          JSON.stringify(product.config),
+          product.trackInventory ?? false,
+          product.stockQuantity ?? 0,
+          product.lowStockThreshold ?? 0,
+          product.allowBackorder ?? false,
+          JSON.stringify(product.config ?? {}),
           product.categorySlug,
         ]
       );
+
+      const productId = created.rows[0]?.id;
+      if (!productId) {
+        throw new Error(`Failed to seed product ${product.slug}`);
+      }
+
+      await syncProductTypeDetails(client, productId, product);
     }
 
     await client.query("COMMIT");
 
-    const result = await client.query("SELECT COUNT(*)::int AS count FROM products");
-    console.log(`Re-seeded product catalog. Total products: ${result.rows[0]?.count ?? 0}`);
+    console.log(
+      `Re-seeded product catalog. Deleted ${deletedProducts.rowCount ?? 0} products and ${
+        deletedCategories.rowCount ?? 0
+      } categories, then created ${seedCatalog.products.length} products in ${seedCatalog.categories.length} categories.`
+    );
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

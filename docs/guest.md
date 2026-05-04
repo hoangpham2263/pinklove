@@ -13,8 +13,10 @@ This file covers the public `GUEST` area.
 - Public content pages are explicit code-managed routes, not admin-created arbitrary routes.
 - Keep page-specific UI close to the route under `src/app/(guest)`.
 - Use managed-page fields only where the page is already registered in the content registry.
-- `Thiếp mẫu sẵn` routes should show only `coded_template` products.
-- `Tự tạo thiệp` routes should show only `builder_template` products.
+- `/mau-thiep` shows invitation templates with fixed product-type tabs: `coded_template` and `builder_template`.
+- `/tu-tao-thiep` shows only `builder_template` products.
+- `/thiep-giay` shows only `general_product` products.
+- Public catalog filtering should apply product type first, then category/price/sort filters for future expansion.
 - Public invitation rendering should read from published invitation records. The current table name is still `wedding_sites`.
 - Guest wishlist is available at `/wishlist`, requires login, persists on the authenticated `users.wishlist_product_ids` field, and is the primary customer-facing purchase list in place of a separate cart screen.
 - Guest search is available at `/search`; the header search opens a quick search popover and submits to this public result page.

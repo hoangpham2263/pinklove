@@ -32,6 +32,14 @@ type ProductCategoryInput = {
   status?: "draft" | "published";
 };
 
+type ProductCatalogFilterInput = {
+  productTypes: ProductType[];
+  categorySlug?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: "newest" | "price-asc" | "price-desc";
+};
+
 type ProductCategoryRow = {
   id: string;
   slug: string;
@@ -299,16 +307,34 @@ export async function listPublishedProducts(): Promise<Product[]> {
   return mapProductRows(result.rows);
 }
 
-export async function listPublishedProductsByType(productType: ProductType): Promise<Product[]> {
+export async function listPublishedProductsFiltered(input: ProductCatalogFilterInput): Promise<Product[]> {
+  if (input.productTypes.length === 0) {
+    return [];
+  }
+
+  const categorySlug = input.categorySlug && input.categorySlug !== "all" ? input.categorySlug : null;
+  const minPrice = Number.isFinite(input.minPrice) ? input.minPrice ?? 0 : 0;
+  const maxPrice = Number.isFinite(input.maxPrice) ? input.maxPrice ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+  const sort = input.sort ?? "newest";
+  const orderBy =
+    sort === "price-asc"
+      ? "products.price ASC, products.created_at DESC"
+      : sort === "price-desc"
+        ? "products.price DESC, products.created_at DESC"
+        : "products.created_at DESC";
+
   const result = await withProductCatalogRetry(() =>
     query<ProductRow>(
       `
         ${PRODUCT_SELECT}
         WHERE products.status = 'published'
-          AND products.product_type = $1
-        ORDER BY products.created_at DESC
+          AND products.product_type = ANY($1::text[])
+          AND ($2::text IS NULL OR categories.slug = $2)
+          AND products.price >= $3
+          AND products.price < $4
+        ORDER BY ${orderBy}
       `,
-      [productType]
+      [input.productTypes, categorySlug, minPrice, maxPrice]
     )
   );
 
@@ -565,6 +591,10 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
 
   const nextTemplateKey = input.templateKey ?? existing.templateKey;
   const nextProductType = input.productType ?? existing.productType;
+  if (nextProductType !== existing.productType) {
+    throw new Error("PRODUCT_TYPE_LOCKED");
+  }
+
   if (nextProductType === "coded_template") {
     const existingTemplateProduct = await getProductUsingTemplateKey({
       templateKey: nextTemplateKey,

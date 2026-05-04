@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   Flag,
   MessageCircle,
@@ -44,6 +45,7 @@ import type {
 import type { RealtimeStatus } from "@/features/realtime/types";
 import { adminApi } from "@/lib/api-client.admin";
 import { customerApi } from "@/lib/api-client.customer";
+import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -106,6 +108,10 @@ type ChatInboxClientProps = {
   initialConversations: ChatConversationSummary[];
   initialConversation: ChatConversationDetail | null;
   assignableAccounts?: ChatAssignableAccount[];
+  chatSettings?: {
+    chatTeamDisplayName: string;
+    supportInboxUsernames: string;
+  };
   mode: "admin" | "customer";
 };
 
@@ -430,8 +436,10 @@ export function ChatInboxClient({
   initialConversations,
   initialConversation,
   assignableAccounts = [],
+  chatSettings,
   mode,
 }: ChatInboxClientProps) {
+  const router = useRouter();
   const isAdmin = mode === "admin" && isAdminRole(currentUser.role);
   const chatApi = isAdmin ? adminApi : customerApi;
   const [conversations, setConversations] = useState(() => sortConversationSummaries(initialConversations));
@@ -458,7 +466,10 @@ export function ChatInboxClient({
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [generalSettingsDialogOpen, setGeneralSettingsDialogOpen] = useState(false);
   const [settingsSection, setSettingsSection] = useState<"overview" | "members" | "workflow" | "realtime">("overview");
-  const [generalSettingsSection, setGeneralSettingsSection] = useState<"overview" | "quickReplies" | "composer">("overview");
+  const [generalSettingsSection, setGeneralSettingsSection] = useState<"overview" | "support" | "quickReplies" | "composer">("overview");
+  const [chatTeamDisplayNameInput, setChatTeamDisplayNameInput] = useState(chatSettings?.chatTeamDisplayName ?? "PinkLove");
+  const [supportInboxUsernamesInput, setSupportInboxUsernamesInput] = useState(chatSettings?.supportInboxUsernames ?? "");
+  const [isSavingChatSettings, setIsSavingChatSettings] = useState(false);
   const [groupTitle, setGroupTitle] = useState("");
   const [supportRequestCategory, setSupportRequestCategory] = useState<ChatSupportRequestCategory>(() =>
     getDefaultSupportRequestCategory(currentUser.role)
@@ -876,6 +887,25 @@ export function ChatInboxClient({
       window.localStorage.setItem(ADMIN_QUICK_REPLIES_STORAGE_KEY, ADMIN_QUICK_REPLIES.join("\n"));
     }
     toast.success("Đã khôi phục mẫu mặc định.");
+  }
+
+  async function handleSaveChatSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSavingChatSettings(true);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      formData.set("section", "chat");
+      formData.set("chatTeamDisplayName", chatTeamDisplayNameInput);
+      formData.set("supportInboxUsernames", supportInboxUsernamesInput);
+      const result = await adminApi.updateConfig(formData);
+      toast.success(result.message ?? "Đã lưu cài đặt chat.");
+      finishMutation(router, result, { redirect: false, refresh: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể lưu cài đặt chat.");
+    } finally {
+      setIsSavingChatSettings(false);
+    }
   }
 
   async function handleCreateGroup(event: React.FormEvent<HTMLFormElement>) {
@@ -1933,6 +1963,7 @@ export function ChatInboxClient({
                 <nav className="flex gap-2 overflow-x-auto md:flex-col md:overflow-visible">
                   {[
                     { id: "overview", label: "Tổng quan" },
+                    { id: "support", label: "Hỗ trợ" },
                     { id: "quickReplies", label: "Mẫu sẵn" },
                     { id: "composer", label: "Composer" },
                   ].map((item) => (
@@ -1964,10 +1995,8 @@ export function ChatInboxClient({
                           <p className="mt-1 font-medium">{quickReplies.length}</p>
                         </div>
                         <div className="rounded-md border p-3">
-                          <p className="text-xs uppercase text-muted-foreground">Composer chung</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Khung sẵn để thêm các cấu hình chung cho form chat ở các bước tiếp theo.
-                          </p>
+                          <p className="text-xs uppercase text-muted-foreground">Tên đội chat</p>
+                          <p className="mt-1 font-medium">{chatTeamDisplayNameInput || "PinkLove"}</p>
                         </div>
                       </div>
                       <div className="rounded-md border p-3">
@@ -1990,6 +2019,43 @@ export function ChatInboxClient({
                         </div>
                       </div>
                     </div>
+                  ) : null}
+
+                  {generalSettingsSection === "support" ? (
+                    <form onSubmit={handleSaveChatSettings} className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Chat Team Name</label>
+                        <Input
+                          name="chatTeamDisplayName"
+                          value={chatTeamDisplayNameInput}
+                          onChange={(event) => setChatTeamDisplayNameInput(event.target.value)}
+                          placeholder="PinkLove"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Tên phía khách hàng sẽ luôn nhìn thấy trong khung chat, bất kể account nội bộ nào đang trả lời.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Support Inbox Accounts</label>
+                        <textarea
+                          name="supportInboxUsernames"
+                          value={supportInboxUsernamesInput}
+                          onChange={(event) => setSupportInboxUsernamesInput(event.target.value)}
+                          className="min-h-48 w-full resize-y rounded-md border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                          placeholder="admin"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Danh sách username admin sẽ tự động được thêm vào hội thoại hỗ trợ mới. Nhập mỗi dòng một username; để trống sẽ dùng admin đầu tiên.
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button type="submit" disabled={isSavingChatSettings}>
+                          {isSavingChatSettings ? "Đang lưu..." : "Lưu cài đặt chat"}
+                        </Button>
+                      </div>
+                    </form>
                   ) : null}
 
                   {generalSettingsSection === "quickReplies" ? (

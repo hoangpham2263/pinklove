@@ -1,73 +1,66 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROUTES } from "@/lib/routes";
-import type { EcommercePaymentMethodSettings } from "@/lib/system-settings";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { ROUTES } from"@/lib/routes";
+import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
 type PaymentMethodEditorFormProps = {
   method?: EcommercePaymentMethodSettings;
   initialCategory?: EcommercePaymentMethodSettings["category"];
 };
 
-const PROVIDER_PRESETS = [
-  "manual_bank_transfer",
-  "cash",
-  "stripe",
-  "paypal",
-  "momo",
-  "vnpay",
-  "zalopay",
-  "onepay",
-  "mock",
+const PROVIDER_PRESETS = ["manual_bank_transfer","cash","stripe","paypal","momo","pay2s","vnpay","zalopay","onepay","mock",
 ];
 
 const CATEGORY_DEFAULTS: Record<
   EcommercePaymentMethodSettings["category"],
-  Pick<EcommercePaymentMethodSettings, "provider" | "type">
+  Pick<EcommercePaymentMethodSettings,"provider" |"type">
 > = {
   manual: {
-    provider: "manual_bank_transfer",
-    type: "manual",
+    provider:"manual_bank_transfer",
+    type:"manual",
   },
   offline: {
-    provider: "cash",
-    type: "offline",
+    provider:"cash",
+    type:"offline",
   },
   gateway: {
-    provider: "",
-    type: "redirect",
+    provider:"",
+    type:"redirect",
   },
 };
 
 function getCategoryName(category: EcommercePaymentMethodSettings["category"]) {
   switch (category) {
-    case "offline":
-      return "Thanh toán trực tiếp / COD";
-    case "gateway":
-      return "Cổng thanh toán trực tuyến";
+    case"offline":
+      return"Thanh toán trực tiếp / COD";
+    case"gateway":
+      return"Cổng thanh toán trực tuyến";
     default:
-      return "Chuyển khoản / đối soát";
+      return"Chuyển khoản / đối soát";
   }
 }
 
-export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }: PaymentMethodEditorFormProps) {
+export function PaymentMethodEditorForm({ method, initialCategory ="gateway" }: PaymentMethodEditorFormProps) {
   const isNew = !method;
   const category = method?.category ?? initialCategory;
   const defaults = CATEGORY_DEFAULTS[category];
   const provider = method?.provider ?? defaults.provider;
   const type = method?.type ?? defaults.type;
   const showCategorySelect = !isNew;
-  const showProviderField = !isNew || category === "gateway";
-  const showTypeField = !isNew || category === "gateway";
-  const showBankFields = category === "manual";
+  const showProviderField = !isNew || category ==="gateway";
+  const showTypeField = !isNew || category ==="gateway";
+  const showBankFields = category ==="manual";
+  const showPay2sFields = provider ==="pay2s" || method?.code ==="pay2s";
+  const showVnpayFields = provider ==="vnpay" || method?.code ==="vnpay";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isNew ? "Thêm phương thức thanh toán" : `Sửa ${method.label}`}</CardTitle>
+        <CardTitle>{isNew ?"Thêm phương thức thanh toán" : `Sửa ${method.label}`}</CardTitle>
       </CardHeader>
       <CardContent>
         <form action={ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE} method="POST" className="space-y-5">
-          <input type="hidden" name="originalCode" value={method?.code ?? ""} />
+          <input type="hidden" name="originalCode" value={method?.code ??""} />
           {!showCategorySelect ? <input type="hidden" name="category" value={category} /> : null}
           {!showProviderField ? <input type="hidden" name="provider" value={provider} /> : null}
           {!showTypeField ? <input type="hidden" name="type" value={type} /> : null}
@@ -75,26 +68,26 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
           <label className="flex items-start gap-3 rounded-md border p-4">
             <input type="checkbox" name="enabled" defaultChecked={method?.enabled ?? true} className="mt-1" />
             <div>
-              <p className="font-medium">Bật phương thức</p>
+              <p>Bật phương thức</p>
               <p className="text-muted-foreground">Phương thức đang bật sẽ xuất hiện ở checkout nếu phù hợp điều kiện đơn hàng.</p>
             </div>
           </label>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">
-              <label className="font-medium">Code</label>
+              <label>Code</label>
               <input
                 name="code"
-                defaultValue={method?.code ?? ""}
+                defaultValue={method?.code ??""}
                 placeholder="stripe_card"
                 required
                 className="h-10 w-full rounded-md border bg-background px-3"
               />
-              <p className="text-xs text-muted-foreground">Không nên đổi code sau khi đã có order thật.</p>
+              <p className="text-muted-foreground">Không nên đổi code sau khi đã có order thật.</p>
             </div>
             {showCategorySelect ? (
               <div className="space-y-2">
-                <label className="font-medium">Nhóm chính</label>
+                <label>Nhóm chính</label>
                 <select
                   name="category"
                   defaultValue={category}
@@ -104,22 +97,22 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
                   <option value="offline">Thanh toán trực tiếp / COD</option>
                   <option value="gateway">Cổng thanh toán trực tuyến</option>
                 </select>
-                <p className="text-xs text-muted-foreground">Giống WooCommerce: chọn nhóm chính trước, sau đó thêm nhà cung cấp bên trong.</p>
+                <p className="text-muted-foreground">Giống WooCommerce: chọn nhóm chính trước, sau đó thêm nhà cung cấp bên trong.</p>
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="font-medium">Nhóm chính</p>
-                <div className="flex h-10 items-center rounded-md border bg-muted px-3 text-sm">
+                <p>Nhóm chính</p>
+                <div className="flex h-10 items-center rounded-md border bg-muted px-3">
                   {getCategoryName(category)}
                 </div>
-                <p className="text-xs text-muted-foreground">Form này chỉ hiển thị các trường cần cho nhóm đã chọn.</p>
+                <p className="text-muted-foreground">Form này chỉ hiển thị các trường cần cho nhóm đã chọn.</p>
               </div>
             )}
             <div className="space-y-2">
-              <label className="font-medium">Tên hiển thị</label>
+              <label>Tên hiển thị</label>
               <input
                 name="label"
-                defaultValue={method?.label ?? ""}
+                defaultValue={method?.label ??""}
                 placeholder="Thẻ quốc tế"
                 required
                 className="h-10 w-full rounded-md border bg-background px-3"
@@ -127,7 +120,7 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
             </div>
             {showProviderField ? (
               <div className="space-y-2">
-                <label className="font-medium">Nhà cung cấp</label>
+                <label>Nhà cung cấp</label>
                 <input
                   name="provider"
                   defaultValue={provider}
@@ -144,7 +137,7 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
             ) : null}
             {showTypeField ? (
               <div className="space-y-2">
-                <label className="font-medium">Kiểu xử lý</label>
+                <label>Kiểu xử lý</label>
                 <select
                   name="type"
                   defaultValue={type}
@@ -162,15 +155,15 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
 
           <div className="grid gap-4 md:grid-cols-[240px_minmax(0,1fr)]">
             <div className="space-y-2">
-              <label className="font-medium">Điều kiện vận chuyển</label>
+              <label>Điều kiện vận chuyển</label>
               <select
                 name="requiresShipping"
                 defaultValue={
                   method?.requiresShipping === true
-                    ? "shipping"
+                    ?"shipping"
                     : method?.requiresShipping === false
-                      ? "no_shipping"
-                      : "all"
+                      ?"no_shipping"
+                      :"all"
                 }
                 className="h-10 w-full rounded-md border bg-background px-3"
               >
@@ -180,20 +173,20 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
               </select>
             </div>
             <div className="space-y-2">
-              <label className="font-medium">Mô tả ngắn tại checkout</label>
+              <label>Mô tả ngắn tại checkout</label>
               <input
                 name="description"
-                defaultValue={method?.description ?? ""}
+                defaultValue={method?.description ??""}
                 className="h-10 w-full rounded-md border bg-background px-3"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="font-medium">Hướng dẫn sau khi chọn phương thức</label>
+            <label>Hướng dẫn sau khi chọn phương thức</label>
             <textarea
               name="instructions"
-              defaultValue={method?.instructions ?? ""}
+              defaultValue={method?.instructions ??""}
               className="min-h-32 w-full rounded-md border bg-background px-3 py-2"
             />
           </div>
@@ -201,42 +194,157 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
           {showBankFields ? (
             <div className="space-y-4 rounded-md border p-4">
               <div>
-                <h2 className="font-semibold">Thông tin nhận thanh toán</h2>
-                <p className="text-sm text-muted-foreground">
+                <h2>Thông tin nhận thanh toán</h2>
+                <p className="text-muted-foreground">
                   Dùng cho chuyển khoản ngân hàng, VietQR hoặc phương thức cần đối soát thủ công.
                 </p>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
-                  <label className="font-medium">Tên ngân hàng</label>
+                  <label>Tên ngân hàng</label>
                   <input
                     name="bankName"
-                    defaultValue={method?.bankName ?? ""}
+                    defaultValue={method?.bankName ??""}
                     className="h-10 w-full rounded-md border bg-background px-3"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-medium">Mã ngân hàng VietQR</label>
+                  <label>Mã ngân hàng VietQR</label>
                   <input
                     name="bankQrBankId"
-                    defaultValue={method?.bankQrBankId ?? ""}
+                    defaultValue={method?.bankQrBankId ??""}
                     className="h-10 w-full rounded-md border bg-background px-3"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-medium">Số tài khoản</label>
+                  <label>Số tài khoản</label>
                   <input
                     name="bankAccountNumber"
-                    defaultValue={method?.bankAccountNumber ?? ""}
+                    defaultValue={method?.bankAccountNumber ??""}
                     className="h-10 w-full rounded-md border bg-background px-3"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="font-medium">Chủ tài khoản</label>
+                  <label>Chủ tài khoản</label>
                   <input
                     name="bankAccountName"
-                    defaultValue={method?.bankAccountName ?? ""}
+                    defaultValue={method?.bankAccountName ??""}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {showPay2sFields ? (
+            <div className="space-y-4 rounded-md border p-4">
+              <div>
+                <h2>Cấu hình Pay2S</h2>
+                <p className="text-muted-foreground">
+                  Cấu hình này lưu theo phương thức thanh toán Pay2S. Dùng sandbox endpoint để demo workflow thanh toán.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label>API Endpoint</label>
+                  <input
+                    name="pay2sEndpoint"
+                    defaultValue={method?.pay2sEndpoint ??"https://sandbox-payment.pay2s.vn"}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>Request Type</label>
+                  <input
+                    name="pay2sRequestType"
+                    defaultValue={method?.pay2sRequestType ??"pay2s"}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>Partner Code</label>
+                  <input
+                    name="pay2sPartnerCode"
+                    defaultValue={method?.pay2sPartnerCode ??""}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>Partner Name</label>
+                  <input
+                    name="pay2sPartnerName"
+                    defaultValue={method?.pay2sPartnerName ??"PinkLove"}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>Access Key</label>
+                  <input
+                    name="pay2sAccessKey"
+                    defaultValue={method?.pay2sAccessKey ??""}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>Secret Key</label>
+                  <input
+                    name="pay2sSecretKey"
+                    type="password"
+                    defaultValue={method?.pay2sSecretKey ??""}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label>Bank Accounts</label>
+                <textarea
+                  name="pay2sBankAccounts"
+                  defaultValue={method?.pay2sBankAccounts ??"99999999|ACB"}
+                  placeholder={"99999999|ACB\n88888888|VCB"}
+                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2"
+                />
+                <p className="text-muted-foreground">
+                  Mỗi dòng gồm số tài khoản và mã ngân hàng, phân tách bằng dấu |. Ví dụ: 99999999|ACB.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {showVnpayFields ? (
+            <div className="space-y-4 rounded-md border p-4">
+              <div>
+                <h2>Cấu hình VNPAY</h2>
+                <p className="text-muted-foreground">
+                  Cấu hình này lưu theo phương thức thanh toán VNPAY, không dùng biến môi trường.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label>Payment URL</label>
+                  <input
+                    name="vnpayPaymentUrl"
+                    defaultValue={method?.vnpayPaymentUrl ??"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label>TMN Code</label>
+                  <input
+                    name="vnpayTmnCode"
+                    defaultValue={method?.vnpayTmnCode ??""}
+                    className="h-10 w-full rounded-md border bg-background px-3"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label>Hash Secret</label>
+                  <input
+                    name="vnpayHashSecret"
+                    type="password"
+                    defaultValue={method?.vnpayHashSecret ??""}
                     className="h-10 w-full rounded-md border bg-background px-3"
                   />
                 </div>
@@ -245,7 +353,7 @@ export function PaymentMethodEditorForm({ method, initialCategory = "gateway" }:
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit">{isNew ? "Thêm phương thức" : "Lưu phương thức"}</Button>
+            <Button type="submit">{isNew ?"Thêm phương thức" :"Lưu phương thức"}</Button>
             <Button variant="outline" render={<a href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Quay lại Payment Methods</a>} />
           </div>
         </form>

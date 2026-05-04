@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { applyGatewayPaymentResult } from "@/features/ecommerce/server/service";
+import { applyGatewayPaymentResult, getPaymentById } from "@/features/ecommerce/server/service";
+import { getSystemSettings } from "@/lib/system-settings";
 import {
   getVnpayConfig,
   getVnpayQueryParams,
@@ -14,20 +15,25 @@ function vnpayResponse(RspCode: string, Message: string) {
 }
 
 export async function GET(request: Request) {
-  const config = getVnpayConfig();
+  const params = getVnpayQueryParams(new URL(request.url));
+  const paymentId = params.vnp_TxnRef;
+
+  if (!paymentId) {
+    return vnpayResponse("01", "Order not found");
+  }
+
+  const [settings, payment] = await Promise.all([getSystemSettings(), getPaymentById(paymentId)]);
+  const paymentMethod = payment
+    ? settings.ecommerce.paymentMethods.find((method) => method.code === payment.method && method.provider === "vnpay")
+    : null;
+  const config = paymentMethod ? getVnpayConfig(paymentMethod) : null;
+
   if (!config) {
     return vnpayResponse("99", "VNPAY config is missing");
   }
 
-  const params = getVnpayQueryParams(new URL(request.url));
-  const paymentId = params.vnp_TxnRef;
-
   if (!verifyVnpayParams(params, config.hashSecret)) {
     return vnpayResponse("97", "Invalid signature");
-  }
-
-  if (!paymentId) {
-    return vnpayResponse("01", "Order not found");
   }
 
   const result = await applyGatewayPaymentResult({

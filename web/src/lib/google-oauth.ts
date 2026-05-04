@@ -1,25 +1,29 @@
 import"server-only";
 
+import { getSystemSettings } from "@/lib/system-settings";
+
 export type GoogleUserInfo = {
  sub: string;
  email: string;
  name?: string;
 };
 
-function getGoogleEnv() {
- const clientId = process.env.GOOGLE_CLIENT_ID;
- const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
- const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+async function getGoogleConfig() {
+ const settings = await getSystemSettings();
+ const google = settings.thirdParty.googleOAuth;
+ const clientId = google.clientId;
+ const clientSecret = google.clientSecret;
+ const redirectUri = google.redirectUri;
 
- if (!clientId || !clientSecret || !redirectUri) {
+ if (!google.enabled || !clientId || !clientSecret || !redirectUri) {
  throw new Error("GOOGLE_OAUTH_NOT_CONFIGURED");
  }
 
  return { clientId, clientSecret, redirectUri };
 }
 
-export function buildGoogleAuthUrl(state: string): string {
- const { clientId, redirectUri } = getGoogleEnv();
+export async function buildGoogleAuthUrl(state: string): Promise<string> {
+ const { clientId, redirectUri } = await getGoogleConfig();
  const params = new URLSearchParams({
  client_id: clientId,
  redirect_uri: redirectUri,
@@ -34,7 +38,7 @@ export function buildGoogleAuthUrl(state: string): string {
 }
 
 export async function exchangeCodeForGoogleUser(code: string): Promise<GoogleUserInfo> {
- const { clientId, clientSecret, redirectUri } = getGoogleEnv();
+ const { clientId, clientSecret, redirectUri } = await getGoogleConfig();
 
  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
  method:"POST",

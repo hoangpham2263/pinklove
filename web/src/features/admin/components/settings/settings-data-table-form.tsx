@@ -155,7 +155,7 @@ export function SettingsDataTableForm({
                     prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
                   );
                 }}
-                className="min-h-32 w-full rounded-md border bg-background px-3 py-2"
+                className="min-h-24 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 transition-colors outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
               />
             );
           }

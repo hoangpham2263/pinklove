@@ -20,6 +20,7 @@ type FieldsEditorProps = {
   values: Record<string, unknown>;
   onChange?: (name: string, value: unknown) => void;
   productOptions?: FieldsEditorProductOption[];
+  className?: string;
 };
 
 export function FieldsEditor({
@@ -27,6 +28,7 @@ export function FieldsEditor({
   values,
   onChange,
   productOptions = [],
+  className = "pt-4",
 }: FieldsEditorProps) {
   const [activeTab, setActiveTab] = useState(getFieldTabKey(fields[0], 0));
 
@@ -39,7 +41,7 @@ export function FieldsEditor({
     : getFieldTabKey(fields[0], 0);
 
   return (
-    <div className="pt-4">
+    <div className={className}>
       <div className="admin-tab-scroll overflow-x-auto border-b">
         <div className="flex min-w-max items-center gap-2">
           {fields.map((field, index) => {
@@ -183,7 +185,7 @@ function renderField(
           {items.map((item, itemIndex) => (
             <div
               key={`${field.name}-${itemIndex}`}
-              className={cn(options?.compact ? "rounded-xl bg-muted/30 p-4" : "rounded-xl border")}
+              className={cn(options?.compact ? "rounded-xl border border-dashed bg-muted/30 p-4" : "rounded-xl border")}
             >
               <div className={cn("flex items-center justify-between gap-4", options?.compact ? "mb-4" : "border-b p-4")}>
                 <div className="space-y-1">

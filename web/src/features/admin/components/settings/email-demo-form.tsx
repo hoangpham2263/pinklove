@@ -115,7 +115,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           <label htmlFor="html" className="text-sm font-medium">
             Raw HTML
           </label>
-          <Button type="button" variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)}>
+          <Button type="button" variant="outline" size="sm" className="h-8" onClick={() => setIsPreviewOpen(true)}>
             <Eye className="h-4 w-4" />
             Preview
           </Button>
@@ -125,7 +125,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           name="html"
           value={html}
           onChange={(event) => setHtml(event.target.value)}
-          className="min-h-60 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm"
+          className="min-h-60 w-full rounded-lg border border-input bg-background px-3 py-2 font-mono outline-none transition-colors focus:ring-1 focus:ring-ring"
           spellCheck={false}
         />
       </div>
@@ -139,11 +139,11 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           name="text"
           value={text}
           onChange={(event) => setText(event.target.value)}
-          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none transition-colors focus:ring-1 focus:ring-ring"
         />
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-2 rounded-xl border border-dashed bg-muted/30 p-3">
         <div className="text-sm font-medium">Shortcodes</div>
         <div className="grid gap-2 sm:grid-cols-2">
           {EMAIL_SHORTCODES.map((shortcode) => (
@@ -151,10 +151,10 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
               key={shortcode.key}
               type="button"
               onClick={() => copyShortcode(shortcode.token)}
-              className="flex min-w-0 items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left transition-colors hover:bg-muted"
+              className="flex min-w-0 items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2 text-left transition-colors hover:bg-muted"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{shortcode.token}</span>
+                <span className="block truncate font-medium">{shortcode.token}</span>
                 <span className="block truncate text-xs text-muted-foreground">{shortcode.label}</span>
               </span>
               <Copy className="h-4 w-4 shrink-0 text-muted-foreground" />

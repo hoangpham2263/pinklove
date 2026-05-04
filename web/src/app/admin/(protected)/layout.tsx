@@ -10,6 +10,7 @@ import {
   Files,
   Image as ImageIcon,
   LayoutDashboard,
+  ListTree,
   Menu,
   MessageCircle,
   Package,
@@ -50,6 +51,7 @@ const standaloneIconMap = {
   bell: Bell,
   image: ImageIcon,
   "book-open-text": BookOpenText,
+  "list-tree": ListTree,
   users: Users,
   store: Store,
   "badge-percent": BadgePercent,
@@ -132,7 +134,11 @@ export default async function AdminLayout({
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
-        <AdminTopHeader username={user.username} />
+        <AdminTopHeader
+          username={user.username}
+          breadcrumbEnabled={settings.breadcrumb.adminEnabled}
+          breadcrumbSeparator={settings.breadcrumb.adminSeparator}
+        />
         <section className="min-h-screen pt-14">
           {children}
         </section>

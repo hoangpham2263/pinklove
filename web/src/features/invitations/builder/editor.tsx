@@ -1102,7 +1102,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const [zoom, setZoom] = useState(0.56);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const resizeSessionRef = useRef<{ startY: number; startHeight: number } | null>(null);
-  const initialSerializedDocumentRef = useRef(JSON.stringify(ensureBuilderDocument(initialValue)));
+  const initialSerializedDocument = useMemo(() => JSON.stringify(ensureBuilderDocument(initialValue)), [initialValue]);
 
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null;
   const selectedNodes = useMemo(
@@ -1151,7 +1151,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
           points: [position, 0, position, document.height],
         };
       }),
-    [document.height, document.width]
+    [document.height, document.width, notebookGridSize]
   );
 
   const horizontalGridLines = useMemo(
@@ -1408,7 +1408,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
         ref={hiddenDocumentInputRef}
         type="hidden"
         name="builderDocument"
-        defaultValue={initialSerializedDocumentRef.current}
+        defaultValue={initialSerializedDocument}
       />
 
       <BuilderHeader />

@@ -46,6 +46,14 @@ export async function POST(request: Request) {
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
 
+  if (!["coded_template", "builder_template", "general_product"].includes(productType)) {
+    return respondError(request, {
+      error: "invalid_product_type",
+      message: "Luồng tạo sản phẩm không hợp lệ.",
+      location: returnTo || ROUTES.ADMIN.PRODUCT_LIST,
+    });
+  }
+
   if (productType === "coded_template") {
     return respondError(request, {
       error: "template_create_disabled",

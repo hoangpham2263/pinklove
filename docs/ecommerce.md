@@ -74,7 +74,7 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
 For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
 
 1. Add or enable a payment method in admin with stable `code`, gateway `provider`, and `type`.
-2. Add provider-specific credentials in a dedicated secure settings area or environment variables. Do not store secrets in customer-visible method instructions.
+2. Add provider-specific credentials in the provider's admin settings screen. Do not store secrets in customer-visible method instructions or `.env`.
 3. At checkout, create the local order first with pending payment state.
 4. Create the provider session/order/payment intent using local `order.id` or `order.orderNumber` in provider metadata.
 5. Redirect or render the provider UI depending on `type`.
@@ -90,11 +90,10 @@ For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
   - `code`: `vnpay`
   - `provider`: `vnpay`
   - `type`: `Chuyển khách sang cổng thanh toán`
-- Store secrets in environment variables, not in admin payment method fields:
-  - `VNPAY_TMN_CODE`
-  - `VNPAY_HASH_SECRET`
-  - `VNPAY_PAYMENT_URL`, optional; defaults to sandbox `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`
-  - `NEXT_PUBLIC_SITE_URL` or `SITE_URL`, required for VNPAY to call back to the correct public domain
+- Configure gateway credentials in the VNPAY payment method edit screen:
+  - Payment URL, default sandbox: `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`
+  - TMN Code
+  - Hash Secret
 - Configure VNPAY merchant URLs:
   - Return URL: `/api/payments/vnpay/return`
   - IPN URL: `/api/payments/vnpay/ipn`

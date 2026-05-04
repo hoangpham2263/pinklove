@@ -6,6 +6,7 @@ import {
   listChatConversationsForViewer,
 } from "@/features/chat/server/service";
 import { isAdminRole, type UserRole } from "@/lib/roles";
+import { getSystemSettings } from "@/lib/system-settings";
 
 type ChatInboxPageContentProps = {
   currentUser: {
@@ -23,9 +24,10 @@ export async function ChatInboxPageContent({
   className,
 }: ChatInboxPageContentProps) {
   const context = await buildChatViewerContext(currentUser.role);
-  const [conversations, assignableAccounts] = await Promise.all([
+  const [conversations, assignableAccounts, settings] = await Promise.all([
     listChatConversationsForViewer(currentUser.id, context),
     isAdminRole(currentUser.role) ? listChatAssignableAccounts(currentUser.id) : Promise.resolve([]),
+    isAdminRole(currentUser.role) ? getSystemSettings() : Promise.resolve(null),
   ]);
   const initialConversation = conversations[0]
     ? await getChatConversationDetailForViewer(currentUser.id, conversations[0].id, context)
@@ -39,6 +41,7 @@ export async function ChatInboxPageContent({
           initialConversations={conversations}
           initialConversation={initialConversation}
           assignableAccounts={assignableAccounts}
+          chatSettings={settings?.branding}
           mode={mode}
         />
       </div>

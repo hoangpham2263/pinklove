@@ -121,22 +121,20 @@ This file is the repo-wide source of truth.
 
 - Treat `products` as the sellable catalog layer shown to guests.
 - Treat `wedding_sites` as customer-specific invitation instances cloned from a product.
-- `coded_template` products represent fixed coded invitation designs.
-- `builder_template` products represent editable builder starters that customers clone and customize.
-- Each invitation `template_key` may belong to only one catalog product per `product_type`. Do not create multiple products that reuse the same template identity.
+- `coded_template` products represent fixed coded invitation designs and should be created from code/seed only.
+- `builder_template` products represent editable builder starters that customers clone and customize; they can be seeded or created through the builder template flow.
+- `general_product` products represent regular shop/vendor/API products such as paper invitations and add-ons.
+- Guest catalog pages should use fixed product-type scopes first, then category/price/sort filters.
+- Each coded invitation `template_key` should belong to only one catalog product. Do not create multiple products that reuse the same coded template identity.
 
 ## Media
 
 - Media API: `src/app/api/media/route.ts`
 - Reusable picker: `src/features/media/components/media-selector.tsx`
 - Files are stored under `public/uploads/YYYY/MM`.
-- Metadata is stored in `storage/media.json`.
-- Allowed types:
-  - `image/jpeg`
-  - `image/png`
-  - `image/webp`
-  - `image/gif`
-- Maximum upload size is `5MB`.
+- Metadata is stored in PostgreSQL table `media_assets`; do not add file-backed JSON storage for media records.
+- The upload API currently accepts any browser `File` up to `20MB`; add explicit server-side MIME validation in `src/features/media/server/media-store.ts` before documenting a restricted allowlist.
+- Media listing uses paginated DB queries. Keep admin/library callers on `GET /api/media?page=...&limit=...` instead of loading every asset.
 
 ## Styling
 
@@ -166,8 +164,8 @@ This file is the repo-wide source of truth.
 - Treat the docs as describing the repository as it exists now, including incomplete product areas.
 - If a code change affects documented behavior, update the docs in the same task.
 - Database access is raw SQL through `web/src/lib/database.ts`.
-- Media metadata is stored in `web/storage/media.json`.
-- Uploaded files are stored in `web/public/uploads/...`.
+- Media metadata is stored in PostgreSQL table `media_assets`.
+- Uploaded files are stored in `web/public/uploads/YYYY/MM/...`.
 - Public content-page config lives in `web/src/features/pages/registry.ts`.
 - Auth-page config and shared loading logic live in:
   - `web/src/features/auth/page-registry.ts`

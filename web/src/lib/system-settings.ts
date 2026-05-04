@@ -9,6 +9,12 @@ export type BreadcrumbSettings = {
   includeStructuredData: boolean;
   homeLabel: string;
   separator: string;
+  adminEnabled: boolean;
+  adminSeparator: string;
+  customerEnabled: boolean;
+  customerSeparator: string;
+  partnerEnabled: boolean;
+  partnerSeparator: string;
 };
 
 export type SitemapSettings = {
@@ -33,6 +39,7 @@ export type IndexingSettings = {
 
 export type BrandingSettings = {
   siteName: string;
+  siteSlogan: string;
   brandLogo: string;
   chatTeamDisplayName: string;
   supportInboxUsernames: string;
@@ -96,6 +103,16 @@ export type EcommercePaymentMethodSettings = {
   bankQrBankId?: string;
   bankAccountNumber?: string;
   bankAccountName?: string;
+  pay2sEndpoint?: string;
+  pay2sPartnerCode?: string;
+  pay2sPartnerName?: string;
+  pay2sAccessKey?: string;
+  pay2sSecretKey?: string;
+  pay2sBankAccounts?: string;
+  pay2sRequestType?: string;
+  vnpayPaymentUrl?: string;
+  vnpayTmnCode?: string;
+  vnpayHashSecret?: string;
 };
 
 export type InternalProductImportApiSettings = {
@@ -123,6 +140,15 @@ export type EmailSettings = {
   demoRecipient: string;
 };
 
+export type ThirdPartySettings = {
+  googleOAuth: {
+    enabled: boolean;
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+  };
+};
+
 export type SystemSettings = {
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
@@ -133,6 +159,7 @@ export type SystemSettings = {
   ecommerce: EcommerceSettings;
   internalApis: InternalApisSettings;
   email: EmailSettings;
+  thirdParty: ThirdPartySettings;
 };
 
 type BrandingStorageSettings = BrandingSettings & FaviconSettings;
@@ -146,6 +173,7 @@ type SettingRow = {
   commerce_config?: Record<string, unknown> | null;
   internal_api_config?: Record<string, unknown> | null;
   email_config?: Record<string, unknown> | null;
+  third_party_config?: Record<string, unknown> | null;
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -155,6 +183,12 @@ const DEFAULT_SETTINGS: SystemSettings = {
     includeStructuredData: true,
     homeLabel: "Trang chủ",
     separator: "/",
+    adminEnabled: true,
+    adminSeparator: "/",
+    customerEnabled: true,
+    customerSeparator: "/",
+    partnerEnabled: true,
+    partnerSeparator: "/",
   },
   sitemap: {
     enabled: true,
@@ -176,6 +210,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
   },
   branding: {
     siteName: "PinkLove",
+    siteSlogan: "Thiệp cưới online, blog cưới và công cụ cưới hiện đại.",
     brandLogo: "",
     chatTeamDisplayName: "PinkLove",
     supportInboxUsernames: "",
@@ -248,6 +283,20 @@ const DEFAULT_SETTINGS: SystemSettings = {
         requiresShipping: null,
       },
       {
+        code: "pay2s",
+        label: "Pay2S VietQR",
+        description: "Thanh toán qua Pay2S sandbox bằng VietQR/Napas 247.",
+        instructions: "Sau khi đặt hàng, hệ thống sẽ chuyển bạn sang Pay2S để hoàn tất thanh toán.",
+        enabled: false,
+        category: "gateway",
+        provider: "pay2s",
+        type: "redirect",
+        requiresShipping: null,
+        pay2sEndpoint: "https://sandbox-payment.pay2s.vn",
+        pay2sPartnerName: "PinkLove",
+        pay2sRequestType: "pay2s",
+      },
+      {
         code: "vnpay",
         label: "VNPAY",
         description: "Thanh toán qua thẻ ATM nội địa, tài khoản ngân hàng, QR hoặc ví hỗ trợ bởi VNPAY.",
@@ -257,6 +306,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
         provider: "vnpay",
         type: "redirect",
         requiresShipping: null,
+        vnpayPaymentUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
       },
     ],
     shippingAccount: {
@@ -289,6 +339,14 @@ const DEFAULT_SETTINGS: SystemSettings = {
     smtpPassword: "",
     demoRecipient: "",
   },
+  thirdParty: {
+    googleOAuth: {
+      enabled: false,
+      clientId: "",
+      clientSecret: "",
+      redirectUri: "http://localhost:3030/api/auth/google/callback",
+    },
+  },
 };
 
 function mergeRecord<T extends Record<string, unknown>>(base: T, input: Record<string, unknown> | null | undefined): T {
@@ -306,6 +364,12 @@ function parseBreadcrumbSettings(value: Record<string, unknown> | null | undefin
     includeStructuredData: Boolean(merged.includeStructuredData),
     homeLabel: String(merged.homeLabel || DEFAULT_SETTINGS.breadcrumb.homeLabel),
     separator: String(merged.separator || DEFAULT_SETTINGS.breadcrumb.separator),
+    adminEnabled: merged.adminEnabled === undefined ? DEFAULT_SETTINGS.breadcrumb.adminEnabled : Boolean(merged.adminEnabled),
+    adminSeparator: String(merged.adminSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.adminSeparator),
+    customerEnabled: merged.customerEnabled === undefined ? DEFAULT_SETTINGS.breadcrumb.customerEnabled : Boolean(merged.customerEnabled),
+    customerSeparator: String(merged.customerSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.customerSeparator),
+    partnerEnabled: merged.partnerEnabled === undefined ? DEFAULT_SETTINGS.breadcrumb.partnerEnabled : Boolean(merged.partnerEnabled),
+    partnerSeparator: String(merged.partnerSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.partnerSeparator),
   };
 }
 
@@ -341,6 +405,7 @@ function parseBrandingSettings(value: Record<string, unknown> | null | undefined
   const merged = mergeRecord(DEFAULT_SETTINGS.branding as Record<string, unknown>, value);
   return {
     siteName: String(merged.siteName || DEFAULT_SETTINGS.branding.siteName),
+    siteSlogan: String(merged.siteSlogan ?? DEFAULT_SETTINGS.branding.siteSlogan),
     brandLogo: String(merged.brandLogo ?? DEFAULT_SETTINGS.branding.brandLogo),
     chatTeamDisplayName: String(merged.chatTeamDisplayName || merged.siteName || DEFAULT_SETTINGS.branding.chatTeamDisplayName),
     supportInboxUsernames: String(merged.supportInboxUsernames ?? DEFAULT_SETTINGS.branding.supportInboxUsernames),
@@ -413,6 +478,16 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
             bankQrBankId: String(item?.bankQrBankId ?? "").trim(),
             bankAccountNumber: String(item?.bankAccountNumber ?? "").trim(),
             bankAccountName: String(item?.bankAccountName ?? "").trim(),
+            pay2sEndpoint: String(item?.pay2sEndpoint ?? "").trim(),
+            pay2sPartnerCode: String(item?.pay2sPartnerCode ?? "").trim(),
+            pay2sPartnerName: String(item?.pay2sPartnerName ?? "").trim(),
+            pay2sAccessKey: String(item?.pay2sAccessKey ?? "").trim(),
+            pay2sSecretKey: String(item?.pay2sSecretKey ?? ""),
+            pay2sBankAccounts: String(item?.pay2sBankAccounts ?? ""),
+            pay2sRequestType: String(item?.pay2sRequestType ?? "").trim(),
+            vnpayPaymentUrl: String(item?.vnpayPaymentUrl ?? "").trim(),
+            vnpayTmnCode: String(item?.vnpayTmnCode ?? "").trim(),
+            vnpayHashSecret: String(item?.vnpayHashSecret ?? ""),
           };
         })
         .filter((item) => item.code && item.label)
@@ -438,7 +513,9 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
                 : item
           ),
           ...DEFAULT_SETTINGS.ecommerce.paymentMethods.filter(
-            (defaultMethod) => defaultMethod.code === "vnpay" && !configuredPaymentMethods.some((item) => item.code === defaultMethod.code)
+            (defaultMethod) =>
+              (defaultMethod.code === "pay2s" || defaultMethod.code === "vnpay") &&
+              !configuredPaymentMethods.some((item) => item.code === defaultMethod.code)
           ),
         ]
       : DEFAULT_SETTINGS.ecommerce.paymentMethods.map((item) => ({
@@ -513,24 +590,12 @@ function parseInternalApisSettings(value: Record<string, unknown> | null | undef
     DEFAULT_SETTINGS.internalApis.productsImport as unknown as Record<string, unknown>,
     productsImportInput
   );
-  const allowedProductTypes = Array.isArray(productsImportMerged.allowedProductTypes)
-    ? productsImportMerged.allowedProductTypes
-        .map((value) => String(value))
-        .filter(
-          (value): value is ProductType =>
-            value === "coded_template" || value === "builder_template" || value === "general_product"
-        )
-    : DEFAULT_SETTINGS.internalApis.productsImport.allowedProductTypes;
-
   return {
     productsImport: {
       enabled: Boolean(productsImportMerged.enabled),
       token: String(productsImportMerged.token ?? ""),
       defaultStatus: productsImportMerged.defaultStatus === "published" ? "published" : "draft",
-      allowedProductTypes:
-        allowedProductTypes.length > 0
-          ? allowedProductTypes
-          : DEFAULT_SETTINGS.internalApis.productsImport.allowedProductTypes,
+      allowedProductTypes: ["general_product"],
     },
   };
 }
@@ -554,6 +619,27 @@ function parseEmailSettings(value: Record<string, unknown> | null | undefined): 
   };
 }
 
+function parseThirdPartySettings(value: Record<string, unknown> | null | undefined): ThirdPartySettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.thirdParty as unknown as Record<string, unknown>, value);
+  const googleInput =
+    typeof merged.googleOAuth === "object" && merged.googleOAuth
+      ? (merged.googleOAuth as Record<string, unknown>)
+      : {};
+  const googleMerged = mergeRecord(
+    DEFAULT_SETTINGS.thirdParty.googleOAuth as unknown as Record<string, unknown>,
+    googleInput
+  );
+
+  return {
+    googleOAuth: {
+      enabled: Boolean(googleMerged.enabled),
+      clientId: String(googleMerged.clientId ?? "").trim(),
+      clientSecret: String(googleMerged.clientSecret ?? ""),
+      redirectUri: String(googleMerged.redirectUri ?? DEFAULT_SETTINGS.thirdParty.googleOAuth.redirectUri).trim(),
+    },
+  };
+}
+
 export async function getSystemSettings(): Promise<SystemSettings> {
   if (!process.env.DATABASE_URL) {
     return DEFAULT_SETTINGS;
@@ -564,7 +650,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   try {
     const result = await query<SettingRow>(`
       SELECT seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
-      , internal_api_config, email_config
+      , internal_api_config, email_config, third_party_config
       FROM app_settings
       WHERE id = 1
       LIMIT 1
@@ -582,6 +668,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     indexing: parseIndexingSettings(row?.seo_indexing),
     branding: {
       siteName: brandingSettings.siteName,
+      siteSlogan: brandingSettings.siteSlogan,
       brandLogo: brandingSettings.brandLogo,
       chatTeamDisplayName: brandingSettings.chatTeamDisplayName,
       supportInboxUsernames: brandingSettings.supportInboxUsernames,
@@ -594,6 +681,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     ecommerce: parseEcommerceSettings(row?.commerce_config),
     internalApis: parseInternalApisSettings(row?.internal_api_config),
     email: parseEmailSettings(row?.email_config),
+    thirdParty: parseThirdPartySettings(row?.third_party_config),
   };
 }
 
@@ -750,6 +838,30 @@ export async function updateEmailSettings(input: Partial<EmailSettings>) {
     `
     UPDATE app_settings
     SET email_config = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 1
+    `,
+    [JSON.stringify(next)]
+  );
+
+  return next;
+}
+
+export async function updateThirdPartySettings(input: Partial<ThirdPartySettings>) {
+  const current = await getSystemSettings();
+  const next: ThirdPartySettings = {
+    ...current.thirdParty,
+    ...input,
+    googleOAuth: {
+      ...current.thirdParty.googleOAuth,
+      ...input.googleOAuth,
+    },
+  };
+
+  await query(
+    `
+    UPDATE app_settings
+    SET third_party_config = $1::jsonb,
         updated_at = NOW()
     WHERE id = 1
     `,

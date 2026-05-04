@@ -1,6 +1,6 @@
 import "server-only";
 
-import { listMediaAssets } from "@/features/media/server/media-store";
+import { findMediaAssetByIdOrFileName } from "@/features/media/server/media-store";
 import { absoluteUrl, getCurrentSiteUrl } from "@/lib/seo";
 
 type MediaReference =
@@ -54,8 +54,7 @@ export async function resolveMediaUrl(input: unknown): Promise<string | undefine
       return value;
     }
 
-    const items = await listMediaAssets();
-    const matched = items.find((item) => item.id === value || item.fileName === value);
+    const matched = await findMediaAssetByIdOrFileName(value);
     return matched?.url;
   }
 
@@ -71,8 +70,7 @@ export async function resolveMediaUrl(input: unknown): Promise<string | undefine
     }
 
     if (typeof value.id === "string" && value.id.trim()) {
-      const items = await listMediaAssets();
-      const matched = items.find((item) => item.id === value.id);
+      const matched = await findMediaAssetByIdOrFileName(value.id);
       return matched?.url;
     }
 

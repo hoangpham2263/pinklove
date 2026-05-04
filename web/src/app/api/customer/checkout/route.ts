@@ -59,11 +59,11 @@ export async function POST(request: Request) {
     });
   }
 
-  const vnpayConfig = selectedPaymentMethod.provider === "vnpay" ? getVnpayConfig() : null;
+  const vnpayConfig = selectedPaymentMethod.provider === "vnpay" ? getVnpayConfig(selectedPaymentMethod) : null;
   if (selectedPaymentMethod.provider === "vnpay" && !vnpayConfig) {
     return respondError(request, {
       error: "vnpay_not_configured",
-      message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY_TMN_CODE và VNPAY_HASH_SECRET.",
+      message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY trong Payment Methods.",
       location: ROUTES.CHECKOUT.INDEX,
     });
   }
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       if (!vnpayConfig || !primaryPayment) {
         return respondError(request, {
           error: "vnpay_not_configured",
-          message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY_TMN_CODE và VNPAY_HASH_SECRET.",
+          message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY trong Payment Methods.",
           location: ROUTES.CHECKOUT.SUCCESS(order.orderNumber),
         });
       }

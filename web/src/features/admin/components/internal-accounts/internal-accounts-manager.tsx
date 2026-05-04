@@ -19,7 +19,6 @@ import {
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { type InternalAccount } from "@/lib/internal-accounts";
-import { ROUTES } from "@/lib/routes";
 
 type InternalAccountsManagerProps = {
   accounts: InternalAccount[];

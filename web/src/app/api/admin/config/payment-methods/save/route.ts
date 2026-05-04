@@ -121,6 +121,16 @@ export async function POST(request: Request) {
     bankQrBankId: String(formData.get("bankQrBankId") ?? "").trim(),
     bankAccountNumber: String(formData.get("bankAccountNumber") ?? "").trim(),
     bankAccountName: String(formData.get("bankAccountName") ?? "").trim(),
+    pay2sEndpoint: String(formData.get("pay2sEndpoint") ?? "").trim(),
+    pay2sPartnerCode: String(formData.get("pay2sPartnerCode") ?? "").trim(),
+    pay2sPartnerName: String(formData.get("pay2sPartnerName") ?? "").trim(),
+    pay2sAccessKey: String(formData.get("pay2sAccessKey") ?? "").trim(),
+    pay2sSecretKey: String(formData.get("pay2sSecretKey") ?? ""),
+    pay2sBankAccounts: String(formData.get("pay2sBankAccounts") ?? ""),
+    pay2sRequestType: String(formData.get("pay2sRequestType") ?? "").trim(),
+    vnpayPaymentUrl: String(formData.get("vnpayPaymentUrl") ?? "").trim(),
+    vnpayTmnCode: String(formData.get("vnpayTmnCode") ?? "").trim(),
+    vnpayHashSecret: String(formData.get("vnpayHashSecret") ?? ""),
   };
 
   const existingIndex = originalCode ? currentMethods.findIndex((method) => method.code === originalCode) : -1;

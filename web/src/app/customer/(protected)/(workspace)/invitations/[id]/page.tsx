@@ -6,6 +6,7 @@ import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationByIdForUser } from "@/features/invitations/server/service";
 import { InvitationEditorForm } from "@/features/invitations/components/invitation-editor-form";
+import { userHasActiveEntitlement } from "@/features/ecommerce/server/service";
 
 type InvitationEditorPageProps = {
   params: Promise<{ id: string }>;
@@ -25,6 +26,10 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
   if (invitation.siteType === "builder_template") {
     redirect(ROUTES.CUSTOMER.DESIGN(invitation.id));
   }
+  const canPublish = invitation.productId
+    ? await userHasActiveEntitlement(user.id, invitation.productId)
+    : true;
+
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -41,7 +46,7 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
           <Button render={<Link href={`${publicHref}?preview=1`}>Preview</Link>} />
         </div>
       </div>
-      <InvitationEditorForm site={invitation} publicHref={publicHref} />
+      <InvitationEditorForm site={invitation} publicHref={publicHref} canPublish={canPublish} />
     </section>
   );
 }

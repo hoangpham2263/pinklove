@@ -15,5 +15,5 @@ export async function generateMetadata({ searchParams }: BuilderLandingPageProps
 
 export default async function BuilderLandingPage({ searchParams }: BuilderLandingPageProps) {
   const page = await loadManagedPageForRoute("tu-tao-thiep", "/builder", searchParams);
-  return renderManagedPage(page);
+  return renderManagedPage(page, searchParams);
 }

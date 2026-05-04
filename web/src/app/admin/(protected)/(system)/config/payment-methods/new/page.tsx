@@ -1,27 +1,27 @@
-import Link from "next/link";
+import Link from"next/link";
 
-import { Button } from "@/components/ui/button";
-import { PaymentMethodEditorForm } from "@/features/ecommerce/admin/payment-method-editor-form";
-import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
-import type { EcommercePaymentMethodSettings } from "@/lib/system-settings";
+import { Button } from"@/components/ui/button";
+import { PaymentMethodEditorForm } from"@/features/ecommerce/admin/payment-method-editor-form";
+import { requireAdmin } from"@/lib/auth";
+import { ROUTES } from"@/lib/routes";
+import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
 function parseInitialCategory(value: string | string[] | undefined): EcommercePaymentMethodSettings["category"] {
   const normalized = Array.isArray(value) ? value[0] : value;
-  if (normalized === "manual" || normalized === "offline" || normalized === "gateway") {
+  if (normalized ==="manual" || normalized ==="offline" || normalized ==="gateway") {
     return normalized;
   }
-  return "gateway";
+  return"gateway";
 }
 
 function getCategoryDescription(category: EcommercePaymentMethodSettings["category"]) {
   switch (category) {
-    case "manual":
-      return "Thêm phương thức chuyển khoản, VietQR hoặc thanh toán cần nhân sự đối soát.";
-    case "offline":
-      return "Thêm phương thức COD, tiền mặt, thanh toán tại studio hoặc thu trực tiếp khi bàn giao.";
+    case"manual":
+      return"Thêm phương thức chuyển khoản, VietQR hoặc thanh toán cần nhân sự đối soát.";
+    case"offline":
+      return"Thêm phương thức COD, tiền mặt, thanh toán tại studio hoặc thu trực tiếp khi bàn giao.";
     default:
-      return "Thêm cổng thanh toán trực tuyến như Stripe, PayPal, MoMo, VNPAY hoặc bên thứ ba khác.";
+      return"Thêm cổng thanh toán trực tuyến như Stripe, PayPal, MoMo, VNPAY hoặc bên thứ ba khác.";
   }
 }
 
@@ -41,8 +41,8 @@ export default async function NewConfigPaymentMethodPage({
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Thêm phương thức thanh toán</h1>
-        <p className="text-sm text-muted-foreground">{getCategoryDescription(initialCategory)}</p>
+        <h1>Thêm phương thức thanh toán</h1>
+        <p className="text-muted-foreground">{getCategoryDescription(initialCategory)}</p>
       </div>
 
       <PaymentMethodEditorForm initialCategory={initialCategory} />

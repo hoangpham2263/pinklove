@@ -11,7 +11,9 @@ import {
   updateInternalProductImportApiSettings,
   updateOpenGraphSettings,
   updateSitemapSettings,
+  updateThirdPartySettings,
 } from "@/lib/system-settings";
+import type { BreadcrumbSettings } from "@/lib/system-settings";
 
 export const runtime = "nodejs";
 
@@ -30,13 +32,33 @@ export async function POST(request: Request) {
 
   try {
     if (section === "breadcrumb") {
-      await updateBreadcrumbSettings({
-        enabled: isChecked(formData, "enabled"),
-        showOnPage: isChecked(formData, "showOnPage"),
-        includeStructuredData: isChecked(formData, "includeStructuredData"),
-        homeLabel: String(formData.get("homeLabel") ?? "").trim() || "Trang chủ",
-        separator: String(formData.get("separator") ?? "").trim() || "/",
-      });
+      const breadcrumbInput: Partial<BreadcrumbSettings> = {};
+
+      if (formData.has("enabled")) breadcrumbInput.enabled = isChecked(formData, "enabled");
+      if (formData.has("showOnPage")) breadcrumbInput.showOnPage = isChecked(formData, "showOnPage");
+      if (formData.has("includeStructuredData")) {
+        breadcrumbInput.includeStructuredData = isChecked(formData, "includeStructuredData");
+      }
+      if (formData.has("homeLabel")) {
+        breadcrumbInput.homeLabel = String(formData.get("homeLabel") ?? "").trim() || "Trang chủ";
+      }
+      if (formData.has("separator")) {
+        breadcrumbInput.separator = String(formData.get("separator") ?? "").trim() || "/";
+      }
+      if (formData.has("adminEnabled")) breadcrumbInput.adminEnabled = isChecked(formData, "adminEnabled");
+      if (formData.has("adminSeparator")) {
+        breadcrumbInput.adminSeparator = String(formData.get("adminSeparator") ?? "").trim() || "/";
+      }
+      if (formData.has("customerEnabled")) breadcrumbInput.customerEnabled = isChecked(formData, "customerEnabled");
+      if (formData.has("customerSeparator")) {
+        breadcrumbInput.customerSeparator = String(formData.get("customerSeparator") ?? "").trim() || "/";
+      }
+      if (formData.has("partnerEnabled")) breadcrumbInput.partnerEnabled = isChecked(formData, "partnerEnabled");
+      if (formData.has("partnerSeparator")) {
+        breadcrumbInput.partnerSeparator = String(formData.get("partnerSeparator") ?? "").trim() || "/";
+      }
+
+      await updateBreadcrumbSettings(breadcrumbInput);
 
       return respondSuccess(request, { message: "Đã lưu cài đặt breadcrumb." });
     }
@@ -71,12 +93,20 @@ export async function POST(request: Request) {
       return respondSuccess(request, { message: "Đã lưu cài đặt indexing." });
     }
 
+    if (section === "chat") {
+      await updateBrandingSettings({
+        chatTeamDisplayName: String(formData.get("chatTeamDisplayName") ?? "").trim() || "PinkLove",
+        supportInboxUsernames: String(formData.get("supportInboxUsernames") ?? "").trim(),
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cài đặt chat." });
+    }
+
     if (section === "branding") {
       await updateBrandingSettings({
         siteName: String(formData.get("siteName") ?? "").trim() || "PinkLove",
+        siteSlogan: String(formData.get("siteSlogan") ?? "").trim(),
         brandLogo: String(formData.get("brandLogo") ?? "").trim(),
-        chatTeamDisplayName: String(formData.get("chatTeamDisplayName") ?? "").trim() || "PinkLove",
-        supportInboxUsernames: String(formData.get("supportInboxUsernames") ?? "").trim(),
         siteFavicon: String(formData.get("siteFavicon") ?? "").trim(),
         appleTouchIcon: String(formData.get("appleTouchIcon") ?? "").trim(),
       });
@@ -149,20 +179,25 @@ export async function POST(request: Request) {
       return respondSuccess(request, { message: "Đã lưu cấu hình email." });
     }
 
-    if (section === "internal_api_products") {
-      const allowedProductTypes = formData
-        .getAll("allowedProductTypes")
-        .map((value) => String(value))
-        .filter(
-          (value): value is "coded_template" | "builder_template" | "general_product" =>
-            value === "coded_template" || value === "builder_template" || value === "general_product"
-        );
+    if (section === "third_party") {
+      await updateThirdPartySettings({
+        googleOAuth: {
+          enabled: isChecked(formData, "googleOAuthEnabled"),
+          clientId: String(formData.get("googleClientId") ?? "").trim(),
+          clientSecret: String(formData.get("googleClientSecret") ?? ""),
+          redirectUri: String(formData.get("googleRedirectUri") ?? "").trim(),
+        },
+      });
 
+      return respondSuccess(request, { message: "Đã lưu cấu hình bên thứ 3." });
+    }
+
+    if (section === "internal_api_products") {
       await updateInternalProductImportApiSettings({
         enabled: isChecked(formData, "enabled"),
         token: String(formData.get("token") ?? "").trim(),
         defaultStatus: formData.get("defaultStatus") === "published" ? "published" : "draft",
-        allowedProductTypes: allowedProductTypes.length > 0 ? allowedProductTypes : ["general_product"],
+        allowedProductTypes: ["general_product"],
       });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình API import sản phẩm." });

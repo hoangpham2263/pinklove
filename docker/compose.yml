@@ -59,9 +59,6 @@ services:
       NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: "1"
       WATCHPACK_POLLING: "true"
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3030/api/auth/google/callback}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?INTERNAL_API_SECRET is required}
     depends_on:
       db:
