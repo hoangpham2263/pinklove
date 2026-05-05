@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowUpDown, ExternalLink, FilterX, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -291,7 +291,7 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
@@ -301,29 +301,30 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
           <select
             value={stateFilterValue}
             onChange={(event) => table.getColumn("enabled")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="enabled">Active</option>
             <option value="disabled">Disabled</option>
           </select>
-        </div>
-
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           {hasFilters ? (
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
               onClick={() => {
                 setGlobalFilter("");
                 table.getColumn("enabled")?.setFilterValue("");
               }}
             >
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
+              <FilterX className="h-4 w-4" />
             </Button>
           ) : null}
+        </div>
+
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Button type="button" className="h-9" onClick={createRule}>
             <Plus className="h-4 w-4" />
             Thêm redirect

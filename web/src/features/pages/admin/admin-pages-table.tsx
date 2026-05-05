@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, Pencil, X } from "lucide-react";
+import { ArrowUpDown, ExternalLink, FilterX, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -207,7 +207,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
   return (
     <>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
@@ -217,12 +217,26 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           <select
             value={statusFilterValue}
             onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
           >
             <option value="">Tất cả trạng thái</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
           </select>
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => {
+                setGlobalFilter("");
+                table.getColumn("status")?.setFilterValue("");
+              }}
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -257,7 +271,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               name="bulkAction"
               value={bulkAction}
               onChange={(event) => setBulkAction(event.target.value)}
-              className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+              className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none"
             >
               <option value="">Tác vụ hàng loạt</option>
               <option value="published">Published</option>
@@ -267,20 +281,6 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               Áp dụng
             </Button>
           </NativeForm>
-
-          {hasFilters ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("status")?.setFilterValue("");
-              }}
-            >
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
         </div>
       </div>
 

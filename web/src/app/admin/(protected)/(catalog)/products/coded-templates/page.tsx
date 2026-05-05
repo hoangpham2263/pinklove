@@ -14,8 +14,8 @@ export default async function AdminCodedProductsPage({ searchParams }: AdminCode
     <AdminProductsPageView
       query={query}
       fixedProductType="coded_template"
-      title="Quản lý mẫu coded"
-      description="Trang quản lý riêng cho toàn bộ sản phẩm loại coded template."
+      title=""
+      description=""
       returnTo={ROUTES.ADMIN.PRODUCT_LIST_CODED}
     />
   );

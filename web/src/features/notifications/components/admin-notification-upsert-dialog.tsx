@@ -144,6 +144,7 @@ export function AdminNotificationUpsertDialog({
                 name="title"
                 placeholder="Ví dụ: Cập nhật đơn hàng mới"
                 defaultValue={notification?.title ?? ""}
+                className="bg-white"
                 required
               />
             </div>
@@ -155,7 +156,7 @@ export function AdminNotificationUpsertDialog({
                 name="body"
                 rows={4}
                 defaultValue={notification?.body ?? ""}
-                className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
                 placeholder="Nội dung hiển thị trong dropdown thông báo."
               />
             </div>
@@ -167,6 +168,7 @@ export function AdminNotificationUpsertDialog({
                 name="linkUrl"
                 placeholder="/customer/orders hoặc /admin/orders/..."
                 defaultValue={notification?.linkUrl ?? ""}
+                className="bg-white"
               />
               <p className="text-xs text-muted-foreground">Chỉ nhận link nội bộ bắt đầu bằng /.</p>
             </div>
@@ -174,7 +176,7 @@ export function AdminNotificationUpsertDialog({
             <div className="space-y-2">
               <p className="text-sm font-medium">Thời điểm gửi</p>
               <div className="grid gap-2 md:grid-cols-3">
-                <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+                <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                   <input
                     type="radio"
                     name="sendMode"
@@ -184,7 +186,7 @@ export function AdminNotificationUpsertDialog({
                   />
                   Bản nháp
                 </label>
-                <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+                <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                   <input
                     type="radio"
                     name="sendMode"
@@ -194,7 +196,7 @@ export function AdminNotificationUpsertDialog({
                   />
                   Gửi ngay
                 </label>
-                <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+                <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                   <input
                     type="radio"
                     name="sendMode"
@@ -211,7 +213,7 @@ export function AdminNotificationUpsertDialog({
                   <Input
                     name="scheduledAt"
                     type="datetime-local"
-                    className="pl-9"
+                    className="bg-white pl-9"
                     defaultValue={toDateTimeLocalValue(notification?.scheduledAt ?? "")}
                     required
                   />
@@ -225,7 +227,7 @@ export function AdminNotificationUpsertDialog({
           <div className="space-y-2">
             <p className="text-sm font-medium">Đối tượng nhận</p>
             <div className="grid gap-2 md:grid-cols-3">
-              <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+              <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                 <input
                   type="radio"
                   name="audienceType"
@@ -235,7 +237,7 @@ export function AdminNotificationUpsertDialog({
                 />
                 Toàn bộ
               </label>
-              <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+              <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                 <input
                   type="radio"
                   name="audienceType"
@@ -245,7 +247,7 @@ export function AdminNotificationUpsertDialog({
                 />
                 Theo role
               </label>
-              <label className="flex items-center gap-2 rounded-lg border p-3 text-sm">
+              <label className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                 <input
                   type="radio"
                   name="audienceType"
@@ -263,7 +265,7 @@ export function AdminNotificationUpsertDialog({
               <p className="text-sm font-medium">Chọn role nhận</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {roles.map((role) => (
-                  <label key={role.value} className="flex items-center gap-2 rounded-lg border bg-background p-3 text-sm">
+                  <label key={role.value} className="flex items-center gap-2 rounded-lg border bg-white p-3 text-sm">
                     <input
                       type="checkbox"
                       name="roles"
@@ -294,7 +296,7 @@ export function AdminNotificationUpsertDialog({
                 onChange={(event) => {
                   setSelectedUserIds(Array.from(event.target.selectedOptions, (option) => option.value));
                 }}
-                className="h-52 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                className="h-52 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               >
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>

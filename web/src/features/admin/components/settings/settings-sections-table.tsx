@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, Settings, ExternalLink, X } from "lucide-react";
+import { ArrowUpDown, Settings, ExternalLink, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -133,21 +133,25 @@ export function SettingsSectionsTable({ rows }: { rows: SettingsSectionRow[] }) 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder="Tìm theo tên, mô tả, trạng thái..."
             className="h-9"
           />
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => setGlobalFilter("")}
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
-
-        {hasFilters ? (
-          <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")}>
-            <X className="h-4 w-4" />
-            Xóa bộ lọc
-          </Button>
-        ) : null}
       </div>
 
       <div className="rounded-md border">

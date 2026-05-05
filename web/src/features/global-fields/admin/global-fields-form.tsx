@@ -2,7 +2,7 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { FilterX } from "lucide-react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
@@ -58,22 +58,28 @@ export function GlobalFieldsForm({ fields, initialValues }: GlobalFieldsFormProp
       <input type="hidden" name="values" value={JSON.stringify(values)} />
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Tìm trong global fields..."
             className="h-9"
           />
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => setSearch("")}
+              type="button"
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          {hasFilters ? (
-            <Button variant="outline" size="sm" onClick={() => setSearch("")} type="button">
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
           <Button type="submit" className="h-9" disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
           </Button>

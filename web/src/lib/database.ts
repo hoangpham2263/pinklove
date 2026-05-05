@@ -37,6 +37,7 @@ const globalForDb = globalThis as unknown as {
   chatTablesMigrationV6Done?: boolean;
   chatTablesMigrationV7Done?: boolean;
   notificationTablesMigrationDone?: boolean;
+  contentCommentsMigrationDone?: boolean;
   mediaTablesMigrationDone?: boolean;
   productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
@@ -2112,6 +2113,49 @@ async function ensureNotificationTablesMigration() {
  `);
 }
 
+async function ensureContentCommentsMigration() {
+ const pool = getPool();
+ const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS content_comments (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   target_type TEXT NOT NULL,
+   target_id TEXT NOT NULL,
+   target_slug TEXT NOT NULL DEFAULT '',
+   target_title TEXT NOT NULL DEFAULT '',
+   target_url TEXT NOT NULL DEFAULT '',
+   author_name TEXT NOT NULL,
+   author_email TEXT NOT NULL DEFAULT '',
+   author_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+   content TEXT NOT NULL,
+   status TEXT NOT NULL DEFAULT 'pending',
+   admin_note TEXT NOT NULL DEFAULT '',
+   approved_at TIMESTAMPTZ,
+   approved_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   CONSTRAINT content_comments_target_type_check CHECK (target_type IN ('product', 'blog_post', 'page', 'invitation')),
+   CONSTRAINT content_comments_status_check CHECK (status IN ('pending', 'approved', 'rejected', 'spam', 'deleted'))
+  );
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS content_comments_target_status_idx
+  ON content_comments(target_type, target_id, status, created_at DESC);
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS content_comments_status_created_idx
+  ON content_comments(status, created_at DESC);
+ `);
+
+ await pool.query(`
+  CREATE INDEX IF NOT EXISTS content_comments_author_email_idx
+  ON content_comments(author_email);
+ `);
+}
+
 async function ensureProductVendorPaperTypeMigration() {
   const pool = getPool();
   await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
@@ -2698,6 +2742,11 @@ export async function ensureDb() {
         globalForDb.notificationTablesMigrationDone = true;
       }
 
+      if (!globalForDb.contentCommentsMigrationDone) {
+        await ensureContentCommentsMigration();
+        globalForDb.contentCommentsMigrationDone = true;
+      }
+
       const managedPagesSeedSignature = getManagedPagesSeedSignature();
       if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
         await ensureManagedPagesSeed();
@@ -2739,6 +2788,11 @@ export async function ensureDb() {
   if (!globalForDb.notificationTablesMigrationDone) {
     await ensureNotificationTablesMigration();
     globalForDb.notificationTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.contentCommentsMigrationDone) {
+    await ensureContentCommentsMigration();
+    globalForDb.contentCommentsMigrationDone = true;
   }
 }
 

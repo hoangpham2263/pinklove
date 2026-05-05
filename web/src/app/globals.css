@@ -214,11 +214,7 @@
     background-size: 16px;
     padding-right: 36px;
     padding-left: 12px;
-    @apply rounded-lg border border-input bg-background outline-none transition-colors;
-  }
-
-  select:focus {
-    @apply ring-1 ring-ring;
+    @apply rounded-lg border border-input bg-background outline-none;
   }
 }
 

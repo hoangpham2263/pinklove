@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
 import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
@@ -310,19 +309,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Tập trung vào doanh thu, đơn hàng và mức sẵn sàng của catalog thay vì dàn trải quá nhiều số liệu.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Mở đơn hàng</Link>} />
-          <Button render={<Link href={ROUTES.ADMIN.PAYMENTS}>Mở thanh toán</Link>} />
-        </div>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {kpis.map((item) => {
           const Icon = item.icon;

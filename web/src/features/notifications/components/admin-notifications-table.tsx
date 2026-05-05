@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, Eye, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Eye, FilterX, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -183,7 +183,7 @@ export function AdminNotificationsTable({
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 h-8 px-2"
+            className="-ml-2 h-8 bg-white px-2"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Tiêu đề
@@ -211,7 +211,7 @@ export function AdminNotificationsTable({
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 h-8 px-2"
+            className="-ml-2 h-8 bg-white px-2"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Trạng thái
@@ -234,7 +234,7 @@ export function AdminNotificationsTable({
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 h-8 px-2"
+            className="-ml-2 h-8 bg-white px-2"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Tạo lúc
@@ -257,7 +257,7 @@ export function AdminNotificationsTable({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 w-8"
+                className="h-8 w-8 bg-white"
                 title="Xem thông báo"
                 onClick={() => setPreviewNotificationId(notification.id)}
               >
@@ -269,7 +269,7 @@ export function AdminNotificationsTable({
                 notification={notification}
                 triggerLabel="Sửa thông báo"
                 triggerVariant="outline"
-                triggerClassName="h-8 w-8"
+                triggerClassName="h-8 w-8 bg-white"
                 iconOnly
               />
               <NativeForm
@@ -296,7 +296,7 @@ export function AdminNotificationsTable({
                 <Button
                   type="submit"
                   variant="destructive"
-                  size="icon"
+                  size="sm"
                   className="h-8 w-8 border border-destructive/50"
                   title="Xóa thông báo"
                 >
@@ -362,18 +362,18 @@ export function AdminNotificationsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className={`grid flex-1 gap-3 ${hideStatusFilter ? "md:grid-cols-[minmax(0,1fr)_220px]" : "md:grid-cols-[52%_20%_20%]"}`}>
+        <div className={`grid flex-1 gap-3 ${hideStatusFilter ? "md:grid-cols-[minmax(0,1fr)_220px_auto]" : "md:grid-cols-[minmax(0,1fr)_180px_180px_auto]"}`}>
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder="Tìm theo tiêu đề, người tạo, role, username..."
-            className="h-9"
+            className="h-9 bg-white"
           />
           {hideStatusFilter ? null : (
             <select
               value={statusFilterValue}
               onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring"
+              className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none"
             >
               <option value="">Tất cả trạng thái</option>
               {statusOptions.map((status) => (
@@ -386,13 +386,31 @@ export function AdminNotificationsTable({
           <select
             value={audienceFilterValue}
             onChange={(event) => table.getColumn("audienceType")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none"
           >
             <option value="">Tất cả đối tượng</option>
             <option value="all">Toàn bộ</option>
             <option value="role">Theo role</option>
             <option value="users">Cá nhân</option>
           </select>
+          {hasFilters ? (
+            <Button
+              variant="outline"
+              size="icon-lg"
+              className="bg-white"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => {
+                setGlobalFilter("");
+                if (!hideStatusFilter) {
+                  table.getColumn("status")?.setFilterValue("");
+                }
+                table.getColumn("audienceType")?.setFilterValue("");
+              }}
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
@@ -400,7 +418,7 @@ export function AdminNotificationsTable({
             <select
               value={bulkAction}
               onChange={(event) => setBulkAction(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 outline-none transition-colors focus:ring-1 focus:ring-ring md:w-44"
+              className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none md:w-44"
             >
               <option value="">Tác vụ hàng loạt</option>
               <option value="sent">Đánh dấu đã gửi</option>
@@ -443,28 +461,10 @@ export function AdminNotificationsTable({
               Áp dụng
             </Button>
           </div>
-
-          {hasFilters ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9"
-              onClick={() => {
-                setGlobalFilter("");
-                if (!hideStatusFilter) {
-                  table.getColumn("status")?.setFilterValue("");
-                }
-                table.getColumn("audienceType")?.setFilterValue("");
-              }}
-            >
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-white">
         <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

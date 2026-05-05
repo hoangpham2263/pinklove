@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { CheckCircle2, FileText, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listAllProducts } from "@/features/products/server/service";
 import type { Product, ProductType } from "@/features/products/types";
@@ -36,48 +37,56 @@ export async function AdminProductsPageView({
     fixedProductType === "builder_template"
       ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
       : `${ROUTES.ADMIN.PRODUCTS}?type=${fixedProductType}&returnTo=${encodeURIComponent(returnTo)}`;
+  const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateProduct;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
+      {hasHeaderContent ? (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          {title.trim().length > 0 || description.trim().length > 0 ? (
+            <div>
+              {title.trim().length > 0 ? <h1 className="text-2xl font-bold tracking-tight">{title}</h1> : null}
+              {description.trim().length > 0 ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+            </div>
+          ) : null}
+          {canCreateProduct ? (
+            <Button
+              render={
+                <Link href={createHref}>
+                  {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
+                </Link>
+              }
+            />
+          ) : null}
         </div>
-        {canCreateProduct ? (
-          <Button
-            render={
-              <Link href={createHref}>
-                {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
-              </Link>
-            }
-          />
-        ) : null}
-      </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng sản phẩm</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng sản phẩm</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{filteredProducts.length}</p>
+            <p>{filteredProducts.length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Published</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{publishedCount}</p>
+            <p>{publishedCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Draft</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{draftCount}</p>
+            <p>{draftCount}</p>
           </CardContent>
         </Card>
       </div>

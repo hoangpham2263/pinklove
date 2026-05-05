@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, ExternalLink, Eye, X } from "lucide-react";
+import { ArrowUpDown, ExternalLink, Eye, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -200,7 +200,7 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
     <>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
             <Input
               value={globalFilter}
               onChange={(event) => setGlobalFilter(event.target.value)}
@@ -217,22 +217,22 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
               <option value="true">Active</option>
               <option value="false">Disabled</option>
             </select>
+            {hasFilters ? (
+              <Button
+                variant="default"
+                type="button"
+                size="icon-lg"
+                aria-label="Xóa bộ lọc"
+                title="Xóa bộ lọc"
+                onClick={() => {
+                  setGlobalFilter("");
+                  table.getColumn("enabled")?.setFilterValue("");
+                }}
+              >
+                <FilterX className="h-4 w-4" />
+              </Button>
+            ) : null}
           </div>
-
-          {hasFilters ? (
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("enabled")?.setFilterValue("");
-              }}
-            >
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
         </div>
 
         <div className="rounded-md border">

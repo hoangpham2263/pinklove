@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, X } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -267,22 +267,28 @@ export function SettingsDataTableForm({
   return (
     <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder={`Tìm trong ${title.toLowerCase()}...`}
             className="h-9 bg-background"
           />
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => setGlobalFilter("")}
+              type="button"
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          {hasFilters ? (
-            <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")} type="button">
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
           <Button type="submit" className="h-9" disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
           </Button>

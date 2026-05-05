@@ -37,12 +37,12 @@ export default async function AdminNotificationsPage({ searchParams }: AdminNoti
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant={view === "default" ? "default" : "outline"}
-            className="h-9"
+            className={view === "default" ? "h-9" : "h-9 bg-white"}
             render={<Link href={ROUTES.ADMIN.NOTIFICATIONS}>Tất cả đang quản lý</Link>}
           />
           <Button
             variant={view === "scheduled" ? "default" : "outline"}
-            className="h-9"
+            className={view === "scheduled" ? "h-9" : "h-9 bg-white"}
             render={<Link href={`${ROUTES.ADMIN.NOTIFICATIONS}?view=scheduled`}>Đã lên lịch</Link>}
           />
         </div>

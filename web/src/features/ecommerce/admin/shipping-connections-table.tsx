@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, PackageCheck, Pencil, Plus, Trash2, Truck, X } from "lucide-react";
+import { Eye, FilterX, PackageCheck, Pencil, Plus, Trash2, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,19 +68,26 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
 
       <div className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <Input
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            placeholder="Tìm theo provider, mã, shop, pickup..."
-            className="h-9 max-w-sm bg-background"
-          />
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
+            <Input
+              value={globalFilter}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              placeholder="Tìm theo provider, mã, shop, pickup..."
+              className="h-9 bg-background"
+            />
             {globalFilter.trim() ? (
-              <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")}>
-                <X className="h-4 w-4" />
-                Xóa bộ lọc
+              <Button
+                variant="default"
+                size="icon-lg"
+                aria-label="Xóa bộ lọc"
+                title="Xóa bộ lọc"
+                onClick={() => setGlobalFilter("")}
+              >
+                <FilterX className="h-4 w-4" />
               </Button>
             ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               className="h-9"
               render={

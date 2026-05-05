@@ -153,6 +153,7 @@ export const ROUTES = {
     VENDOR_PRODUCT: (id: string) => `/admin/vendor-products/${id}`,
     INTERNAL_ACCOUNTS: "/admin/internal-accounts",
     MEDIA: "/admin/media",
+    COMMENTS: "/admin/comments",
     MESSAGES: "/admin/messages",
     NOTIFICATIONS: "/admin/notifications",
     AFFILIATES: "/admin/affiliates",
@@ -162,6 +163,9 @@ export const ROUTES = {
     SHIPMENTS: "/admin/shipments",
   },
   API: {
+    COMMENTS: {
+      CREATE: "/api/comments/create",
+    },
     PAYMENTS: {
       VNPAY: {
         RETURN: "/api/payments/vnpay/return",
@@ -225,6 +229,10 @@ export const ROUTES = {
         BACKUPS_DELETE: "/api/admin/config/backups/delete",
         BACKUPS_RESTORE: "/api/admin/config/backups/restore",
         BACKUPS_DOWNLOAD: (name: string) => `/api/admin/config/backups/download/${encodeURIComponent(name)}`,
+      },
+      COMMENTS: {
+        UPDATE_STATUS: "/api/admin/comments/update-status",
+        DELETE: "/api/admin/comments/delete",
       },
       INTERNAL: {
         PRODUCTS_IMPORT: "/api/internal/products/import",

@@ -42,6 +42,7 @@ export type AdminStandaloneNavItem = {
 export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
   { label: "Tin nhắn", href: ROUTES.ADMIN.MESSAGES, iconName: "message-circle" },
+  { label: "Comments", href: ROUTES.ADMIN.COMMENTS, iconName: "message-circle" },
   { label: "Thông báo", href: ROUTES.ADMIN.NOTIFICATIONS, iconName: "bell" },
   { label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
 ];
@@ -75,10 +76,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
       { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
       { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
+      { label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
+      { label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
       { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "receipt-text" },
       { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "credit-card" },
       { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, iconName: "credit-card" },
       { label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "truck" },
+      { label: "Shipping", href: ROUTES.ADMIN.CONFIG_SHIPPING, iconName: "truck" },
+      { label: "Ecommerce Config", href: ROUTES.ADMIN.CONFIG_ECOMMERCE, iconName: "shopping-bag" },
     ],
   },
   {
@@ -87,7 +92,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     defaultOpen: false,
     children: [
       { label: "Người dùng", href: ROUTES.ADMIN.USERS, iconName: "users" },
-      { label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
       { label: "Tài khoản nội bộ", href: ROUTES.ADMIN.INTERNAL_ACCOUNTS, iconName: "users" },
     ],
   },
@@ -99,12 +103,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Đối tác / CTV", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
       { label: "Chương trình affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
     ],
-  },
-  {
-    label: "Vendor",
-    iconName: "store",
-    defaultOpen: false,
-    children: [{ label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "store" }],
   },
 ];
 

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, Eye, Pencil, Trash2, X } from "lucide-react";
+import { ArrowUpDown, Eye, FilterX, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -326,7 +326,7 @@ export function UserManagement({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
@@ -336,7 +336,7 @@ export function UserManagement({
           <select
             value={roleFilterValue}
             onChange={(event) => table.getColumn("role")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
           >
             <option value="">Tất cả vai trò</option>
             {USER_ROLE_OPTIONS.map((role) => (
@@ -345,6 +345,20 @@ export function UserManagement({
               </option>
             ))}
           </select>
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => {
+                setGlobalFilter("");
+                table.getColumn("role")?.setFilterValue("");
+              }}
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -384,7 +398,7 @@ export function UserManagement({
               name="bulkAction"
               value={bulkAction}
               onChange={(event) => setBulkAction(event.target.value)}
-              className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+              className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none"
             >
               <option value="">Tác vụ hàng loạt</option>
               {USER_ROLE_OPTIONS.map((role) => (
@@ -398,20 +412,6 @@ export function UserManagement({
               Áp dụng
             </Button>
           </NativeForm>
-
-          {hasFilters ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("role")?.setFilterValue("");
-              }}
-            >
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
         </div>
       </div>
 

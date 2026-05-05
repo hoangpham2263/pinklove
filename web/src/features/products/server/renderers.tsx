@@ -11,6 +11,7 @@ import {
   GuestPanelTitle,
 } from "@/app/(guest)/_components/guest-ui";
 import { WishlistToggleButton } from "@/features/products/components/wishlist-toggle-button";
+import { CommentSection } from "@/features/comments/components/comment-section";
 import type { Product } from "@/features/products/types";
 import { createWishlistProductSnapshot } from "@/features/products/wishlist";
 import { getCurrentUser } from "@/lib/auth";
@@ -251,6 +252,7 @@ export async function generateBuilderProductMetadata(product: Product | null): P
 }
 
 export async function renderTemplateProductPage(product: Product) {
+  const productPath = getTemplateProductPath(product);
   const defaults = {
     ...getInvitationTemplateDefaults(product.templateKey),
     ...((product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
@@ -267,7 +269,7 @@ export async function renderTemplateProductPage(product: Product) {
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getTemplateProductPath(product),
+      url: productPath,
     },
   };
 
@@ -322,12 +324,14 @@ export async function renderTemplateProductPage(product: Product) {
           </GuestPanel>
         </div>
       </div>
+      <CommentSection target={{ type: "product", id: product.id, slug: product.slug, title: product.name, url: productPath }} />
     </>
   );
 }
 
 export async function renderBuilderProductPage(product: Product) {
   const user = await getCurrentUser();
+  const productPath = getBuilderProductPath(product);
   const defaults = {
     ...getInvitationTemplateDefaults(product.templateKey),
     ...((product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
@@ -344,7 +348,7 @@ export async function renderBuilderProductPage(product: Product) {
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getBuilderProductPath(product),
+      url: productPath,
     },
   };
 
@@ -411,12 +415,14 @@ export async function renderBuilderProductPage(product: Product) {
           </GuestPanel>
         </div>
       </div>
+      <CommentSection target={{ type: "product", id: product.id, slug: product.slug, title: product.name, url: productPath }} />
     </>
   );
 }
 
 export async function renderGeneralProductPage(product: Product) {
   const user = await getCurrentUser();
+  const productPath = getGeneralProductPath(product);
   const details =
     typeof product.config.productDetails === "object" && product.config.productDetails
       ? (product.config.productDetails as Record<string, unknown>)
@@ -433,7 +439,7 @@ export async function renderGeneralProductPage(product: Product) {
       priceCurrency: "VND",
       price: String(product.price),
       availability: "https://schema.org/InStock",
-      url: getGeneralProductPath(product),
+      url: productPath,
     },
   };
 
@@ -486,6 +492,7 @@ export async function renderGeneralProductPage(product: Product) {
           </div>
         </div>
       ) : null}
+      <CommentSection target={{ type: "product", id: product.id, slug: product.slug, title: product.name, url: productPath }} />
     </>
   );
 }

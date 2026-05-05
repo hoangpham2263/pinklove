@@ -15,7 +15,7 @@ export default async function AdminGeneralProductsPage({ searchParams }: AdminGe
       query={query}
       fixedProductType="general_product"
       title="Quản lý sản phẩm"
-      description="Trang quản lý riêng cho toàn bộ sản phẩm thường, không tạo site online."
+      description=""
       returnTo={ROUTES.ADMIN.PRODUCT_LIST_GENERAL}
     />
   );

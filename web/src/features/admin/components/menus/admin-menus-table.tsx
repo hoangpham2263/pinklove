@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, Eye, Pencil, X } from "lucide-react";
+import { ArrowUpDown, Eye, FilterX, Pencil } from "lucide-react";
 import {
   type ColumnDef,
   type SortingState,
@@ -155,21 +155,25 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder="Tìm theo tên menu, slug..."
             className="h-9"
           />
+          {hasFilters ? (
+            <Button
+              variant="default"
+              size="icon-lg"
+              aria-label="Xóa bộ lọc"
+              title="Xóa bộ lọc"
+              onClick={() => setGlobalFilter("")}
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
-
-        {hasFilters ? (
-          <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")}>
-            <X className="h-4 w-4" />
-            Xóa bộ lọc
-          </Button>
-        ) : null}
       </div>
 
       <div className="rounded-md border">

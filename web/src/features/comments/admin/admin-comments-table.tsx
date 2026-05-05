@@ -1,0 +1,359 @@
+"use client";
+
+import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { ArrowUpDown, CheckCircle2, ExternalLink, Eye, FilterX, ShieldAlert, Trash2, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { CommentStatus, ContentComment } from "@/features/comments/types";
+import { ROUTES } from "@/lib/routes";
+
+type AdminCommentsTableProps = {
+  comments: ContentComment[];
+  status: string;
+  keyword: string;
+};
+
+function getStatusLabel(status: CommentStatus) {
+  switch (status) {
+    case "approved":
+      return "Approved";
+    case "rejected":
+      return "Rejected";
+    case "spam":
+      return "Spam";
+    case "deleted":
+      return "Deleted";
+    default:
+      return "Pending";
+  }
+}
+
+function getStatusVariant(status: CommentStatus): "default" | "secondary" | "destructive" | "outline" {
+  if (status === "approved") return "default";
+  if (status === "rejected" || status === "spam") return "destructive";
+  if (status === "deleted") return "outline";
+  return "secondary";
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).format(new Date(value));
+}
+
+function statusAction(comment: ContentComment, status: CommentStatus, label: string, icon: ReactNode) {
+  return (
+    <form action={ROUTES.API.ADMIN.COMMENTS.UPDATE_STATUS} method="POST" className="inline-block">
+      <input type="hidden" name="id" value={comment.id} />
+      <input type="hidden" name="status" value={status} />
+      <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
+      <Button
+        type="submit"
+        variant={status === "approved" ? "default" : status === "pending" ? "outline" : "destructive"}
+        size="icon"
+        className="h-8 w-8"
+        title={label}
+      >
+        {icon}
+        <span className="sr-only">{label}</span>
+      </Button>
+    </form>
+  );
+}
+
+export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+    ...(status && status !== "all" ? [{ id: "status", value: status }] : []),
+  ]);
+  const [globalFilter, setGlobalFilter] = useState(keyword);
+  const [previewCommentId, setPreviewCommentId] = useState<string | null>(null);
+
+  const columns = useMemo<ColumnDef<ContentComment>[]>(
+    () => [
+      {
+        accessorKey: "content",
+        header: ({ column }) => (
+          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Comment
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="max-w-xl">
+            <p className="font-medium text-foreground">{row.original.authorName}</p>
+            {row.original.authorEmail ? <p className="mt-1 text-xs text-muted-foreground">{row.original.authorEmail}</p> : null}
+            <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{row.original.content}</p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "targetTitle",
+        header: ({ column }) => (
+          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Target
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <div>
+            <p className="font-medium text-foreground">{row.original.targetTitle}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{row.original.targetType}</p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
+        cell: ({ row }) => <Badge variant={getStatusVariant(row.original.status)}>{getStatusLabel(row.original.status)}</Badge>,
+      },
+      {
+        accessorKey: "createdAt",
+        header: ({ column }) => (
+          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tạo lúc
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => <span>{formatDate(row.original.createdAt)}</span>,
+      },
+      {
+        id: "actions",
+        enableSorting: false,
+        enableColumnFilter: false,
+        header: () => <div className="text-right">Hành động</div>,
+        cell: ({ row }) => {
+          const comment = row.original;
+
+          return (
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                title="Xem comment"
+                onClick={() => setPreviewCommentId(comment.id)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              {comment.targetUrl ? (
+                <Link
+                  href={comment.targetUrl}
+                  target="_blank"
+                  title="Xem ngoài site"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+              ) : null}
+              {comment.status !== "approved"
+                ? statusAction(comment, "approved", "Approve", <CheckCircle2 className="h-4 w-4" />)
+                : null}
+              {comment.status !== "rejected"
+                ? statusAction(comment, "rejected", "Reject", <XCircle className="h-4 w-4" />)
+                : null}
+              {comment.status !== "spam"
+                ? statusAction(comment, "spam", "Mark spam", <ShieldAlert className="h-4 w-4" />)
+                : null}
+              <form action={ROUTES.API.ADMIN.COMMENTS.DELETE} method="POST" className="inline-block">
+                <input type="hidden" name="id" value={comment.id} />
+                <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8 border border-destructive/50"
+                  title="Delete"
+                  onClick={(event) => {
+                    if (!confirm(`Xóa comment của ${comment.authorName}?`)) {
+                      event.preventDefault();
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete</span>
+                </Button>
+              </form>
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: comments,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const search = String(filterValue).trim().toLowerCase();
+      if (!search) return true;
+
+      const comment = row.original;
+      return [
+        comment.authorName,
+        comment.authorEmail,
+        comment.content,
+        comment.status,
+        comment.targetTitle,
+        comment.targetSlug,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(search));
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
+  });
+
+  const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
+  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
+  const previewComment = previewCommentId ? comments.find((comment) => comment.id === previewCommentId) ?? null : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
+          <Input
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            placeholder="Tìm theo tên, email, nội dung..."
+            className="h-9"
+          />
+          <select
+            value={statusFilterValue}
+            onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="spam">Spam</option>
+          </select>
+          {hasFilters ? (
+              <Button
+                variant="default"
+                size="icon-lg"
+                aria-label="Xóa bộ lọc"
+                title="Xóa bộ lọc"
+                onClick={() => {
+                  setGlobalFilter("");
+                  table.getColumn("status")?.setFilterValue("");
+                }}
+              >
+                <FilterX className="h-4 w-4" />
+              </Button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Không có comment phù hợp với bộ lọc hiện tại.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={Boolean(previewComment)} onOpenChange={(open) => !open && setPreviewCommentId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {previewComment ? (
+            <div className="space-y-6">
+              <DialogHeader>
+                <DialogTitle>Chi tiết comment</DialogTitle>
+                <DialogDescription>Xem đầy đủ thông tin comment trước khi duyệt.</DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Tên</p>
+                  <p className="text-sm text-muted-foreground">{previewComment.authorName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm text-muted-foreground">{previewComment.authorEmail || "-"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Target</p>
+                  <p className="text-sm text-muted-foreground">{previewComment.targetTitle}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Trạng thái</p>
+                  <p className="text-sm text-muted-foreground">{getStatusLabel(previewComment.status)}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Nội dung</p>
+                <p className="whitespace-pre-line rounded-md border p-3 text-sm leading-6 text-muted-foreground">{previewComment.content}</p>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
