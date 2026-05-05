@@ -67,37 +67,30 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
       </div>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
-              <Truck className="h-4 w-4" />
-            </span>
-            <h3>Shipping</h3>
-          </div>
-          <Button
-            variant="outline"
-            render={
-              <Link href={ROUTES.ADMIN.CONFIG_SHIPPING_NEW}>
-                <Plus className="h-4 w-4" />
-                Thêm
-              </Link>
-            }
-          />
-        </div>
-
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Input
             value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             placeholder="Tìm theo provider, mã, shop, pickup..."
-            className="h-9 max-w-sm bg-white"
+            className="h-9 max-w-sm bg-background"
           />
-          {globalFilter.trim() ? (
-            <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")}>
-              <X className="h-4 w-4" />
-              Xóa bộ lọc
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {globalFilter.trim() ? (
+              <Button variant="outline" size="sm" onClick={() => setGlobalFilter("")}>
+                <X className="h-4 w-4" />
+                Xóa bộ lọc
+              </Button>
+            ) : null}
+            <Button
+              className="h-9"
+              render={
+                <Link href={ROUTES.ADMIN.CONFIG_SHIPPING_NEW}>
+                  <Plus className="h-4 w-4" />
+                  Thêm
+                </Link>
+              }
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto rounded-md border bg-background">
