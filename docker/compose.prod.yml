@@ -42,6 +42,9 @@ services:
         condition: service_healthy
     networks:
       - app-network
+    volumes:
+      - uploads-data:/app/public/uploads
+      - backups-data:/app/data/backups
 
 networks:
   app-network:
@@ -49,3 +52,5 @@ networks:
 
 volumes:
   postgres-data:
+  uploads-data:
+  backups-data:

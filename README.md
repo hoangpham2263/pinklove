@@ -52,13 +52,14 @@ Current notable behavior:
 1. Ensure Docker Desktop is running.
 2. Run `./web/setup up` to build and start the development stack.
 3. Open the app in your browser using the `WEB_PORT` value from `.env`.
-   Default in `.env.example`: `http://localhost:3000`
+   Default in `.env.example`: `http://localhost:3030`
 
 If `.env` does not exist, `./web/setup` creates it from `.env.example`.
 
 Development note:
 
 - `docker/compose.yml` bind-mounts `./web` into the container and does not keep a separate `.next` volume, which reduces stale Next.js dev cache issues.
+- `./web/setup up` stops the production compose stack first if it is running, then starts the dev stack so code changes hot reload automatically.
 
 ## Main Commands
 

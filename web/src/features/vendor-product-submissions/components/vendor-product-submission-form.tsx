@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MediaSelector } from "@/features/media/components/media-selector";
 import { vendorApi } from "@/lib/api-client.vendor";
 import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function VendorProductSubmissionForm({
   const router = useRouter();
   const [name, setName] = useState(submission?.name ?? "");
   const [slugCandidate, setSlugCandidate] = useState(submission?.slugCandidate ?? "");
+  const [thumbnailUrl, setThumbnailUrl] = useState(submission?.thumbnailUrl ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canEdit = !submission || ["draft", "changes_requested"].includes(submission.reviewStatus);
@@ -74,6 +76,7 @@ export function VendorProductSubmissionForm({
   return (
     <form onSubmit={handleSave} className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       {submission ? <input type="hidden" name="submissionId" value={submission.id} /> : null}
+      <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
 
       <Card className="border-zinc-200/80 bg-white/92">
         <CardHeader className="border-b">
@@ -204,7 +207,17 @@ export function VendorProductSubmissionForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-950">Ảnh đại diện</label>
-            <Input name="thumbnailUrl" defaultValue={submission?.thumbnailUrl ?? ""} disabled={!canEdit} placeholder="/uploads/..." />
+            {canEdit ? (
+              <MediaSelector value={thumbnailUrl} onChange={setThumbnailUrl} />
+            ) : thumbnailUrl ? (
+              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
+                {thumbnailUrl}
+              </div>
+            ) : (
+              <div className="rounded-md border border-dashed border-zinc-200 p-3 text-sm text-zinc-500">
+                Chưa có ảnh đại diện.
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

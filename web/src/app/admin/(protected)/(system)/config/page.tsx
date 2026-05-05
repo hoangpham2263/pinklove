@@ -115,6 +115,11 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
       },
       {
+        title: "Backups",
+        description: "Theo dõi backup database, uploads và hướng dẫn restore dữ liệu production.",
+        href: ROUTES.ADMIN.CONFIG_BACKUPS,
+      },
+      {
         title: "Hooks",
         description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
         href: ROUTES.ADMIN.HOOKS,

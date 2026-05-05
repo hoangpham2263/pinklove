@@ -8,6 +8,7 @@ import { Copy, Grip, ImageIcon, Layers3, MousePointer2, Square, Type, ZoomIn, Zo
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MediaSelector } from "@/features/media/components/media-selector";
 import {
   BUILDER_DEFAULT_HEIGHT,
   BUILDER_MAX_HEIGHT,
@@ -702,12 +703,15 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
             className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
           />
           <div className="grid gap-2.5 lg:gap-4">
-            <Input
-              value={editableImageNode?.src ?? ""}
-              disabled={!editableImageNode}
-              onChange={(e) => patchSelectedNode({ src: e.target.value })}
-              placeholder="https://..."
-            />
+            {editableImageNode ? (
+              <MediaSelector
+                value={editableImageNode.src}
+                onChange={(src) => patchSelectedNode({ src })}
+                compact
+              />
+            ) : (
+              <Input value="" disabled placeholder="Chọn image layer để đổi ảnh" />
+            )}
             <Input
               type="color"
               value={editableTextNode?.fill ?? editableShapeNode?.fill ?? "#000000"}

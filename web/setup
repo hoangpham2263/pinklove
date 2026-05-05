@@ -4,6 +4,7 @@ set -euo pipefail
 WEB_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$WEB_DIR/.." && pwd)"
 COMPOSE_DEV=(-f "$ROOT_DIR/docker/compose.yml" --project-directory "$ROOT_DIR")
+COMPOSE_PROD=(-f "$ROOT_DIR/docker/compose.prod.yml" --project-directory "$ROOT_DIR")
 SETUP_ENTRY="${SETUP_ENTRY:-./web/setup}"
 
 if [ ! -f "$ROOT_DIR/.env" ] && [ -f "$ROOT_DIR/.env.example" ]; then
@@ -25,7 +26,9 @@ require_docker() {
 
 run_up() {
   require_docker
+  stop_prod_if_running
   docker compose "${COMPOSE_DEV[@]}" up -d --build
+  print_dev_url
 }
 
 run_down() {
@@ -33,14 +36,23 @@ run_down() {
   docker compose "${COMPOSE_DEV[@]}" down
 }
 
+stop_prod_if_running() {
+  if docker compose "${COMPOSE_PROD[@]}" ps --status running --services | grep -q .; then
+    echo "Stopping production stack so dev hot reload is the only app on this port..."
+    docker compose "${COMPOSE_PROD[@]}" down
+  fi
+}
+
 run_restart() {
   require_docker
+  stop_prod_if_running
   clean_next_cache
   if docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
     docker compose "${COMPOSE_DEV[@]}" restart web
   else
     docker compose "${COMPOSE_DEV[@]}" up -d --build web
   fi
+  print_dev_url
 }
 
 clean_next_cache() {
@@ -53,9 +65,16 @@ run_logs() {
   docker compose "${COMPOSE_DEV[@]}" logs -f web
 }
 
+print_dev_url() {
+  WEB_PORT_VALUE="$(grep -E '^WEB_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  WEB_PORT_VALUE="${WEB_PORT_VALUE:-3030}"
+  echo "Dev server is running with hot reload: http://localhost:${WEB_PORT_VALUE}"
+}
+
 ensure_dev_stack_running() {
   require_docker
   if ! docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
+    stop_prod_if_running
     docker compose "${COMPOSE_DEV[@]}" up -d --build
   fi
 }
@@ -72,8 +91,8 @@ EOF
 Usage: ${SETUP_ENTRY} [command]
 
 Commands:
-  up         Build and start the dev stack
-  restart    Clear Next.js cache and restart the web service
+  up         Stop prod if needed, then build/start the dev hot-reload stack
+  restart    Stop prod if needed, clear Next.js cache, and restart dev web
   seed       Seed demo website data
   down       Stop containers
   logs       Stream web logs

@@ -39,6 +39,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_INDEX)) return "Sitemap Index";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS)) return "API Import Sản phẩm";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_APIS)) return "API nội bộ";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_BACKUPS)) return "Backups";
   if (pathname.startsWith(ROUTES.ADMIN.HOOKS)) return "Hooks";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG)) return "Cấu hình";
   return "Admin";
