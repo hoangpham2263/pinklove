@@ -64,7 +64,7 @@ export default async function AdminThirdPartyConfigPage() {
                 <input
                   name="googleRedirectUri"
                   defaultValue={google.redirectUri}
-                  placeholder="http://localhost:3030/api/auth/google/callback"
+                  placeholder="http://localhost:3000/api/auth/google/callback"
                   className="h-10 w-full rounded-md border bg-background px-3"
                 />
                 <p className="text-xs text-muted-foreground">

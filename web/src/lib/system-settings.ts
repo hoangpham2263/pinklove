@@ -372,7 +372,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
       enabled: false,
       clientId: "",
       clientSecret: "",
-      redirectUri: "http://localhost:3030/api/auth/google/callback",
+      redirectUri: "http://localhost:3000/api/auth/google/callback",
     },
   },
 };

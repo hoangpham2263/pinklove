@@ -1,8 +1,10 @@
-node_modules
-.next
-out
-.git
-.gitignore
-*.md
 .env*
+.next
+coverage
+data/backups
+dist
+node_modules
 npm-debug.log*
+out
+public/uploads
+tsconfig.tsbuildinfo

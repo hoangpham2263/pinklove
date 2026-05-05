@@ -5,7 +5,6 @@
 
 services:
   db:
-    container_name: ${COMPOSE_PROJECT_NAME:-app}-postgres
     image: postgres:16-alpine
     restart: unless-stopped
     ports:
@@ -25,13 +24,12 @@ services:
       retries: 5
 
   web:
-    container_name: ${COMPOSE_PROJECT_NAME:-app}-next
     build:
       context: ./web
       dockerfile: ../docker/web/Dockerfile
     restart: unless-stopped
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "3000:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
       NODE_ENV: production

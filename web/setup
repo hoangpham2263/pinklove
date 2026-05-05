@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WEB_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$WEB_DIR/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE_DEV=(-f "$ROOT_DIR/docker/compose.yml" --project-directory "$ROOT_DIR")
 COMPOSE_PROD=(-f "$ROOT_DIR/docker/compose.prod.yml" --project-directory "$ROOT_DIR")
 SETUP_ENTRY="${SETUP_ENTRY:-./web/setup}"
@@ -27,106 +26,50 @@ require_docker() {
 run_up() {
   require_docker
   stop_prod_if_running
-  docker compose "${COMPOSE_DEV[@]}" up -d --build
+  docker compose "${COMPOSE_DEV[@]}" up -d --remove-orphans db
   print_dev_url
 }
 
 run_down() {
   require_docker
-  docker compose "${COMPOSE_DEV[@]}" down
+  docker compose "${COMPOSE_DEV[@]}" down --remove-orphans
 }
 
 stop_prod_if_running() {
   if docker compose "${COMPOSE_PROD[@]}" ps --status running --services | grep -q .; then
-    echo "Stopping production stack so dev hot reload is the only app on this port..."
-    docker compose "${COMPOSE_PROD[@]}" down
+    echo "Stopping production stack so local dev can use the app port..."
+    docker compose "${COMPOSE_PROD[@]}" down --remove-orphans
   fi
-}
-
-run_restart() {
-  require_docker
-  stop_prod_if_running
-  clean_next_cache
-  if docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
-    docker compose "${COMPOSE_DEV[@]}" restart web
-  else
-    docker compose "${COMPOSE_DEV[@]}" up -d --build web
-  fi
-  print_dev_url
-}
-
-clean_next_cache() {
-  rm -rf "$ROOT_DIR/web/.next" "$ROOT_DIR/web/tsconfig.tsbuildinfo"
 }
 
 run_logs() {
   require_docker
-  echo "Watching web logs (save a .tsx/.css file to see 'Compiled in ...')"
-  docker compose "${COMPOSE_DEV[@]}" logs -f web
+  echo "Watching database logs"
+  docker compose "${COMPOSE_DEV[@]}" logs -f db
 }
 
 print_dev_url() {
-  WEB_PORT_VALUE="$(grep -E '^WEB_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
-  WEB_PORT_VALUE="${WEB_PORT_VALUE:-3030}"
-  echo "Dev server is running with hot reload: http://localhost:${WEB_PORT_VALUE}"
-}
-
-ensure_dev_stack_running() {
-  require_docker
-  if ! docker compose "${COMPOSE_DEV[@]}" ps --status running --services | grep -qx "web"; then
-    stop_prod_if_running
-    docker compose "${COMPOSE_DEV[@]}" up -d --build
-  fi
-}
-
-run_seed_website() {
-  ensure_dev_stack_running
-  docker compose "${COMPOSE_DEV[@]}" exec -T web npm run seed:website
+  POSTGRES_PORT_VALUE="$(grep -E '^POSTGRES_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  POSTGRES_PORT_VALUE="${POSTGRES_PORT_VALUE:-5433}"
+  echo "Database is running at localhost:${POSTGRES_PORT_VALUE}"
+  echo "Start the app with: cd web && npm run dev"
+  echo "App URL: http://localhost:3000"
 }
 
 show_help() {
-  cat <<'EOF'
-EOF
   cat <<EOF
 Usage: ${SETUP_ENTRY} [command]
 
 Commands:
-  up         Stop prod if needed, then build/start the dev hot-reload stack
-  restart    Stop prod if needed, clear Next.js cache, and restart dev web
-  seed       Seed demo website data
-  down       Stop containers
-  logs       Stream web logs
+  up         Start PostgreSQL
+  down       Stop PostgreSQL
+  logs       Stream database logs
   help       Show this help
 EOF
 }
 
-show_menu() {
-  echo "Choose option:"
-  echo "1) up"
-  echo "2) restart"
-  echo "3) seed"
-  echo "4) down"
-  echo "5) logs"
-  echo "6) help"
-  printf "Select [1-6]: "
-  read -r choice
-
-  case "${choice}" in
-    1) run_up ;;
-    2) run_restart ;;
-    3) run_seed_website ;;
-    4) run_down ;;
-    5) run_logs ;;
-    6) show_help ;;
-    *) echo "Invalid option."; exit 1 ;;
-  esac
-}
-
-case "${1:-menu}" in
-  menu) show_menu ;;
+case "${1:-help}" in
   up) run_up ;;
-  restart) run_restart ;;
-  seed) run_seed_website ;;
   down) run_down ;;
   logs) run_logs ;;
   help|-h|--help) show_help ;;

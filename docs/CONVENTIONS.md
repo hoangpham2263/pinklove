@@ -147,11 +147,10 @@ This file is the repo-wide source of truth.
 ## Runtime and startup
 
 - Use `./web/setup` for common Docker workflows.
-- `./web/setup` supports `up`, `restart`, `seed`, `down`, and `logs`.
-- Development stack configuration lives in `docker/compose.yml`.
+- `./web/setup` supports `up`, `down`, and `logs`.
+- Development database configuration lives in `docker/compose.yml`.
 - Production-style stack lives in `docker/compose.prod.yml`.
-- The dev web service bind-mounts `./web` into the container.
-- The dev stack does not keep a dedicated `.next` volume.
+- Next.js development runs on the host through `npm run dev` in `web/`.
 
 ## Database change rule
 

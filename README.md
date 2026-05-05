@@ -1,6 +1,6 @@
 # PinkLove Next.js Project
 
-PinkLove is a Docker-first Next.js application with:
+PinkLove is a Next.js application with Docker-managed local services:
 
 - Next.js `16.2.2` using the App Router
 - React `19.2.4`
@@ -50,24 +50,25 @@ Current notable behavior:
 ## Getting Started
 
 1. Ensure Docker Desktop is running.
-2. Run `./web/setup up` to build and start the development stack.
-3. Open the app in your browser using the `WEB_PORT` value from `.env`.
-   Default in `.env.example`: `http://localhost:3030`
+2. Run `./web/setup up` to start PostgreSQL.
+3. Run `cd web && npm run dev` to start Next.js locally.
+4. Open the app in your browser at `http://localhost:3000`.
 
 If `.env` does not exist, `./web/setup` creates it from `.env.example`.
 
 Development note:
 
-- `docker/compose.yml` bind-mounts `./web` into the container and does not keep a separate `.next` volume, which reduces stale Next.js dev cache issues.
-- `./web/setup up` stops the production compose stack first if it is running, then starts the dev stack so code changes hot reload automatically.
+- `docker/compose.yml` is for local PostgreSQL only.
+- Next.js runs on the host through the default `npm run dev` in `web/`.
+- `web/.env.local` points `DATABASE_URL` at the Docker database on `localhost:5433`.
+- `./web/setup up` stops the production compose stack first if it is running, then starts the dev database services.
 
 ## Main Commands
 
-- `./web/setup up`: build and start containers in detached mode
-- `./web/setup restart`: clear Next.js cache and restart the web service
-- `./web/setup seed`: start the dev stack if needed, then seed demo website data
+- `./web/setup up`: start database containers in detached mode
+- `cd web && npm run dev`: start the local Next.js dev server
 - `./web/setup down`: stop containers
-- `./web/setup logs`: stream web logs
+- `./web/setup logs`: stream database logs
 - `./web/setup help`: show all supported commands
 
 ## Repo Layout

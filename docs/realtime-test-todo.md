@@ -20,7 +20,7 @@ Mục tiêu: xác nhận luồng realtime giữa `admin` và `vendor` đã hoạ
 ## 2. Chuẩn bị môi trường
 
 - [ ] Seed dữ liệu demo:
-  - `./setup seed`
+  - `cd web && npm run seed:partner`
 - [ ] Chuẩn bị ít nhất 3 session trình duyệt:
   - Session A: admin
   - Session B: vendor Alpha
