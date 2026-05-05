@@ -5,6 +5,7 @@ import os from "os";
 import path from "path";
 import { promisify } from "util";
 import { ensureAdminBackupDirectory, getAdminBackupDirectory } from "@/lib/admin-backups";
+import { getSystemSettings } from "@/lib/system-settings";
 
 const execFileAsync = promisify(execFile);
 
@@ -22,11 +23,39 @@ function getUploadsDirectory() {
   return path.join(process.cwd(), "public", "uploads");
 }
 
-function getBackupName() {
-  const projectName = process.env.COMPOSE_PROJECT_NAME || "app";
-  const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+function slugifyBackupPrefix(value: string) {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  return `${projectName}-${timestamp}`;
+  return normalized || "website";
+}
+
+function formatBackupTimestamp(value: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).formatToParts(value);
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${lookup.year}${lookup.month}${lookup.day}-${lookup.hour}${lookup.minute}${lookup.second}`;
+}
+
+async function getBackupName() {
+  const settings = await getSystemSettings();
+  const siteName = settings.branding.siteName || process.env.COMPOSE_PROJECT_NAME || "website";
+  const timestamp = formatBackupTimestamp(new Date());
+
+  return `${slugifyBackupPrefix(siteName)}-${timestamp}`;
 }
 
 async function pathSize(filePath: string) {
@@ -70,7 +99,7 @@ export async function runBackupScript() {
 
   return withWorkDir(async (workDir) => {
     const backupDirectory = getAdminBackupDirectory();
-    const backupName = getBackupName();
+    const backupName = await getBackupName();
     const backupFilePath = path.join(backupDirectory, `${backupName}.tar.gz`);
     const databaseDumpPath = path.join(workDir, "database.dump");
     const uploadsArchivePath = path.join(workDir, "uploads.tar.gz");
