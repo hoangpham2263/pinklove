@@ -101,8 +101,8 @@ export const ROUTES = {
     PAGES: "/admin/pages",
     BLOG_POSTS: "/admin/blog/posts",
     BLOG_POST: (slug: string) => `/admin/blog/posts/${slug}`,
-    BLOG_CATEGORIES: "/admin/blog/categories",
-    BLOG_CATEGORY: (slug: string) => `/admin/blog/categories/${slug}`,
+    BLOG_CATEGORIES: "/admin/blog-cat",
+    BLOG_CATEGORY: (slug: string) => `/admin/blog-cat/${slug}`,
     MENUS: "/admin/menus",
     MENU: (name: string) => `/admin/menus/${encodeURIComponent(name)}`,
     SEO_GUIDE: "/admin/seo-guide",
@@ -209,9 +209,9 @@ export const ROUTES = {
           DELETE: "/api/admin/blog/posts/delete",
         },
         CATEGORIES: {
-          CREATE: "/api/admin/blog/categories/create",
-          UPDATE: "/api/admin/blog/categories/update",
-          DELETE: "/api/admin/blog/categories/delete",
+          CREATE: "/api/admin/blog-cat/create",
+          UPDATE: "/api/admin/blog-cat/update",
+          DELETE: "/api/admin/blog-cat/delete",
         },
       },
       PAGES: {

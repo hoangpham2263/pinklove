@@ -285,7 +285,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route tạo blog category đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/categories/create",
+    triggerSource: "POST /api/admin/blog-cat/create",
     payloadKeys: ["category.id", "category.slug", "category.status", "category.createdAt"],
   }),
   createHook({
@@ -297,7 +297,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route cập nhật blog category đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/categories/update",
+    triggerSource: "POST /api/admin/blog-cat/update",
     payloadKeys: ["category.id", "category.slug", "category.status", "category.updatedAt"],
   }),
   createHook({
@@ -309,7 +309,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route xóa blog category đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/categories/delete",
+    triggerSource: "POST /api/admin/blog-cat/delete",
     payloadKeys: ["category.id", "actor.id", "deletedAt"],
   }),
   createHook({

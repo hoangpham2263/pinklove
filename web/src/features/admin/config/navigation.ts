@@ -11,6 +11,8 @@ export type AdminNavIconName =
   | "truck"
   | "shopping-bag"
   | "menu"
+  | "message-circle"
+  | "messages-square"
   | "image"
   | "book-open-text"
   | "list-tree"
@@ -41,76 +43,72 @@ export type AdminStandaloneNavItem = {
 
 export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
-  { label: "Tin nhắn", href: ROUTES.ADMIN.MESSAGES, iconName: "message-circle" },
-  { label: "Comments", href: ROUTES.ADMIN.COMMENTS, iconName: "message-circle" },
-  { label: "Thông báo", href: ROUTES.ADMIN.NOTIFICATIONS, iconName: "bell" },
+  { label: "Messages", href: ROUTES.ADMIN.MESSAGES, iconName: "message-circle" },
+  { label: "Comments", href: ROUTES.ADMIN.COMMENTS, iconName: "messages-square" },
   { label: "Media", href: ROUTES.ADMIN.MEDIA, iconName: "image" },
 ];
 
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
-    label: "Page",
+    label: "Content",
     iconName: "files",
     defaultOpen: false,
     children: [
       { label: "Pages", href: ROUTES.ADMIN.PAGES, iconName: "files" },
       { label: "Navigation", href: ROUTES.ADMIN.MENUS, iconName: "menu" },
+      { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS, iconName: "book-open-text" },
+      { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "tags" },
     ],
   },
   {
-    label: "Blog",
-    iconName: "book-open-text",
+    label: "Products",
+    iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS, iconName: "files" },
-      { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "book-open-text" },
+      { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
+      { label: "Product Categories", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
+      { label: "Coded Templates", href: ROUTES.ADMIN.PRODUCT_LIST_CODED, iconName: "file-code-2" },
+      { label: "Builder Templates", href: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, iconName: "blocks" },
+      { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
     ],
   },
   {
-    label: "Ecommerce",
+    label: "Sales",
     iconName: "shopping-bag",
     defaultOpen: false,
     children: [
-      { label: "Mẫu coded", href: ROUTES.ADMIN.PRODUCT_LIST_CODED, iconName: "file-code-2" },
-      { label: "Mẫu builder", href: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, iconName: "blocks" },
-      { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
-      { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
-      { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
-      { label: "Khách hàng", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
-      { label: "Nhà cung cấp", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Customers", href: ROUTES.ADMIN.CUSTOMERS, iconName: "users" },
       { label: "Orders", href: ROUTES.ADMIN.ORDERS, iconName: "receipt-text" },
       { label: "Payments", href: ROUTES.ADMIN.PAYMENTS, iconName: "credit-card" },
-      { label: "Payment Methods", href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS, iconName: "credit-card" },
       { label: "Shipments", href: ROUTES.ADMIN.SHIPMENTS, iconName: "truck" },
-      { label: "Shipping", href: ROUTES.ADMIN.CONFIG_SHIPPING, iconName: "truck" },
-      { label: "Ecommerce Config", href: ROUTES.ADMIN.CONFIG_ECOMMERCE, iconName: "shopping-bag" },
     ],
   },
   {
-    label: "Tài khoản",
+    label: "Partners",
+    iconName: "store",
+    defaultOpen: false,
+    children: [
+      { label: "Vendors", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Affiliate Users", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
+      { label: "Affiliate Programs", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
+    ],
+  },
+  {
+    label: "Accounts",
     iconName: "users",
     defaultOpen: false,
     children: [
-      { label: "Người dùng", href: ROUTES.ADMIN.USERS, iconName: "users" },
-      { label: "Tài khoản nội bộ", href: ROUTES.ADMIN.INTERNAL_ACCOUNTS, iconName: "users" },
-    ],
-  },
-  {
-    label: "Affiliate",
-    iconName: "badge-percent",
-    defaultOpen: false,
-    children: [
-      { label: "Đối tác / CTV", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
-      { label: "Chương trình affiliate", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
+      { label: "Users", href: ROUTES.ADMIN.USERS, iconName: "users" },
+      { label: "Internal Accounts", href: ROUTES.ADMIN.INTERNAL_ACCOUNTS, iconName: "users" },
     ],
   },
 ];
 
 export const ADMIN_NAV_SECONDARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "list-tree" },
-  { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
+  { label: "Configuration", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
 ];
 
 export const ADMIN_NAV_AUXILIARY_ITEMS: AdminStandaloneNavItem[] = [
-  { label: "Xem Website", href: ROUTES.HOME, iconName: "external-link" },
+  { label: "View Website", href: ROUTES.HOME, iconName: "external-link" },
 ];

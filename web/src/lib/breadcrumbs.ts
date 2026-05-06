@@ -36,7 +36,7 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.BLOG_POSTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Posts" }] },
   { pattern: "/admin/blog/posts/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS }, { label: "Chỉnh sửa bài viết" }] },
   { pattern: ROUTES.ADMIN.BLOG_CATEGORIES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Categories" }] },
-  { pattern: "/admin/blog/categories/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES }, { label: "Chỉnh sửa danh mục" }] },
+  { pattern: "/admin/blog-cat/[slug]", items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES }, { label: "Chỉnh sửa danh mục" }] },
   { pattern: ROUTES.ADMIN.SEO_GUIDE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Guide" }] },
   { pattern: ROUTES.ADMIN.SEO_PAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Pages" }] },
   { pattern: ROUTES.ADMIN.SEO_SCHEMA, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Schema" }] },

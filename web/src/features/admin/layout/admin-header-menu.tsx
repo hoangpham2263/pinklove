@@ -18,6 +18,7 @@ import {
   LogOut,
   Menu as MenuIcon,
   MessageCircle,
+  MessagesSquare,
   Package,
   ReceiptText,
   Settings,
@@ -56,6 +57,7 @@ const adminMobileIconMap = {
   truck: Truck,
   menu: MenuIcon,
   "message-circle": MessageCircle,
+  "messages-square": MessagesSquare,
   bell: Bell,
   image: ImageIcon,
   "shopping-bag": ShoppingBag,
@@ -111,7 +113,7 @@ function MenuGroup({
       </CollapsibleTrigger>
 
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none data-[state=open]:animate-none data-[state=closed]:h-0 data-[state=open]:h-[var(--radix-collapsible-content-height)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-[height,opacity] duration-200 ease-out">
-        <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-4">
+        <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-2.5">
           {group.children.map((item) => (
             <MenuChildItem key={item.href} item={item} onNavigate={onNavigate} />
           ))}
