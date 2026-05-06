@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, LayoutDashboard, PackagePlus, PackageSearch, Settings } from "lucide-react";
+import { ExternalLink, LayoutDashboard, PackageCheck, PackagePlus, PackageSearch, Settings } from "lucide-react";
 
 import { VendorWorkspaceNavLink } from "@/features/vendor-orders/components/vendor-workspace-nav-link";
 import { VendorWorkspaceTopHeader } from "@/features/vendor-orders/components/vendor-workspace-top-header";
@@ -22,6 +22,7 @@ export default async function PartnerWorkspaceLayout({
     { href: ROUTES.PARTNER.LEGACY_DASHBOARD, label: "Dashboard", icon: LayoutDashboard, exact: true },
     { href: ROUTES.PARTNER.LEGACY_ORDERS, label: "Đơn được giao", icon: PackageSearch, matchPrefixes: [ROUTES.PARTNER.LEGACY_ORDERS, ROUTES.PARTNER.ORDER("").slice(0, -1)] },
     { href: ROUTES.PARTNER.PRODUCTS, label: "Sản phẩm", icon: PackagePlus, matchPrefixes: [ROUTES.PARTNER.PRODUCTS] },
+    { href: ROUTES.PARTNER.AVAILABLE_TEMPLATES, label: "Mẫu có sẵn", icon: PackageCheck, matchPrefixes: [ROUTES.PARTNER.AVAILABLE_TEMPLATES, ROUTES.PARTNER.SUPPLY_REQUESTS] },
     { href: ROUTES.PARTNER.CONFIG, label: "Configs", icon: Settings, matchPrefixes: [ROUTES.PARTNER.CONFIG] },
   ];
 

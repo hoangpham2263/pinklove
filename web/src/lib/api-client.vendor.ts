@@ -32,6 +32,10 @@ async function submitProductSubmission(submissionId: string, formData: FormData)
   return submitForm(ROUTES.API.PARTNER.PRODUCTS.SUBMIT(submissionId), formData);
 }
 
+async function createSupplyRequest(formData: FormData) {
+  return submitForm(ROUTES.API.PARTNER.PRODUCTS.SUPPLY_REQUESTS, formData);
+}
+
 async function fetchVendorOrderDetail(url: string) {
   const response = await apiFetch(url, {
     cache: "no-store",
@@ -72,6 +76,7 @@ export const vendorApi = {
   updateVendorAssignment,
   saveProductSubmission,
   submitProductSubmission,
+  createSupplyRequest,
   fetchVendorOrderDetail,
   fetchRequiredVendorOrderDetail,
   fetchVendorPortalSummary,
@@ -82,4 +87,5 @@ export const vendorApiActions = {
   updateVendorAssignment: ROUTES.API.PARTNER.ORDERS.UPDATE,
   saveProductSubmission: ROUTES.API.PARTNER.PRODUCTS.SUBMISSIONS,
   submitProductSubmission: ROUTES.API.PARTNER.PRODUCTS.SUBMIT,
+  createSupplyRequest: ROUTES.API.PARTNER.PRODUCTS.SUPPLY_REQUESTS,
 } as const;

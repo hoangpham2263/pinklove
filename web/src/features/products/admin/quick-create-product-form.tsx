@@ -36,6 +36,7 @@ export function QuickCreateProductForm({
   const [vendorSku, setVendorSku] = useState("");
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">("internal");
   const [ownerVendorUserId, setOwnerVendorUserId] = useState("");
+  const [allowVendorSupply, setAllowVendorSupply] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -160,6 +161,25 @@ export function QuickCreateProductForm({
               <p className="text-sm text-muted-foreground">
                 Nhóm này không dùng template invitation source. Chỉ chọn đối tác khi nguồn hàng thuộc bên cung ứng.
               </p>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="font-medium">Vendor supplier requests</label>
+              <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                <input
+                  type="checkbox"
+                  name="allowVendorSupply"
+                  checked={allowVendorSupply}
+                  onChange={(e) => setAllowVendorSupply(e.target.checked)}
+                  className="mt-1 rounded border-input"
+                />
+                <span className="space-y-1">
+                  <span className="block font-medium">Cho phép vendor xin cung cấp sản phẩm này</span>
+                  <span className="block text-sm text-muted-foreground">
+                    Bật khi bạn muốn vendor thấy mẫu này trong portal và gửi hồ sơ xin cung cấp.
+                  </span>
+                </span>
+              </label>
             </div>
 
             <div className="space-y-2">

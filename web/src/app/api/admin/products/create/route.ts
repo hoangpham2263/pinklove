@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   const vendorSku = supportsInventory ? String(formData.get("vendorSku") ?? "").trim() : "";
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
+  const allowVendorSupply = productType === "general_product" && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
     productType === "builder_template" ? ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE : ROUTES.ADMIN.PRODUCTS;
@@ -115,7 +116,10 @@ export async function POST(request: Request) {
       vendorSku,
       config: {
         ...(productType === "general_product"
-          ? { generalProduct: { ...ownerConfig, costPrice, vendorSku } }
+          ? {
+              generalProduct: { ...ownerConfig, costPrice, vendorSku },
+              vendorSupply: { enabled: allowVendorSupply },
+            }
           : {
               siteDefaults: {
                 ...getInvitationTemplateDefaults(templateKey),

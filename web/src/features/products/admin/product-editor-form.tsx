@@ -46,6 +46,11 @@ export function ProductEditorForm({
   const [vendorSku, setVendorSku] = useState(product.vendorSku);
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">(product.ownerType);
   const [ownerVendorUserId, setOwnerVendorUserId] = useState(product.ownerVendorUserId || "");
+  const vendorSupplyConfig =
+    typeof product.config.vendorSupply === "object" && product.config.vendorSupply
+      ? (product.config.vendorSupply as Record<string, unknown>)
+      : {};
+  const [allowVendorSupply, setAllowVendorSupply] = useState(Boolean(vendorSupplyConfig.enabled));
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
@@ -296,6 +301,25 @@ export function ProductEditorForm({
 
             {isGeneralProduct ? (
               <>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="font-medium">Vendor supplier requests</label>
+                  <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                    <input
+                      type="checkbox"
+                      name="allowVendorSupply"
+                      checked={allowVendorSupply}
+                      onChange={(e) => setAllowVendorSupply(e.target.checked)}
+                      className="mt-1 rounded border-input"
+                    />
+                    <span className="space-y-1">
+                      <span className="block font-medium">Cho phép vendor xin cung cấp sản phẩm này</span>
+                      <span className="block text-sm text-muted-foreground">
+                        Chỉ bật cho mẫu/sản phẩm đã sẵn sàng review supplier. Vendor sẽ thấy mục này trong portal.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+
                 <div className="space-y-2">
                   <label className="font-medium">Nguồn hàng / chủ sở hữu</label>
                   <select

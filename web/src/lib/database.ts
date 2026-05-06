@@ -1610,6 +1610,90 @@ async function ensureVendorProductSubmissionsMigration() {
     CREATE INDEX IF NOT EXISTS vendor_product_submission_events_submission_id_idx
     ON vendor_product_submission_events(submission_id, created_at DESC);
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS product_vendor_suppliers (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'active',
+      source TEXT NOT NULL DEFAULT 'admin',
+      purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
+      vendor_sku TEXT NOT NULL DEFAULT '',
+      lead_time_days INT NOT NULL DEFAULT 0,
+      monthly_capacity INT NOT NULL DEFAULT 0,
+      service_area TEXT NOT NULL DEFAULT '',
+      quality_note TEXT NOT NULL DEFAULT '',
+      approved_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      approved_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT product_vendor_suppliers_status_check CHECK (status IN ('active', 'paused', 'suspended', 'revoked')),
+      CONSTRAINT product_vendor_suppliers_source_check CHECK (source IN ('admin', 'proposal', 'supplier_request')),
+      CONSTRAINT product_vendor_suppliers_purchase_cost_check CHECK (purchase_cost >= 0),
+      CONSTRAINT product_vendor_suppliers_lead_time_days_check CHECK (lead_time_days >= 0),
+      CONSTRAINT product_vendor_suppliers_monthly_capacity_check CHECK (monthly_capacity >= 0),
+      CONSTRAINT product_vendor_suppliers_product_vendor_unique UNIQUE (product_id, vendor_user_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS product_vendor_suppliers_vendor_user_id_idx
+    ON product_vendor_suppliers(vendor_user_id, status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS product_vendor_suppliers_product_id_idx
+    ON product_vendor_suppliers(product_id, status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_product_supplier_requests (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      review_status TEXT NOT NULL DEFAULT 'submitted',
+      purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
+      vendor_sku TEXT NOT NULL DEFAULT '',
+      lead_time_days INT NOT NULL DEFAULT 0,
+      monthly_capacity INT NOT NULL DEFAULT 0,
+      service_area TEXT NOT NULL DEFAULT '',
+      sample_image_url TEXT NOT NULL DEFAULT '',
+      material_note TEXT NOT NULL DEFAULT '',
+      quality_note TEXT NOT NULL DEFAULT '',
+      vendor_note TEXT NOT NULL DEFAULT '',
+      review_note TEXT NOT NULL DEFAULT '',
+      submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reviewed_at TIMESTAMPTZ,
+      reviewed_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_product_supplier_requests_review_status_check CHECK (review_status IN ('submitted', 'under_review', 'changes_requested', 'approved', 'rejected', 'archived')),
+      CONSTRAINT vendor_product_supplier_requests_purchase_cost_check CHECK (purchase_cost >= 0),
+      CONSTRAINT vendor_product_supplier_requests_lead_time_days_check CHECK (lead_time_days >= 0),
+      CONSTRAINT vendor_product_supplier_requests_monthly_capacity_check CHECK (monthly_capacity >= 0)
+    );
+  `);
+
+  await pool.query(`
+    DROP INDEX IF EXISTS vendor_product_supplier_requests_open_uidx;
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS vendor_product_supplier_requests_active_uidx
+    ON vendor_product_supplier_requests(product_id, vendor_user_id)
+    WHERE review_status IN ('submitted', 'under_review', 'changes_requested');
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_product_supplier_requests_vendor_user_id_idx
+    ON vendor_product_supplier_requests(vendor_user_id, review_status, updated_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS vendor_product_supplier_requests_review_status_idx
+    ON vendor_product_supplier_requests(review_status, updated_at DESC);
+  `);
 }
 
 async function ensureVendorApplicationsMigration() {

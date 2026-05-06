@@ -86,6 +86,8 @@ export const ROUTES = {
     PRODUCTS: "/partner/products",
     PRODUCT_NEW: "/partner/products/new",
     PRODUCT: (id: string) => `/partner/products/${id}`,
+    AVAILABLE_TEMPLATES: "/partner/available-templates",
+    SUPPLY_REQUESTS: "/partner/supply-requests",
     CONFIG: "/partner/config",
     CONFIG_ACCOUNT: "/partner/config/account",
     CONFIG_ADDRESSES: "/partner/config/addresses",
@@ -196,6 +198,7 @@ export const ROUTES = {
         SUBMISSIONS: "/api/partner/products/submissions",
         SUBMISSION: (id: string) => `/api/partner/products/submissions/${id}`,
         SUBMIT: (id: string) => `/api/partner/products/submissions/${id}/submit`,
+        SUPPLY_REQUESTS: "/api/partner/products/supply-requests",
       },
     },
     ADMIN: {
@@ -282,6 +285,8 @@ export const ROUTES = {
         DETAIL: (id: string) => `/api/admin/vendor-products/${id}`,
         REVIEW: (id: string) => `/api/admin/vendor-products/${id}/review`,
         APPROVE: (id: string) => `/api/admin/vendor-products/${id}/approve`,
+        SUPPLIER_REQUEST_REVIEW: (id: string) => `/api/admin/vendor-products/supplier-requests/${id}/review`,
+        SUPPLIER_STATUS: (id: string) => `/api/admin/vendor-products/suppliers/${id}/status`,
       },
       VENDORS: {
         STATUS: "/api/admin/vendors/status",

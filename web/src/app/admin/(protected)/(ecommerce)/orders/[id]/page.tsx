@@ -7,6 +7,7 @@ import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-sta
 import { getOrderById } from "@/features/ecommerce/server/service";
 import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
 import { getVendorAssignmentByOrderId } from "@/features/vendor-orders/server/service";
+import { listApprovedSupplierOptionsForProducts } from "@/features/vendor-product-submissions/server/service";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
@@ -41,6 +42,16 @@ export default async function AdminOrderDetailPage({
   }
 
   const shippingAddress = formatShippingAddress(order);
+  const approvedSupplierOptions = await listApprovedSupplierOptionsForProducts(
+    order.items.map((item) => item.productId ?? "")
+  );
+  const vendorOptions =
+    approvedSupplierOptions.length > 0
+      ? approvedSupplierOptions
+      : vendors.map((vendor) => ({
+          id: vendor.id,
+          label: vendor.displayName || vendor.fullName || vendor.username,
+        }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -120,10 +131,7 @@ export default async function AdminOrderDetailPage({
             orderId={order.id}
             detailUrl={ROUTES.API.ADMIN.ORDERS.DETAIL_VENDOR_ASSIGNMENT(order.id)}
             initialDetail={vendorAssignment}
-            vendorOptions={vendors.map((vendor) => ({
-              id: vendor.id,
-              label: vendor.displayName || vendor.fullName || vendor.username,
-            }))}
+            vendorOptions={vendorOptions}
           />
         </div>
 

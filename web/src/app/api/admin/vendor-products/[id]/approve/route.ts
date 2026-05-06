@@ -11,6 +11,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const formData = await request.formData();
   const adminSellPrice = Math.max(0, Number(formData.get("adminSellPrice") ?? "0"));
   const reviewNote = String(formData.get("reviewNote") ?? "");
+  const productOwnership =
+    String(formData.get("productOwnership") ?? "platform") === "vendor_originated"
+      ? "vendor_originated"
+      : "platform";
+  const assignVendorSupplier = formData.get("assignVendorSupplier") !== "off";
 
   if (!Number.isFinite(adminSellPrice)) {
     return respondError(request, {
@@ -26,6 +31,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       actorUserId: admin.id,
       adminSellPrice,
       reviewNote,
+      productOwnership,
+      assignVendorSupplier,
     });
 
     return respondSuccess(request, {

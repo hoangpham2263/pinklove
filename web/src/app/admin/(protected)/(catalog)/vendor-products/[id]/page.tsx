@@ -147,6 +147,32 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
                     className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60"
                   />
                 </div>
+                {detail.submissionType === "create" ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Quyền sở hữu catalog</label>
+                    <select
+                      name="productOwnership"
+                      defaultValue="platform"
+                      disabled={!canApprove}
+                      className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
+                    >
+                      <option value="platform">Platform-owned, có thể mở cho nhiều vendor</option>
+                      <option value="vendor_originated">Vendor-originated, gán vendor đề xuất làm nguồn ban đầu</option>
+                    </select>
+                  </div>
+                ) : null}
+                {detail.submissionType !== "discontinue" ? (
+                  <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
+                    <input
+                      type="checkbox"
+                      name="assignVendorSupplier"
+                      defaultChecked
+                      disabled={!canApprove}
+                      className="mt-1"
+                    />
+                    <span>Gán vendor này làm supplier đã duyệt cho sản phẩm sau khi approve.</span>
+                  </label>
+                ) : null}
                 <Button type="submit" className="w-full" disabled={!canApprove}>
                   Duyệt và apply vào catalog
                 </Button>
