@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AdminInlineLinkButton } from "@/features/admin/components/admin-buttons";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getProductBySlug, listAllProductCategories } from "@/features/products/server/service";
 import { ProductEditorForm } from "@/features/products/admin/product-editor-form";
@@ -42,9 +42,9 @@ export default async function AdminCodedTemplateEditorPage({
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href={returnTo} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+          <AdminInlineLinkButton href={returnTo}>
             ← Back
-          </Link>
+          </AdminInlineLinkButton>
           <h1 className="text-2xl font-bold tracking-tight">Edit Coded Template: {product.name}</h1>
         </div>
       </div>

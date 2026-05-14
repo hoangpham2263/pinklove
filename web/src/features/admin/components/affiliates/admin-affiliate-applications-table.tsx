@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown } from "lucide-react";
+
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -16,11 +16,10 @@ import {
 } from "@tanstack/react-table";
 
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { type AffiliateApplication } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -74,10 +73,8 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
     {
       accessorKey: "fullName",
       header: ({ column }) => (
-        <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Người đăng ký
-          <ArrowUpDown className="h-4 w-4" />
-        </Button>
+        <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Người đăng ký</AdminTableSortButton>
       ),
       cell: ({ row }) => (
         <div className="space-y-1">
@@ -100,10 +97,8 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
     {
       accessorKey: "reviewStatus",
       header: ({ column }) => (
-        <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-          Trạng thái
-          <ArrowUpDown className="h-4 w-4" />
-        </Button>
+        <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Trạng thái</AdminTableSortButton>
       ),
       filterFn: (row, columnId, filterValue) => {
         if (!filterValue) return true;
@@ -141,7 +136,7 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
             value={draft.reviewNote}
             onChange={(event) => updateRowEdit(row.original.id, { reviewNote: event.target.value })}
             rows={3}
-            className="min-w-52 rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors focus:ring-1 focus:ring-ring"
+            className="min-w-52 rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors"
           />
         );
       },

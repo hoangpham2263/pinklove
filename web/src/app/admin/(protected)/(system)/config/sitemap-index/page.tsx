@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { CheckCircle2, FileCode2, Globe2, ListChecks } from "lucide-react";
+import { AdminInlineLinkButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminSitemapTable } from "@/features/admin/components/settings/admin-sitemap-table";
 import { requireAdmin } from "@/lib/auth";
@@ -80,12 +80,12 @@ export default async function AdminSitemapIndexPage() {
           <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
             <CardTitle className="text-sm font-medium">Sitemap Index</CardTitle>
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <Link href={ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
+              <AdminInlineLinkButton href={ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS}>
                 Settings
-              </Link>
-              <Link href={ROUTES.SITEMAP_XML} target="_blank" className="inline-flex h-8 items-center justify-center rounded-lg border px-3 hover:bg-accent">
+              </AdminInlineLinkButton>
+              <AdminInlineLinkButton href={ROUTES.SITEMAP_XML} target="_blank">
                 Mở sitemap.xml
-              </Link>
+              </AdminInlineLinkButton>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

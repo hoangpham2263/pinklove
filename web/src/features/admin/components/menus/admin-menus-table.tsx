@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type SortingState,
@@ -12,7 +12,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { Menu } from "@/lib/menu";
 import { ROUTES } from "@/lib/routes";
 
@@ -49,30 +48,16 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
       {
         accessorKey: "label",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Tên menu
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tên menu</AdminTableSortButton>
         ),
         cell: ({ row }) => <span>{row.original.label}</span>,
       },
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Slug
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Slug</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <code>{row.original.name}</code>
@@ -81,15 +66,8 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
       {
         accessorKey: "itemCount",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Số mục
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Số mục</AdminTableSortButton>
         ),
         cell: ({ row }) => <div className="font-medium">{row.original.itemCount ?? 0}</div>,
       },

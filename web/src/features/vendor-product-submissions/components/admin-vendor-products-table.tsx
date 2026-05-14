@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,11 +14,10 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
 import { VendorProductStatusBadge } from "@/features/vendor-product-submissions/components/vendor-product-status-badge";
 import type { VendorProductReviewStatus, VendorProductSubmission } from "@/features/vendor-product-submissions/types";
@@ -68,10 +67,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
       {
         accessorKey: "vendorDisplayName",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Vendor
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Vendor</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
@@ -92,10 +89,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Sản phẩm
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Sản phẩm</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
@@ -110,10 +105,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
       {
         accessorKey: "submissionType",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Loại yêu cầu
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Loại yêu cầu</AdminTableSortButton>
         ),
         cell: ({ row }) => <Badge variant="secondary">{getVendorProductSubmissionTypeLabel(row.original.submissionType)}</Badge>,
       },
@@ -121,10 +114,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
         accessorKey: "purchaseCost",
         header: ({ column }) => (
           <div className="text-right">
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Giá nhập
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Giá nhập</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => <div className="text-right">{row.original.purchaseCost}</div>,
@@ -142,10 +133,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
       {
         accessorKey: "reviewStatus",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Trạng thái
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -156,10 +145,8 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
       {
         accessorKey: "updatedAt",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Cập nhật
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Cập nhật</AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.updatedAt),
       },

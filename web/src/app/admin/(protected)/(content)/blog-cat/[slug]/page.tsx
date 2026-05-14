@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminInlineLinkButton } from "@/features/admin/components/admin-buttons";
 import { BlogCategoryEditorForm } from "@/features/blog/admin/blog-category-editor-form";
 import { requireAdmin } from "@/lib/auth";
 import { getBlogCategoryBySlug } from "@/features/blog/server/service";
@@ -17,9 +17,9 @@ export default async function AdminBlogCategoryEditorPage({ params }: { params: 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex items-center gap-3">
-        <Link href={ROUTES.ADMIN.BLOG_CATEGORIES} className="inline-flex h-8 items-center justify-center rounded-lg border px-3 font-medium hover:bg-accent">
+        <AdminInlineLinkButton href={ROUTES.ADMIN.BLOG_CATEGORIES}>
           ← Back
-        </Link>
+        </AdminInlineLinkButton>
         <h1 className="text-2xl font-bold tracking-tight">Edit Blog Category: {category.name}</h1>
       </div>
       <BlogCategoryEditorForm category={category} />

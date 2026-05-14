@@ -125,7 +125,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           name="html"
           value={html}
           onChange={(event) => setHtml(event.target.value)}
-          className="min-h-60 w-full rounded-lg border border-input bg-background px-3 py-2 font-mono outline-none transition-colors focus:ring-1 focus:ring-ring"
+          className="min-h-60 w-full rounded-lg border border-input bg-background px-3 py-2 font-mono outline-none transition-colors"
           spellCheck={false}
         />
       </div>
@@ -139,7 +139,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           name="text"
           value={text}
           onChange={(event) => setText(event.target.value)}
-          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none transition-colors focus:ring-1 focus:ring-ring"
+          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none transition-colors"
         />
       </div>
 

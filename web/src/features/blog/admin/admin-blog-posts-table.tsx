@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown } from "lucide-react";
+
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -17,11 +17,10 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -54,20 +53,16 @@ export function AdminBlogPostsTable({ posts, categories }: AdminBlogPostsTablePr
       {
         accessorKey: "title",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Tiêu đề
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tiêu đề</AdminTableSortButton>
         ),
         cell: ({ row }) => row.original.title,
       },
       {
         accessorKey: "slug",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Slug
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Slug</AdminTableSortButton>
         ),
         cell: ({ row }) => <code>/{row.original.slug}</code>,
       },
@@ -88,10 +83,8 @@ export function AdminBlogPostsTable({ posts, categories }: AdminBlogPostsTablePr
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Trạng thái
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -102,10 +95,8 @@ export function AdminBlogPostsTable({ posts, categories }: AdminBlogPostsTablePr
       {
         accessorKey: "updatedAt",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Updated
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Updated</AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.updatedAt),
       },

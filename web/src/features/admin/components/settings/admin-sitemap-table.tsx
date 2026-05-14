@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,9 +14,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -62,30 +61,16 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
       {
         accessorKey: "label",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Group
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Group</AdminTableSortButton>
         ),
         cell: ({ row }) => <span className="font-medium">{row.original.label}</span>,
       },
       {
         accessorKey: "routePath",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Path
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Path</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <code>{row.original.routePath}</code>
@@ -95,15 +80,8 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
         accessorKey: "count",
         header: ({ column }) => (
           <div className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Links
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Links</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => <div className="text-right font-medium">{row.original.count}</div>,
@@ -111,15 +89,8 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
       {
         accessorKey: "enabled",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Status</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;

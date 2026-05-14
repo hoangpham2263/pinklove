@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions, AdminTableActionTrigger } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { EcommercePayment } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 
@@ -113,10 +113,8 @@ export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
       {
         accessorKey: "id",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Payment
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Payment</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
@@ -134,10 +132,8 @@ export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
         accessorKey: "amount",
         header: ({ column }) => (
           <div className="text-right">
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Số tiền
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Số tiền</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => <div className="text-right">{row.original.amountLabel}</div>,
@@ -145,10 +141,8 @@ export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Trạng thái
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -169,10 +163,8 @@ export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
       {
         accessorKey: "updatedAt",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Cập nhật
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Cập nhật</AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.updatedAt),
       },

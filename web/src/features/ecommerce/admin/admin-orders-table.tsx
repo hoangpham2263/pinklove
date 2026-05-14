@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions, AdminTableActionTrigger } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { EcommerceOrder, FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
@@ -129,10 +129,8 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
       {
         accessorKey: "orderNumber",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Đơn hàng
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Đơn hàng</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
@@ -154,10 +152,8 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Đơn
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Đơn</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -179,10 +175,8 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
         accessorKey: "totalAmount",
         header: ({ column }) => (
           <div className="text-right">
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Tổng tiền
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Tổng tiền</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => <div className="text-right">{row.original.totalAmountLabel}</div>,
@@ -190,10 +184,8 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
       {
         accessorKey: "createdAt",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Tạo lúc
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tạo lúc</AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.createdAt),
       },

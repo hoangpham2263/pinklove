@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, Plus, X } from "lucide-react";
+import { ExternalLink, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -16,7 +16,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,15 +126,8 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
       {
         accessorKey: "label",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Title
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Title</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           row.original.label ? <span>{row.original.label}</span> : <span className="text-muted-foreground">-</span>
@@ -143,30 +136,16 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
       {
         accessorKey: "sourcePath",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Source
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Source</AdminTableSortButton>
         ),
         cell: ({ row }) => <code>{row.original.sourcePath}</code>,
       },
       {
         accessorKey: "targetPath",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Target
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Target</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <Link
@@ -182,30 +161,16 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
       {
         accessorKey: "statusCode",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Status
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Status</AdminTableSortButton>
         ),
         cell: ({ row }) => <Badge variant="secondary">{row.original.statusCode}</Badge>,
       },
       {
         accessorKey: "enabled",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            State
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            State</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;

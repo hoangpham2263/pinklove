@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown } from "lucide-react";
+
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -35,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -118,30 +118,16 @@ export function AdminProductList({
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Tên sản phẩm
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tên sản phẩm</AdminTableSortButton>
         ),
         cell: ({ row }) => <span>{row.original.name}</span>,
       },
       {
         accessorKey: "slug",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Slug
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Slug</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <code>/{row.original.slug}</code>
@@ -150,15 +136,8 @@ export function AdminProductList({
       {
         accessorKey: "productType",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Loại
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Loại</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -176,15 +155,8 @@ export function AdminProductList({
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Trạng thái
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -214,15 +186,8 @@ export function AdminProductList({
         accessorKey: "price",
         header: ({ column }) => (
           <div className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Giá
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Giá</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => <div className="text-right font-medium">{row.original.price}</div>,

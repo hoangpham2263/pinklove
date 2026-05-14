@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown } from "lucide-react";
+
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -29,7 +29,7 @@ import {
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { MediaSelector } from "@/features/media/components/media-selector";
-import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -87,15 +87,8 @@ export function SettingsDataTableForm({
       {
         accessorKey: "label",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Setting
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Setting</AdminTableSortButton>
         ),
         meta: {
           className: columnWidths?.label,

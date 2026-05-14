@@ -7,6 +7,7 @@ import {
   Download,
   ExternalLink,
   Eye,
+  FilterX,
   Pencil,
   RotateCcw,
   Save,
@@ -24,6 +25,7 @@ type AdminTableActionKind =
   | "edit"
   | "external"
   | "download"
+  | "clear"
   | "delete"
   | "save"
   | "cancel"
@@ -54,6 +56,7 @@ const ACTION_CONFIG: Record<AdminTableActionKind, ActionConfig> = {
   edit: { icon: Pencil, label: "Chỉnh sửa", tone: "edit" },
   external: { icon: ExternalLink, label: "Mở liên kết", tone: "external" },
   download: { icon: Download, label: "Tải xuống", tone: "download" },
+  clear: { icon: FilterX, label: "Xóa bộ lọc", tone: "delete" },
   delete: { icon: Trash2, label: "Xóa", tone: "delete" },
   save: { icon: Save, label: "Lưu", tone: "save" },
   cancel: { icon: X, label: "Hủy", tone: "cancel" },
@@ -106,7 +109,7 @@ function adminTableActionButtonClass(action: AdminTableActionKind) {
   const config = ACTION_CONFIG[action];
 
   return cn(
-    "inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+    "inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border outline-none transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     ACTION_TONE_CLASS[config.tone]
   );
 }

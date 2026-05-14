@@ -35,7 +35,7 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
           onCheckedChange?.(next);
         }}
         className={cn(
-          "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50",
           isChecked ? "bg-primary" : "bg-input",
           className
         )}

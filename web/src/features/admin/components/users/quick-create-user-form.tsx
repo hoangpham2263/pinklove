@@ -54,7 +54,7 @@ export function QuickCreateUserForm({
         <select
           name="role"
           defaultValue={defaultRole}
-          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
         >
           {USER_ROLE_OPTIONS.map((role) => (
             <option key={role.value} value={role.value}>

@@ -1,8 +1,9 @@
 "use client";
 
-import { FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { cn } from "@/lib/utils";
 
 type AdminTableToolbarProps = {
@@ -32,8 +33,14 @@ type AdminTableClearButtonProps = {
   onClick: () => void;
 };
 
+type AdminTableSortButtonProps = {
+  children: ReactNode;
+  align?: "left" | "right";
+  onClick: () => void;
+};
+
 const controlClassName =
-  "h-9 rounded-lg border border-input bg-white px-3 text-sm transition-colors";
+  "h-9 rounded-lg border border-input bg-white px-3 text-sm outline-none transition-colors";
 
 export function AdminTableToolbar({ children }: AdminTableToolbarProps) {
   return (
@@ -77,15 +84,21 @@ export function AdminTableClearButton({ visible, onClick }: AdminTableClearButto
     return null;
   }
 
+  return <AdminTableActionButton action="clear" label="Xóa bộ lọc" onClick={onClick} />;
+}
+
+export function AdminTableSortButton({ children, align = "left", onClick }: AdminTableSortButtonProps) {
   return (
     <button
       type="button"
-      aria-label="Xóa bộ lọc"
-      title="Xóa bộ lọc"
       onClick={onClick}
-      className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-foreground transition-colors hover:bg-muted"
+      className={cn(
+        "inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg bg-white px-2 text-sm outline-none transition-colors hover:bg-muted",
+        align === "left" ? "-ml-2" : ""
+      )}
     >
-      <FilterX className="h-4 w-4" />
+      {children}
+      <ArrowUpDown className="h-4 w-4" />
     </button>
   );
 }

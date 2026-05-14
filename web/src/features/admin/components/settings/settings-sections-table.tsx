@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,9 +13,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -42,15 +41,8 @@ export function SettingsSectionsTable({ rows }: { rows: SettingsSectionRow[] }) 
       {
         accessorKey: "title",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 h-8 px-2"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Setting
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Setting</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="flex flex-col">
@@ -63,15 +55,8 @@ export function SettingsSectionsTable({ rows }: { rows: SettingsSectionRow[] }) 
         accessorKey: "status",
         header: ({ column }) => (
           <div className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Trạng thái
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
+            <AdminTableSortButton align="right" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+              Trạng thái</AdminTableSortButton>
           </div>
         ),
         cell: ({ row }) => (

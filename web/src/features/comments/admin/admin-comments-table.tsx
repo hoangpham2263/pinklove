@@ -11,13 +11,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { CommentStatus, ContentComment } from "@/features/comments/types";
 import { ROUTES } from "@/lib/routes";
 
@@ -83,10 +82,8 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
       {
         accessorKey: "content",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Comment
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Comment</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="max-w-xl">
@@ -99,10 +96,8 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
       {
         accessorKey: "targetTitle",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Target
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Target</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div>
@@ -114,10 +109,8 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Trạng thái
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Trạng thái</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -128,10 +121,8 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
       {
         accessorKey: "createdAt",
         header: ({ column }) => (
-          <Button variant="ghost" size="sm" className="-ml-2 h-8 px-2" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Tạo lúc
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Tạo lúc</AdminTableSortButton>
         ),
         cell: ({ row }) => <span>{formatDate(row.original.createdAt)}</span>,
       },
