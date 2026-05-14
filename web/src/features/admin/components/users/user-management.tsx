@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, Eye, FilterX, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AccountUser, AuthUser } from "@/lib/auth";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -233,19 +234,13 @@ export function UserManagement({
           const isSelf = user.id === actor.id;
 
           return (
-            <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setPreviewUserId(user.id)}>
-                <Eye className="h-4 w-4" />
-                Xem
-              </Button>
-
-              <Link
+            <AdminTableActions>
+              <AdminTableActionButton action="view" label="Xem người dùng" onClick={() => setPreviewUserId(user.id)} />
+              <AdminTableActionButton
+                action="edit"
+                label="Sửa thông tin"
                 href={returnTo ? `${ROUTES.ADMIN.USERS}/${user.id}?returnTo=${encodeURIComponent(returnTo)}` : `${ROUTES.ADMIN.USERS}/${user.id}`}
-                title="Sửa thông tin"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-              >
-                <Pencil className="h-4 w-4" />
-              </Link>
+              />
 
               <NativeForm
                 action={adminApiActions.deleteUser}
@@ -268,18 +263,9 @@ export function UserManagement({
               >
                 {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                 <input type="hidden" name="userId" value={String(user.id)} />
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8 border border-destructive/50"
-                  disabled={isSelf}
-                  title={isSelf ? "Không thể tự xóa bản thân" : "Xóa tài khoản"}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AdminTableActionButton action="delete" label={isSelf ? "Không thể tự xóa bản thân" : "Xóa tài khoản"} type="submit" disabled={isSelf} />
               </NativeForm>
-            </div>
+            </AdminTableActions>
           );
         },
       },
@@ -421,7 +407,7 @@ export function UserManagement({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="font-medium">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -461,33 +447,33 @@ export function UserManagement({
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">ID</p>
+                  <p className="text-sm">ID</p>
                   <p className="break-all text-sm text-muted-foreground">{previewUser.id}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Tên đăng nhập</p>
+                  <p className="text-sm">Tên đăng nhập</p>
                   <p className="text-sm text-muted-foreground">{previewUser.username}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Vai trò</p>
+                  <p className="text-sm">Vai trò</p>
                   <p className="text-sm text-muted-foreground">
                     {getRoleLabel(previewUser.role)} ({previewUser.role})
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Họ và tên</p>
+                  <p className="text-sm">Họ và tên</p>
                   <p className="text-sm text-muted-foreground">{previewUser.fullName || "—"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Tên hiển thị</p>
+                  <p className="text-sm">Tên hiển thị</p>
                   <p className="text-sm text-muted-foreground">{previewUser.displayName || "—"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Số điện thoại</p>
+                  <p className="text-sm">Số điện thoại</p>
                   <p className="text-sm text-muted-foreground">{previewUser.phone || "—"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Tạo lúc</p>
+                  <p className="text-sm">Tạo lúc</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(previewUser.createdAt).toISOString().slice(0, 16).replace("T", " ")}
                   </p>
@@ -495,7 +481,7 @@ export function UserManagement({
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm font-medium">Bio</p>
+                <p className="text-sm">Bio</p>
                 <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewUser.bio || "—"}</p>
               </div>
             </div>

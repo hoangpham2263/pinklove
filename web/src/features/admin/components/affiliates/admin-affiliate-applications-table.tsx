@@ -17,7 +17,10 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { type AffiliateApplication } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -33,6 +36,12 @@ function formatDateTime(value?: string) {
   return date.toLocaleString("vi-VN");
 }
 
+function getExternalHref(value?: string) {
+  if (!value) return "";
+  if (/^(https?:|mailto:|tel:)/i.test(value)) return value;
+  return `https://${value}`;
+}
+
 export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliateApplicationsTableProps) {
   const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -41,6 +50,7 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
   const [rowEdits, setRowEdits] = useState<
     Record<string, { status: AffiliateApplication["reviewStatus"]; reviewNote: string }>
   >({});
+  const [previewApplicationId, setPreviewApplicationId] = useState<string | null>(null);
 
   function getRowEdit(application: AffiliateApplication) {
     return rowEdits[application.id] ?? {
@@ -71,7 +81,7 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
       ),
       cell: ({ row }) => (
         <div className="space-y-1">
-          <p className="font-medium">{row.original.fullName}</p>
+          <p>{row.original.fullName}</p>
           <p className="text-xs text-muted-foreground">{row.original.email}</p>
           <p className="text-xs text-muted-foreground">{row.original.phone}</p>
         </div>
@@ -141,8 +151,13 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
       header: () => <div className="text-right">Hành động</div>,
       cell: ({ row }) => {
         const draft = getRowEdit(row.original);
+        const channelHref = getExternalHref(row.original.channelLink);
         return (
-          <div className="flex justify-end">
+          <AdminTableActions>
+            <AdminTableActionButton action="view" label="Xem hồ sơ" onClick={() => setPreviewApplicationId(row.original.id)} />
+            {channelHref ? (
+              <AdminTableActionButton action="external" label="Mở kênh" href={channelHref} target="_blank" />
+            ) : null}
             <NativeForm
               action={adminApiActions.updateAffiliateApplication}
               method="POST"
@@ -160,11 +175,9 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
               <input type="hidden" name="applicationId" value={row.original.id} />
               <input type="hidden" name="status" value={draft.status} />
               <input type="hidden" name="reviewNote" value={draft.reviewNote} />
-              <Button type="submit" variant="outline" size="sm">
-                Lưu
-              </Button>
+              <AdminTableActionButton action="save" label="Lưu hồ sơ" type="submit" />
             </NativeForm>
-          </div>
+          </AdminTableActions>
         );
       },
     },
@@ -203,8 +216,10 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
 
   const statusFilterValue = (table.getColumn("reviewStatus")?.getFilterValue() as string | undefined) ?? "";
   const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
+  const previewApplication = previewApplicationId ? applications.find((application) => application.id === previewApplicationId) ?? null : null;
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
@@ -244,39 +259,90 @@ export function AdminAffiliateApplicationsTable({ applications }: AdminAffiliate
       </div>
 
       <div className="rounded-md border">
-        <table className="w-full text-sm">
-          <thead>
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="px-4 py-3 text-left font-medium">
+                  <TableHead key={header.id} className="font-medium">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b align-top">
+                <TableRow key={row.id} className="align-top">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3">
+                    <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   Chưa có hồ sơ affiliate từ khách chưa đăng nhập.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
+    <Dialog open={Boolean(previewApplication)} onOpenChange={(open) => !open && setPreviewApplicationId(null)}>
+      <DialogContent>
+        {previewApplication ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{previewApplication.fullName}</DialogTitle>
+              <DialogDescription>Thông tin đăng ký affiliate từ khách chưa đăng nhập.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="break-all text-sm">{previewApplication.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Số điện thoại</p>
+                <p className="text-sm">{previewApplication.phone}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Mã mong muốn</p>
+                <p className="text-sm">{previewApplication.preferredCode || "-"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Khu vực</p>
+                <p className="text-sm">{previewApplication.city || "-"}</p>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <p className="text-xs text-muted-foreground">Kênh</p>
+                <p className="break-all text-sm">{previewApplication.channelLink || "-"}</p>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <p className="text-xs text-muted-foreground">Audience note</p>
+                <p className="whitespace-pre-wrap rounded-md border p-3 text-sm">{previewApplication.audienceNote || "-"}</p>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <p className="text-xs text-muted-foreground">Ghi chú</p>
+                <p className="whitespace-pre-wrap rounded-md border p-3 text-sm">{previewApplication.notes || "-"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Trạng thái review</p>
+                <p className="text-sm">{previewApplication.reviewStatus}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Gửi lúc</p>
+                <p className="text-sm">{formatDateTime(previewApplication.createdAt)}</p>
+              </div>
+            </div>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

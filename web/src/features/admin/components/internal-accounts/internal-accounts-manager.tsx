@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ExternalLink, KeyRound, Link2, Plus, Shapes, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -16,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { type InternalAccount } from "@/lib/internal-accounts";
@@ -73,6 +76,10 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
 
   const accountsWithUrl = useMemo(
     () => accounts.filter((account) => account.loginUrl.trim().length > 0).length,
+    [accounts]
+  );
+  const platformCount = useMemo(
+    () => new Set(accounts.map((account) => account.platform.trim().toLowerCase()).filter(Boolean)).size,
     [accounts]
   );
 
@@ -138,108 +145,122 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
   return (
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border bg-background p-4">
-          <p className="text-sm text-muted-foreground">Tổng tài khoản</p>
-          <p className="mt-2 text-3xl font-semibold">{accounts.length}</p>
-        </div>
-        <div className="rounded-lg border bg-background p-4">
-          <p className="text-sm text-muted-foreground">Có link mở nhanh</p>
-          <p className="mt-2 text-3xl font-semibold">{accountsWithUrl}</p>
-        </div>
-        <div className="rounded-lg border bg-background p-4">
-          <p className="text-sm text-muted-foreground">Nền tảng đang lưu</p>
-          <p className="mt-2 text-3xl font-semibold">
-            {new Set(accounts.map((account) => account.platform.trim().toLowerCase()).filter(Boolean)).size}
-          </p>
-        </div>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Tổng tài khoản</CardTitle>
+            <KeyRound className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{accounts.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Có link mở nhanh</CardTitle>
+            <Link2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{accountsWithUrl}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Nền tảng đang lưu</CardTitle>
+            <Shapes className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p>{platformCount}</p>
+            <Dialog>
+              <DialogTrigger render={<Button />}>
+                Thêm tài khoản
+              </DialogTrigger>
+              <DialogContent className="max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Thêm tài khoản nội bộ</DialogTitle>
+                  <DialogDescription>Lưu nhanh tài khoản nội bộ cần tra cứu khi đăng nhập.</DialogDescription>
+                </DialogHeader>
+                <NativeForm
+                  action={adminApiActions.saveInternalAccount}
+                  method="POST"
+                  className="grid gap-3 md:grid-cols-2"
+                  onSubmit={handleCreate}
+                >
+                  <Input
+                    name="platform"
+                    placeholder="Nền tảng"
+                    value={createDraft.platform}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, platform: event.target.value }))}
+                    required
+                  />
+                  <Input
+                    name="label"
+                    placeholder="Tên tài khoản"
+                    value={createDraft.label}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, label: event.target.value }))}
+                    required
+                  />
+                  <Input
+                    name="loginUsername"
+                    placeholder="Email / username / số điện thoại"
+                    value={createDraft.loginUsername}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginUsername: event.target.value }))}
+                  />
+                  <Input
+                    name="loginPassword"
+                    placeholder="Mật khẩu"
+                    value={createDraft.loginPassword}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginPassword: event.target.value }))}
+                  />
+                  <Input
+                    name="loginUrl"
+                    placeholder="Link đăng nhập hoặc trang quản trị"
+                    value={createDraft.loginUrl}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginUrl: event.target.value }))}
+                  />
+                  <Input
+                    name="sortOrder"
+                    type="number"
+                    placeholder="Thứ tự"
+                    value={createDraft.sortOrder}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, sortOrder: event.target.value }))}
+                  />
+                  <Input
+                    name="notes"
+                    placeholder="Ghi chú"
+                    value={createDraft.notes}
+                    onChange={(event) => setCreateDraft((current) => ({ ...current, notes: event.target.value }))}
+                    className="md:col-span-2"
+                  />
+                  <div className="flex items-center gap-2 md:col-span-2">
+                    <Button type="submit">
+                      <Plus className="h-4 w-4" />
+                      Thêm tài khoản
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetCreateDraft}>
+                      <X className="h-4 w-4" />
+                      Xóa form
+                    </Button>
+                  </div>
+                </NativeForm>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="rounded-lg border bg-background p-4 md:p-5">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold">Thêm tài khoản mới</h2>
-          <p className="text-sm text-muted-foreground">
-            Lưu nhanh tài khoản Facebook, TikTok, Zalo, email, BM hoặc bất kỳ tài khoản nội bộ nào cần tra cứu.
-          </p>
-        </div>
-
-        <NativeForm
-          action={adminApiActions.saveInternalAccount}
-          method="POST"
-          className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
-          onSubmit={handleCreate}
-        >
-          <Input
-            name="platform"
-            placeholder="Nền tảng"
-            value={createDraft.platform}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, platform: event.target.value }))}
-            required
-          />
-          <Input
-            name="label"
-            placeholder="Tên tài khoản"
-            value={createDraft.label}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, label: event.target.value }))}
-            required
-          />
-          <Input
-            name="loginUsername"
-            placeholder="Email / username / số điện thoại"
-            value={createDraft.loginUsername}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, loginUsername: event.target.value }))}
-          />
-          <Input
-            name="loginPassword"
-            placeholder="Mật khẩu"
-            value={createDraft.loginPassword}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, loginPassword: event.target.value }))}
-          />
-          <Input
-            name="loginUrl"
-            placeholder="Link đăng nhập hoặc trang quản trị"
-            value={createDraft.loginUrl}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, loginUrl: event.target.value }))}
-          />
-          <Input
-            name="sortOrder"
-            type="number"
-            placeholder="Thứ tự"
-            value={createDraft.sortOrder}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, sortOrder: event.target.value }))}
-          />
-          <Input
-            name="notes"
-            placeholder="Ghi chú"
-            value={createDraft.notes}
-            onChange={(event) => setCreateDraft((current) => ({ ...current, notes: event.target.value }))}
-            className="md:col-span-2 lg:col-span-2"
-          />
-          <div className="flex items-center gap-2 md:col-span-2 lg:col-span-4">
-            <Button type="submit">
-              <Plus className="h-4 w-4" />
-              Thêm tài khoản
-            </Button>
-            <Button type="button" variant="outline" onClick={resetCreateDraft}>
-              <X className="h-4 w-4" />
-              Xóa form
-            </Button>
-          </div>
-        </NativeForm>
-      </div>
-
-      <div className="overflow-hidden rounded-lg border bg-background">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nền tảng</TableHead>
-              <TableHead>Tên tài khoản</TableHead>
-              <TableHead>Đăng nhập</TableHead>
-              <TableHead>Mật khẩu</TableHead>
-              <TableHead>Link</TableHead>
-              <TableHead>Ghi chú</TableHead>
-              <TableHead>Thứ tự</TableHead>
-              <TableHead>Cập nhật</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>
+              <TableHead className="font-medium">Nền tảng</TableHead>
+              <TableHead className="font-medium">Tên tài khoản</TableHead>
+              <TableHead className="font-medium">Đăng nhập</TableHead>
+              <TableHead className="font-medium">Mật khẩu</TableHead>
+              <TableHead className="font-medium">Link</TableHead>
+              <TableHead className="font-medium">Ghi chú</TableHead>
+              <TableHead className="font-medium">Thứ tự</TableHead>
+              <TableHead className="font-medium">Cập nhật</TableHead>
+              <TableHead className="text-right font-medium">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -268,7 +289,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                         required
                       />
                     ) : (
-                      <span className="font-medium">{account.platform}</span>
+                      <span>{account.platform}</span>
                     )}
                   </TableCell>
                   <TableCell className="min-w-40">
@@ -361,7 +382,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                     {formatDateTime(account.updatedAt)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-end gap-2">
+                    <AdminTableActions>
                       {isEditing ? (
                         <>
                           <NativeForm
@@ -377,36 +398,24 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                             <input type="hidden" name="loginUrl" value={currentDraft.loginUrl} />
                             <input type="hidden" name="notes" value={currentDraft.notes} />
                             <input type="hidden" name="sortOrder" value={currentDraft.sortOrder} />
-                            <Button type="submit" variant="outline" size="sm">
-                              <Save className="h-4 w-4" />
-                              Lưu
-                            </Button>
+                            <AdminTableActionButton action="save" label="Lưu" type="submit" />
                           </NativeForm>
-                          <Button type="button" variant="outline" size="sm" onClick={cancelEditing}>
-                            <X className="h-4 w-4" />
-                            Hủy
-                          </Button>
+                          <AdminTableActionButton action="cancel" label="Hủy" onClick={cancelEditing} />
                         </>
                       ) : (
                         <>
-                          <Button type="button" variant="outline" size="sm" onClick={() => startEditing(account)}>
-                            <Pencil className="h-4 w-4" />
-                            Sửa
-                          </Button>
+                          <AdminTableActionButton action="edit" label="Sửa" onClick={() => startEditing(account)} />
                           <NativeForm
                             action={adminApiActions.removeInternalAccount}
                             method="POST"
                             onSubmit={(event) => handleDelete(event, account.label)}
                           >
                             <input type="hidden" name="id" value={account.id} />
-                            <Button type="submit" variant="destructive" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                              Xóa
-                            </Button>
+                            <AdminTableActionButton action="delete" label="Xóa" type="submit" />
                           </NativeForm>
                         </>
                       )}
-                    </div>
+                    </AdminTableActions>
                   </TableCell>
                 </TableRow>
               );

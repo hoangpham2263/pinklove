@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowUpDown, Eye, FilterX, Pencil } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type SortingState,
@@ -30,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import type { Menu } from "@/lib/menu";
 import { ROUTES } from "@/lib/routes";
 
@@ -98,27 +98,10 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
         enableSorting: false,
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              title="Xem menu"
-              aria-label="Xem menu"
-              onClick={() => setPreviewMenuId(row.original.id)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Link
-              href={ROUTES.ADMIN.MENU(row.original.name)}
-              title="Sửa menu"
-              aria-label="Sửa menu"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Pencil className="h-4 w-4" />
-            </Link>
-          </div>
+          <AdminTableActions>
+            <AdminTableActionButton action="view" label="Xem menu" onClick={() => setPreviewMenuId(row.original.id)} />
+            <AdminTableActionButton action="edit" label="Sửa menu" href={ROUTES.ADMIN.MENU(row.original.name)} />
+          </AdminTableActions>
         ),
       },
     ],

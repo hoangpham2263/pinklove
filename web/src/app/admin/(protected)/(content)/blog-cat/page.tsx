@@ -1,18 +1,11 @@
-import Link from "next/link";
+import { CheckCircle2, FilePenLine, FolderTree, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BlogCategory } from "@/features/blog/types";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AdminBlogCategoriesTable } from "@/features/blog/admin/admin-blog-categories-table";
 import { QuickCreateBlogCategoryForm } from "@/features/blog/admin/quick-create-blog-category-form";
 import { requireAdmin } from "@/lib/auth";
 import { listAllBlogCategories, listAllBlogPosts } from "@/features/blog/server/service";
-import { ROUTES } from "@/lib/routes";
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 export default async function AdminBlogCategoriesPage() {
   await requireAdmin();
@@ -26,78 +19,56 @@ export default async function AdminBlogCategoriesPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Blog Categories</h1>
-        <p className="text-sm text-muted-foreground">Quản lý danh mục blog, mô tả và số lượng bài viết gắn với từng danh mục.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Blog Categories</h1>
+        </div>
+        <Dialog>
+          <DialogTrigger render={<Button />}>
+            <Plus className="h-4 w-4" />
+            Tạo Blog Category
+          </DialogTrigger>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Tạo Blog Category</DialogTitle>
+              <DialogDescription>Tạo danh mục blog mới ngay tại đây, không cần chuyển sang trang khác.</DialogDescription>
+            </DialogHeader>
+            <QuickCreateBlogCategoryForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng danh mục</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <FolderTree className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">{categories.length}</CardContent>
+          <CardContent>
+            <p>{categories.length}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Published</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">{publishedCount}</CardContent>
+          <CardContent>
+            <p>{publishedCount}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Draft</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+            <FilePenLine className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-3xl font-semibold">{draftCount}</CardContent>
+          <CardContent>
+            <p>{draftCount}</p>
+          </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Tạo danh mục nhanh</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <QuickCreateBlogCategoryForm />
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Danh sách danh mục</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-3 pr-4 font-medium">Name</th>
-                  <th className="py-3 pr-4 font-medium">Slug</th>
-                  <th className="py-3 pr-4 font-medium">Posts</th>
-                  <th className="py-3 pr-4 font-medium">Status</th>
-                  <th className="py-3 pr-4 font-medium">Updated</th>
-                  <th className="py-3 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((category: BlogCategory) => (
-                  <tr key={category.id} className="border-b last:border-0">
-                    <td className="py-3 pr-4 font-medium">{category.name}</td>
-                    <td className="py-3 pr-4">{category.slug}</td>
-                    <td className="py-3 pr-4">{postCountByCategory[category.id] ?? 0}</td>
-                    <td className="py-3 pr-4">{category.status}</td>
-                    <td className="py-3 pr-4">{formatDate(category.updatedAt)}</td>
-                    <td className="py-3 text-right">
-                      <Link href={ROUTES.ADMIN.BLOG_CATEGORY(category.slug)} className="inline-flex rounded-md border px-3 py-2 font-medium transition hover:bg-muted">
-                        Edit
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <AdminBlogCategoriesTable categories={categories} postCountByCategory={postCountByCategory} />
     </section>
   );
 }

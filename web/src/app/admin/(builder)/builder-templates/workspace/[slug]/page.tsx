@@ -27,10 +27,14 @@ export default async function AdminBuilderTemplateEditorPage({
   }
 
   if (product.productType !== "builder_template") {
-    redirect(`${ROUTES.ADMIN.PRODUCT(product.slug)}${query.returnTo ? `?returnTo=${encodeURIComponent(getQueryValue(query.returnTo) ?? "")}` : ""}`);
+    const fallbackHref =
+      product.productType === "coded_template"
+        ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)
+        : ROUTES.ADMIN.PRODUCT(product.slug);
+    redirect(`${fallbackHref}${query.returnTo ? `?returnTo=${encodeURIComponent(getQueryValue(query.returnTo) ?? "")}` : ""}`);
   }
 
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.PRODUCT_LIST_BUILDER;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER_TEMPLATES;
 
   return <ProductEditorForm product={product} categories={categories} vendors={vendors} returnTo={returnTo} />;
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, Eye, FilterX, Pencil } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { type AffiliateAccount } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -262,11 +263,8 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
           const draft = getRowEdit(account);
 
           return (
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setPreviewAccountId(account.userId)}>
-                <Eye className="h-4 w-4" />
-                Xem
-              </Button>
+            <AdminTableActions>
+              <AdminTableActionButton action="view" label="Xem affiliate" onClick={() => setPreviewAccountId(account.userId)} />
 
               <NativeForm
                 action={adminApiActions.updateAffiliate}
@@ -288,12 +286,9 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
                 <input type="hidden" name="commissionType" value={draft.commissionType} />
                 <input type="hidden" name="commissionValue" value={draft.commissionValue} />
                 <input type="hidden" name="notes" value={account.notes || ""} />
-                <Button type="submit" variant="outline" size="sm">
-                  <Pencil className="h-4 w-4" />
-                  Lưu
-                </Button>
+                <AdminTableActionButton action="save" label="Lưu affiliate" type="submit" />
               </NativeForm>
-            </div>
+            </AdminTableActions>
           );
         },
       },
@@ -427,7 +422,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="font-medium">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -467,57 +462,57 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Tài khoản</p>
+                  <p className="text-sm">Tài khoản</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.username}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Mã</p>
+                  <p className="text-sm">Mã</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.code}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Trạng thái</p>
+                  <p className="text-sm">Trạng thái</p>
                   <p className="text-sm text-muted-foreground">{previewDraft.status}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Commission</p>
+                  <p className="text-sm">Commission</p>
                   <p className="text-sm text-muted-foreground">{previewDraft.commissionType}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Giá trị</p>
+                  <p className="text-sm">Giá trị</p>
                   <p className="text-sm text-muted-foreground">{previewDraft.commissionValue}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Click</p>
+                  <p className="text-sm">Click</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.clickCount}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Conversion</p>
+                  <p className="text-sm">Conversion</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.conversionCount}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Earned</p>
+                  <p className="text-sm">Earned</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.earnedCommission}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Duyệt bởi</p>
+                  <p className="text-sm">Duyệt bởi</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.approvedByUsername || "—"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Duyệt lúc</p>
+                  <p className="text-sm">Duyệt lúc</p>
                   <p className="text-sm text-muted-foreground">{formatDateTime(previewAccount.approvedAt)}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Tạo lúc</p>
+                  <p className="text-sm">Tạo lúc</p>
                   <p className="text-sm text-muted-foreground">{formatDateTime(previewAccount.createdAt)}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Cập nhật lúc</p>
+                  <p className="text-sm">Cập nhật lúc</p>
                   <p className="text-sm text-muted-foreground">{formatDateTime(previewAccount.updatedAt)}</p>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm font-medium">Ghi chú</p>
+                <p className="text-sm">Ghi chú</p>
                 <p className="rounded-md border p-3 text-sm text-muted-foreground">
                   {previewAccount.notes || "Không có ghi chú."}
                 </p>

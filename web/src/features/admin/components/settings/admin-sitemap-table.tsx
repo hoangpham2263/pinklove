@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, ExternalLink, Eye, FilterX } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,6 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,26 +137,25 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
         enableColumnFilter: false,
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
+          <AdminTableActions>
             {row.original.enabled ? (
               <>
-                <Button type="button" variant="outline" size="sm" onClick={() => setPreviewKey(row.original.key)}>
-                  <Eye className="h-4 w-4" />
-                  Xem
-                </Button>
-                <Link
+                <AdminTableActionButton
+                  action="view"
+                  label="Xem sitemap"
+                  onClick={() => setPreviewKey(row.original.key)}
+                />
+                <AdminTableActionButton
+                  action="external"
                   href={row.original.routePath}
                   target="_blank"
-                  title="Open sitemap XML"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
+                  label="Open sitemap XML"
+                />
               </>
             ) : (
               <span className="text-sm text-muted-foreground">N/A</span>
             )}
-          </div>
+          </AdminTableActions>
         ),
       },
     ],

@@ -1,3 +1,4 @@
+import { ListChecks, ListTree, Menu as MenuIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminMenusTable } from "@/features/admin/components/menus/admin-menus-table";
 import { requireAdmin } from "@/lib/auth";
@@ -12,33 +13,32 @@ export default async function AdminMenusIndex() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Navigation</h1>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng menu</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng menu</CardTitle>
+            <MenuIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{totalMenus}</p>
+            <p>{totalMenus}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng mục điều hướng</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng mục điều hướng</CardTitle>
+            <ListTree className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{totalItems}</p>
+            <p>{totalItems}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Menu trống</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Menu trống</CardTitle>
+            <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{emptyMenus}</p>
+            <p>{emptyMenus}</p>
           </CardContent>
         </Card>
       </div>

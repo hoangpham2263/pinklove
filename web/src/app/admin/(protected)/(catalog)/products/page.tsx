@@ -1,8 +1,22 @@
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
+import { AdminProductsPageView } from "@/features/products/admin/admin-products-page";
 import { ROUTES } from "@/lib/routes";
 
-export default async function AdminProductsRedirectPage() {
+type AdminProductsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminProductsPage({ searchParams }: AdminProductsPageProps) {
   await requireAdmin();
-  redirect(ROUTES.ADMIN.PRODUCT_LIST_CODED);
+  const query = (await searchParams) ?? {};
+
+  return (
+    <AdminProductsPageView
+      query={query}
+      fixedProductType="general_product"
+      title="Quản lý sản phẩm"
+      description=""
+      returnTo={ROUTES.ADMIN.PRODUCT_LIST}
+    />
+  );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArchiveRestore, Download, Loader2, RotateCcw, Trash2, Upload } from "lucide-react";
+import { ArchiveRestore, Loader2, RotateCcw, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -21,16 +22,6 @@ type ProcessState = {
   action: string;
   title: string;
   description: string;
-};
-
-type ActionTooltipProps = {
-  label: string;
-  children: ReactNode;
-};
-
-type TooltipPosition = {
-  top: number;
-  left: number;
 };
 
 const processCopy: Record<string, Omit<ProcessState, "action">> = {
@@ -85,38 +76,6 @@ async function parseActionResponse(response: Response) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function ActionTooltip({ label, children }: ActionTooltipProps) {
-  const [position, setPosition] = useState<TooltipPosition | null>(null);
-
-  function showTooltip(element: HTMLElement) {
-    const rect = element.getBoundingClientRect();
-    setPosition({
-      top: rect.top - 8,
-      left: rect.left + rect.width / 2,
-    });
-  }
-
-  return (
-    <span
-      className="inline-flex"
-      onMouseEnter={(event) => showTooltip(event.currentTarget)}
-      onMouseLeave={() => setPosition(null)}
-      onFocus={(event) => showTooltip(event.currentTarget)}
-      onBlur={() => setPosition(null)}
-    >
-      {children}
-      {position ? (
-        <span
-          className="pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border bg-foreground px-2 py-1 text-xs text-background shadow-lg"
-          style={{ top: position.top, left: position.left }}
-        >
-          {label}
-        </span>
-      ) : null}
-    </span>
-  );
 }
 
 export function AdminBackupsManager({ packages, directory }: AdminBackupsManagerProps) {
@@ -319,47 +278,24 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <ActionTooltip label="Download backup package">
-                          <Button
-                            variant="outline"
-                            size="icon-sm"
-                            className="h-8 w-8 bg-white"
-                            aria-label={`Download ${item.name}`}
-                            render={
-                              <a href={ROUTES.API.ADMIN.CONFIG.BACKUPS_DOWNLOAD(item.name)}>
-                                <Download />
-                                <span className="sr-only">Download</span>
-                              </a>
-                            }
-                          />
-                        </ActionTooltip>
-                        <ActionTooltip label="Restore this backup">
-                          <Button
-                            variant="outline"
-                            size="icon-sm"
-                            className="h-8 w-8 bg-white"
-                            aria-label={`Restore ${item.name}`}
-                            onClick={() => setRestorePackage(item)}
-                          >
-                            <ArchiveRestore />
-                            <span className="sr-only">Restore</span>
-                          </Button>
-                        </ActionTooltip>
-                        <ActionTooltip label="Delete backup package">
-                          <Button
-                            variant="destructive"
-                            size="icon-sm"
-                            className="h-8 w-8 border border-destructive/50"
-                            aria-label={`Delete ${item.name}`}
-                            disabled={isBusy}
-                            onClick={() => setDeletePackage(item)}
-                          >
-                            {pendingAction === `delete:${item.name}` ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </ActionTooltip>
-                      </div>
+                      <AdminTableActions>
+                        <AdminTableActionButton
+                          action="download"
+                          href={ROUTES.API.ADMIN.CONFIG.BACKUPS_DOWNLOAD(item.name)}
+                          label={`Download ${item.name}`}
+                        />
+                        <AdminTableActionButton
+                          action="restore"
+                          label={`Restore ${item.name}`}
+                          onClick={() => setRestorePackage(item)}
+                        />
+                        <AdminTableActionButton
+                          action="delete"
+                          label={`Delete ${item.name}`}
+                          disabled={isBusy || pendingAction === `delete:${item.name}`}
+                          onClick={() => setDeletePackage(item)}
+                        />
+                      </AdminTableActions>
                     </TableCell>
                   </TableRow>
                 ))}

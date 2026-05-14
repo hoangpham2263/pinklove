@@ -19,7 +19,7 @@ export default async function AdminProductCreatePage({ searchParams }: AdminProd
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === "builder_template" ? ROUTES.ADMIN.PRODUCT_LIST_BUILDER : ROUTES.ADMIN.PRODUCT_LIST_GENERAL
+    requestedType === "builder_template" ? ROUTES.ADMIN.BUILDER_TEMPLATES : ROUTES.ADMIN.PRODUCT_LIST
   );
 
   if (requestedType === "builder_template") {

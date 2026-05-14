@@ -26,7 +26,7 @@ type ProductBuilderTemplateCreateFormProps = {
 
 export function ProductBuilderTemplateCreateForm({
   categories,
-  returnTo = ROUTES.ADMIN.PRODUCT_LIST_BUILDER,
+  returnTo = ROUTES.ADMIN.BUILDER_TEMPLATES,
 }: ProductBuilderTemplateCreateFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");

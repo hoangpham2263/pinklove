@@ -10,7 +10,7 @@ export default async function AdminBuilderTemplateCreatePage({
   searchParams,
 }: AdminBuilderTemplateCreatePageProps) {
   const query = (await searchParams) ?? {};
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.PRODUCT_LIST_BUILDER;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER_TEMPLATES;
   const categories = await listAllProductCategories();
 
   return (

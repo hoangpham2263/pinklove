@@ -10,10 +10,16 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
 
-export function QuickCreateBlogCategoryForm() {
+type QuickCreateBlogCategoryFormProps = {
+  onCreated?: () => void;
+};
+
+export function QuickCreateBlogCategoryForm({ onCreated }: QuickCreateBlogCategoryFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -23,7 +29,12 @@ export function QuickCreateBlogCategoryForm() {
     try {
       const result = await adminApi.createBlogCategory(new FormData(event.currentTarget));
       toast.success(result.message ?? "Đã tạo blog category.");
-      finishMutation(router, result, { redirect: "push", refresh: false });
+      setName("");
+      setSlug("");
+      setDescription("");
+      setStatus("draft");
+      onCreated?.();
+      finishMutation(router, result, { redirect: false, refresh: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể tạo blog category.");
     } finally {
@@ -54,6 +65,27 @@ export function QuickCreateBlogCategoryForm() {
           onChange={(event) => setSlug(event.target.value)}
           required
         />
+      </div>
+      <div className="space-y-2">
+        <label className="font-medium text-sm">Mô tả</label>
+        <textarea
+          name="description"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="font-medium text-sm">Trạng thái</label>
+        <select
+          name="status"
+          value={status}
+          onChange={(event) => setStatus(event.target.value as "draft" | "published")}
+          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+        >
+          <option value="draft">draft</option>
+          <option value="published">published</option>
+        </select>
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Đang tạo..." : "Tạo danh mục"}

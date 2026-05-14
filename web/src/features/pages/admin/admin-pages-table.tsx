@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, FilterX, Pencil } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -32,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import type { ManagedPage } from "@/lib/managed-pages";
 
 type AdminPagesTableProps = {
@@ -146,23 +146,10 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           const targetUrl = getManagedPagePath(page);
 
           return (
-            <div className="flex justify-end gap-2">
-              <Link
-                href={targetUrl}
-                target="_blank"
-                title="Xem trang"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Link>
-              <Link
-                href={`/admin/pages/${page.slug}`}
-                title="Sửa trang"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Pencil className="h-4 w-4" />
-              </Link>
-            </div>
+            <AdminTableActions>
+              <AdminTableActionButton action="external" label="Xem trang" href={targetUrl} target="_blank" />
+              <AdminTableActionButton action="edit" label="Sửa trang" href={`/admin/pages/${page.slug}`} />
+            </AdminTableActions>
           );
         },
       },
@@ -205,8 +192,8 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
   const selectedCount = selectedRows.length;
 
   return (
-    <>
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
           <Input
             value={globalFilter}
@@ -318,6 +305,6 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           </TableBody>
         </Table>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, FilterX, PackageCheck, Pencil, Plus, Trash2, Truck } from "lucide-react";
+import { FilterX, PackageCheck, Plus, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { ROUTES } from "@/lib/routes";
 import type { ShippingAccountSettings } from "@/lib/system-settings";
 import { useState } from "react";
@@ -145,25 +146,10 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                       </form>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-end gap-2">
+                      <AdminTableActions>
                         <Badge variant="secondary">{connection.pickupAddressId ? "Pickup mapped" : "No pickup"}</Badge>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          title="Xem nhanh"
-                          onClick={() => setPreviewCode(connection.code)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Link
-                          href={ROUTES.ADMIN.CONFIG_SHIPPING_CONNECTION(connection.code)}
-                          title="Sửa shipping"
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
+                        <AdminTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewCode(connection.code)} />
+                        <AdminTableActionButton action="edit" label="Sửa shipping" href={ROUTES.ADMIN.CONFIG_SHIPPING_CONNECTION(connection.code)} />
                         <form
                           action={ROUTES.API.ADMIN.CONFIG.SHIPPING_DELETE}
                           method="POST"
@@ -174,11 +160,9 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                           }}
                         >
                           <input type="hidden" name="code" value={connection.code} />
-                          <Button type="submit" variant="destructive" size="icon" className="h-8 w-8" title="Xóa shipping">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AdminTableActionButton action="delete" label="Xóa shipping" type="submit" />
                         </form>
-                      </div>
+                      </AdminTableActions>
                     </TableCell>
                   </TableRow>
                 ))

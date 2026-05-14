@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, Eye, FilterX, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -36,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -272,35 +272,15 @@ export function AdminProductList({
           const adminEditHref =
             product.productType === "builder_template"
               ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
+              : product.productType === "coded_template"
+                ? `${ROUTES.ADMIN.CODED_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : `${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`;
 
           return (
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 w-8"
-                title="Xem sản phẩm"
-                onClick={() => setPreviewProductId(product.id)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Link
-                href={publicHref}
-                target="_blank"
-                title="Xem ngoài site"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Link>
-              <Link
-                href={adminEditHref}
-                title="Chỉnh sửa"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Pencil className="h-4 w-4" />
-              </Link>
+            <AdminTableActions>
+              <AdminTableActionButton action="view" label="Xem sản phẩm" onClick={() => setPreviewProductId(product.id)} />
+              <AdminTableActionButton action="external" label="Xem ngoài site" href={publicHref} target="_blank" />
+              <AdminTableActionButton action="edit" label="Chỉnh sửa" href={adminEditHref} />
               {canDeleteProduct ? (
                 <NativeForm
                   action={adminApiActions.deleteProduct}
@@ -323,18 +303,10 @@ export function AdminProductList({
                 >
                   <input type="hidden" name="slug" value={product.slug} />
                   <input type="hidden" name="returnTo" value={returnTo} />
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    size="icon"
-                    className="h-8 w-8 border border-destructive/50"
-                    title="Xóa sản phẩm"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <AdminTableActionButton action="delete" label="Xóa sản phẩm" type="submit" />
                 </NativeForm>
               ) : null}
-            </div>
+            </AdminTableActions>
           );
         },
       },

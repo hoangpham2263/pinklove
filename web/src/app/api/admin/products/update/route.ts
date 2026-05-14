@@ -41,6 +41,8 @@ export async function POST(request: Request) {
   const editorBaseLocation =
     productType === "builder_template"
       ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(originalSlug)
+      : productType === "coded_template"
+        ? ROUTES.ADMIN.CODED_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.PRODUCT(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
 
@@ -188,6 +190,8 @@ export async function POST(request: Request) {
   const nextLocation =
     product.productType === "builder_template"
       ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)
+      : product.productType === "coded_template"
+        ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)
       : ROUTES.ADMIN.PRODUCT(product.slug);
 
   return respondSuccess(request, {

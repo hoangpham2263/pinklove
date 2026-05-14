@@ -36,7 +36,7 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
             <Button variant="outline" render={<Link href={ROUTES.ADMIN.VENDOR_PRODUCTS}>Quay lại danh sách</Link>} />
             <VendorProductStatusBadge status={detail.reviewStatus} />
           </div>
-          <h1 className="mt-3 text-2xl font-semibold">{detail.name}</h1>
+          <h1 className="mt-3 text-2xl">{detail.name}</h1>
           <p className="text-sm text-muted-foreground">
             {detail.vendorDisplayName} • {getVendorProductSubmissionTypeLabel(detail.submissionType)} • {getVendorProductReviewStatusLabel(detail.reviewStatus)}
           </p>
@@ -46,50 +46,56 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
           <Card>
-            <CardHeader><CardTitle>Thông tin submission</CardTitle></CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2 text-sm">
-              <div><p className="text-muted-foreground">Vendor</p><p className="font-medium">{detail.vendorDisplayName} ({detail.vendorUsername})</p></div>
-              <div><p className="text-muted-foreground">Slug đề xuất</p><p className="font-medium">/{detail.slugCandidate}</p></div>
-              <div><p className="text-muted-foreground">Category</p><p className="font-medium">{detail.categoryName || "Chưa chọn"}</p></div>
-              <div><p className="text-muted-foreground">Sản phẩm live</p><p className="font-medium">{detail.linkedProductName || "Chưa liên kết"}</p></div>
-              <div><p className="text-muted-foreground">Giá nhập</p><p className="font-medium">{detail.purchaseCost}</p></div>
-              <div><p className="text-muted-foreground">Giá bán admin</p><p className="font-medium">{detail.adminSellPrice ?? "Chưa nhập"}</p></div>
-              <div><p className="text-muted-foreground">Số lượng</p><p className="font-medium">{detail.proposedStockQuantity}</p></div>
-              <div><p className="text-muted-foreground">SKU vendor</p><p className="font-medium">{detail.vendorSku || "Chưa có"}</p></div>
-              <div><p className="text-muted-foreground">Submitted</p><p className="font-medium">{formatDateTime(detail.submittedAt)}</p></div>
-              <div><p className="text-muted-foreground">Reviewed</p><p className="font-medium">{formatDateTime(detail.reviewedAt)}</p></div>
+            <CardHeader className="border-b">
+              <CardTitle>Thông tin submission</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 pt-4 text-sm md:grid-cols-2">
+              <div><p className="text-muted-foreground">Vendor</p><p>{detail.vendorDisplayName} ({detail.vendorUsername})</p></div>
+              <div><p className="text-muted-foreground">Slug đề xuất</p><p>/{detail.slugCandidate}</p></div>
+              <div><p className="text-muted-foreground">Category</p><p>{detail.categoryName || "Chưa chọn"}</p></div>
+              <div><p className="text-muted-foreground">Sản phẩm live</p><p>{detail.linkedProductName || "Chưa liên kết"}</p></div>
+              <div><p className="text-muted-foreground">Giá nhập</p><p>{detail.purchaseCost}</p></div>
+              <div><p className="text-muted-foreground">Giá bán admin</p><p>{detail.adminSellPrice ?? "Chưa nhập"}</p></div>
+              <div><p className="text-muted-foreground">Số lượng</p><p>{detail.proposedStockQuantity}</p></div>
+              <div><p className="text-muted-foreground">SKU vendor</p><p>{detail.vendorSku || "Chưa có"}</p></div>
+              <div><p className="text-muted-foreground">Submitted</p><p>{formatDateTime(detail.submittedAt)}</p></div>
+              <div><p className="text-muted-foreground">Reviewed</p><p>{formatDateTime(detail.reviewedAt)}</p></div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Nội dung vendor gửi</CardTitle></CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardHeader className="border-b">
+              <CardTitle>Nội dung vendor gửi</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-4 text-sm">
               <div>
-                <p className="font-medium">Mô tả ngắn</p>
+                <p>Mô tả ngắn</p>
                 <p className="mt-1 text-muted-foreground">{detail.excerpt || "Chưa có"}</p>
               </div>
               <div>
-                <p className="font-medium">Mô tả chi tiết</p>
+                <p>Mô tả chi tiết</p>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.description || "Chưa có"}</p>
               </div>
               <div>
-                <p className="font-medium">Ghi chú vendor</p>
+                <p>Ghi chú vendor</p>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.vendorNote || "Chưa có"}</p>
               </div>
               <div>
-                <p className="font-medium">Review note admin</p>
+                <p>Review note admin</p>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.reviewNote || "Chưa có"}</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Timeline</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
+            <CardHeader className="border-b">
+              <CardTitle>Timeline</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-4">
               {detail.events.map((event) => (
                 <div key={event.id} className="rounded-md border p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium">{event.message}</p>
+                    <p>{event.message}</p>
                     <p className="text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p>
                   </div>
                   <p className="mt-1 text-muted-foreground">{event.actorType}{event.actorUsername ? ` • ${event.actorUsername}` : ""}</p>
@@ -101,8 +107,10 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
 
         <div className="space-y-5">
           <Card>
-            <CardHeader><CardTitle>Review nhanh</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
+            <CardHeader className="border-b">
+              <CardTitle>Review nhanh</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-4">
               <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="under_review" />
                 <Button type="submit" variant="outline" className="w-full">Đánh dấu đang review</Button>
@@ -123,11 +131,13 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Duyệt và áp dụng</CardTitle></CardHeader>
-            <CardContent>
+            <CardHeader className="border-b">
+              <CardTitle>Duyệt và áp dụng</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
               <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.APPROVE(detail.id)} method="POST" className="space-y-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Giá bán admin</label>
+                  <label className="text-sm">Giá bán admin</label>
                   <input
                     name="adminSellPrice"
                     type="number"
@@ -139,7 +149,7 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Ghi chú duyệt</label>
+                  <label className="text-sm">Ghi chú duyệt</label>
                   <textarea
                     name="reviewNote"
                     defaultValue={detail.reviewNote}
@@ -149,7 +159,7 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
                 </div>
                 {detail.submissionType === "create" ? (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Quyền sở hữu catalog</label>
+                    <label className="text-sm">Quyền sở hữu catalog</label>
                     <select
                       name="productOwnership"
                       defaultValue="platform"

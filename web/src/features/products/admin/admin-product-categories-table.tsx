@@ -2,7 +2,7 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, Eye, FilterX, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, FilterX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
@@ -199,26 +200,9 @@ export function AdminProductCategoriesTable({
           const category = row.original;
 
           return (
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                title="Xem nhanh Product Cat"
-                onClick={() => setPreviewCategoryId(category.id)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                className="h-8 w-8"
-                title="Chỉnh sửa Product Cat"
-                onClick={() => setEditingCategoryId(category.id)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+            <AdminTableActions>
+              <AdminTableActionButton action="view" label="Xem nhanh Product Cat" onClick={() => setPreviewCategoryId(category.id)} />
+              <AdminTableActionButton action="edit" label="Chỉnh sửa Product Cat" onClick={() => setEditingCategoryId(category.id)} />
               <NativeForm
                 action={adminApiActions.deleteProductCategory}
                 method="POST"
@@ -239,22 +223,14 @@ export function AdminProductCategoriesTable({
                 }}
               >
                 <input type="hidden" name="slug" value={category.slug} />
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8 border border-destructive/50"
-                  title="Xóa Product Cat"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AdminTableActionButton action="delete" label="Xóa Product Cat" type="submit" />
               </NativeForm>
-            </div>
+            </AdminTableActions>
           );
         },
       },
     ],
-    []
+    [router]
   );
 
   const table = useReactTable({
@@ -378,7 +354,7 @@ export function AdminProductCategoriesTable({
           </div>
         </div>
 
-        <div className="rounded-lg border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -423,34 +399,34 @@ export function AdminProductCategoriesTable({
             </DialogHeader>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1">
-                <p className="text-sm font-medium">Tên</p>
+                <p className="text-sm">Tên</p>
                 <p className="text-sm text-muted-foreground">{previewCategory.name}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Slug</p>
+                <p className="text-sm">Slug</p>
                 <p className="text-sm text-muted-foreground">/{previewCategory.slug}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Trạng thái</p>
+                <p className="text-sm">Trạng thái</p>
                 <Badge variant={previewCategory.status === "published" ? "default" : "secondary"}>
                   {previewCategory.status}
                 </Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Số sản phẩm</p>
+                <p className="text-sm">Số sản phẩm</p>
                 <p className="text-sm text-muted-foreground">{previewCategory.productCount}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Ngày tạo</p>
+                <p className="text-sm">Ngày tạo</p>
                 <p className="text-sm text-muted-foreground">{formatDate(previewCategory.createdAt)}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium">Cập nhật</p>
+                <p className="text-sm">Cập nhật</p>
                 <p className="text-sm text-muted-foreground">{formatDate(previewCategory.updatedAt)}</p>
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium">Mô tả</p>
+              <p className="text-sm">Mô tả</p>
               <div className="rounded-md border p-3 text-sm text-muted-foreground">
                 {previewCategory.description || "—"}
               </div>
@@ -542,7 +518,7 @@ function ProductCategoryPopupForm({
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="font-medium text-sm">Tên Product Cat</label>
+            <label className="text-sm">Tên Product Cat</label>
             <Input
               name="name"
               value={name}
@@ -555,13 +531,13 @@ function ProductCategoryPopupForm({
             />
           </div>
           <div className="space-y-2">
-            <label className="font-medium text-sm">Slug</label>
+            <label className="text-sm">Slug</label>
             <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium text-sm">Mô tả</label>
+          <label className="text-sm">Mô tả</label>
           <textarea
             name="description"
             defaultValue={category.description}
@@ -570,7 +546,7 @@ function ProductCategoryPopupForm({
         </div>
 
         <div className="space-y-2">
-          <label className="font-medium text-sm">Trạng thái</label>
+          <label className="text-sm">Trạng thái</label>
           <select
             name="status"
             defaultValue={category.status}

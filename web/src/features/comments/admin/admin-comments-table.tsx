@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,12 +11,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, CheckCircle2, ExternalLink, Eye, FilterX, ShieldAlert, Trash2, XCircle } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import type { CommentStatus, ContentComment } from "@/features/comments/types";
 import { ROUTES } from "@/lib/routes";
 
@@ -57,22 +57,15 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function statusAction(comment: ContentComment, status: CommentStatus, label: string, icon: ReactNode) {
+function statusAction(comment: ContentComment, status: CommentStatus, label: string) {
+  const action = status === "approved" ? "approve" : status === "spam" ? "spam" : "reject";
+
   return (
     <form action={ROUTES.API.ADMIN.COMMENTS.UPDATE_STATUS} method="POST" className="inline-block">
       <input type="hidden" name="id" value={comment.id} />
       <input type="hidden" name="status" value={status} />
       <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
-      <Button
-        type="submit"
-        variant={status === "approved" ? "default" : status === "pending" ? "outline" : "destructive"}
-        size="icon"
-        className="h-8 w-8"
-        title={label}
-      >
-        {icon}
-        <span className="sr-only">{label}</span>
-      </Button>
+      <AdminTableActionButton action={action} label={label} type="submit" />
     </form>
   );
 }
@@ -151,56 +144,35 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
           const comment = row.original;
 
           return (
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                title="Xem comment"
-                onClick={() => setPreviewCommentId(comment.id)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
+            <AdminTableActions>
+              <AdminTableActionButton action="view" label="Xem comment" onClick={() => setPreviewCommentId(comment.id)} />
               {comment.targetUrl ? (
-                <Link
-                  href={comment.targetUrl}
-                  target="_blank"
-                  title="Xem ngoài site"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
+                <AdminTableActionButton action="external" label="Xem ngoài site" href={comment.targetUrl} target="_blank" />
               ) : null}
               {comment.status !== "approved"
-                ? statusAction(comment, "approved", "Approve", <CheckCircle2 className="h-4 w-4" />)
+                ? statusAction(comment, "approved", "Approve")
                 : null}
               {comment.status !== "rejected"
-                ? statusAction(comment, "rejected", "Reject", <XCircle className="h-4 w-4" />)
+                ? statusAction(comment, "rejected", "Reject")
                 : null}
               {comment.status !== "spam"
-                ? statusAction(comment, "spam", "Mark spam", <ShieldAlert className="h-4 w-4" />)
+                ? statusAction(comment, "spam", "Mark spam")
                 : null}
               <form action={ROUTES.API.ADMIN.COMMENTS.DELETE} method="POST" className="inline-block">
                 <input type="hidden" name="id" value={comment.id} />
                 <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
-                <Button
+                <AdminTableActionButton
+                  action="delete"
+                  label="Delete"
                   type="submit"
-                  variant="destructive"
-                  size="icon"
-                  className="h-8 w-8 border border-destructive/50"
-                  title="Delete"
                   onClick={(event) => {
                     if (!confirm(`Xóa comment của ${comment.authorName}?`)) {
                       event.preventDefault();
                     }
                   }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
+                />
               </form>
-            </div>
+            </AdminTableActions>
           );
         },
       },

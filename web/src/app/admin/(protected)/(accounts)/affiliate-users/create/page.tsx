@@ -1,3 +1,5 @@
+import { Users } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
@@ -15,16 +17,13 @@ export default async function AdminAffiliateUsersCreatePage({ searchParams }: Ad
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tạo đối tác / CTV</h1>
-      </div>
-
       <Card className="rounded-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">{getRoleLabel(USER_ROLES.AFFILIATE)}</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+          <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.AFFILIATE)}</CardTitle>
+          <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-semibold">{accounts.length}</p>
+          <p>{accounts.length}</p>
         </CardContent>
       </Card>
 

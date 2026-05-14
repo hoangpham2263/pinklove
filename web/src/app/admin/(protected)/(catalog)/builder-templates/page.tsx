@@ -16,7 +16,7 @@ export default async function AdminBuilderProductsPage({ searchParams }: AdminBu
       fixedProductType="builder_template"
       title="Quản lý mẫu builder"
       description="Trang quản lý riêng cho toàn bộ sản phẩm loại builder template."
-      returnTo={ROUTES.ADMIN.PRODUCT_LIST_BUILDER}
+      returnTo={ROUTES.ADMIN.BUILDER_TEMPLATES}
     />
   );
 }

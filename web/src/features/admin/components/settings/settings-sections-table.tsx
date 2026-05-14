@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowUpDown, Settings, ExternalLink, FilterX } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,6 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,22 +84,10 @@ export function SettingsSectionsTable({ rows }: { rows: SettingsSectionRow[] }) 
         id: "actions",
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <Link
-              href={row.original.href}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border hover:bg-accent"
-              title="Open settings"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Link>
-            <Link
-              href={row.original.href}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-              title="Configure"
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
-          </div>
+          <AdminTableActions>
+            <AdminTableActionButton action="external" href={row.original.href} label="Open settings" />
+            <AdminTableActionButton action="edit" href={row.original.href} label="Configure" />
+          </AdminTableActions>
         ),
       },
     ],

@@ -56,7 +56,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     children: [
       { label: "Pages", href: ROUTES.ADMIN.PAGES, iconName: "files" },
       { label: "Navigation", href: ROUTES.ADMIN.MENUS, iconName: "menu" },
-      { label: "Blog Posts", href: ROUTES.ADMIN.BLOG_POSTS, iconName: "book-open-text" },
+      { label: "Blog Posts", href: ROUTES.ADMIN.BLOG, iconName: "book-open-text" },
       { label: "Blog Categories", href: ROUTES.ADMIN.BLOG_CATEGORIES, iconName: "tags" },
     ],
   },
@@ -65,10 +65,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST_GENERAL, iconName: "package" },
+      { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "package" },
       { label: "Product Categories", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
-      { label: "Coded Templates", href: ROUTES.ADMIN.PRODUCT_LIST_CODED, iconName: "file-code-2" },
-      { label: "Builder Templates", href: ROUTES.ADMIN.PRODUCT_LIST_BUILDER, iconName: "blocks" },
+      { label: "Coded Templates", href: ROUTES.ADMIN.CODED_TEMPLATES, iconName: "file-code-2" },
+      { label: "Builder Templates", href: ROUTES.ADMIN.BUILDER_TEMPLATES, iconName: "blocks" },
       { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
     ],
   },

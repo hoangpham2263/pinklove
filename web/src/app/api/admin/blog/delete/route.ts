@@ -12,9 +12,9 @@ export async function POST(request: Request) {
   const slug = String(formData.get("slug") ?? "").trim();
 
   if (!slug) {
-    return respondError(request, { error: "missing_slug", message: "Thiếu slug để xóa blog post.", location: `${ROUTES.ADMIN.BLOG_POSTS}?error=missing_slug` });
+    return respondError(request, { error: "missing_slug", message: "Thiếu slug để xóa blog post.", location: `${ROUTES.ADMIN.BLOG}?error=missing_slug` });
   }
 
   await deleteBlogPost(slug);
-  return respondSuccess(request, { location: ROUTES.ADMIN.BLOG_POSTS, message: "Đã xóa blog post." });
+  return respondSuccess(request, { location: ROUTES.ADMIN.BLOG, message: "Đã xóa blog post." });
 }

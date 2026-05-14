@@ -86,15 +86,15 @@ async function deleteBlogCategory(formData: FormData) {
 }
 
 async function createBlogPost(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.BLOG.POSTS.CREATE, formData);
+  return submitForm(ROUTES.API.ADMIN.BLOG.CREATE, formData);
 }
 
 async function updateBlogPost(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.BLOG.POSTS.UPDATE, formData);
+  return submitForm(ROUTES.API.ADMIN.BLOG.UPDATE, formData);
 }
 
 async function deleteBlogPost(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.BLOG.POSTS.DELETE, formData);
+  return submitForm(ROUTES.API.ADMIN.BLOG.DELETE, formData);
 }
 
 async function updateMenu(formData: FormData) {
@@ -457,9 +457,9 @@ export const adminApiActions = {
   createBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.CREATE,
   updateBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.UPDATE,
   deleteBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.DELETE,
-  createBlogPost: ROUTES.API.ADMIN.BLOG.POSTS.CREATE,
-  updateBlogPost: ROUTES.API.ADMIN.BLOG.POSTS.UPDATE,
-  deleteBlogPost: ROUTES.API.ADMIN.BLOG.POSTS.DELETE,
+  createBlogPost: ROUTES.API.ADMIN.BLOG.CREATE,
+  updateBlogPost: ROUTES.API.ADMIN.BLOG.UPDATE,
+  deleteBlogPost: ROUTES.API.ADMIN.BLOG.DELETE,
   updateMenu: ROUTES.API.ADMIN.MENUS.UPDATE,
   updateAffiliateApplication: ROUTES.API.ADMIN.AFFILIATES.APPLICATIONS_UPDATE,
   updateAffiliate: ROUTES.API.ADMIN.AFFILIATES.UPDATE,

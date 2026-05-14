@@ -249,7 +249,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route tạo blog post đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/posts/create",
+    triggerSource: "POST /api/admin/blog/create",
     payloadKeys: ["post.id", "post.slug", "post.status", "post.createdAt"],
   }),
   createHook({
@@ -261,7 +261,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route cập nhật blog post đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/posts/update",
+    triggerSource: "POST /api/admin/blog/update",
     payloadKeys: ["post.id", "post.slug", "post.status", "post.updatedAt"],
   }),
   createHook({
@@ -273,7 +273,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     status: "active",
     statusLabel: "Active",
     statusReason: "Route xóa blog post đang tồn tại.",
-    triggerSource: "POST /api/admin/blog/posts/delete",
+    triggerSource: "POST /api/admin/blog/delete",
     payloadKeys: ["post.id", "actor.id", "deletedAt"],
   }),
   createHook({

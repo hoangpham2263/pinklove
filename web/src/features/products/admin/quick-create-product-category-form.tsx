@@ -45,7 +45,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
   return (
     <NativeForm action={adminApiActions.createProductCategory} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <label className="font-medium text-sm">Tên Product Cat</label>
+        <label className="text-sm">Tên Product Cat</label>
         <Input
           name="name"
           value={name}
@@ -58,7 +58,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
         />
       </div>
       <div className="space-y-2">
-        <label className="font-medium text-sm">Slug</label>
+        <label className="text-sm">Slug</label>
         <Input
           name="slug"
           value={slug}
@@ -67,7 +67,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
         />
       </div>
       <div className="space-y-2">
-        <label className="font-medium text-sm">Mô tả</label>
+        <label className="text-sm">Mô tả</label>
         <textarea
           name="description"
           value={description}
@@ -76,7 +76,7 @@ export function QuickCreateProductCategoryForm({ onCreated }: QuickCreateProduct
         />
       </div>
       <div className="space-y-2">
-        <label className="font-medium text-sm">Trạng thái</label>
+        <label className="text-sm">Trạng thái</label>
         <select
           name="status"
           value={status}

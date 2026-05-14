@@ -1,3 +1,5 @@
+import { BadgePercent, CheckCircle2, Clock3, MousePointerClick, ShieldAlert, TrendingUp, UserCheck, Users } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getAffiliateApplicationSummary,
@@ -25,81 +27,87 @@ export default async function AdminAffiliatesPage({ searchParams }: AdminAffilia
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Quản lý affiliate</h1>
-      </div>
-
-      <div className="grid gap-5 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Hồ sơ guest chờ duyệt</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Guest Pending</CardTitle>
+            <Clock3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{applicationSummary.pendingCount}</CardContent>
+          <CardContent>
+            <p>{applicationSummary.pendingCount}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Đã liên hệ</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Contacted</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{applicationSummary.contactedCount}</CardContent>
+          <CardContent>
+            <p>{applicationSummary.contactedCount}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Guest đã duyệt</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Guest Approved</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{applicationSummary.approvedCount}</CardContent>
+          <CardContent>
+            <p>{applicationSummary.approvedCount}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Guest bị từ chối</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Rejected</CardTitle>
+            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">{applicationSummary.rejectedCount}</CardContent>
-        </Card>
-      </div>
-
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Hồ sơ affiliate từ khách chưa đăng nhập</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AdminAffiliateApplicationsTable applications={applications} />
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-5 md:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Chờ duyệt</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{summary.pendingCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Đang hoạt động</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{summary.activeCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tổng click</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{summary.clickCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tổng conversion</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{summary.conversionCount}</CardContent>
+          <CardContent>
+            <p>{applicationSummary.rejectedCount}</p>
+          </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Tài khoản affiliate đã tạo</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AdminAffiliatesTable accounts={accounts} />
-        </CardContent>
-      </Card>
+      <AdminAffiliateApplicationsTable applications={applications} />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Account Pending</CardTitle>
+            <BadgePercent className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{summary.pendingCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Active</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{summary.activeCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Clicks</CardTitle>
+            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{summary.clickCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Conversions</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{summary.conversionCount}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <AdminAffiliatesTable accounts={accounts} />
     </section>
   );
 }

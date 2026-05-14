@@ -1,3 +1,4 @@
+import { CheckCircle2, Clock3, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPagesTable } from "@/features/pages/admin/admin-pages-table";
 import { requireAdmin } from "@/lib/auth";
@@ -14,33 +15,32 @@ export default async function AdminPagesIndex({ searchParams }: AdminPagesIndexP
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Danh sách Trang</h1>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng trang</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Tổng trang</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{pages.length}</p>
+            <p>{pages.length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Published</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{publishedCount}</p>
+            <p>{publishedCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Draft</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm font-medium">Draft</CardTitle>
+            <Clock3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{draftCount}</p>
+            <p>{draftCount}</p>
           </CardContent>
         </Card>
       </div>

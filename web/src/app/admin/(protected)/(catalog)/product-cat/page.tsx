@@ -12,7 +12,7 @@ import { AdminProductCategoriesTable } from "@/features/products/admin/admin-pro
 import { QuickCreateProductCategoryForm } from "@/features/products/admin/quick-create-product-category-form";
 import { requireAdmin } from "@/lib/auth";
 import { listAllProductCategories, listAllProducts } from "@/features/products/server/service";
-import { Plus } from "lucide-react";
+import { CheckCircle2, FolderTree, PackageCheck, PackageX, Plus } from "lucide-react";
 
 export default async function AdminProductCatPage() {
   await requireAdmin();
@@ -30,57 +30,55 @@ export default async function AdminProductCatPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Product Cat</h1>
-        </div>
-        <Dialog>
-          <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4" />
-            Tạo Product Cat
-          </DialogTrigger>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle>Tạo Product Cat</DialogTitle>
-              <DialogDescription>Tạo Product Cat mới ngay tại đây, không cần chuyển sang trang khác.</DialogDescription>
-            </DialogHeader>
-            <QuickCreateProductCategoryForm />
-          </DialogContent>
-        </Dialog>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng Product Cat</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Total</CardTitle>
+            <FolderTree className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{categories.length}</p>
+            <p>{categories.length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Published</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Published</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{publishedCount}</p>
+            <p>{publishedCount}</p>
             <p className="text-sm text-muted-foreground">Draft: {draftCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Đã gắn sản phẩm</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Đã gắn sản phẩm</CardTitle>
+            <PackageCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{assignedCount}</p>
+            <p>{assignedCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Chưa gắn Product Cat</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Chưa gắn Product Cat</CardTitle>
+            <PackageX className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{unassignedCount}</p>
+          <CardContent className="flex items-center justify-between gap-3">
+            <p>{unassignedCount}</p>
+            <Dialog>
+              <DialogTrigger render={<Button />}>
+                <Plus className="h-4 w-4" />
+                Tạo Product Cat
+              </DialogTrigger>
+              <DialogContent className="max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>Tạo Product Cat</DialogTitle>
+                  <DialogDescription>Tạo Product Cat mới ngay tại đây, không cần chuyển sang trang khác.</DialogDescription>
+                </DialogHeader>
+                <QuickCreateProductCategoryForm />
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>

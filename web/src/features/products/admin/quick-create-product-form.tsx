@@ -17,7 +17,7 @@ import type { AccountUser } from "@/lib/auth";
 export function QuickCreateProductForm({
   categories = [],
   vendors = [],
-  returnTo = ROUTES.ADMIN.PRODUCT_LIST_GENERAL,
+  returnTo = ROUTES.ADMIN.PRODUCT_LIST,
 }: {
   categories?: ProductCategory[];
   vendors?: AccountUser[];

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, ExternalLink, FilterX, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowUpDown, ExternalLink, FilterX, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -15,6 +15,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -224,29 +225,15 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
           const rule = row.original;
 
           return (
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                className="h-8 w-8"
-                aria-label="Sửa redirect"
-                title="Sửa redirect"
-                onClick={() => editRule(rule)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="h-8 w-8 border border-destructive/50"
-                aria-label="Xóa redirect"
-                title="Xóa redirect"
+            <AdminTableActions>
+              <AdminTableActionButton action="edit" label="Sửa redirect" onClick={() => editRule(rule)} />
+              <AdminTableActionButton
+                action="delete"
+                label="Xóa redirect"
                 disabled={deletingId === rule.id}
                 onClick={() => deleteRule(rule)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+              />
+            </AdminTableActions>
           );
         },
       },

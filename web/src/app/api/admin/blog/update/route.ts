@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
 
   if (!originalSlug || !title || !slug || !categoryId) {
-    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để lưu blog post.", location: `${ROUTES.ADMIN.BLOG_POSTS}?error=missing_fields` });
+    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để lưu blog post.", location: `${ROUTES.ADMIN.BLOG}?error=missing_fields` });
   }
 
   const post = await updateBlogPost(originalSlug, {
@@ -33,8 +33,8 @@ export async function POST(request: Request) {
   });
 
   if (!post) {
-    return respondError(request, { error: "not_found", message: "Không tìm thấy blog post.", location: `${ROUTES.ADMIN.BLOG_POSTS}?error=not_found` });
+    return respondError(request, { error: "not_found", message: "Không tìm thấy blog post.", location: `${ROUTES.ADMIN.BLOG}?error=not_found` });
   }
 
-  return respondSuccess(request, { location: ROUTES.ADMIN.BLOG_POST(post.slug), message: "Đã lưu blog post." });
+  return respondSuccess(request, { location: ROUTES.ADMIN.BLOG_ENTRY(post.slug), message: "Đã lưu blog post." });
 }

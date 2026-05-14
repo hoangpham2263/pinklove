@@ -2,7 +2,7 @@
 
 import Link from"next/link";
 import { useState } from"react";
-import { Banknote, CreditCard, Eye, Landmark, Pencil, Plus, Trash2 } from"lucide-react";
+import { Banknote, CreditCard, Landmark, Plus } from"lucide-react";
 
 import { Badge } from"@/components/ui/badge";
 import { Button } from"@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from"@/components/ui/dialog";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import {
   Table,
   TableBody,
@@ -165,24 +166,9 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                             </form>
                           </TableCell>
                           <TableCell>
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8"
-                                title="Xem nhanh"
-                                onClick={() => setPreviewCode(method.code)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Link
-                                href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(method.code)}
-                                title="Sửa phương thức"
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Link>
+                            <AdminTableActions>
+                              <AdminTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewCode(method.code)} />
+                              <AdminTableActionButton action="edit" label="Sửa phương thức" href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(method.code)} />
                               <form
                                 action={ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE}
                                 method="POST"
@@ -193,17 +179,9 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                                 }}
                               >
                                 <input type="hidden" name="code" value={method.code} />
-                                <Button
-                                  type="submit"
-                                  variant="destructive"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  title="Xóa phương thức"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <AdminTableActionButton action="delete" label="Xóa phương thức" type="submit" />
                               </form>
-                            </div>
+                            </AdminTableActions>
                           </TableCell>
                         </TableRow>
                       ))

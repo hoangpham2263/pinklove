@@ -1,56 +1,67 @@
+import { CheckCircle2, CircleDollarSign, Clock3, ShieldAlert } from "lucide-react";
+
+import { AdminPaymentsTable, type AdminPaymentRow } from "@/features/ecommerce/admin/admin-payments-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { listAllPayments } from "@/features/ecommerce/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { getPaymentMethodLabel } from "@/lib/payment-methods";
-import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function AdminPaymentsPage() {
   await requireAdmin();
   const [payments, settings] = await Promise.all([listAllPayments(), getSystemSettings()]);
+  const rows: AdminPaymentRow[] = payments.map((payment) => ({
+    ...payment,
+    amountLabel: formatCurrency(payment.amount, settings.ecommerce),
+    methodLabel: getPaymentMethodLabel(payment.method, settings.ecommerce),
+  }));
+  const pendingCount = payments.filter((payment) => payment.status === "pending").length;
+  const paidCount = payments.filter((payment) => payment.status === "paid").length;
+  const issueCount = payments.filter((payment) => payment.status === "failed" || payment.status === "refunded").length;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-semibold">Payments</h1>
-        <p className="text-sm text-muted-foreground">Quản lý các giao dịch thanh toán gắn với order.</p>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Total</CardTitle>
+            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{payments.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Pending</CardTitle>
+            <Clock3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{pendingCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Paid</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{paidCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Failed / Refunded</CardTitle>
+            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p>{issueCount}</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách payment</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {payments.map((payment) => (
-            <form key={payment.id} action={ROUTES.API.ADMIN.PAYMENTS.UPDATE} method="POST" className="rounded-md border p-4">
-              <input type="hidden" name="paymentId" value={payment.id} />
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px_180px_180px_auto] lg:items-end">
-                <div>
-                  <p className="font-medium">{payment.id}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {getPaymentMethodLabel(payment.method, settings.ecommerce)} • {formatCurrency(payment.amount, settings.ecommerce)}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Trạng thái</label>
-                  <select name="status" defaultValue={payment.status} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    {["pending", "paid", "failed", "refunded"].map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2 lg:col-span-2">
-                  <label className="text-sm font-medium">External ref</label>
-                  <input type="text" name="externalRef" defaultValue={payment.externalRef} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
-                </div>
-                <Button type="submit">Lưu</Button>
-              </div>
-            </form>
-          ))}
-        </CardContent>
-      </Card>
+      <AdminPaymentsTable payments={rows} />
     </section>
   );
 }

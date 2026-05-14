@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { AdminTableActionTrigger } from "@/features/admin/components/admin-table-actions";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,6 @@ type AdminNotificationUpsertDialogProps = {
   notification?: AdminNotification;
   triggerLabel?: string;
   triggerVariant?: "default" | "outline";
-  triggerClassName?: string;
   iconOnly?: boolean;
 };
 
@@ -62,7 +62,6 @@ export function AdminNotificationUpsertDialog({
   notification,
   triggerLabel,
   triggerVariant = "default",
-  triggerClassName,
   iconOnly = false,
 }: AdminNotificationUpsertDialogProps) {
   const router = useRouter();
@@ -97,19 +96,23 @@ export function AdminNotificationUpsertDialog({
         }
       }}
     >
-      <DialogTrigger
-        render={
-          <Button
-            variant={triggerVariant}
-            size="sm"
-            className={triggerClassName ?? (!isEditing ? "h-9" : undefined)}
-            title={triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
-          />
-        }
-      >
-        {isEditing ? <Pencil className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-        {iconOnly ? null : triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
-      </DialogTrigger>
+      {isEditing && iconOnly ? (
+        <AdminTableActionTrigger action="edit" label={triggerLabel ?? "Sửa thông báo"} />
+      ) : (
+        <DialogTrigger
+          render={
+            <Button
+              variant={triggerVariant}
+              size="sm"
+              className={!isEditing ? "h-9" : undefined}
+              title={triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
+            />
+          }
+        >
+          {isEditing ? <Pencil className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+          {triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

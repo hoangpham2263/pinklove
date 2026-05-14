@@ -302,7 +302,7 @@ export default async function AdminDashboardPage() {
     { label: "Đơn hàng", href: ROUTES.ADMIN.ORDERS },
     { label: "Thanh toán", href: ROUTES.ADMIN.PAYMENTS },
     { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST },
-    { label: "Blog", href: ROUTES.ADMIN.BLOG_POSTS },
+    { label: "Blog", href: ROUTES.ADMIN.BLOG },
     { label: "Pages", href: ROUTES.ADMIN.PAGES },
     { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG },
   ];

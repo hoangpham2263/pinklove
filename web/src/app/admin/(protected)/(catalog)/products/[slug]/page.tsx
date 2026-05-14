@@ -34,6 +34,10 @@ export default async function AdminProductEditorPage({
     redirect(`${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
+  if (product.productType === "coded_template") {
+    redirect(`${ROUTES.ADMIN.CODED_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.CODED_TEMPLATES)}`);
+  }
+
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">

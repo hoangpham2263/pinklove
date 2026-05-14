@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
 import { listAllProducts } from "@/features/products/server/service";
 import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
@@ -59,15 +59,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
           <h1 className="text-2xl font-bold tracking-tight">Edit Page: {page.name}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href={previewHref}
-            target="_blank"
-            title="Xem trang"
-            aria-label="Xem trang"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border hover:bg-accent"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Link>
+          <AdminTableActionButton action="external" href={previewHref} target="_blank" label="Xem trang" />
         </div>
       </div>
       <PageEditorForm page={page} productOptions={productOptions} />

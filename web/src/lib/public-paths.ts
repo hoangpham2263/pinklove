@@ -3,7 +3,7 @@ import type { InvitationSite } from "@/features/invitations/types";
 import type { Product } from "@/features/products/types";
 
 const BLOG_CATEGORY_BASE = "blog";
-const BLOG_POST_PATTERN = "/blog/post/%postname%";
+const BLOG_CATEGORY_SEGMENT = "category";
 const TEMPLATE_BASE = "templates";
 const BUILDER_BASE = "builder";
 const PRODUCT_BASE = "thiep-giay";
@@ -25,33 +25,13 @@ function normalizePath(path: string) {
   return normalized;
 }
 
-function formatDateParts(value: string) {
-  const date = new Date(value);
-  const year = String(date.getUTCFullYear());
-  const monthnum = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-
-  return {
-    year,
-    monthnum,
-    day,
-  };
-}
-
 export function getBlogCategoryPath(category: Pick<BlogCategory, "slug"> | string) {
   const slug = typeof category === "string" ? category : category.slug;
-  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${slug}`);
+  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${normalizeSegment(BLOG_CATEGORY_SEGMENT)}/${slug}`);
 }
 
-export function getBlogPostPath(post: Pick<BlogPost, "slug" | "createdAt">) {
-  const { year, monthnum, day } = formatDateParts(post.createdAt);
-  const path = BLOG_POST_PATTERN
-    .replaceAll("%year%", year)
-    .replaceAll("%monthnum%", monthnum)
-    .replaceAll("%day%", day)
-    .replaceAll("%postname%", post.slug);
-
-  return normalizePath(path);
+export function getBlogPostPath(post: Pick<BlogPost, "slug">) {
+  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${post.slug}`);
 }
 
 export function getTemplateProductPath(product: Pick<Product, "slug"> | string) {
@@ -84,6 +64,6 @@ export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string) {
   return normalizePath(`/${normalizeSegment(INVITATION_BASE)}/${slug}`);
 }
 
-export function matchBlogPostPath(pathname: string, post: Pick<BlogPost, "slug" | "createdAt">) {
+export function matchBlogPostPath(pathname: string, post: Pick<BlogPost, "slug">) {
   return getBlogPostPath(post) === normalizePath(pathname);
 }

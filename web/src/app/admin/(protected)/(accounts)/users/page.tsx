@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { BadgePercent, ShieldCheck, UserPlus, Users } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { countAdmins, listAccounts, requireAdmin } from "@/lib/auth";
 import { UserManagement } from "@/features/admin/components/users/user-management";
 import { getRoleLabel, USER_ROLES } from "@/lib/roles";
@@ -21,54 +25,63 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h1>
-        </div>
-        <Button render={<Link href={ROUTES.ADMIN.USERS_CREATE}>Tạo người dùng</Link>} />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng người dùng</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Tổng người dùng</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{users.length}</p>
+            <p>{users.length}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{getRoleLabel(USER_ROLES.ADMIN)}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.ADMIN)}</CardTitle>
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{adminCount}</p>
+            <p>{adminCount}</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{getRoleLabel(USER_ROLES.CUSTOMER)}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.CUSTOMER)}</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{customerCount}</p>
+            <p>{customerCount}</p>
             <p className="mt-1 text-xs text-muted-foreground">Quản lý riêng tại trang actor.</p>
           </CardContent>
         </Card>
         <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Đối tác + Vendor</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+            <CardTitle className="text-sm">Đối tác + Vendor</CardTitle>
+            <BadgePercent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{affiliateCount + vendorCount}</p>
+            <p>{affiliateCount + vendorCount}</p>
             <p className="mt-1 text-xs text-muted-foreground">Affiliate: {affiliateCount} • Vendor: {vendorCount}</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Button variant="outline" render={<Link href={ROUTES.ADMIN.CUSTOMERS}>Mở danh sách khách hàng</Link>} />
         <Button variant="outline" render={<Link href={ROUTES.ADMIN.AFFILIATE_USERS}>Mở danh sách đối tác / CTV</Link>} />
         <Button variant="outline" render={<Link href={ROUTES.ADMIN.VENDORS}>Mở danh sách nhà cung cấp</Link>} />
+        <Dialog>
+          <DialogTrigger render={<Button />}>
+            Tạo người dùng
+          </DialogTrigger>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Tạo người dùng</DialogTitle>
+              <DialogDescription>Tạo tài khoản mới và chọn vai trò phù hợp.</DialogDescription>
+            </DialogHeader>
+            <QuickCreateUserForm returnTo={ROUTES.ADMIN.USERS} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <UserManagement initialUsers={users} actor={actor} />

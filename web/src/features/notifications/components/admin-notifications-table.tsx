@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, Eye, FilterX, Trash2 } from "lucide-react";
+import { ArrowUpDown, FilterX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-table";
 
 import { NativeForm } from "@/components/common/native-form";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -252,24 +253,18 @@ export function AdminNotificationsTable({
           const notification = row.original;
 
           return (
-            <div className="flex flex-wrap items-center justify-end gap-2 min-w-[220px]">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 w-8 bg-white"
-                title="Xem thông báo"
+            <AdminTableActions>
+              <AdminTableActionButton
+                action="view"
+                label="Xem thông báo"
                 onClick={() => setPreviewNotificationId(notification.id)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
+              />
               <AdminNotificationUpsertDialog
                 accounts={accounts}
                 roles={roles}
                 notification={notification}
                 triggerLabel="Sửa thông báo"
                 triggerVariant="outline"
-                triggerClassName="h-8 w-8 bg-white"
                 iconOnly
               />
               <NativeForm
@@ -293,17 +288,9 @@ export function AdminNotificationsTable({
               >
                 <input type="hidden" name="id" value={notification.id} />
                 <input type="hidden" name="returnTo" value={ROUTES.ADMIN.NOTIFICATIONS} />
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  size="sm"
-                  className="h-8 w-8 border border-destructive/50"
-                  title="Xóa thông báo"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AdminTableActionButton type="submit" action="delete" label="Xóa thông báo" />
               </NativeForm>
-            </div>
+            </AdminTableActions>
           );
         },
       },

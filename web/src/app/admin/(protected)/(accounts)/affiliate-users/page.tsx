@@ -26,6 +26,8 @@ export default async function AdminAffiliateUsersPage({ searchParams }: AdminAff
       createHref={ROUTES.ADMIN.AFFILIATE_USERS_CREATE}
       listHref={ROUTES.ADMIN.AFFILIATE_USERS}
       createLabel="Tạo đối tác / CTV"
+      showInlineCreateForm={false}
+      useCreateDialog
     />
   );
 }

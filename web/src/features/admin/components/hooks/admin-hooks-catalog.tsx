@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, Cable, Eye, FilterX } from "lucide-react";
+import { ArrowUpDown, Cable, FilterX } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -153,12 +154,13 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
         enableColumnFilter: false,
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button type="button" variant="outline" size="sm" onClick={() => setPreviewHookKey(row.original.key)}>
-              <Eye className="h-4 w-4" />
-              Xem
-            </Button>
-          </div>
+          <AdminTableActions>
+            <AdminTableActionButton
+              action="view"
+              label="Xem hook"
+              onClick={() => setPreviewHookKey(row.original.key)}
+            />
+          </AdminTableActions>
         ),
       },
     ],
