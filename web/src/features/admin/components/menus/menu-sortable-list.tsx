@@ -4,6 +4,7 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
+import { AdminDragHandleButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import type { MenuItem } from "@/lib/menu";
 
@@ -69,15 +70,13 @@ function SortableMenuItem({
       className={`flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2${isDragging ? " opacity-70 shadow-md" : ""}`}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
-        <button
-          type="button"
-          className="cursor-grab shrink-0 text-muted-foreground active:cursor-grabbing"
+        <AdminDragHandleButton
           aria-label={`Kéo để sắp xếp ${item.label}`}
           {...attributes}
           {...listeners}
         >
           <GripVertical className="h-4 w-4" />
-        </button>
+        </AdminDragHandleButton>
         <div className="min-w-0 flex flex-1 flex-row items-center gap-5">
           <p className="min-w-25 font-medium">{item.label}</p>
           <p className="flex min-w-0 items-center gap-1 text-sm">

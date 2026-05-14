@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,11 @@ type AdminLinkButtonProps = AdminInlineLinkButtonProps & {
 };
 
 type AdminButtonProps = ComponentProps<typeof Button>;
+type AdminNativeButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
+
+function joinClassNames(...classes: Array<string | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export function AdminCreateButton({ children, className, ...props }: AdminButtonProps) {
   return (
@@ -208,5 +213,50 @@ export function AdminInlineLinkButton({ href, target, children }: AdminInlineLin
     >
       {children}
     </Link>
+  );
+}
+
+export function AdminNavSubmitButton({ children, className, type = "submit", ...props }: AdminNativeButtonProps) {
+  return (
+    <button
+      type={type}
+      className={joinClassNames(
+        "flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left outline-none transition-colors hover:bg-muted",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function AdminActionTileButton({ children, className, type = "button", ...props }: AdminNativeButtonProps) {
+  return (
+    <button
+      type={type}
+      className={joinClassNames(
+        "flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-left outline-none transition-colors hover:bg-muted",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function AdminDragHandleButton({ children, className, type = "button", ...props }: AdminNativeButtonProps) {
+  return (
+    <button
+      type={type}
+      className={joinClassNames(
+        "cursor-grab shrink-0 text-muted-foreground outline-none active:cursor-grabbing",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }

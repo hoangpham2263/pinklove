@@ -28,7 +28,7 @@ import {
   Truck,
   Users,
 } from "lucide-react";
-import { AdminIconButton } from "@/features/admin/components/admin-buttons";
+import { AdminIconButton, AdminNavSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -201,13 +201,10 @@ export function AdminHeaderMenu() {
           <div className="my-1 border-t" />
 
           <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted"
-            >
+            <AdminNavSubmitButton>
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
-            </button>
+            </AdminNavSubmitButton>
           </form>
         </div>
       </SheetContent>

@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Copy, Eye, Send } from "lucide-react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminActionTileButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -147,18 +147,16 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
         <div className="text-sm font-medium">Shortcodes</div>
         <div className="grid gap-2 sm:grid-cols-2">
           {EMAIL_SHORTCODES.map((shortcode) => (
-            <button
+            <AdminActionTileButton
               key={shortcode.key}
-              type="button"
               onClick={() => copyShortcode(shortcode.token)}
-              className="flex min-w-0 items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2 text-left transition-colors hover:bg-muted"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">{shortcode.token}</span>
                 <span className="block truncate text-xs text-muted-foreground">{shortcode.label}</span>
               </span>
               <Copy className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
+            </AdminActionTileButton>
           ))}
         </div>
       </div>
