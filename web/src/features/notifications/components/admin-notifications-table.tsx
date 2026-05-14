@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -18,6 +18,7 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -349,56 +349,41 @@ export function AdminNotificationsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className={`grid flex-1 gap-3 ${hideStatusFilter ? "md:grid-cols-[minmax(0,1fr)_220px_auto]" : "md:grid-cols-[minmax(0,1fr)_180px_180px_auto]"}`}>
-          <Input
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            placeholder="Tìm theo tiêu đề, người tạo, role, username..."
-            className="h-9 bg-white"
-          />
+        <AdminTableToolbar>
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tiêu đề, người tạo, role, username..." />
           {hideStatusFilter ? null : (
-            <select
+            <AdminTableSelect
               value={statusFilterValue}
-              onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none"
-            >
-              <option value="">Tất cả trạng thái</option>
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {getStatusLabel(status)}
-                </option>
-              ))}
-            </select>
+              label="Lọc trạng thái"
+              onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
+              options={[
+                { value: "", label: "Tất cả trạng thái" },
+                ...statusOptions.map((status) => ({ value: status, label: getStatusLabel(status) })),
+              ]}
+            />
           )}
-          <select
+          <AdminTableSelect
             value={audienceFilterValue}
-            onChange={(event) => table.getColumn("audienceType")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none"
-          >
-            <option value="">Tất cả đối tượng</option>
-            <option value="all">Toàn bộ</option>
-            <option value="role">Theo role</option>
-            <option value="users">Cá nhân</option>
-          </select>
-          {hasFilters ? (
-            <Button
-              variant="outline"
-              size="icon-lg"
-              className="bg-white"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => {
-                setGlobalFilter("");
-                if (!hideStatusFilter) {
-                  table.getColumn("status")?.setFilterValue("");
-                }
-                table.getColumn("audienceType")?.setFilterValue("");
-              }}
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
+            label="Lọc đối tượng"
+            onChange={(value) => table.getColumn("audienceType")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả đối tượng" },
+              { value: "all", label: "Toàn bộ" },
+              { value: "role", label: "Theo role" },
+              { value: "users", label: "Cá nhân" },
+            ]}
+          />
+          <AdminTableClearButton
+            visible={hasFilters}
+            onClick={() => {
+              setGlobalFilter("");
+              if (!hideStatusFilter) {
+                table.getColumn("status")?.setFilterValue("");
+              }
+              table.getColumn("audienceType")?.setFilterValue("");
+            }}
+          />
+        </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">

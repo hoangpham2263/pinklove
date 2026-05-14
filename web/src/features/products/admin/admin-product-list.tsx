@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -26,7 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -36,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -361,40 +361,33 @@ export function AdminProductList({
       {title ? <h2 className="text-xl font-semibold tracking-tight">{title}</h2> : null}
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
-          <Input
+        <AdminTableToolbar>
+          <AdminTableSearch
             value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            onChange={setGlobalFilter}
             placeholder="Tìm theo tên, slug, template key..."
-            className="h-9"
           />
-          <select
+          <AdminTableSelect
             value={statusFilterValue}
-            onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-          </select>
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("status")?.setFilterValue("");
-                if (!lockProductType) {
-                  table.getColumn("productType")?.setFilterValue("");
-                }
-              }}
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
+            label="Lọc trạng thái"
+            onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả trạng thái" },
+              { value: "published", label: "Published" },
+              { value: "draft", label: "Draft" },
+            ]}
+          />
+          <AdminTableClearButton
+            visible={hasFilters}
+            onClick={() => {
+              setGlobalFilter("");
+              table.getColumn("status")?.setFilterValue("");
+              if (!lockProductType) {
+                table.getColumn("productType")?.setFilterValue("");
+              }
+            }}
+          />
+        </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm

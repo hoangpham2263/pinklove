@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FilterX, PackageCheck, Plus, Truck } from "lucide-react";
+import { PackageCheck, Plus, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -22,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { ROUTES } from "@/lib/routes";
 import type { ShippingAccountSettings } from "@/lib/system-settings";
 import { useState } from "react";
@@ -69,25 +69,14 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
 
       <div className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
-            <Input
+          <AdminTableToolbar>
+            <AdminTableSearch
               value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
+              onChange={setGlobalFilter}
               placeholder="Tìm theo provider, mã, shop, pickup..."
-              className="h-9 bg-background"
             />
-            {globalFilter.trim() ? (
-              <Button
-                variant="default"
-                size="icon-lg"
-                aria-label="Xóa bộ lọc"
-                title="Xóa bộ lọc"
-                onClick={() => setGlobalFilter("")}
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            ) : null}
-          </div>
+            <AdminTableClearButton visible={Boolean(globalFilter.trim())} onClick={() => setGlobalFilter("")} />
+          </AdminTableToolbar>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               className="h-9"

@@ -1,8 +1,8 @@
 import { CheckCircle2, ClipboardList, Clock3, Truck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminVendorProductsTable } from "@/features/vendor-product-submissions/components/admin-vendor-products-table";
 import {
   listProductVendorSuppliersForAdmin,
@@ -119,13 +119,13 @@ export default async function AdminVendorProductsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_REQUEST_REVIEW(request.id)} method="POST" className="ml-auto grid min-w-[220px] gap-2">
-                          <textarea name="reviewNote" className="min-h-16 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Review note" />
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button type="submit" name="nextStatus" value="under_review" variant="outline" size="sm">Review</Button>
-                            <Button type="submit" name="nextStatus" value="approved" size="sm">Approve</Button>
-                            <Button type="submit" name="nextStatus" value="changes_requested" variant="outline" size="sm">Changes</Button>
-                            <Button type="submit" name="nextStatus" value="rejected" variant="destructive" size="sm">Reject</Button>
-                          </div>
+                          <textarea name="reviewNote" className="min-h-16 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Review note" />
+                          <AdminTableActions>
+                            <AdminTableActionButton action="edit" label="Review request" type="submit" name="nextStatus" value="under_review" />
+                            <AdminTableActionButton action="approve" label="Approve request" type="submit" name="nextStatus" value="approved" />
+                            <AdminTableActionButton action="restore" label="Request changes" type="submit" name="nextStatus" value="changes_requested" />
+                            <AdminTableActionButton action="reject" label="Reject request" type="submit" name="nextStatus" value="rejected" />
+                          </AdminTableActions>
                         </form>
                       </TableCell>
                     </TableRow>
@@ -183,13 +183,21 @@ export default async function AdminVendorProductsPage() {
                       <TableCell>{supplier.status}</TableCell>
                       <TableCell className="text-right">
                         <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_STATUS(supplier.id)} method="POST" className="ml-auto grid min-w-[260px] gap-2">
-                          <textarea name="reviewNote" className="min-h-14 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Lifecycle note" />
-                          <div className="grid grid-cols-2 gap-2">
-                            {supplier.status !== "active" ? <Button type="submit" name="nextStatus" value="active" size="sm">Activate</Button> : null}
-                            {supplier.status !== "paused" ? <Button type="submit" name="nextStatus" value="paused" variant="outline" size="sm">Pause</Button> : null}
-                            {supplier.status !== "suspended" ? <Button type="submit" name="nextStatus" value="suspended" variant="outline" size="sm">Suspend</Button> : null}
-                            {supplier.status !== "revoked" ? <Button type="submit" name="nextStatus" value="revoked" variant="destructive" size="sm">Revoke</Button> : null}
-                          </div>
+                          <textarea name="reviewNote" className="min-h-14 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Lifecycle note" />
+                          <AdminTableActions>
+                            {supplier.status !== "active" ? (
+                              <AdminTableActionButton action="approve" label="Activate supplier" type="submit" name="nextStatus" value="active" />
+                            ) : null}
+                            {supplier.status !== "paused" ? (
+                              <AdminTableActionButton action="cancel" label="Pause supplier" type="submit" name="nextStatus" value="paused" />
+                            ) : null}
+                            {supplier.status !== "suspended" ? (
+                              <AdminTableActionButton action="spam" label="Suspend supplier" type="submit" name="nextStatus" value="suspended" />
+                            ) : null}
+                            {supplier.status !== "revoked" ? (
+                              <AdminTableActionButton action="delete" label="Revoke supplier" type="submit" name="nextStatus" value="revoked" />
+                            ) : null}
+                          </AdminTableActions>
                         </form>
                       </TableCell>
                     </TableRow>

@@ -2,7 +2,7 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, FilterX, Trash2 } from "lucide-react";
+import { ArrowUpDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import type { BlogCategory } from "@/features/blog/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -189,40 +190,26 @@ export function AdminBlogCategoriesTable({ categories, postCountByCategory }: Ad
   return (
     <>
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
-            <Input
-              value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              placeholder="Tìm theo tên, slug, mô tả..."
-              className="h-9"
-            />
-            <select
-              value={statusFilterValue}
-              onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
-            </select>
-            {hasFilters ? (
-              <Button
-                type="button"
-                variant="default"
-                size="icon-lg"
-                aria-label="Xóa bộ lọc"
-                title="Xóa bộ lọc"
-                onClick={() => {
-                  setGlobalFilter("");
-                  table.getColumn("status")?.setFilterValue("");
-                }}
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            ) : null}
-          </div>
-        </div>
+        <AdminTableToolbar>
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tên, slug, mô tả..." />
+          <AdminTableSelect
+            value={statusFilterValue}
+            label="Lọc trạng thái"
+            onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả trạng thái" },
+              { value: "published", label: "Published" },
+              { value: "draft", label: "Draft" },
+            ]}
+          />
+          <AdminTableClearButton
+            visible={hasFilters}
+            onClick={() => {
+              setGlobalFilter("");
+              table.getColumn("status")?.setFilterValue("");
+            }}
+          />
+        </AdminTableToolbar>
 
         <div className="rounded-md border">
           <Table>

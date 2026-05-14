@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -29,6 +29,7 @@ import {
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { MediaSelector } from "@/features/media/components/media-selector";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -267,26 +268,14 @@ export function SettingsDataTableForm({
   return (
     <NativeForm action={adminApiActions.updateConfig} method="POST" className="space-y-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
-          <Input
+        <AdminTableToolbar>
+          <AdminTableSearch
             value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            onChange={setGlobalFilter}
             placeholder={`Tìm trong ${title.toLowerCase()}...`}
-            className="h-9 bg-background"
           />
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => setGlobalFilter("")}
-              type="button"
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
+          <AdminTableClearButton visible={hasFilters} onClick={() => setGlobalFilter("")} />
+        </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <Button type="submit" className="h-9" disabled={isSaving}>

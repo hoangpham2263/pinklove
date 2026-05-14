@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -16,9 +16,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
 import { VendorProductStatusBadge } from "@/features/vendor-product-submissions/components/vendor-product-status-badge";
 import type { VendorProductReviewStatus, VendorProductSubmission } from "@/features/vendor-product-submissions/types";
@@ -225,55 +225,35 @@ export function AdminVendorProductsTable({ submissions, vendors }: AdminVendorPr
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_220px_auto]">
-          <Input
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            placeholder="Tìm theo vendor, sản phẩm, slug..."
-            className="h-9"
-          />
-          <select
-            value={statusFilterValue}
-            onChange={(event) => table.getColumn("reviewStatus")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-          >
-            <option value="">Tất cả trạng thái</option>
-            {REVIEW_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <select
-            value={vendorFilterValue}
-            onChange={(event) => table.getColumn("vendorUserId")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-          >
-            <option value="">Tất cả vendor</option>
-            {vendors.map((vendor) => (
-              <option key={vendor.id} value={vendor.id}>
-                {vendor.name}
-              </option>
-            ))}
-          </select>
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("reviewStatus")?.setFilterValue("");
-                table.getColumn("vendorUserId")?.setFilterValue("");
-              }}
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <AdminTableToolbar>
+        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo vendor, sản phẩm, slug..." />
+        <AdminTableSelect
+          value={statusFilterValue}
+          label="Lọc trạng thái"
+          onChange={(value) => table.getColumn("reviewStatus")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả trạng thái" },
+            ...REVIEW_STATUSES.map((status) => ({ value: status, label: status })),
+          ]}
+        />
+        <AdminTableSelect
+          value={vendorFilterValue}
+          label="Lọc vendor"
+          onChange={(value) => table.getColumn("vendorUserId")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả vendor" },
+            ...vendors.map((vendor) => ({ value: vendor.id, label: vendor.name })),
+          ]}
+        />
+        <AdminTableClearButton
+          visible={hasFilters}
+          onClick={() => {
+            setGlobalFilter("");
+            table.getColumn("reviewStatus")?.setFilterValue("");
+            table.getColumn("vendorUserId")?.setFilterValue("");
+          }}
+        />
+      </AdminTableToolbar>
 
       <div className="rounded-md border">
         <Table>

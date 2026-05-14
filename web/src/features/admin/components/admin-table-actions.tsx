@@ -64,7 +64,7 @@ const ACTION_CONFIG: Record<AdminTableActionKind, ActionConfig> = {
 };
 
 const ACTION_TONE_CLASS: Record<ActionConfig["tone"], string> = {
-  view: "border-border bg-background text-foreground hover:bg-muted hover:text-foreground",
+  view: "border-border bg-white text-foreground hover:bg-muted hover:text-foreground",
   edit: "border-blue-400/60 bg-blue-50 text-blue-700 hover:bg-blue-100",
   external: "border-teal-400/60 bg-teal-50 text-teal-700 hover:bg-teal-100",
   download: "border-violet-400/60 bg-violet-50 text-violet-700 hover:bg-violet-100",
@@ -87,6 +87,8 @@ type AdminTableActionButtonProps = {
   href?: string;
   target?: string;
   type?: "button" | "submit" | "reset";
+  name?: string;
+  value?: string;
   disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
 };
@@ -145,6 +147,8 @@ export function AdminTableActionButton({
   href,
   target,
   type = "button",
+  name,
+  value,
   disabled,
   onClick,
 }: AdminTableActionButtonProps) {
@@ -168,6 +172,8 @@ export function AdminTableActionButton({
   return (
     <button
       type={type}
+      name={name}
+      value={value}
       className={buttonClassName}
       title={title}
       aria-label={title}

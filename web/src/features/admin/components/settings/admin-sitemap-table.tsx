@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -199,41 +199,26 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
-            <Input
-              value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              placeholder="Tìm theo group hoặc path..."
-              className="h-9"
-            />
-
-            <select
-              value={statusFilterValue}
-              onChange={(event) => table.getColumn("enabled")?.setFilterValue(event.target.value)}
-              className="h-9 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="">Tất cả trạng thái</option>
-              <option value="true">Active</option>
-              <option value="false">Disabled</option>
-            </select>
-            {hasFilters ? (
-              <Button
-                variant="default"
-                type="button"
-                size="icon-lg"
-                aria-label="Xóa bộ lọc"
-                title="Xóa bộ lọc"
-                onClick={() => {
-                  setGlobalFilter("");
-                  table.getColumn("enabled")?.setFilterValue("");
-                }}
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            ) : null}
-          </div>
-        </div>
+        <AdminTableToolbar>
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo group hoặc path..." />
+          <AdminTableSelect
+            value={statusFilterValue}
+            label="Lọc trạng thái"
+            onChange={(value) => table.getColumn("enabled")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả trạng thái" },
+              { value: "true", label: "Active" },
+              { value: "false", label: "Disabled" },
+            ]}
+          />
+          <AdminTableClearButton
+            visible={hasFilters}
+            onClick={() => {
+              setGlobalFilter("");
+              table.getColumn("enabled")?.setFilterValue("");
+            }}
+          />
+        </AdminTableToolbar>
 
         <div className="rounded-md border">
           <Table>
@@ -303,11 +288,10 @@ export function AdminSitemapTable({ rows }: AdminSitemapTableProps) {
                 </div>
 
                 <div className="mt-4">
-                  <Input
+                  <AdminTableSearch
                     value={previewFilter}
-                    onChange={(event) => setPreviewFilter(event.target.value)}
+                    onChange={setPreviewFilter}
                     placeholder="Tìm theo URL hoặc last modified..."
-                    className="h-9"
                   />
                 </div>
 

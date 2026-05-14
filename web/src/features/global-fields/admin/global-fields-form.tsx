@@ -2,12 +2,11 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FilterX } from "lucide-react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import type { FieldSchema } from "@/features/pages/schema";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -58,26 +57,10 @@ export function GlobalFieldsForm({ fields, initialValues }: GlobalFieldsFormProp
       <input type="hidden" name="values" value={JSON.stringify(values)} />
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm trong global fields..."
-            className="h-9"
-          />
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => setSearch("")}
-              type="button"
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
+        <AdminTableToolbar>
+          <AdminTableSearch value={search} onChange={setSearch} placeholder="Tìm trong global fields..." />
+          <AdminTableClearButton visible={hasFilters} onClick={() => setSearch("")} />
+        </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <Button type="submit" className="h-9" disabled={isSaving}>

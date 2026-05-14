@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -27,7 +27,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -37,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { AccountUser, AuthUser } from "@/lib/auth";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -312,40 +312,25 @@ export function UserManagement({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
-          <Input
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            placeholder="Tìm theo tên đăng nhập hoặc vai trò..."
-            className="h-9"
-          />
-          <select
+        <AdminTableToolbar>
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tên đăng nhập hoặc vai trò..." />
+          <AdminTableSelect
             value={roleFilterValue}
-            onChange={(event) => table.getColumn("role")?.setFilterValue(event.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-          >
-            <option value="">Tất cả vai trò</option>
-            {USER_ROLE_OPTIONS.map((role) => (
-              <option key={role.value} value={role.value}>
-                {getRoleLabel(role.value)}
-              </option>
-            ))}
-          </select>
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => {
-                setGlobalFilter("");
-                table.getColumn("role")?.setFilterValue("");
-              }}
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
+            label="Lọc vai trò"
+            onChange={(value) => table.getColumn("role")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả vai trò" },
+              ...USER_ROLE_OPTIONS.map((role) => ({ value: role.value, label: getRoleLabel(role.value) })),
+            ]}
+          />
+          <AdminTableClearButton
+            visible={hasFilters}
+            onClick={() => {
+              setGlobalFilter("");
+              table.getColumn("role")?.setFilterValue("");
+            }}
+          />
+        </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <NativeForm

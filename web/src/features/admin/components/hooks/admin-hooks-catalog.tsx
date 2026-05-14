@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, Cable, FilterX } from "lucide-react";
+import { ArrowUpDown, Cable } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,6 +14,7 @@ import {
 } from "@tanstack/react-table";
 
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -254,52 +254,36 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_180px_180px_auto]">
-              <Input
-                value={globalFilter}
-                onChange={(event) => setGlobalFilter(event.target.value)}
-                placeholder="Tìm hook, trigger, payload..."
-                className="h-9"
-              />
-              <select
-                value={scopeFilterValue}
-                onChange={(event) => table.getColumn("scope")?.setFilterValue(event.target.value)}
-                className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-              >
-                <option value="">Tất cả scope</option>
-                {scopeOptions.map((scope) => (
-                  <option key={scope} value={scope}>
-                    {scope}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={statusFilterValue}
-                onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-                className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-              >
-                <option value="">Tất cả trạng thái</option>
-                <option value="active">Đang dùng</option>
-                <option value="inactive">Legacy / Inactive</option>
-              </select>
-              {hasFilters ? (
-                <Button
-                  variant="default"
-                  size="icon-lg"
-                  aria-label="Xóa bộ lọc"
-                  title="Xóa bộ lọc"
-                  onClick={() => {
-                    setGlobalFilter("");
-                    table.getColumn("scope")?.setFilterValue("");
-                    table.getColumn("status")?.setFilterValue("");
-                  }}
-                >
-                  <FilterX className="h-4 w-4" />
-                </Button>
-              ) : null}
-            </div>
-          </div>
+          <AdminTableToolbar>
+            <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm hook, trigger, payload..." />
+            <AdminTableSelect
+              value={scopeFilterValue}
+              label="Lọc scope"
+              onChange={(value) => table.getColumn("scope")?.setFilterValue(value)}
+              options={[
+                { value: "", label: "Tất cả scope" },
+                ...scopeOptions.map((scope) => ({ value: scope, label: scope })),
+              ]}
+            />
+            <AdminTableSelect
+              value={statusFilterValue}
+              label="Lọc trạng thái"
+              onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
+              options={[
+                { value: "", label: "Tất cả trạng thái" },
+                { value: "active", label: "Đang dùng" },
+                { value: "inactive", label: "Legacy / Inactive" },
+              ]}
+            />
+            <AdminTableClearButton
+              visible={hasFilters}
+              onClick={() => {
+                setGlobalFilter("");
+                table.getColumn("scope")?.setFilterValue("");
+                table.getColumn("status")?.setFilterValue("");
+              }}
+            />
+          </AdminTableToolbar>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border">

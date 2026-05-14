@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import {
   type ColumnDef,
   type SortingState,
@@ -20,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -30,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import type { Menu } from "@/lib/menu";
 import { ROUTES } from "@/lib/routes";
 
@@ -137,27 +137,10 @@ export function AdminMenusTable({ menus }: AdminMenusTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_auto]">
-          <Input
-            value={globalFilter}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            placeholder="Tìm theo tên menu, slug..."
-            className="h-9"
-          />
-          {hasFilters ? (
-            <Button
-              variant="default"
-              size="icon-lg"
-              aria-label="Xóa bộ lọc"
-              title="Xóa bộ lọc"
-              onClick={() => setGlobalFilter("")}
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <AdminTableToolbar>
+        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tên menu, slug..." />
+        <AdminTableClearButton visible={hasFilters} onClick={() => setGlobalFilter("")} />
+      </AdminTableToolbar>
 
       <div className="rounded-md border">
         <Table>

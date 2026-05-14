@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpDown, FilterX } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions, AdminTableActionTrigger } from "@/features/admin/components/admin-table-actions";
+import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import type { EcommerceOrder, FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
@@ -252,40 +253,29 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-[minmax(0,320px)_220px_auto]">
-        <Input
+      <AdminTableToolbar>
+        <AdminTableSearch
           value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          onChange={setGlobalFilter}
           placeholder="Tìm theo mã đơn, khách hàng, sản phẩm..."
-          className="h-9"
         />
-        <select
+        <AdminTableSelect
           value={statusFilterValue}
-          onChange={(event) => table.getColumn("status")?.setFilterValue(event.target.value)}
-          className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none"
-        >
-          <option value="">Tất cả trạng thái</option>
-          {ORDER_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {getOrderStatusLabel(status)}
-            </option>
-          ))}
-        </select>
-        {hasFilters ? (
-          <Button
-            variant="default"
-            size="icon-lg"
-            aria-label="Xóa bộ lọc"
-            title="Xóa bộ lọc"
-            onClick={() => {
-              setGlobalFilter("");
-              table.getColumn("status")?.setFilterValue("");
-            }}
-          >
-            <FilterX className="h-4 w-4" />
-          </Button>
-        ) : null}
-      </div>
+          label="Lọc trạng thái"
+          onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả trạng thái" },
+            ...ORDER_STATUSES.map((status) => ({ value: status, label: getOrderStatusLabel(status) })),
+          ]}
+        />
+        <AdminTableClearButton
+          visible={hasFilters}
+          onClick={() => {
+            setGlobalFilter("");
+            table.getColumn("status")?.setFilterValue("");
+          }}
+        />
+      </AdminTableToolbar>
 
       <div className="rounded-md border">
         <Table>
