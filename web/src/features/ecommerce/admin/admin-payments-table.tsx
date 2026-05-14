@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 
 import {
   type ColumnDef,
@@ -15,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminLinkButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -94,7 +93,7 @@ function PaymentEditDialog({ payment }: { payment: AdminPaymentRow }) {
             <Input name="externalRef" defaultValue={payment.externalRef ?? ""} />
           </div>
           <div className="md:col-span-2">
-            <Button type="submit">Lưu</Button>
+            <AdminSubmitButton>Lưu</AdminSubmitButton>
           </div>
         </form>
       </DialogContent>
@@ -326,10 +325,7 @@ export function AdminPaymentsTable({ payments }: AdminPaymentsTableProps) {
               </div>
 
               <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  render={<Link href={ROUTES.ADMIN.ORDER(previewPayment.orderId)}>Mở đơn hàng</Link>}
-                />
+                <AdminLinkButton href={ROUTES.ADMIN.ORDER(previewPayment.orderId)}>Mở đơn hàng</AdminLinkButton>
               </div>
             </div>
           ) : null}

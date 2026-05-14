@@ -18,7 +18,7 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminBulkSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -397,9 +397,9 @@ export function AdminProductList({
               <option value="draft">Draft</option>
               {canBulkDelete ? <option value="delete">Delete</option> : null}
             </select>
-            <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+            <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
-            </Button>
+            </AdminBulkSubmitButton>
           </NativeForm>
 
         </div>

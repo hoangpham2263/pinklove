@@ -1,12 +1,11 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { AdminBackButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -73,7 +72,7 @@ export function ProductBuilderTemplateCreateForm({
         sidebar={
           <>
             <div className="space-y-3">
-              <Button className="w-full" variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
+              <AdminBackButton className="w-full" href={returnTo}>Quay lại</AdminBackButton>
               <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
             </div>
 
@@ -165,9 +164,9 @@ export function ProductBuilderTemplateCreateForm({
             </div>
 
             <div className="space-y-3">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <AdminSubmitButton className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Đang tạo..." : "Tạo mẫu builder"}
-              </Button>
+              </AdminSubmitButton>
             </div>
           </>
         }

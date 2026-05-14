@@ -2,7 +2,6 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -18,7 +17,7 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminBulkSubmitButton, AdminCancelButton, AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -301,9 +300,9 @@ export function AdminProductCategoriesTable({
                 <option value="draft">Draft</option>
                 <option value="delete">Delete</option>
               </select>
-              <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+              <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
                 Áp dụng
-              </Button>
+              </AdminBulkSubmitButton>
             </NativeForm>
           </div>
         </div>
@@ -386,12 +385,12 @@ export function AdminProductCategoriesTable({
               </div>
             </div>
             <div className="flex justify-end">
-              <Button type="button" onClick={() => {
+              <AdminOutlineButton onClick={() => {
                 setPreviewCategoryId(null);
                 setEditingCategoryId(previewCategory.id);
               }}>
                 Chỉnh sửa
-              </Button>
+              </AdminOutlineButton>
             </div>
           </DialogContent>
         ) : null}
@@ -512,17 +511,16 @@ function ProductCategoryPopupForm({
         </div>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-          <Button type="button" variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
-            <Trash2 className="h-4 w-4" />
+          <AdminDeleteButton disabled={isDeleting} onClick={() => void handleDelete()}>
             {isDeleting ? "Đang xóa..." : "Xóa Product Cat"}
-          </Button>
+          </AdminDeleteButton>
           <div className="flex gap-3 sm:justify-end">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <AdminCancelButton onClick={onClose}>
               Hủy
-            </Button>
-            <Button type="submit" disabled={isSaving}>
+            </AdminCancelButton>
+            <AdminSubmitButton disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu Product Cat"}
-            </Button>
+            </AdminSubmitButton>
           </div>
         </div>
       </NativeForm>

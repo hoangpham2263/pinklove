@@ -1,5 +1,5 @@
-import { Button } from"@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { AdminBackButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { ROUTES } from"@/lib/routes";
 import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
@@ -353,8 +353,8 @@ export function PaymentMethodEditorForm({ method, initialCategory ="gateway" }: 
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit">{isNew ?"Thêm phương thức" :"Lưu phương thức"}</Button>
-            <Button variant="outline" render={<a href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Quay lại Payment Methods</a>} />
+            <AdminSubmitButton>{isNew ?"Thêm phương thức" :"Lưu phương thức"}</AdminSubmitButton>
+            <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Quay lại Payment Methods</AdminBackButton>
           </div>
         </form>
       </CardContent>

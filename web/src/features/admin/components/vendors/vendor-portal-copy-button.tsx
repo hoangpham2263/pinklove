@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { Check, Copy, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AdminDialogOutlineTrigger, AdminIconButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 type VendorPortalCopyButtonProps = {
@@ -44,14 +44,10 @@ export function VendorPortalCopyButton({
 
   return (
     <Dialog>
-      <DialogTrigger
-        render={
-          <Button type="button" variant="outline" className={className}>
-            <Eye className="h-4 w-4" />
-            {label}
-          </Button>
-        }
-      />
+      <AdminDialogOutlineTrigger className={className}>
+        <Eye className="h-4 w-4" />
+        {label}
+      </AdminDialogOutlineTrigger>
       <DialogContent className="max-w-lg">
         <div className="space-y-6">
           <DialogHeader>
@@ -66,14 +62,9 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Portal link</p>
               <div className="flex items-center gap-2">
                 <Input value={portalUrl} readOnly />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => handleCopy(portalUrl, "portal", "Đã copy link portal đối tác.")}
-                >
+                <AdminIconButton onClick={() => handleCopy(portalUrl, "portal", "Đã copy link portal đối tác.")}>
                   {copiedField === "portal" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+                </AdminIconButton>
               </div>
             </div>
 
@@ -81,14 +72,9 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Username</p>
               <div className="flex items-center gap-2">
                 <Input value={username} readOnly />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}
-                >
+                <AdminIconButton onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}>
                   {copiedField === "username" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+                </AdminIconButton>
               </div>
             </div>
 
@@ -96,26 +82,21 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Mật khẩu</p>
               <div className="flex items-center gap-2">
                 <Input value={password} readOnly />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}
-                >
+                <AdminIconButton onClick={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}>
                   {copiedField === "password" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
+                </AdminIconButton>
               </div>
             </div>
           </div>
 
-          <Button
+          <AdminSubmitButton
             type="button"
             className="w-full"
             onClick={() => handleCopy(allText, "all", "Đã copy toàn bộ thông tin đối tác.")}
           >
             {copiedField === "all" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copiedField === "all" ? "Đã copy" : "Copy toàn bộ thông tin"}
-          </Button>
+          </AdminSubmitButton>
         </div>
       </DialogContent>
     </Dialog>

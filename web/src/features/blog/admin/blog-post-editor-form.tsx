@@ -4,9 +4,9 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -145,12 +145,12 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
             <CardTitle>Thao tác</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button type="submit" className="w-full" disabled={isSaving}>
+            <AdminSubmitButton className="w-full" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu bài viết"}
-            </Button>
-            <Button type="button" variant="destructive" className="w-full" disabled={isDeleting} onClick={() => void handleDelete()}>
+            </AdminSubmitButton>
+            <AdminDeleteButton className="w-full" disabled={isDeleting} onClick={() => void handleDelete()}>
               {isDeleting ? "Đang xóa..." : "Xóa bài viết"}
-            </Button>
+            </AdminDeleteButton>
           </CardContent>
         </Card>
       </div>

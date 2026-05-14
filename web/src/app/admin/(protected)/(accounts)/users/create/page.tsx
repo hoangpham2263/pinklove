@@ -1,4 +1,6 @@
+import { BadgePercent, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin, listAccounts, countAdmins } from "@/lib/auth";
 import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { getRoleLabel, USER_ROLES } from "@/lib/roles";
@@ -22,41 +24,12 @@ export default async function AdminUserCreatePage({ searchParams }: AdminUserCre
         <h1 className="text-2xl font-bold tracking-tight">Tạo người dùng</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tổng người dùng</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{users.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{getRoleLabel(USER_ROLES.ADMIN)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{adminCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{getRoleLabel(USER_ROLES.CUSTOMER)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{customerCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Đối tác + Vendor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{affiliateCount + vendorCount}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Affiliate: {affiliateCount} • Vendor: {vendorCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} icon={UserPlus} />
+        <AdminOverviewCard title="Đối tác + Vendor" value={affiliateCount + vendorCount} description={`Affiliate: ${affiliateCount} • Vendor: ${vendorCount}`} icon={BadgePercent} />
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader>

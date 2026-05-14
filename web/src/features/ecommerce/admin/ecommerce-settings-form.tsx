@@ -1,5 +1,6 @@
 import { PackageCheck, ShoppingCart, Truck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
 import type { SystemSettings } from "@/lib/system-settings";
@@ -11,29 +12,11 @@ type EcommerceSettingsFormProps = {
 export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) {
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Checkout</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>{settings.ecommerce.enabled ? "On" : "Off"}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Shipping</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>{settings.ecommerce.supportShipping ? "On" : "Off"}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Shipping</CardTitle>
-            <PackageCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>{settings.ecommerce.shippingAccounts.filter((account) => account.enabled).length}</CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Checkout" value={settings.ecommerce.enabled ? "On" : "Off"} icon={ShoppingCart} />
+        <AdminOverviewCard title="Shipping" value={settings.ecommerce.supportShipping ? "On" : "Off"} icon={Truck} />
+        <AdminOverviewCard title="Shipping" value={settings.ecommerce.shippingAccounts.filter((account) => account.enabled).length} icon={PackageCheck} />
+      </AdminOverviewGrid>
 
       <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
         <input type="hidden" name="section" value="ecommerce" />
@@ -114,7 +97,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Lưu cấu hình checkout</Button>
+          <AdminSubmitButton>Lưu cấu hình checkout</AdminSubmitButton>
         </div>
       </form>
     </>

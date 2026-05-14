@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { CheckCircle2, ClipboardList, Clock3, SearchCheck } from "lucide-react";
 
 import { VendorPortalCopyButton } from "@/features/admin/components/vendors/vendor-portal-copy-button";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminBackButton, AdminDeleteButton, AdminLinkButton, AdminOutlineButton, AdminSecondaryButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, getUserAccount, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -74,12 +74,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <Link href={ROUTES.ADMIN.VENDORS}>
-              <Button variant="outline" size="sm">
-                <ChevronLeft className="h-4 w-4" />
-                Quay lại vendors
-              </Button>
-            </Link>
+            <AdminBackButton href={ROUTES.ADMIN.VENDORS}>Quay lại vendors</AdminBackButton>
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{vendor.displayName || vendor.fullName || vendor.username}</h1>
@@ -94,14 +89,8 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
           </div>
         </div>
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            render={<Link href={`${ROUTES.ADMIN.USERS}/${vendor.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.VENDORS)}`}>Sửa tài khoản</Link>}
-          />
-          <Button
-            variant="outline"
-            render={<Link href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Hồ sơ sản phẩm chờ duyệt</Link>}
-          />
+          <AdminLinkButton href={`${ROUTES.ADMIN.USERS}/${vendor.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.VENDORS)}`}>Sửa tài khoản</AdminLinkButton>
+          <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Hồ sơ sản phẩm chờ duyệt</AdminLinkButton>
           {vendorPortalSlug ? (
             <>
               <VendorPortalCopyButton
@@ -110,30 +99,18 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                 username={vendor.username}
                 password="12313"
               />
-              <Button variant="outline" render={<Link href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</Link>} />
+              <AdminLinkButton href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</AdminLinkButton>
             </>
           ) : null}
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Tổng phân công</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.total}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Đang xử lý</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.active}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Chờ review</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.review}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Hoàn tất</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.completed}</p></CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Tổng phân công" value={stats.total} icon={ClipboardList} />
+        <AdminOverviewCard title="Đang xử lý" value={stats.active} icon={Clock3} />
+        <AdminOverviewCard title="Chờ review" value={stats.review} icon={SearchCheck} />
+        <AdminOverviewCard title="Hoàn tất" value={stats.completed} icon={CheckCircle2} />
+      </AdminOverviewGrid>
 
       <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card>
@@ -155,11 +132,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                     username={vendor.username}
                     password="12313"
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={<Link href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Review sản phẩm vendor</Link>}
-                  />
+                  <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Review sản phẩm vendor</AdminLinkButton>
                 </div>
               ) : null}
             </div>
@@ -186,18 +159,18 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                 placeholder="Lý do block / ban / xóa mềm supplier"
               />
               <div className="grid gap-2">
-                <Button type="submit" name="nextStatus" value="active" variant="outline" className="justify-start">
+                <AdminOutlineButton type="submit" name="nextStatus" value="active" className="justify-start">
                   Mở lại supplier
-                </Button>
-                <Button type="submit" name="nextStatus" value="blocked" variant="outline" className="justify-start">
+                </AdminOutlineButton>
+                <AdminOutlineButton type="submit" name="nextStatus" value="blocked" className="justify-start">
                   Block supplier và ẩn catalog
-                </Button>
-                <Button type="submit" name="nextStatus" value="banned" variant="destructive" className="justify-start">
+                </AdminOutlineButton>
+                <AdminDeleteButton type="submit" name="nextStatus" value="banned" className="justify-start">
                   Ban supplier
-                </Button>
-                <Button type="submit" name="nextStatus" value="deleted" variant="secondary" className="justify-start">
+                </AdminDeleteButton>
+                <AdminSecondaryButton type="submit" name="nextStatus" value="deleted" className="justify-start">
                   Xóa mềm supplier
-                </Button>
+                </AdminSecondaryButton>
               </div>
             </form>
           </CardContent>
@@ -230,7 +203,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                     <p>{entry.lastEvent?.message || "Chưa có activity"}</p>
                   </div>
                   <div className="flex justify-start lg:justify-end">
-                    <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDER(entry.order.id)}>Xem order</Link>} />
+                    <AdminLinkButton href={ROUTES.ADMIN.ORDER(entry.order.id)}>Xem order</AdminLinkButton>
                   </div>
                 </div>
               ))

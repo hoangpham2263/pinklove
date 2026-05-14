@@ -17,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
 import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
@@ -309,36 +310,18 @@ export default async function AdminDashboardPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {kpis.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <Card key={item.title} className="rounded-lg">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardDescription>{item.title}</CardDescription>
-                    <CardTitle className="mt-2 text-3xl">{item.value}</CardTitle>
-                  </div>
-                  <div className="rounded-lg border bg-muted/40 p-2.5">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{item.detail}</p>
-                {item.href ? (
-                  <Link href={item.href} className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary">
-                    Xem khu vực
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                ) : null}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <AdminOverviewGrid className="xl:grid-cols-4">
+        {kpis.map((item) => (
+          <AdminOverviewCard
+            key={item.title}
+            title={item.title}
+            value={item.value}
+            description={item.detail}
+            icon={item.icon}
+            href={item.href}
+          />
+        ))}
+      </AdminOverviewGrid>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_360px]">
         <Card className="flex min-h-[380px] flex-col rounded-lg">

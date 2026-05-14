@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
 import type { FieldSchema } from "@/features/pages/schema";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
@@ -63,9 +63,9 @@ export function GlobalFieldsForm({ fields, initialValues }: GlobalFieldsFormProp
         </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <Button type="submit" className="h-9" disabled={isSaving}>
+          <AdminSubmitButton disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
-          </Button>
+          </AdminSubmitButton>
         </div>
       </div>
 

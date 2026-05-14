@@ -4,15 +4,16 @@ import dynamic from "next/dynamic";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { AdminCreateButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { adminApi } from "@/lib/api-client.admin";
 import { Menu, MenuItemType } from "@/lib/menu";
 import { ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { getMenuItemMeta, type EditableMenuItem, type MenuParentOption } from "./menu-sortable-list";
 
 type MenuEditorProps = {
@@ -332,9 +333,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
               </div>
             )}
 
-            <Button type="button" onClick={handleAddItem} className="h-10 w-full cursor-pointer">
+            <AdminCreateButton type="button" onClick={handleAddItem} className="h-10 w-full">
               Add to Menu
-            </Button>
+            </AdminCreateButton>
           </CardContent>
         </Card>
       </div>
@@ -404,24 +405,8 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                               </option>
                             ))}
                             </select>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-10 w-10"
-                              onClick={() => setEditingItemId(item.id)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-10 w-10 text-destructive hover:bg-destructive/10"
-                              onClick={() => handleRemoveItem(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <AdminTableActionButton action="edit" label="Sửa menu item" onClick={() => setEditingItemId(item.id)} />
+                            <AdminTableActionButton action="delete" label="Xóa menu item" onClick={() => handleRemoveItem(index)} />
                           </div>
                         </li>
                       ))}
@@ -442,9 +427,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
               </div>
 
               <div className="pt-5 mt-5 border-t">
-                <Button type="submit" className="h-10 w-full cursor-pointer lg:w-auto" disabled={isSaving}>
+                <AdminSubmitButton className="h-10 w-full lg:w-auto" disabled={isSaving}>
                   {isSaving ? "Đang lưu..." : "Save Menu"}
-                </Button>
+                </AdminSubmitButton>
               </div>
             </form>
 
@@ -540,9 +525,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                     </div>
 
                     <div className="flex justify-end">
-                      <Button type="button" onClick={() => setEditingItemId(null)}>
+                      <AdminSubmitButton type="button" onClick={() => setEditingItemId(null)}>
                         Xong
-                      </Button>
+                      </AdminSubmitButton>
                     </div>
                   </div>
                 </DialogContent>

@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { AdminBackButton, AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -33,7 +32,7 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" render={<Link href={ROUTES.ADMIN.VENDOR_PRODUCTS}>Quay lại danh sách</Link>} />
+            <AdminBackButton href={ROUTES.ADMIN.VENDOR_PRODUCTS}>Quay lại danh sách</AdminBackButton>
             <VendorProductStatusBadge status={detail.reviewStatus} />
           </div>
           <h1 className="mt-3 text-2xl">{detail.name}</h1>
@@ -113,19 +112,19 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
             <CardContent className="space-y-4 pt-4">
               <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="under_review" />
-                <Button type="submit" variant="outline" className="w-full">Đánh dấu đang review</Button>
+                <AdminOutlineButton type="submit" className="w-full">Đánh dấu đang review</AdminOutlineButton>
               </form>
 
               <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="changes_requested" />
                 <textarea name="reviewNote" className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Nêu rõ vendor cần chỉnh gì" />
-                <Button type="submit" variant="outline" className="w-full">Yêu cầu chỉnh sửa</Button>
+                <AdminOutlineButton type="submit" className="w-full">Yêu cầu chỉnh sửa</AdminOutlineButton>
               </form>
 
               <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="rejected" />
                 <textarea name="reviewNote" className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Lý do từ chối" />
-                <Button type="submit" variant="destructive" className="w-full">Từ chối hồ sơ</Button>
+                <AdminDeleteButton type="submit" className="w-full">Từ chối hồ sơ</AdminDeleteButton>
               </form>
             </CardContent>
           </Card>
@@ -183,9 +182,9 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
                     <span>Gán vendor này làm supplier đã duyệt cho sản phẩm sau khi approve.</span>
                   </label>
                 ) : null}
-                <Button type="submit" className="w-full" disabled={!canApprove}>
+                <AdminSubmitButton className="w-full" disabled={!canApprove}>
                   Duyệt và apply vào catalog
-                </Button>
+                </AdminSubmitButton>
               </form>
             </CardContent>
           </Card>

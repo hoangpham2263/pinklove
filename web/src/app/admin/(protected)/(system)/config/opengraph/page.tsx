@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { FileText, Globe2, ImageIcon, Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
 import { requireAdmin } from "@/lib/auth";
 import { getCurrentSiteUrl } from "@/lib/seo";
@@ -42,55 +43,27 @@ export default async function AdminOpenGraphSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Default Title</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="line-clamp-2">{previewTitle}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Locale</CardTitle>
-            <Globe2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.opengraph.locale}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Twitter Card</CardTitle>
-            <Share2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.opengraph.twitterCard}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Default Image</CardTitle>
-            <ImageIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="break-all">{previewImage}</p>
-            {hasPreviewImage ? (
-              <div className="overflow-hidden rounded-lg border bg-muted">
-                <Image
-                  src={settings.opengraph.defaultImage}
-                  alt={previewTitle}
-                  width={1200}
-                  height={630}
-                  className="aspect-[1200/630] w-full object-cover"
-                />
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Default Title" icon={FileText}>
+          <p className="line-clamp-2">{previewTitle}</p>
+        </AdminOverviewCard>
+        <AdminOverviewCard title="Locale" value={settings.opengraph.locale} icon={Globe2} />
+        <AdminOverviewCard title="Twitter Card" value={settings.opengraph.twitterCard} icon={Share2} />
+        <AdminOverviewCard title="Default Image" icon={ImageIcon} contentClassName="space-y-3">
+          <p className="break-all">{previewImage}</p>
+          {hasPreviewImage ? (
+            <div className="overflow-hidden rounded-lg border bg-muted">
+              <Image
+                src={settings.opengraph.defaultImage}
+                alt={previewTitle}
+                width={1200}
+                height={630}
+                className="aspect-[1200/630] w-full object-cover"
+              />
+            </div>
+          ) : null}
+        </AdminOverviewCard>
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader>

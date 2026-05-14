@@ -1,7 +1,7 @@
-import { CheckCircle2, FilePenLine, FolderTree, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CheckCircle2, FilePenLine, FolderTree } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminDialogCreateTrigger } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminBlogCategoriesTable } from "@/features/blog/admin/admin-blog-categories-table";
 import { QuickCreateBlogCategoryForm } from "@/features/blog/admin/quick-create-blog-category-form";
 import { requireAdmin } from "@/lib/auth";
@@ -24,10 +24,9 @@ export default async function AdminBlogCategoriesPage() {
           <h1 className="text-2xl font-bold tracking-tight">Blog Categories</h1>
         </div>
         <Dialog>
-          <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4" />
+          <AdminDialogCreateTrigger>
             Tạo Blog Category
-          </DialogTrigger>
+          </AdminDialogCreateTrigger>
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Tạo Blog Category</DialogTitle>
@@ -38,35 +37,11 @@ export default async function AdminBlogCategoriesPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <FolderTree className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{categories.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{publishedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Draft</CardTitle>
-            <FilePenLine className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{draftCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Total" value={categories.length} icon={FolderTree} />
+        <AdminOverviewCard title="Published" value={publishedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Draft" value={draftCount} icon={FilePenLine} />
+      </AdminOverviewGrid>
 
       <AdminBlogCategoriesTable categories={categories} postCountByCategory={postCountByCategory} />
     </section>

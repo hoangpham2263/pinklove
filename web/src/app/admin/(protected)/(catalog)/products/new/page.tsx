@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Package } from "lucide-react";
 import { redirect } from "next/navigation";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { listAllProductCategories } from "@/features/products/server/service";
 import { QuickCreateProductForm } from "@/features/products/admin/quick-create-product-form";
@@ -41,17 +42,14 @@ export default async function AdminProductCreatePage({ searchParams }: AdminProd
           </p>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-1">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Sản phẩm</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm text-muted-foreground">
+      <AdminOverviewGrid className="md:grid-cols-1 lg:grid-cols-1">
+        <AdminOverviewCard title="Sản phẩm" icon={Package}>
+          <div className="space-y-1 text-sm text-muted-foreground">
             <p>Nhóm này không dùng template invitation source.</p>
             <p>Đối tác khả dụng: {vendors.length}</p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </AdminOverviewCard>
+      </AdminOverviewGrid>
       <QuickCreateProductForm
         categories={categories}
         vendors={vendors}

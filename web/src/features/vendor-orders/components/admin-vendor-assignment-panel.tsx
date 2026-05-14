@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { AdminLinkButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { adminApi } from "@/lib/api-client.admin";
@@ -201,13 +200,15 @@ export function AdminVendorAssignmentPanel({
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSaving || !vendorUserId}>
+              <AdminSubmitButton className="w-full" disabled={isSaving || !vendorUserId}>
                 {isSaving ? "Dang luu..." : "Luu phan cong vendor"}
-              </Button>
+              </AdminSubmitButton>
             </form>
 
             {detail ? (
-              <Button variant="outline" className="w-full" render={<Link href={ROUTES.ADMIN.VENDOR(detail.assignment.vendorUserId)}>Mo workspace vendor</Link>} />
+              <AdminLinkButton className="w-full" href={ROUTES.ADMIN.VENDOR(detail.assignment.vendorUserId)}>
+                Mo workspace vendor
+              </AdminLinkButton>
             ) : null}
           </CardContent>
         </Card>

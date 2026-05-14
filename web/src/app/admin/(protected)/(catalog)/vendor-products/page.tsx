@@ -2,6 +2,7 @@ import { CheckCircle2, ClipboardList, Clock3, Truck } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminVendorProductsTable } from "@/features/vendor-product-submissions/components/admin-vendor-products-table";
 import {
@@ -29,44 +30,12 @@ export default async function AdminVendorProductsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Total</CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{submissions.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Submitted</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{submittedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Under Review</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{underReviewCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Approved / Suppliers</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{approvedCount} / {suppliers.length}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Total" value={submissions.length} icon={ClipboardList} />
+        <AdminOverviewCard title="Submitted" value={submittedCount} icon={Clock3} />
+        <AdminOverviewCard title="Under Review" value={underReviewCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Approved / Suppliers" value={`${approvedCount} / ${suppliers.length}`} icon={Truck} />
+      </AdminOverviewGrid>
 
       <AdminVendorProductsTable submissions={submissions} vendors={uniqueVendors} />
 

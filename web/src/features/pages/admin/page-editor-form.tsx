@@ -8,7 +8,7 @@ import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor, type FieldsEditorProductOption } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { getManagedPageFields, isManagedSitePageSlug } from "@/features/pages/config/managed-pages";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { STRUCTURED_DATA_FIELD } from "@/lib/page-fields";
@@ -312,9 +312,9 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
             </div>
 
             <div className="pt-2">
-              <Button type="submit" className="w-full" disabled={isSaving}>
+              <AdminSubmitButton className="w-full" disabled={isSaving}>
                 {isSaving ? "Đang lưu..." : "Update Page"}
-              </Button>
+              </AdminSubmitButton>
             </div>
           </CardContent>
         </Card>

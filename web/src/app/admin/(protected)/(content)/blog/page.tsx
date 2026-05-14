@@ -1,7 +1,7 @@
-import { CheckCircle2, FileText, Newspaper, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CheckCircle2, FileText, Newspaper } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminDialogCreateTrigger } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminBlogPostsTable } from "@/features/blog/admin/admin-blog-posts-table";
 import { QuickCreateBlogPostForm } from "@/features/blog/admin/quick-create-blog-post-form";
 import { requireAdmin } from "@/lib/auth";
@@ -20,10 +20,9 @@ export default async function AdminBlogPostsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Blog Posts</h1>
         </div>
         <Dialog>
-          <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4" />
+          <AdminDialogCreateTrigger>
             Tạo Blog Post
-          </DialogTrigger>
+          </AdminDialogCreateTrigger>
           <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tạo Blog Post</DialogTitle>
@@ -34,35 +33,11 @@ export default async function AdminBlogPostsPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng bài viết</CardTitle>
-            <Newspaper className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{posts.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{publishedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Draft</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{draftCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Tổng bài viết" value={posts.length} icon={Newspaper} />
+        <AdminOverviewCard title="Published" value={publishedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Draft" value={draftCount} icon={FileText} />
+      </AdminOverviewGrid>
 
       <AdminBlogPostsTable posts={posts} categories={categories} />
     </section>

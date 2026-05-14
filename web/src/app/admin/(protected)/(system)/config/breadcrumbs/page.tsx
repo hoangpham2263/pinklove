@@ -1,5 +1,6 @@
 import { CheckCircle2, Code2, Eye, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
 import { requireAdmin } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -18,44 +19,12 @@ export default async function AdminBreadcrumbSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid grid-cols-12 gap-4">
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Managed Pages</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.breadcrumb.enabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Admin Layout</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.breadcrumb.adminEnabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Customer Layout</CardTitle>
-            <Code2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.breadcrumb.customerEnabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Partner Layout</CardTitle>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.breadcrumb.partnerEnabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Managed Pages" value={settings.breadcrumb.enabled ? "On" : "Off"} icon={CheckCircle2} />
+        <AdminOverviewCard title="Admin Layout" value={settings.breadcrumb.adminEnabled ? "On" : "Off"} icon={Eye} />
+        <AdminOverviewCard title="Customer Layout" value={settings.breadcrumb.customerEnabled ? "On" : "Off"} icon={Code2} />
+        <AdminOverviewCard title="Partner Layout" value={settings.breadcrumb.partnerEnabled ? "On" : "Off"} icon={Home} />
+      </AdminOverviewGrid>
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 space-y-4 xl:col-span-7">

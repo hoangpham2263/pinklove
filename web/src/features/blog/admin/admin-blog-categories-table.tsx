@@ -2,7 +2,6 @@
 
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -17,10 +16,10 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminCancelButton, AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import type { BlogCategory } from "@/features/blog/types";
@@ -273,15 +272,14 @@ export function AdminBlogCategoriesTable({ categories, postCountByCategory }: Ad
               <div className="rounded-md border p-3 text-sm text-muted-foreground">{previewCategory.description || "-"}</div>
             </div>
             <div className="flex justify-end">
-              <Button
-                type="button"
+              <AdminOutlineButton
                 onClick={() => {
                   setPreviewCategoryId(null);
                   setEditingCategoryId(previewCategory.id);
                 }}
               >
                 Chỉnh sửa
-              </Button>
+              </AdminOutlineButton>
             </div>
           </DialogContent>
         ) : null}
@@ -393,17 +391,16 @@ function BlogCategoryPopupForm({ category, onClose }: { category: BlogCategoryRo
         </div>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-          <Button type="button" variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
-            <Trash2 className="h-4 w-4" />
+          <AdminDeleteButton disabled={isDeleting} onClick={() => void handleDelete()}>
             {isDeleting ? "Đang xóa..." : "Xóa Blog Category"}
-          </Button>
+          </AdminDeleteButton>
           <div className="flex gap-3 sm:justify-end">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <AdminCancelButton onClick={onClose}>
               Hủy
-            </Button>
-            <Button type="submit" disabled={isSaving}>
+            </AdminCancelButton>
+            <AdminSubmitButton disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu Blog Category"}
-            </Button>
+            </AdminSubmitButton>
           </div>
         </div>
       </NativeForm>

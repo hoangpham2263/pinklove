@@ -4,7 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { AccountUser, AuthUser, UserProfile } from "@/lib/auth";
@@ -113,9 +113,9 @@ export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormPro
                 ))}
               </select>
             </div>
-            <Button type="submit" className="w-full" disabled={isSaving}>
+            <AdminSubmitButton className="w-full" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-            </Button>
+            </AdminSubmitButton>
           </CardContent>
         </Card>
       </div>

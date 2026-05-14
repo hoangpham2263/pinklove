@@ -1,7 +1,6 @@
-import Link from"next/link";
 import { notFound } from"next/navigation";
 
-import { Button } from"@/components/ui/button";
+import { AdminBackButton } from"@/features/admin/components/admin-buttons";
 import { PaymentMethodEditorForm } from"@/features/ecommerce/admin/payment-method-editor-form";
 import { requireAdmin } from"@/lib/auth";
 import { ROUTES } from"@/lib/routes";
@@ -25,7 +24,7 @@ export default async function EditConfigPaymentMethodPage({
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex justify-start">
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Payment Methods</Link>} />
+        <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Payment Methods</AdminBackButton>
       </div>
 
       <div className="space-y-2">

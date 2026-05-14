@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Copy, Eye, Send } from "lucide-react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -115,10 +115,10 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           <label htmlFor="html" className="text-sm font-medium">
             Raw HTML
           </label>
-          <Button type="button" variant="outline" size="sm" className="h-8" onClick={() => setIsPreviewOpen(true)}>
+          <AdminOutlineButton className="h-8" onClick={() => setIsPreviewOpen(true)}>
             <Eye className="h-4 w-4" />
             Preview
-          </Button>
+          </AdminOutlineButton>
         </div>
         <textarea
           id="html"
@@ -163,10 +163,10 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
         </div>
       </div>
 
-      <Button type="submit" className="h-9" disabled={isSending}>
+      <AdminSubmitButton disabled={isSending}>
         <Send className="h-4 w-4" />
         {isSending ? "Đang gửi..." : "Gửi demo"}
-      </Button>
+      </AdminSubmitButton>
     </NativeForm>
 
     <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>

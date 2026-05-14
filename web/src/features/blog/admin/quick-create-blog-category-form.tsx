@@ -4,7 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -87,9 +87,9 @@ export function QuickCreateBlogCategoryForm({ onCreated }: QuickCreateBlogCatego
           <option value="published">published</option>
         </select>
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <AdminSubmitButton className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Đang tạo..." : "Tạo danh mục"}
-      </Button>
+      </AdminSubmitButton>
     </NativeForm>
   );
 }

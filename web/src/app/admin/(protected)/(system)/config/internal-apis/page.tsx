@@ -1,4 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, Code2, FileCode2 } from "lucide-react";
+
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -31,32 +33,11 @@ export default async function AdminInternalApisPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Tổng API</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">1</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">API đang bật</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{settings.internalApis.productsImport.enabled ? 1 : 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">API đầu tiên</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Hiện tại đang cấu hình trước cho import sản phẩm.</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Tổng API" value={1} icon={FileCode2} />
+        <AdminOverviewCard title="API đang bật" value={settings.internalApis.productsImport.enabled ? 1 : 0} icon={CheckCircle2} />
+        <AdminOverviewCard title="API đầu tiên" description="Hiện tại đang cấu hình trước cho import sản phẩm." icon={Code2} />
+      </AdminOverviewGrid>
 
       <ConfigSectionsHub sections={[...INTERNAL_API_SECTIONS]} />
     </section>

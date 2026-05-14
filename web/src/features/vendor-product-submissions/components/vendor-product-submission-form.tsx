@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MediaSelector } from "@/features/media/components/media-selector";
@@ -256,15 +256,15 @@ export function VendorProductSubmissionForm({
             )}
 
             {canEdit ? (
-              <Button type="submit" className="w-full" disabled={isSaving}>
+              <AdminSubmitButton className="w-full" disabled={isSaving}>
                 {isSaving ? "Đang lưu..." : submission ? "Lưu hồ sơ" : "Tạo nháp"}
-              </Button>
+              </AdminSubmitButton>
             ) : null}
 
             {canSubmit ? (
-              <Button type="button" variant="outline" className="w-full" disabled={isSubmitting} onClick={() => void handleSubmitForReview()}>
+              <AdminOutlineButton className="w-full" disabled={isSubmitting} onClick={() => void handleSubmitForReview()}>
                 {isSubmitting ? "Đang gửi..." : "Gửi admin duyệt"}
-              </Button>
+              </AdminOutlineButton>
             ) : null}
           </CardContent>
         </Card>

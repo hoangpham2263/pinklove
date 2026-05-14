@@ -4,7 +4,8 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
@@ -40,32 +41,14 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Trạng thái</CardTitle>
-          </CardHeader>
-          <CardContent>{settings.enabled ? "On" : "Off"}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Endpoint</CardTitle>
-          </CardHeader>
-          <CardContent className="break-all text-sm">{endpoint}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Mặc định</CardTitle>
-          </CardHeader>
-          <CardContent>{settings.defaultStatus}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Luồng import</CardTitle>
-          </CardHeader>
-          <CardContent>Sản phẩm thường</CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Trạng thái" value={settings.enabled ? "On" : "Off"} />
+        <AdminOverviewCard title="Endpoint">
+          <p className="break-all text-sm">{endpoint}</p>
+        </AdminOverviewCard>
+        <AdminOverviewCard title="Mặc định" value={settings.defaultStatus} />
+        <AdminOverviewCard title="Luồng import" value="Sản phẩm thường" />
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader>
@@ -139,9 +122,9 @@ Content-Type: application/json
               </pre>
             </div>
 
-            <Button type="submit" disabled={isSaving}>
+            <AdminSubmitButton disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu cấu hình API sản phẩm"}
-            </Button>
+            </AdminSubmitButton>
           </NativeForm>
         </CardContent>
       </Card>

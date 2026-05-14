@@ -15,7 +15,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -30,6 +29,7 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -271,9 +271,9 @@ export function SettingsDataTableForm({
         </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <Button type="submit" className="h-9" disabled={isSaving}>
+          <AdminSubmitButton disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
-          </Button>
+          </AdminSubmitButton>
         </div>
       </div>
 

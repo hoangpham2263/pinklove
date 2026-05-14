@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
@@ -19,7 +18,7 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminBulkSubmitButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -195,16 +194,8 @@ export function UserManagement({
                     username={user.username}
                     password="12313"
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={<Link href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</Link>}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={<Link href={ROUTES.ADMIN.VENDOR(user.id)}>Quản lý đơn riêng</Link>}
-                  />
+                  <AdminLinkButton href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</AdminLinkButton>
+                  <AdminLinkButton href={ROUTES.ADMIN.VENDOR(user.id)}>Quản lý đơn riêng</AdminLinkButton>
                 </div>
               );
             },
@@ -365,9 +356,9 @@ export function UserManagement({
               ))}
               <option value="delete">Delete</option>
             </select>
-            <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+            <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
-            </Button>
+            </AdminBulkSubmitButton>
           </NativeForm>
         </div>
       </div>

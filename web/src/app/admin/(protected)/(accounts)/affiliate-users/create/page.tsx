@@ -1,6 +1,7 @@
 import { Users } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getRoleLabel, USER_ROLES } from "@/lib/roles";
@@ -17,15 +18,9 @@ export default async function AdminAffiliateUsersCreatePage({ searchParams }: Ad
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <Card className="rounded-lg">
-        <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-          <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.AFFILIATE)}</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <p>{accounts.length}</p>
-        </CardContent>
-      </Card>
+      <AdminOverviewGrid className="md:grid-cols-1 lg:grid-cols-1">
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.AFFILIATE)} value={accounts.length} icon={Users} />
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader>

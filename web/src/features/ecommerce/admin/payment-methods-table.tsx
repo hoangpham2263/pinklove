@@ -1,11 +1,9 @@
 "use client";
 
-import Link from"next/link";
 import { useState } from"react";
-import { Banknote, CreditCard, Landmark, Plus } from"lucide-react";
+import { Banknote, CreditCard, Landmark } from"lucide-react";
 
 import { Badge } from"@/components/ui/badge";
-import { Button } from"@/components/ui/button";
 import { Switch } from"@/components/ui/switch";
 import {
   Dialog,
@@ -15,6 +13,7 @@ import {
   DialogTitle,
 } from"@/components/ui/dialog";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import {
   Table,
   TableBody,
@@ -107,15 +106,9 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{group.methods.length} phương thức</Badge>
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link href={`${ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW}?category=${group.category}`}>
-                        <Plus className="h-4 w-4" />
-                        Thêm
-                      </Link>
-                    }
-                  />
+                  <AdminCreateLinkButton href={`${ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW}?category=${group.category}`}>
+                    Thêm
+                  </AdminCreateLinkButton>
                 </div>
               </div>
 
@@ -307,7 +300,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                   </div>
                 ) : null}
                 <div className="flex justify-end pt-2">
-                  <Button render={<Link href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(previewMethod.code)}>Sửa chi tiết</Link>} />
+                  <AdminLinkButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(previewMethod.code)}>Sửa chi tiết</AdminLinkButton>
                 </div>
               </div>
             </>

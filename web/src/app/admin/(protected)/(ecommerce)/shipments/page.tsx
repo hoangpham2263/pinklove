@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock3, PackageCheck, Truck } from "lucide-react";
 
 import { AdminShipmentsTable } from "@/features/ecommerce/admin/admin-shipments-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAllShipments } from "@/features/ecommerce/server/service";
 import { requireAdmin } from "@/lib/auth";
 
@@ -14,44 +14,12 @@ export default async function AdminShipmentsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Total</CardTitle>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{shipments.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Pending / Packing</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{pendingCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Shipped</CardTitle>
-            <PackageCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{shippedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Delivered</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{deliveredCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Total" value={shipments.length} icon={Truck} />
+        <AdminOverviewCard title="Pending / Packing" value={pendingCount} icon={Clock3} />
+        <AdminOverviewCard title="Shipped" value={shippedCount} icon={PackageCheck} />
+        <AdminOverviewCard title="Delivered" value={deliveredCount} icon={CheckCircle2} />
+      </AdminOverviewGrid>
 
       <AdminShipmentsTable shipments={shipments} />
     </section>

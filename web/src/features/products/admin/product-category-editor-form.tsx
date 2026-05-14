@@ -4,9 +4,9 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
@@ -108,12 +108,12 @@ export function ProductCategoryEditorForm({ category }: { category: ProductCateg
               <option value="published">published</option>
             </select>
           </div>
-          <Button type="submit" className="w-full" disabled={isSaving}>
+          <AdminSubmitButton className="w-full" disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu Product Cat"}
-          </Button>
-          <Button type="button" variant="destructive" className="w-full" disabled={isDeleting} onClick={() => void handleDelete()}>
+          </AdminSubmitButton>
+          <AdminDeleteButton className="w-full" disabled={isDeleting} onClick={() => void handleDelete()}>
             {isDeleting ? "Đang xóa..." : "Xóa Product Cat"}
-          </Button>
+          </AdminDeleteButton>
         </CardContent>
       </Card>
     </NativeForm>

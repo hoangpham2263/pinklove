@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi } from "@/lib/api-client.admin";
 import type { AdminOrderStateSnapshot } from "@/lib/api-client.admin";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
@@ -131,9 +131,9 @@ export function AdminOrderStatePanel({ orderId, detailUrl, initialOrder }: Admin
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSaving}>
+        <AdminSubmitButton className="w-full" disabled={isSaving}>
           {isSaving ? "Dang luu..." : "Luu trang thai don"}
-        </Button>
+        </AdminSubmitButton>
       </form>
     </div>
   );

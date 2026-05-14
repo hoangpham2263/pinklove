@@ -1,6 +1,7 @@
 import { CheckCircle2, FileCode2, ListChecks, SearchCheck } from "lucide-react";
 import { AdminInlineLinkButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
 import { requireAdmin } from "@/lib/auth";
 import { buildRobotsContent } from "@/lib/robots";
@@ -20,44 +21,12 @@ export default async function AdminSitemapSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid grid-cols-12 gap-4">
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Sitemap XML</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.sitemap.enabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Content Groups</CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{providers.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Robots Sitemap</CardTitle>
-            <FileCode2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.indexing.includeSitemapInRobots ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="col-span-12 rounded-lg md:col-span-6 xl:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Site Indexing</CardTitle>
-            <SearchCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Sitemap XML" value={settings.sitemap.enabled ? "On" : "Off"} icon={CheckCircle2} />
+        <AdminOverviewCard title="Content Groups" value={providers.length} icon={ListChecks} />
+        <AdminOverviewCard title="Robots Sitemap" value={settings.indexing.includeSitemapInRobots ? "On" : "Off"} icon={FileCode2} />
+        <AdminOverviewCard title="Site Indexing" value={settings.indexing.siteIndexingEnabled ? "On" : "Off"} icon={SearchCheck} />
+      </AdminOverviewGrid>
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 space-y-4 xl:col-span-7">

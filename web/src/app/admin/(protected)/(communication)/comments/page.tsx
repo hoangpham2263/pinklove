@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock3, MessageSquare, ShieldAlert } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminCommentsTable } from "@/features/comments/admin/admin-comments-table";
 import { listAdminComments } from "@/features/comments/server/service";
 import { requireAdmin } from "@/lib/auth";
@@ -20,44 +20,12 @@ export default async function AdminCommentsPage({ searchParams }: AdminCommentsP
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{comments.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{pendingCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{approvedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected / Spam</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{rejectedCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Total" value={comments.length} icon={MessageSquare} />
+        <AdminOverviewCard title="Pending" value={pendingCount} icon={Clock3} />
+        <AdminOverviewCard title="Approved" value={approvedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Rejected / Spam" value={rejectedCount} icon={ShieldAlert} />
+      </AdminOverviewGrid>
 
       <AdminCommentsTable comments={comments} status={status} keyword={keyword} />
     </section>

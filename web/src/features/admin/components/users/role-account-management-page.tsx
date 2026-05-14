@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { Percent, Plus, Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminCreateLinkButton, AdminDialogCreateTrigger, AdminLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import type { AccountUser, AuthUser } from "@/lib/auth";
 import { getRoleDescription, getRoleLabel, type UserRole } from "@/lib/roles";
 import { UserManagement } from "@/features/admin/components/users/user-management";
@@ -43,41 +43,16 @@ export function RoleAccountManagementPage({
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">{getRoleLabel(role)}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{users.length}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{getRoleDescription(role)}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Tỷ trọng trong hệ thống</CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{roleShare}%</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {users.length}/{totalAccounts} tài khoản
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Thao tác nhanh</CardTitle>
-            <Plus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <Button variant="outline" render={<Link href="/admin/users">Mở danh sách tổng</Link>} />
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title={getRoleLabel(role)} value={users.length} description={getRoleDescription(role)} icon={Users} />
+        <AdminOverviewCard title="Tỷ trọng trong hệ thống" value={`${roleShare}%`} description={`${users.length}/${totalAccounts} tài khoản`} icon={Percent} />
+        <AdminOverviewCard title="Thao tác nhanh" icon={Plus} contentClassName="flex flex-wrap gap-3">
+            <AdminLinkButton href="/admin/users">Mở danh sách tổng</AdminLinkButton>
             {useCreateDialog ? (
               <Dialog>
-                <DialogTrigger render={<Button />}>
+                <AdminDialogCreateTrigger>
                   {createLabel}
-                </DialogTrigger>
+                </AdminDialogCreateTrigger>
                 <DialogContent className="max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{createLabel}</DialogTitle>
@@ -87,11 +62,10 @@ export function RoleAccountManagementPage({
                 </DialogContent>
               </Dialog>
             ) : (
-              <Button render={<Link href={createHref}>{createLabel}</Link>} />
+              <AdminCreateLinkButton href={createHref}>{createLabel}</AdminCreateLinkButton>
             )}
-          </CardContent>
-        </Card>
-      </div>
+        </AdminOverviewCard>
+      </AdminOverviewGrid>
 
       {children}
 

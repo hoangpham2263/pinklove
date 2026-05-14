@@ -1,5 +1,5 @@
 import { CheckCircle2, FileCode2, ListChecks, SearchCheck } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -141,44 +141,12 @@ export default async function AdminSettingsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng mục cấu hình</CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Cấu hình đang bật</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{enabledCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Sitemap XML</CardTitle>
-            <FileCode2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.sitemap.enabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Cho phép index</CardTitle>
-            <SearchCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{settings.indexing.siteIndexingEnabled ? "On" : "Off"}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Tổng mục cấu hình" value={CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)} icon={ListChecks} />
+        <AdminOverviewCard title="Cấu hình đang bật" value={enabledCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Sitemap XML" value={settings.sitemap.enabled ? "On" : "Off"} icon={FileCode2} />
+        <AdminOverviewCard title="Cho phép index" value={settings.indexing.siteIndexingEnabled ? "On" : "Off"} icon={SearchCheck} />
+      </AdminOverviewGrid>
 
       <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
     </section>

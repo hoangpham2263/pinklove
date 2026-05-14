@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -111,7 +111,7 @@ function OrderEditDialog({ order }: { order: AdminOrderRow }) {
             <Input name="notes" defaultValue={order.notes} />
           </div>
           <div className="md:col-span-2">
-            <Button type="submit">Lưu</Button>
+            <AdminSubmitButton>Lưu</AdminSubmitButton>
           </div>
         </form>
       </DialogContent>

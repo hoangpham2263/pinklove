@@ -1,7 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
 import { CheckCircle2, FileText, Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAllProducts } from "@/features/products/server/service";
 import type { Product, ProductType } from "@/features/products/types";
 import { AdminProductList } from "@/features/products/admin/admin-product-list";
@@ -50,46 +49,18 @@ export async function AdminProductsPageView({
             </div>
           ) : null}
           {canCreateProduct ? (
-            <Button
-              render={
-                <Link href={createHref}>
-                  {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
-                </Link>
-              }
-            />
+            <AdminCreateLinkButton href={createHref}>
+              {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
+            </AdminCreateLinkButton>
           ) : null}
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng sản phẩm</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{filteredProducts.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{publishedCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Draft</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{draftCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Tổng sản phẩm" value={filteredProducts.length} icon={Package} />
+        <AdminOverviewCard title="Published" value={publishedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Draft" value={draftCount} icon={FileText} />
+      </AdminOverviewGrid>
 
       <AdminProductList
         products={filteredProducts}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -80,9 +80,9 @@ export function QuickCreateUserForm({
       </div>
 
       <div className="md:col-span-3">
-        <Button type="submit" className="w-full md:w-auto" disabled={isSubmitting}>
+        <AdminSubmitButton className="w-full md:w-auto" disabled={isSubmitting}>
           {isSubmitting ? "Đang tạo..." : "Tạo tài khoản"}
-        </Button>
+        </AdminSubmitButton>
       </div>
     </NativeForm>
   );

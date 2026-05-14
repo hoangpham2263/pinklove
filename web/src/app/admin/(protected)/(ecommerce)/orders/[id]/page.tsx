@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-state-panel";
 import { getOrderById } from "@/features/ecommerce/server/service";
 import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
@@ -60,7 +59,7 @@ export default async function AdminOrderDetailPage({
       {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
 
       <div className="flex justify-start">
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.ORDERS}>Danh sách đơn hàng</Link>} />
+        <AdminBackButton href={ROUTES.ADMIN.ORDERS}>Danh sách đơn hàng</AdminBackButton>
       </div>
 
       <Card>

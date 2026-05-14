@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
@@ -309,13 +309,12 @@ export function QuickCreateProductForm({
             <p className="text-sm text-muted-foreground">
               Chọn trạng thái tạo mới để tiếp tục hoàn thiện hoặc publish ngay từ đầu.
             </p>
-            <Button
-              type="submit"
+            <AdminSubmitButton
               className="h-10 w-full rounded-md"
               disabled={isSubmitting || (ownerType === "vendor" && !ownerVendorUserId)}
             >
               {isSubmitting ? "Đang tạo..." : "Tạo sản phẩm"}
-            </Button>
+            </AdminSubmitButton>
           </CardContent>
         </Card>
       </div>

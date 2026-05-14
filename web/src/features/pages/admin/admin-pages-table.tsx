@@ -17,8 +17,8 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { NativeForm } from "@/components/common/native-form";
+import { AdminBulkSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { getManagedPagePath } from "@/lib/page-paths";
@@ -232,9 +232,9 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               <option value="published">Published</option>
               <option value="draft">Draft</option>
             </select>
-            <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+            <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
-            </Button>
+            </AdminBulkSubmitButton>
           </NativeForm>
         </div>
       </div>

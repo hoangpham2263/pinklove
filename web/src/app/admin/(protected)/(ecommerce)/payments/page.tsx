@@ -1,7 +1,7 @@
 import { CheckCircle2, CircleDollarSign, Clock3, ShieldAlert } from "lucide-react";
 
 import { AdminPaymentsTable, type AdminPaymentRow } from "@/features/ecommerce/admin/admin-payments-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAllPayments } from "@/features/ecommerce/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -22,44 +22,12 @@ export default async function AdminPaymentsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Total</CardTitle>
-            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{payments.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Pending</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{pendingCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Paid</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{paidCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Failed / Refunded</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{issueCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Total" value={payments.length} icon={CircleDollarSign} />
+        <AdminOverviewCard title="Pending" value={pendingCount} icon={Clock3} />
+        <AdminOverviewCard title="Paid" value={paidCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Failed / Refunded" value={issueCount} icon={ShieldAlert} />
+      </AdminOverviewGrid>
 
       <AdminPaymentsTable payments={rows} />
     </section>

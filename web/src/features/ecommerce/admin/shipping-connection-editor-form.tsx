@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
 import type { ShippingAccountSettings } from "@/lib/system-settings";
@@ -110,7 +110,7 @@ export function ShippingConnectionEditorForm({ connection }: ShippingConnectionE
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button type="submit">{isEditing ? "Lưu kết nối" : "Thêm kết nối"}</Button>
+        <AdminSubmitButton>{isEditing ? "Lưu kết nối" : "Thêm kết nối"}</AdminSubmitButton>
       </div>
     </form>
   );

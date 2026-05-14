@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { PackageCheck, Plus, Truck } from "lucide-react";
+import { PackageCheck, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import {
   Dialog,
   DialogContent,
@@ -50,22 +50,10 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border bg-background p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Shipping Connections</p>
-            <Truck className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <p className="mt-2">{connections.length}</p>
-        </div>
-        <div className="rounded-lg border bg-background p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Đang bật</p>
-            <PackageCheck className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <p className="mt-2">{enabledCount}</p>
-        </div>
-      </div>
+      <AdminOverviewGrid className="md:grid-cols-2 lg:grid-cols-2">
+        <AdminOverviewCard title="Shipping Connections" value={connections.length} icon={Truck} />
+        <AdminOverviewCard title="Đang bật" value={enabledCount} icon={PackageCheck} />
+      </AdminOverviewGrid>
 
       <div className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -78,15 +66,7 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
             <AdminTableClearButton visible={Boolean(globalFilter.trim())} onClick={() => setGlobalFilter("")} />
           </AdminTableToolbar>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              className="h-9"
-              render={
-                <Link href={ROUTES.ADMIN.CONFIG_SHIPPING_NEW}>
-                  <Plus className="h-4 w-4" />
-                  Thêm
-                </Link>
-              }
-            />
+            <AdminCreateLinkButton href={ROUTES.ADMIN.CONFIG_SHIPPING_NEW}>Thêm</AdminCreateLinkButton>
           </div>
         </div>
 

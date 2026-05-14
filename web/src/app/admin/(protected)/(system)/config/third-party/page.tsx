@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -73,7 +73,7 @@ export default async function AdminThirdPartyConfigPage() {
               </div>
             </div>
 
-            <Button type="submit">Lưu cấu hình</Button>
+            <AdminSubmitButton>Lưu cấu hình</AdminSubmitButton>
           </form>
         </CardContent>
       </Card>

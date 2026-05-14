@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArchiveRestore, Loader2, RotateCcw, Trash2, Upload } from "lucide-react";
+import { ArchiveRestore, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { AdminCancelButton, AdminCreateButton, AdminDeleteButton, AdminOutlineButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -226,17 +226,14 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
               className="hidden"
               onChange={(event) => void handleUpload(event.target.files?.[0])}
             />
-            <Button
-              variant="outline"
-              className="bg-white"
+            <AdminOutlineButton
               disabled={isBusy}
               onClick={() => uploadInputRef.current?.click()}
             >
               {pendingAction === "upload" ? <Loader2 className="animate-spin" /> : <Upload />}
               Upload
-            </Button>
-            <Button
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            </AdminOutlineButton>
+            <AdminCreateButton
               disabled={isBusy || isRefreshing}
               onClick={() =>
                 void runAction(
@@ -246,9 +243,8 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                 )
               }
             >
-              {pendingAction === "create" ? <Loader2 className="animate-spin" /> : <RotateCcw />}
-              Create
-            </Button>
+              {pendingAction === "create" ? "Đang tạo..." : "Create"}
+            </AdminCreateButton>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -346,13 +342,13 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" className="bg-white" disabled={isBusy} onClick={() => setRestorePackage(null)}>
+                <AdminCancelButton disabled={isBusy} onClick={() => setRestorePackage(null)}>
                   Cancel
-                </Button>
-                <Button variant="destructive" disabled={restoreDisabled} onClick={() => void handleRestore()}>
+                </AdminCancelButton>
+                <AdminDeleteButton disabled={restoreDisabled} onClick={() => void handleRestore()}>
                   {pendingAction === "restore" ? <Loader2 className="animate-spin" /> : <ArchiveRestore />}
                   Restore
-                </Button>
+                </AdminDeleteButton>
               </div>
             </div>
           ) : null}
@@ -383,13 +379,13 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                 </p>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" className="bg-white" disabled={isBusy} onClick={() => setDeletePackage(null)}>
+                <AdminCancelButton disabled={isBusy} onClick={() => setDeletePackage(null)}>
                   Cancel
-                </Button>
-                <Button variant="destructive" disabled={isBusy} onClick={() => void handleDelete()}>
+                </AdminCancelButton>
+                <AdminDeleteButton disabled={isBusy} onClick={() => void handleDelete()}>
                   {pendingAction === `delete:${deletePackage.name}` ? <Loader2 className="animate-spin" /> : <Trash2 />}
                   Delete
-                </Button>
+                </AdminDeleteButton>
               </div>
             </div>
           ) : null}

@@ -1,5 +1,5 @@
 import { Archive, CheckCircle2, Clock3, HardDrive } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminBackupsManager } from "@/features/admin/components/settings/admin-backups-manager";
 import { getAdminBackupDirectory, listAdminBackupPackages } from "@/lib/admin-backups";
 import { requireAdmin } from "@/lib/auth";
@@ -31,46 +31,14 @@ export default async function AdminBackupsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Backup packages</CardTitle>
-            <Archive className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{packages.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Latest backup</CardTitle>
-            <Clock3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="line-clamp-1">{latestPackage ? formatDate(new Date(latestPackage.createdAt)) : "Chưa có"}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Local size</CardTitle>
-            <HardDrive className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{formatBytes(totalSize)}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Checksums</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>
-              {checksumCount}/{packages.length}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Backup packages" value={packages.length} icon={Archive} />
+        <AdminOverviewCard title="Latest backup" icon={Clock3}>
+          <p className="line-clamp-1">{latestPackage ? formatDate(new Date(latestPackage.createdAt)) : "Chưa có"}</p>
+        </AdminOverviewCard>
+        <AdminOverviewCard title="Local size" value={formatBytes(totalSize)} icon={HardDrive} />
+        <AdminOverviewCard title="Checksums" value={`${checksumCount}/${packages.length}`} icon={CheckCircle2} />
+      </AdminOverviewGrid>
 
       <AdminBackupsManager packages={packages} directory={directory} />
     </section>

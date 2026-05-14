@@ -1,14 +1,13 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { AdminBackButton, AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -126,7 +125,7 @@ export function ProductEditorForm({
           sidebar={
             <>
               <div className="flex min-w-0 items-center gap-3">
-                <Button variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
+                <AdminBackButton href={returnTo}>Quay lại</AdminBackButton>
                 <div className="min-w-0">
                   <h1 className="truncate text-base font-semibold">{product.name}</h1>
                   <p className="text-sm text-muted-foreground">Mẫu builder gốc trong admin</p>
@@ -210,19 +209,13 @@ export function ProductEditorForm({
               </div>
 
               <div className="space-y-3">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="w-full rounded-md"
-                  disabled={isDeleting}
-                  onClick={() => void handleDelete()}
-                >
+                <AdminDeleteButton className="w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
                   {isDeleting ? "Đang xóa..." : "Xóa mẫu"}
-                </Button>
+                </AdminDeleteButton>
 
-                <Button type="submit" className="w-full" disabled={isSaving}>
+                <AdminSubmitButton className="w-full" disabled={isSaving}>
                   {isSaving ? "Đang lưu..." : "Lưu mẫu builder"}
-                </Button>
+                </AdminSubmitButton>
               </div>
             </>
           }
@@ -525,24 +518,18 @@ export function ProductEditorForm({
               <Input name="price" type="number" min="0" step="1000" defaultValue={String(product.price)} />
             </div>
 
-            <Button type="submit" className="w-full rounded-md" disabled={isSaving}>
+            <AdminSubmitButton className="w-full rounded-md" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu sản phẩm"}
-            </Button>
+            </AdminSubmitButton>
 
             {canDeleteProduct ? (
               <div className="border-t pt-4">
                 <p className="text-sm text-muted-foreground">
                   Xóa product catalog entry này. Các `wedding_site` đã tạo trước đó vẫn giữ dữ liệu riêng.
                 </p>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="mt-4 w-full rounded-md"
-                  disabled={isDeleting}
-                  onClick={() => void handleDelete()}
-                >
+                <AdminDeleteButton className="mt-4 w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
                   {isDeleting ? "Đang xóa..." : "Xóa sản phẩm"}
-                </Button>
+                </AdminDeleteButton>
               </div>
             ) : null}
           </CardContent>

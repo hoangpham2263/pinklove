@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Cable } from "lucide-react";
+import { Cable, CheckCircle2, Database, Layers3, ShieldOff } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -15,6 +15,7 @@ import {
 
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -178,38 +179,13 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle>Total Hooks</CardTitle>
-          </CardHeader>
-          <CardContent>{hooks.length}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle>Scopes</CardTitle>
-          </CardHeader>
-          <CardContent>{scopeCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle>Active</CardTitle>
-          </CardHeader>
-          <CardContent className="text-emerald-600">{activeCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle>Inactive</CardTitle>
-          </CardHeader>
-          <CardContent className="text-red-600">{inactiveCount}</CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle>Payload Fields</CardTitle>
-          </CardHeader>
-          <CardContent>{payloadFieldCount}</CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid className="lg:grid-cols-5">
+        <AdminOverviewCard title="Total Hooks" value={hooks.length} icon={Cable} />
+        <AdminOverviewCard title="Scopes" value={scopeCount} icon={Layers3} />
+        <AdminOverviewCard title="Active" value={activeCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Inactive" value={inactiveCount} icon={ShieldOff} />
+        <AdminOverviewCard title="Payload Fields" value={payloadFieldCount} icon={Database} />
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader className="flex flex-col gap-3">

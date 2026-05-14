@@ -3,8 +3,8 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GripVertical } from "lucide-react";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import type { MenuItem } from "@/lib/menu";
 
 export type EditableMenuItem = Omit<MenuItem, "menuId">;
@@ -100,24 +100,8 @@ function SortableMenuItem({
             </option>
           ))}
         </select>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10"
-          onClick={() => onOpenEdit(item.id)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 text-destructive hover:bg-destructive/10"
-          onClick={() => onRemove(index)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <AdminTableActionButton action="edit" label="Sửa menu item" onClick={() => onOpenEdit(item.id)} />
+        <AdminTableActionButton action="delete" label="Xóa menu item" onClick={() => onRemove(index)} />
       </div>
     </li>
   );

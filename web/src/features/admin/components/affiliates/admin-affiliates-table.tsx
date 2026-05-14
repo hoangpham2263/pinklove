@@ -17,7 +17,7 @@ import {
 } from "@tanstack/react-table";
 
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { AdminBulkSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   Dialog,
   DialogContent,
@@ -364,9 +364,9 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               <option value="rejected">rejected</option>
               <option value="blocked">blocked</option>
             </select>
-            <Button type="submit" className="h-9" disabled={!bulkAction || selectedCount === 0}>
+            <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
-            </Button>
+            </AdminBulkSubmitButton>
           </NativeForm>
         </div>
       </div>

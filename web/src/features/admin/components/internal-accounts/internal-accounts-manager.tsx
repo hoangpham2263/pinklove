@@ -2,13 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, KeyRound, Link2, Plus, Shapes, X } from "lucide-react";
+import { ExternalLink, KeyRound, Link2, Shapes } from "lucide-react";
 import { toast } from "sonner";
 
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -18,7 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminCancelButton, AdminDialogCreateTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { type InternalAccount } from "@/lib/internal-accounts";
@@ -144,36 +144,15 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Tổng tài khoản</CardTitle>
-            <KeyRound className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{accounts.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Có link mở nhanh</CardTitle>
-            <Link2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{accountsWithUrl}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Nền tảng đang lưu</CardTitle>
-            <Shapes className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p>{platformCount}</p>
+      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+        <AdminOverviewCard title="Tổng tài khoản" value={accounts.length} icon={KeyRound} />
+        <AdminOverviewCard title="Có link mở nhanh" value={accountsWithUrl} icon={Link2} />
+        <AdminOverviewCard title="Nền tảng đang lưu" icon={Shapes} contentClassName="flex items-center justify-between gap-3">
+          <p>{platformCount}</p>
             <Dialog>
-              <DialogTrigger render={<Button />}>
+              <AdminDialogCreateTrigger>
                 Thêm tài khoản
-              </DialogTrigger>
+              </AdminDialogCreateTrigger>
               <DialogContent className="max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Thêm tài khoản nội bộ</DialogTitle>
@@ -232,21 +211,18 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                     className="md:col-span-2"
                   />
                   <div className="flex items-center gap-2 md:col-span-2">
-                    <Button type="submit">
-                      <Plus className="h-4 w-4" />
+                    <AdminSubmitButton>
                       Thêm tài khoản
-                    </Button>
-                    <Button type="button" variant="outline" onClick={resetCreateDraft}>
-                      <X className="h-4 w-4" />
+                    </AdminSubmitButton>
+                    <AdminCancelButton onClick={resetCreateDraft}>
                       Xóa form
-                    </Button>
+                    </AdminCancelButton>
                   </div>
                 </NativeForm>
               </DialogContent>
             </Dialog>
-          </CardContent>
-        </Card>
-      </div>
+        </AdminOverviewCard>
+      </AdminOverviewGrid>
 
       <div className="rounded-md border">
         <Table>

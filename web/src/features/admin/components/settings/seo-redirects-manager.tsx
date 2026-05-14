@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Plus, X } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -16,9 +16,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminCancelButton, AdminCreateButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -266,10 +266,9 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
         </AdminTableToolbar>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <Button type="button" className="h-9" onClick={createRule}>
-            <Plus className="h-4 w-4" />
+          <AdminCreateButton type="button" onClick={createRule}>
             Thêm redirect
-          </Button>
+          </AdminCreateButton>
         </div>
       </div>
 
@@ -347,14 +346,12 @@ export function SeoRedirectsManager({ rules }: SeoRedirectsManagerProps) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button type="button" variant="outline" className="h-9" onClick={() => setIsDialogOpen(false)}>
-                  <X className="h-4 w-4" />
+                <AdminCancelButton onClick={() => setIsDialogOpen(false)}>
                   Hủy
-                </Button>
-                <Button type="submit" className="h-9" disabled={isSaving}>
-                  <Plus className="h-4 w-4" />
+                </AdminCancelButton>
+                <AdminSubmitButton disabled={isSaving}>
                   {draft.id ? "Cập nhật" : "Thêm redirect"}
-                </Button>
+                </AdminSubmitButton>
               </div>
             </div>
           </form>

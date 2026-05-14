@@ -1,4 +1,7 @@
+import { Building2 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getRoleLabel, USER_ROLES } from "@/lib/roles";
@@ -19,14 +22,9 @@ export default async function AdminVendorsCreatePage({ searchParams }: AdminVend
         <h1 className="text-2xl font-bold tracking-tight">Tạo xưởng in / nhà cung cấp</h1>
       </div>
 
-      <Card className="rounded-lg">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">{getRoleLabel(USER_ROLES.VENDOR)}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-semibold">{vendors.length}</p>
-        </CardContent>
-      </Card>
+      <AdminOverviewGrid className="md:grid-cols-1 lg:grid-cols-1">
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.VENDOR)} value={vendors.length} icon={Building2} />
+      </AdminOverviewGrid>
 
       <Card className="rounded-lg">
         <CardHeader>

@@ -1,8 +1,6 @@
 import { notFound } from"next/navigation";
-import Link from"next/link";
 import { requireAdmin, getUserAccount, getUserProfile } from"@/lib/auth";
-import { Button } from"@/components/ui/button";
-import { ChevronLeft } from"lucide-react";
+import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { EditUserForm } from "@/features/admin/components/users/edit-user-form";
 import { ROUTES } from "@/lib/routes";
 
@@ -26,12 +24,7 @@ export default async function EditUserPage({ params, searchParams }: EditUserPag
  return (
  <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
  <div className="flex items-center gap-4">
- <Link href={returnTo}>
- <Button variant="outline" size="sm">
-  <ChevronLeft className="mr-2 h-4 w-4" />
-  Back
-  </Button>
- </Link>
+ <AdminBackButton href={returnTo}>Back</AdminBackButton>
  <h1 className="text-2xl font-bold tracking-tight">Chỉnh sửa người dùng: {user.username}</h1>
  </div>
  <EditUserForm actor={actor} user={user} profile={profile} returnTo={returnTo} />

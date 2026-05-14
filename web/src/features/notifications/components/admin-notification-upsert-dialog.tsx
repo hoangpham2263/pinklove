@@ -5,7 +5,7 @@ import { CalendarClock, Pencil, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { AdminDialogOutlineTrigger, AdminDialogPrimaryTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionTrigger } from "@/features/admin/components/admin-table-actions";
 import {
   Dialog,
@@ -13,7 +13,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { adminApi } from "@/lib/api-client.admin";
@@ -78,6 +77,7 @@ export function AdminNotificationUpsertDialog({
   const description = isEditing
     ? "Chỉnh sửa nội dung, đối tượng nhận hoặc trạng thái gửi của thông báo."
     : "Chọn đúng nhóm nhận trước, hệ thống chỉ hiển thị thêm phần cấu hình cần thiết cho nhóm đó.";
+  const Trigger = triggerVariant === "outline" ? AdminDialogOutlineTrigger : AdminDialogPrimaryTrigger;
 
   const resetFormState = () => {
     setAudienceType(notification?.audienceType ?? "all");
@@ -99,19 +99,10 @@ export function AdminNotificationUpsertDialog({
       {isEditing && iconOnly ? (
         <AdminTableActionTrigger action="edit" label={triggerLabel ?? "Sửa thông báo"} />
       ) : (
-        <DialogTrigger
-          render={
-            <Button
-              variant={triggerVariant}
-              size="sm"
-              className={!isEditing ? "h-9" : undefined}
-              title={triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
-            />
-          }
-        >
+        <Trigger className={!isEditing ? "h-9" : undefined} title={triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}>
           {isEditing ? <Pencil className="h-4 w-4" /> : <Send className="h-4 w-4" />}
           {triggerLabel ?? (isEditing ? "Sửa" : "Tạo thông báo")}
-        </DialogTrigger>
+        </Trigger>
       )}
       <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
@@ -311,10 +302,10 @@ export function AdminNotificationUpsertDialog({
             </div>
           ) : null}
 
-          <Button type="submit" className="w-full">
+          <AdminSubmitButton className="w-full">
             {isEditing ? <Pencil className="h-4 w-4" /> : <Send className="h-4 w-4" />}
             {isEditing ? "Lưu thay đổi" : sendMode === "scheduled" ? "Lên lịch gửi" : sendMode === "draft" ? "Lưu bản nháp" : "Gửi thông báo realtime"}
-          </Button>
+          </AdminSubmitButton>
         </form>
       </DialogContent>
     </Dialog>

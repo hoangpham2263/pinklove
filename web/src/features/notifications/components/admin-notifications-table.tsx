@@ -18,9 +18,9 @@ import {
 
 import { NativeForm } from "@/components/common/native-form";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
+import { AdminBulkSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -377,9 +377,9 @@ export function AdminNotificationsTable({
               <option value="archived">Lưu trữ</option>
               <option value="delete">Xóa</option>
             </select>
-            <Button
+            <AdminBulkSubmitButton
               type="button"
-              className="h-9 md:min-w-24"
+              className="md:min-w-24"
               disabled={!bulkAction || selectedCount === 0}
               onClick={async () => {
                 if (!bulkAction || selectedCount === 0) {
@@ -410,7 +410,7 @@ export function AdminNotificationsTable({
               }}
             >
               Áp dụng
-            </Button>
+            </AdminBulkSubmitButton>
           </div>
         </div>
       </div>

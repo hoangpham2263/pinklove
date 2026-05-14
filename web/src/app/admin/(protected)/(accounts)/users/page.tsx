@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { BadgePercent, ShieldCheck, UserPlus, Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminDialogCreateTrigger, AdminLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
 import { countAdmins, listAccounts, requireAdmin } from "@/lib/auth";
 import { UserManagement } from "@/features/admin/components/users/user-management";
@@ -25,55 +24,21 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Tổng người dùng</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{users.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.ADMIN)}</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{adminCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">{getRoleLabel(USER_ROLES.CUSTOMER)}</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{customerCount}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Quản lý riêng tại trang actor.</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm">Đối tác + Vendor</CardTitle>
-            <BadgePercent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p>{affiliateCount + vendorCount}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Affiliate: {affiliateCount} • Vendor: {vendorCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
+        <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} description="Quản lý riêng tại trang actor." icon={UserPlus} />
+        <AdminOverviewCard title="Đối tác + Vendor" value={affiliateCount + vendorCount} description={`Affiliate: ${affiliateCount} • Vendor: ${vendorCount}`} icon={BadgePercent} />
+      </AdminOverviewGrid>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.CUSTOMERS}>Mở danh sách khách hàng</Link>} />
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.AFFILIATE_USERS}>Mở danh sách đối tác / CTV</Link>} />
-        <Button variant="outline" render={<Link href={ROUTES.ADMIN.VENDORS}>Mở danh sách nhà cung cấp</Link>} />
+        <AdminLinkButton href={ROUTES.ADMIN.CUSTOMERS}>Mở danh sách khách hàng</AdminLinkButton>
+        <AdminLinkButton href={ROUTES.ADMIN.AFFILIATE_USERS}>Mở danh sách đối tác / CTV</AdminLinkButton>
+        <AdminLinkButton href={ROUTES.ADMIN.VENDORS}>Mở danh sách nhà cung cấp</AdminLinkButton>
         <Dialog>
-          <DialogTrigger render={<Button />}>
+          <AdminDialogCreateTrigger>
             Tạo người dùng
-          </DialogTrigger>
+          </AdminDialogCreateTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tạo người dùng</DialogTitle>

@@ -28,7 +28,7 @@ import {
   Truck,
   Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminIconButton } from "@/features/admin/components/admin-buttons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -162,15 +162,13 @@ export function AdminHeaderMenu() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <Button
-        variant="ghost"
-        size="icon-sm"
+      <AdminIconButton
         className="rounded-full md:hidden"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
       >
         <MenuIcon className="h-4 w-4" />
-      </Button>
+      </AdminIconButton>
 
       <SheetContent side="left" className="w-[min(22rem,calc(100vw-2rem))] rounded-r-2xl p-0 md:hidden">
         <SheetHeader className="border-b px-4 py-4">
