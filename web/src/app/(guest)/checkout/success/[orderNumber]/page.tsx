@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
 import { getOrderByNumberForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -60,13 +59,6 @@ export default async function CheckoutSuccessPage({
                 <p className="text-sm text-muted-foreground">Phương thức thanh toán</p>
                 <p className="mt-1 font-semibold">{getPaymentMethodLabel(primaryPayment.method, settings.ecommerce)}</p>
               </div>
-              <PaymentMethodGuide
-                method={primaryPayment.method}
-                settings={settings.ecommerce}
-                amount={order.totalAmount}
-                orderNumber={order.orderNumber}
-                requiresShipping={order.fulfillmentStatus !== "not_required"}
-              />
             </div>
           ) : null}
           <div className="flex flex-wrap gap-3">

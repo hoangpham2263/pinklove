@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Heart, ReceiptText, Trash2 } from "lucide-react";
+import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import {
   GuestLinkButton,
   GuestPanel,
@@ -22,7 +22,6 @@ import { useWishlist } from "@/features/products/use-wishlist";
 import { getWishlistProductHref } from "@/features/products/wishlist";
 import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/currency";
-import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import type { EcommerceSettings } from "@/lib/system-settings";
 import { toast } from "sonner";
@@ -50,9 +49,6 @@ function getProductTypeLabel(productType: Product["productType"]) {
 export function WishlistPageClient({
   products,
   ecommerceSettings,
-  customerName,
-  customerPhone,
-  customerEmail,
 }: WishlistPageClientProps) {
   const { count, isWishlisted, removeProduct } = useWishlist();
   const items = products
@@ -69,14 +65,6 @@ export function WishlistPageClient({
   const selectedIdSet = useMemo(() => new Set(visibleSelectedIds), [visibleSelectedIds]);
   const selectedItems = items.filter((item) => selectedIdSet.has(item.id));
   const subtotal = selectedItems.reduce((sum, item) => sum + item.price, 0);
-  const requiresShipping =
-    ecommerceSettings.supportShipping && selectedItems.some((item) => item.fulfillmentType === "physical");
-  const shippingAmount =
-    requiresShipping && subtotal < ecommerceSettings.freeShippingThreshold
-      ? ecommerceSettings.flatShippingFee
-      : 0;
-  const totalAmount = subtotal + shippingAmount;
-  const paymentMethods = getEnabledPaymentMethods(ecommerceSettings, requiresShipping);
   const allSelected = items.length > 0 && visibleSelectedIds.length === items.length;
 
   const toggleProductSelection = (productId: string) => {
@@ -125,10 +113,7 @@ export function WishlistPageClient({
             </GuestPanelBody>
           </GuestPanel>
         ) : (
-          <form action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="grid gap-5 lg:grid-cols-12">
-            <input type="hidden" name="customerName" value={customerName} />
-            <input type="hidden" name="customerPhone" value={customerPhone ?? ""} />
-            <input type="hidden" name="customerEmail" value={customerEmail} />
+          <form action={ROUTES.CHECKOUT.INDEX} method="GET" className="grid gap-5 lg:grid-cols-12">
             {visibleSelectedIds.map((id) => (
               <input key={id} type="hidden" name="selectedProductIds" value={id} />
             ))}
@@ -240,7 +225,7 @@ export function WishlistPageClient({
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Tong don</p>
                   <p className="mt-2 text-2xl font-semibold text-stone-950">
-                    {formatCurrency(totalAmount, ecommerceSettings)}
+                    {formatCurrency(subtotal, ecommerceSettings)}
                   </p>
                   <p className="mt-1 text-sm text-stone-500">
                     {visibleSelectedIds.length}/{items.length} san pham duoc chon
@@ -254,47 +239,17 @@ export function WishlistPageClient({
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-stone-500">Van chuyen</span>
-                    <span className="font-medium text-stone-950">{formatCurrency(shippingAmount, ecommerceSettings)}</span>
+                    <span className="font-medium text-stone-950">Tinh o checkout</span>
                   </div>
                 </div>
 
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-stone-950">Phuong thuc thanh toan</span>
-                  <select
-                    name="paymentMethod"
-                    required
-                    disabled={paymentMethods.length === 0 || visibleSelectedIds.length === 0}
-                    className="h-11 w-full rounded-md border border-stone-200 bg-white px-3 text-sm text-stone-950 outline-none transition focus:border-rose-300 disabled:cursor-not-allowed disabled:bg-stone-50 disabled:text-stone-400"
-                    defaultValue={paymentMethods[0]?.code ?? ""}
-                  >
-                    {paymentMethods.length === 0 ? (
-                      <option value="">Chua co phuong thuc kha dung</option>
-                    ) : (
-                      paymentMethods.map((method) => (
-                        <option key={method.code} value={method.code}>
-                          {method.label}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </label>
-
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-stone-950">Ghi chu</span>
-                  <textarea
-                    name="notes"
-                    rows={3}
-                    className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-950 outline-none transition focus:border-rose-300"
-                  />
-                </label>
-
                 <button
                   type="submit"
-                  disabled={paymentMethods.length === 0 || visibleSelectedIds.length === 0}
+                  disabled={visibleSelectedIds.length === 0}
                   className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300"
                 >
-                  <ReceiptText className="size-4" />
-                  <span>Thanh toan</span>
+                  <ShoppingBag className="size-4" />
+                  <span>Tien hanh thanh toan</span>
                 </button>
               </GuestPanelBody>
             </GuestPanel>

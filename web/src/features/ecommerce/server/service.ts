@@ -332,6 +332,10 @@ export async function syncCartWithWishlist(userId: string, selectedProductIds?: 
         `
           INSERT INTO shopping_cart_items (user_id, product_id, quantity)
           VALUES ($1, $2, 1)
+          ON CONFLICT (user_id, product_id)
+          DO UPDATE SET
+            quantity = EXCLUDED.quantity,
+            updated_at = NOW()
         `,
         [userId, product.id]
       );
@@ -545,7 +549,7 @@ export async function createOrderFromCart(input: {
         JOIN products ON products.id = cart.product_id
         LEFT JOIN general_products general ON general.product_id = cart.product_id
         WHERE cart.user_id = $1
-        FOR UPDATE OF products, general
+        FOR UPDATE OF products
       `,
       [input.userId]
     );
@@ -862,12 +866,27 @@ export async function recordPaymentLog(input: {
   );
 }
 
+export async function mergePaymentMetadata(input: {
+  paymentId: string;
+  metadata: Record<string, unknown>;
+}) {
+  await query(
+    `
+      UPDATE commerce_payments
+      SET metadata = metadata || $2::jsonb, updated_at = NOW()
+      WHERE id = $1
+    `,
+    [input.paymentId, JSON.stringify(input.metadata)]
+  );
+}
+
 export async function applyGatewayPaymentResult(input: {
   paymentId: string;
   provider: string;
   amount: number;
   status: EcommercePayment["status"];
   externalRef?: string;
+  rawPayload?: unknown;
 }) {
   const paymentResult = await query<PaymentRow>(
     "SELECT * FROM commerce_payments WHERE id = $1 AND provider = $2 LIMIT 1",
@@ -882,6 +901,11 @@ export async function applyGatewayPaymentResult(input: {
   if (Number(payment.amount) !== input.amount) {
     return { ok: false as const, reason: "invalid_amount" as const };
   }
+
+  await mergePaymentMetadata({
+    paymentId: payment.id,
+    metadata: { rawIpnPayload: input.rawPayload ?? null },
+  });
 
   if (payment.status === "paid" || payment.status === "refunded" || payment.status === input.status) {
     return { ok: true as const, alreadyProcessed: true, orderId: payment.order_id };

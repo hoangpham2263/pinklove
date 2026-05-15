@@ -5,9 +5,22 @@ import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
-export default async function CheckoutPage() {
+type CheckoutPageProps = {
+  searchParams?: Promise<{
+    selectedProductIds?: string | string[];
+  }>;
+};
+
+export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  await syncCartWithWishlist(user.id);
+  const params = await searchParams;
+  const selectedProductIds = Array.isArray(params?.selectedProductIds)
+    ? params.selectedProductIds
+    : params?.selectedProductIds
+      ? [params.selectedProductIds]
+      : undefined;
+
+  await syncCartWithWishlist(user.id, selectedProductIds);
   const [items, profile, addresses, settings] = await Promise.all([
     listCartItems(user.id),
     getUserProfile(user.id),

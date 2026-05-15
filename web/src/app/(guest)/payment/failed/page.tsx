@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getOrderByNumberForUser } from "@/features/ecommerce/server/service";
+import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default async function PaymentFailedPage({
@@ -10,6 +12,9 @@ export default async function PaymentFailedPage({
 }) {
   const params = await searchParams;
   const orderNumber = Array.isArray(params.orderNumber) ? params.orderNumber[0] : params.orderNumber;
+  const order = orderNumber
+    ? await getOrderByNumberForUser((await requireAppUser(ROUTES.AUTH.LOGIN)).id, orderNumber)
+    : null;
 
   return (
     <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
@@ -26,7 +31,8 @@ export default async function PaymentFailedPage({
             <p className="mt-1">{orderNumber || "-"}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button render={<Link href={ROUTES.CHECKOUT.INDEX}>Thanh toán lại</Link>} />
+            {order ? <Button render={<Link href={ROUTES.PAYMENT.ORDER(order.orderNumber)}>Thanh toán lại</Link>} /> : null}
+            {order ? <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDER(order.id)}>Xem chi tiết đơn</Link>} /> : null}
             <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDERS}>Tất cả đơn hàng</Link>} />
           </div>
         </CardContent>

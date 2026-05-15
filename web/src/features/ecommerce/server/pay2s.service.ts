@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { EcommerceOrder, EcommercePayment } from "@/features/ecommerce/types";
-import { recordPaymentLog } from "@/features/ecommerce/server/service";
+import { mergePaymentMetadata, recordPaymentLog } from "@/features/ecommerce/server/service";
 import {
   extractPay2sPaymentUrl,
   generatePay2sCreateSignature,
@@ -60,11 +60,12 @@ export async function createPay2sPayment(input: {
   const payload: Pay2sCreatePayload = {
     accessKey: input.config.accessKey,
     partnerCode: input.config.partnerCode,
+    partnerName: "PinkLove",
     requestId,
     amount,
     orderId,
     orderInfo,
-    bankAccounts: input.config.bankAccounts,
+    orderType: input.config.requestType,
     redirectUrl,
     ipnUrl,
     requestType: input.config.requestType,
@@ -100,6 +101,14 @@ export async function createPay2sPayment(input: {
     provider: "pay2s",
     type: response.ok ? "create" : "error",
     payload: { status: response.status, response: responseBody },
+  });
+  await mergePaymentMetadata({
+    paymentId: input.payment.id,
+    metadata: {
+      rawPaymentResponse: responseBody,
+      pay2sRequestId: requestId,
+      pay2sOrderInfo: orderInfo,
+    },
   });
 
   const paymentUrl = extractPay2sPaymentUrl(responseBody);

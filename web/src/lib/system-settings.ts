@@ -126,7 +126,6 @@ export type EcommercePaymentMethodSettings = {
   pay2sPartnerCode?: string;
   pay2sAccessKey?: string;
   pay2sSecretKey?: string;
-  pay2sBankAccounts?: string;
   vnpayPaymentUrl?: string;
   vnpayTmnCode?: string;
   vnpayHashSecret?: string;
@@ -543,7 +542,6 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
             pay2sPartnerCode: String(item?.pay2sPartnerCode ?? "").trim(),
             pay2sAccessKey: String(item?.pay2sAccessKey ?? "").trim(),
             pay2sSecretKey: String(item?.pay2sSecretKey ?? ""),
-            pay2sBankAccounts: String(item?.pay2sBankAccounts ?? ""),
             vnpayPaymentUrl: String(item?.vnpayPaymentUrl ?? "").trim(),
             vnpayTmnCode: String(item?.vnpayTmnCode ?? "").trim(),
             vnpayHashSecret: String(item?.vnpayHashSecret ?? ""),

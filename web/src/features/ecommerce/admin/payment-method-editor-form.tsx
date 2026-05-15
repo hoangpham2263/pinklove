@@ -210,56 +210,66 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
           ) : null}
 
           {showPay2sFields ? (
-            <div className="space-y-4 rounded-md border p-4">
-              <div>
-                <h2>Cấu hình Pay2S</h2>
-                <p className="text-muted-foreground">
-                  Cấu hình này lưu theo phương thức thanh toán Pay2S. Dùng sandbox endpoint để demo workflow thanh toán.
-                </p>
+            <div className="space-y-5 rounded-md border p-4">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2>Cấu hình Pay2S sandbox</h2>
+                  <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    Sandbox
+                  </span>
+                </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label>API Endpoint</label>
-                  <Input
-                    name="pay2sEndpoint"
-                    defaultValue={method?.pay2sEndpoint ??"https://sandbox-payment.pay2s.vn/v1/gateway/api/create"}
-                  />
+              <div className="space-y-4 rounded-md border bg-muted/20 p-4">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold">Thông tin tích hợp</h3>
                 </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
-                  <label>Partner Code</label>
+                  <label>Partner code</label>
                   <Input
                     name="pay2sPartnerCode"
                     defaultValue={method?.pay2sPartnerCode ??""}
+                    placeholder="PAY2SEVS..."
                   />
                 </div>
                 <div className="space-y-2">
-                  <label>Access Key</label>
+                  <label>Access key</label>
                   <Input
                     name="pay2sAccessKey"
                     defaultValue={method?.pay2sAccessKey ??""}
+                    placeholder="Access key sandbox"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label>Secret Key</label>
+                  <label>Secret key</label>
                   <Input
                     name="pay2sSecretKey"
                     type="password"
                     defaultValue={method?.pay2sSecretKey ??""}
+                    placeholder="Secret key sandbox"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label>Bank Accounts</label>
-                <Textarea
-                  name="pay2sBankAccounts"
-                  defaultValue={method?.pay2sBankAccounts ??"99999999|ACB"}
-                  placeholder={"99999999|ACB\n88888888|VCB"}
-                />
-                <p className="text-muted-foreground">
-                  Mỗi dòng gồm số tài khoản và mã ngân hàng, phân tách bằng dấu |. Ví dụ: 99999999|ACB.
-                </p>
+              </div>
+
+              <div className="space-y-4 rounded-md border p-4">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold">API EndPoint</h3>
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <label>Sandbox create endpoint</label>
+                    <Input
+                      name="pay2sEndpoint"
+                      defaultValue={method?.pay2sEndpoint ??"https://sandbox-payment.pay2s.vn/v1/gateway/api/create"}
+                      placeholder="https://sandbox-payment.pay2s.vn/v1/gateway/api/create"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}

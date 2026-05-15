@@ -60,6 +60,7 @@ export const ROUTES = {
   PAYMENT: {
     SUCCESS: "/payment/success",
     FAILED: "/payment/failed",
+    ORDER: (orderNumber: string) => `/payment/${orderNumber}`,
   },
   CUSTOMER: {
     ROOT: "/customer",

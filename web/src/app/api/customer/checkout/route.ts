@@ -169,17 +169,22 @@ export async function POST(request: Request) {
     }
 
     return respondSuccess(request, {
-      location: ROUTES.CHECKOUT.SUCCESS(order.orderNumber),
-      message: "Đã tạo đơn hàng thành công.",
+      location: ROUTES.PAYMENT.ORDER(order.orderNumber),
+      message: "Chuyển sang bước thanh toán.",
     });
   } catch (error) {
+    console.error("[customer-checkout] create order failed", error);
+
+    const rawMessage = error instanceof Error ? error.message : "";
     const message =
-      error instanceof Error && error.message === "CART_EMPTY"
+      rawMessage === "CART_EMPTY"
         ? "Danh sách yêu thích đang trống."
-        : error instanceof Error && error.message === "SHIPPING_ADDRESS_REQUIRED"
+        : rawMessage === "SHIPPING_ADDRESS_REQUIRED"
           ? "Vui lòng chọn hoặc nhập đầy đủ địa chỉ giao hàng."
-        : error instanceof Error && error.message.startsWith("OUT_OF_STOCK:")
-          ? `Sản phẩm đã hết hàng hoặc không đủ tồn kho: ${error.message.replace("OUT_OF_STOCK:", "")}.`
+        : rawMessage.startsWith("OUT_OF_STOCK:")
+          ? `Sản phẩm đã hết hàng hoặc không đủ tồn kho: ${rawMessage.replace("OUT_OF_STOCK:", "")}.`
+        : rawMessage
+          ? `Không thể tạo thanh toán: ${rawMessage}.`
           : "Không thể tạo đơn hàng.";
 
     return respondError(request, {

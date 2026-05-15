@@ -4,12 +4,13 @@ import { AddressBookManager } from "@/components/common/address-book-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
-import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
+import { CheckoutSubmitButton } from "@/features/ecommerce/components/checkout-submit-button";
 import type { CartItem } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import type { SystemSettings } from "@/lib/system-settings";
+import { Banknote, CreditCard, QrCode, WalletCards } from "lucide-react";
 
 type CheckoutPageProps = {
   items: CartItem[];
@@ -19,6 +20,23 @@ type CheckoutPageProps = {
   addresses?: UserAddress[];
   settings: SystemSettings;
 };
+
+function PaymentMethodMark({ provider, type }: { provider: string; type: string }) {
+  const Icon =
+    provider === "manual_bank_transfer" || provider === "pay2s"
+      ? QrCode
+      : provider === "cash" || type === "offline"
+        ? Banknote
+        : provider === "vnpay"
+          ? CreditCard
+          : WalletCards;
+
+  return (
+    <span className="flex size-12 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-foreground">
+      <Icon className="size-6" />
+    </span>
+  );
+}
 
 export function CheckoutPageView({
   items,
@@ -77,6 +95,10 @@ export function CheckoutPageView({
         ) : null}
 
         <form id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-6">
+          {items.map((item) => (
+            <input key={item.productId} type="hidden" name="selectedProductIds" value={item.productId} />
+          ))}
+
           <Card>
             <CardHeader>
               <CardTitle>Thông tin khách hàng</CardTitle>
@@ -161,40 +183,10 @@ export function CheckoutPageView({
 
           <Card>
             <CardHeader>
-              <CardTitle>Thanh toán</CardTitle>
+              <CardTitle>Ghi chú</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentMethods.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  Chưa có phương thức thanh toán nào đang bật trong admin.
-                </div>
-              ) : null}
-              {paymentMethods.map((method, index) => (
-                <label key={method.code} className="flex items-start gap-3 rounded-md border p-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={method.code}
-                    defaultChecked={index === 0}
-                    className="mt-1"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{method.label}</p>
-                    <p className="text-muted-foreground">{method.description}</p>
-                    <PaymentMethodGuide
-                      method={method.code}
-                      settings={settings.ecommerce}
-                      amount={totalAmount}
-                      requiresShipping={requiresShipping}
-                      className="mt-3"
-                    />
-                  </div>
-                </label>
-              ))}
-              <div className="space-y-2">
-                <label className="font-medium">Ghi chú</label>
-                <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
-              </div>
+            <CardContent>
+              <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
             </CardContent>
           </Card>
         </form>
@@ -216,6 +208,31 @@ export function CheckoutPageView({
               </div>
             ))}
           </div>
+          <div className="space-y-3 border-t pt-4">
+            <p className="font-medium">Phương thức thanh toán</p>
+            {paymentMethods.length === 0 ? (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                Chưa có phương thức thanh toán nào đang bật trong admin.
+              </div>
+            ) : null}
+            <div className="space-y-3">
+              {paymentMethods.map((method, index) => (
+                <label key={method.code} className="flex cursor-pointer items-center gap-3 rounded-md border p-3 transition hover:bg-muted/30">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.code}
+                    required
+                    defaultChecked={index === 0}
+                    form="checkout-form"
+                    className="mt-0"
+                  />
+                  <PaymentMethodMark provider={method.provider} type={method.type} />
+                  <span className="min-w-0 font-medium">{method.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="space-y-2 border-t pt-4">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Tạm tính</span>
@@ -231,9 +248,10 @@ export function CheckoutPageView({
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <Button type="submit" form="checkout-form" className="w-full" disabled={paymentMethods.length === 0 || (requiresShipping && addresses.length === 0)}>
-              Tạo đơn hàng
-            </Button>
+            <CheckoutSubmitButton
+              formId="checkout-form"
+              disabled={paymentMethods.length === 0 || (requiresShipping && addresses.length === 0)}
+            />
             <Button
               variant="outline"
               className="w-full"

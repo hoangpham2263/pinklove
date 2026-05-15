@@ -56,5 +56,10 @@ export async function GET(request: Request) {
     return redirectTo(request, `${ROUTES.CUSTOMER.ORDERS}?payment=vnpay_order_not_found`);
   }
 
-  return redirectTo(request, `${ROUTES.CHECKOUT.SUCCESS(order.orderNumber)}?payment=vnpay`);
+  return redirectTo(
+    request,
+    params.vnp_ResponseCode === "00"
+      ? `${ROUTES.PAYMENT.SUCCESS}?orderNumber=${encodeURIComponent(order.orderNumber)}&payment=vnpay`
+      : `${ROUTES.PAYMENT.FAILED}?orderNumber=${encodeURIComponent(order.orderNumber)}&payment=vnpay`
+  );
 }

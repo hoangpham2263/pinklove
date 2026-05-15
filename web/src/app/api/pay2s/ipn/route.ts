@@ -79,6 +79,7 @@ export async function POST(request: Request) {
     amount: Number(payload.amount ?? 0),
     status: getPay2sResultStatus(payload.resultCode),
     externalRef: String(payload.transId || payload.requestId || "").trim() || undefined,
+    rawPayload: payload,
   });
 
   if (!result.ok && result.reason === "not_found") {

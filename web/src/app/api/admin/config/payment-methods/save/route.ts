@@ -135,7 +135,6 @@ export async function POST(request: Request) {
     pay2sPartnerCode: String(formData.get("pay2sPartnerCode") ?? "").trim(),
     pay2sAccessKey: String(formData.get("pay2sAccessKey") ?? "").trim(),
     pay2sSecretKey: String(formData.get("pay2sSecretKey") ?? ""),
-    pay2sBankAccounts: String(formData.get("pay2sBankAccounts") ?? ""),
     vnpayPaymentUrl: String(formData.get("vnpayPaymentUrl") ?? "").trim(),
     vnpayTmnCode: String(formData.get("vnpayTmnCode") ?? "").trim(),
     vnpayHashSecret: String(formData.get("vnpayHashSecret") ?? ""),

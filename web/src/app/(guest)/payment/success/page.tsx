@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getOrderById, getPaymentById } from "@/features/ecommerce/server/service";
+import { getOrderById, getOrderByNumberForUser, getPaymentById } from "@/features/ecommerce/server/service";
+import { requireAppUser } from "@/lib/auth";
 import { getPay2sConfig, verifyPay2sRedirectSignature, type Pay2sParams } from "@/lib/pay2s";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
@@ -20,11 +22,16 @@ export default async function PaymentSuccessPage({
   const params = await searchParams;
   const pay2sParams = toParams(params);
   const paymentId = String(pay2sParams.orderId || pay2sParams.paymentId || "").trim();
+  const orderNumber = String(pay2sParams.orderNumber || "").trim();
   const [settings, payment] = await Promise.all([
     getSystemSettings(),
     paymentId ? getPaymentById(paymentId) : Promise.resolve(null),
   ]);
-  const order = payment ? await getOrderById(payment.orderId) : null;
+  const order = payment
+    ? await getOrderById(payment.orderId)
+    : orderNumber
+      ? await getOrderByNumberForUser((await requireAppUser(ROUTES.AUTH.LOGIN)).id, orderNumber)
+      : null;
   const method = payment
     ? settings.ecommerce.paymentMethods.find((item) => item.code === payment.method && item.provider === "pay2s")
     : null;
@@ -35,6 +42,10 @@ export default async function PaymentSuccessPage({
     : null;
   const isPaid = payment?.status === "paid";
   const isGatewaySuccess = String(pay2sParams.resultCode ?? "") === "0";
+
+  if (hasGatewayResult && !isGatewaySuccess && validSignature !== false) {
+    redirect(`${ROUTES.PAYMENT.FAILED}?orderNumber=${encodeURIComponent(order?.orderNumber || orderNumber)}&payment=pay2s`);
+  }
 
   return (
     <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
@@ -48,7 +59,7 @@ export default async function PaymentSuccessPage({
           </p>
           <div className="rounded-md border bg-muted/30 p-4">
             <p className="text-sm text-muted-foreground">Mã đơn</p>
-            <p className="mt-1">{order?.orderNumber || String(params.orderNumber || "-")}</p>
+            <p className="mt-1">{order?.orderNumber || orderNumber || "-"}</p>
           </div>
           {validSignature === false ? (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
