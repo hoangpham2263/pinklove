@@ -23,6 +23,7 @@ type AdminActionLinkTileProps = {
   label: ReactNode;
   description?: ReactNode;
   showArrow?: boolean;
+  variant?: "card" | "plain";
 };
 
 type AdminButtonProps = ComponentProps<typeof Button>;
@@ -224,13 +225,23 @@ export function AdminInlineLinkButton({ href, target, children }: AdminInlineLin
   );
 }
 
-export function AdminActionLinkTile({ href, target, label, description, showArrow = false }: AdminActionLinkTileProps) {
+export function AdminActionLinkTile({
+  href,
+  target,
+  label,
+  description,
+  showArrow = false,
+  variant = "card",
+}: AdminActionLinkTileProps) {
   return (
     <Link
       href={href}
       target={target}
       rel={target === "_blank" ? "noopener noreferrer" : undefined}
-      className="block rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-colors hover:bg-muted"
+      className={joinClassNames(
+        "block rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-muted",
+        variant === "card" ? "border bg-white" : undefined
+      )}
     >
       <span className="flex min-w-0 items-center justify-between gap-3">
         <span className="min-w-0">

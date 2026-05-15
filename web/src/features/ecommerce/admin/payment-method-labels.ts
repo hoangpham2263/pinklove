@@ -29,7 +29,7 @@ export function getPaymentMethodCategoryDescription(category: string) {
     case "offline":
       return "Thu tiền khi giao hàng, tại studio hoặc các hình thức thanh toán không qua cổng online.";
     case "gateway":
-      return "Stripe, PayPal, MoMo, VNPAY hoặc gateway bên thứ ba có redirect, embedded checkout, callback hoặc webhook.";
+      return "Chỉ dùng cho cổng thanh toán đã có service/API xử lý trong code.";
     default:
       return "Chuyển khoản ngân hàng, VietQR hoặc phương thức cần nhân sự đối soát trước khi duyệt đơn.";
   }

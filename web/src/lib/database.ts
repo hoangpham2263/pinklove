@@ -1434,6 +1434,28 @@ async function ensureCommerceTablesMigration() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS commerce_payment_logs (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      order_id TEXT REFERENCES commerce_orders(id) ON DELETE SET NULL,
+      payment_id TEXT REFERENCES commerce_payments(id) ON DELETE SET NULL,
+      provider TEXT NOT NULL DEFAULT '',
+      type TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_payment_logs_payment_id_idx
+    ON commerce_payment_logs(payment_id, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS commerce_payment_logs_order_id_idx
+    ON commerce_payment_logs(order_id, created_at DESC);
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS commerce_shipments (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       order_id TEXT NOT NULL UNIQUE REFERENCES commerce_orders(id) ON DELETE CASCADE,

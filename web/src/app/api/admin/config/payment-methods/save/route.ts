@@ -97,6 +97,7 @@ export async function POST(request: Request) {
 
   const settings = await getSystemSettings();
   const currentMethods = settings.ecommerce.paymentMethods;
+  const existingMethod = originalCode ? currentMethods.find((method) => method.code === originalCode) ?? null : null;
   const duplicate = currentMethods.some((method) => method.code === code && method.code !== originalCode);
 
   if (duplicate) {
@@ -107,13 +108,22 @@ export async function POST(request: Request) {
     });
   }
 
+  const nextCategory = parsePaymentMethodCategory(formData.get("category"));
+  if (nextCategory === "gateway" && existingMethod?.category !== "gateway") {
+    return respondError(request, {
+      error: "gateway_methods_are_code_managed",
+      message: "Cổng thanh toán trực tuyến cần tích hợp API trong code trước, không tạo mới từ admin.",
+      location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+    });
+  }
+
   const nextMethod: EcommercePaymentMethodSettings = {
     code,
     label,
     description: String(formData.get("description") ?? "").trim(),
     instructions: String(formData.get("instructions") ?? "").trim(),
     enabled: formData.get("enabled") === "on",
-    category: parsePaymentMethodCategory(formData.get("category")),
+    category: nextCategory,
     provider: String(formData.get("provider") ?? "").trim() || code,
     type: parsePaymentMethodType(formData.get("type")),
     requiresShipping: parseRequiresShipping(formData.get("requiresShipping")),
@@ -123,17 +133,15 @@ export async function POST(request: Request) {
     bankAccountName: String(formData.get("bankAccountName") ?? "").trim(),
     pay2sEndpoint: String(formData.get("pay2sEndpoint") ?? "").trim(),
     pay2sPartnerCode: String(formData.get("pay2sPartnerCode") ?? "").trim(),
-    pay2sPartnerName: String(formData.get("pay2sPartnerName") ?? "").trim(),
     pay2sAccessKey: String(formData.get("pay2sAccessKey") ?? "").trim(),
     pay2sSecretKey: String(formData.get("pay2sSecretKey") ?? ""),
     pay2sBankAccounts: String(formData.get("pay2sBankAccounts") ?? ""),
-    pay2sRequestType: String(formData.get("pay2sRequestType") ?? "").trim(),
     vnpayPaymentUrl: String(formData.get("vnpayPaymentUrl") ?? "").trim(),
     vnpayTmnCode: String(formData.get("vnpayTmnCode") ?? "").trim(),
     vnpayHashSecret: String(formData.get("vnpayHashSecret") ?? ""),
   };
 
-  const existingIndex = originalCode ? currentMethods.findIndex((method) => method.code === originalCode) : -1;
+  const existingIndex = existingMethod ? currentMethods.findIndex((method) => method.code === existingMethod.code) : -1;
   const paymentMethods =
     existingIndex >= 0
       ? currentMethods.map((method, index) => (index === existingIndex ? nextMethod : method))

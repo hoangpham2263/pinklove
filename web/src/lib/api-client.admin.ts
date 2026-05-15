@@ -201,6 +201,14 @@ async function bulkUpdateProductCategories(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.BULK, formData);
 }
 
+async function savePaymentMethod(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE, formData);
+}
+
+async function deletePaymentMethod(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE, formData);
+}
+
 async function fetchAdminOrderState(url: string) {
   const data = await apiJson<{ order?: AdminOrderStateSnapshot }>(url, {
     cache: "no-store",
@@ -433,6 +441,8 @@ export const adminApi = {
   updateProductCategory,
   deleteProductCategory,
   bulkUpdateProductCategories,
+  savePaymentMethod,
+  deletePaymentMethod,
   fetchAdminOrderState,
   listMedia,
   getMediaByUrl,
@@ -486,4 +496,6 @@ export const adminApiActions = {
   updateProductCategory: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.UPDATE,
   deleteProductCategory: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.DELETE,
   bulkUpdateProductCategories: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.BULK,
+  savePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE,
+  deletePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE,
 } as const;

@@ -750,6 +750,15 @@ export async function getPaymentById(paymentId: string): Promise<EcommercePaymen
   return result.rows[0] ? mapPaymentRow(result.rows[0]) : null;
 }
 
+export async function getOrderByIdOrNumberForUser(userId: string, orderIdOrNumber: string): Promise<EcommerceOrder | null> {
+  const result = await query<OrderRow>(
+    "SELECT * FROM commerce_orders WHERE user_id = $1 AND (id = $2 OR order_number = $2) LIMIT 1",
+    [userId, orderIdOrNumber]
+  );
+  if (!result.rows[0]) return null;
+  return loadOrderBundleById(result.rows[0].id);
+}
+
 export async function listAllShipments(): Promise<EcommerceShipment[]> {
   const result = await query<ShipmentRow>("SELECT * FROM commerce_shipments ORDER BY updated_at DESC");
   return result.rows.map(mapShipmentRow);
@@ -831,6 +840,28 @@ export async function adminUpdatePaymentState(input: {
   await ensureEntitlementsForOrder(payment.order_id);
 }
 
+export async function recordPaymentLog(input: {
+  orderId?: string | null;
+  paymentId?: string | null;
+  provider: string;
+  type: "create" | "ipn" | "return" | "error";
+  payload: unknown;
+}) {
+  await query(
+    `
+      INSERT INTO commerce_payment_logs (order_id, payment_id, provider, type, payload)
+      VALUES ($1, $2, $3, $4, $5::jsonb)
+    `,
+    [
+      input.orderId ?? null,
+      input.paymentId ?? null,
+      input.provider,
+      input.type,
+      JSON.stringify(input.payload ?? {}),
+    ]
+  );
+}
+
 export async function applyGatewayPaymentResult(input: {
   paymentId: string;
   provider: string;
@@ -852,7 +883,7 @@ export async function applyGatewayPaymentResult(input: {
     return { ok: false as const, reason: "invalid_amount" as const };
   }
 
-  if (payment.status === "paid" || payment.status === "refunded") {
+  if (payment.status === "paid" || payment.status === "refunded" || payment.status === input.status) {
     return { ok: true as const, alreadyProcessed: true, orderId: payment.order_id };
   }
 

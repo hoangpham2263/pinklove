@@ -57,6 +57,10 @@ export const ROUTES = {
     INDEX: "/checkout",
     SUCCESS: (orderNumber: string) => `/checkout/success/${orderNumber}`,
   },
+  PAYMENT: {
+    SUCCESS: "/payment/success",
+    FAILED: "/payment/failed",
+  },
   CUSTOMER: {
     ROOT: "/customer",
     DASHBOARD: "/customer/dashboard",
@@ -173,6 +177,10 @@ export const ROUTES = {
         RETURN: "/api/payments/vnpay/return",
         IPN: "/api/payments/vnpay/ipn",
       },
+    },
+    PAY2S: {
+      CREATE: "/api/pay2s/create",
+      IPN: "/api/pay2s/ipn",
     },
     AUTH: {
       LOGIN: "/api/auth/login",

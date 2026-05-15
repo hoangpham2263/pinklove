@@ -96,6 +96,7 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
                     href={item.href}
                     label={item.title}
                     description={item.description}
+                    variant="plain"
                   />
                 ))}
               </div>

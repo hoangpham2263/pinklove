@@ -6,10 +6,10 @@ import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
 function parseInitialCategory(value: string | string[] | undefined): EcommercePaymentMethodSettings["category"] {
   const normalized = Array.isArray(value) ? value[0] : value;
-  if (normalized ==="manual" || normalized ==="offline" || normalized ==="gateway") {
+  if (normalized ==="manual" || normalized ==="offline") {
     return normalized;
   }
-  return"gateway";
+  return"manual";
 }
 
 function getCategoryDescription(category: EcommercePaymentMethodSettings["category"]) {
@@ -19,7 +19,7 @@ function getCategoryDescription(category: EcommercePaymentMethodSettings["catego
     case"offline":
       return"Thêm phương thức COD, tiền mặt, thanh toán tại studio hoặc thu trực tiếp khi bàn giao.";
     default:
-      return"Thêm cổng thanh toán trực tuyến như Stripe, PayPal, MoMo, VNPAY hoặc bên thứ ba khác.";
+      return"Thêm phương thức chuyển khoản, VietQR hoặc thanh toán cần nhân sự đối soát.";
   }
 }
 

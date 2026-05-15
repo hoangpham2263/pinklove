@@ -2,6 +2,7 @@
 
 import { useState } from"react";
 import { Banknote, CreditCard, Landmark } from"lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from"@/components/ui/badge";
 import { Switch } from"@/components/ui/switch";
@@ -27,6 +28,7 @@ import {
   getPaymentMethodTypeLabel,
   getRequiresShippingLabel,
 } from"@/features/ecommerce/admin/payment-method-labels";
+import { adminApi } from "@/lib/api-client.admin";
 import { ROUTES } from"@/lib/routes";
 import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
@@ -43,18 +45,19 @@ const METHOD_CATEGORY_ICONS = {
 };
 
 export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
+  const [paymentMethods, setPaymentMethods] = useState(methods);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
-  const previewMethod = previewCode ? methods.find((method) => method.code === previewCode) ?? null : null;
+  const previewMethod = previewCode ? paymentMethods.find((method) => method.code === previewCode) ?? null : null;
   const methodGroups = METHOD_CATEGORY_ORDER.map((category) => ({
     category,
-    methods: methods.filter((method) => method.category === category),
+    methods: paymentMethods.filter((method) => method.category === category),
   }));
-  const enabledCount = methods.filter((method) => method.enabled).length;
+  const enabledCount = paymentMethods.filter((method) => method.enabled).length;
   const stats = [
     {
       key:"all",
       label:"Tất cả phương thức",
-      total: methods.length,
+      total: paymentMethods.length,
       enabled: enabledCount,
       Icon: CreditCard,
     },
@@ -66,6 +69,44 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
       Icon: METHOD_CATEGORY_ICONS[group.category],
     })),
   ];
+
+  async function handleToggle(method: EcommercePaymentMethodSettings) {
+    const nextEnabled = !method.enabled;
+    setPaymentMethods((items) =>
+      items.map((item) => (item.code === method.code ? { ...item, enabled: nextEnabled } : item))
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append("intent", "toggle-enabled");
+      formData.append("code", method.code);
+      formData.append("enabled", nextEnabled ? "on" : "off");
+      const result = await adminApi.savePaymentMethod(formData);
+      toast.success(result.message ?? (nextEnabled ? "Đã bật phương thức thanh toán." : "Đã tắt phương thức thanh toán."));
+    } catch (error) {
+      setPaymentMethods((items) =>
+        items.map((item) => (item.code === method.code ? { ...item, enabled: method.enabled } : item))
+      );
+      toast.error(error instanceof Error ? error.message : "Không thể cập nhật phương thức thanh toán.");
+    }
+  }
+
+  async function handleDelete(method: EcommercePaymentMethodSettings) {
+    if (!confirm(`Xóa phương thức thanh toán "${method.label}"? Nếu đã có đơn hàng sử dụng, hệ thống sẽ không cho xóa.`)) {
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("code", method.code);
+      const result = await adminApi.deletePaymentMethod(formData);
+      setPaymentMethods((items) => items.filter((item) => item.code !== method.code));
+      if (previewCode === method.code) setPreviewCode(null);
+      toast.success(result.message ?? "Đã xóa phương thức thanh toán.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa phương thức thanh toán.");
+    }
+  }
 
   return (
     <>
@@ -106,9 +147,11 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">{group.methods.length} phương thức</Badge>
-                  <AdminCreateLinkButton href={`${ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW}?category=${group.category}`}>
-                    Thêm
-                  </AdminCreateLinkButton>
+                  {group.category !== "gateway" ? (
+                    <AdminCreateLinkButton href={`${ROUTES.ADMIN.CONFIG_PAYMENT_METHOD_NEW}?category=${group.category}`}>
+                      Thêm
+                    </AdminCreateLinkButton>
+                  ) : null}
                 </div>
               </div>
 
@@ -139,41 +182,19 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                             {getRequiresShippingLabel(method.requiresShipping)}
                           </TableCell>
                           <TableCell>
-                            <form
-                              id={`payment-method-toggle-${method.code}`}
-                              action={ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE}
-                              method="POST"
-                              className="flex items-center gap-2"
-                            >
-                              <input type="hidden" name="intent" value="toggle-enabled" />
-                              <input type="hidden" name="code" value={method.code} />
-                              <input type="hidden" name="enabled" value={method.enabled ?"off" :"on"} />
+                            <div className="flex items-center gap-2">
                               <Switch
                                 checked={method.enabled}
                                 aria-label={method.enabled ?"Tắt phương thức thanh toán" :"Bật phương thức thanh toán"}
-                                onCheckedChange={() => {
-                                  const form = document.getElementById(`payment-method-toggle-${method.code}`) as HTMLFormElement | null;
-                                  form?.requestSubmit();
-                                }}
+                                onCheckedChange={() => void handleToggle(method)}
                               />
-                            </form>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <AdminTableActions>
                               <AdminTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewCode(method.code)} />
                               <AdminTableActionButton action="edit" label="Sửa phương thức" href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(method.code)} />
-                              <form
-                                action={ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE}
-                                method="POST"
-                                onSubmit={(event) => {
-                                  if (!confirm(`Xóa phương thức thanh toán"${method.label}"? Nếu đã có đơn hàng sử dụng, hệ thống sẽ không cho xóa.`)) {
-                                    event.preventDefault();
-                                  }
-                                }}
-                              >
-                                <input type="hidden" name="code" value={method.code} />
-                                <AdminTableActionButton action="delete" label="Xóa phương thức" type="submit" />
-                              </form>
+                              <AdminTableActionButton action="delete" label="Xóa phương thức" onClick={() => void handleDelete(method)} />
                             </AdminTableActions>
                           </TableCell>
                         </TableRow>

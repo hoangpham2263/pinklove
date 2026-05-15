@@ -124,11 +124,9 @@ export type EcommercePaymentMethodSettings = {
   bankAccountName?: string;
   pay2sEndpoint?: string;
   pay2sPartnerCode?: string;
-  pay2sPartnerName?: string;
   pay2sAccessKey?: string;
   pay2sSecretKey?: string;
   pay2sBankAccounts?: string;
-  pay2sRequestType?: string;
   vnpayPaymentUrl?: string;
   vnpayTmnCode?: string;
   vnpayHashSecret?: string;
@@ -316,9 +314,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
         provider: "pay2s",
         type: "redirect",
         requiresShipping: null,
-        pay2sEndpoint: "https://sandbox-payment.pay2s.vn",
-        pay2sPartnerName: "PinkLove",
-        pay2sRequestType: "pay2s",
+        pay2sEndpoint: "https://sandbox-payment.pay2s.vn/v1/gateway/api/create",
       },
       {
         code: "vnpay",
@@ -545,11 +541,9 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
             bankAccountName: String(item?.bankAccountName ?? "").trim(),
             pay2sEndpoint: String(item?.pay2sEndpoint ?? "").trim(),
             pay2sPartnerCode: String(item?.pay2sPartnerCode ?? "").trim(),
-            pay2sPartnerName: String(item?.pay2sPartnerName ?? "").trim(),
             pay2sAccessKey: String(item?.pay2sAccessKey ?? "").trim(),
             pay2sSecretKey: String(item?.pay2sSecretKey ?? ""),
             pay2sBankAccounts: String(item?.pay2sBankAccounts ?? ""),
-            pay2sRequestType: String(item?.pay2sRequestType ?? "").trim(),
             vnpayPaymentUrl: String(item?.vnpayPaymentUrl ?? "").trim(),
             vnpayTmnCode: String(item?.vnpayTmnCode ?? "").trim(),
             vnpayHashSecret: String(item?.vnpayHashSecret ?? ""),
@@ -559,8 +553,7 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
     : [];
   const paymentMethods =
     configuredPaymentMethods.length > 0
-      ? [
-          ...configuredPaymentMethods.map((item) =>
+      ? configuredPaymentMethods.map((item) =>
             item.code === "bank_transfer"
               ? {
                   ...item,
@@ -576,13 +569,7 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
                     instructions: item.instructions || String(merged.cashPaymentInstructions ?? DEFAULT_SETTINGS.ecommerce.cashPaymentInstructions),
                   }
                 : item
-          ),
-          ...DEFAULT_SETTINGS.ecommerce.paymentMethods.filter(
-            (defaultMethod) =>
-              (defaultMethod.code === "pay2s" || defaultMethod.code === "vnpay") &&
-              !configuredPaymentMethods.some((item) => item.code === defaultMethod.code)
-          ),
-        ]
+          )
       : DEFAULT_SETTINGS.ecommerce.paymentMethods.map((item) => ({
           ...item,
           enabled:

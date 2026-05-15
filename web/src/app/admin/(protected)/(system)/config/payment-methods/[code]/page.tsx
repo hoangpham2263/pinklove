@@ -27,11 +27,8 @@ export default async function EditConfigPaymentMethodPage({
         <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Payment Methods</AdminBackButton>
       </div>
 
-      <div className="space-y-2">
+      <div>
         <h1>Sửa phương thức thanh toán</h1>
-        <p className="text-muted-foreground">
-          Cấu hình nhóm chính, tên hiển thị, provider, kiểu xử lý và điều kiện xuất hiện tại checkout.
-        </p>
       </div>
 
       <PaymentMethodEditorForm method={method} />

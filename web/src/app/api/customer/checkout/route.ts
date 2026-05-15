@@ -2,7 +2,9 @@ import { requireAppUser } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { getUserAddressById } from "@/features/account/server/address-service";
 import { createOrderFromCart, listCartItems, syncCartWithWishlist } from "@/features/ecommerce/server/service";
+import { createPay2sPayment } from "@/features/ecommerce/server/pay2s.service";
 import { AFFILIATE_REF_COOKIE_NAME } from "@/features/affiliate/server/service";
+import { getPay2sConfig } from "@/lib/pay2s";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import { getSiteUrlFromRequest } from "@/lib/seo";
@@ -60,10 +62,18 @@ export async function POST(request: Request) {
   }
 
   const vnpayConfig = selectedPaymentMethod.provider === "vnpay" ? getVnpayConfig(selectedPaymentMethod) : null;
+  const pay2sConfig = selectedPaymentMethod.provider === "pay2s" ? getPay2sConfig(selectedPaymentMethod) : null;
   if (selectedPaymentMethod.provider === "vnpay" && !vnpayConfig) {
     return respondError(request, {
       error: "vnpay_not_configured",
       message: "VNPAY chưa được cấu hình. Vui lòng cấu hình VNPAY trong Payment Methods.",
+      location: ROUTES.CHECKOUT.INDEX,
+    });
+  }
+  if (selectedPaymentMethod.provider === "pay2s" && !pay2sConfig) {
+    return respondError(request, {
+      error: "pay2s_not_configured",
+      message: "Pay2S chưa được cấu hình. Vui lòng cấu hình Pay2S trong Payment Methods hoặc biến môi trường.",
       location: ROUTES.CHECKOUT.INDEX,
     });
   }
@@ -131,6 +141,30 @@ export async function POST(request: Request) {
       return respondSuccess(request, {
         location: paymentUrl,
         message: "Chuyển sang VNPAY để thanh toán.",
+      });
+    }
+
+    if (selectedPaymentMethod.provider === "pay2s") {
+      const primaryPayment = order.payments[0];
+
+      if (!pay2sConfig || !primaryPayment) {
+        return respondError(request, {
+          error: "pay2s_not_configured",
+          message: "Pay2S chưa được cấu hình. Vui lòng cấu hình Pay2S trong Payment Methods.",
+          location: ROUTES.CHECKOUT.SUCCESS(order.orderNumber),
+        });
+      }
+
+      const pay2sPayment = await createPay2sPayment({
+        order,
+        payment: primaryPayment,
+        config: pay2sConfig,
+        siteUrl: getSiteUrlFromRequest(request),
+      });
+
+      return respondSuccess(request, {
+        location: pay2sPayment.paymentUrl,
+        message: "Chuyển sang Pay2S để thanh toán.",
       });
     }
 
