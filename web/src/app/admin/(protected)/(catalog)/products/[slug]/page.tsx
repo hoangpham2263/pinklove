@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getProductBySlug, listAllProductCategories } from "@/features/products/server/service";
 import { ProductEditorForm } from "@/features/products/admin/product-editor-form";
@@ -42,7 +41,6 @@ export default async function AdminProductEditorPage({
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <AdminBackButton href={returnTo} destinationLabel="Products" />
           <h1 className="text-2xl font-bold tracking-tight">
             {product.productType === "general_product" ? "Edit Product" : "Edit Template"}: {product.name}
           </h1>

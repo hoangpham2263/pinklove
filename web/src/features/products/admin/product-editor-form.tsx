@@ -7,7 +7,7 @@ import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { AdminBackButton, AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -125,7 +125,6 @@ export function ProductEditorForm({
           sidebar={
             <>
               <div className="flex min-w-0 items-center gap-3">
-                <AdminBackButton href={returnTo} destinationLabel="Products" />
                 <div className="min-w-0">
                   <h1 className="truncate text-base font-semibold">{product.name}</h1>
                   <p className="text-sm text-muted-foreground">Mẫu builder gốc trong admin</p>

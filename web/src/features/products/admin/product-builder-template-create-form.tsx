@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
-import { AdminBackButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -72,7 +72,6 @@ export function ProductBuilderTemplateCreateForm({
         sidebar={
           <>
             <div className="space-y-3">
-              <AdminBackButton className="w-full" href={returnTo} destinationLabel="Products" />
               <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
             </div>
 

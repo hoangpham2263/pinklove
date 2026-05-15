@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -15,11 +15,6 @@ type AdminInlineLinkButtonProps = {
 
 type AdminLinkButtonProps = AdminInlineLinkButtonProps & {
   className?: string;
-};
-
-type AdminBackButtonProps = Omit<AdminLinkButtonProps, "children"> & {
-  destinationLabel?: ReactNode;
-  children?: ReactNode;
 };
 
 type AdminActionLinkTileProps = {
@@ -164,23 +159,6 @@ export function AdminDialogPrimaryTrigger({
     >
       {children}
     </DialogTrigger>
-  );
-}
-
-export function AdminBackButton({ href, target, destinationLabel, children, className }: AdminBackButtonProps) {
-  const label = children ?? (destinationLabel ? <>Back to {destinationLabel}</> : "Back");
-
-  return (
-    <Button
-      variant="outline"
-      className={className}
-      render={
-        <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
-          <ArrowLeft className="h-4 w-4" />
-          {label}
-        </Link>
-      }
-    />
   );
 }
 

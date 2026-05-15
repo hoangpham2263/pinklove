@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-state-panel";
 import { getOrderById } from "@/features/ecommerce/server/service";
 import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
@@ -10,7 +9,6 @@ import { listApprovedSupplierOptionsForProducts } from "@/features/vendor-produc
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
-import { ROUTES } from "@/lib/routes";
 import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -57,10 +55,6 @@ export default async function AdminOrderDetailPage({
       {query.saved ? <PageToast message="Đã cập nhật trạng thái đơn hàng." variant="success" cleanupKeys={["saved"]} /> : null}
       {query.vendorSaved ? <PageToast message="Đã lưu phân công vendor." variant="success" cleanupKeys={["vendorSaved"]} /> : null}
       {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
-
-      <div className="flex justify-start">
-        <AdminBackButton href={ROUTES.ADMIN.ORDERS} destinationLabel="Orders" />
-      </div>
 
       <Card>
         <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">

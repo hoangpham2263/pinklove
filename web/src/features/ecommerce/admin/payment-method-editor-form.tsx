@@ -8,10 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AdminBackButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import { ROUTES } from"@/lib/routes";
 import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
 type PaymentMethodEditorFormProps = {
@@ -323,7 +322,6 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
             <AdminSubmitButton disabled={isSaving}>
               {isSaving ? "Đang lưu..." : isNew ?"Thêm phương thức" :"Lưu phương thức"}
             </AdminSubmitButton>
-            <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS} destinationLabel="Payment Methods" />
           </div>
         </NativeForm>
   );

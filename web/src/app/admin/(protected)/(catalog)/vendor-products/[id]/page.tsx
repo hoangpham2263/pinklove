@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { AdminBackButton, AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
 import { getVendorProductSubmissionDetailForAdmin } from "@/features/vendor-product-submissions/server/service";
 import { getVendorProductReviewStatusLabel, getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
 import { VendorProductStatusBadge } from "@/features/vendor-product-submissions/components/vendor-product-status-badge";
@@ -32,7 +31,6 @@ export default async function AdminVendorProductDetailPage({ params }: { params:
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <AdminBackButton href={ROUTES.ADMIN.VENDOR_PRODUCTS} destinationLabel="Vendor Products" />
             <VendorProductStatusBadge status={detail.reviewStatus} />
           </div>
           <h1 className="mt-3 text-2xl">{detail.name}</h1>

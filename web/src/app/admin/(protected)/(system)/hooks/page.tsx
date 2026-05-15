@@ -1,7 +1,5 @@
-import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { AdminHooksCatalog, adminHookCatalogSeed } from "@/features/admin/components/hooks/admin-hooks-catalog";
 import { requireAdmin } from "@/lib/auth";
-import { ROUTES } from "@/lib/routes";
 
 export default async function AdminHooksPage() {
   await requireAdmin();
@@ -10,7 +8,6 @@ export default async function AdminHooksPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <AdminBackButton href={ROUTES.ADMIN.CONFIG} destinationLabel="Configuration" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Hooks</h1>
             <p className="text-muted-foreground">

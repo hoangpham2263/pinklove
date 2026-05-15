@@ -1,6 +1,5 @@
 import { notFound } from"next/navigation";
 import { requireAdmin, getUserAccount, getUserProfile } from"@/lib/auth";
-import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { EditUserForm } from "@/features/admin/components/users/edit-user-form";
 import { ROUTES } from "@/lib/routes";
 
@@ -24,7 +23,6 @@ export default async function EditUserPage({ params, searchParams }: EditUserPag
  return (
  <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
  <div className="flex items-center gap-4">
- <AdminBackButton href={returnTo} destinationLabel="Users" />
  <h1 className="text-2xl font-bold tracking-tight">Chỉnh sửa người dùng: {user.username}</h1>
  </div>
  <EditUserForm actor={actor} user={user} profile={profile} returnTo={returnTo} />
