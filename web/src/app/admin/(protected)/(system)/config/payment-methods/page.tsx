@@ -8,10 +8,6 @@ export default async function AdminConfigPaymentMethodsPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div>
-        <h1>Payment Methods</h1>
-      </div>
-
       <PaymentMethodsTable methods={settings.ecommerce.paymentMethods} />
     </section>
   );

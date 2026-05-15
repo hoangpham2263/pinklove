@@ -72,7 +72,7 @@ export function ProductBuilderTemplateCreateForm({
         sidebar={
           <>
             <div className="space-y-3">
-              <AdminBackButton className="w-full" href={returnTo}>Quay lại</AdminBackButton>
+              <AdminBackButton className="w-full" href={returnTo} destinationLabel="Products" />
               <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
             </div>
 

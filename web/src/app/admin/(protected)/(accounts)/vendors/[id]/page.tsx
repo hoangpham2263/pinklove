@@ -74,7 +74,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <AdminBackButton href={ROUTES.ADMIN.VENDORS}>Quay lại vendors</AdminBackButton>
+            <AdminBackButton href={ROUTES.ADMIN.VENDORS} destinationLabel="Vendors" />
           </div>
           <div>
             <h1 className="text-2xl font-semibold">{vendor.displayName || vendor.fullName || vendor.username}</h1>

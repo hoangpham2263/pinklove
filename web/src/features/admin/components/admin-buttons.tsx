@@ -17,6 +17,11 @@ type AdminLinkButtonProps = AdminInlineLinkButtonProps & {
   className?: string;
 };
 
+type AdminBackButtonProps = Omit<AdminLinkButtonProps, "children"> & {
+  destinationLabel?: ReactNode;
+  children?: ReactNode;
+};
+
 type AdminActionLinkTileProps = {
   href: string;
   target?: string;
@@ -162,7 +167,9 @@ export function AdminDialogPrimaryTrigger({
   );
 }
 
-export function AdminBackButton({ href, target, children, className }: AdminLinkButtonProps) {
+export function AdminBackButton({ href, target, destinationLabel, children, className }: AdminBackButtonProps) {
+  const label = children ?? (destinationLabel ? <>Back to {destinationLabel}</> : "Back");
+
   return (
     <Button
       variant="outline"
@@ -170,7 +177,7 @@ export function AdminBackButton({ href, target, children, className }: AdminLink
       render={
         <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
           <ArrowLeft className="h-4 w-4" />
-          {children}
+          {label}
         </Link>
       }
     />

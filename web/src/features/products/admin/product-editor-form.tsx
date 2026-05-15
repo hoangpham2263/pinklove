@@ -125,7 +125,7 @@ export function ProductEditorForm({
           sidebar={
             <>
               <div className="flex min-w-0 items-center gap-3">
-                <AdminBackButton href={returnTo}>Quay lại</AdminBackButton>
+                <AdminBackButton href={returnTo} destinationLabel="Products" />
                 <div className="min-w-0">
                   <h1 className="truncate text-base font-semibold">{product.name}</h1>
                   <p className="text-sm text-muted-foreground">Mẫu builder gốc trong admin</p>

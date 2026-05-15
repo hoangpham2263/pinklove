@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AdminInlineLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminBackButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
 import { listAllProducts } from "@/features/products/server/service";
@@ -50,9 +50,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <AdminInlineLinkButton href={ROUTES.ADMIN.PAGES}>
-            ← Back
-          </AdminInlineLinkButton>
+          <AdminBackButton href={ROUTES.ADMIN.PAGES} destinationLabel="Pages" />
           <h1 className="text-2xl font-bold tracking-tight">Edit Page: {page.name}</h1>
         </div>
         <div className="flex items-center gap-3">

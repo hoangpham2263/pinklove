@@ -4,7 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
-import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +45,9 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
   const defaults = CATEGORY_DEFAULTS[category];
   const provider = method?.provider ?? defaults.provider;
   const type = method?.type ?? defaults.type;
+  const isManual = category === "manual";
+  const isOffline = category === "offline";
+  const isSimpleMethod = isManual || isOffline;
   const isGateway = category === "gateway";
   const showBankFields = category ==="manual";
   const showPay2sFields = provider ==="pay2s" || method?.code ==="pay2s";
@@ -66,12 +69,7 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{isNew ?"Thêm phương thức thanh toán" : `Sửa ${method.label}`}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <NativeForm action={adminApiActions.savePaymentMethod} method="POST" className="space-y-5" onSubmit={handleSubmit}>
+    <NativeForm action={adminApiActions.savePaymentMethod} method="POST" className="space-y-5" onSubmit={handleSubmit}>
           <input type="hidden" name="originalCode" value={method?.code ??""} />
           <input type="hidden" name="category" value={category} />
           <input type="hidden" name="provider" value={provider} />
@@ -100,107 +98,115 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
           <input type="hidden" name="enabled" value={method?.enabled ?? true ? "on" : ""} />
 
           {!isGateway ? (
-            <>
-              <div className="grid gap-4 md:grid-cols-2">
-                {isNew ? (
+            <Card className="rounded-md">
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {isNew ? (
+                      <div className="space-y-2">
+                        <label>Code</label>
+                        <Input
+                          name="code"
+                          defaultValue=""
+                          placeholder={category === "offline" ? "cash" : "bank_transfer"}
+                          required
+                        />
+                      </div>
+                    ) : null}
+                    <div className="space-y-2">
+                      <label>Tên hiển thị</label>
+                      <Input
+                        name="label"
+                        defaultValue={method?.label ??""}
+                        placeholder="Chuyển khoản ngân hàng"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {isSimpleMethod ? (
+                    <>
+                      <input type="hidden" name="requiresShipping" value="all" />
+                      <input type="hidden" name="description" value={method?.description ??""} />
+                    </>
+                  ) : null}
+
+                  {!isSimpleMethod ? (
+                    <div className="grid gap-4 md:grid-cols-[240px_minmax(0,1fr)]">
+                      <div className="space-y-2">
+                        <label>Điều kiện vận chuyển</label>
+                        <Select
+                          name="requiresShipping"
+                          defaultValue={
+                            method?.requiresShipping === true
+                              ?"shipping"
+                              : method?.requiresShipping === false
+                                ?"no_shipping"
+                                :"all"
+                          }
+                        >
+                          <option value="all">Mọi loại đơn</option>
+                          <option value="shipping">Chỉ đơn có giao hàng</option>
+                          <option value="no_shipping">Chỉ đơn không giao hàng</option>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label>Mô tả ngắn tại checkout</label>
+                        <Input
+                          name="description"
+                          defaultValue={method?.description ??""}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="space-y-2">
-                    <label>Code</label>
-                    <Input
-                      name="code"
-                      defaultValue=""
-                      placeholder={category === "offline" ? "cash" : "bank_transfer"}
-                      required
+                    <label>Hướng dẫn sau khi chọn phương thức</label>
+                    <Textarea
+                      name="instructions"
+                      defaultValue={method?.instructions ??""}
                     />
                   </div>
-                ) : null}
-                <div className="space-y-2">
-                  <label>Tên hiển thị</label>
-                  <Input
-                    name="label"
-                    defaultValue={method?.label ??""}
-                    placeholder="Chuyển khoản ngân hàng"
-                    required
-                  />
                 </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-[240px_minmax(0,1fr)]">
-                <div className="space-y-2">
-                  <label>Điều kiện vận chuyển</label>
-                  <Select
-                    name="requiresShipping"
-                    defaultValue={
-                      method?.requiresShipping === true
-                        ?"shipping"
-                        : method?.requiresShipping === false
-                          ?"no_shipping"
-                          :"all"
-                    }
-                  >
-                    <option value="all">Mọi loại đơn</option>
-                    <option value="shipping">Chỉ đơn có giao hàng</option>
-                    <option value="no_shipping">Chỉ đơn không giao hàng</option>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label>Mô tả ngắn tại checkout</label>
-                  <Input
-                    name="description"
-                    defaultValue={method?.description ??""}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label>Hướng dẫn sau khi chọn phương thức</label>
-                <Textarea
-                  name="instructions"
-                  defaultValue={method?.instructions ??""}
-                />
-              </div>
-            </>
+              </CardContent>
+            </Card>
           ) : null}
 
           {showBankFields ? (
-            <div className="space-y-4 rounded-md border p-4">
-              <div>
-                <h2>Thông tin nhận thanh toán</h2>
-                <p className="text-muted-foreground">
-                  Dùng cho chuyển khoản ngân hàng, VietQR hoặc phương thức cần đối soát thủ công.
-                </p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-2">
-                  <label>Tên ngân hàng</label>
-                  <Input
-                    name="bankName"
-                    defaultValue={method?.bankName ??""}
-                  />
+            <Card className="rounded-md">
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <label>Tên ngân hàng</label>
+                    <Input
+                      name="bankName"
+                      defaultValue={method?.bankName ??""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label>Mã ngân hàng VietQR</label>
+                    <Input
+                      name="bankQrBankId"
+                      defaultValue={method?.bankQrBankId ??""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label>Số tài khoản</label>
+                    <Input
+                      name="bankAccountNumber"
+                      defaultValue={method?.bankAccountNumber ??""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label>Chủ tài khoản</label>
+                    <Input
+                      name="bankAccountName"
+                      defaultValue={method?.bankAccountName ??""}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label>Mã ngân hàng VietQR</label>
-                  <Input
-                    name="bankQrBankId"
-                    defaultValue={method?.bankQrBankId ??""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label>Số tài khoản</label>
-                  <Input
-                    name="bankAccountNumber"
-                    defaultValue={method?.bankAccountNumber ??""}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label>Chủ tài khoản</label>
-                  <Input
-                    name="bankAccountName"
-                    defaultValue={method?.bankAccountName ??""}
-                  />
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ) : null}
 
           {showPay2sFields ? (
@@ -317,10 +323,8 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
             <AdminSubmitButton disabled={isSaving}>
               {isSaving ? "Đang lưu..." : isNew ?"Thêm phương thức" :"Lưu phương thức"}
             </AdminSubmitButton>
-            <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Quay lại Payment Methods</AdminBackButton>
+            <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS} destinationLabel="Payment Methods" />
           </div>
         </NativeForm>
-      </CardContent>
-    </Card>
   );
 }

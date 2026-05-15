@@ -49,6 +49,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
   const [paymentMethods, setPaymentMethods] = useState(methods);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const previewMethod = previewCode ? paymentMethods.find((method) => method.code === previewCode) ?? null : null;
+  const previewIsSimple = previewMethod?.category === "manual" || previewMethod?.category === "offline";
   const methodGroups = METHOD_CATEGORY_ORDER.map((category) => ({
     category,
     methods: paymentMethods.filter((method) => method.category === category),
@@ -114,6 +115,19 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
     }
   }
 
+  function getManualPaymentSummary(method: EcommercePaymentMethodSettings) {
+    const accountParts = [method.bankName, method.bankAccountNumber, method.bankAccountName].filter(Boolean);
+    return accountParts.length > 0 ? accountParts.join(" / ") : "Chưa cấu hình tài khoản nhận";
+  }
+
+  function getSimpleMethodSummary(method: EcommercePaymentMethodSettings) {
+    if (method.category === "manual") {
+      return getManualPaymentSummary(method);
+    }
+
+    return method.instructions || "Chưa cấu hình hướng dẫn";
+  }
+
   return (
     <>
       <div className="space-y-5 lg:cspace-y-7.5">
@@ -164,14 +178,23 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
               <div className="overflow-x-auto rounded-md border bg-background">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Phương thức</TableHead>
-                      <TableHead>Nhà cung cấp</TableHead>
-                      <TableHead>Kiểu</TableHead>
-                      <TableHead>Điều kiện</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
-                    </TableRow>
+                    {group.category === "manual" || group.category === "offline" ? (
+                      <TableRow>
+                        <TableHead>Phương thức</TableHead>
+                        <TableHead>{group.category === "manual" ? "Tài khoản nhận" : "Hướng dẫn"}</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                        <TableHead className="text-right">Hành động</TableHead>
+                      </TableRow>
+                    ) : (
+                      <TableRow>
+                        <TableHead>Phương thức</TableHead>
+                        <TableHead>Nhà cung cấp</TableHead>
+                        <TableHead>Kiểu</TableHead>
+                        <TableHead>Điều kiện</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                        <TableHead className="text-right">Hành động</TableHead>
+                      </TableRow>
+                    )}
                   </TableHeader>
                   <TableBody>
                     {group.methods.length > 0 ? (
@@ -180,13 +203,19 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                           <TableCell>
                             {method.label}
                           </TableCell>
-                          <TableCell>{method.provider ||"-"}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{getPaymentMethodTypeLabel(method.type)}</Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {getRequiresShippingLabel(method.requiresShipping)}
-                          </TableCell>
+                          {group.category === "manual" || group.category === "offline" ? (
+                            <TableCell className="max-w-lg truncate text-muted-foreground">{getSimpleMethodSummary(method)}</TableCell>
+                          ) : (
+                            <>
+                              <TableCell>{method.provider ||"-"}</TableCell>
+                              <TableCell>
+                                <Badge variant="secondary">{getPaymentMethodTypeLabel(method.type)}</Badge>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {getRequiresShippingLabel(method.requiresShipping)}
+                              </TableCell>
+                            </>
+                          )}
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Switch
@@ -209,7 +238,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="h-20 text-center text-muted-foreground">
+                        <TableCell colSpan={group.category === "manual" || group.category === "offline" ? 4 : 6} className="h-20 text-center text-muted-foreground">
                           Chưa có phương thức trong nhóm này.
                         </TableCell>
                       </TableRow>
@@ -239,26 +268,32 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                   <span className="text-muted-foreground">Nhóm</span>
                   <span>{getPaymentMethodCategoryLabel(previewMethod.category)}</span>
                 </div>
-                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
-                  <span className="text-muted-foreground">Provider</span>
-                  <span>{previewMethod.provider ||"-"}</span>
-                </div>
-                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
-                  <span className="text-muted-foreground">Kiểu</span>
-                  <span>{getPaymentMethodTypeLabel(previewMethod.type)}</span>
-                </div>
-                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
-                  <span className="text-muted-foreground">Điều kiện</span>
-                  <span>{getRequiresShippingLabel(previewMethod.requiresShipping)}</span>
-                </div>
+                {!previewIsSimple ? (
+                  <>
+                    <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                      <span className="text-muted-foreground">Provider</span>
+                      <span>{previewMethod.provider ||"-"}</span>
+                    </div>
+                    <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                      <span className="text-muted-foreground">Kiểu</span>
+                      <span>{getPaymentMethodTypeLabel(previewMethod.type)}</span>
+                    </div>
+                    <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
+                      <span className="text-muted-foreground">Điều kiện</span>
+                      <span>{getRequiresShippingLabel(previewMethod.requiresShipping)}</span>
+                    </div>
+                  </>
+                ) : null}
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3">
                   <span className="text-muted-foreground">Trạng thái</span>
                   <span>{previewMethod.enabled ?"Đang bật" :"Đang tắt"}</span>
                 </div>
-                <div className="space-y-1 border-t pt-3">
-                  <p className="text-muted-foreground">Mô tả checkout</p>
-                  <p>{previewMethod.description ||"-"}</p>
-                </div>
+                {!previewIsSimple ? (
+                  <div className="space-y-1 border-t pt-3">
+                    <p className="text-muted-foreground">Mô tả checkout</p>
+                    <p>{previewMethod.description ||"-"}</p>
+                  </div>
+                ) : null}
                 <div className="space-y-1">
                   <p className="text-muted-foreground">Hướng dẫn</p>
                   <p className="whitespace-pre-wrap">{previewMethod.instructions ||"-"}</p>

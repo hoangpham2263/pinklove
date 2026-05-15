@@ -59,7 +59,7 @@ export default async function AdminOrderDetailPage({
       {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
 
       <div className="flex justify-start">
-        <AdminBackButton href={ROUTES.ADMIN.ORDERS}>Danh sách đơn hàng</AdminBackButton>
+        <AdminBackButton href={ROUTES.ADMIN.ORDERS} destinationLabel="Orders" />
       </div>
 
       <Card>

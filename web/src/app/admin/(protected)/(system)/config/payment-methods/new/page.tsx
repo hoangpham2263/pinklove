@@ -35,7 +35,7 @@ export default async function NewConfigPaymentMethodPage({
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex justify-start">
-        <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Payment Methods</AdminBackButton>
+        <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS} destinationLabel="Payment Methods" />
       </div>
 
       <div className="space-y-2">

@@ -24,11 +24,7 @@ export default async function EditConfigPaymentMethodPage({
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex justify-start">
-        <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS}>Payment Methods</AdminBackButton>
-      </div>
-
-      <div>
-        <h1>Sửa phương thức thanh toán</h1>
+        <AdminBackButton href={ROUTES.ADMIN.CONFIG_PAYMENT_METHODS} destinationLabel="Payment Methods" />
       </div>
 
       <PaymentMethodEditorForm method={method} />

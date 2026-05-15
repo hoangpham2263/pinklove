@@ -26,7 +26,7 @@ export default async function AdminMenuEdit({ params }: AdminMenuEditProps) {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex items-center gap-4">
-        <AdminBackButton href={ROUTES.ADMIN.MENUS}>Back</AdminBackButton>
+        <AdminBackButton href={ROUTES.ADMIN.MENUS} destinationLabel="Menus" />
       </div>
 
       <MenuEditor menu={menu} availablePages={pages} />
