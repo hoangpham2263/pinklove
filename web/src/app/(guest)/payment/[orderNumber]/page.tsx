@@ -35,7 +35,7 @@ export default async function OrderPaymentPage({
   const primaryPayment = order.payments[0];
 
   return (
-    <section className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <section className="mt-20 mx-auto grid w-full max-w-6xl gap-6 px-6 py-10 lg:grid-cols-[minmax(0,1fr)_360px]">
       <Card>
         <CardHeader>
           <CardTitle>Thanh toán đơn hàng</CardTitle>

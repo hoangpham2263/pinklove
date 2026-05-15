@@ -34,6 +34,7 @@ export function generatePay2sCreateSignature(input: {
   const rawHash = [
     `accessKey=${input.accessKey}`,
     `amount=${input.amount}`,
+    "bankAccounts=Array",
     `ipnUrl=${input.ipnUrl}`,
     `orderId=${input.orderId}`,
     `orderInfo=${input.orderInfo}`,

@@ -20,9 +20,6 @@ export function PaymentMethodGuide({
   className = "",
 }: PaymentMethodGuideProps) {
   const configuredMethod = getPaymentMethodConfig(settings, method);
-  if (method === "mock_online") {
-    return null;
-  }
 
   if (method === "bank_transfer") {
     const qrUrl = getBankTransferQrUrl({

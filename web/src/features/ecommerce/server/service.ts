@@ -528,9 +528,7 @@ export async function createOrderFromCart(input: {
   const paymentMethodConfig = settings.ecommerce.paymentMethods.find((item) => item.code === input.paymentMethod);
   const paymentProvider = input.paymentProvider ?? paymentMethodConfig?.provider ?? input.paymentMethod;
   const paymentType = input.paymentType ?? paymentMethodConfig?.type ?? "manual";
-  const autoApprove =
-    totalAmount === 0 ||
-    (paymentType === "mock" && settings.ecommerce.autoApproveMockPayments);
+  const autoApprove = totalAmount === 0;
   const paymentStatus: PaymentStatus = autoApprove ? "paid" : paymentType === "offline" ? "pending" : "unpaid";
   const fulfillmentStatus: FulfillmentStatus = requiresShipping ? "pending" : "not_required";
   const status = getOrderStatusFromState(paymentStatus, fulfillmentStatus);

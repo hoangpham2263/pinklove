@@ -1410,8 +1410,8 @@ async function ensureCommerceTablesMigration() {
     CREATE TABLE IF NOT EXISTS commerce_payments (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
-      method TEXT NOT NULL DEFAULT 'mock_online',
-      provider TEXT NOT NULL DEFAULT 'mock',
+      method TEXT NOT NULL DEFAULT 'bank_transfer',
+      provider TEXT NOT NULL DEFAULT 'manual_bank_transfer',
       amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
       status TEXT NOT NULL DEFAULT 'pending',
       external_ref TEXT,
@@ -1426,6 +1426,12 @@ async function ensureCommerceTablesMigration() {
   await pool.query(`
     ALTER TABLE commerce_payments
     DROP CONSTRAINT IF EXISTS commerce_payments_method_check;
+  `);
+
+  await pool.query(`
+    ALTER TABLE commerce_payments
+      ALTER COLUMN method SET DEFAULT 'bank_transfer',
+      ALTER COLUMN provider SET DEFAULT 'manual_bank_transfer';
   `);
 
   await pool.query(`

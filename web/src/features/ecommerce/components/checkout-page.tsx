@@ -4,13 +4,13 @@ import { AddressBookManager } from "@/components/common/address-book-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
+import { CheckoutPaymentMethodPicker } from "@/features/ecommerce/components/checkout-payment-method-picker";
 import { CheckoutSubmitButton } from "@/features/ecommerce/components/checkout-submit-button";
 import type { CartItem } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
 import { getEnabledPaymentMethods } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import type { SystemSettings } from "@/lib/system-settings";
-import { Banknote, CreditCard, QrCode, WalletCards } from "lucide-react";
 
 type CheckoutPageProps = {
   items: CartItem[];
@@ -20,23 +20,6 @@ type CheckoutPageProps = {
   addresses?: UserAddress[];
   settings: SystemSettings;
 };
-
-function PaymentMethodMark({ provider, type }: { provider: string; type: string }) {
-  const Icon =
-    provider === "manual_bank_transfer" || provider === "pay2s"
-      ? QrCode
-      : provider === "cash" || type === "offline"
-        ? Banknote
-        : provider === "vnpay"
-          ? CreditCard
-          : WalletCards;
-
-  return (
-    <span className="flex size-12 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-foreground">
-      <Icon className="size-6" />
-    </span>
-  );
-}
 
 export function CheckoutPageView({
   items,
@@ -215,23 +198,7 @@ export function CheckoutPageView({
                 Chưa có phương thức thanh toán nào đang bật trong admin.
               </div>
             ) : null}
-            <div className="space-y-3">
-              {paymentMethods.map((method, index) => (
-                <label key={method.code} className="flex cursor-pointer items-center gap-3 rounded-md border p-3 transition hover:bg-muted/30">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={method.code}
-                    required
-                    defaultChecked={index === 0}
-                    form="checkout-form"
-                    className="mt-0"
-                  />
-                  <PaymentMethodMark provider={method.provider} type={method.type} />
-                  <span className="min-w-0 font-medium">{method.label}</span>
-                </label>
-              ))}
-            </div>
+            <CheckoutPaymentMethodPicker methods={paymentMethods} />
           </div>
           <div className="space-y-2 border-t pt-4">
             <div className="flex items-center justify-between">

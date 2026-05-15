@@ -29,6 +29,7 @@ import {
   getRequiresShippingLabel,
 } from"@/features/ecommerce/admin/payment-method-labels";
 import { adminApi } from "@/lib/api-client.admin";
+import { isCodeManagedPaymentMethod } from "@/lib/payment-methods";
 import { ROUTES } from"@/lib/routes";
 import type { EcommercePaymentMethodSettings } from"@/lib/system-settings";
 
@@ -92,6 +93,11 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
   }
 
   async function handleDelete(method: EcommercePaymentMethodSettings) {
+    if (isCodeManagedPaymentMethod(method)) {
+      toast.error("Phương thức này được quản lý bằng code. Hãy tắt phương thức thay vì xóa.");
+      return;
+    }
+
     if (!confirm(`Xóa phương thức thanh toán "${method.label}"? Nếu đã có đơn hàng sử dụng, hệ thống sẽ không cho xóa.`)) {
       return;
     }
@@ -194,7 +200,9 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                             <AdminTableActions>
                               <AdminTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewCode(method.code)} />
                               <AdminTableActionButton action="edit" label="Sửa phương thức" href={ROUTES.ADMIN.CONFIG_PAYMENT_METHOD(method.code)} />
-                              <AdminTableActionButton action="delete" label="Xóa phương thức" onClick={() => void handleDelete(method)} />
+                              {!isCodeManagedPaymentMethod(method) ? (
+                                <AdminTableActionButton action="delete" label="Xóa phương thức" onClick={() => void handleDelete(method)} />
+                              ) : null}
                             </AdminTableActions>
                           </TableCell>
                         </TableRow>

@@ -1,6 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BadgePercent, ListChecks, MapPin, UserCircle2 } from "lucide-react";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
-import { requireAppUser } from "@/lib/auth";
+import { listUserAddresses } from "@/features/account/server/address-service";
+import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 const CONFIG_SECTIONS = [
@@ -18,6 +20,11 @@ const CONFIG_SECTIONS = [
         description: "Các tùy chọn hệ thống dành cho tài khoản user.",
         href: ROUTES.CUSTOMER.CONFIG_SETTINGS,
       },
+      {
+        title: "Tiếp thị liên kết",
+        description: "Theo dõi trạng thái affiliate, link giới thiệu và khu vực tăng trưởng của tài khoản.",
+        href: ROUTES.CUSTOMER.AFFILIATE,
+      },
     ],
   },
   {
@@ -34,56 +41,21 @@ const CONFIG_SECTIONS = [
 ] as const;
 
 export default async function CustomerConfigPage() {
-  await requireAppUser(ROUTES.AUTH.LOGIN);
+  const user = await requireAppUser(ROUTES.AUTH.LOGIN);
+  const [profile, addresses] = await Promise.all([getUserProfile(user.id), listUserAddresses(user.id)]);
   const totalItems = CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0);
+  const displayName = profile.displayName || profile.fullName || user.username;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Configuration</h1>
-          <p className="text-muted-foreground">Trung tâm cấu hình hồ sơ, địa chỉ và tùy chọn tài khoản user.</p>
-        </div>
-      </div>
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Tổng mục cấu hình" value={totalItems} icon={ListChecks} />
+        <AdminOverviewCard title="Hồ sơ" value={displayName} description="Thông tin tài khoản cá nhân" icon={UserCircle2} />
+        <AdminOverviewCard title="Sổ địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
+        <AdminOverviewCard title="Affiliate" value="User" description="Khu vực tăng trưởng tài khoản" icon={BadgePercent} />
+      </AdminOverviewGrid>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Total Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{totalItems}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Profile</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">Ready</p>
-            <p className="text-muted-foreground">Quản lý trong Configs</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Address Book</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">On</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Scope</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">User</p>
-            <p className="text-muted-foreground">Tài khoản cá nhân</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
+      <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} scopeLabel="Quản lý tập trung cho cấu hình tài khoản user" />
     </section>
   );
 }

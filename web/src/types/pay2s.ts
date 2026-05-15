@@ -4,19 +4,22 @@ export type Pay2sConfig = {
   accessKey: string;
   secretKey: string;
   requestType: string;
-  returnUrl?: string;
-  notifyUrl?: string;
+  bankAccounts: Pay2sBankAccount[];
+};
+
+export type Pay2sBankAccount = {
+  account_number: string;
+  bank_id: string;
 };
 
 export type Pay2sCreatePayload = {
   accessKey: string;
   partnerCode: string;
-  partnerName?: string;
   requestId: string;
   amount: number;
   orderId: string;
   orderInfo: string;
-  orderType?: string;
+  bankAccounts: Pay2sBankAccount[];
   redirectUrl: string;
   ipnUrl: string;
   requestType: string;

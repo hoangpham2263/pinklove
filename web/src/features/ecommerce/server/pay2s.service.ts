@@ -22,6 +22,15 @@ function withSearchParam(url: string, params: Record<string, string>) {
   return nextUrl.toString();
 }
 
+function resolvePay2sRedirectUrl(location: string | null, endpoint: string) {
+  if (!location) return "";
+  try {
+    return new URL(location, endpoint).toString();
+  } catch {
+    return "";
+  }
+}
+
 function redactCreatePayload(payload: Pay2sCreatePayload) {
   return {
     ...payload,
@@ -40,11 +49,11 @@ export async function createPay2sPayment(input: {
   const requestId = `${Date.now()}`;
   const orderId = input.payment.id;
   const orderInfo = buildPay2sOrderInfo(input.payment.id);
-  const redirectUrl = withSearchParam(input.config.returnUrl || `${input.siteUrl}${ROUTES.PAYMENT.SUCCESS}`, {
+  const redirectUrl = withSearchParam(`${input.siteUrl}${ROUTES.PAYMENT.SUCCESS}`, {
     orderNumber: input.order.orderNumber,
     paymentId: input.payment.id,
   });
-  const ipnUrl = input.config.notifyUrl || `${input.siteUrl}${ROUTES.API.PAY2S.IPN}`;
+  const ipnUrl = `${input.siteUrl}${ROUTES.API.PAY2S.IPN}`;
   const signature = generatePay2sCreateSignature({
     accessKey: input.config.accessKey,
     amount,
@@ -60,12 +69,11 @@ export async function createPay2sPayment(input: {
   const payload: Pay2sCreatePayload = {
     accessKey: input.config.accessKey,
     partnerCode: input.config.partnerCode,
-    partnerName: "PinkLove",
     requestId,
     amount,
     orderId,
     orderInfo,
-    orderType: input.config.requestType,
+    bankAccounts: input.config.bankAccounts,
     redirectUrl,
     ipnUrl,
     requestType: input.config.requestType,
@@ -85,6 +93,7 @@ export async function createPay2sPayment(input: {
     headers: { "Content-Type": "application/json; charset=UTF-8" },
     body: JSON.stringify(payload),
     cache: "no-store",
+    redirect: "manual",
   });
   const responseText = await response.text();
   let responseBody: Pay2sCreateResponse;
@@ -95,12 +104,15 @@ export async function createPay2sPayment(input: {
     responseBody = { message: responseText };
   }
 
+  const redirectPaymentUrl = resolvePay2sRedirectUrl(response.headers.get("location"), input.config.createEndpoint);
+  const paymentUrl = extractPay2sPaymentUrl(responseBody) || redirectPaymentUrl;
+
   await recordPaymentLog({
     orderId: input.order.id,
     paymentId: input.payment.id,
     provider: "pay2s",
-    type: response.ok ? "create" : "error",
-    payload: { status: response.status, response: responseBody },
+    type: response.ok || paymentUrl ? "create" : "error",
+    payload: { status: response.status, response: responseBody, location: redirectPaymentUrl || undefined },
   });
   await mergePaymentMetadata({
     paymentId: input.payment.id,
@@ -108,11 +120,11 @@ export async function createPay2sPayment(input: {
       rawPaymentResponse: responseBody,
       pay2sRequestId: requestId,
       pay2sOrderInfo: orderInfo,
+      pay2sPaymentUrl: paymentUrl || undefined,
     },
   });
 
-  const paymentUrl = extractPay2sPaymentUrl(responseBody);
-  if (!response.ok || !paymentUrl) {
+  if (!paymentUrl) {
     throw new Error(String(responseBody.message || "PAY2S_CREATE_FAILED"));
   }
 

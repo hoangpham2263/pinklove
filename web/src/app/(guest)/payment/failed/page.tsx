@@ -17,7 +17,7 @@ export default async function PaymentFailedPage({
     : null;
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10 mt-20">
       <Card>
         <CardHeader>
           <CardTitle>Thanh toán chưa hoàn tất</CardTitle>

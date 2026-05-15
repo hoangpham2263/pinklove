@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { query } from "@/lib/database";
+import { isCodeManagedPaymentMethod } from "@/lib/payment-methods";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings, updateEcommerceSettings } from "@/lib/system-settings";
 
@@ -37,6 +38,14 @@ export async function POST(request: Request) {
       status: 404,
       error: "payment_method_not_found",
       message: "Không tìm thấy phương thức thanh toán để xóa.",
+      location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
+    });
+  }
+
+  if (isCodeManagedPaymentMethod(method)) {
+    return respondError(request, {
+      error: "code_managed_payment_method",
+      message: `Phương thức "${method.label}" được quản lý bằng code. Hãy tắt phương thức này thay vì xóa khỏi cấu hình.`,
       location: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
     });
   }

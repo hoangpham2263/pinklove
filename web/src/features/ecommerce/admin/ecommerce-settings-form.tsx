@@ -90,11 +90,6 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
         </Card>
 
         <input type="hidden" name="enabled" value={settings.ecommerce.enabled ? "on" : ""} />
-        <input
-          type="hidden"
-          name="autoApproveMockPayments"
-          value={settings.ecommerce.autoApproveMockPayments ? "on" : ""}
-        />
 
         <div className="flex justify-end">
           <AdminSubmitButton>Lưu cấu hình checkout</AdminSubmitButton>

@@ -202,7 +202,7 @@ async function main() {
     await client.query(
       `
         INSERT INTO commerce_payments (order_id, method, provider, amount, status, external_ref, paid_at)
-        VALUES ($1, 'mock_online', 'mock', $2, 'paid', $3, NOW())
+        VALUES ($1, 'bank_transfer', 'manual_bank_transfer', $2, 'paid', $3, NOW())
       `,
       [order.id, total, `PAY-${randomBytes(4).toString("hex").toUpperCase()}`]
     );

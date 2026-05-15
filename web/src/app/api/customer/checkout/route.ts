@@ -46,11 +46,12 @@ export async function POST(request: Request) {
     });
   }
 
-  const paymentMethod = String(formData.get("paymentMethod") ?? "mock_online");
   const cartItems = await listCartItems(user.id);
   const requiresShipping =
     settings.ecommerce.supportShipping && cartItems.some((item) => item.fulfillmentType === "physical");
   const enabledPaymentMethods = getEnabledPaymentMethods(settings.ecommerce, requiresShipping);
+  const requestedPaymentMethod = String(formData.get("paymentMethod") ?? "").trim();
+  const paymentMethod = requestedPaymentMethod || enabledPaymentMethods[0]?.code || "";
   const selectedPaymentMethod = enabledPaymentMethods.find((item) => item.code === paymentMethod);
 
   if (!selectedPaymentMethod) {

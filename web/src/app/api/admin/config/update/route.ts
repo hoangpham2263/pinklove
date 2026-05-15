@@ -162,7 +162,6 @@ export async function POST(request: Request) {
     if (section === "ecommerce") {
       await updateEcommerceSettings({
         enabled: isChecked(formData, "enabled"),
-        autoApproveMockPayments: isChecked(formData, "autoApproveMockPayments"),
         supportShipping: isChecked(formData, "supportShipping"),
         currency: String(formData.get("currency") ?? "VND").trim() || "VND",
         currencySymbol: String(formData.get("currencySymbol") ?? "₫").trim() || "₫",

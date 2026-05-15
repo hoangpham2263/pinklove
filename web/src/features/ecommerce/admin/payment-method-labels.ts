@@ -6,8 +6,6 @@ export function getPaymentMethodTypeLabel(type: string) {
       return "Chuyển sang cổng thanh toán";
     case "embedded":
       return "Nhúng cổng thanh toán";
-    case "mock":
-      return "Thanh toán thử nghiệm";
     default:
       return "Đối soát thủ công";
   }

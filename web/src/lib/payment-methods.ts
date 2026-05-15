@@ -1,6 +1,12 @@
 import type { PaymentMethod } from "@/features/ecommerce/types";
 import type { EcommercePaymentMethodSettings, EcommerceSettings } from "@/lib/system-settings";
 
+const CODE_MANAGED_PAYMENT_METHOD_CODES = new Set(["bank_transfer", "cod", "pay2s", "vnpay"]);
+
+export function isCodeManagedPaymentMethod(method: Pick<EcommercePaymentMethodSettings, "code">) {
+  return CODE_MANAGED_PAYMENT_METHOD_CODES.has(method.code);
+}
+
 export function getPaymentMethodConfig(
   settings: EcommerceSettings,
   method: PaymentMethod
@@ -27,9 +33,8 @@ export function getPaymentMethodLabel(method: PaymentMethod, settings?: Ecommerc
       return "Chuyển khoản QR";
     case "cod":
       return "Thanh toán tiền mặt";
-    case "mock_online":
     default:
-      return "Thanh toán online mô phỏng";
+      return "Phương thức thanh toán";
   }
 }
 
@@ -49,9 +54,8 @@ export function getPaymentMethodDescription(
       return requiresShipping
         ? "Thanh toán tiền mặt khi nhận hàng hoặc khi nhân sự PinkLove bàn giao trực tiếp."
         : "Thanh toán tiền mặt trực tiếp tại studio hoặc khi đội ngũ PinkLove xác nhận đơn.";
-    case "mock_online":
     default:
-      return "Phục vụ dev/test, tự động chuyển đơn sang trạng thái đã thanh toán nếu cấu hình cho phép.";
+      return "Phương thức thanh toán đã chọn cho đơn hàng.";
   }
 }
 

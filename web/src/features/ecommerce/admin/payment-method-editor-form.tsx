@@ -97,13 +97,7 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
             </>
           ) : null}
 
-          <label className="flex items-start gap-3 rounded-md border p-4">
-            <input type="checkbox" name="enabled" defaultChecked={method?.enabled ?? true} className="mt-1" />
-            <div>
-              <p>Bật phương thức</p>
-              <p className="text-muted-foreground">Phương thức đang bật sẽ xuất hiện ở checkout nếu phù hợp điều kiện đơn hàng.</p>
-            </div>
-          </label>
+          <input type="hidden" name="enabled" value={method?.enabled ?? true ? "on" : ""} />
 
           {!isGateway ? (
             <>
@@ -260,13 +254,22 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
                   <h3 className="text-base font-semibold">API EndPoint</h3>
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label>Sandbox create endpoint</label>
                     <Input
                       name="pay2sEndpoint"
                       defaultValue={method?.pay2sEndpoint ??"https://sandbox-payment.pay2s.vn/v1/gateway/api/create"}
                       placeholder="https://sandbox-payment.pay2s.vn/v1/gateway/api/create"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label>Tài khoản nhận tiền</label>
+                    <textarea
+                      name="pay2sBankAccounts"
+                      defaultValue={method?.pay2sBankAccounts ??""}
+                      placeholder="account_number|BANK_ID"
+                      className="min-h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"
                     />
                   </div>
                 </div>

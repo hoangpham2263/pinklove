@@ -27,6 +27,7 @@ type ConfigHubSection = {
 
 type ConfigSectionsHubProps = {
   sections: readonly ConfigHubSection[];
+  scopeLabel?: string;
 };
 
 const iconMap: Record<ConfigHubSection["icon"], LucideIcon> = {
@@ -36,7 +37,10 @@ const iconMap: Record<ConfigHubSection["icon"], LucideIcon> = {
   docs: BookOpenText,
 };
 
-export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
+export function ConfigSectionsHub({
+  sections,
+  scopeLabel = "Quản lý tập trung cho toàn bộ cấu hình hệ thống",
+}: ConfigSectionsHubProps) {
   const [keyword, setKeyword] = useState("");
 
   const filteredSections = useMemo(() => {
@@ -69,7 +73,7 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
         </div>
         <div className="inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3">
           <ShieldCheck className="h-4 w-4" />
-          Quản lý tập trung cho toàn bộ cấu hình hệ thống
+          {scopeLabel}
         </div>
       </div>
 

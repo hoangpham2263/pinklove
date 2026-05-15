@@ -77,7 +77,6 @@ export type EcommerceSettings = {
   enabled: boolean;
   allowBankTransfer: boolean;
   allowCod: boolean;
-  autoApproveMockPayments: boolean;
   supportShipping: boolean;
   flatShippingFee: number;
   freeShippingThreshold: number;
@@ -116,7 +115,7 @@ export type EcommercePaymentMethodSettings = {
   enabled: boolean;
   category: "manual" | "offline" | "gateway";
   provider: string;
-  type: "manual" | "offline" | "redirect" | "embedded" | "mock";
+  type: "manual" | "offline" | "redirect" | "embedded";
   requiresShipping: boolean | null;
   bankName?: string;
   bankQrBankId?: string;
@@ -126,6 +125,7 @@ export type EcommercePaymentMethodSettings = {
   pay2sPartnerCode?: string;
   pay2sAccessKey?: string;
   pay2sSecretKey?: string;
+  pay2sBankAccounts?: string;
   vnpayPaymentUrl?: string;
   vnpayTmnCode?: string;
   vnpayHashSecret?: string;
@@ -251,7 +251,6 @@ const DEFAULT_SETTINGS: SystemSettings = {
     enabled: true,
     allowBankTransfer: true,
     allowCod: true,
-    autoApproveMockPayments: true,
     supportShipping: true,
     flatShippingFee: 30000,
     freeShippingThreshold: 1500000,
@@ -293,17 +292,6 @@ const DEFAULT_SETTINGS: SystemSettings = {
         requiresShipping: null,
       },
       {
-        code: "mock_online",
-        label: "Thanh toán online mô phỏng",
-        description: "Phục vụ dev/test, có thể tự động chuyển đơn sang trạng thái đã thanh toán nếu cấu hình cho phép.",
-        instructions: "Phương thức nội bộ dành cho môi trường dev/test.",
-        enabled: false,
-        category: "gateway",
-        provider: "mock",
-        type: "mock",
-        requiresShipping: null,
-      },
-      {
         code: "pay2s",
         label: "Pay2S VietQR",
         description: "Thanh toán qua Pay2S sandbox bằng VietQR/Napas 247.",
@@ -314,6 +302,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
         type: "redirect",
         requiresShipping: null,
         pay2sEndpoint: "https://sandbox-payment.pay2s.vn/v1/gateway/api/create",
+        pay2sBankAccounts: "",
       },
       {
         code: "vnpay",
@@ -501,7 +490,7 @@ function parseFaviconSettings(value: Record<string, unknown> | null | undefined)
 function parseEcommerceSettings(value: Record<string, unknown> | null | undefined): EcommerceSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.ecommerce as Record<string, unknown>, value);
   const parseMethodType = (type: unknown): EcommercePaymentMethodSettings["type"] => {
-    if (type === "mock" || type === "offline" || type === "redirect" || type === "embedded") {
+    if (type === "offline" || type === "redirect" || type === "embedded") {
       return type;
     }
     return "manual";
@@ -542,12 +531,13 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
             pay2sPartnerCode: String(item?.pay2sPartnerCode ?? "").trim(),
             pay2sAccessKey: String(item?.pay2sAccessKey ?? "").trim(),
             pay2sSecretKey: String(item?.pay2sSecretKey ?? ""),
+            pay2sBankAccounts: String(item?.pay2sBankAccounts ?? "").trim(),
             vnpayPaymentUrl: String(item?.vnpayPaymentUrl ?? "").trim(),
             vnpayTmnCode: String(item?.vnpayTmnCode ?? "").trim(),
             vnpayHashSecret: String(item?.vnpayHashSecret ?? ""),
           };
         })
-        .filter((item) => item.code && item.label)
+        .filter((item) => item.code && item.label && item.code !== "mock_online")
     : [];
   const paymentMethods =
     configuredPaymentMethods.length > 0
@@ -639,7 +629,6 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
     enabled: Boolean(merged.enabled),
     allowBankTransfer: Boolean(merged.allowBankTransfer),
     allowCod: Boolean(merged.allowCod),
-    autoApproveMockPayments: Boolean(merged.autoApproveMockPayments),
     supportShipping: Boolean(merged.supportShipping),
     flatShippingFee: Number(merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee),
     freeShippingThreshold: Number(merged.freeShippingThreshold ?? DEFAULT_SETTINGS.ecommerce.freeShippingThreshold),
