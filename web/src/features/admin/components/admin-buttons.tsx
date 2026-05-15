@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -15,6 +15,14 @@ type AdminInlineLinkButtonProps = {
 
 type AdminLinkButtonProps = AdminInlineLinkButtonProps & {
   className?: string;
+};
+
+type AdminActionLinkTileProps = {
+  href: string;
+  target?: string;
+  label: ReactNode;
+  description?: ReactNode;
+  showArrow?: boolean;
 };
 
 type AdminButtonProps = ComponentProps<typeof Button>;
@@ -212,6 +220,25 @@ export function AdminInlineLinkButton({ href, target, children }: AdminInlineLin
       className="inline-flex h-8 cursor-pointer items-center justify-center rounded-lg border bg-white px-3 font-medium outline-none transition-colors hover:bg-muted"
     >
       {children}
+    </Link>
+  );
+}
+
+export function AdminActionLinkTile({ href, target, label, description, showArrow = false }: AdminActionLinkTileProps) {
+  return (
+    <Link
+      href={href}
+      target={target}
+      rel={target === "_blank" ? "noopener noreferrer" : undefined}
+      className="block rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-colors hover:bg-muted"
+    >
+      <span className="flex min-w-0 items-center justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block truncate font-medium text-foreground">{label}</span>
+          {description ? <span className="mt-1 block leading-5 text-muted-foreground">{description}</span> : null}
+        </span>
+        {showArrow ? <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" /> : null}
+      </span>
     </Link>
   );
 }

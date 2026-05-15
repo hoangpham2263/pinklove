@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import {
   BookOpenText,
   Globe,
@@ -11,6 +10,7 @@ import {
   Settings2,
   ShieldCheck,
 } from "lucide-react";
+import { AdminActionLinkTile } from "@/features/admin/components/admin-buttons";
 import { Input } from "@/components/ui/input";
 
 type ConfigHubItem = {
@@ -91,14 +91,12 @@ export function ConfigSectionsHub({ sections }: ConfigSectionsHubProps) {
 
               <div className="space-y-3">
                 {section.items.map((item) => (
-                  <Link
+                  <AdminActionLinkTile
                     key={item.href}
                     href={item.href}
-                    className="block rounded-lg border border-transparent px-3 py-2 transition-colors hover:border-border hover:bg-muted/40"
-                  >
-                    <p className="text-foreground">{item.title}</p>
-                    <p className="mt-1 leading-5 text-muted-foreground">{item.description}</p>
-                  </Link>
+                    label={item.title}
+                    description={item.description}
+                  />
                 ))}
               </div>
             </div>

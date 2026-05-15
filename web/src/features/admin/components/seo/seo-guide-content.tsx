@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminActionLinkTile } from "@/features/admin/components/admin-buttons";
 import { ROUTES } from "@/lib/routes";
 
 const pageSchemaExample = `{
@@ -46,12 +46,8 @@ function SeoQuickLinks() {
         <CardTitle>Đi nhanh</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <Link href={ROUTES.ADMIN.PAGES} className="block rounded-xl border px-4 py-3 transition hover:bg-muted lg:rounded-2xl">
-          Vào quản lý Pages
-        </Link>
-        <Link href={ROUTES.ADMIN.PRODUCT_LIST} className="block rounded-xl border px-4 py-3 transition hover:bg-muted lg:rounded-2xl">
-          Vào quản lý Products
-        </Link>
+        <AdminActionLinkTile href={ROUTES.ADMIN.PAGES} label="Vào quản lý Pages" />
+        <AdminActionLinkTile href={ROUTES.ADMIN.PRODUCT_LIST} label="Vào quản lý Products" />
       </CardContent>
     </Card>
   );

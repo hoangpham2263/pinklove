@@ -1,6 +1,4 @@
-import Link from "next/link";
 import {
-  ArrowRight,
   CreditCard,
   FileText,
   Image as ImageIcon,
@@ -17,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { AdminActionLinkTile } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
 import { query } from "@/lib/database";
@@ -375,14 +374,7 @@ export default async function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="grid gap-2">
               {quickLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  <span>{item.label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </Link>
+                <AdminActionLinkTile key={item.href} href={item.href} label={item.label} showArrow />
               ))}
             </CardContent>
           </Card>
