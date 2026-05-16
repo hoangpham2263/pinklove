@@ -147,6 +147,9 @@ export function GuestHeader({
     router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(query)}`);
   };
 
+  const headerIconButtonClassName =
+    "relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 transition hover:border-stone-300 hover:bg-stone-50";
+
   return (
     <header className="container px-4 mx-auto fixed inset-x-0 top-2.5 z-50 flex justify-center">
       <div
@@ -179,7 +182,11 @@ export function GuestHeader({
         </nav>
 
         <div className="flex items-center justify-end gap-x-5">
-          {user ? <NotificationBell /> : <GuestNotificationBell />}
+          {user ? (
+            <NotificationBell triggerClassName={headerIconButtonClassName} />
+          ) : (
+            <GuestNotificationBell triggerClassName={headerIconButtonClassName} />
+          )}
           <Link
             href={ROUTES.WISHLIST}
             aria-label={`Wishlist (${count})`}

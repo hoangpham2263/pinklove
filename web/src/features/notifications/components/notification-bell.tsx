@@ -10,14 +10,16 @@ import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import type { NotificationSummary, UserNotification } from "@/features/notifications/types";
 import { customerApi } from "@/lib/api-client.customer";
 import { ROUTES } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 type NotificationBellProps = {
   listHref?: string;
+  triggerClassName?: string;
 };
 
 type NotificationPayload = Awaited<ReturnType<typeof customerApi.fetchNotifications>>;
 
-export function NotificationBell({ listHref }: NotificationBellProps) {
+export function NotificationBell({ listHref, triggerClassName }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -104,13 +106,18 @@ export function NotificationBell({ listHref }: NotificationBellProps) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="relative rounded-full"
+        className={cn(
+          "relative rounded-full",
+          open && "border-stone-900",
+          triggerClassName
+        )}
         aria-label="Thông báo"
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <Bell className="h-4 w-4" />
+        <Bell className="size-5" />
         {summary.unreadCount > 0 ? (
-          <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-destructive px-1 text-[10px] font-semibold leading-4 text-destructive-foreground">
+          <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">
             {summary.unreadCount > 99 ? "99+" : summary.unreadCount}
           </span>
         ) : null}

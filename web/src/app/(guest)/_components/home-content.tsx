@@ -6,6 +6,7 @@ import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated
 import { HeroAnimatedTitle } from "@/app/(guest)/_components/hero-animated-title";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
 import { listPublishedProducts } from "@/features/products/server/service";
+import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
@@ -607,11 +608,19 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
                       {invitationGalleryItems.map((product) => (
-                        <LoopProductCard
-                          key={product.id}
-                          product={product}
-                          className="h-[24rem] w-[15rem] shrink-0"
-                        />
+                        product.productType !== "general_product" ? (
+                          <LoopOnlineInvitationCard
+                            key={product.id}
+                            product={product}
+                            className="h-[24rem] w-[15rem] shrink-0"
+                          />
+                        ) : (
+                          <LoopProductCard
+                            key={product.id}
+                            product={product}
+                            className="h-[24rem] w-[15rem] shrink-0"
+                          />
+                        )
                       ))}
                     </div>
                   </div>
@@ -672,11 +681,19 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
                       {sharedInvitationsItems.map((product) => (
-                        <LoopProductCard
-                          key={product.id}
-                          product={product}
-                          className="h-[24rem] w-[15rem] shrink-0"
-                        />
+                        product.productType !== "general_product" ? (
+                          <LoopOnlineInvitationCard
+                            key={product.id}
+                            product={product}
+                            className="h-[24rem] w-[15rem] shrink-0"
+                          />
+                        ) : (
+                          <LoopProductCard
+                            key={product.id}
+                            product={product}
+                            className="h-[24rem] w-[15rem] shrink-0"
+                          />
+                        )
                       ))}
                     </div>
                   </div>

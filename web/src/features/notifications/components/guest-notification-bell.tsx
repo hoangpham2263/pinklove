@@ -6,8 +6,13 @@ import { Bell, CheckCheck } from "lucide-react";
 
 import type { UserNotification } from "@/features/notifications/types";
 import { publicApi } from "@/lib/api-client.public";
+import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "pinklove:guest-notification-read-ids";
+
+type GuestNotificationBellProps = {
+  triggerClassName?: string;
+};
 
 function readStoredIds() {
   if (typeof window === "undefined") {
@@ -27,7 +32,7 @@ function writeStoredIds(ids: Set<string>) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids).slice(-200)));
 }
 
-export function GuestNotificationBell() {
+export function GuestNotificationBell({ triggerClassName }: GuestNotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => readStoredIds());
@@ -87,7 +92,11 @@ export function GuestNotificationBell() {
         type="button"
         aria-label="Thông báo"
         aria-expanded={open}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 transition hover:border-rose-200 hover:text-rose-500"
+        className={cn(
+          "relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 transition hover:border-rose-200 hover:text-rose-500",
+          open && "border-stone-900",
+          triggerClassName
+        )}
         onClick={() => setOpen((value) => !value)}
       >
         <Bell className="size-5" />

@@ -16,6 +16,7 @@ import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcru
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
+import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { listAllProductCategories, listPublishedProductsFiltered } from "@/features/products/server/service";
 import type { Product, ProductCategory, ProductType } from "@/features/products/types";
@@ -489,7 +490,11 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                     />
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                       {products.map((product) => (
-                        <LoopProductCard key={product.id} product={product} />
+                        product.productType !== "general_product" ? (
+                          <LoopOnlineInvitationCard key={product.id} product={product} />
+                        ) : (
+                          <LoopProductCard key={product.id} product={product} />
+                        )
                       ))}
                     </div>
                   </div>
@@ -624,7 +629,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
               />
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 {builderProducts.map((product) => (
-                  <LoopProductCard
+                  <LoopOnlineInvitationCard
                     key={product.id}
                     product={product}
                   />

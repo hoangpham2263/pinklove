@@ -9,6 +9,7 @@ import {
   GuestShell,
 } from "@/app/(guest)/_components/guest-ui";
 import { BlogCard } from "@/features/blog/components/blog-card";
+import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
 import { LoopProductCard } from "@/features/products/components/LoopProductCard";
 import { searchGuestContent } from "@/features/search/server/service";
 import { getManagedPagePath } from "@/lib/page-paths";
@@ -107,10 +108,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {results.products.map((product) => (
-              <LoopProductCard
-                key={product.id}
-                product={product}
-              />
+              product.productType !== "general_product" ? (
+                <LoopOnlineInvitationCard
+                  key={product.id}
+                  product={product}
+                />
+              ) : (
+                <LoopProductCard
+                  key={product.id}
+                  product={product}
+                />
+              )
             ))}
           </div>
         </section>
