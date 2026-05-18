@@ -10,13 +10,13 @@ type BuilderProductDetailPageProps = {
 
 export async function generateMetadata({ params }: BuilderProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getPublishedProductBySlugAndType(slug, "builder_template");
+  const product = await getPublishedProductBySlugAndType(slug, "builder");
   return await generateBuilderProductMetadata(product);
 }
 
 export default async function BuilderProductDetailPage({ params }: BuilderProductDetailPageProps) {
   const { slug } = await params;
-  const product = await getPublishedProductBySlugAndType(slug, "builder_template");
+  const product = await getPublishedProductBySlugAndType(slug, "builder");
   if (!product) {
     notFound();
   }

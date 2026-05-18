@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const site = productSlug
       ? await (async () => {
-        const product = await getPublishedProductBySlugAndType(productSlug, "builder_template");
+        const product = await getPublishedProductBySlugAndType(productSlug, "builder");
         if (!product) {
           return null;
         }

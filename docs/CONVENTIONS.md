@@ -122,7 +122,7 @@ This file is the repo-wide source of truth.
 - Treat `products` as the sellable catalog layer shown to guests.
 - Treat `wedding_sites` as customer-specific invitation instances cloned from a product.
 - `coded_template` products represent fixed coded invitation designs and should be created from code/seed only.
-- `builder_template` products represent editable builder starters that customers clone and customize; they can be seeded or created through the builder template flow.
+- `builder` products represent editable builder starters that customers clone and customize; they can be seeded or created through the builder flow.
 - `general_product` products represent regular shop/vendor/API products such as paper invitations and add-ons.
 - Guest catalog pages should use fixed product-type scopes first, then category/price/sort filters.
 - Each coded invitation `template_key` should belong to only one catalog product. Do not create multiple products that reuse the same coded template identity.

@@ -90,7 +90,7 @@ export async function resolveGuestPublicContent(
     return { type: "template-product", product: templateProduct };
   }
 
-  const builderProduct = await getPublishedProductBySlugAndType(slug, "builder_template");
+  const builderProduct = await getPublishedProductBySlugAndType(slug, "builder");
   if (builderProduct && getBuilderProductPath(builderProduct) === pathname) {
     return { type: "builder-product", product: builderProduct };
   }

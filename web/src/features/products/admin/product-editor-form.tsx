@@ -56,7 +56,7 @@ export function ProductEditorForm({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isGeneralProduct = product.productType === "general_product";
-  const isBuilder = product.productType === "builder_template";
+  const isBuilder = product.productType === "builder";
   const canDeleteProduct = product.productType !== "coded_template";
   const templateFields = useMemo(
     () => (isGeneralProduct || isBuilder ? [] : getInvitationTemplateFields(product.templateKey)),

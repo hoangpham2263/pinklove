@@ -260,7 +260,7 @@ Index:
 - `excerpt`: `text`, nullable
 - `description`: `text`, nullable
 - `status`: `text`, `draft` or `published`
-- `product_type`: `text`, `coded_template`, `builder_template`, or `general_product`
+- `product_type`: `text`, `coded_template`, `builder`, or `general_product`
 - `template_key`: `text`
 - `thumbnail_url`: `text`, nullable
 - `price`: `numeric(12,2)`
@@ -270,7 +270,7 @@ Index:
 
 Business rule:
 
-- Product type determines the fixed workflow for a catalog product. `coded_template` products are created from code/seed, `builder_template` products can be seeded or created from the builder flow, and `general_product` products are added through admin/vendor/API paths.
+- Product type determines the fixed workflow for a catalog product. `coded_template` products are created from code/seed, `builder` products can be seeded or created from the builder flow, and `general_product` products are added through admin/vendor/API paths.
 - Public catalog views should filter by product type first, then by category/price/sort.
 - Each coded invitation template identity should map to exactly one catalog product.
 
@@ -287,7 +287,7 @@ Business rule:
 - `product_id`: FK to `products.id`, nullable
 - `title`: `text`
 - `slug`: `text`, unique
-- `site_type`: `text`, `coded_template` or `builder_template`
+- `site_type`: `text`, `coded_template` or `builder`
 - `template_key`: `text`
 - `status`: `text`, `draft` or `published`
 - `custom_data`: `jsonb`

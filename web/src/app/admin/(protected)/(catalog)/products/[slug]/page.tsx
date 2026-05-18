@@ -29,7 +29,7 @@ export default async function AdminProductEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.PRODUCT_LIST;
 
-  if (product.productType === "builder_template") {
+  if (product.productType === "builder") {
     redirect(`${ROUTES.ADMIN.BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 

@@ -57,7 +57,7 @@ export function ProductBuilderCreateForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
-      <input type="hidden" name="productType" value="builder_template" />
+      <input type="hidden" name="productType" value="builder" />
       <input type="hidden" name="templateKey" value={BUILDER_KEY} />
       <input type="hidden" name="fulfillmentType" value="digital" />
       <input type="hidden" name="ownerType" value="internal" />

@@ -10,7 +10,7 @@ import {
 import type { ProductFulfillmentType, ProductOwnerType, ProductType } from "@/features/products/types";
 
 export const runtime = "nodejs";
-const BUILDER_TEMPLATE_KEY = "freeform_sections";
+const BUILDER_KEY = "freeform_sections";
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
   const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
-  const templateKey = productType === "builder_template" ? BUILDER_TEMPLATE_KEY : submittedTemplateKey;
+  const templateKey = productType === "builder" ? BUILDER_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
@@ -40,14 +40,14 @@ export async function POST(request: Request) {
   const allowVendorSupply = productType === "general_product" && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
-    productType === "builder_template" ? ROUTES.ADMIN.BUILDER_CREATE : ROUTES.ADMIN.PRODUCTS;
+    productType === "builder" ? ROUTES.ADMIN.BUILDER_CREATE : ROUTES.ADMIN.PRODUCTS;
   const createQuery = new URLSearchParams({
-    ...(productType !== "builder_template" ? { type: productType } : {}),
+    ...(productType !== "builder" ? { type: productType } : {}),
     ...(returnTo ? { returnTo } : {}),
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
 
-  if (!["coded_template", "builder_template", "general_product"].includes(productType)) {
+  if (!["coded_template", "builder", "general_product"].includes(productType)) {
     return respondError(request, {
       error: "invalid_product_type",
       message: "Luồng tạo sản phẩm không hợp lệ.",
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
-  if (productType === "builder_template" && builderDocumentRaw) {
+  if (productType === "builder" && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
     } catch {
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     });
 
     const nextLocation =
-      product.productType === "builder_template"
+      product.productType === "builder"
         ? ROUTES.ADMIN.BUILDER_EDITOR(product.slug)
         : product.productType === "coded_template"
           ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)

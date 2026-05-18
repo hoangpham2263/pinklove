@@ -23,7 +23,7 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
   }
   const publicHref = getInvitationPath(invitation);
 
-  if (invitation.siteType === "builder_template") {
+  if (invitation.siteType === "builder") {
     redirect(ROUTES.CUSTOMER.DESIGN(invitation.id));
   }
   const canPublish = invitation.productId

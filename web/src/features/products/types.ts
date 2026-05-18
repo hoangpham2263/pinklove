@@ -1,4 +1,4 @@
-export type ProductType = "coded_template" | "builder_template" | "general_product";
+export type ProductType = "coded_template" | "builder" | "general_product";
 export type ProductFulfillmentType = "digital" | "physical" | "service";
 export type ProductOwnerType = "internal" | "vendor";
 
@@ -45,11 +45,11 @@ export function isProductInStock(product: Pick<Product, "trackInventory" | "stoc
 }
 
 export function isInvitationProductType(productType: ProductType) {
-  return productType === "coded_template" || productType === "builder_template";
+  return productType === "coded_template" || productType === "builder";
 }
 
 export function isBuilderProductType(productType: ProductType) {
-  return productType === "builder_template";
+  return productType === "builder";
 }
 
 export function isGeneralProductType(productType: ProductType) {
@@ -58,7 +58,7 @@ export function isGeneralProductType(productType: ProductType) {
 
 export function getProductTypeLabel(productType: ProductType) {
   switch (productType) {
-    case "builder_template":
+    case "builder":
       return "Builder";
     case "general_product":
       return "Sản phẩm";

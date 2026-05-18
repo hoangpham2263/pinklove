@@ -110,7 +110,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   freeform_sections: {
     label: "Builder Trống Hệ Thống",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Thiệp cưới tự tạo",
     fields: [],
     defaults: {
@@ -120,7 +120,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   editorial_story_builder: {
     label: "Editorial Story",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Editorial Story",
     fields: [],
     defaults: {
@@ -129,7 +129,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   floral_scroll_builder: {
     label: "Floral Scroll",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Floral Scroll",
     fields: [],
     defaults: {
@@ -138,7 +138,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   timeline_ceremony_builder: {
     label: "Timeline Ceremony",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Timeline Ceremony",
     fields: [],
     defaults: {
@@ -147,7 +147,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   minimal_portrait_builder: {
     label: "Minimal Portrait",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Minimal Portrait",
     fields: [],
     defaults: {
@@ -156,7 +156,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   velvet_chapel_builder: {
     label: "Velvet Chapel",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Velvet Chapel",
     fields: [],
     defaults: {
@@ -165,7 +165,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   ivory_atelier_builder: {
     label: "Ivory Atelier",
-    productType: "builder_template",
+    productType: "builder",
     defaultTitle: "Builder Ivory Atelier",
     fields: [],
     defaults: {

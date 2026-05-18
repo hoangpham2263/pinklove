@@ -13,7 +13,7 @@ export default async function AdminBuilderProductsPage({ searchParams }: AdminBu
   return (
     <AdminProductsPageView
       query={query}
-      fixedProductType="builder_template"
+      fixedProductType="builder"
       title="Builder"
       description=""
       returnTo={ROUTES.ADMIN.BUILDER}

@@ -71,7 +71,7 @@ type ProductRow = {
   allow_backorder: boolean;
   coded_template_key: string | null;
   coded_site_defaults: Record<string, unknown> | null;
-  builder_template_key: string | null;
+  builder_key: string | null;
   builder_site_defaults: Record<string, unknown> | null;
   general_fulfillment_type: ProductFulfillmentType | null;
   general_track_inventory: boolean | null;
@@ -122,13 +122,13 @@ function mapProductRow(row: ProductRow): Product {
   const templateKey =
     row.product_type === "coded_template"
       ? row.coded_template_key ?? row.template_key
-      : row.product_type === "builder_template"
-        ? row.builder_template_key ?? row.template_key
+      : row.product_type === "builder"
+        ? row.builder_key ?? row.template_key
         : row.template_key;
   const siteDefaults =
     row.product_type === "coded_template"
       ? row.coded_site_defaults
-      : row.product_type === "builder_template"
+      : row.product_type === "builder"
         ? row.builder_site_defaults
         : null;
   const fulfillmentType = row.general_fulfillment_type ?? row.fulfillment_type;
@@ -203,7 +203,7 @@ const PRODUCT_SELECT = `
     products.allow_backorder,
     coded.template_key AS coded_template_key,
     coded.site_defaults AS coded_site_defaults,
-    builder.template_key AS builder_template_key,
+    builder.template_key AS builder_key,
     builder.site_defaults AS builder_site_defaults,
     general.fulfillment_type AS general_fulfillment_type,
     general.track_inventory AS general_track_inventory,
@@ -508,7 +508,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
         );
       }
 
-      if (input.productType === "builder_template") {
+      if (input.productType === "builder") {
         const siteDefaults =
           typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
             ? input.config.siteDefaults
@@ -680,7 +680,7 @@ export async function updateProduct(slug: string, input: Partial<ProductInput>):
         );
       }
 
-      if (nextProductType === "builder_template") {
+      if (nextProductType === "builder") {
         const siteDefaults =
           typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
             ? nextConfig.siteDefaults

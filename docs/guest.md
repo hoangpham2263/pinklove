@@ -13,8 +13,8 @@ This file covers the public `GUEST` area.
 - Public content pages are explicit code-managed routes, not admin-created arbitrary routes.
 - Keep page-specific UI close to the route under `src/app/(guest)`.
 - Use managed-page fields only where the page is already registered in the content registry.
-- `/mau-thiep` shows invitation templates with fixed product-type tabs: `coded_template` and `builder_template`.
-- `/tu-tao-thiep` shows only `builder_template` products.
+- `/mau-thiep` shows invitation templates with fixed product-type tabs: `coded_template` and `builder`.
+- `/tu-tao-thiep` shows only `builder` products.
 - `/thiep-giay` shows only `general_product` products.
 - Public catalog filtering should apply product type first, then category/price/sort filters for future expansion.
 - Public invitation rendering should read from published invitation records. The current table name is still `wedding_sites`.

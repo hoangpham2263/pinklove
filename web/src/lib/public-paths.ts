@@ -50,7 +50,7 @@ export function getGeneralProductPath(product: Pick<Product, "slug"> | string) {
 }
 
 export function getProductPath(product: Pick<Product, "slug" | "productType">) {
-  if (product.productType === "builder_template") {
+  if (product.productType === "builder") {
     return getBuilderProductPath(product);
   }
   if (product.productType === "general_product") {

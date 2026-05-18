@@ -7,7 +7,7 @@ import type { ProductFulfillmentType, ProductOwnerType, ProductType } from "@/fe
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
-const BUILDER_TEMPLATE_KEY = "freeform_sections";
+const BUILDER_KEY = "freeform_sections";
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const productType = String(formData.get("productType") ?? "coded_template") as ProductType;
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as ProductFulfillmentType;
   const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
-  const templateKey = productType === "builder_template" ? BUILDER_TEMPLATE_KEY : submittedTemplateKey;
+  const templateKey = productType === "builder" ? BUILDER_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const supportsInventory = productType === "general_product";
@@ -39,14 +39,14 @@ export async function POST(request: Request) {
   const allowVendorSupply = productType === "general_product" && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
-    productType === "builder_template"
+    productType === "builder"
       ? ROUTES.ADMIN.BUILDER_EDITOR(originalSlug)
       : productType === "coded_template"
         ? ROUTES.ADMIN.CODED_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.PRODUCT(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
 
-  if (!["coded_template", "builder_template", "general_product"].includes(productType)) {
+  if (!["coded_template", "builder", "general_product"].includes(productType)) {
     return respondError(request, {
       error: "invalid_product_type",
       message: "Luồng sửa sản phẩm không hợp lệ.",
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
-  if (productType === "builder_template" && builderDocumentRaw) {
+  if (productType === "builder" && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
     } catch {
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
   }
 
   const normalizedSiteDefaults =
-    productType === "builder_template"
+    productType === "builder"
       ? {
           ...siteDefaults,
           ...(builderDocument ? { builderDocument } : {}),
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
   }
 
   const nextLocation =
-    product.productType === "builder_template"
+    product.productType === "builder"
       ? ROUTES.ADMIN.BUILDER_EDITOR(product.slug)
       : product.productType === "coded_template"
         ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)

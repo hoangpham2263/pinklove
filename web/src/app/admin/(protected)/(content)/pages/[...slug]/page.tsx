@@ -36,7 +36,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
     value: product.slug,
     label: product.name,
     description: `${
-      product.productType === "builder_template"
+      product.productType === "builder"
         ? "Builder"
         : product.productType === "general_product"
           ? "Sản phẩm"

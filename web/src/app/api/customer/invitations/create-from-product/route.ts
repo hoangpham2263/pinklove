@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   });
 
   const nextLocation =
-    site.siteType === "builder_template"
+    site.siteType === "builder"
       ? ROUTES.CUSTOMER.DESIGN(site.id)
       : `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}`;
 

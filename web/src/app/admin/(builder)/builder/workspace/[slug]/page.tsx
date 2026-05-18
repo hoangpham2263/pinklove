@@ -26,7 +26,7 @@ export default async function AdminBuilderEditorPage({
     notFound();
   }
 
-  if (product.productType !== "builder_template") {
+  if (product.productType !== "builder") {
     const fallbackHref =
       product.productType === "coded_template"
         ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)

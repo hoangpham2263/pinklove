@@ -992,7 +992,7 @@ async function ensureProductTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
-      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder_template', 'general_product')),
+      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder', 'general_product')),
       CONSTRAINT products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
       CONSTRAINT products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
       CONSTRAINT products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
@@ -1175,7 +1175,7 @@ async function ensureProductTablesMigration() {
         ELSE '{}'::jsonb
       END
     FROM products
-    WHERE products.product_type = 'builder_template'
+    WHERE products.product_type = 'builder'
     ON CONFLICT (product_id) DO UPDATE
     SET
       template_key = EXCLUDED.template_key,
@@ -1238,7 +1238,7 @@ async function ensureProductTablesMigration() {
     WHERE product_id IN (
       SELECT id
       FROM products
-      WHERE product_type <> 'builder_template'
+      WHERE product_type <> 'builder'
     );
   `);
 
@@ -1279,7 +1279,7 @@ async function ensureProductTablesMigration() {
       custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT wedding_sites_type_check CHECK (site_type IN ('coded_template', 'builder_template')),
+      CONSTRAINT wedding_sites_type_check CHECK (site_type IN ('coded_template', 'builder')),
       CONSTRAINT wedding_sites_status_check CHECK (status IN ('draft', 'published'))
     );
   `);
@@ -1419,7 +1419,7 @@ async function ensureCommerceTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT commerce_order_items_quantity_check CHECK (quantity > 0),
-      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder_template', 'general_product')),
+      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder', 'general_product')),
       CONSTRAINT commerce_order_items_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
@@ -2294,7 +2294,23 @@ async function ensureContentCommentsMigration() {
 async function ensureProductVendorPaperTypeMigration() {
   const pool = getPool();
   await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
+  await pool.query(`ALTER TABLE wedding_sites DROP CONSTRAINT IF EXISTS wedding_sites_type_check`);
   await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_product_type_check`);
+  await pool.query(`
+    UPDATE products
+    SET product_type = 'builder'
+    WHERE product_type = 'builder_template'
+  `);
+  await pool.query(`
+    UPDATE wedding_sites
+    SET site_type = 'builder'
+    WHERE site_type = 'builder_template'
+  `);
+  await pool.query(`
+    UPDATE commerce_order_items
+    SET product_type = 'builder'
+    WHERE product_type = 'builder_template'
+  `);
   await pool.query(`
     UPDATE products
     SET product_type = 'general_product'
@@ -2308,12 +2324,17 @@ async function ensureProductVendorPaperTypeMigration() {
   await pool.query(`
     ALTER TABLE products
     ADD CONSTRAINT products_type_check
-    CHECK (product_type IN ('coded_template', 'builder_template', 'general_product'))
+    CHECK (product_type IN ('coded_template', 'builder', 'general_product'))
   `);
   await pool.query(`
     ALTER TABLE commerce_order_items
     ADD CONSTRAINT commerce_order_items_product_type_check
-    CHECK (product_type IN ('coded_template', 'builder_template', 'general_product'))
+    CHECK (product_type IN ('coded_template', 'builder', 'general_product'))
+  `);
+  await pool.query(`
+    ALTER TABLE wedding_sites
+    ADD CONSTRAINT wedding_sites_type_check
+    CHECK (site_type IN ('coded_template', 'builder'))
   `);
 }
 
@@ -2463,7 +2484,7 @@ async function ensureProductSeed() {
       );
     }
 
-    if (product.productType === "builder_template") {
+    if (product.productType === "builder") {
       await pool.query(
         `
             INSERT INTO builder_products (product_id, template_key, site_defaults)

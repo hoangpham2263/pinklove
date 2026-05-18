@@ -198,7 +198,7 @@ export function AdminProductList({
           const canDeleteProduct = product.productType !== "coded_template";
           const publicHref = getProductPath(product);
           const adminEditHref =
-            product.productType === "builder_template"
+            product.productType === "builder"
               ? `${ROUTES.ADMIN.BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : product.productType === "coded_template"
                 ? `${ROUTES.ADMIN.CODED_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`

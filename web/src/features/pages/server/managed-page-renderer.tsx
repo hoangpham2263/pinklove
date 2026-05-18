@@ -304,7 +304,7 @@ function CatalogOrderingBar({
 const templateProductTabs: Array<{
   key: string;
   label: string;
-  productType: Extract<ProductType, "coded_template" | "builder_template">;
+  productType: Extract<ProductType, "coded_template" | "builder">;
   description: string;
 }> = [
   {
@@ -316,7 +316,7 @@ const templateProductTabs: Array<{
   {
     key: "builder",
     label: "Builder",
-    productType: "builder_template",
+    productType: "builder",
     description: "Mẫu kéo thả, có thể tạo từ admin builder hoặc seed sẵn bằng builder document.",
   },
 ];
@@ -328,7 +328,7 @@ function TemplateProductTabs({
 }: {
   activeKey: string;
   currentParams: Record<string, string | string[] | undefined>;
-  productsByType: Record<Extract<ProductType, "coded_template" | "builder_template">, Product[]>;
+  productsByType: Record<Extract<ProductType, "coded_template" | "builder">, Product[]>;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -424,7 +424,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
           sort: filters.sortKey,
         }),
         listPublishedProductsFiltered({
-          productTypes: ["builder_template"],
+          productTypes: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
@@ -439,9 +439,9 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
         }),
         listAllProductCategories(),
       ]);
-      const productsByType: Record<Extract<ProductType, "coded_template" | "builder_template">, Product[]> = {
+      const productsByType: Record<Extract<ProductType, "coded_template" | "builder">, Product[]> = {
         coded_template: codedProducts,
-        builder_template: builderProducts,
+        builder: builderProducts,
       };
 
       return (
@@ -589,7 +589,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const [user, builderProducts, categories] = await Promise.all([
         getCurrentUser(),
         listPublishedProductsFiltered({
-          productTypes: ["builder_template"],
+          productTypes: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,

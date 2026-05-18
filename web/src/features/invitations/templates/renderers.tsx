@@ -129,7 +129,7 @@ export async function ClassicGardenTemplate({ site }: { site: InvitationSite }) 
 }
 
 export async function renderInvitationSite(site: InvitationSite) {
-  if (site.siteType === "builder_template") {
+  if (site.siteType === "builder") {
     return <BuilderInvitationTemplate site={site} />;
   }
 

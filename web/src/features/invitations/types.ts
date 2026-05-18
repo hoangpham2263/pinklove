@@ -1,4 +1,4 @@
-export type InvitationType = "coded_template" | "builder_template";
+export type InvitationType = "coded_template" | "builder";
 export type InvitationStatus = "draft" | "published";
 
 export type InvitationSite = {

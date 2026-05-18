@@ -72,7 +72,7 @@ async function syncProductTypeDetails(client, productId, product) {
     );
   }
 
-  if (product.productType === "builder_template") {
+  if (product.productType === "builder") {
     await client.query(
       `
         INSERT INTO builder_products (product_id, template_key, site_defaults)
