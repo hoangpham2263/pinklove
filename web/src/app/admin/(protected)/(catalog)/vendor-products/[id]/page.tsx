@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 import { getVendorProductSubmissionDetailForAdmin } from "@/features/vendor-product-submissions/server/service";
 import { getVendorProductReviewStatusLabel, getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
 import { VendorProductStatusBadge } from "@/features/vendor-product-submissions/components/vendor-product-status-badge";

@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   
   const noindex = formData.get("noindex") === "on";
   const nofollow = formData.get("nofollow") === "on";
+  const adminUsed = formData.get("adminUsed") === "on";
 
   // Parse customFields safely
   let customFields = {};
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
       ogImage,
       noindex,
       nofollow,
+      adminUsed,
       customFields,
     });
 

@@ -32,6 +32,7 @@ export type ManagedPage = {
   ogImage?: string;
   noindex?: boolean;
   nofollow?: boolean;
+  adminUsed?: boolean;
   customFields?: Record<string, unknown>;
   updatedAt?: string;
 };
@@ -56,6 +57,7 @@ type ManagedPageRow = {
   og_image: string | null;
   noindex: boolean;
   nofollow: boolean;
+  admin_used: boolean;
   custom_fields: Record<string, unknown>;
   updated_at: string;
 };
@@ -91,6 +93,7 @@ function mapRowToPage(row: ManagedPageRow): ManagedPage {
     ogImage: row.og_image ?? undefined,
     noindex: row.noindex,
     nofollow: row.nofollow,
+    adminUsed: row.admin_used,
     customFields: row.custom_fields ?? {},
     updatedAt: row.updated_at,
   };
@@ -217,10 +220,11 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
         og_image = $15,
         noindex = COALESCE($16, noindex),
         nofollow = COALESCE($17, nofollow),
-        custom_fields = $18,
-        slug = COALESCE($19, slug),
+        admin_used = COALESCE($18, admin_used),
+        custom_fields = $19,
+        slug = COALESCE($20, slug),
         updated_at = NOW()
-      WHERE slug = $20
+      WHERE slug = $21
       RETURNING *
       `,
       [
@@ -241,6 +245,7 @@ export async function updateManagedPage(slug: string, data: Partial<ManagedPage>
         data.ogImage !== undefined ? data.ogImage : existing.ogImage,
         data.noindex,
         data.nofollow,
+        data.adminUsed,
         data.customFields !== undefined ? data.customFields : existing.customFields,
         data.slug,
         slug,

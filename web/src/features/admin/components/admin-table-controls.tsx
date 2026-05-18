@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils";
 
 type AdminTableToolbarProps = {
   children: ReactNode;
+  contentClassName?: string;
 };
 
 type AdminTableSearchProps = {
   value: string;
   placeholder: string;
   onChange: (value: string) => void;
+  className?: string;
 };
 
 type AdminTableSelectOption = {
@@ -26,6 +28,7 @@ type AdminTableSelectProps = {
   label: string;
   options: AdminTableSelectOption[];
   onChange: (value: string) => void;
+  className?: string;
 };
 
 type AdminTableClearButtonProps = {
@@ -42,33 +45,33 @@ type AdminTableSortButtonProps = {
 const controlClassName =
   "h-9 rounded-lg border border-input bg-white px-3 text-sm outline-none transition-colors";
 
-export function AdminTableToolbar({ children }: AdminTableToolbarProps) {
+export function AdminTableToolbar({ children, contentClassName }: AdminTableToolbarProps) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex flex-wrap items-center gap-3">{children}</div>
+      <div className={cn("flex flex-wrap items-center gap-3", contentClassName)}>{children}</div>
     </div>
   );
 }
 
-export function AdminTableSearch({ value, placeholder, onChange }: AdminTableSearchProps) {
+export function AdminTableSearch({ value, placeholder, onChange, className }: AdminTableSearchProps) {
   return (
     <input
       type="search"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
-      className={cn(controlClassName, "w-full min-w-0 md:w-80")}
+      className={cn(controlClassName, "w-full min-w-0 md:w-80", className)}
     />
   );
 }
 
-export function AdminTableSelect({ value, label, options, onChange }: AdminTableSelectProps) {
+export function AdminTableSelect({ value, label, options, onChange, className }: AdminTableSelectProps) {
   return (
     <select
       value={value}
       aria-label={label}
       onChange={(event) => onChange(event.target.value)}
-      className={cn(controlClassName, "w-full md:w-56")}
+      className={cn(controlClassName, "w-full md:w-56", className)}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>

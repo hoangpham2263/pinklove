@@ -657,6 +657,7 @@ async function ensureManagedPagesMigration() {
       og_image TEXT,
       noindex BOOLEAN NOT NULL DEFAULT false,
       nofollow BOOLEAN NOT NULL DEFAULT false,
+      admin_used BOOLEAN NOT NULL DEFAULT false,
       custom_fields JSONB,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -681,6 +682,7 @@ async function ensureManagedPagesMigration() {
     ADD COLUMN IF NOT EXISTS og_image TEXT,
     ADD COLUMN IF NOT EXISTS noindex BOOLEAN DEFAULT false,
     ADD COLUMN IF NOT EXISTS nofollow BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS admin_used BOOLEAN DEFAULT false,
     ADD COLUMN IF NOT EXISTS custom_fields JSONB,
     ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW(),
     ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
@@ -693,6 +695,7 @@ async function ensureManagedPagesMigration() {
       template = COALESCE(template, 'default'),
       noindex = COALESCE(noindex, false),
       nofollow = COALESCE(nofollow, false),
+      admin_used = COALESCE(admin_used, false),
       custom_fields = COALESCE(custom_fields, '{}'::jsonb),
       created_at = COALESCE(created_at, NOW()),
       updated_at = COALESCE(updated_at, NOW());
@@ -711,8 +714,28 @@ async function ensureManagedPagesMigration() {
     ALTER COLUMN template SET DEFAULT 'default',
     ALTER COLUMN noindex SET DEFAULT false,
     ALTER COLUMN nofollow SET DEFAULT false,
+    ALTER COLUMN admin_used SET DEFAULT false,
+    ALTER COLUMN admin_used SET NOT NULL,
     ALTER COLUMN created_at SET DEFAULT NOW(),
     ALTER COLUMN updated_at SET DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'managed_pages'
+          AND column_name = 'admin_checked'
+      ) THEN
+        UPDATE managed_pages
+        SET admin_used = COALESCE(admin_used, admin_checked, false);
+
+        ALTER TABLE managed_pages
+        DROP COLUMN admin_checked;
+      END IF;
+    END $$;
   `);
 }
 
@@ -2881,6 +2904,11 @@ export async function ensureDb() {
   }
 
   await globalForDb.ensurePromise;
+
+  if (!(globalForDb as Record<string, unknown>).managedPagesAdminCheckedMigrationDone) {
+    await ensureManagedPagesMigration();
+    (globalForDb as Record<string, unknown>).managedPagesAdminCheckedMigrationDone = true;
+  }
 
   if (!globalForDb.chatTablesMigrationV5Done) {
     await ensureChatTablesMigration();

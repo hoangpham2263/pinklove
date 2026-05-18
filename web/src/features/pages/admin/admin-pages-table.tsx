@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
@@ -46,6 +46,20 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [bulkAction, setBulkAction] = useState("");
+
+  const handleAdminCheckedChange = useCallback(async (page: ManagedPage, checked: boolean) => {
+    const formData = new FormData();
+    formData.set("bulkAction", checked ? "admin_used" : "admin_unused");
+    formData.append("slugs", page.slug);
+
+    try {
+      const result = await adminApi.bulkUpdatePages(formData);
+      toast.success(result.message ?? "Đã cập nhật đánh dấu quản lý.");
+      finishMutation(router, result, { redirect: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể cập nhật đánh dấu quản lý.");
+    }
+  }, [router]);
 
   const columns = useMemo<ColumnDef<ManagedPage>[]>(
     () => [
@@ -116,6 +130,32 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
         },
       },
       {
+        accessorKey: "adminUsed",
+        header: ({ column }) => (
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Đã sử dụng</AdminTableSortButton>
+        ),
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          const value = Boolean(row.getValue<boolean>(columnId));
+          return filterValue === "checked" ? value : !value;
+        },
+        cell: ({ row }) => {
+          const page = row.original;
+          return (
+            <input
+              type="checkbox"
+              aria-label={`Đánh dấu đã sử dụng ${page.name}`}
+              className="h-4 w-4 cursor-pointer rounded border border-input"
+              checked={Boolean(page.adminUsed)}
+              onChange={(event) => {
+                void handleAdminCheckedChange(page, event.target.checked);
+              }}
+            />
+          );
+        },
+      },
+      {
         id: "actions",
         enableSorting: false,
         enableColumnFilter: false,
@@ -133,7 +173,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
         },
       },
     ],
-    []
+    [handleAdminCheckedChange]
   );
 
   const table = useReactTable({
@@ -154,7 +194,8 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
       if (!keyword) return true;
 
       const page = row.original;
-      return [page.name, page.title, page.slug, page.status]
+      const adminUsedLabel = page.adminUsed ? "đã sử dụng used checked done" : "chưa sử dụng unused unchecked todo";
+      return [page.name, page.title, page.slug, page.status, adminUsedLabel]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     },
@@ -166,18 +207,25 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
   });
 
   const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
-  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
+  const adminUsedFilterValue = (table.getColumn("adminUsed")?.getFilterValue() as string | undefined) ?? "";
+  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0 || adminUsedFilterValue.length > 0;
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <AdminTableToolbar>
-          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tiêu đề, slug, trạng thái..." />
+        <AdminTableToolbar contentClassName="grid w-full grid-cols-1 md:grid-cols-[minmax(16rem,1fr)_10.5rem_10.5rem_auto] lg:w-auto lg:min-w-[44rem]">
+          <AdminTableSearch
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            placeholder="Tìm theo tiêu đề, slug, trạng thái..."
+            className="md:w-full"
+          />
           <AdminTableSelect
             value={statusFilterValue}
             label="Lọc trạng thái"
+            className="md:w-full"
             onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
             options={[
               { value: "", label: "Tất cả trạng thái" },
@@ -185,11 +233,23 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               { value: "draft", label: "Draft" },
             ]}
           />
+          <AdminTableSelect
+            value={adminUsedFilterValue}
+            label="Lọc đánh dấu"
+            className="md:w-full"
+            onChange={(value) => table.getColumn("adminUsed")?.setFilterValue(value)}
+            options={[
+              { value: "", label: "Tất cả đánh dấu" },
+              { value: "checked", label: "Đã sử dụng" },
+              { value: "unchecked", label: "Chưa sử dụng" },
+            ]}
+          />
           <AdminTableClearButton
             visible={hasFilters}
             onClick={() => {
               setGlobalFilter("");
               table.getColumn("status")?.setFilterValue("");
+              table.getColumn("adminUsed")?.setFilterValue("");
             }}
           />
         </AdminTableToolbar>
@@ -208,7 +268,9 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               event.preventDefault();
 
               try {
-                const result = await adminApi.bulkUpdatePages(new FormData(event.currentTarget));
+                const formData = new FormData(event.currentTarget);
+                formData.set("bulkAction", bulkAction);
+                const result = await adminApi.bulkUpdatePages(formData);
                 toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                 finishMutation(router, result, { redirect: false });
                 setRowSelection({});
@@ -231,6 +293,8 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
               <option value="">Tác vụ hàng loạt</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
+              <option value="admin_used">Đánh dấu đã sử dụng</option>
+              <option value="admin_unused">Bỏ đánh dấu đã sử dụng</option>
             </select>
             <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng

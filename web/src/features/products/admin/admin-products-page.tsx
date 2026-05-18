@@ -69,7 +69,6 @@ export async function AdminProductsPageView({
         productType={fixedProductType}
         title={undefined}
         returnTo={returnTo}
-        lockProductType
       />
     </section>
   );

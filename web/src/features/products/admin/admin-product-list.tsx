@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
+import { AdminTableThumbnail } from "@/features/admin/components/admin-table-thumbnail";
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -53,6 +54,47 @@ function getProductTypeLabel(productType: ProductType) {
   }
 }
 
+function formatDateTime(value: string) {
+  return new Date(value).toISOString().slice(0, 16).replace("T", " ");
+}
+
+function getFulfillmentTypeLabel(fulfillmentType: Product["fulfillmentType"]) {
+  switch (fulfillmentType) {
+    case "physical":
+      return "Sản phẩm vật lý";
+    case "service":
+      return "Dịch vụ";
+    default:
+      return "Digital";
+  }
+}
+
+function PreviewSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-3 rounded-md border p-4">
+      <h3 className="text-sm font-medium">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function PreviewField({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-1 ${className}`}>
+      <p className="text-xs uppercase text-muted-foreground">{label}</p>
+      <div className="min-h-9 rounded-md bg-muted/40 px-3 py-2 text-sm text-foreground">{value || "—"}</div>
+    </div>
+  );
+}
+
 type AdminProductListProps = {
   products: Product[];
   search: string;
@@ -60,7 +102,6 @@ type AdminProductListProps = {
   productType: "" | ProductType;
   title?: string;
   returnTo?: string;
-  lockProductType?: boolean;
 };
 
 export function AdminProductList({
@@ -70,15 +111,12 @@ export function AdminProductList({
   productType,
   title,
   returnTo = ROUTES.ADMIN.PRODUCT_LIST,
-  lockProductType = false,
 }: AdminProductListProps) {
   const router = useRouter();
-  const showInventoryColumn = productType === "general_product";
   const canBulkDelete = productType !== "coded_template";
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
-    ...(productType ? [{ id: "productType", value: productType }] : []),
   ]);
   const [globalFilter, setGlobalFilter] = useState(search);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -116,6 +154,13 @@ export function AdminProductList({
         ),
       },
       {
+        id: "thumbnail",
+        enableSorting: false,
+        enableColumnFilter: false,
+        header: "Ảnh",
+        cell: ({ row }) => <AdminTableThumbnail src={row.original.thumbnailUrl} alt={row.original.name} />,
+      },
+      {
         accessorKey: "name",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -124,33 +169,9 @@ export function AdminProductList({
         cell: ({ row }) => <span>{row.original.name}</span>,
       },
       {
-        accessorKey: "slug",
-        header: ({ column }) => (
-          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Slug</AdminTableSortButton>
-        ),
-        cell: ({ row }) => (
-          <code>/{row.original.slug}</code>
-        ),
-      },
-      {
-        accessorKey: "productType",
-        header: ({ column }) => (
-          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Loại</AdminTableSortButton>
-        ),
-        filterFn: (row, columnId, filterValue) => {
-          if (!filterValue) return true;
-          return row.getValue<string>(columnId) === filterValue;
-        },
-        cell: ({ row }) => (
-          <Badge variant="secondary">{getProductTypeLabel(row.original.productType)}</Badge>
-        ),
-      },
-      {
         accessorKey: "categoryName",
-        header: "Category",
-        cell: ({ row }) => row.original.categoryName ? <span>{row.original.categoryName}</span> : <span className="text-muted-foreground">-</span>,
+        header: "Danh mục",
+        cell: ({ row }) => row.original.categoryName || <span className="text-muted-foreground">—</span>,
       },
       {
         accessorKey: "status",
@@ -168,20 +189,6 @@ export function AdminProductList({
           </Badge>
         ),
       },
-      ...(showInventoryColumn
-        ? [{
-            id: "owner",
-            header: "Nguồn hàng",
-            cell: ({ row }: { row: { original: Product } }) => (
-              <div className="space-y-1">
-                <p>{row.original.ownerType === "vendor" ? "Vendor" : "Nội bộ"}</p>
-                {row.original.ownerType === "vendor" ? (
-                  <p className="text-xs text-muted-foreground">{row.original.vendorSku || "Chưa có SKU"}</p>
-                ) : null}
-              </div>
-            ),
-          } satisfies ColumnDef<Product>]
-        : []),
       {
         accessorKey: "price",
         header: ({ column }) => (
@@ -190,41 +197,8 @@ export function AdminProductList({
               Giá</AdminTableSortButton>
           </div>
         ),
-        cell: ({ row }) => <div className="text-right font-medium">{row.original.price}</div>,
+        cell: ({ row }) => <div className="text-right">{row.original.price}</div>,
       },
-      ...(showInventoryColumn
-        ? [{
-            id: "costPrice",
-            header: () => <div className="text-right">Giá nhập</div>,
-            cell: ({ row }: { row: { original: Product } }) => <div className="text-right text-sm">{row.original.costPrice}</div>,
-          } satisfies ColumnDef<Product>]
-        : []),
-      ...(showInventoryColumn
-        ? [{
-            id: "inventory",
-            header: () => <div className="text-right">Kho</div>,
-            cell: ({ row }: { row: { original: Product } }) => {
-              const product = row.original;
-              if (!product.trackInventory) {
-                return <div className="text-right text-sm text-muted-foreground">Khong gioi han</div>;
-              }
-
-              const tone =
-                product.stockQuantity <= 0
-                  ? "text-red-600"
-                  : product.stockQuantity <= product.lowStockThreshold
-                    ? "text-amber-600"
-                    : "text-foreground";
-
-              return (
-                <div className={`text-right text-sm font-medium ${tone}`}>
-                  {product.stockQuantity}
-                  {product.allowBackorder ? " • backorder" : ""}
-                </div>
-              );
-            },
-          } satisfies ColumnDef<Product>]
-        : []),
       {
         id: "actions",
         enableSorting: false,
@@ -276,7 +250,7 @@ export function AdminProductList({
         },
       },
     ],
-    [router, showInventoryColumn, returnTo]
+    [router, returnTo]
   );
 
   const table = useReactTable({
@@ -347,9 +321,6 @@ export function AdminProductList({
             onClick={() => {
               setGlobalFilter("");
               table.getColumn("status")?.setFilterValue("");
-              if (!lockProductType) {
-                table.getColumn("productType")?.setFilterValue("");
-              }
             }}
           />
         </AdminTableToolbar>
@@ -445,81 +416,96 @@ export function AdminProductList({
       </div>
 
       <Dialog open={Boolean(previewProduct)} onOpenChange={(open) => !open && setPreviewProductId(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           {previewProduct ? (
             <div className="space-y-6">
               <DialogHeader>
-                <DialogTitle>Chi tiết sản phẩm</DialogTitle>
-                <DialogDescription>Xem đầy đủ thông tin của sản phẩm.</DialogDescription>
+                <DialogTitle>{previewProduct.name}</DialogTitle>
+                <DialogDescription>/{previewProduct.slug}</DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Tên sản phẩm</p>
-                  <p className="text-sm text-muted-foreground">{previewProduct.name}</p>
+              <PreviewSection title="Tổng quan">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <PreviewField label="ID" value={<span className="break-all">{previewProduct.id}</span>} />
+                  <PreviewField label="Tên sản phẩm" value={previewProduct.name} />
+                  <PreviewField label="Slug" value={`/${previewProduct.slug}`} />
+                  <PreviewField label="Trạng thái" value={previewProduct.status} />
+                  <PreviewField label="Loại" value={getProductTypeLabel(previewProduct.productType)} />
+                  <PreviewField label="Template key" value={previewProduct.templateKey} />
+                  <PreviewField
+                    label="Category"
+                    value={
+                      previewProduct.categoryName
+                        ? `${previewProduct.categoryName}${previewProduct.categorySlug ? ` / ${previewProduct.categorySlug}` : ""}`
+                        : "—"
+                    }
+                  />
+                  <PreviewField label="Category ID" value={<span className="break-all">{previewProduct.categoryId || "—"}</span>} />
+                  <PreviewField label="Tạo lúc" value={formatDateTime(previewProduct.createdAt)} />
+                  <PreviewField label="Cập nhật lúc" value={formatDateTime(previewProduct.updatedAt)} />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Slug</p>
-                  <p className="text-sm text-muted-foreground">/{previewProduct.slug}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Trạng thái</p>
-                  <p className="text-sm text-muted-foreground">{previewProduct.status}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Loại</p>
-                  <p className="text-sm text-muted-foreground">{getProductTypeLabel(previewProduct.productType)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Giá</p>
-                  <p className="text-sm text-muted-foreground">{previewProduct.price}</p>
-                </div>
-                {previewProduct.productType === "general_product" ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">Kho</p>
-                    <p className="text-sm text-muted-foreground">
-                      {previewProduct.trackInventory
+              </PreviewSection>
+
+              <PreviewSection title="Giá, kho và nguồn hàng">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <PreviewField label="Giá bán" value={previewProduct.price} />
+                  <PreviewField label="Giá nhập" value={previewProduct.costPrice} />
+                  <PreviewField label="Fulfillment" value={getFulfillmentTypeLabel(previewProduct.fulfillmentType)} />
+                  <PreviewField
+                    label="Kho"
+                    value={
+                      previewProduct.trackInventory
                         ? `${previewProduct.stockQuantity} • cảnh báo thấp ${previewProduct.lowStockThreshold}${previewProduct.allowBackorder ? " • cho phép backorder" : ""}`
-                        : "Không giới hạn tồn kho"}
-                    </p>
-                  </div>
-                ) : null}
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Template Key</p>
-                  <p className="text-sm text-muted-foreground">{previewProduct.templateKey}</p>
+                        : "Không giới hạn tồn kho"
+                    }
+                  />
+                  <PreviewField label="Nguồn hàng" value={previewProduct.ownerType === "vendor" ? "Vendor" : "Nội bộ"} />
+                  <PreviewField label="Vendor SKU" value={previewProduct.vendorSku || "—"} />
+                  <PreviewField
+                    label="Vendor User ID"
+                    value={<span className="break-all">{previewProduct.ownerVendorUserId || "—"}</span>}
+                    className="md:col-span-2"
+                  />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Tạo lúc</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(previewProduct.createdAt).toISOString().slice(0, 16).replace("T", " ")}
-                  </p>
+              </PreviewSection>
+
+              <PreviewSection title="Nội dung">
+                <div className="space-y-3">
+                  <PreviewField label="Excerpt" value={previewProduct.excerpt || "—"} />
+                  <PreviewField
+                    label="Mô tả"
+                    value={<span className="whitespace-pre-wrap">{previewProduct.description || "—"}</span>}
+                  />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Cập nhật lúc</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(previewProduct.updatedAt).toISOString().slice(0, 16).replace("T", " ")}
-                  </p>
+              </PreviewSection>
+
+              <PreviewSection title="Media">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                  {previewProduct.thumbnailUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewProduct.thumbnailUrl}
+                      alt={previewProduct.name}
+                      className="h-28 w-28 shrink-0 rounded-md border object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-md border text-sm text-muted-foreground">
+                      —
+                    </div>
+                  )}
+                  <PreviewField
+                    label="Thumbnail URL"
+                    value={<span className="break-all">{previewProduct.thumbnailUrl || "—"}</span>}
+                    className="min-w-0 flex-1"
+                  />
                 </div>
-              </div>
+              </PreviewSection>
 
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Excerpt</p>
-                <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewProduct.excerpt || "—"}</p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Mô tả</p>
-                <p className="rounded-md border p-3 text-sm text-muted-foreground">
-                  {previewProduct.description || "—"}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Thumbnail</p>
-                <p className="break-all rounded-md border p-3 text-sm text-muted-foreground">
-                  {previewProduct.thumbnailUrl || "—"}
-                </p>
-              </div>
+              <PreviewSection title="Config">
+                <pre className="max-h-72 overflow-auto rounded-md bg-muted/40 p-3 text-xs text-foreground">
+                  {JSON.stringify(previewProduct.config ?? {}, null, 2)}
+                </pre>
+              </PreviewSection>
             </div>
           ) : null}
         </DialogContent>
