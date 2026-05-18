@@ -8,7 +8,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
   if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
   if (pathname.startsWith(ROUTES.ADMIN.CODED_TEMPLATES)) return "Mẫu coded";
-  if (pathname.startsWith(ROUTES.ADMIN.BUILDER_TEMPLATES)) return "Mẫu builder";
+  if (pathname.startsWith(ROUTES.ADMIN.BUILDER)) return "Builder";
   if (pathname.startsWith(ROUTES.ADMIN.VENDOR_PRODUCTS)) return "Vendor Product Review";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Cat";

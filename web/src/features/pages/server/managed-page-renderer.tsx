@@ -315,7 +315,7 @@ const templateProductTabs: Array<{
   },
   {
     key: "builder",
-    label: "Mẫu builder",
+    label: "Builder",
     productType: "builder_template",
     description: "Mẫu kéo thả, có thể tạo từ admin builder hoặc seed sẵn bằng builder document.",
   },

@@ -5,15 +5,15 @@ import { ProductEditorForm } from "@/features/products/admin/product-editor-form
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
-type AdminBuilderTemplateEditorPageProps = {
+type AdminBuilderEditorPageProps = {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function AdminBuilderTemplateEditorPage({
+export default async function AdminBuilderEditorPage({
   params,
   searchParams,
-}: AdminBuilderTemplateEditorPageProps) {
+}: AdminBuilderEditorPageProps) {
   const { slug } = await params;
   const query = (await searchParams) ?? {};
   const [product, categories, vendors] = await Promise.all([
@@ -34,7 +34,7 @@ export default async function AdminBuilderTemplateEditorPage({
     redirect(`${fallbackHref}${query.returnTo ? `?returnTo=${encodeURIComponent(getQueryValue(query.returnTo) ?? "")}` : ""}`);
   }
 
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER_TEMPLATES;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER;
 
   return <ProductEditorForm product={product} categories={categories} vendors={vendors} returnTo={returnTo} />;
 }

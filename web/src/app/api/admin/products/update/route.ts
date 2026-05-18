@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
     productType === "builder_template"
-      ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(originalSlug)
+      ? ROUTES.ADMIN.BUILDER_EDITOR(originalSlug)
       : productType === "coded_template"
         ? ROUTES.ADMIN.CODED_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.PRODUCT(originalSlug);
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
 
   const nextLocation =
     product.productType === "builder_template"
-      ? ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)
+      ? ROUTES.ADMIN.BUILDER_EDITOR(product.slug)
       : product.productType === "coded_template"
         ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)
       : ROUTES.ADMIN.PRODUCT(product.slug);

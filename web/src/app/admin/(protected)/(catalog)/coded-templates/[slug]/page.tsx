@@ -30,7 +30,7 @@ export default async function AdminCodedTemplateEditorPage({
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.CODED_TEMPLATES;
 
   if (product.productType === "builder_template") {
-    redirect(`${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.BUILDER_TEMPLATES)}`);
+    redirect(`${ROUTES.ADMIN.BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.BUILDER)}`);
   }
 
   if (product.productType === "general_product") {

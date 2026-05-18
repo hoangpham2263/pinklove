@@ -16,17 +16,17 @@ import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import type { ProductCategory } from "@/features/products/types";
 
-const BUILDER_TEMPLATE_KEY = "freeform_sections";
+const BUILDER_KEY = "freeform_sections";
 
-type ProductBuilderTemplateCreateFormProps = {
+type ProductBuilderCreateFormProps = {
   categories: ProductCategory[];
   returnTo?: string;
 };
 
-export function ProductBuilderTemplateCreateForm({
+export function ProductBuilderCreateForm({
   categories,
-  returnTo = ROUTES.ADMIN.BUILDER_TEMPLATES,
-}: ProductBuilderTemplateCreateFormProps) {
+  returnTo = ROUTES.ADMIN.BUILDER,
+}: ProductBuilderCreateFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -40,10 +40,10 @@ export function ProductBuilderTemplateCreateForm({
 
     try {
       const result = await adminApi.createProduct(new FormData(event.currentTarget));
-      toast.success(result.message ?? "Đã tạo mẫu builder.");
+      toast.success(result.message ?? "Đã tạo builder.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể tạo mẫu builder.");
+      toast.error(error instanceof Error ? error.message : "Không thể tạo builder.");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +58,7 @@ export function ProductBuilderTemplateCreateForm({
     >
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="productType" value="builder_template" />
-      <input type="hidden" name="templateKey" value={BUILDER_TEMPLATE_KEY} />
+      <input type="hidden" name="templateKey" value={BUILDER_KEY} />
       <input type="hidden" name="fulfillmentType" value="digital" />
       <input type="hidden" name="ownerType" value="internal" />
       <input type="hidden" name="ownerVendorUserId" value="" />
@@ -72,12 +72,12 @@ export function ProductBuilderTemplateCreateForm({
         sidebar={
           <>
             <div className="space-y-3">
-              <h1 className="truncate text-base font-semibold">Tạo mẫu builder</h1>
+              <h1 className="truncate text-base font-semibold">Tạo builder</h1>
             </div>
 
             <div className="space-y-3">
               <div className="space-y-1">
-                <label htmlFor="name" className="text-sm font-medium">Tên mẫu</label>
+                <label htmlFor="name" className="text-sm font-medium">Tên builder</label>
                 <Input
                   id="name"
                   name="name"
@@ -164,7 +164,7 @@ export function ProductBuilderTemplateCreateForm({
 
             <div className="space-y-3">
               <AdminSubmitButton className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Đang tạo..." : "Tạo mẫu builder"}
+                {isSubmitting ? "Đang tạo..." : "Tạo builder"}
               </AdminSubmitButton>
             </div>
           </>

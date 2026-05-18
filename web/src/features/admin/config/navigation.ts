@@ -68,7 +68,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "package" },
       { label: "Product Categories", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
       { label: "Coded Templates", href: ROUTES.ADMIN.CODED_TEMPLATES, iconName: "file-code-2" },
-      { label: "Builder Templates", href: ROUTES.ADMIN.BUILDER_TEMPLATES, iconName: "blocks" },
+      { label: "Builder", href: ROUTES.ADMIN.BUILDER, iconName: "blocks" },
       { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
     ],
   },

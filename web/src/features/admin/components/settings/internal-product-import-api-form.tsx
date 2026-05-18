@@ -97,7 +97,7 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
             </div>
 
             <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Endpoint này cố định cho sản phẩm thường. Coded template được tạo từ code/seed, builder template được tạo từ trình builder riêng.
+              Endpoint này cố định cho sản phẩm thường. Coded template được tạo từ code/seed, builder được tạo từ trình builder riêng.
             </div>
 
             <div className="space-y-2 rounded-lg border bg-muted/30 p-4 text-sm">

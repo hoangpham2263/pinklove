@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     : await createBuilderInvitation(user.id);
 
   if (!site) {
-    return respondError(request, { error: "product_not_found", message: "Không tìm thấy builder template khả dụng.", location: `${ROUTES.BUILDER}?error=product_not_found` });
+    return respondError(request, { error: "product_not_found", message: "Không tìm thấy builder khả dụng.", location: `${ROUTES.BUILDER}?error=product_not_found` });
   }
 
   return respondSuccess(request, { location: ROUTES.CUSTOMER.DESIGN(site.id), message: "Đã tạo thiệp builder." });

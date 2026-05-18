@@ -55,3 +55,15 @@ export function isBuilderProductType(productType: ProductType) {
 export function isGeneralProductType(productType: ProductType) {
   return productType === "general_product";
 }
+
+export function getProductTypeLabel(productType: ProductType) {
+  switch (productType) {
+    case "builder_template":
+      return "Builder";
+    case "general_product":
+      return "Sản phẩm";
+    case "coded_template":
+    default:
+      return "Coded";
+  }
+}

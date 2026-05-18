@@ -78,7 +78,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </form>
           {!query ? (
             <div className="flex flex-wrap gap-3">
-              <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiep mau san</GuestLinkButton>
+              <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>
               <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Xem builder starter</GuestLinkButton>
               <GuestLinkButton href={ROUTES.BLOG} variant="secondary">Doc blog cuoi</GuestLinkButton>
             </div>
@@ -93,8 +93,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               Khong tim thay ket qua phu hop. Thu doi tu khoa ngan hon hoac chuyen sang mot nhom noi dung khac.
             </p>
             <div className="flex flex-wrap gap-3">
-              <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiep mau san</GuestLinkButton>
-              <GuestLinkButton href={ROUTES.BLOG} variant="secondary">Xem bai viet moi</GuestLinkButton>
+              <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>
+              <GuestLinkButton href={ROUTES.BLOG} variant="secondary">Xem bài viết mới</GuestLinkButton>
             </div>
           </GuestPanelBody>
         </GuestPanel>
@@ -103,8 +103,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {results.products.length > 0 ? (
         <section className="space-y-6">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-stone-400">San pham</p>
-            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl">Mau thiep va builder</h2>
+            <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Sản phẩm</p>
+            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl">Mẫu thiệp và builder</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {results.products.map((product) => (

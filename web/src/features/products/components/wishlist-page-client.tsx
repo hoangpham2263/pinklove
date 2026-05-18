@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { useWishlist } from "@/features/products/use-wishlist";
 import { getWishlistProductHref } from "@/features/products/wishlist";
-import type { Product } from "@/features/products/types";
+import { getProductTypeLabel, type Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 import type { EcommerceSettings } from "@/lib/system-settings";
@@ -33,18 +33,6 @@ type WishlistPageClientProps = {
   customerPhone?: string;
   customerEmail: string;
 };
-
-function getProductTypeLabel(productType: Product["productType"]) {
-  switch (productType) {
-    case "builder_template":
-      return "Tu tao thiep";
-    case "general_product":
-      return "San pham";
-    case "coded_template":
-    default:
-      return "Thiep mau san";
-  }
-}
 
 export function WishlistPageClient({
   products,
@@ -107,7 +95,7 @@ export function WishlistPageClient({
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiep mau san</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>
                 <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Xem builder starter</GuestLinkButton>
               </div>
             </GuestPanelBody>
@@ -129,14 +117,14 @@ export function WishlistPageClient({
                           checked={allSelected}
                           onChange={toggleAllProducts}
                           onClick={(event) => event.stopPropagation()}
-                          aria-label="Chon tat ca san pham"
+                          aria-label="Chọn tất cả sản phẩm"
                           className="size-4 rounded border-stone-300 text-stone-950"
                         />
                       </TableHead>
-                      <TableHead>San pham</TableHead>
-                      <TableHead className="w-36">Loai</TableHead>
-                      <TableHead className="w-32 text-right">Gia</TableHead>
-                      <TableHead className="w-28 text-right">Thao tac</TableHead>
+                      <TableHead>Sản phẩm</TableHead>
+                      <TableHead className="w-36">Loại</TableHead>
+                      <TableHead className="w-32 text-right">Giá</TableHead>
+                      <TableHead className="w-28 text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -153,7 +141,7 @@ export function WishlistPageClient({
                             checked={selectedIdSet.has(item.id)}
                             onChange={() => toggleProductSelection(item.id)}
                             onClick={(event) => event.stopPropagation()}
-                            aria-label={`Chon ${item.name} de thanh toan`}
+                            aria-label={`Chọn ${item.name} để thanh toán`}
                             className="size-4 rounded border-stone-300 text-stone-950"
                           />
                         </TableCell>
@@ -185,7 +173,7 @@ export function WishlistPageClient({
                                 {item.name}
                               </Link>
                               <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-600">
-                                {item.excerpt || "San pham nay da duoc luu vao wishlist cua ban."}
+                                {item.excerpt || "Sản phẩm này đã được lưu vào wishlist của bạn."}
                               </p>
                             </div>
                           </div>
@@ -199,13 +187,13 @@ export function WishlistPageClient({
                             <button
                               type="button"
                               className="inline-flex size-10 items-center justify-center rounded-md border border-stone-200 text-stone-500 transition hover:border-rose-200 hover:text-rose-500"
-                              aria-label={`Xoa ${item.name} khoi wishlist`}
+                              aria-label={`Xóa ${item.name} khỏi wishlist`}
                               onClick={async (event) => {
                                 event.stopPropagation();
                                 const result = await removeProduct(item);
                                 if (result?.removed) {
                                   setSelectedProductIds((current) => current.filter((id) => id !== item.id));
-                                  toast.success("Da xoa khoi wishlist.");
+                                  toast.success("Da xoa khỏi wishlist.");
                                 }
                               }}
                             >

@@ -1,20 +1,20 @@
-import { ProductBuilderTemplateCreateForm } from "@/features/products/admin/product-builder-template-create-form";
+import { ProductBuilderCreateForm } from "@/features/products/admin/product-builder-create-form";
 import { listAllProductCategories } from "@/features/products/server/service";
 import { ROUTES } from "@/lib/routes";
 
-type AdminBuilderTemplateCreatePageProps = {
+type AdminBuilderCreatePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function AdminBuilderTemplateCreatePage({
+export default async function AdminBuilderCreatePage({
   searchParams,
-}: AdminBuilderTemplateCreatePageProps) {
+}: AdminBuilderCreatePageProps) {
   const query = (await searchParams) ?? {};
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER_TEMPLATES;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.BUILDER;
   const categories = await listAllProductCategories();
 
   return (
-    <ProductBuilderTemplateCreateForm
+    <ProductBuilderCreateForm
       categories={categories}
       returnTo={returnTo}
     />

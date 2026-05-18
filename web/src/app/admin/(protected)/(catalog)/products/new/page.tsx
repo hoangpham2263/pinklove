@@ -20,11 +20,11 @@ export default async function AdminProductCreatePage({ searchParams }: AdminProd
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === "builder_template" ? ROUTES.ADMIN.BUILDER_TEMPLATES : ROUTES.ADMIN.PRODUCT_LIST
+    requestedType === "builder_template" ? ROUTES.ADMIN.BUILDER : ROUTES.ADMIN.PRODUCT_LIST
   );
 
   if (requestedType === "builder_template") {
-    redirect(`${ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
+    redirect(`${ROUTES.ADMIN.BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
   const [categories, vendors] = await Promise.all([
@@ -38,7 +38,7 @@ export default async function AdminProductCreatePage({ searchParams }: AdminProd
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tạo sản phẩm</h1>
           <p className="text-sm text-muted-foreground">
-            Nhóm sản phẩm bán ra không dùng template invitation source. Mẫu builder được tạo ở trình builder chuyên biệt.
+            Nhóm sản phẩm bán ra không dùng template invitation source. Builder được tạo ở trình builder chuyên biệt.
           </p>
         </div>
       </div>

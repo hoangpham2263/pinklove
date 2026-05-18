@@ -34,7 +34,7 @@ export async function AdminProductsPageView({
   const canCreateProduct = fixedProductType === "general_product" || fixedProductType === "builder_template";
   const createHref =
     fixedProductType === "builder_template"
-      ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
+      ? `${ROUTES.ADMIN.BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
       : `${ROUTES.ADMIN.PRODUCTS}?type=${fixedProductType}&returnTo=${encodeURIComponent(returnTo)}`;
   const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateProduct;
 
@@ -50,7 +50,7 @@ export async function AdminProductsPageView({
           ) : null}
           {canCreateProduct ? (
             <AdminCreateLinkButton href={createHref}>
-              {fixedProductType === "builder_template" ? "Tạo mẫu builder" : "Tạo sản phẩm"}
+              {fixedProductType === "builder_template" ? "Tạo builder" : "Tạo sản phẩm"}
             </AdminCreateLinkButton>
           ) : null}
         </div>

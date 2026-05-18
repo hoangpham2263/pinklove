@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: "product_type_locked",
-        message: "API import nội bộ chỉ cập nhật sản phẩm thường, không cập nhật coded hoặc builder template.",
+        message: "API import nội bộ chỉ cập nhật sản phẩm thường, không cập nhật coded hoặc builder.",
       },
       { status: 409 }
     );

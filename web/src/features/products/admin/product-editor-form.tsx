@@ -56,11 +56,11 @@ export function ProductEditorForm({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isGeneralProduct = product.productType === "general_product";
-  const isBuilderTemplate = product.productType === "builder_template";
+  const isBuilder = product.productType === "builder_template";
   const canDeleteProduct = product.productType !== "coded_template";
   const templateFields = useMemo(
-    () => (isGeneralProduct || isBuilderTemplate ? [] : getInvitationTemplateFields(product.templateKey)),
-    [isGeneralProduct, isBuilderTemplate, product.templateKey]
+    () => (isGeneralProduct || isBuilder ? [] : getInvitationTemplateFields(product.templateKey)),
+    [isGeneralProduct, isBuilder, product.templateKey]
   );
   const builderInitialValue = useMemo(
     () => (siteDefaults.builderDocument ?? siteDefaults.builderCanvas ?? null),
@@ -102,7 +102,7 @@ export function ProductEditorForm({
     }
   }
 
-  if (isBuilderTemplate) {
+  if (isBuilder) {
     return (
       <NativeForm
         id="product-update-form"
@@ -127,13 +127,13 @@ export function ProductEditorForm({
               <div className="flex min-w-0 items-center gap-3">
                 <div className="min-w-0">
                   <h1 className="truncate text-base font-semibold">{product.name}</h1>
-                  <p className="text-sm text-muted-foreground">Mẫu builder gốc trong admin</p>
+                  <p className="text-sm text-muted-foreground">Builder gốc trong admin</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">Tên mẫu</label>
+                  <label className="text-sm font-medium">Tên builder</label>
                   <Input
                     name="name"
                     value={name}
@@ -209,11 +209,11 @@ export function ProductEditorForm({
 
               <div className="space-y-3">
                 <AdminDeleteButton className="w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
-                  {isDeleting ? "Đang xóa..." : "Xóa mẫu"}
+                  {isDeleting ? "Đang xóa..." : "Xóa builder"}
                 </AdminDeleteButton>
 
                 <AdminSubmitButton className="w-full" disabled={isSaving}>
-                  {isSaving ? "Đang lưu..." : "Lưu mẫu builder"}
+                  {isSaving ? "Đang lưu..." : "Lưu builder"}
                 </AdminSubmitButton>
               </div>
             </>

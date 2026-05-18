@@ -40,19 +40,8 @@ import { AdminTableThumbnail } from "@/features/admin/components/admin-table-thu
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import type { Product, ProductType } from "@/features/products/types";
+import { getProductTypeLabel, type Product, type ProductType } from "@/features/products/types";
 import { getProductPath } from "@/lib/public-paths";
-
-function getProductTypeLabel(productType: ProductType) {
-  switch (productType) {
-    case "builder_template":
-      return "Builder Template";
-    case "general_product":
-      return "Sản phẩm";
-    default:
-      return "Coded Template";
-  }
-}
 
 function formatDateTime(value: string) {
   return new Date(value).toISOString().slice(0, 16).replace("T", " ");
@@ -210,7 +199,7 @@ export function AdminProductList({
           const publicHref = getProductPath(product);
           const adminEditHref =
             product.productType === "builder_template"
-              ? `${ROUTES.ADMIN.BUILDER_TEMPLATE_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
+              ? `${ROUTES.ADMIN.BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : product.productType === "coded_template"
                 ? `${ROUTES.ADMIN.CODED_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : `${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`;
