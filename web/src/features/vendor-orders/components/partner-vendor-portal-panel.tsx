@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { ArrowUpDown, ExternalLink, Eye } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ColumnDef,
@@ -21,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
+import { VendorTableActionButton, VendorTableActions } from "@/features/vendor-orders/components/vendor-table-actions";
 import type { VendorAssignmentStatus, VendorOrderSummary } from "@/features/vendor-orders/types";
 import { vendorApi } from "@/lib/api-client.vendor";
 import type { VendorPortalStats } from "@/lib/api-client.vendor";
@@ -57,6 +57,25 @@ function getStatusDotClass(status: VendorAssignmentStatus) {
       return "bg-rose-500";
     default:
       return "bg-zinc-400";
+  }
+}
+
+function getAssignmentTableCellClassName(columnId: string) {
+  switch (columnId) {
+    case "orderNumber":
+      return "w-[24%] min-w-0";
+    case "customerName":
+      return "w-[34%] min-w-0";
+    case "assignmentStatus":
+      return "hidden w-[18%] md:table-cell";
+    case "paymentStatus":
+      return "hidden w-[14%] lg:table-cell";
+    case "updatedAt":
+      return "hidden w-[16%] xl:table-cell";
+    case "actions":
+      return "w-[80px] md:w-[116px]";
+    default:
+      return undefined;
   }
 }
 
@@ -122,7 +141,7 @@ export function PartnerVendorPortalPanel({
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => <span className="font-medium text-zinc-950">{row.original.order.orderNumber}</span>,
+        cell: ({ row }) => <span className="block truncate font-medium text-zinc-950">{row.original.order.orderNumber}</span>,
       },
       {
         accessorKey: "order.customerName",
@@ -139,10 +158,7 @@ export function PartnerVendorPortalPanel({
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="space-y-1">
-            <p>{row.original.order.customerName}</p>
-            <p className="text-xs text-muted-foreground">{row.original.items.map((item) => `${item.productName} x${item.quantity}`).join(", ")}</p>
-          </div>
+          <p className="truncate">{row.original.order.customerName}</p>
         ),
       },
       {
@@ -165,9 +181,9 @@ export function PartnerVendorPortalPanel({
         },
         sortingFn: (rowA, rowB) => rowA.original.assignment.status.localeCompare(rowB.original.assignment.status),
         cell: ({ row }) => (
-          <span className="inline-flex items-center gap-2 text-sm">
+          <span className="inline-flex min-w-0 items-center gap-2 text-sm">
             <span className={`h-2 w-2 rounded-full ${getStatusDotClass(row.original.assignment.status)}`} />
-            {getVendorAssignmentStatusLabel(row.original.assignment.status)}
+            <span className="truncate">{getVendorAssignmentStatusLabel(row.original.assignment.status)}</span>
           </span>
         ),
       },
@@ -197,7 +213,7 @@ export function PartnerVendorPortalPanel({
             </Button>
           </div>
         ),
-        cell: ({ row }) => <div className="text-right text-sm">{formatDateTime(row.original.assignment.updatedAt)}</div>,
+        cell: ({ row }) => <div className="truncate text-right text-sm">{formatDateTime(row.original.assignment.updatedAt)}</div>,
       },
       {
         id: "actions",
@@ -205,19 +221,10 @@ export function PartnerVendorPortalPanel({
         enableColumnFilter: false,
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="outline" className="h-9 px-3" onClick={() => setPreviewAssignmentId(row.original.assignment.id)}>
-              <Eye className="h-4 w-4" />
-              Xem nhanh
-            </Button>
-            <Link
-              href={ROUTES.PARTNER.ORDER(row.original.assignment.id)}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input px-3 text-sm font-medium hover:bg-accent"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Mở chi tiết
-            </Link>
-          </div>
+          <VendorTableActions>
+            <VendorTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewAssignmentId(row.original.assignment.id)} />
+            <VendorTableActionButton action="external" label="Mở chi tiết" href={ROUTES.PARTNER.ORDER(row.original.assignment.id)} />
+          </VendorTableActions>
         ),
       },
     ],
@@ -336,13 +343,13 @@ export function PartnerVendorPortalPanel({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="rounded-md border">
+            <Table className="table-fixed">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} className={getAssignmentTableCellClassName(header.column.id)}>
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     ))}
@@ -354,7 +361,9 @@ export function PartnerVendorPortalPanel({
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        <TableCell key={cell.id} className={getAssignmentTableCellClassName(cell.column.id)}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))
@@ -411,7 +420,7 @@ export function PartnerVendorPortalPanel({
               </div>
 
               <div className="flex justify-end">
-                <Button variant="outline" render={<Link href={ROUTES.PARTNER.ORDER(previewEntry.assignment.id)}>Mở chi tiết</Link>} />
+                <VendorTableActionButton action="external" label="Mở chi tiết" href={ROUTES.PARTNER.ORDER(previewEntry.assignment.id)} />
               </div>
             </div>
           ) : null}

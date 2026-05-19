@@ -5,6 +5,7 @@ import {
   AFFILIATE_VISITOR_COOKIE_NAME,
   recordAffiliateClick,
 } from "@/features/affiliate/server/service";
+import { getCurrentUserFromRequest } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,7 @@ type TrackPayload = {
 };
 
 export async function POST(request: Request) {
+  const user = await getCurrentUserFromRequest(request);
   const payload = (await request.json().catch(() => null)) as TrackPayload | null;
   const code = payload?.code?.trim().toLowerCase();
   const landingPath = payload?.landingPath?.trim() || "/";
@@ -36,21 +38,22 @@ export async function POST(request: Request) {
     referrer: request.headers.get("referer") || undefined,
     userAgent: request.headers.get("user-agent") || undefined,
     visitorToken,
+    excludeUserId: user?.id,
   });
 
   if (!tracked) {
-    return NextResponse.json({ ok: false, error: "affiliate_not_active" }, { status: 404 });
+    return NextResponse.json({ ok: false, error: "affiliate_not_available" }, { status: 404 });
   }
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(AFFILIATE_REF_COOKIE_NAME, tracked.account.code, {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     path: "/",
     maxAge: AFFILIATE_COOKIE_MAX_AGE,
   });
   response.cookies.set(AFFILIATE_VISITOR_COOKIE_NAME, tracked.visitorToken, {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     path: "/",
     maxAge: AFFILIATE_COOKIE_MAX_AGE,

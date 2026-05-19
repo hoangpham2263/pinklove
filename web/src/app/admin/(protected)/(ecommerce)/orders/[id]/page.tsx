@@ -80,7 +80,7 @@ export default async function AdminOrderDetailPage({
             ) : null}
           </div>
 
-          <div className="grid gap-4 text-sm lg:min-w-[320px] lg:max-w-[360px]">
+          <div className="grid gap-4 text-sm lg:w-[320px] lg:max-w-full">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Tổng tiền</p>
               <p className="text-lg font-semibold">{formatCurrency(order.totalAmount, settings.ecommerce)}</p>

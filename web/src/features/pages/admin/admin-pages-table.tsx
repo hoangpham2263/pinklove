@@ -215,7 +215,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <AdminTableToolbar contentClassName="grid w-full grid-cols-1 md:grid-cols-[minmax(16rem,1fr)_10.5rem_10.5rem_auto] lg:w-auto lg:min-w-[44rem]">
+        <AdminTableToolbar contentClassName="grid w-full grid-cols-1 md:grid-cols-[minmax(0,1fr)_10.5rem_10.5rem_auto] lg:w-auto">
           <AdminTableSearch
             value={globalFilter}
             onChange={setGlobalFilter}

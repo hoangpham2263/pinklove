@@ -1,0 +1,123 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  BookOpenText,
+  Globe,
+  Link2,
+  type LucideIcon,
+  Search,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
+
+import { Input } from "@/components/ui/input";
+import { CustomerActionLinkTile } from "@/features/customer/ui/customer-buttons";
+
+type CustomerConfigHubItem = {
+  title: string;
+  description: string;
+  href: string;
+};
+
+type CustomerConfigHubSection = {
+  title: string;
+  icon: "settings" | "link" | "globe" | "docs";
+  items: readonly CustomerConfigHubItem[];
+};
+
+type CustomerConfigSectionsHubProps = {
+  sections: readonly CustomerConfigHubSection[];
+  scopeLabel?: string;
+};
+
+const iconMap: Record<CustomerConfigHubSection["icon"], LucideIcon> = {
+  settings: Settings2,
+  link: Link2,
+  globe: Globe,
+  docs: BookOpenText,
+};
+
+export function CustomerConfigSectionsHub({
+  sections,
+  scopeLabel = "Quản lý tập trung cho cấu hình tài khoản user",
+}: CustomerConfigSectionsHubProps) {
+  const [keyword, setKeyword] = useState("");
+
+  const filteredSections = useMemo(() => {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+    if (!normalizedKeyword) {
+      return sections;
+    }
+
+    return sections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) =>
+          [item.title, item.description].some((value) => value.toLowerCase().includes(normalizedKeyword))
+        ),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [keyword, sections]);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative w-full max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="Tìm kiếm cấu hình tài khoản..."
+            className="h-9 bg-background pl-9"
+          />
+        </div>
+        <div className="inline-flex h-9 items-center gap-2 rounded-lg border bg-background px-3">
+          <ShieldCheck className="h-4 w-4" />
+          {scopeLabel}
+        </div>
+      </div>
+
+      <div className="rounded-md border bg-background">
+        <div className="grid gap-8 p-4 lg:grid-cols-3">
+          {filteredSections.map((section) => {
+            const SectionIcon = iconMap[section.icon];
+
+            return (
+              <div key={section.title} className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border bg-muted/40">
+                    <SectionIcon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="tracking-tight text-foreground">{section.title}</h2>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {section.items.map((item) => (
+                    <CustomerActionLinkTile
+                      key={item.href}
+                      href={item.href}
+                      label={item.title}
+                      description={item.description}
+                      variant="plain"
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {filteredSections.length === 0 ? (
+            <div className="lg:col-span-3">
+              <div className="rounded-lg border border-dashed px-4 py-10 text-center text-muted-foreground">
+                Không tìm thấy mục cấu hình tài khoản phù hợp.
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

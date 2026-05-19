@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "sonner/dist/styles.css";
 @import "./(guest)/guest.css";
+@import "../features/customer/ui/customer.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -215,6 +216,67 @@
     padding-right: 36px;
     padding-left: 12px;
     @apply rounded-lg border border-input bg-background outline-none;
+  }
+}
+
+[data-action-tooltip] {
+  position: relative;
+}
+
+[data-action-tooltip]::before,
+[data-action-tooltip]::after {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  z-index: 80;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+[data-action-tooltip]::before {
+  content: "";
+  bottom: calc(100% + 4px);
+  border: 4px solid transparent;
+  border-top-color: var(--foreground);
+}
+
+[data-action-tooltip]::after {
+  content: attr(data-action-tooltip);
+  bottom: calc(100% + 8px);
+  max-width: 240px;
+  border-radius: 8px;
+  background: var(--foreground);
+  box-shadow: 0 10px 24px oklch(0 0 0 / 18%);
+  color: var(--background);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+[data-action-tooltip]:hover::before,
+[data-action-tooltip]:hover::after,
+[data-action-tooltip]:focus-visible::before,
+[data-action-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+[data-action-tooltip][disabled]::before,
+[data-action-tooltip][disabled]::after,
+[data-action-tooltip][aria-disabled="true"]::before,
+[data-action-tooltip][aria-disabled="true"]::after {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  [data-action-tooltip]::before,
+  [data-action-tooltip]::after {
+    display: none;
   }
 }
 

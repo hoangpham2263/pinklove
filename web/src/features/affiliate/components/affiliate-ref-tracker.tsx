@@ -24,11 +24,15 @@ export function AffiliateRefTracker() {
       return;
     }
 
+    const landingParams = new URLSearchParams(searchParams.toString());
+    landingParams.delete("ref");
+    const landingPath = `${pathname}${landingParams.toString() ? `?${landingParams.toString()}` : ""}`;
+
     window.sessionStorage.setItem(key, "1");
 
     void publicApi.trackAffiliateReferral({
       code,
-      landingPath: `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+      landingPath,
     }).catch(() => {
       window.sessionStorage.removeItem(key);
     });

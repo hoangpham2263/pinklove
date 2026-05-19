@@ -1,6 +1,7 @@
 import { ChatInboxClient } from "@/features/chat/components/chat-inbox-client";
 import {
   buildChatViewerContext,
+  createSupportRequestConversation,
   getChatConversationDetailForViewer,
   listChatAssignableAccounts,
   listChatConversationsForViewer,
@@ -24,11 +25,25 @@ export async function ChatInboxPageContent({
   className,
 }: ChatInboxPageContentProps) {
   const context = await buildChatViewerContext(currentUser.role);
-  const [conversations, assignableAccounts, settings] = await Promise.all([
-    listChatConversationsForViewer(currentUser.id, context),
+  let conversations = await listChatConversationsForViewer(currentUser.id, context);
+  const [assignableAccounts, settings] = await Promise.all([
     isAdminRole(currentUser.role) ? listChatAssignableAccounts(currentUser.id) : Promise.resolve([]),
     isAdminRole(currentUser.role) ? getSystemSettings() : Promise.resolve(null),
   ]);
+
+  if (mode === "customer" && conversations.length === 0) {
+    try {
+      await createSupportRequestConversation({
+        requesterUserId: currentUser.id,
+        category: "general",
+        title: "Hỗ trợ chung",
+      });
+      conversations = await listChatConversationsForViewer(currentUser.id, context);
+    } catch {
+      conversations = [];
+    }
+  }
+
   const initialConversation = conversations[0]
     ? await getChatConversationDetailForViewer(currentUser.id, conversations[0].id, context)
     : null;

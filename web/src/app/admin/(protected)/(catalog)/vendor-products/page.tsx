@@ -87,7 +87,7 @@ export default async function AdminVendorProductsPage() {
                         {request.reviewNote ? <p className="mt-1 text-xs text-muted-foreground">Review: {request.reviewNote}</p> : null}
                       </TableCell>
                       <TableCell className="text-right">
-                        <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_REQUEST_REVIEW(request.id)} method="POST" className="ml-auto grid min-w-[220px] gap-2">
+                        <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_REQUEST_REVIEW(request.id)} method="POST" className="ml-auto grid w-full gap-2 md:w-[220px]">
                           <textarea name="reviewNote" className="min-h-16 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Review note" />
                           <AdminTableActions>
                             <AdminTableActionButton action="edit" label="Review request" type="submit" name="nextStatus" value="under_review" />
@@ -151,7 +151,7 @@ export default async function AdminVendorProductsPage() {
                       <TableCell className="text-right">{supplier.monthlyCapacity}/tháng</TableCell>
                       <TableCell>{supplier.status}</TableCell>
                       <TableCell className="text-right">
-                        <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_STATUS(supplier.id)} method="POST" className="ml-auto grid min-w-[260px] gap-2">
+                        <form action={ROUTES.API.ADMIN.VENDOR_PRODUCTS.SUPPLIER_STATUS(supplier.id)} method="POST" className="ml-auto grid w-full gap-2 md:w-[260px]">
                           <textarea name="reviewNote" className="min-h-14 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Lifecycle note" />
                           <AdminTableActions>
                             {supplier.status !== "active" ? (

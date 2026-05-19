@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CustomerTableActionButton, CustomerTableActions } from "@/features/customer/ui/customer-table-actions";
 import { listOrdersForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -43,16 +44,18 @@ export default async function CustomerOrdersPage() {
               <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
                   <p className="font-semibold">{order.orderNumber}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 truncate text-sm text-muted-foreground">
                     {order.items.map((item) => item.productName).join(", ")}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Đơn: {getOrderStatusLabel(order.status)} • Thanh toán: {getPaymentStatusLabel(order.paymentStatus)} • Giao hàng: {getFulfillmentStatusLabel(order.fulfillmentStatus)}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
                   <p className="font-semibold">{formatCurrency(order.totalAmount, settings.ecommerce)}</p>
-                  <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDER(order.id)}>Xem đơn</Link>} />
+                  <CustomerTableActions>
+                    <CustomerTableActionButton action="view" label="Xem đơn" href={ROUTES.CUSTOMER.ORDER(order.id)} />
+                  </CustomerTableActions>
                 </div>
               </CardContent>
             </Card>

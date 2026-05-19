@@ -45,9 +45,13 @@ export async function POST(request: Request) {
     const message =
       code === "AFFILIATE_NOT_FOUND"
         ? "Không tìm thấy tài khoản affiliate."
-        : code === "AFFILIATE_COMMISSION_INVALID"
-          ? "Mức commission không hợp lệ."
-          : "Không thể cập nhật affiliate lúc này.";
+        : code === "AFFILIATE_STATUS_INVALID"
+          ? "Trạng thái affiliate không hợp lệ."
+          : code === "AFFILIATE_COMMISSION_TYPE_INVALID"
+            ? "Loại commission không hợp lệ."
+            : code === "AFFILIATE_COMMISSION_INVALID"
+              ? "Mức commission không hợp lệ."
+              : "Không thể cập nhật affiliate lúc này.";
     return respondError(request, {
       error: code,
       message,

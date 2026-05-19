@@ -1,6 +1,6 @@
 import { BadgePercent, ListChecks, MapPin, UserCircle2 } from "lucide-react";
-import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
-import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
+import { CustomerConfigSectionsHub } from "@/features/customer/ui/customer-config-sections-hub";
+import { CustomerOverviewCard, CustomerOverviewGrid } from "@/features/customer/ui/customer-overview-card";
 import { listUserAddresses } from "@/features/account/server/address-service";
 import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -14,11 +14,6 @@ const CONFIG_SECTIONS = [
         title: "Hồ sơ",
         description: "Thông tin cá nhân, tên hiển thị và số điện thoại dùng trong tài khoản.",
         href: ROUTES.CUSTOMER.CONFIG_PROFILE,
-      },
-      {
-        title: "Cài đặt",
-        description: "Các tùy chọn hệ thống dành cho tài khoản user.",
-        href: ROUTES.CUSTOMER.CONFIG_SETTINGS,
       },
       {
         title: "Tiếp thị liên kết",
@@ -48,14 +43,14 @@ export default async function CustomerConfigPage() {
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <AdminOverviewGrid>
-        <AdminOverviewCard title="Tổng mục cấu hình" value={totalItems} icon={ListChecks} />
-        <AdminOverviewCard title="Hồ sơ" value={displayName} description="Thông tin tài khoản cá nhân" icon={UserCircle2} />
-        <AdminOverviewCard title="Sổ địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
-        <AdminOverviewCard title="Affiliate" value="User" description="Khu vực tăng trưởng tài khoản" icon={BadgePercent} />
-      </AdminOverviewGrid>
+      <CustomerOverviewGrid>
+        <CustomerOverviewCard title="Tổng mục cấu hình" value={totalItems} icon={ListChecks} />
+        <CustomerOverviewCard title="Hồ sơ" value={displayName} description="Thông tin tài khoản cá nhân" icon={UserCircle2} />
+        <CustomerOverviewCard title="Sổ địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
+        <CustomerOverviewCard title="Affiliate" value="User" description="Khu vực tăng trưởng tài khoản" icon={BadgePercent} />
+      </CustomerOverviewGrid>
 
-      <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} scopeLabel="Quản lý tập trung cho cấu hình tài khoản user" />
+      <CustomerConfigSectionsHub sections={[...CONFIG_SECTIONS]} scopeLabel="Quản lý tập trung cho cấu hình tài khoản user" />
     </section>
   );
 }

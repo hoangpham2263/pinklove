@@ -45,10 +45,10 @@ export function PartnerVendorHeader({
       exact: true,
     },
     {
-      href: ROUTES.PARTNER.LEGACY_ORDERS,
+      href: ROUTES.PARTNER.ORDERS,
       label: "Đơn được giao",
       icon: PackageSearch,
-      matchPrefixes: [ROUTES.PARTNER.LEGACY_ORDERS, ROUTES.PARTNER.ORDER("").slice(0, -1)],
+      matchPrefixes: [ROUTES.PARTNER.ORDERS, ROUTES.PARTNER.ORDER("").slice(0, -1)],
     },
     {
       href: ROUTES.PARTNER.PRODUCTS,

@@ -175,7 +175,7 @@ export function PaymentMethodsTable({ methods }: PaymentMethodsTableProps) {
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-md border bg-background">
+              <div className="rounded-md border bg-background">
                 <Table>
                   <TableHeader>
                     {group.category === "manual" || group.category === "offline" ? (

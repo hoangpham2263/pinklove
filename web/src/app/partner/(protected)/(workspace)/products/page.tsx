@@ -2,10 +2,11 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VendorTableActionButton, VendorTableActions } from "@/features/vendor-orders/components/vendor-table-actions";
 import { requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { listVendorProductSubmissionsForVendor } from "@/features/vendor-product-submissions/server/service";
-import { getVendorProductReviewStatusLabel, getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
+import { getVendorProductSubmissionTypeLabel } from "@/features/vendor-product-submissions/labels";
 import { VendorProductStatusBadge } from "@/features/vendor-product-submissions/components/vendor-product-status-badge";
 
 function formatDateTime(value: string) {
@@ -58,43 +59,36 @@ export default async function PartnerProductsPage() {
                 Chưa có hồ sơ sản phẩm nào. Hãy tạo hồ sơ đầu tiên để gửi admin duyệt.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[900px] text-sm">
+              <div className="rounded-md border">
+                <table className="w-full table-fixed text-sm">
                   <thead className="text-left text-muted-foreground">
                     <tr className="border-b">
-                      <th className="py-3 pr-4 font-medium">Sản phẩm</th>
-                      <th className="py-3 pr-4 font-medium">Loại yêu cầu</th>
-                      <th className="py-3 pr-4 font-medium">Giá nhập</th>
-                      <th className="py-3 pr-4 font-medium">Số lượng</th>
-                      <th className="py-3 pr-4 font-medium">Trạng thái</th>
-                      <th className="py-3 pr-4 font-medium">Cập nhật</th>
-                      <th className="py-3 text-right font-medium">Hành động</th>
+                      <th className="w-[40%] px-4 py-3 font-medium">Sản phẩm</th>
+                      <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Loại</th>
+                      <th className="hidden w-[12%] px-4 py-3 font-medium xl:table-cell">Giá nhập</th>
+                      <th className="hidden w-[12%] px-4 py-3 font-medium xl:table-cell">Số lượng</th>
+                      <th className="hidden w-[16%] px-4 py-3 font-medium md:table-cell">Trạng thái</th>
+                      <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Cập nhật</th>
+                      <th className="w-[72px] px-4 py-3 text-right font-medium">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {submissions.map((submission) => (
                       <tr key={submission.id} className="border-b align-top last:border-b-0">
-                        <td className="py-4 pr-4">
-                          <div className="space-y-1">
-                            <p className="font-medium">{submission.name}</p>
-                            <p className="text-xs text-muted-foreground">/{submission.slugCandidate}</p>
-                            {submission.linkedProductName ? (
-                              <p className="text-xs text-muted-foreground">Live: {submission.linkedProductName}</p>
-                            ) : null}
-                          </div>
+                        <td className="min-w-0 px-4 py-4">
+                          <p className="truncate font-medium">{submission.name}</p>
                         </td>
-                        <td className="py-4 pr-4 text-muted-foreground">{getVendorProductSubmissionTypeLabel(submission.submissionType)}</td>
-                        <td className="py-4 pr-4 text-muted-foreground">{submission.purchaseCost}</td>
-                        <td className="py-4 pr-4 text-muted-foreground">{submission.proposedStockQuantity}</td>
-                        <td className="py-4 pr-4">
-                          <div className="space-y-2">
-                            <VendorProductStatusBadge status={submission.reviewStatus} />
-                            <p className="text-xs text-muted-foreground">{getVendorProductReviewStatusLabel(submission.reviewStatus)}</p>
-                          </div>
+                        <td className="hidden px-4 py-4 text-muted-foreground lg:table-cell">{getVendorProductSubmissionTypeLabel(submission.submissionType)}</td>
+                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.purchaseCost}</td>
+                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.proposedStockQuantity}</td>
+                        <td className="hidden px-4 py-4 md:table-cell">
+                          <VendorProductStatusBadge status={submission.reviewStatus} />
                         </td>
-                        <td className="py-4 pr-4 text-muted-foreground">{formatDateTime(submission.updatedAt)}</td>
-                        <td className="py-4 text-right">
-                          <Button variant="outline" render={<Link href={ROUTES.PARTNER.PRODUCT(submission.id)}>Mở hồ sơ</Link>} />
+                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{formatDateTime(submission.updatedAt)}</td>
+                        <td className="px-4 py-4 text-right">
+                          <VendorTableActions>
+                            <VendorTableActionButton action="view" label="Mở hồ sơ" href={ROUTES.PARTNER.PRODUCT(submission.id)} />
+                          </VendorTableActions>
                         </td>
                       </tr>
                     ))}

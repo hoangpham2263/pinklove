@@ -401,16 +401,23 @@ async function syncAffiliateConversionForOrder(order: EcommerceOrder) {
         UPDATE affiliate_conversions
         SET
           order_value = $2,
-          status = $3,
+          status = CASE
+            WHEN $3 = 'refunded' THEN 'rejected'
+            ELSE status
+          END,
           updated_at = NOW()
         WHERE external_order_ref = $1
       `,
       [
         order.orderNumber,
         order.totalAmount,
-        order.paymentStatus === "paid" ? "approved" : order.paymentStatus === "refunded" ? "rejected" : "pending",
+        order.paymentStatus,
       ]
     );
+    return;
+  }
+
+  if (order.paymentStatus !== "paid") {
     return;
   }
 
@@ -443,7 +450,7 @@ async function syncAffiliateConversionForOrder(order: EcommerceOrder) {
       order.orderNumber,
       order.totalAmount,
       commissionBase,
-      order.paymentStatus === "paid" ? "approved" : "pending",
+      "pending",
       JSON.stringify({ orderId: order.id }),
     ]
   );
@@ -451,7 +458,13 @@ async function syncAffiliateConversionForOrder(order: EcommerceOrder) {
 
 async function ensureEntitlementsForOrder(orderId: string) {
   const order = await loadOrderBundleById(orderId);
-  if (!order || order.paymentStatus !== "paid") {
+  if (!order) {
+    return;
+  }
+
+  await syncAffiliateConversionForOrder(order);
+
+  if (order.paymentStatus !== "paid") {
     return;
   }
 
@@ -469,8 +482,6 @@ async function ensureEntitlementsForOrder(orderId: string) {
       [order.userId, item.productId, order.id, item.id]
     );
   }
-
-  await syncAffiliateConversionForOrder(order);
 }
 
 export async function createOrderFromCart(input: {
@@ -525,6 +536,10 @@ export async function createOrderFromCart(input: {
   const totalAmount = subtotalAmount + shippingAmount;
   const orderNumber = await generateOrderNumber();
   const affiliateAccount = input.affiliateCode ? await getAffiliateAccountByCode(input.affiliateCode) : null;
+  const validAffiliateAccount =
+    affiliateAccount && affiliateAccount.status === "active" && affiliateAccount.userId !== input.userId
+      ? affiliateAccount
+      : null;
   const paymentMethodConfig = settings.ecommerce.paymentMethods.find((item) => item.code === input.paymentMethod);
   const paymentProvider = input.paymentProvider ?? paymentMethodConfig?.provider ?? input.paymentMethod;
   const paymentType = input.paymentType ?? paymentMethodConfig?.type ?? "manual";
@@ -620,8 +635,8 @@ export async function createOrderFromCart(input: {
         shippingPostalCode,
         shippingCountry,
         input.notes?.trim() ?? "",
-        affiliateAccount?.userId ?? null,
-        affiliateAccount?.code ?? null,
+        validAffiliateAccount?.userId ?? null,
+        validAffiliateAccount?.code ?? null,
       ]
     );
 

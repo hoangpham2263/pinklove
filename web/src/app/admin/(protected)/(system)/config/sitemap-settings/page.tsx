@@ -196,7 +196,7 @@ export default async function AdminSitemapSettingsPage() {
               </div>
             </div>
 
-            <pre className="max-h-[560px] overflow-auto rounded-xl border border-dashed bg-muted/30 p-4 text-xs leading-5">
+            <pre className="max-h-[560px] overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words rounded-xl border border-dashed bg-muted/30 p-4 text-xs leading-5">
               {robotsContent}
             </pre>
           </CardContent>

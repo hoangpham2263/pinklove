@@ -328,7 +328,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                 <p className="mt-1 text-sm text-muted-foreground">
                   {formatDate(restorePackage.createdAt)} · {formatBytes(restorePackage.size)}
                 </p>
-                <code className="mt-3 block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs">{restoreCommand}</code>
+                <code className="mt-3 block overflow-hidden break-words rounded-lg bg-muted px-3 py-2 text-xs whitespace-pre-wrap">{restoreCommand}</code>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="restore-confirm">

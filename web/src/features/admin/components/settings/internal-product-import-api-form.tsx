@@ -102,7 +102,7 @@ export function InternalProductImportApiForm({ settings }: InternalProductImport
 
             <div className="space-y-2 rounded-lg border bg-muted/30 p-4 text-sm">
               <p className="font-medium">Payload mẫu</p>
-              <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-md bg-background p-3 text-xs">
+              <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-md bg-background p-3 text-xs">
 {`POST ${endpoint}
 Authorization: Bearer <token>
 Content-Type: application/json

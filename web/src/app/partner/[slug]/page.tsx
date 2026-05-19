@@ -48,7 +48,7 @@ export default async function PartnerVendorEntryPage({ params }: PartnerVendorEn
   const partnerTitle = "Đối tác của " + settings.branding.siteName;
 
   if (currentUser?.id === vendor.id) {
-    redirect(ROUTES.PARTNER.LEGACY_DASHBOARD);
+    redirect(ROUTES.PARTNER.DASHBOARD);
   }
 
   return (

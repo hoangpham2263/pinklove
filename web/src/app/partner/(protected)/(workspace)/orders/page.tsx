@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { PackageCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VendorTableActionButton, VendorTableActions } from "@/features/vendor-orders/components/vendor-table-actions";
 import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
 import { getUserProfile, requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -70,7 +69,9 @@ export default async function PartnerOrdersPage() {
                   <p>{entry.lastEvent?.message || "Chưa có activity"}</p>
                 </div>
                 <div className="flex justify-start lg:justify-end">
-                  <Button variant="outline" render={<Link href={ROUTES.PARTNER.ORDER(entry.assignment.id)}>Mở chi tiết</Link>} />
+                  <VendorTableActions>
+                    <VendorTableActionButton action="view" label="Mở chi tiết" href={ROUTES.PARTNER.ORDER(entry.assignment.id)} />
+                  </VendorTableActions>
                 </div>
               </div>
             ))

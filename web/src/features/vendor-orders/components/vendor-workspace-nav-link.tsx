@@ -12,6 +12,7 @@ type VendorWorkspaceNavLinkProps = {
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;
+  onNavigate?: React.ComponentProps<typeof Link>["onNavigate"];
   children: React.ReactNode;
 };
 
@@ -38,6 +39,7 @@ export function VendorWorkspaceNavLink({
   className,
   activeClassName = "bg-zinc-950 text-white",
   inactiveClassName = "text-zinc-700 hover:bg-zinc-100",
+  onNavigate,
   children,
 }: VendorWorkspaceNavLinkProps) {
   const pathname = usePathname();
@@ -47,6 +49,7 @@ export function VendorWorkspaceNavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      onNavigate={onNavigate}
       className={cn(className, active ? activeClassName : inactiveClassName)}
     >
       {children}

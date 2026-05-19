@@ -34,6 +34,7 @@ export type AffiliateClick = {
 export type AffiliateConversion = {
   id: string;
   affiliateUserId: string;
+  username?: string;
   affiliateCode: string;
   externalOrderRef?: string;
   orderValue: number;

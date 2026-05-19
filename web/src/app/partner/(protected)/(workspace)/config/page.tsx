@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
+import { VendorConfigSectionsHub } from "@/features/vendor-orders/components/vendor-config-sections-hub";
 import { requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
@@ -78,7 +78,7 @@ export default async function PartnerConfigPage() {
         </Card>
       </div>
 
-      <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
+      <VendorConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
     </section>
   );
 }

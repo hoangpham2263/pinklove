@@ -1,14 +1,9 @@
 import { ChatInboxPageContent } from "@/features/chat/components/chat-inbox-page-content";
-import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
-import { canAccessUserPortal } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 export default async function CustomerMessagesPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
-  if (!canAccessUserPortal(user.role)) {
-    redirect(ROUTES.CUSTOMER.ROOT);
-  }
   return (
     <ChatInboxPageContent
       currentUser={user}

@@ -11,6 +11,8 @@ type CustomerNavLinkProps = {
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onNavigate?: React.ComponentProps<typeof Link>["onNavigate"];
   children: React.ReactNode;
 };
 
@@ -20,6 +22,8 @@ export function CustomerNavLink({
   className,
   activeClassName = "bg-muted",
   inactiveClassName = "hover:bg-muted",
+  onClick,
+  onNavigate,
   children,
 }: CustomerNavLinkProps) {
   const pathname = usePathname();
@@ -29,6 +33,8 @@ export function CustomerNavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      onClick={onClick}
+      onNavigate={onNavigate}
       className={cn(className, active ? activeClassName : inactiveClassName)}
     >
       {children}

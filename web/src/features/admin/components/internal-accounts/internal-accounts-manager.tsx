@@ -354,7 +354,7 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                       account.sortOrder
                     )}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-muted-foreground">
                     {formatDateTime(account.updatedAt)}
                   </TableCell>
                   <TableCell>

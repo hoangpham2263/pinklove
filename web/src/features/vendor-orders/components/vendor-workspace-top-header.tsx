@@ -3,6 +3,7 @@
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { VendorWorkspaceHeaderMenu } from "@/features/vendor-orders/components/vendor-workspace-header-menu";
 import { ROUTES } from "@/lib/routes";
 
 type VendorWorkspaceTopHeaderProps = {
@@ -40,11 +41,12 @@ export function VendorWorkspaceTopHeader({
         <div className="flex items-center gap-3">
           <NotificationBell listHref={portalHref} />
           <span className="hidden text-sm md:inline">{username}</span>
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+          <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
             <button type="submit" className="text-sm font-medium transition-colors hover:underline">
               Đăng xuất
             </button>
           </form>
+          <VendorWorkspaceHeaderMenu />
         </div>
       </div>
     </header>

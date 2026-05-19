@@ -49,6 +49,29 @@ function Button({
  ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
  const isCustomRender = "render" in props && props.render !== undefined
+ const buttonProps = props as ButtonPrimitive.Props & Record<string, unknown>
+ const explicitTooltip = buttonProps["data-action-tooltip"]
+ const ariaLabel = buttonProps["aria-label"]
+ const title = buttonProps.title
+ const isIconSize =
+  typeof size === "string" &&
+  ["icon", "icon-xs", "icon-sm", "icon-lg"].includes(size)
+ const actionTooltip =
+  typeof explicitTooltip === "string"
+   ? explicitTooltip
+   : isIconSize && typeof ariaLabel === "string"
+     ? ariaLabel
+     : isIconSize && typeof title === "string"
+       ? title
+       : undefined
+ const tooltipProps =
+  actionTooltip !== undefined
+   ? {
+     "data-action-tooltip": actionTooltip,
+     ...(typeof ariaLabel !== "string" ? { "aria-label": actionTooltip } : {}),
+     ...(typeof title === "string" ? { title: undefined } : {}),
+    }
+   : {}
 
  return (
  <ButtonPrimitive
@@ -56,6 +79,7 @@ function Button({
   className={cn(buttonVariants({ variant, size, className }))}
   nativeButton={!isCustomRender}
   {...props}
+  {...tooltipProps}
  />
  )
 }

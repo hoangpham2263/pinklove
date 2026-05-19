@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, BadgePercent, FolderHeart, Plus, ShoppingBag, User as UserIcon } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, FolderHeart, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CustomerActionLinkTile, CustomerCreateLinkButton, CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
+import { CustomerOverviewCard, CustomerOverviewGrid } from "@/features/customer/ui/customer-overview-card";
 import { requireAppUser } from "@/lib/auth";
 import { isVendorRole } from "@/lib/roles";
 import { getInvitationPath } from "@/lib/public-paths";
@@ -42,46 +44,17 @@ export default async function CustomerDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" className="rounded-md" render={<Link href={ROUTES.TEMPLATES}>Tạo từ mẫu</Link>} />
-          <Button className="rounded-md" render={<Link href={ROUTES.BUILDER}>Tự tạo thiệp</Link>} />
+          <CustomerLinkButton href={ROUTES.TEMPLATES}>Tạo từ mẫu</CustomerLinkButton>
+          <CustomerCreateLinkButton href={ROUTES.BUILDER}>Tự tạo thiệp</CustomerCreateLinkButton>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Total Invitations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{invitations.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Published</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{publishedInvitations}</p>
-            <p className="text-sm text-muted-foreground">Draft: {draftInvitations}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Template Invitations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{codedInvitations}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Builder Invitations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{builderInvitations}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <CustomerOverviewGrid>
+        <CustomerOverviewCard title="Tổng thiệp" value={invitations.length} description="Toàn bộ thiệp trong tài khoản" icon={LayoutDashboard} />
+        <CustomerOverviewCard title="Published" value={publishedInvitations} description={`Draft: ${draftInvitations}`} icon={CheckCircle2} />
+        <CustomerOverviewCard title="Template Invitations" value={codedInvitations} icon={FolderHeart} />
+        <CustomerOverviewCard title="Builder Invitations" value={builderInvitations} icon={FileText} />
+      </CustomerOverviewGrid>
 
       <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <Card className="rounded-lg">
@@ -91,62 +64,14 @@ export default async function CustomerDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <Link href={ROUTES.CUSTOMER.INVITATIONS} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-              <div className="flex items-center gap-3">
-                <FolderHeart className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">My Invitations</p>
-                  <p className="text-sm text-muted-foreground">Quản lý toàn bộ thiệp của bạn.</p>
-                </div>
-              </div>
-            </Link>
-            <Link href={ROUTES.CUSTOMER.ORDERS} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Đơn hàng</p>
-                  <p className="text-sm text-muted-foreground">Theo dõi checkout, thanh toán và giao hàng.</p>
-                </div>
-              </div>
-            </Link>
-            <Link href={ROUTES.CUSTOMER.CONFIG_PROFILE} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-              <div className="flex items-center gap-3">
-                <UserIcon className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Profile</p>
-                  <p className="text-sm text-muted-foreground">Cập nhật hồ sơ và thông tin hiển thị.</p>
-                </div>
-              </div>
-            </Link>
-            <Link href={ROUTES.CUSTOMER.AFFILIATE} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-              <div className="flex items-center gap-3">
-                <BadgePercent className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Affiliate</p>
-                  <p className="text-sm text-muted-foreground">Theo dõi trạng thái và link giới thiệu.</p>
-                </div>
-              </div>
-            </Link>
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.INVITATIONS} label="My Invitations" description="Quản lý toàn bộ thiệp của bạn." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.ORDERS} label="Đơn hàng" description="Theo dõi checkout, thanh toán và giao hàng." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.CONFIG_PROFILE} label="Profile" description="Cập nhật hồ sơ và thông tin hiển thị." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.AFFILIATE} label="Affiliate" description="Theo dõi trạng thái và link giới thiệu." showArrow />
             {vendorActor ? (
-              <Link href={ROUTES.CUSTOMER.VENDOR} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-                <div className="flex items-center gap-3">
-                  <UserIcon className="h-5 w-5" />
-                  <div>
-                    <p className="font-medium">Vendor Workspace</p>
-                    <p className="text-sm text-muted-foreground">Theo dõi thông tin vận hành dành cho nhà cung cấp.</p>
-                  </div>
-                </div>
-              </Link>
+              <CustomerActionLinkTile href={ROUTES.CUSTOMER.VENDOR} label="Vendor Workspace" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
             ) : null}
-            <Link href={ROUTES.BUILDER} className="rounded-lg border p-4 transition-colors hover:bg-muted">
-              <div className="flex items-center gap-3">
-                <Plus className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Create New Site</p>
-                  <p className="text-sm text-muted-foreground">Bắt đầu với builder hoặc template.</p>
-                </div>
-              </div>
-            </Link>
+            <CustomerActionLinkTile href={ROUTES.BUILDER} label="Create New Site" description="Bắt đầu với builder hoặc template." showArrow />
           </CardContent>
         </Card>
 

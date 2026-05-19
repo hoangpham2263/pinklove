@@ -67,7 +67,7 @@ export default async function PartnerDashboardPage() {
               </div>
             ))}
             {assignments.length === 0 ? <p className="text-sm text-muted-foreground">Chưa có đơn được giao.</p> : null}
-            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.LEGACY_ORDERS}>Mở tất cả đơn</Link>} />
+            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.ORDERS}>Mở tất cả đơn</Link>} />
           </CardContent>
         </Card>
 

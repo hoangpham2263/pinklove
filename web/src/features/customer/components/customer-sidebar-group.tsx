@@ -3,11 +3,15 @@
 import {
   BadgePercent,
   ChevronRight,
+  ExternalLink,
   FolderHeart,
+  LayoutDashboard,
+  Link as LinkIcon,
   MapPin,
   MessageCircle,
   Settings,
   ShoppingBag,
+  Store,
   User as UserIcon,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -15,7 +19,18 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CustomerNavLink } from "@/features/customer/components/customer-nav-link";
 import { isRouteActive } from "@/lib/navigation";
 
-type CustomerSidebarIconName = "map-pin" | "folder-heart" | "shopping-bag" | "message-circle" | "user" | "badge-percent" | "settings";
+type CustomerSidebarIconName =
+  | "layout-dashboard"
+  | "map-pin"
+  | "folder-heart"
+  | "shopping-bag"
+  | "message-circle"
+  | "user"
+  | "badge-percent"
+  | "link"
+  | "settings"
+  | "store"
+  | "external-link";
 
 type CustomerSidebarChild = {
   label: string;
@@ -31,13 +46,17 @@ type CustomerSidebarGroupProps = {
 };
 
 const iconMap = {
+  "layout-dashboard": LayoutDashboard,
   "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
   "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,
+  link: LinkIcon,
   settings: Settings,
+  store: Store,
+  "external-link": ExternalLink,
 } satisfies Record<CustomerSidebarIconName, React.ComponentType<{ className?: string }>>;
 
 export function CustomerSidebarGroup({

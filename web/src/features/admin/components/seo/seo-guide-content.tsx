@@ -130,21 +130,21 @@ export function SeoSchemaGuideContent() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <p className="text-sm font-medium">1. Page thường</p>
-              <pre className="overflow-x-auto rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
+              <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
                 <code>{pageSchemaExample}</code>
               </pre>
             </div>
 
             <div className="space-y-2">
               <p className="text-sm font-medium">2. Trang gói dịch vụ</p>
-              <pre className="overflow-x-auto rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
+              <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
                 <code>{serviceSchemaExample}</code>
               </pre>
             </div>
 
             <div className="space-y-2">
               <p className="text-sm font-medium">3. Trang có FAQ</p>
-              <pre className="overflow-x-auto rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
+              <pre className="overflow-hidden whitespace-pre-wrap break-words rounded-xl bg-muted p-4 text-xs leading-6 lg:rounded-2xl">
                 <code>{faqSchemaExample}</code>
               </pre>
             </div>

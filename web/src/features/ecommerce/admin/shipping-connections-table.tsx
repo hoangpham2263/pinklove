@@ -70,7 +70,7 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-md border bg-background">
+        <div className="rounded-md border bg-background">
           <Table>
             <TableHeader>
               <TableRow>

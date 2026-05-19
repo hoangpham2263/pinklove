@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FolderHeart,
   LayoutDashboard,
+  Link as LinkIcon,
   MapPin,
   MessageCircle,
   Settings,
@@ -12,12 +13,16 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
-import { CUSTOMER_MOBILE_NAV, getCustomerNavGroups } from "@/features/customer/config/navigation";
+import {
+  CUSTOMER_NAV_AUXILIARY_ITEMS,
+  CUSTOMER_NAV_GROUPS,
+  CUSTOMER_NAV_PRIMARY_ITEMS,
+  CUSTOMER_NAV_SECONDARY_ITEMS,
+} from "@/features/customer/config/navigation";
 import { CustomerNavLink } from "@/features/customer/components/customer-nav-link";
 import { CustomerSidebarGroup } from "@/features/customer/components/customer-sidebar-group";
 import { CustomerTopHeader } from "@/features/customer/components/customer-top-header";
 import { requireAppUser } from "@/lib/auth";
-import { isVendorRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -29,8 +34,10 @@ const customerMobileIconMap = {
   "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,
+  link: LinkIcon,
   settings: Settings,
   store: Store,
+  "external-link": ExternalLink,
 } satisfies Record<string, React.ComponentType<{ className?: string }>>;
 
 export default async function CustomerLayout({
@@ -39,51 +46,39 @@ export default async function CustomerLayout({
   children: React.ReactNode;
 }>) {
   const [user, settings] = await Promise.all([requireAppUser(ROUTES.AUTH.LOGIN), getSystemSettings()]);
-  const customerNavGroups = getCustomerNavGroups();
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-12">
-      <aside className="admin-sidebar-scroll hidden overflow-y-auto border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:gap-3">
-        <div className="mb-6 flex items-center gap-2 px-3">
+    <div className="customer-shell min-h-screen md:grid md:grid-cols-12">
+      <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
+        <div className="mb-6 shrink-0 px-3">
           {settings.branding.brandLogo ? (
             <img
               src={settings.branding.brandLogo}
               alt={settings.branding.siteName}
-              className="h-10 w-auto object-contain"
+              className="h-10 w-auto max-w-[120px] object-contain"
             />
           ) : (
-            <>
-              <div className="h-6 w-6 rounded-bg bg-primary" />
-              <h2 className="text-lg font-bold tracking-tight">{settings.branding.siteName}</h2>
-            </>
+            <h2 className="text-lg font-bold tracking-tight">{settings.branding.siteName}</h2>
           )}
         </div>
 
-        <nav className="flex flex-col gap-2.5">
-          <CustomerNavLink
-            href={ROUTES.CUSTOMER.DASHBOARD}
-            className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Dashboard</span>
-          </CustomerNavLink>
-
-          {customerNavGroups.map((entry) => {
-            if (entry.type === "link") {
-              const Icon = customerMobileIconMap[entry.iconName];
+        <nav className="customer-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="flex flex-col gap-2.5">
+            {CUSTOMER_NAV_PRIMARY_ITEMS.map((item) => {
+              const Icon = customerMobileIconMap[item.iconName];
               return (
                 <CustomerNavLink
-                  key={entry.href}
-                  href={entry.href}
+                  key={item.href}
+                  href={item.href}
                   className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{entry.label}</span>
+                  <span>{item.label}</span>
                 </CustomerNavLink>
               );
-            }
+            })}
 
-            return (
+            {CUSTOMER_NAV_GROUPS.map((entry) => (
               <CustomerSidebarGroup
                 key={entry.label}
                 label={entry.label}
@@ -91,26 +86,41 @@ export default async function CustomerLayout({
                 items={entry.children}
                 defaultOpen={entry.defaultOpen}
               />
-            );
-          })}
+            ))}
 
-          {isVendorRole(user.role) ? (
-            <CustomerNavLink
-              href={ROUTES.CUSTOMER.VENDOR}
-              className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
-            >
-              <Store className="h-5 w-5" />
-              <span>Vendor</span>
-            </CustomerNavLink>
-          ) : null}
-
-          <div className="mt-auto border-t pt-4">
-            <Link href={ROUTES.HOME} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
-              <ExternalLink className="h-5 w-5" />
-              Xem Website
-            </Link>
+            {CUSTOMER_NAV_SECONDARY_ITEMS.map((item) => {
+              const Icon = customerMobileIconMap[item.iconName];
+              return (
+                <CustomerNavLink
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </CustomerNavLink>
+              );
+            })}
           </div>
         </nav>
+
+        <div className="mt-4 shrink-0 border-t pt-4">
+          {CUSTOMER_NAV_AUXILIARY_ITEMS.map((item) => {
+            const Icon = customerMobileIconMap[item.iconName];
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                target={item.href.startsWith("http") ? "_blank" : undefined}
+                rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted"
+              >
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
@@ -120,34 +130,6 @@ export default async function CustomerLayout({
           breadcrumbSeparator={settings.breadcrumb.customerSeparator}
         />
         <section className="min-h-screen pt-14">
-          <section className="shrink-0 border-b bg-background px-4 py-2 md:hidden">
-            <nav className="flex gap-4 overflow-x-auto py-1">
-              {CUSTOMER_MOBILE_NAV.map((entry) => {
-                const Icon = customerMobileIconMap[entry.iconName];
-                return (
-                  <CustomerNavLink
-                    key={entry.href}
-                    href={entry.href}
-                    className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 transition-colors"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {entry.label}
-                  </CustomerNavLink>
-                );
-              })}
-
-              {isVendorRole(user.role) ? (
-                <CustomerNavLink
-                  href={ROUTES.CUSTOMER.VENDOR}
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-1 transition-colors"
-                >
-                  <Store className="h-4 w-4" />
-                  Vendor
-                </CustomerNavLink>
-              ) : null}
-            </nav>
-          </section>
-
           {children}
         </section>
       </main>

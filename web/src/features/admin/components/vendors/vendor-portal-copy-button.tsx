@@ -62,7 +62,10 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Portal link</p>
               <div className="flex items-center gap-2">
                 <Input value={portalUrl} readOnly />
-                <AdminIconButton onClick={() => handleCopy(portalUrl, "portal", "Đã copy link portal đối tác.")}>
+                <AdminIconButton
+                  aria-label="Copy link portal"
+                  onClick={() => handleCopy(portalUrl, "portal", "Đã copy link portal đối tác.")}
+                >
                   {copiedField === "portal" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </AdminIconButton>
               </div>
@@ -72,7 +75,10 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Username</p>
               <div className="flex items-center gap-2">
                 <Input value={username} readOnly />
-                <AdminIconButton onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}>
+                <AdminIconButton
+                  aria-label="Copy username"
+                  onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}
+                >
                   {copiedField === "username" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </AdminIconButton>
               </div>
@@ -82,7 +88,10 @@ export function VendorPortalCopyButton({
               <p className="text-sm font-medium">Mật khẩu</p>
               <div className="flex items-center gap-2">
                 <Input value={password} readOnly />
-                <AdminIconButton onClick={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}>
+                <AdminIconButton
+                  aria-label="Copy mật khẩu"
+                  onClick={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}
+                >
                   {copiedField === "password" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </AdminIconButton>
               </div>

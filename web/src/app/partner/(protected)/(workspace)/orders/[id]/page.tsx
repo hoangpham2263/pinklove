@@ -47,7 +47,7 @@ export default async function PartnerOrderDetailPage({
                 variant="outline"
                 className="gap-2"
                 render={
-                  <Link href={ROUTES.PARTNER.LEGACY_ORDERS}>
+                  <Link href={ROUTES.PARTNER.ORDERS}>
                     <ArrowLeft className="h-4 w-4" />
                     Danh sách đơn hàng
                   </Link>

@@ -3,10 +3,12 @@ import { BadgePercent, CheckCircle2, Clock3, MousePointerClick, ShieldAlert, Tre
 import {
   getAffiliateApplicationSummary,
   getAffiliateProgramSummary,
+  listAffiliateConversions,
   listAffiliateAccounts,
   listAffiliateApplications,
 } from "@/features/affiliate/server/service";
 import { AdminAffiliateApplicationsTable } from "@/features/admin/components/affiliates/admin-affiliate-applications-table";
+import { AdminAffiliateConversionsTable } from "@/features/admin/components/affiliates/admin-affiliate-conversions-table";
 import { AdminAffiliatesTable } from "@/features/admin/components/affiliates/admin-affiliates-table";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin } from "@/lib/auth";
@@ -18,11 +20,12 @@ type AdminAffiliatesPageProps = {
 export default async function AdminAffiliatesPage({ searchParams }: AdminAffiliatesPageProps) {
   await requireAdmin();
   await searchParams;
-  const [summary, applicationSummary, accounts, applications] = await Promise.all([
+  const [summary, applicationSummary, accounts, applications, conversions] = await Promise.all([
     getAffiliateProgramSummary(),
     getAffiliateApplicationSummary(),
     listAffiliateAccounts(),
     listAffiliateApplications(),
+    listAffiliateConversions(),
   ]);
 
   return (
@@ -44,6 +47,8 @@ export default async function AdminAffiliatesPage({ searchParams }: AdminAffilia
       </AdminOverviewGrid>
 
       <AdminAffiliatesTable accounts={accounts} />
+
+      <AdminAffiliateConversionsTable conversions={conversions} />
     </section>
   );
 }

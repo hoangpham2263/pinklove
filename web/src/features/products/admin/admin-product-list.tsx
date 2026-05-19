@@ -179,6 +179,14 @@ export function AdminProductList({
         ),
       },
       {
+        accessorKey: "productType",
+        header: "Loại",
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
+      },
+      {
         accessorKey: "price",
         header: ({ column }) => (
           <div className="text-right">
@@ -250,6 +258,9 @@ export function AdminProductList({
       columnFilters,
       globalFilter,
       rowSelection,
+      columnVisibility: {
+        productType: false,
+      },
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -491,7 +502,7 @@ export function AdminProductList({
               </PreviewSection>
 
               <PreviewSection title="Config">
-                <pre className="max-h-72 overflow-auto rounded-md bg-muted/40 p-3 text-xs text-foreground">
+                <pre className="max-h-72 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words rounded-md bg-muted/40 p-3 text-xs text-foreground">
                   {JSON.stringify(previewProduct.config ?? {}, null, 2)}
                 </pre>
               </PreviewSection>

@@ -48,6 +48,7 @@ type AffiliateClickRow = {
 type AffiliateConversionRow = {
   id: string;
   affiliate_user_id: string;
+  username?: string | null;
   affiliate_code: string;
   external_order_ref: string | null;
   order_value: string;
@@ -110,6 +111,7 @@ function mapAffiliateConversionRow(row: AffiliateConversionRow): AffiliateConver
   return {
     id: row.id,
     affiliateUserId: row.affiliate_user_id,
+    username: row.username ?? undefined,
     affiliateCode: row.affiliate_code,
     externalOrderRef: row.external_order_ref ?? undefined,
     orderValue: Number(row.order_value ?? "0"),
@@ -430,7 +432,19 @@ export async function adminUpdateAffiliateAccount(input: {
     throw new Error("AFFILIATE_NOT_FOUND");
   }
 
+  if (!["pending", "active", "rejected", "blocked"].includes(input.status)) {
+    throw new Error("AFFILIATE_STATUS_INVALID");
+  }
+
+  if (!["percent", "fixed"].includes(input.commissionType)) {
+    throw new Error("AFFILIATE_COMMISSION_TYPE_INVALID");
+  }
+
   if (!Number.isFinite(input.commissionValue) || input.commissionValue < 0) {
+    throw new Error("AFFILIATE_COMMISSION_INVALID");
+  }
+
+  if (input.commissionType === "percent" && input.commissionValue > 100) {
     throw new Error("AFFILIATE_COMMISSION_INVALID");
   }
 
@@ -494,20 +508,99 @@ export async function listAffiliateConversionsForUser(
   return result.rows.map(mapAffiliateConversionRow);
 }
 
+export async function listAffiliateConversions(limit = 100): Promise<AffiliateConversion[]> {
+  const result = await query<AffiliateConversionRow>(
+    `
+      SELECT
+        conv.id,
+        conv.affiliate_user_id,
+        u.username,
+        conv.affiliate_code,
+        conv.external_order_ref,
+        conv.order_value::text,
+        conv.commission_amount::text,
+        conv.status,
+        conv.created_at,
+        conv.updated_at
+      FROM affiliate_conversions conv
+      JOIN users u ON u.id = conv.affiliate_user_id
+      ORDER BY
+        CASE conv.status
+          WHEN 'pending' THEN 0
+          WHEN 'approved' THEN 1
+          WHEN 'paid' THEN 2
+          WHEN 'rejected' THEN 3
+          ELSE 4
+        END,
+        conv.created_at DESC
+      LIMIT $1
+    `,
+    [limit]
+  );
+
+  return result.rows.map(mapAffiliateConversionRow);
+}
+
+export async function adminUpdateAffiliateConversion(input: {
+  conversionId: string;
+  status: AffiliateConversionStatus;
+}): Promise<void> {
+  if (!["pending", "approved", "rejected", "paid"].includes(input.status)) {
+    throw new Error("AFFILIATE_CONVERSION_STATUS_INVALID");
+  }
+
+  const result = await query<{ id: string }>(
+    `
+      UPDATE affiliate_conversions
+      SET status = $2, updated_at = NOW()
+      WHERE id = $1
+      RETURNING id
+    `,
+    [input.conversionId, input.status]
+  );
+
+  if (!result.rows[0]) {
+    throw new Error("AFFILIATE_CONVERSION_NOT_FOUND");
+  }
+}
+
 export async function recordAffiliateClick(input: {
   code: string;
   landingPath: string;
   referrer?: string;
   userAgent?: string;
   visitorToken?: string;
+  excludeUserId?: string;
 }) {
   const account = await getAffiliateAccountByCode(input.code);
   if (!account || account.status !== "active") {
     return null;
   }
 
+  if (input.excludeUserId && account.userId === input.excludeUserId) {
+    return null;
+  }
+
   const visitorToken = input.visitorToken?.trim() || randomUUID();
   const landingPath = input.landingPath.trim() || "/";
+
+  const existing = await query<{ id: string }>(
+    `
+      SELECT id
+      FROM affiliate_clicks
+      WHERE affiliate_user_id = $1
+        AND affiliate_code = $2
+        AND visitor_token = $3
+        AND landing_path = $4
+        AND created_at >= NOW() - INTERVAL '24 hours'
+      LIMIT 1
+    `,
+    [account.userId, account.code, visitorToken, landingPath]
+  );
+
+  if (existing.rows[0]) {
+    return { account, visitorToken };
+  }
 
   await query(
     `

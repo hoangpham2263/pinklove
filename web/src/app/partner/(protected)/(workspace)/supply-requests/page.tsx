@@ -32,32 +32,35 @@ export default async function PartnerSupplyRequestsPage() {
           {requests.length === 0 ? (
             <div className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">Bạn chưa gửi supplier request nào.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-sm">
+            <div className="rounded-md border">
+              <table className="w-full table-fixed text-sm">
                 <thead className="text-left text-muted-foreground">
                   <tr className="border-b">
-                    <th className="py-3 pr-4 font-medium">Mẫu</th>
-                    <th className="py-3 pr-4 font-medium">Giá nhập</th>
-                    <th className="py-3 pr-4 font-medium">Lead time</th>
-                    <th className="py-3 pr-4 font-medium">Năng lực</th>
-                    <th className="py-3 pr-4 font-medium">Trạng thái</th>
-                    <th className="py-3 pr-4 font-medium">Review note</th>
-                    <th className="py-3 font-medium">Cập nhật</th>
+                    <th className="w-[42%] px-4 py-3 font-medium">Mẫu</th>
+                    <th className="hidden w-[14%] px-4 py-3 font-medium md:table-cell">Giá nhập</th>
+                    <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Lead time</th>
+                    <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Năng lực</th>
+                    <th className="w-[22%] px-4 py-3 font-medium">Trạng thái</th>
+                    <th className="hidden w-[18%] px-4 py-3 font-medium xl:table-cell">Review note</th>
+                    <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Cập nhật</th>
                   </tr>
                 </thead>
                 <tbody>
                   {requests.map((request) => (
                     <tr key={request.id} className="border-b last:border-0">
-                      <td className="py-3 pr-4">
-                        <p className="font-medium">{request.productName}</p>
-                        <p className="text-xs text-muted-foreground">/{request.productSlug}</p>
+                      <td className="min-w-0 px-4 py-3">
+                        <p className="truncate font-medium">{request.productName}</p>
                       </td>
-                      <td className="py-3 pr-4">{request.purchaseCost}</td>
-                      <td className="py-3 pr-4">{request.leadTimeDays} ngày</td>
-                      <td className="py-3 pr-4">{request.monthlyCapacity}/tháng</td>
-                      <td className="py-3 pr-4">{request.reviewStatus}</td>
-                      <td className="py-3 pr-4">{request.reviewNote || "-"}</td>
-                      <td className="py-3">{formatDate(request.updatedAt)}</td>
+                      <td className="hidden px-4 py-3 md:table-cell">{request.purchaseCost}</td>
+                      <td className="hidden px-4 py-3 lg:table-cell">{request.leadTimeDays} ngày</td>
+                      <td className="hidden px-4 py-3 xl:table-cell">{request.monthlyCapacity}/tháng</td>
+                      <td className="px-4 py-3">
+                        <p className="truncate">{request.reviewStatus}</p>
+                      </td>
+                      <td className="hidden min-w-0 px-4 py-3 xl:table-cell">
+                        <p className="truncate">{request.reviewNote || "-"}</p>
+                      </td>
+                      <td className="hidden px-4 py-3 xl:table-cell">{formatDate(request.updatedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
