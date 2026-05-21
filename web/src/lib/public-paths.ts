@@ -4,8 +4,8 @@ import type { Product } from "@/features/products/types";
 
 const BLOG_CATEGORY_BASE = "blog";
 const BLOG_CATEGORY_SEGMENT = "category";
-const TEMPLATE_BASE = "templates";
-const BUILDER_BASE = "builder";
+const TEMPLATE_BASE = "mau-thiep";
+const BUILDER_BASE = "tu-tao-thiep";
 const PRODUCT_BASE = "thiep-giay";
 const INVITATION_BASE = "invitations";
 

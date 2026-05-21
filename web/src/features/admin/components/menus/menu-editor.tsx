@@ -135,6 +135,14 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
   ) as Record<string, MenuParentOption[]>;
   const editingItem = editingItemId ? orderedItems.find((item) => item.id === editingItemId) ?? null : null;
   const editingParentOptions = editingItem ? parentOptionsByItemId[editingItem.id] ?? [] : [];
+  const pageUsageCountBySlug = items.reduce<Record<string, number>>((counts, item) => {
+    if (item.type === "page" && item.pageSlug) {
+      counts[item.pageSlug] = (counts[item.pageSlug] ?? 0) + 1;
+    }
+
+    return counts;
+  }, {});
+  const pageItemCount = Object.values(pageUsageCountBySlug).reduce((sum, count) => sum + count, 0);
 
   const setOrderedItems = (nextItems: EditableMenuItem[]) => {
     const normalizedItems = flattenItems(nextItems).items;
@@ -308,7 +316,12 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
 
             {newType === "page" ? (
               <div className="space-y-2">
-                <label>Select Page</label>
+                <label className="flex items-center justify-between gap-2">
+                  <span>Select Page</span>
+                  <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
+                    {pageItemCount} đã thêm
+                  </span>
+                </label>
                 <select
                   value={newPageSlug}
                   onChange={(e) => handlePageChange(e.target.value)}
@@ -317,7 +330,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                   <option value="" disabled>Select a page...</option>
                   {availablePages.map((p) => (
                     <option key={p.slug} value={p.slug}>
-                      {p.name} ({getManagedPagePath(p)})
+                      {p.name} ({getManagedPagePath(p)}){pageUsageCountBySlug[p.slug] ? ` - Đã thêm ${pageUsageCountBySlug[p.slug]}` : ""}
                     </option>
                   ))}
                 </select>
@@ -471,7 +484,12 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
 
                     {editingItem.type === "page" ? (
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Trang đích</label>
+                        <label className="flex items-center justify-between gap-2 text-sm font-medium">
+                          <span>Trang đích</span>
+                          <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                            {pageItemCount} đã thêm
+                          </span>
+                        </label>
                         <select
                           value={editingItem.pageSlug ?? ""}
                           onChange={(event) => {
@@ -488,7 +506,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                           <option value="" disabled>Chọn trang</option>
                           {availablePages.map((page) => (
                             <option key={page.slug} value={page.slug}>
-                              {page.name} ({getManagedPagePath(page)})
+                              {page.name} ({getManagedPagePath(page)}){pageUsageCountBySlug[page.slug] ? ` - Đã thêm ${pageUsageCountBySlug[page.slug]}` : ""}
                             </option>
                           ))}
                         </select>

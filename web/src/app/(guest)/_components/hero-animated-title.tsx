@@ -103,10 +103,10 @@ export function HeroAnimatedTitle({
 
         {structuredLineOne ? (
           <span className="block w-fit max-w-full whitespace-nowrap mx-auto lg:mx-0">
-            {lineOnePrefix?.trim() ? <span className="text-black">{lineOnePrefix.trim()}</span> : null}
+            {lineOnePrefix?.trim() ? <span>{lineOnePrefix.trim()}</span> : null}
             {lineOnePrefix?.trim() && rotatingSegment ? " " : null}
             {rotatingSegment || rotatingOptions.length ? (
-              <span className="hero-title-rotating-slot inline-grid align-baseline">
+              <span className="hero-title-rotating-slot inline-grid align-baseline font-bold">
                 {exitingRotatingText ? (
                   <span className="hero-title-rotating-text hero-title-rotating-text-exit font-['Trebuchet_MS','Gill_Sans','Segoe_UI',sans-serif] text-[0.9em] leading-none tracking-[0.01em] text-[#d94dce] italic">
                     {renderAnimatedCharacters(exitingRotatingText, "exit")}
@@ -129,10 +129,10 @@ export function HeroAnimatedTitle({
             {structuredLineTwoPrefix && structuredLineTwoBrand ? " " : null}
             {structuredLineTwoBrand ? (
               <span className="relative inline-block align-baseline">
-                <span className="hero-title-brand-line block font-black">{structuredLineTwoBrand}</span>
+                <span className="hero-title-brand-line block font-bold">{structuredLineTwoBrand}</span>
                 <span
                   aria-hidden="true"
-                  className="hero-title-light-sweep pointer-events-none absolute inset-0 block text-transparent"
+                  className="hero-title-light-sweep pointer-events-none absolute inset-0 block font-bold text-transparent"
                 >
                   {structuredLineTwoBrand}
                 </span>
@@ -148,11 +148,11 @@ export function HeroAnimatedTitle({
     <h1 className={className}>
       {displayLines.map((line, index) => (
         <span key={`${line}-${index}`} className="relative block w-fit max-w-full mx-auto lg:mx-0">
-          <span className={`block ${index === 1 ? "hero-title-brand-line font-black" : "text-black"}`}>{line}</span>
+          <span className={`block ${index === 1 ? "hero-title-brand-line font-bold" : "text-black"}`}>{line}</span>
           {index === 1 ? (
             <span
               aria-hidden="true"
-              className="hero-title-light-sweep pointer-events-none absolute inset-0 block text-transparent"
+              className="hero-title-light-sweep pointer-events-none absolute inset-0 block font-bold text-transparent"
             >
               {line}
             </span>

@@ -207,9 +207,9 @@ export function AdminProductList({
           const publicHref = getProductPath(product);
           const adminEditHref =
             product.productType === "builder"
-              ? `${ROUTES.ADMIN.BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
+              ? `${ROUTES.ADMIN.PRODUCT_BUILDER_EDITOR(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : product.productType === "coded_template"
-                ? `${ROUTES.ADMIN.CODED_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
+                ? `${ROUTES.ADMIN.PRODUCT_TEMPLATE(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : `${ROUTES.ADMIN.PRODUCT(product.slug)}?returnTo=${encodeURIComponent(returnTo)}`;
 
           return (

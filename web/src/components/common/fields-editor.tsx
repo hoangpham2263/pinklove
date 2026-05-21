@@ -350,7 +350,7 @@ function SortableRepeaterItem({
 }
 
 function renderLeafField(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "product-select" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>,
   values: Record<string, unknown>,
   onChange?: (name: string, value: unknown) => void,
   options?: {
@@ -388,6 +388,13 @@ function renderLeafField(
       )}
       {field.type === "switch" && (
         <SwitchField
+          name={field.name}
+          value={Boolean(fieldValue)}
+          onChange={onChange ? (checked) => onChange(field.name, checked) : undefined}
+        />
+      )}
+      {field.type === "checkbox" && (
+        <CheckboxField
           name={field.name}
           value={Boolean(fieldValue)}
           onChange={onChange ? (checked) => onChange(field.name, checked) : undefined}
@@ -482,10 +489,42 @@ function SwitchField({
   );
 }
 
+function CheckboxField({
+  name,
+  value,
+  onChange,
+}: {
+  name: string;
+  value: boolean;
+  onChange?: (checked: boolean) => void;
+}) {
+  const [internalValue, setInternalValue] = useState(value);
+  const isControlled = Boolean(onChange);
+  const checked = isControlled ? value : internalValue;
+
+  return (
+    <label className="inline-flex size-9 items-center justify-center rounded-md border">
+      {!isControlled && checked ? <input type="hidden" name={name} value="on" /> : null}
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => {
+          const nextChecked = event.target.checked;
+          if (!isControlled) {
+            setInternalValue(nextChecked);
+          }
+          onChange?.(nextChecked);
+        }}
+        className="size-4 rounded border-input text-primary outline-none"
+      />
+    </label>
+  );
+}
+
 function getFirstFocusableRepeaterChild(
-  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "product-select" }>[]
+  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>[]
 ) {
-  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media" || child.type === "product-select" || child.type === "switch");
+  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media" || child.type === "product-select" || child.type === "switch" || child.type === "checkbox");
 }
 
 function focusRepeaterField(fieldPath: string) {
@@ -535,7 +574,7 @@ function getFieldWidthClass(
 }
 
 function getLeafWidthClass(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "product-select" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>,
   options?: {
     compact?: boolean;
   }

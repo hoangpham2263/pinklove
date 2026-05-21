@@ -20,15 +20,15 @@ export default async function AdminAffiliateAccountsPage() {
       <div className="rounded-md border bg-background p-6">
         <h1 className="text-2xl font-semibold tracking-tight">Duyệt Customer Affiliate</h1>
         <p className="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
-          Đây là nơi duyệt yêu cầu do customer gửi từ `/customer/affiliate`. Tài khoản mới sẽ ở trạng thái pending; chuyển sang active để link affiliate bắt đầu hoạt động.
+          Đây là nơi duyệt yêu cầu do customer gửi từ `/customer/affiliate`. Tài khoản mới sẽ ở trạng thái chờ duyệt; chuyển sang đang hoạt động để link affiliate bắt đầu hoạt động.
         </p>
       </div>
 
       <AdminOverviewGrid>
         <AdminOverviewCard title="Chờ duyệt" value={summary.pendingCount} icon={BadgePercent} />
-        <AdminOverviewCard title="Đang active" value={summary.activeCount} icon={UserCheck} />
-        <AdminOverviewCard title="Clicks" value={summary.clickCount} icon={MousePointerClick} />
-        <AdminOverviewCard title="Conversions" value={summary.conversionCount} icon={TrendingUp} />
+        <AdminOverviewCard title="Đang hoạt động" value={summary.activeCount} icon={UserCheck} />
+        <AdminOverviewCard title="Lượt click" value={summary.clickCount} icon={MousePointerClick} />
+        <AdminOverviewCard title="Chuyển đổi" value={summary.conversionCount} icon={TrendingUp} />
       </AdminOverviewGrid>
 
       <AdminAffiliatesTable accounts={accounts} />

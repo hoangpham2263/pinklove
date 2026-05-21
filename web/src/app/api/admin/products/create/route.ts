@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const allowVendorSupply = productType === "general_product" && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
-    productType === "builder" ? ROUTES.ADMIN.BUILDER_CREATE : ROUTES.ADMIN.PRODUCTS;
+    productType === "builder" ? ROUTES.ADMIN.PRODUCT_BUILDER_CREATE : ROUTES.ADMIN.PRODUCTS;
   const createQuery = new URLSearchParams({
     ...(productType !== "builder" ? { type: productType } : {}),
     ...(returnTo ? { returnTo } : {}),
@@ -131,9 +131,9 @@ export async function POST(request: Request) {
 
     const nextLocation =
       product.productType === "builder"
-        ? ROUTES.ADMIN.BUILDER_EDITOR(product.slug)
+        ? ROUTES.ADMIN.PRODUCT_BUILDER_EDITOR(product.slug)
         : product.productType === "coded_template"
-          ? ROUTES.ADMIN.CODED_TEMPLATE(product.slug)
+          ? ROUTES.ADMIN.PRODUCT_TEMPLATE(product.slug)
         : ROUTES.ADMIN.PRODUCT(product.slug);
 
     return respondSuccess(request, {

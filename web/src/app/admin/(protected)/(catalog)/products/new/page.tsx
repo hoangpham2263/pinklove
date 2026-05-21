@@ -20,11 +20,11 @@ export default async function AdminProductCreatePage({ searchParams }: AdminProd
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === "builder" ? ROUTES.ADMIN.BUILDER : ROUTES.ADMIN.PRODUCT_LIST
+    requestedType === "builder" ? ROUTES.ADMIN.PRODUCT_BUILDER : ROUTES.ADMIN.PRODUCT_LIST
   );
 
   if (requestedType === "builder") {
-    redirect(`${ROUTES.ADMIN.BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
+    redirect(`${ROUTES.ADMIN.PRODUCT_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
   const [categories, vendors] = await Promise.all([

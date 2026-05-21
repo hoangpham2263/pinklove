@@ -192,7 +192,7 @@
   background:
     radial-gradient(circle at 18% 3%, var(--guest-soft-bg-left) 0%, transparent 26rem),
     radial-gradient(circle at 82% 4%, var(--guest-soft-bg-right) 0%, transparent 24rem),
-    linear-gradient(180deg, var(--guest-soft-bg-start) 0%, var(--guest-soft-bg-mid) 38vh, #fff 66vh, #fff 100%);
+    linear-gradient(180deg, var(--guest-soft-bg-start) 0%, var(--guest-soft-bg-mid) 32vh, #fff 56vh, #fff 100%);
 }
 
 .contact-wave-bg::before,
@@ -298,46 +298,46 @@
 }
 
 .contact-cloud-decor-one {
-  left: 1.5%;
-  top: 14%;
-  --contact-cloud-scale: 0.88;
+  left: 5%;
+  top: 9%;
+  --contact-cloud-scale: 0.78;
 }
 
 .contact-cloud-decor-two {
-  right: 11%;
-  top: 20%;
-  --contact-cloud-scale: 0.72;
+  right: 8%;
+  top: 18%;
+  --contact-cloud-scale: 0.68;
   animation-delay: -4s;
   opacity: 0.34;
 }
 
 .contact-cloud-decor-three {
-  left: 18%;
-  top: 40%;
+  left: 26%;
+  top: 34%;
   --contact-cloud-scale: 0.62;
   animation-delay: -7s;
   opacity: 0.3;
 }
 
 .contact-cloud-decor-four {
-  right: 1.5%;
-  top: 48%;
-  --contact-cloud-scale: 0.78;
+  right: 3%;
+  top: 47%;
+  --contact-cloud-scale: 0.66;
   animation-delay: -2s;
   opacity: 0.29;
 }
 
 .contact-cloud-decor-five {
-  left: 36%;
-  top: 59%;
-  --contact-cloud-scale: 0.7;
+  left: 8%;
+  top: 60%;
+  --contact-cloud-scale: 0.58;
   animation-delay: -8s;
   opacity: 0.24;
 }
 
 .contact-cloud-decor-six {
-  right: 24%;
-  top: 72%;
+  right: 27%;
+  top: 69%;
   --contact-cloud-scale: 0.56;
   animation-delay: -5s;
   opacity: 0.2;
@@ -360,8 +360,8 @@
 }
 
 .contact-cloud-decor-nine {
-  left: 48%;
-  top: 26%;
+  left: 58%;
+  top: 28%;
   --contact-cloud-scale: 0.52;
   animation-delay: -6s;
   opacity: 0.28;
@@ -376,17 +376,17 @@
 }
 
 .contact-banner-cloud-one {
-  left: 3%;
-  top: 20%;
-  --contact-cloud-scale: 0.54;
+  left: 10%;
+  top: 18%;
+  --contact-cloud-scale: 0.46;
   animation-delay: -1.6s;
   opacity: 0.28;
 }
 
 .contact-banner-cloud-two {
-  right: 3%;
-  top: 34%;
-  --contact-cloud-scale: 0.62;
+  right: 9%;
+  top: 36%;
+  --contact-cloud-scale: 0.52;
   animation-delay: -5.2s;
   opacity: 0.24;
 }

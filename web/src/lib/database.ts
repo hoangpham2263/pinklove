@@ -2671,7 +2671,7 @@ async function ensureManagedPagesSeed() {
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
-    const defaultStatus = slug === "partner-apply" || slug === "affiliate-apply" || slug === "thiep-giay" ? "published" : "draft";
+    const defaultStatus = slug === "partners/apply" || slug === "affiliates" || slug === "thiep-giay" ? "published" : "draft";
     await pool.query(
       `
       INSERT INTO managed_pages (slug, name, title, status, custom_fields)

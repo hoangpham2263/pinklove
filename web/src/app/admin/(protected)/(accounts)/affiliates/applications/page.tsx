@@ -7,6 +7,7 @@ import {
 import { AdminAffiliateApplicationsTable } from "@/features/admin/components/affiliates/admin-affiliate-applications-table";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin } from "@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
 export default async function AdminAffiliateApplicationsPage() {
   await requireAdmin();
@@ -20,7 +21,7 @@ export default async function AdminAffiliateApplicationsPage() {
       <div className="rounded-md border bg-background p-6">
         <h1 className="text-2xl font-semibold tracking-tight">Hồ sơ Guest Affiliate</h1>
         <p className="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
-          Đây là hồ sơ affiliate gửi từ trang public `/affiliate-apply`, dành cho người chưa đăng nhập. Luồng này khác với customer đã login.
+          Đây là hồ sơ affiliate gửi từ trang public <code>{ROUTES.AFFILIATE_APPLY}</code>, dành cho người chưa đăng nhập. Luồng này khác với customer đã login.
         </p>
       </div>
 

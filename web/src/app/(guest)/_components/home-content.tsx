@@ -17,7 +17,6 @@ import { ROUTES } from "@/lib/routes";
 
 export async function HomeContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
-    bannerTitle?: string;
     bannerTopLine?: string;
     bannerLine1Prefix?: string;
     bannerLine1Rotating?: string;
@@ -115,7 +114,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
       }))
   );
 
-  const bannerTitle = fields.bannerTitle || fields.heroTitle || page.title || "";
+  const bannerTitle = fields.heroTitle || page.title || "";
   const bannerShortDescription = fields.bannerShortDescription || page.excerpt;
   const bannerDescription = fields.bannerDescription || fields.heroDescription;
   const aboutImage = await resolveMediaUrl(fields.aboutImage);
@@ -280,7 +279,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                 lineOneSuffix={fields.bannerLine1Suffix}
                 lineTwo={fields.bannerLine2}
                 fallbackTitle={bannerTitle}
-                className="inline-block text-3xl sm:text-4xl lg:text-5xl 2xl:text-6xl font-semibold"
+                className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold"
               />
               {bannerShortDescription && (<p className="text-sm md:text-base lg:text-lg font-semibold">{bannerShortDescription}</p>)}
               {bannerDescription ? (
@@ -343,7 +342,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <section id="home-about" className="py-10 lg:py-15 2xl:py-20 bg-gradient-to-b from-[#FF6FF5] to-[#3A5172] ">
+      <section id="home-about" className="py-10 lg:py-15 2xl:py-20 bg-gradient-to-b from-[#FF6FF5] to-[#f5dbef] ">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-12 gap-10 lg:gap-15 2xl:gap-20">
             <div className="col-span-12 lg:col-span-6 space-y-5 lg:space-y-7.5">

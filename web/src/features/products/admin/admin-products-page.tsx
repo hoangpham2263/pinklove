@@ -34,7 +34,7 @@ export async function AdminProductsPageView({
   const canCreateProduct = fixedProductType === "general_product" || fixedProductType === "builder";
   const createHref =
     fixedProductType === "builder"
-      ? `${ROUTES.ADMIN.BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
+      ? `${ROUTES.ADMIN.PRODUCT_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
       : `${ROUTES.ADMIN.PRODUCTS}?type=${fixedProductType}&returnTo=${encodeURIComponent(returnTo)}`;
   const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateProduct;
 

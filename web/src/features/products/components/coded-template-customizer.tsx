@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { GuestButton, GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import type { FieldSchema, TextFieldSchema } from "@/features/pages/schema";
 import type { Product } from "@/features/products/types";
+import { getTemplateProductPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 
 type CodedTemplateCustomizerProps = {
@@ -168,7 +169,7 @@ export function CodedTemplateCustomizer({ product, fields, initialValues }: Code
             <GuestButton type="submit" className="sm:min-w-56">
               Tiếp tục tạo thiệp
             </GuestButton>
-            <GuestLinkButton href={`/templates/${product.slug}`} variant="secondary">
+            <GuestLinkButton href={getTemplateProductPath(product)} variant="secondary">
               Quay lại mẫu
             </GuestLinkButton>
           </div>

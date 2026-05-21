@@ -36,13 +36,33 @@ import {
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
-import { type AffiliateAccount } from "@/features/affiliate/types";
+import { type AffiliateAccount, type AffiliateCommissionType, type AffiliateStatus } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 
 type AdminAffiliatesTableProps = {
   accounts: AffiliateAccount[];
 };
+
+const AFFILIATE_STATUS_OPTIONS: Array<{ value: AffiliateStatus; label: string }> = [
+  { value: "pending", label: "Chờ duyệt" },
+  { value: "active", label: "Đang hoạt động" },
+  { value: "rejected", label: "Từ chối" },
+  { value: "blocked", label: "Đã khóa" },
+];
+
+const AFFILIATE_COMMISSION_TYPE_OPTIONS: Array<{ value: AffiliateCommissionType; label: string }> = [
+  { value: "percent", label: "Theo phần trăm" },
+  { value: "fixed", label: "Số tiền cố định" },
+];
+
+function getAffiliateStatusLabel(status: string) {
+  return AFFILIATE_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status;
+}
+
+function getAffiliateCommissionTypeLabel(type: string) {
+  return AFFILIATE_COMMISSION_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
+}
 
 function formatDateTime(value?: string) {
   if (!value) return "—";
@@ -167,10 +187,9 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               onChange={(event) => updateRowEdit(account.userId, { status: event.target.value })}
               className="h-8 w-full rounded-md border bg-background px-2 text-sm"
             >
-                <option value="pending">pending</option>
-                <option value="active">active</option>
-                <option value="rejected">rejected</option>
-                <option value="blocked">blocked</option>
+              {AFFILIATE_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           );
         },
@@ -179,7 +198,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
         accessorKey: "commissionType",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Commission</AdminTableSortButton>
+            Hoa hồng</AdminTableSortButton>
         ),
         cell: ({ row }) => {
           const account = row.original;
@@ -191,8 +210,9 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               onChange={(event) => updateRowEdit(account.userId, { commissionType: event.target.value })}
               className="h-8 w-full rounded-md border bg-background px-2 text-sm"
             >
-              <option value="percent">percent</option>
-              <option value="fixed">fixed</option>
+              {AFFILIATE_COMMISSION_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           );
         },
@@ -278,7 +298,14 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
       if (!keyword) return true;
 
       const account = row.original;
-      return [account.username, account.code, account.status, account.commissionType]
+      return [
+        account.username,
+        account.code,
+        account.status,
+        getAffiliateStatusLabel(account.status),
+        account.commissionType,
+        getAffiliateCommissionTypeLabel(account.commissionType),
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     },
@@ -302,17 +329,14 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <AdminTableToolbar>
-          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo username, mã ref, trạng thái..." />
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tài khoản, mã ref, trạng thái..." />
           <AdminTableSelect
             value={statusFilterValue}
             label="Lọc trạng thái"
             onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
             options={[
               { value: "", label: "Tất cả trạng thái" },
-              { value: "pending", label: "pending" },
-              { value: "active", label: "active" },
-              { value: "rejected", label: "rejected" },
-              { value: "blocked", label: "blocked" },
+              ...AFFILIATE_STATUS_OPTIONS,
             ]}
           />
           <AdminTableClearButton
@@ -359,10 +383,9 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none"
             >
               <option value="">Tác vụ hàng loạt</option>
-              <option value="pending">pending</option>
-              <option value="active">active</option>
-              <option value="rejected">rejected</option>
-              <option value="blocked">blocked</option>
+              {AFFILIATE_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
             <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng
@@ -426,26 +449,26 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Trạng thái</p>
-                  <p className="text-sm text-muted-foreground">{previewDraft.status}</p>
+                  <p className="text-sm text-muted-foreground">{getAffiliateStatusLabel(previewDraft.status)}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm">Commission</p>
-                  <p className="text-sm text-muted-foreground">{previewDraft.commissionType}</p>
+                  <p className="text-sm">Kiểu hoa hồng</p>
+                  <p className="text-sm text-muted-foreground">{getAffiliateCommissionTypeLabel(previewDraft.commissionType)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Giá trị</p>
                   <p className="text-sm text-muted-foreground">{previewDraft.commissionValue}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm">Click</p>
+                  <p className="text-sm">Lượt click</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.clickCount}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm">Conversion</p>
+                  <p className="text-sm">Chuyển đổi</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.conversionCount}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm">Earned</p>
+                  <p className="text-sm">Hoa hồng đã ghi nhận</p>
                   <p className="text-sm text-muted-foreground">{previewAccount.earnedCommission}</p>
                 </div>
                 <div className="space-y-1">

@@ -7,7 +7,7 @@ type BaseFieldSchema = {
 
 export type TextFieldSchema = BaseFieldSchema & {
   name: string;
-  type: "text" | "textarea" | "media" | "wysiwyg" | "switch";
+  type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox";
   multiple?: boolean;
   rows?: number;
 };

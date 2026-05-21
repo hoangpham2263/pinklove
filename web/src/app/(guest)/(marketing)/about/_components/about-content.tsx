@@ -106,9 +106,62 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
     "Trang giới thiệu không chỉ nói doanh nghiệp là ai. Nó cần cho khách hàng thấy lý do thương hiệu tồn tại, cách làm việc, giá trị cam kết và bước tiếp theo họ có thể thực hiện.";
 
   return (
-    <main className="bg-white">
-      <section className="relative isolate overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF]">
+    <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <span className="contact-cloud-decor contact-cloud-decor-one opacity-80" />
+        <span className="contact-cloud-decor contact-cloud-decor-two opacity-75" />
+        <span className="contact-cloud-decor contact-cloud-decor-three opacity-55" />
+        <span className="contact-cloud-decor contact-cloud-decor-four opacity-55" />
+        <span className="contact-cloud-decor contact-cloud-decor-five opacity-45" />
+        <span className="contact-cloud-decor contact-cloud-decor-six opacity-45" />
+        <span className="contact-cloud-decor contact-cloud-decor-nine opacity-50" />
+        <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/5 blur-3xl" />
+        <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
+        <div className="absolute left-[16%] top-[48%] size-22 rounded-full bg-[#ffb8fb]/4 blur-3xl" />
+        <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
+        <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
+        <span
+          className="cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-55 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          style={{ animationDelay: "-0.2s" }}
+        >
+          ✦
+        </span>
+        <span
+          className="cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-50 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
+          style={{ animationDelay: "-0.7s" }}
+        >
+          ♥
+        </span>
+        <span
+          className="cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-55 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          style={{ animationDelay: "-1.7s" }}
+        >
+          ✦
+        </span>
+        <span
+          className="cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-45 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
+          style={{ animationDelay: "-1.4s" }}
+        >
+          ♥
+        </span>
+        <span
+          className="cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-22 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
+          style={{ animationDelay: "-2.4s" }}
+        >
+          ♥
+        </span>
+        <span
+          className="cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-20 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
+          style={{ animationDelay: "-1.8s" }}
+        >
+          ✦
+        </span>
+      </div>
+
+      <section className="relative z-10 isolate overflow-hidden">
         <div className="pointer-events-none absolute inset-0 z-0 hidden lg:block">
+          <span className="contact-cloud-decor contact-banner-cloud-one" />
+          <span className="contact-cloud-decor contact-banner-cloud-two" />
           <div className="absolute left-[8%] top-[20%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
           <div className="absolute right-[12%] top-[28%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
           <div className="absolute bottom-[16%] left-[38%] size-24 rounded-full bg-white/35 blur-3xl" />
@@ -126,7 +179,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
                 <span>Giới thiệu</span>
               </p>
 
-              <h1 className="hero-title-light-sweep text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl lg:text-6xl">
+              <h1 className="text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl lg:text-6xl">
                 {introTitle}
               </h1>
 
@@ -137,7 +190,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
               <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
                 <Link
                   href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] px-6 text-sm font-semibold uppercase text-white shadow-[0_18px_44px_rgba(255,111,245,0.28)] transition hover:-translate-y-0.5"
+                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] px-6 text-sm font-semibold uppercase text-white transition hover:-translate-y-0.5"
                 >
                   {fields.ctaButtonText?.trim() || "Liên hệ tư vấn"}
                 </Link>
@@ -151,7 +204,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
             </div>
 
             <div className="lg:col-span-6">
-              <div className="relative min-h-[320px] overflow-hidden rounded-2xl border border-white/70 bg-white/60 shadow-[0_24px_70px_rgba(58,81,114,0.14)] lg:min-h-[460px]">
+              <div className="relative min-h-[320px] overflow-hidden rounded-2xl border border-[#ffd8fc]/80 bg-white lg:min-h-[460px]">
                 {bannerImage ? (
                   <Image src={bannerImage} alt={introTitle} fill className="object-cover" priority sizes="(min-width: 1024px) 50vw, 100vw" />
                 ) : (
@@ -170,21 +223,21 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <section className="bg-gradient-to-b from-[#FF6FF5] to-[#3A5172] px-4 py-12 text-white lg:py-16">
+      <section className="relative z-10 px-4 py-12 lg:py-16">
         <div className="container mx-auto">
           <div className="grid gap-4 md:grid-cols-3">
             {visibleStats.map((item) => (
-              <article key={`${item.value}-${item.label}`} className="rounded-2xl border border-white/18 bg-black/16 p-6 backdrop-blur">
-                <p className="text-4xl font-semibold">{item.value}</p>
-                <h2 className="mt-3 text-lg font-semibold">{item.label}</h2>
-                {item.description ? <p className="mt-2 text-sm leading-7 text-white/76">{item.description}</p> : null}
+              <article key={`${item.value}-${item.label}`} className="rounded-2xl border border-[#ffd8fc]/80 bg-white p-6">
+                <p className="text-4xl font-semibold text-[#d94dce]">{item.value}</p>
+                <h2 className="mt-3 text-lg font-semibold text-stone-950">{item.label}</h2>
+                {item.description ? <p className="mt-2 text-sm leading-7 text-stone-600">{item.description}</p> : null}
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-14 lg:py-20">
+      <section className="relative z-10 px-4 py-14 lg:py-20">
         <div className="container mx-auto">
           <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-5">
@@ -207,7 +260,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <section className="bg-stone-50 px-4 py-14 lg:py-20">
+      <section className="relative z-10 px-4 py-14 lg:py-20">
         <div className="container mx-auto">
           <div className="mb-9 max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">Giá trị cốt lõi</p>
@@ -216,7 +269,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
 
           <div className="grid gap-4 md:grid-cols-3">
             {visibleValues.map((item) => (
-              <article key={item.title} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-[0_18px_40px_rgba(35,31,39,0.06)]">
+              <article key={item.title} className="rounded-2xl border border-[#ffd8fc]/80 bg-white p-6">
                 <h3 className="text-lg font-semibold text-stone-950">{item.title}</h3>
                 <p className="mt-3 text-sm leading-8 text-stone-600 md:text-base">{item.description}</p>
               </article>
@@ -225,7 +278,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <section className="px-4 py-14 lg:py-20">
+      <section className="relative z-10 px-4 py-14 lg:py-20">
         <div className="container mx-auto">
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-4">
@@ -235,7 +288,7 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
 
             <div className="space-y-4 lg:col-span-8">
               {visibleStory.map((item, index) => (
-                <article key={`${item.title}-${index}`} className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-[0_18px_40px_rgba(35,31,39,0.05)] md:grid-cols-[120px_minmax(0,1fr)]">
+                <article key={`${item.title}-${index}`} className="grid gap-4 rounded-2xl border border-[#ffd8fc]/80 bg-white p-6 md:grid-cols-[120px_minmax(0,1fr)]">
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#d94dce]">{item.label || `Bước ${index + 1}`}</p>
                   <div>
                     <h3 className="text-lg font-semibold text-stone-950">{item.title}</h3>
@@ -248,19 +301,19 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <section className="px-4 pb-14 lg:pb-20">
+      <section className="relative z-10 px-4 pb-14 lg:pb-20">
         <div className="container mx-auto">
-          <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#111111] via-[#3A5172] to-[#D94DCE] px-6 py-10 text-center text-white shadow-[0_24px_70px_rgba(58,81,114,0.18)] lg:px-10 lg:py-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/65">Kết nối với PinkLove</p>
+          <div className="overflow-hidden rounded-2xl border border-[#ffd8fc]/80 bg-white px-6 py-10 text-center text-stone-950 lg:px-10 lg:py-14">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">Kết nối với PinkLove</p>
             <h2 className="mx-auto mt-4 max-w-3xl text-2xl font-semibold leading-tight sm:text-3xl lg:text-5xl">
               {fields.ctaTitle?.trim() || "Bạn muốn xây dựng trải nghiệm cưới online chỉn chu hơn?"}
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-white/78 md:text-base">
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-stone-600 md:text-base">
               {fields.ctaDescription?.trim() || "Trao đổi với chúng tôi để chọn mẫu, chỉnh nội dung hoặc mở rộng hệ thống theo nhu cầu vận hành của bạn."}
             </p>
             <Link
               href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT}
-              className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold uppercase text-stone-950 transition hover:-translate-y-0.5"
+              className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] px-6 text-sm font-semibold uppercase text-white transition hover:-translate-y-0.5"
             >
               {fields.ctaButtonText?.trim() || "Liên hệ ngay"}
             </Link>

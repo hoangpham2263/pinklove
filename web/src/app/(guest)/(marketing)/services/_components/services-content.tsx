@@ -1,43 +1,47 @@
 import Link from "next/link";
+import { Fragment } from "react";
+import { Check, X } from "lucide-react";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
-
-type ServicePlan = {
-  name?: string;
-  price?: string;
-  summary?: string;
-  features?: string;
-  badge?: string;
-};
+import { ServicesFaqAccordion } from "./services-faq-accordion";
 
 type ServiceFaqItem = {
   question?: string;
   answer?: string;
 };
 
-const fallbackPlans: ServicePlan[] = [
-  {
-    name: "Free Plan",
-    price: "0đ",
-    summary: "Bắt đầu nhanh với nhu cầu cơ bản.",
-    features: "Dùng mẫu thiệp có sẵn\nTự chỉnh nội dung cơ bản\nXuất bản 1 thiệp\nPhù hợp để thử nghiệm ban đầu",
-  },
-  {
-    name: "Basic Plan",
-    price: "499.000đ",
-    summary: "Phù hợp cho nhu cầu triển khai thực tế, gọn và đủ dùng.",
-    badge: "Phổ biến",
-    features: "Dùng mẫu có sẵn và starter builder\nTùy chỉnh nội dung đầy đủ\nƯu tiên hỗ trợ khi setup\nPhù hợp cho đa số cặp đôi",
-  },
-  {
-    name: "Premium Plan",
-    price: "1.490.000đ",
-    summary: "Dành cho nhu cầu chỉn chu hơn và cần hỗ trợ sâu hơn.",
-    features: "Tùy chỉnh sâu hơn theo yêu cầu\nƯu tiên hỗ trợ nhanh\nĐịnh hướng giao diện và nội dung\nPhù hợp khi cần trải nghiệm riêng",
-  },
-];
+type ServiceComparisonLimitRow = {
+  label?: string;
+  plan1?: string;
+  plan2?: string;
+  plan3?: string;
+};
+
+type ServiceComparisonFeatureRow = {
+  label?: string;
+  plan1?: boolean;
+  plan2?: boolean;
+  plan3?: boolean;
+};
+
+type PricingPlanItem = {
+  name?: string;
+  price?: string;
+  badge?: string;
+  summary?: string;
+};
+
+type ComparisonDisplayRow =
+  | {
+      label: string;
+      values: string[];
+    }
+  | {
+      label: string;
+      included: boolean[];
+    };
 
 const fallbackFaqs: ServiceFaqItem[] = [
   {
@@ -54,20 +58,25 @@ const fallbackFaqs: ServiceFaqItem[] = [
   },
 ];
 
-function splitLines(value?: string) {
-  return String(value ?? "")
-    .split(/\r?\n/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
 export async function ServicesContent({ page }: { page: ManagedPage }) {
   const fields = getPageFields<{
     heroTitle?: string;
     heroDescription?: string;
     plansTitle?: string;
     plansDescription?: string;
-    servicePlans?: ServicePlan[];
+    highlightEyebrow?: string;
+    highlightTitle?: string;
+    highlightBadgeLabel?: string;
+    highlightDescription?: string;
+    highlightOffer?: string;
+    plansEyebrow?: string;
+    comparisonEyebrow?: string;
+    comparisonFirstColumnTitle?: string;
+    planFeaturesTitle?: string;
+    comparisonLimitTitle?: string;
+    pricingPlans?: PricingPlanItem[];
+    comparisonLimitRows?: ServiceComparisonLimitRow[];
+    comparisonFeatureRows?: ServiceComparisonFeatureRow[];
     faqItems?: ServiceFaqItem[];
     ctaTitle?: string;
     ctaDescription?: string;
@@ -75,27 +84,57 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
     ctaButtonLink?: string;
   }>(page);
 
-  const plans = (Array.isArray(fields.servicePlans) && fields.servicePlans.length ? fields.servicePlans : fallbackPlans)
+  const plans = (Array.isArray(fields.pricingPlans) ? fields.pricingPlans : [])
     .filter((item) => item.name?.trim() && item.price?.trim())
+    .slice(0, 3)
     .map((item) => ({
       name: item.name?.trim() || "",
       price: item.price?.trim() || "",
       summary: item.summary?.trim() || "",
       badge: item.badge?.trim() || "",
-      features: splitLines(item.features),
     }));
 
   const faqs = (Array.isArray(fields.faqItems) && fields.faqItems.length ? fields.faqItems : fallbackFaqs).filter(
     (item) => item.question?.trim() && item.answer?.trim()
   );
+  const comparisonLimitRows = (Array.isArray(fields.comparisonLimitRows) ? fields.comparisonLimitRows : [])
+    .filter((item) => item.label?.trim())
+    .map((item) => ({
+      label: item.label?.trim() || "",
+      values: [item.plan1?.trim() || "", item.plan2?.trim() || "", item.plan3?.trim() || ""],
+    }));
+  const comparisonFeatureRows = (Array.isArray(fields.comparisonFeatureRows) ? fields.comparisonFeatureRows : [])
+    .filter((item) => item.label?.trim())
+    .map((item) => ({
+      label: item.label?.trim() || "",
+      included: [Boolean(item.plan1), Boolean(item.plan2), Boolean(item.plan3)],
+    }));
 
   const heroTitle = fields.heroTitle?.trim() || page.title || "Dịch vụ thiệp cưới online";
   const heroDescription =
     fields.heroDescription?.trim() ||
     page.excerpt ||
     "Chọn gói phù hợp với mức độ tùy chỉnh và hỗ trợ mà bạn cần để có một thiệp cưới online chỉn chu, đẹp mắt và dễ gửi đến khách mời.";
-  const highlightedPlan = plans.find((plan) => plan.badge) ?? plans[1] ?? plans[0];
-  const comparisonRows = Array.from(new Set(plans.flatMap((plan) => plan.features))).slice(0, 10);
+  const plansTitle = fields.plansTitle?.trim() || "Chọn gói phù hợp với mức độ hỗ trợ";
+  const plansDescription =
+    fields.plansDescription?.trim() ||
+    "Bạn có thể bắt đầu từ gói cơ bản và nâng cấp khi cần tùy chỉnh sâu hơn.";
+  const highlightEyebrow = fields.highlightEyebrow?.trim() || "Khuyến mãi đặc biệt";
+  const highlightTitle = fields.highlightTitle?.trim() || "Ưu đãi chung cho mọi gói dịch vụ";
+  const highlightBadgeLabel = fields.highlightBadgeLabel?.trim() || "Ưu đãi";
+  const highlightDescription =
+    fields.highlightDescription?.trim() ||
+    "Áp dụng chương trình khuyến mãi theo từng thời điểm cho khách hàng tạo thiệp online tại PinkLove.";
+  const highlightOffer = fields.highlightOffer?.trim() || "Liên hệ để nhận ưu đãi";
+  const plansEyebrow = fields.plansEyebrow?.trim() || "Bảng gói";
+  const comparisonEyebrow = fields.comparisonEyebrow?.trim() || "So sánh chi tiết";
+  const comparisonFirstColumnTitle = fields.comparisonFirstColumnTitle?.trim() || "Hạng mục";
+  const planFeaturesTitle = fields.planFeaturesTitle?.trim() || "Tính năng chính";
+  const comparisonLimitTitle = fields.comparisonLimitTitle?.trim() || "Giới hạn gói";
+  const comparisonSections: Array<{ title: string; rows: ComparisonDisplayRow[] }> = [
+    { title: comparisonLimitTitle, rows: comparisonLimitRows },
+    { title: planFeaturesTitle, rows: comparisonFeatureRows },
+  ].filter((section) => section.rows.length > 0);
   const paidBenefits = [
     {
       title: "Thiết kế chỉn chu hơn",
@@ -169,61 +208,91 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
 
       <section id="service-plans" className="relative z-10 px-4 pb-14 pt-6 lg:pb-20 lg:pt-8">
         <div className="container mx-auto">
-          {highlightedPlan ? (
-            <div className="mx-auto mb-8 grid max-w-5xl gap-4 rounded-2xl border border-[#ffd8fc]/80 bg-white p-5 text-center md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:text-left">
+          <div className="mx-auto mb-8 grid max-w-5xl gap-4 rounded-2xl border border-[#ffd8fc]/80 bg-white p-5 text-center md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:text-left">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">Khuyến mãi đặc biệt</p>
-                <h2 className="mt-2 text-xl font-semibold text-stone-950">Gói được chọn nhiều nhất</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">{highlightEyebrow}</p>
+                <h2 className="mt-2 text-xl font-semibold text-stone-950">{highlightTitle}</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{highlightDescription}</p>
               </div>
               <div className="mx-auto flex size-24 flex-col items-center justify-center rounded-full bg-[linear-gradient(135deg,#FF95F8_0%,#FF6FF5_100%)] text-white">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em]">Gợi ý</span>
-                <span className="mt-1 text-lg font-semibold">{highlightedPlan.badge || highlightedPlan.name}</span>
-              </div>
-              <div className="md:text-right">
-                <p className="text-sm font-medium text-stone-500">{highlightedPlan.name}</p>
-                <p className="mt-1 text-3xl font-semibold text-stone-950">{highlightedPlan.price}</p>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em]">{highlightBadgeLabel}</span>
+                <span className="mt-1 max-w-20 text-center text-base font-semibold leading-tight">{highlightOffer}</span>
               </div>
             </div>
-          ) : null}
 
           <div className="mb-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">Bảng gói</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">{plansEyebrow}</p>
             <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-5xl">
-              {fields.plansTitle?.trim() || "Chọn gói phù hợp với mức độ hỗ trợ"}
+              {plansTitle}
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-stone-600 md:text-base">
-              {fields.plansDescription?.trim() || "Bạn có thể bắt đầu từ gói cơ bản và nâng cấp khi cần tùy chỉnh sâu hơn."}
+              {plansDescription}
             </p>
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3 lg:items-start">
-            {plans.map((plan) => (
-              <article key={plan.name} className={`relative flex h-full flex-col rounded-2xl border bg-white p-6 ${plan.badge ? "border-[#FF95F8] lg:-mt-4" : "border-[#ffd8fc]/80"}`}>
-                {plan.badge ? (
-                  <span className="absolute right-5 top-5 rounded-full bg-[#FF6FF5] px-3 py-1 text-xs font-semibold uppercase text-white">
-                    {plan.badge}
-                  </span>
-                ) : null}
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-stone-400">{plan.name}</p>
-                <p className="mt-4 text-4xl font-semibold text-stone-950">{plan.price}</p>
-                {plan.summary ? <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{plan.summary}</p> : null}
-                <Link href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT} className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-full px-6 text-sm font-semibold uppercase transition hover:-translate-y-0.5 ${plan.badge ? "bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] text-white" : "bg-stone-950 text-white hover:bg-[#d94dce]"}`}>
-                  {plan.price === "0đ" ? "Tạo tài khoản miễn phí" : `Nâng cấp ${plan.name} ngay`}
-                </Link>
+            {plans.map((plan, planIndex) => {
+              const planBorderClass =
+                planIndex === 0
+                  ? "border-[#ffd8fc]/80 hover:border-[#ffb8fb]"
+                  : planIndex === 1
+                    ? "border-[#ffb8fb]/90 hover:border-[#FF95F8]"
+                    : "border-[#FF95F8]/90 hover:border-[#FF6FF5]";
 
-                <div className="mt-7 border-t border-[#ffd8fc]/70 pt-6">
-                  <h3 className="text-sm font-semibold text-stone-950">Tính năng chính</h3>
-                </div>
-                <ul className="mt-4 space-y-3 text-sm text-stone-700">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <span className="mt-1.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[#fff5fd] text-[10px] font-bold text-[#d94dce]">✓</span>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+              return (
+                <article key={plan.name} className={`relative flex h-full flex-col rounded-2xl border bg-white p-6 transition duration-300 hover:-translate-y-1 ${planBorderClass}`}>
+                  {plan.badge ? (
+                    <span className="absolute right-5 top-5 rounded-full bg-[#FF6FF5] px-3 py-1 text-xs font-semibold uppercase text-white">
+                      {plan.badge}
+                    </span>
+                  ) : null}
+                  <p className="text-xs font-semibold uppercase tracking-[0.26em] text-stone-400">{plan.name}</p>
+                  <p className="mt-4 text-4xl font-semibold text-stone-950">{plan.price}</p>
+                  {plan.summary ? <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{plan.summary}</p> : null}
+                  <Link href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT} className={`mt-6 inline-flex min-h-12 items-center justify-center rounded-full px-6 text-sm font-semibold uppercase transition hover:-translate-y-0.5 ${plan.badge ? "bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] text-white" : "bg-stone-950 text-white hover:bg-[#d94dce]"}`}>
+                    {plan.price === "0đ" ? "Tạo tài khoản miễn phí" : `Nâng cấp ${plan.name} ngay`}
+                  </Link>
+
+                  {comparisonLimitRows.length ? (
+                    <>
+                      <div className="mt-7 border-t border-[#ffd8fc]/70 pt-6">
+                        <h3 className="text-sm font-semibold text-stone-950">{comparisonLimitTitle}</h3>
+                      </div>
+                      <ul className="mt-4 space-y-3 text-sm text-stone-700">
+                        {comparisonLimitRows.map((row) => (
+                          <li key={row.label} className="flex items-start justify-between gap-4">
+                            <span className="text-stone-500">{row.label}</span>
+                            <span className="text-right font-semibold text-stone-800">{row.values[planIndex] || "-"}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+
+                  {comparisonFeatureRows.length ? (
+                    <>
+                      <div className="mt-7 border-t border-[#ffd8fc]/70 pt-6">
+                        <h3 className="text-sm font-semibold text-stone-950">{planFeaturesTitle}</h3>
+                      </div>
+                      <ul className="mt-4 space-y-3 text-sm text-stone-700">
+                        {comparisonFeatureRows.map((feature) => {
+                          const isIncluded = feature.included[planIndex] ?? false;
+
+                          return (
+                            <li key={feature.label} className="flex items-start gap-3">
+                              <span className={`mt-1.5 flex size-5 shrink-0 items-center justify-center rounded-full ${isIncluded ? "bg-[#fff5fd] text-[#d94dce]" : "bg-stone-100 text-stone-300"}`}>
+                                {isIncluded ? <Check className="size-3.5 stroke-[3]" aria-hidden="true" /> : <X className="size-3.5 stroke-[3]" aria-hidden="true" />}
+                              </span>
+                              <span className={isIncluded ? "" : "text-stone-400"}>{feature.label}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -236,26 +305,26 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
         </section>
       ) : null}
 
-      {comparisonRows.length ? (
+      {comparisonSections.length > 0 ? (
         <section className="relative z-10 px-4 py-14 lg:py-20">
           <div className="container mx-auto">
             <div className="mb-10 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">So sánh chi tiết</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#d94dce]">{comparisonEyebrow}</p>
               <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-5xl">
-                Bảng so sánh các gói dịch vụ
+                {plansTitle}
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-8 text-stone-600 md:text-base">
-                Xem nhanh giới hạn và tính năng khác nhau giữa các gói để chọn phương án phù hợp nhất.
+                {plansDescription}
               </p>
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-[#ffd8fc]/80 bg-white">
-              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[820px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-[#ffd8fc]/70 bg-[#fff7fd]/70">
-                    <th className="px-5 py-5 font-semibold uppercase tracking-[0.18em] text-stone-400">Hạng mục</th>
+                    <th className="w-[34%] px-5 py-5 font-semibold uppercase tracking-[0.18em] text-stone-400">{comparisonFirstColumnTitle}</th>
                     {plans.map((plan) => (
-                      <th key={plan.name} className="px-5 py-5 font-semibold text-stone-950">
+                      <th key={plan.name} className="px-5 py-5 text-center font-semibold text-stone-950">
                         <span className="block text-base">{plan.name}</span>
                         <span className="mt-1 block text-sm text-[#d94dce]">{plan.price}</span>
                       </th>
@@ -263,21 +332,36 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonRows.map((feature) => (
-                    <tr key={feature} className="border-b border-[#fff0fb] last:border-b-0">
-                      <td className="px-5 py-4 font-medium text-stone-700">{feature}</td>
-                      {plans.map((plan) => (
-                        <td key={`${plan.name}-${feature}`} className="px-5 py-4">
-                          {plan.features.includes(feature) ? (
-                            <span className="inline-flex size-7 items-center justify-center rounded-full bg-[#fff5fd] text-xs font-bold text-[#d94dce]">
-                              ✓
-                            </span>
-                          ) : (
-                            <span className="text-stone-300">-</span>
-                          )}
+                  {comparisonSections.map((section) => (
+                    <Fragment key={section.title}>
+                      <tr className="border-b border-[#ffd8fc]/70 bg-[#fffafe]">
+                        <td colSpan={plans.length + 1} className="px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#d94dce]">
+                          {section.title}
                         </td>
+                      </tr>
+                      {section.rows.map((row) => (
+                        <tr key={`${section.title}-${row.label}`} className="border-b border-[#fff0fb] last:border-b-0">
+                          <td className="px-5 py-4 font-medium text-stone-700">{row.label}</td>
+                          {plans.map((plan, index) => (
+                            <td key={`${plan.name}-${section.title}-${row.label}`} className="px-5 py-4 text-center">
+                              {"values" in row ? (
+                                <span className="font-semibold text-stone-800">
+                                  {row.values[index] ?? row.values[row.values.length - 1]}
+                                </span>
+                              ) : row.included[index] ?? row.included[row.included.length - 1] ? (
+                                <span className="mx-auto inline-flex size-8 items-center justify-center rounded-full bg-[#fff5fd] text-[#d94dce]">
+                                  <Check className="size-4 stroke-[3]" aria-hidden="true" />
+                                </span>
+                              ) : (
+                                <span className="mx-auto inline-flex size-8 items-center justify-center rounded-full bg-stone-100 text-stone-300">
+                                  <X className="size-4 stroke-[3]" aria-hidden="true" />
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -296,14 +380,7 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {faqs.map((item, index) => (
-              <article key={`${item.question}-${index}`} className="rounded-2xl border border-[#ffd8fc]/80 bg-white p-6">
-                <h3 className="text-base font-semibold text-stone-950 lg:text-lg">{item.question}</h3>
-                <p className="mt-3 text-sm leading-8 text-stone-600 md:text-base">{item.answer}</p>
-              </article>
-            ))}
-          </div>
+          <ServicesFaqAccordion items={faqs} />
         </div>
       </section>
 

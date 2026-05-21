@@ -218,7 +218,7 @@ export async function generateGeneralProductMetadata(product: Product | null): P
     return await createSeoMetadata({
       title: "Sản phẩm",
       description: "Chi tiết sản phẩm catalog.",
-      path: "/products",
+      path: ROUTES.PAPER,
       noindex: true,
     });
   }

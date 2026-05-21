@@ -9,8 +9,8 @@ const FIXED_PAGE_PATHS: Record<string, string> = {
   home: "/",
   login: "/login",
   register: "/register",
-  "partner-apply": "/partner-apply",
-  "affiliate-apply": "/affiliate-apply",
+  "partners/apply": "/partners/apply",
+  affiliates: "/affiliates",
 };
 const RESERVED_EXACT_PATHS = new Set([
   "/admin",
@@ -29,8 +29,6 @@ const RESERVED_PREFIXES = [
   "/user",
   "/partner",
   "/checkout",
-  "/templates",
-  "/builder",
   "/products",
   "/paper",
   "/invitations",
@@ -38,6 +36,9 @@ const RESERVED_PREFIXES = [
 const RESERVED_BRANCH_PREFIXES = [
   "/blog/",
   "/cong-cu/",
+  "/mau-thiep/",
+  "/tu-tao-thiep/",
+  "/thiep-giay/",
 ] as const;
 
 export function getDefaultPagePath(slug: string): string {

@@ -311,21 +311,6 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
               </select>
             </div>
 
-            <label className="flex cursor-pointer items-start gap-3 rounded-md border px-3 py-3 text-sm">
-              <input
-                type="checkbox"
-                name="adminUsed"
-                defaultChecked={Boolean(page.adminUsed)}
-                className="mt-0.5 h-4 w-4 cursor-pointer rounded border-input"
-              />
-              <span>
-                <span className="block font-medium">Đã sử dụng page này</span>
-                <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                  Chỉ dùng để ghi chú quản lý nội bộ, không ảnh hưởng trang public.
-                </span>
-              </span>
-            </label>
-
             <div className="pt-2">
               <AdminSubmitButton className="w-full" disabled={isSaving}>
                 {isSaving ? "Đang lưu..." : "Update Page"}

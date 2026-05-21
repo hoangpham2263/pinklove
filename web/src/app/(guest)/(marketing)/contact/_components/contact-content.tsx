@@ -49,10 +49,10 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
   const heroTitleKeyword = fields.heroTitleKeyword?.trim() || "";
   const introDescription = fields.supportDescription?.trim() || page.excerpt || "";
   const responseChips = [
-    fields.responseTime ? { label: "Phản hồi", value: fields.responseTime } : null,
-    fields.officeHours ? { label: "Hỗ trợ", value: fields.officeHours } : null,
-    fields.contactPhone ? { label: "Hotline", value: fields.contactPhone } : null,
-  ].filter(Boolean) as Array<{ label: string; value: string }>;
+    { label: "Phản hồi", value: fields.responseTime?.trim() || "Trong vòng 2 giờ làm việc" },
+    { label: "Hỗ trợ", value: fields.officeHours?.trim() || "08:30 - 18:00, Thứ 2 - Thứ 7" },
+    { label: "Hotline", value: fields.contactPhone?.trim() || "0909 000 999" },
+  ];
 
   return (
     <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
@@ -70,60 +70,60 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
         <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
         <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
         <span
-          className="cta-sparkle-float absolute left-[14%] top-[13%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          className="cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
           style={{ animationDelay: "-0.2s" }}
         >
           ✦
         </span>
         <span
-          className="cta-heart-pop absolute left-[20%] top-[30%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
+          className="cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
           style={{ animationDelay: "-0.7s" }}
         >
           ♥
         </span>
         <span
-          className="cta-sparkle-float absolute right-[28%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          className="cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
           style={{ animationDelay: "-1.7s" }}
         >
           ✦
         </span>
         <span
-          className="cta-heart-pop absolute right-[18%] top-[37%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
+          className="cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
           style={{ animationDelay: "-1.4s" }}
         >
           ♥
         </span>
         <span
-          className="cta-heart-pop absolute right-[28%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
+          className="cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
           style={{ animationDelay: "-2.4s" }}
         >
           ♥
         </span>
         <span
-          className="cta-sparkle-float absolute left-[45%] bottom-[9%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-22 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
+          className="cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-22 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
           style={{ animationDelay: "-1.8s" }}
         >
           ✦
         </span>
       </div>
-      <section className="relative z-10 min-h-[520px] overflow-hidden">
+      <section className="relative z-10 overflow-hidden">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <span className="contact-cloud-decor contact-banner-cloud-one" />
           <span className="contact-cloud-decor contact-banner-cloud-two" />
           <span
-            className="cta-sparkle-float absolute left-[7%] top-[24%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+            className="cta-sparkle-float absolute left-[7%] top-[33%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
             style={{ animationDelay: "-0.45s" }}
           >
             ✦
           </span>
           <span
-            className="cta-sparkle-float absolute right-[8%] top-[28%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-75 drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
+            className="cta-sparkle-float absolute right-[10%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-75 drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
             style={{ animationDelay: "-1.35s" }}
           >
             ✦
           </span>
         </div>
-        <div className="container relative z-10 mx-auto px-4 py-16 text-center lg:py-24">
+        <div className="container px-4 mx-auto relative z-10 pt-10 lg:pt-15 2xl:pt-20">
           <ManagedPageBreadcrumb
             page={page}
             listClassName="justify-center text-xs font-semibold uppercase tracking-[0.35em] text-stone-700"
@@ -132,7 +132,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
             separatorClassName="text-stone-500"
           />
 
-          <h1 className="mx-auto mt-5 text-3xl font-semibold leading-tight sm:text-4xl lg:text-6xl">
+          <h1 className="text-center mt-5 text-3xl font-semibold leading-tight sm:text-4xl lg:text-6xl">
             {heroTitleText || heroTitleKeyword ? (
               <>
                 {heroTitleText ? <span className="inline">{heroTitleText}</span> : null}
@@ -152,7 +152,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
           </h1>
 
           {introDescription ? (
-            <p className="mx-auto mt-5 max-w-3xl text-sm font-medium leading-8 md:text-base lg:text-lg">
+            <p className="text-center mt-5 text-sm md:text-base lg:text-lg">
               {introDescription}
             </p>
           ) : null}
@@ -160,7 +160,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
           {responseChips.length > 0 ? (
             <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-3">
               {responseChips.map((item) => (
-                <div key={`${item.label}-${item.value}`} className="rounded-full border border-[#ff6ff5]/16 bg-white/72 px-5 py-3 text-left shadow-[0_18px_44px_rgba(255,111,245,0.08)] backdrop-blur">
+                <div key={`${item.label}-${item.value}`} className="rounded-full border border-[#ff6ff5]/16 bg-white/72 px-5 py-3 text-left">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary/60">{item.label}</p>
                   <p className="mt-1 text-sm font-semibold text-stone-900">{item.value}</p>
                 </div>
@@ -172,10 +172,10 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
 
       {socialLinks.length > 0 ? (
         <section className="container relative z-10 px-4 mx-auto pt-10 lg:pt-12.5 2xl:pt-15">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap-reverse justify-center gap-4 lg:gap-7.5">
             {socialLinks.map((item) => {
               const content = (
-                <div className="group h-full flex flex-col p-5 bg-white rounded-lg lg:rounded-2xl shadow-[0_18px_44px_rgba(35,31,39,0.1)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(58,81,114,0.16)]">
+                <div className="group w-full h-full flex flex-col items-center p-5 bg-white rounded-lg lg:rounded-2xl shadow-[0_18px_44px_rgba(35,31,39,0.1)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(58,81,114,0.16)]">
                   <span className="flex size-12.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1877F2]/10 text-lg font-semibold text-white">
                     {item.image ? (
                       <Image src={item.image} alt={item.label} width={56} height={56} className="size-7.5 object-cover" />
@@ -196,7 +196,7 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
                   href={item.href}
                   target={item.href.startsWith("http") ? "_blank" : undefined}
                   rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-                  className="block h-full"
+                  className="block w-[calc((100%-16px)/2)] lg:w-[calc((100%-90px)/4)]"
                 >
                   {content}
                 </a>

@@ -20,7 +20,7 @@ export default async function AdminAffiliatesPage() {
       <div className="rounded-md border bg-background p-6">
         <h1 className="text-2xl font-semibold tracking-tight">Affiliate Overview</h1>
         <p className="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
-          Luồng customer đăng ký ở `/customer/affiliate` sẽ tạo tài khoản affiliate trạng thái pending và được duyệt tại mục Duyệt Customer Affiliate. Hồ sơ guest từ trang public `/affiliate-apply` nằm riêng ở mục Hồ sơ Guest Affiliate.
+          Luồng customer đăng ký ở <code>{ROUTES.CUSTOMER.AFFILIATE}</code> sẽ tạo tài khoản affiliate trạng thái chờ duyệt và được duyệt tại mục Duyệt Customer Affiliate. Hồ sơ guest từ trang public <code>{ROUTES.AFFILIATE_APPLY}</code> nằm riêng ở mục Hồ sơ Guest Affiliate.
         </p>
       </div>
 
