@@ -184,6 +184,17 @@
   --pinkcloud-primary-shadow: color-mix(in srgb, var(--pinkcloud-primary) 32%, transparent);
 }
 
+.guest-soft-top-bg {
+  --guest-soft-bg-start: color-mix(in srgb, var(--color-guest-primary) 6.5%, white);
+  --guest-soft-bg-mid: color-mix(in srgb, var(--color-guest-primary) 3%, white);
+  --guest-soft-bg-left: color-mix(in srgb, var(--color-guest-primary) 10%, transparent);
+  --guest-soft-bg-right: color-mix(in srgb, var(--color-guest-primary) 6%, transparent);
+  background:
+    radial-gradient(circle at 18% 3%, var(--guest-soft-bg-left) 0%, transparent 26rem),
+    radial-gradient(circle at 82% 4%, var(--guest-soft-bg-right) 0%, transparent 24rem),
+    linear-gradient(180deg, var(--guest-soft-bg-start) 0%, var(--guest-soft-bg-mid) 38vh, #fff 66vh, #fff 100%);
+}
+
 .contact-wave-bg::before,
 .contact-wave-bg::after {
   content: "";

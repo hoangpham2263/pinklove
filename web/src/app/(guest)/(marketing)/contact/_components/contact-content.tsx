@@ -55,70 +55,43 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <main
-      className="contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]"
-      style={{
-        background:
-          "radial-gradient(circle at 16% 7%, color-mix(in srgb, var(--color-guest-primary) 12%, transparent) 0%, transparent 30%), radial-gradient(circle at 84% 9%, color-mix(in srgb, var(--color-guest-primary) 9%, transparent) 0%, transparent 28%), linear-gradient(180deg, color-mix(in srgb, var(--color-guest-primary) 8%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 3%, white) 22%, #fff 50%, #fff 100%)",
-      }}
-    >
+    <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <span className="contact-cloud-decor contact-cloud-decor-one" />
-        <span className="contact-cloud-decor contact-cloud-decor-two" />
-        <span className="contact-cloud-decor contact-cloud-decor-three" />
-        <span className="contact-cloud-decor contact-cloud-decor-four" />
-        <span className="contact-cloud-decor contact-cloud-decor-five" />
-        <span className="contact-cloud-decor contact-cloud-decor-six" />
-        <span className="contact-cloud-decor contact-cloud-decor-seven" />
-        <span className="contact-cloud-decor contact-cloud-decor-eight" />
-        <span className="contact-cloud-decor contact-cloud-decor-nine" />
-        <span className="contact-cloud-decor contact-cloud-decor-ten" />
-        <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/10 blur-3xl" />
-        <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/7 blur-3xl" />
-        <div className="absolute left-[16%] top-[48%] size-22 rounded-full bg-[#ffb8fb]/8 blur-3xl" />
-        <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/7 blur-3xl" />
+        <span className="contact-cloud-decor contact-cloud-decor-one opacity-85" />
+        <span className="contact-cloud-decor contact-cloud-decor-two opacity-85" />
+        <span className="contact-cloud-decor contact-cloud-decor-three opacity-65" />
+        <span className="contact-cloud-decor contact-cloud-decor-four opacity-65" />
+        <span className="contact-cloud-decor contact-cloud-decor-five opacity-55" />
+        <span className="contact-cloud-decor contact-cloud-decor-six opacity-55" />
+        <span className="contact-cloud-decor contact-cloud-decor-nine opacity-60" />
+        <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/5 blur-3xl" />
+        <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
+        <div className="absolute left-[16%] top-[48%] size-22 rounded-full bg-[#ffb8fb]/4 blur-3xl" />
+        <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
         <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
         <span
-          className="cta-sparkle-float absolute left-[14%] top-[13%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          className="cta-sparkle-float absolute left-[14%] top-[13%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
           style={{ animationDelay: "-0.2s" }}
         >
           ✦
         </span>
         <span
-          className="cta-sparkle-float absolute left-[36%] top-[8%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
-          style={{ animationDelay: "-1.1s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-heart-pop absolute left-[20%] top-[30%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
+          className="cta-heart-pop absolute left-[20%] top-[30%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
           style={{ animationDelay: "-0.7s" }}
         >
           ♥
         </span>
         <span
-          className="cta-sparkle-float absolute right-[28%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+          className="cta-sparkle-float absolute right-[28%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
           style={{ animationDelay: "-1.7s" }}
         >
           ✦
         </span>
         <span
-          className="cta-heart-pop absolute right-[18%] top-[37%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
+          className="cta-heart-pop absolute right-[18%] top-[37%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
           style={{ animationDelay: "-1.4s" }}
         >
           ♥
-        </span>
-        <span
-          className="cta-sparkle-float absolute right-[13%] top-[52%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent drop-shadow-[0_8px_20px_rgba(255,111,245,0.18)]"
-          style={{ animationDelay: "-0.9s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-sparkle-float absolute left-[24%] top-[66%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-30 drop-shadow-[0_6px_14px_rgba(255,184,251,0.1)]"
-          style={{ animationDelay: "-2.1s" }}
-        >
-          ✦
         </span>
         <span
           className="cta-heart-pop absolute right-[28%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
@@ -137,7 +110,6 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <span className="contact-cloud-decor contact-banner-cloud-one" />
           <span className="contact-cloud-decor contact-banner-cloud-two" />
-          <span className="contact-cloud-decor contact-banner-cloud-three" />
           <span
             className="cta-sparkle-float absolute left-[7%] top-[24%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
             style={{ animationDelay: "-0.45s" }}
@@ -149,18 +121,6 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
             style={{ animationDelay: "-1.35s" }}
           >
             ✦
-          </span>
-          <span
-            className="cta-sparkle-float absolute left-[27%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-xl text-transparent opacity-65 drop-shadow-[0_6px_12px_rgba(255,111,245,0.12)]"
-            style={{ animationDelay: "-2.15s" }}
-          >
-            ✦
-          </span>
-          <span
-            className="cta-heart-pop absolute right-[30%] top-[20%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-65 drop-shadow-[0_8px_18px_rgba(217,77,206,0.14)]"
-            style={{ animationDelay: "-1.75s" }}
-          >
-            ♥
           </span>
         </div>
         <div className="container relative z-10 mx-auto px-4 py-16 text-center lg:py-24">

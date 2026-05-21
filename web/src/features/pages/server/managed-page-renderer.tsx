@@ -773,13 +773,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       ]);
 
       return (
-        <section
-          className="contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]"
-          style={{
-            background:
-              "radial-gradient(circle at 16% 7%, color-mix(in srgb, var(--color-guest-primary) 12%, transparent) 0%, transparent 30%), radial-gradient(circle at 84% 9%, color-mix(in srgb, var(--color-guest-primary) 9%, transparent) 0%, transparent 28%), linear-gradient(180deg, color-mix(in srgb, var(--color-guest-primary) 8%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 3%, white) 22%, #fff 50%, #fff 100%)",
-          }}
-        >
+        <section className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
           <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
             <span className="contact-cloud-decor blog-cloud-decor-one" />
             <span className="contact-cloud-decor blog-cloud-decor-two" />
