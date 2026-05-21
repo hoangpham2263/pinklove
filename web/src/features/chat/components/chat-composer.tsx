@@ -76,7 +76,7 @@ export function ChatComposer({
           value={messageBody}
           onChange={(event) => onMessageChange(event.target.value)}
           onKeyDown={onMessageKeyDown}
-          className="h-12 min-h-12 flex-1 resize-none rounded-md border bg-background px-3 py-3 text-sm leading-5 outline-none focus:ring-2 focus:ring-ring"
+          className="h-12 min-h-12 flex-1 resize-none rounded-md border bg-background px-3 py-3 text-sm leading-5 outline-none"
           placeholder={placeholder}
           disabled={disabled}
         />

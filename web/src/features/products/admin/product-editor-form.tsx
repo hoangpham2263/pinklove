@@ -155,7 +155,7 @@ export function ProductEditorForm({
                   <select
                     name="status"
                     defaultValue={product.status}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="draft">draft</option>
                     <option value="published">published</option>
@@ -172,7 +172,7 @@ export function ProductEditorForm({
                   <select
                     name="categoryId"
                     defaultValue={product.categoryId ?? ""}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="">Không chọn danh mục</option>
                     {categories.map((category) => (
@@ -193,7 +193,7 @@ export function ProductEditorForm({
                   <textarea
                     name="excerpt"
                     defaultValue={product.excerpt}
-                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   />
                 </div>
 
@@ -202,7 +202,7 @@ export function ProductEditorForm({
                   <textarea
                     name="description"
                     defaultValue={product.description}
-                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   />
                 </div>
               </div>
@@ -268,7 +268,7 @@ export function ProductEditorForm({
               <select
                 name="categoryId"
                 defaultValue={product.categoryId ?? ""}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="">Không chọn danh mục</option>
                 {categories.map((category) => (
@@ -318,7 +318,7 @@ export function ProductEditorForm({
                     name="ownerType"
                     value={ownerType}
                     onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="internal">Sản phẩm của tôi / nội bộ</option>
                     <option value="vendor">Sản phẩm của đối tác</option>
@@ -331,7 +331,7 @@ export function ProductEditorForm({
                     value={ownerVendorUserId}
                     onChange={(e) => setOwnerVendorUserId(e.target.value)}
                     disabled={ownerType !== "vendor"}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
                   >
                     <option value="">Chọn đối tác</option>
                     {vendors.map((vendor) => (
@@ -351,7 +351,7 @@ export function ProductEditorForm({
                   name="fulfillmentType"
                   value={fulfillmentType}
                   onChange={(e) => setFulfillmentType(e.target.value as ProductFulfillmentType)}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 >
                   <option value="digital">Digital</option>
                   <option value="physical">Cần vận chuyển</option>
@@ -463,7 +463,7 @@ export function ProductEditorForm({
             <textarea
               name="excerpt"
               defaultValue={product.excerpt}
-              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             />
           </div>
 
@@ -472,7 +472,7 @@ export function ProductEditorForm({
             <textarea
               name="description"
               defaultValue={product.description}
-              className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             />
           </div>
 
@@ -505,7 +505,7 @@ export function ProductEditorForm({
               <select
                 name="status"
                 defaultValue={product.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="draft">draft</option>
                 <option value="published">published</option>

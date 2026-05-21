@@ -344,7 +344,7 @@ export function PartnerVendorPortalPanel({
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
-            <Table className="table-fixed">
+            <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>

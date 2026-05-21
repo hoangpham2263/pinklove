@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "missing_selection",
       message: "Hãy chọn ít nhất một tài khoản để áp dụng thao tác hàng loạt.",
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_selection`,
+      location: `${ROUTES.ADMIN.AFFILIATE_ACCOUNTS}?error=missing_selection`,
     });
   }
 
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "invalid_bulk_action",
       message: "Tác vụ hàng loạt không hợp lệ.",
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=invalid_bulk_action`,
+      location: `${ROUTES.ADMIN.AFFILIATE_ACCOUNTS}?error=invalid_bulk_action`,
     });
   }
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     }
 
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.AFFILIATES,
+      location: ROUTES.ADMIN.AFFILIATE_ACCOUNTS,
       message: `Đã cập nhật ${userIds.length} tài khoản affiliate.`,
       data: { count: userIds.length, bulk: bulkAction },
     });
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: code,
       message,
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}`,
+      location: `${ROUTES.ADMIN.AFFILIATE_ACCOUNTS}?error=${encodeURIComponent(code)}`,
     });
   }
 }

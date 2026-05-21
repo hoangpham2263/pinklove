@@ -56,15 +56,12 @@ function MenuChildItem({
   item: CustomerNavChild;
   onNavigate: () => void;
 }) {
-  const Icon = customerMobileIconMap[item.iconName];
-
   return (
     <CustomerNavLink
       href={item.href}
-      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
+      className="flex items-center rounded-lg px-3 py-2.5 transition-colors"
       onNavigate={onNavigate}
     >
-      <Icon className="h-4 w-4" />
       <span>{item.label}</span>
     </CustomerNavLink>
   );

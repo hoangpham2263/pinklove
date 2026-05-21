@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "missing_user",
       message: "Thiếu user cần cập nhật.",
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_user`,
+      location: `${ROUTES.ADMIN.AFFILIATE_ACCOUNTS}?error=missing_user`,
     });
   }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     });
 
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.AFFILIATES,
+      location: ROUTES.ADMIN.AFFILIATE_ACCOUNTS,
       message: "Đã cập nhật cấu hình affiliate.",
     });
   } catch (error) {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: code,
       message,
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}`,
+      location: `${ROUTES.ADMIN.AFFILIATE_ACCOUNTS}?error=${encodeURIComponent(code)}`,
     });
   }
 }

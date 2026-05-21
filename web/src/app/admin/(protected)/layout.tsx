@@ -69,7 +69,7 @@ export default async function AdminLayout({
   const [user, settings] = await Promise.all([requireAdmin(), getSystemSettings()]);
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-12">
+    <div className="min-h-screen md:grid md:grid-cols-11">
       <aside className="hidden border-r bg-background p-5 md:sticky md:top-0 md:col-span-2 md:flex md:h-screen md:flex-col md:overflow-hidden">
         <div className="mb-6 shrink-0 px-3">
           {settings.branding.brandLogo ? (
@@ -135,7 +135,7 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-10">
+      <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
         <AdminTopHeader
           username={user.username}
           breadcrumbEnabled={settings.breadcrumb.adminEnabled}

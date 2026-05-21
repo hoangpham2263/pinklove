@@ -90,7 +90,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
               <select
                 name="categoryId"
                 defaultValue={post.categoryId}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 required
               >
                 {categories.map((category) => (
@@ -105,7 +105,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
               <select
                 name="status"
                 defaultValue={post.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="draft">draft</option>
                 <option value="published">published</option>
@@ -117,7 +117,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
             <textarea
               name="excerpt"
               defaultValue={post.excerpt}
-              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             />
           </div>
           <div className="space-y-2">
@@ -125,7 +125,7 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
             <textarea
               name="content"
               defaultValue={post.content}
-              className="min-h-56 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              className="min-h-56 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             />
           </div>
         </CardContent>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentType, MouseEventHandler, ReactNode } from "react";
+import type { ComponentType, MouseEventHandler, ReactElement, ReactNode } from "react";
+import { Tooltip } from "@base-ui/react/tooltip";
 import {
   CheckCircle2,
   Download,
@@ -125,16 +126,53 @@ function TableActionIcon({ action, title }: { action: TableActionKind; title: st
   );
 }
 
+function ActionTooltip({
+  title,
+  disabled,
+  children,
+}: {
+  title: string;
+  disabled?: boolean;
+  children: ReactElement;
+}) {
+  return (
+    <Tooltip.Root disabled={disabled}>
+      <Tooltip.Trigger delay={250} render={children} />
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="top" align="center" sideOffset={8} collisionPadding={8}>
+          <Tooltip.Popup className="z-[80] rounded-md bg-foreground px-2 py-1 text-xs font-medium leading-4 text-background shadow-lg">
+            {title}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  );
+}
+
 export function TableActionTriggerTemplate({ action, label }: TableActionTriggerProps) {
   const title = label ?? ACTION_CONFIG[action].label;
 
   return (
-    <DialogTrigger
-      aria-label={title}
-      render={<button type="button" data-action-tooltip={title} className={tableActionButtonClass(action)} />}
-    >
-      <TableActionIcon action={action} title={title} />
-    </DialogTrigger>
+    <Tooltip.Root>
+      <DialogTrigger
+        aria-label={title}
+        render={
+          <Tooltip.Trigger
+            delay={250}
+            render={<button type="button" className={tableActionButtonClass(action)} />}
+          />
+        }
+      >
+        <TableActionIcon action={action} title={title} />
+      </DialogTrigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="top" align="center" sideOffset={8} collisionPadding={8}>
+          <Tooltip.Popup className="z-[80] rounded-md bg-foreground px-2 py-1 text-xs font-medium leading-4 text-background shadow-lg">
+            {title}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 
@@ -154,30 +192,27 @@ export function TableActionButtonTemplate({
 
   if (href) {
     return (
-      <Link
-        href={href}
-        target={target}
-        aria-label={title}
-        data-action-tooltip={title}
-        className={buttonClassName}
-      >
-        <TableActionIcon action={action} title={title} />
-      </Link>
+      <ActionTooltip title={title}>
+        <Link href={href} target={target} aria-label={title} className={buttonClassName}>
+          <TableActionIcon action={action} title={title} />
+        </Link>
+      </ActionTooltip>
     );
   }
 
   return (
-    <button
-      type={type}
-      name={name}
-      value={value}
-      className={buttonClassName}
-      aria-label={title}
-      data-action-tooltip={title}
-      disabled={disabled}
-      onClick={onClick}
-    >
-      <TableActionIcon action={action} title={title} />
-    </button>
+    <ActionTooltip title={title} disabled={disabled}>
+      <button
+        type={type}
+        name={name}
+        value={value}
+        className={buttonClassName}
+        aria-label={title}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        <TableActionIcon action={action} title={title} />
+      </button>
+    </ActionTooltip>
   );
 }

@@ -112,7 +112,7 @@ export function QuickCreateProductForm({
               <select
                 id="categoryId"
                 name="categoryId"
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="">Không chọn danh mục</option>
                 {categories.map((category) => (
@@ -132,7 +132,7 @@ export function QuickCreateProductForm({
                 name="ownerType"
                 value={ownerType}
                 onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="internal">Sản phẩm của tôi / nội bộ</option>
                 <option value="vendor">Sản phẩm của đối tác</option>
@@ -149,7 +149,7 @@ export function QuickCreateProductForm({
                 value={ownerVendorUserId}
                 onChange={(e) => setOwnerVendorUserId(e.target.value)}
                 disabled={ownerType !== "vendor"}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
               >
                 <option value="">Chọn đối tác</option>
                 {vendors.map((vendor) => (
@@ -191,7 +191,7 @@ export function QuickCreateProductForm({
                 name="fulfillmentType"
                 value={fulfillmentType}
                 onChange={(e) => setFulfillmentType(e.target.value as ProductFulfillmentType)}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="digital">Digital</option>
                 <option value="physical">Cần vận chuyển</option>
@@ -300,7 +300,7 @@ export function QuickCreateProductForm({
                 name="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as "draft" | "published")}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="draft">draft</option>
                 <option value="published">published</option>

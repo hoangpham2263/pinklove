@@ -28,7 +28,7 @@ export default async function AdminUserCreatePage({ searchParams }: AdminUserCre
         <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} icon={UserPlus} />
-        <AdminOverviewCard title="Đối tác + Vendor" value={affiliateCount + vendorCount} description={`Affiliate: ${affiliateCount} • Vendor: ${vendorCount}`} icon={BadgePercent} />
+        <AdminOverviewCard title="Affiliate + Vendor" value={affiliateCount + vendorCount} description={`Affiliate marketing: ${affiliateCount} • Vendor cung ứng: ${vendorCount}`} icon={BadgePercent} />
       </AdminOverviewGrid>
 
       <Card className="rounded-lg">

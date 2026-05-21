@@ -163,7 +163,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                 id="excerpt"
                 name="excerpt"
                 defaultValue={page.excerpt}
-                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 placeholder="Brief summary"
               />
             </div>
@@ -238,7 +238,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                     name="seoDescription"
                     value={seoDescription}
                     onChange={(e) => setSeoDescription(e.target.value)}
-                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                     placeholder="Search engine description"
                   />
                 </div>
@@ -260,11 +260,11 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                     <label className="font-medium">Search Engine Rules</label>
                     <div className="flex flex-wrap gap-4 rounded-md border px-3 py-2">
                       <label className="inline-flex cursor-pointer items-center gap-2">
-                        <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary focus:ring-ring" />
+                        <input type="checkbox" name="noindex" defaultChecked={page.noindex} className="rounded border-input text-primary outline-none" />
                         <span>Noindex</span>
                       </label>
                       <label className="inline-flex cursor-pointer items-center gap-2">
-                        <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary focus:ring-ring" />
+                        <input type="checkbox" name="nofollow" defaultChecked={page.nofollow} className="rounded border-input text-primary outline-none" />
                         <span>Nofollow</span>
                       </label>
                     </div>
@@ -279,7 +279,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                     id="structuredDataJson"
                     value={structuredDataValue}
                     onChange={(e) => handleCustomFieldChange(STRUCTURED_DATA_FIELD, e.target.value)}
-                    className="min-h-40 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="min-h-40 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm outline-none"
                     placeholder={'{"@context":"https://schema.org","@type":"WebPage","name":"Page name"}'}
                   />
                 </div>
@@ -304,7 +304,7 @@ export function PageEditorForm({ page, productOptions = [] }: PageEditorFormProp
                 id="status"
                 name="status"
                 defaultValue={page.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>

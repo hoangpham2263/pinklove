@@ -128,7 +128,7 @@ function getVendorTableCellClassName(columnId: string) {
     case "accountStatus":
       return "hidden w-[18%] md:table-cell";
     case "actions":
-      return "w-[116px] md:w-[164px]";
+      return "w-[184px] min-w-[184px] text-right md:w-[204px] md:min-w-[204px]";
     default:
       return undefined;
   }
@@ -390,7 +390,7 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
       </div>
 
       <div className="rounded-md border">
-        <Table className="table-fixed">
+        <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

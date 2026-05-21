@@ -81,12 +81,20 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
   },
   {
     type: "group",
-    label: "Tăng trưởng",
+    label: "Affiliate",
     iconName: "badge-percent",
     defaultOpen: false,
     children: [
-      { label: "Affiliate", href: ROUTES.CUSTOMER.AFFILIATE, iconName: "badge-percent" },
+      { label: "Tổng quan affiliate", href: ROUTES.CUSTOMER.AFFILIATE, iconName: "badge-percent" },
       { label: "Tạo link affiliate", href: ROUTES.CUSTOMER.AFFILIATE_LINKS, iconName: "link" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Vendor",
+    iconName: "store",
+    defaultOpen: false,
+    children: [
       { label: "Nhà cung cấp", href: ROUTES.CUSTOMER.VENDOR, iconName: "store" },
     ],
   },

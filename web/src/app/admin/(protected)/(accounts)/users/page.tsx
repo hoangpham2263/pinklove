@@ -28,7 +28,7 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
         <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} description="Quản lý riêng tại trang actor." icon={UserPlus} />
-        <AdminOverviewCard title="Đối tác + Vendor" value={affiliateCount + vendorCount} description={`Affiliate: ${affiliateCount} • Vendor: ${vendorCount}`} icon={BadgePercent} />
+        <AdminOverviewCard title="Affiliate + Vendor" value={affiliateCount + vendorCount} description={`Affiliate marketing: ${affiliateCount} • Vendor cung ứng: ${vendorCount}`} icon={BadgePercent} />
       </AdminOverviewGrid>
 
       <div className="grid gap-4 md:grid-cols-4">

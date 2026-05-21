@@ -374,7 +374,7 @@ function BlogCategoryPopupForm({ category, onClose }: { category: BlogCategoryRo
           <textarea
             name="description"
             defaultValue={category.description}
-            className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
           />
         </div>
 
@@ -383,7 +383,7 @@ function BlogCategoryPopupForm({ category, onClose }: { category: BlogCategoryRo
           <select
             name="status"
             defaultValue={category.status}
-            className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
           >
             <option value="draft">draft</option>
             <option value="published">published</option>

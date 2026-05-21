@@ -1,285 +1,118 @@
 "use client";
 
-import Link from "next/link";
-import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import {
+  RoleActionLinkTileTemplate,
+  RoleActionTileButtonTemplate,
+  RoleBulkSubmitButtonTemplate,
+  RoleCancelButtonTemplate,
+  RoleCreateButtonTemplate,
+  RoleCreateLinkButtonTemplate,
+  RoleDeleteButtonTemplate,
+  RoleDialogCreateTriggerTemplate,
+  RoleDialogOutlineTriggerTemplate,
+  RoleDialogPrimaryTriggerTemplate,
+  RoleDragHandleButtonTemplate,
+  RoleFilterLinkButtonTemplate,
+  RoleIconButtonTemplate,
+  RoleInlineLinkButtonTemplate,
+  RoleLinkButtonTemplate,
+  RoleNavSubmitButtonTemplate,
+  RoleOutlineButtonTemplate,
+  RoleSecondaryButtonTemplate,
+  RoleSubmitButtonTemplate,
+  type RoleActionLinkTileProps,
+  type RoleButtonProps,
+  type RoleInlineLinkButtonProps,
+  type RoleLinkButtonProps,
+  type RoleNativeButtonProps,
+} from "@/components/common/role-buttons-template";
 
-import { Button } from "@/components/ui/button";
-import { DialogTrigger } from "@/components/ui/dialog";
+export type AdminButtonProps = RoleButtonProps;
+export type AdminNativeButtonProps = RoleNativeButtonProps;
+export type AdminInlineLinkButtonProps = RoleInlineLinkButtonProps;
+export type AdminLinkButtonProps = RoleLinkButtonProps;
+export type AdminActionLinkTileProps = RoleActionLinkTileProps;
 
-type AdminInlineLinkButtonProps = {
-  href: string;
-  target?: string;
-  children: ReactNode;
-};
-
-type AdminLinkButtonProps = AdminInlineLinkButtonProps & {
-  className?: string;
-};
-
-type AdminActionLinkTileProps = {
-  href: string;
-  target?: string;
-  label: ReactNode;
-  description?: ReactNode;
-  showArrow?: boolean;
-  variant?: "card" | "plain";
-};
-
-type AdminButtonProps = ComponentProps<typeof Button>;
-type AdminNativeButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
-
-function joinClassNames(...classes: Array<string | undefined>) {
-  return classes.filter(Boolean).join(" ");
+export function AdminCreateButton(props: AdminButtonProps) {
+  return <RoleCreateButtonTemplate {...props} />;
 }
 
-export function AdminCreateButton({ children, className, ...props }: AdminButtonProps) {
-  return (
-    <Button size="lg" className={className} {...props}>
-      <Plus className="h-4 w-4" />
-      {children}
-    </Button>
-  );
+export function AdminSubmitButton(props: AdminButtonProps) {
+  return <RoleSubmitButtonTemplate {...props} />;
 }
 
-export function AdminSubmitButton({ children, className, type = "submit", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminBulkSubmitButton(props: AdminButtonProps) {
+  return <RoleBulkSubmitButtonTemplate {...props} />;
 }
 
-export function AdminBulkSubmitButton({ children, className, type = "submit", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} size="lg" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminCancelButton(props: AdminButtonProps) {
+  return <RoleCancelButtonTemplate {...props} />;
 }
 
-export function AdminCancelButton({ children, className, type = "button", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} variant="outline" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminOutlineButton(props: AdminButtonProps) {
+  return <RoleOutlineButtonTemplate {...props} />;
 }
 
-export function AdminOutlineButton({ children, className, type = "button", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} variant="outline" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminIconButton(props: AdminButtonProps) {
+  return <RoleIconButtonTemplate {...props} />;
 }
 
-export function AdminIconButton({ children, className, type = "button", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} variant="outline" size="icon-sm" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminDeleteButton(props: AdminButtonProps) {
+  return <RoleDeleteButtonTemplate {...props} />;
 }
 
-export function AdminDeleteButton({ children, className, type = "button", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} variant="destructive" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminSecondaryButton(props: AdminButtonProps) {
+  return <RoleSecondaryButtonTemplate {...props} />;
 }
 
-export function AdminSecondaryButton({ children, className, type = "button", ...props }: AdminButtonProps) {
-  return (
-    <Button type={type} variant="secondary" className={className} {...props}>
-      {children}
-    </Button>
-  );
+export function AdminCreateLinkButton(props: AdminLinkButtonProps) {
+  return <RoleCreateLinkButtonTemplate {...props} />;
 }
 
-export function AdminCreateLinkButton({ href, target, children, className }: AdminLinkButtonProps) {
-  return (
-    <Button
-      size="lg"
-      className={className}
-      render={
-        <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
-          <Plus className="h-4 w-4" />
-          {children}
-        </Link>
-      }
-    />
-  );
+export function AdminDialogCreateTrigger(props: { children: React.ReactNode }) {
+  return <RoleDialogCreateTriggerTemplate {...props} />;
 }
 
-export function AdminDialogCreateTrigger({ children }: { children: ReactNode }) {
-  return (
-    <DialogTrigger render={<Button size="lg" />}>
-      <Plus className="h-4 w-4" />
-      {children}
-    </DialogTrigger>
-  );
-}
-
-export function AdminDialogOutlineTrigger({
-  children,
-  className,
-  title,
-}: {
-  children: ReactNode;
+export function AdminDialogOutlineTrigger(props: {
+  children: React.ReactNode;
   className?: string;
   title?: string;
 }) {
-  return (
-    <DialogTrigger
-      render={
-        <Button type="button" variant="outline" className={className} title={title} />
-      }
-    >
-      {children}
-    </DialogTrigger>
-  );
+  return <RoleDialogOutlineTriggerTemplate {...props} />;
 }
 
-export function AdminDialogPrimaryTrigger({
-  children,
-  className,
-  title,
-}: {
-  children: ReactNode;
+export function AdminDialogPrimaryTrigger(props: {
+  children: React.ReactNode;
   className?: string;
   title?: string;
 }) {
-  return (
-    <DialogTrigger
-      render={
-        <Button type="button" className={className} title={title} />
-      }
-    >
-      {children}
-    </DialogTrigger>
-  );
+  return <RoleDialogPrimaryTriggerTemplate {...props} />;
 }
 
-export function AdminLinkButton({ href, target, children, className }: AdminLinkButtonProps) {
-  return (
-    <Button
-      variant="outline"
-      className={className}
-      render={
-        <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
-          {children}
-        </Link>
-      }
-    />
-  );
+export function AdminLinkButton(props: AdminLinkButtonProps) {
+  return <RoleLinkButtonTemplate {...props} />;
 }
 
-export function AdminFilterLinkButton({
-  href,
-  target,
-  children,
-  className,
-  active = false,
-}: AdminLinkButtonProps & { active?: boolean }) {
-  return (
-    <Button
-      variant={active ? "default" : "outline"}
-      size="lg"
-      className={className}
-      render={
-        <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
-          {children}
-        </Link>
-      }
-    />
-  );
+export function AdminFilterLinkButton(props: AdminLinkButtonProps & { active?: boolean }) {
+  return <RoleFilterLinkButtonTemplate {...props} />;
 }
 
-export function AdminInlineLinkButton({ href, target, children }: AdminInlineLinkButtonProps) {
-  return (
-    <Link
-      href={href}
-      target={target}
-      rel={target === "_blank" ? "noopener noreferrer" : undefined}
-      className="inline-flex h-8 cursor-pointer items-center justify-center rounded-lg border bg-white px-3 font-medium outline-none transition-colors hover:bg-muted"
-    >
-      {children}
-    </Link>
-  );
+export function AdminInlineLinkButton(props: AdminInlineLinkButtonProps) {
+  return <RoleInlineLinkButtonTemplate {...props} />;
 }
 
-export function AdminActionLinkTile({
-  href,
-  target,
-  label,
-  description,
-  showArrow = false,
-  variant = "card",
-}: AdminActionLinkTileProps) {
-  return (
-    <Link
-      href={href}
-      target={target}
-      rel={target === "_blank" ? "noopener noreferrer" : undefined}
-      className={joinClassNames(
-        "block rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-muted",
-        variant === "card" ? "border bg-white" : undefined
-      )}
-    >
-      <span className="flex min-w-0 items-center justify-between gap-3">
-        <span className="min-w-0">
-          <span className="block truncate font-medium text-foreground">{label}</span>
-          {description ? <span className="mt-1 block leading-5 text-muted-foreground">{description}</span> : null}
-        </span>
-        {showArrow ? <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" /> : null}
-      </span>
-    </Link>
-  );
+export function AdminActionLinkTile(props: AdminActionLinkTileProps) {
+  return <RoleActionLinkTileTemplate {...props} />;
 }
 
-export function AdminNavSubmitButton({ children, className, type = "submit", ...props }: AdminNativeButtonProps) {
-  return (
-    <button
-      type={type}
-      className={joinClassNames(
-        "flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left outline-none transition-colors hover:bg-muted",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+export function AdminNavSubmitButton(props: AdminNativeButtonProps) {
+  return <RoleNavSubmitButtonTemplate {...props} />;
 }
 
-export function AdminActionTileButton({ children, className, type = "button", ...props }: AdminNativeButtonProps) {
-  return (
-    <button
-      type={type}
-      className={joinClassNames(
-        "flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-left outline-none transition-colors hover:bg-muted",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+export function AdminActionTileButton(props: AdminNativeButtonProps) {
+  return <RoleActionTileButtonTemplate {...props} />;
 }
 
-export function AdminDragHandleButton({ children, className, type = "button", ...props }: AdminNativeButtonProps) {
-  return (
-    <button
-      type={type}
-      className={joinClassNames(
-        "cursor-grab shrink-0 text-muted-foreground outline-none active:cursor-grabbing",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+export function AdminDragHandleButton(props: AdminNativeButtonProps) {
+  return <RoleDragHandleButtonTemplate {...props} />;
 }

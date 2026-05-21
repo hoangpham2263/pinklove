@@ -77,15 +77,12 @@ function MenuChildItem({
   item: AdminNavChild;
   onNavigate: () => void;
 }) {
-  const Icon = adminMobileIconMap[item.iconName];
-
   return (
     <AdminNavLink
       href={item.href}
-      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
+      className="flex items-center rounded-lg px-3 py-2.5 transition-colors"
       onClick={onNavigate}
     >
-      <Icon className="h-4 w-4" />
       <span>{item.label}</span>
     </AdminNavLink>
   );

@@ -77,7 +77,7 @@ export default async function CustomerAffiliatePage({ searchParams }: CustomerAf
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Bạn có thể đăng ký tài khoản affiliate để chia sẻ link giới thiệu, theo dõi click, conversion và hoa hồng sau khi admin duyệt.
+            Bạn đăng ký affiliate tại đây. Sau khi gửi, hồ sơ sẽ nằm ở trạng thái chờ duyệt trong admin mục Duyệt Customer Affiliate; khi admin chuyển sang active bạn mới tạo và gửi link được.
           </p>
 
           {!account ? (
@@ -128,7 +128,7 @@ export default async function CustomerAffiliatePage({ searchParams }: CustomerAf
               <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
                 {account.status === "active"
                   ? `Tài khoản affiliate đang hoạt động với cơ chế ${account.commissionType === "percent" ? "phần trăm" : "giá trị cố định"}: ${account.commissionValue}.`
-                  : "Tài khoản affiliate chưa hoạt động. Admin cần duyệt active trước khi bạn tạo link và gửi khách."}
+                  : "Tài khoản affiliate đang chờ admin duyệt tại mục Duyệt Customer Affiliate. Khi được active, khu vực tạo link sẽ mở."}
               </div>
             </div>
           )}

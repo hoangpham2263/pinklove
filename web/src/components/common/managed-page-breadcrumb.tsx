@@ -2,7 +2,23 @@ import { BreadcrumbTrail } from "@/components/common/breadcrumb-trail";
 import { getManagedPageBreadcrumbs, type ManagedPage } from "@/lib/managed-pages";
 import { getSystemSettings } from "@/lib/system-settings";
 
-export async function ManagedPageBreadcrumb({ page }: { page: ManagedPage }) {
+type ManagedPageBreadcrumbProps = {
+  page: ManagedPage;
+  className?: string;
+  listClassName?: string;
+  linkClassName?: string;
+  currentClassName?: string;
+  separatorClassName?: string;
+};
+
+export async function ManagedPageBreadcrumb({
+  page,
+  className,
+  listClassName,
+  linkClassName,
+  currentClassName,
+  separatorClassName,
+}: ManagedPageBreadcrumbProps) {
   const settings = await getSystemSettings();
 
   if (!settings.breadcrumb.enabled || !settings.breadcrumb.showOnPage) {
@@ -25,10 +41,11 @@ export async function ManagedPageBreadcrumb({ page }: { page: ManagedPage }) {
         href: index === items.length - 1 ? undefined : item.path,
       }))}
       separator={separator}
-      listClassName="text-xs uppercase tracking-[0.35em] text-stone-400"
-      linkClassName="transition-colors hover:text-stone-700"
-      currentClassName="text-stone-500"
-      separatorClassName="text-stone-300"
+      className={className}
+      listClassName={listClassName ?? "text-xs uppercase tracking-[0.35em] text-stone-400"}
+      linkClassName={linkClassName ?? "transition-colors hover:text-stone-700"}
+      currentClassName={currentClassName ?? "text-stone-500"}
+      separatorClassName={separatorClassName ?? "text-stone-300"}
     />
   );
 }

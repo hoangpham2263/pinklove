@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "missing_application",
       message: "Thiếu hồ sơ affiliate cần cập nhật.",
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_application`,
+      location: `${ROUTES.ADMIN.AFFILIATE_APPLICATIONS}?error=missing_application`,
     });
   }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     });
 
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.AFFILIATES,
+      location: ROUTES.ADMIN.AFFILIATE_APPLICATIONS,
       message: "Đã cập nhật hồ sơ affiliate.",
     });
   } catch (error) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: code,
       message,
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}`,
+      location: `${ROUTES.ADMIN.AFFILIATE_APPLICATIONS}?error=${encodeURIComponent(code)}`,
     });
   }
 }

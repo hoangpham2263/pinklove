@@ -72,7 +72,7 @@ export function QuickCreateBlogCategoryForm({ onCreated }: QuickCreateBlogCatego
           name="description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
         />
       </div>
       <div className="space-y-2">
@@ -81,7 +81,7 @@ export function QuickCreateBlogCategoryForm({ onCreated }: QuickCreateBlogCatego
           name="status"
           value={status}
           onChange={(event) => setStatus(event.target.value as "draft" | "published")}
-          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
         >
           <option value="draft">draft</option>
           <option value="published">published</option>

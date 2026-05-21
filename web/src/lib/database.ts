@@ -37,9 +37,11 @@ const globalForDb = globalThis as unknown as {
   chatTablesMigrationV6Done?: boolean;
   chatTablesMigrationV7Done?: boolean;
   notificationTablesMigrationDone?: boolean;
-  contentCommentsMigrationDone?: boolean;
-  mediaTablesMigrationDone?: boolean;
-  productSeedDone?: boolean;
+	  contentCommentsMigrationDone?: boolean;
+	  mediaTablesMigrationDone?: boolean;
+	  managedPagesMigrationDone?: boolean;
+	  managedPagesMigrationPromise?: Promise<void>;
+	  productSeedDone?: boolean;
   productCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
   blogSeedDone?: boolean;
@@ -619,9 +621,12 @@ async function ensureOauthAccountsMigration() {
 }
 
 async function ensureManagedPagesMigration() {
-  const pool = getPool();
+  const client = await getPool().connect();
 
-  await pool.query(`
+  try {
+    await client.query("SELECT pg_advisory_lock(hashtext('pinklove_managed_pages_migration'))");
+
+  await client.query(`
     DO $$
     BEGIN
       IF EXISTS (
@@ -636,7 +641,7 @@ async function ensureManagedPagesMigration() {
     END $$;
   `);
 
-  await pool.query(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS managed_pages (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
@@ -664,7 +669,7 @@ async function ensureManagedPagesMigration() {
     );
   `);
 
-  await pool.query(`
+  await client.query(`
     ALTER TABLE managed_pages
     ADD COLUMN IF NOT EXISTS title TEXT,
     ADD COLUMN IF NOT EXISTS excerpt TEXT,
@@ -688,27 +693,36 @@ async function ensureManagedPagesMigration() {
     ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
   `);
 
-  await pool.query(`
-    UPDATE managed_pages
-    SET
-      status = COALESCE(status, 'draft'),
-      template = COALESCE(template, 'default'),
-      noindex = COALESCE(noindex, false),
-      nofollow = COALESCE(nofollow, false),
-      admin_used = COALESCE(admin_used, false),
-      custom_fields = COALESCE(custom_fields, '{}'::jsonb),
-      created_at = COALESCE(created_at, NOW()),
-      updated_at = COALESCE(updated_at, NOW());
+  await client.query(`
+	    UPDATE managed_pages
+	    SET
+	      status = COALESCE(status, 'draft'),
+	      template = COALESCE(template, 'default'),
+	      noindex = COALESCE(noindex, false),
+	      nofollow = COALESCE(nofollow, false),
+	      admin_used = COALESCE(admin_used, false),
+	      custom_fields = COALESCE(custom_fields, '{}'::jsonb),
+	      created_at = COALESCE(created_at, NOW()),
+	      updated_at = COALESCE(updated_at, NOW())
+	    WHERE
+	      status IS NULL
+	      OR template IS NULL
+	      OR noindex IS NULL
+	      OR nofollow IS NULL
+	      OR admin_used IS NULL
+	      OR custom_fields IS NULL
+	      OR created_at IS NULL
+	      OR updated_at IS NULL;
   `);
 
-  await pool.query(`DROP INDEX IF EXISTS managed_pages_permalink_idx;`);
+  await client.query(`DROP INDEX IF EXISTS managed_pages_permalink_idx;`);
 
-  await pool.query(`
+  await client.query(`
     ALTER TABLE managed_pages
     DROP COLUMN IF EXISTS permalink;
   `);
 
-  await pool.query(`
+  await client.query(`
     ALTER TABLE managed_pages
     ALTER COLUMN status SET DEFAULT 'draft',
     ALTER COLUMN template SET DEFAULT 'default',
@@ -720,7 +734,7 @@ async function ensureManagedPagesMigration() {
     ALTER COLUMN updated_at SET DEFAULT NOW();
   `);
 
-  await pool.query(`
+  await client.query(`
     DO $$
     BEGIN
       IF EXISTS (
@@ -736,7 +750,29 @@ async function ensureManagedPagesMigration() {
         DROP COLUMN admin_checked;
       END IF;
     END $$;
-  `);
+	  `);
+  } finally {
+    await client.query("SELECT pg_advisory_unlock(hashtext('pinklove_managed_pages_migration'))");
+    client.release();
+  }
+}
+
+async function ensureManagedPagesMigrationOnce() {
+  if (globalForDb.managedPagesMigrationDone) {
+    return;
+  }
+
+  if (!globalForDb.managedPagesMigrationPromise) {
+    globalForDb.managedPagesMigrationPromise = ensureManagedPagesMigration()
+      .then(() => {
+        globalForDb.managedPagesMigrationDone = true;
+      })
+      .finally(() => {
+        globalForDb.managedPagesMigrationPromise = undefined;
+      });
+  }
+
+  await globalForDb.managedPagesMigrationPromise;
 }
 
 async function ensureMenuTablesMigration() {
@@ -2793,10 +2829,9 @@ export async function ensureDb() {
         globalForDb.oauthAccountsMigrationDone = true;
       }
 
-      if (!(globalForDb as Record<string, unknown>).managedPagesMigrationDone) {
-        await ensureManagedPagesMigration();
-        (globalForDb as Record<string, unknown>).managedPagesMigrationDone = true;
-      }
+	      if (!globalForDb.managedPagesMigrationDone) {
+	        await ensureManagedPagesMigrationOnce();
+	      }
 
       if (!globalForDb.menuTablesMigrationDone) {
         await ensureMenuTablesMigration();
@@ -2926,10 +2961,9 @@ export async function ensureDb() {
 
   await globalForDb.ensurePromise;
 
-  if (!(globalForDb as Record<string, unknown>).managedPagesAdminCheckedMigrationDone) {
-    await ensureManagedPagesMigration();
-    (globalForDb as Record<string, unknown>).managedPagesAdminCheckedMigrationDone = true;
-  }
+	  if (!globalForDb.managedPagesMigrationDone) {
+	    await ensureManagedPagesMigrationOnce();
+	  }
 
   if (!globalForDb.chatTablesMigrationV5Done) {
     await ensureChatTablesMigration();

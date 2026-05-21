@@ -192,6 +192,22 @@ async function fetchValue(client, sql, params = [], key = "value") {
   return row?.[key] ?? null;
 }
 
+async function tableExists(client, tableName) {
+  const exists = await fetchValue(
+    client,
+    `
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = $1
+      ) AS value
+    `,
+    [tableName]
+  );
+
+  return Boolean(exists);
+}
+
 function expectLocation(location, expectedPrefix) {
   assert(Boolean(location), `Missing redirect location, expected ${expectedPrefix}`);
   assert(
@@ -207,6 +223,9 @@ async function main() {
     connectionString: process.env.DATABASE_URL,
   });
   await db.connect();
+  const pageTable = (await tableExists(db, "managed_pages")) ? "managed_pages" : "cms_pages";
+  const menusTable = (await tableExists(db, "navigation_menus")) ? "navigation_menus" : "cms_menus";
+  const menuItemsTable = (await tableExists(db, "navigation_menu_items")) ? "navigation_menu_items" : "cms_menu_items";
 
   const guest = new Session("guest");
   const user = new Session("user");
@@ -222,8 +241,8 @@ async function main() {
         "/templates/mau-thiep-cuoi-golden-aisle",
         "/tu-tao-thiep",
         "/builder/mau-thiep-cuoi-editorial-story",
-        "/user/login",
-        "/user/register",
+        "/login",
+        "/register",
         "/admin/login",
       ]) {
         const html = await guest.getText(path);
@@ -232,9 +251,9 @@ async function main() {
     });
 
     await step("guest access control works", async () => {
-      const dashboardResponse = await guest.request("/user/dashboard");
+      const dashboardResponse = await guest.request("/customer/dashboard");
       assert(dashboardResponse.status === 307, `Expected 307 for guest dashboard, got ${dashboardResponse.status}`);
-      expectLocation(dashboardResponse.headers.get("location"), "/user/login");
+      expectLocation(dashboardResponse.headers.get("location"), "/login");
 
       const mediaUnauthorized = await guest.request("/api/media", {
         headers: { accept: "application/json" },
@@ -249,15 +268,15 @@ async function main() {
         username: state.userUsername,
         password: PASSWORD,
       });
-      expectLocation(register.location, "/user/dashboard");
+      expectLocation(register.location, "/customer/dashboard");
       assert(user.cookies.has("pinklove_session"), "User session cookie was not set after register");
 
       for (const path of [
-        "/user/dashboard",
-        "/user/profile",
-        "/user/settings",
-        "/user/invitations",
-        "/user/affiliate",
+        "/customer/dashboard",
+        "/customer/config/profile",
+        "/customer/config",
+        "/customer/invitations",
+        "/customer/affiliate",
       ]) {
         const html = await user.getText(path);
         assert(html.includes("<html"), `Protected page ${path} did not render HTML`);
@@ -265,13 +284,13 @@ async function main() {
     });
 
     await step("user profile update persists", async () => {
-      const save = await user.postForm("/api/user/profile", {
+      const save = await user.postForm("/api/customer/profile", {
         fullName: "Smoke Test User",
         displayName: "Smoke User",
         phone: "0900000000",
         bio: `Bio ${runId}`,
       });
-      expectLocation(save.location, "/user/profile?saved=1");
+      expectLocation(save.location, "/customer/config/profile?saved=1");
 
       const profileRow = await fetchRow(
         db,
@@ -290,10 +309,10 @@ async function main() {
     });
 
     await step("affiliate apply works", async () => {
-      const apply = await user.postForm("/api/user/affiliate/apply", {
+      const apply = await user.postForm("/api/customer/affiliate/apply", {
         preferredCode: state.affiliateCode,
       });
-      expectLocation(apply.location, "/user/affiliate?saved=applied");
+      expectLocation(apply.location, "/customer/affiliate");
 
       const affiliate = await fetchRow(
         db,
@@ -312,17 +331,17 @@ async function main() {
 
     let codedSiteId = "";
     await step("coded template site can be created, edited, and published", async () => {
-      const create = await user.postForm("/api/user/invitations/create-from-product", {
+      const create = await user.postForm("/api/customer/invitations/create-from-product", {
         productSlug: "mau-thiep-cuoi-golden-aisle",
       });
-      expectLocation(create.location, "/user/invitations/");
+      expectLocation(create.location, "/customer/invitations/");
       codedSiteId = create.location.split("/").pop();
       assert(Boolean(codedSiteId), "Failed to resolve coded site id");
 
-      const editor = await user.getText(`/user/invitations/${codedSiteId}`);
+      const editor = await user.getText(`/customer/invitations/${codedSiteId}`);
       assert(editor.includes("Golden Aisle"), "Coded site editor did not load expected product");
 
-      const update = await user.postForm("/api/user/invitations/update", {
+      const update = await user.postForm("/api/customer/invitations/update", {
         siteId: codedSiteId,
         title: "Smoke Coded Site",
         slug: state.codedSiteSlug,
@@ -337,7 +356,7 @@ async function main() {
         storyTitle: "Smoke Story",
         storyBody: `Story ${runId}`,
       });
-      expectLocation(update.location, `/user/invitations/${codedSiteId}?saved=1`);
+      expectLocation(update.location, `/customer/invitations/${codedSiteId}`);
 
       const siteRow = await fetchRow(
         db,
@@ -356,12 +375,12 @@ async function main() {
 
     let builderSiteId = "";
     await step("builder site can be created, edited with groups, and published", async () => {
-      const create = await user.postForm("/api/user/invitations/create-builder", {});
-      expectLocation(create.location, "/user/design/");
+      const create = await user.postForm("/api/customer/invitations/create-builder", {});
+      expectLocation(create.location, "/customer/design/");
       builderSiteId = create.location.split("/").pop();
       assert(Boolean(builderSiteId), "Failed to resolve builder site id");
 
-      const editor = await user.getText(`/user/design/${builderSiteId}`);
+      const editor = await user.getText(`/customer/design/${builderSiteId}`);
       assert(editor.includes("Builder"), "Builder editor page did not render");
 
       const builderDocument = {
@@ -409,7 +428,7 @@ async function main() {
         ],
       };
 
-      const update = await user.postForm("/api/user/invitations/update", {
+      const update = await user.postForm("/api/customer/invitations/update", {
         siteId: builderSiteId,
         title: "Smoke Builder Site",
         slug: state.builderSiteSlug,
@@ -417,7 +436,7 @@ async function main() {
         templateKey: "freeform_sections",
         builderDocument: JSON.stringify(builderDocument),
       });
-      expectLocation(update.location, `/user/design/${builderSiteId}?saved=1`);
+      expectLocation(update.location, `/customer/design/${builderSiteId}`);
 
       const siteRow = await fetchRow(
         db,
@@ -466,7 +485,7 @@ async function main() {
 
       for (const path of [
         "/admin/dashboard",
-        "/admin/settings",
+        "/admin/config",
         "/admin/users",
         "/admin/products",
         "/admin/products/mau-thiep-cuoi-golden-aisle",
@@ -497,7 +516,7 @@ async function main() {
         commissionValue: "12",
         notes: `Approved ${runId}`,
       });
-      expectLocation(update.location, "/admin/affiliates?saved=updated");
+      expectLocation(update.location, "/admin/affiliates/accounts");
 
       const affiliate = await fetchRow(
         db,
@@ -514,9 +533,9 @@ async function main() {
       const create = await admin.postForm("/api/admin/users/create", {
         username: state.adminManagedUsername,
         password: PASSWORD,
-        role: "user",
+        role: "CUSTOMER",
       });
-      expectLocation(create.location, "/admin/users?saved=created");
+      expectLocation(create.location, "/admin/users");
 
       managedUserId = await fetchValue(
         db,
@@ -529,13 +548,13 @@ async function main() {
         userId: managedUserId,
         username: state.adminManagedUsername,
         password: PASSWORD,
-        role: "user",
+        role: "CUSTOMER",
         fullName: "Managed User",
         displayName: "Managed Display",
         phone: "0911111111",
         bio: `Managed bio ${runId}`,
       });
-      expectLocation(update.location, `/admin/users/${managedUserId}?saved=updated`);
+      expectLocation(update.location, `/admin/users/${managedUserId}`);
 
       const profile = await fetchRow(
         db,
@@ -553,34 +572,34 @@ async function main() {
 
       const promote = await admin.postForm("/api/admin/users/role", {
         userId: managedUserId,
-        role: "admin",
+        role: "ADMIN",
       });
-      expectLocation(promote.location, "/admin/users?saved=role_updated");
+      expectLocation(promote.location, "/admin/users");
 
       const roleAfterPromote = await fetchValue(
         db,
         "SELECT role AS value FROM users WHERE id = $1 LIMIT 1",
         [managedUserId]
       );
-      assert(roleAfterPromote === "admin", "User was not promoted to admin");
+      assert(roleAfterPromote === "ADMIN", "User was not promoted to admin");
 
       const demote = await admin.postForm("/api/admin/users/role", {
         userId: managedUserId,
-        role: "user",
+        role: "CUSTOMER",
       });
-      expectLocation(demote.location, "/admin/users?saved=role_updated");
+      expectLocation(demote.location, "/admin/users");
 
       const roleAfterDemote = await fetchValue(
         db,
         "SELECT role AS value FROM users WHERE id = $1 LIMIT 1",
         [managedUserId]
       );
-      assert(roleAfterDemote === "user", "User was not demoted to user");
+      assert(roleAfterDemote === "CUSTOMER", "User was not demoted to customer");
 
       const remove = await admin.postForm("/api/admin/users/delete", {
         userId: managedUserId,
       });
-      expectLocation(remove.location, "/admin/users?saved=deleted");
+      expectLocation(remove.location, "/admin/users");
 
       const gone = await fetchValue(
         db,
@@ -597,7 +616,7 @@ async function main() {
         productType: "coded_template",
         templateKey: "golden_aisle",
       });
-      expectLocation(create.location, "/admin/products?error=template_create_disabled");
+      expectLocation(create.location, "/admin/products");
 
       const gone = await fetchValue(
         db,
@@ -614,7 +633,7 @@ async function main() {
           SELECT slug, name, title, excerpt, body, status, seo_title, seo_description,
                  seo_keywords, canonical_url, og_title, og_description, og_image,
                  noindex, nofollow, custom_fields
-          FROM cms_pages
+          FROM ${pageTable}
           WHERE slug = 'gioi-thieu'
           LIMIT 1
         `
@@ -640,7 +659,7 @@ async function main() {
         nofollow: restore.page.nofollow ? "on" : "",
         customFields: JSON.stringify(restore.page.custom_fields ?? {}),
       });
-      expectLocation(update.location, "/admin/pages/gioi-thieu?saved=1");
+      expectLocation(update.location, "/admin/pages/gioi-thieu");
 
       const publicHtml = await guest.getText("/gioi-thieu");
       assert(publicHtml.includes(state.pageMarker), "Published gioi-thieu page did not reflect updated body");
@@ -665,12 +684,12 @@ async function main() {
                   )
                   ORDER BY mi.position ASC
                 )
-                FROM cms_menu_items mi
+                FROM ${menuItemsTable} mi
                 WHERE mi.menu_id = m.id
               ),
               '[]'::json
             ) AS items
-          FROM cms_menus m
+          FROM ${menusTable} m
           WHERE m.name = 'header'
           LIMIT 1
         `
@@ -687,7 +706,7 @@ async function main() {
         label: state.menuLabel,
         items: JSON.stringify(items),
       });
-      expectLocation(update.location, `/admin/menus/${restore.menu.id}?saved=1`);
+      expectLocation(update.location, "/admin/menus/header");
 
       const menuRow = await fetchRow(
         db,
@@ -696,10 +715,10 @@ async function main() {
             m.label,
             (
               SELECT COUNT(*)::text
-              FROM cms_menu_items mi
+              FROM ${menuItemsTable} mi
               WHERE mi.menu_id = m.id
             ) AS item_count
-          FROM cms_menus m
+          FROM ${menusTable} m
           WHERE m.id = $1
           LIMIT 1
         `,
@@ -713,9 +732,9 @@ async function main() {
       const logout = await user.postForm("/api/auth/logout", {});
       expectLocation(logout.location, "/");
 
-      const response = await user.request("/user/dashboard");
+      const response = await user.request("/customer/dashboard");
       assert(response.status === 307, `Expected 307 after logout, got ${response.status}`);
-      expectLocation(response.headers.get("location"), "/user/login");
+      expectLocation(response.headers.get("location"), "/login");
     });
 
     log("\nSmoke test completed successfully.");
@@ -726,7 +745,7 @@ async function main() {
     if (restore.page) {
       await db.query(
         `
-          UPDATE cms_pages
+          UPDATE ${pageTable}
           SET
             name = $2,
             title = $3,
@@ -768,17 +787,17 @@ async function main() {
     }
 
     if (restore.menu?.id) {
-      await db.query("UPDATE cms_menus SET label = $1, updated_at = NOW() WHERE id = $2", [
+      await db.query(`UPDATE ${menusTable} SET label = $1, updated_at = NOW() WHERE id = $2`, [
         restore.menu.label,
         restore.menu.id,
       ]);
-      await db.query("DELETE FROM cms_menu_items WHERE menu_id = $1", [restore.menu.id]);
+      await db.query(`DELETE FROM ${menuItemsTable} WHERE menu_id = $1`, [restore.menu.id]);
 
       const items = Array.isArray(restore.menu.items) ? restore.menu.items : [];
       for (const item of items) {
         await db.query(
           `
-            INSERT INTO cms_menu_items (menu_id, label, type, page_slug, url, position)
+            INSERT INTO ${menuItemsTable} (menu_id, label, type, page_slug, url, position)
             VALUES ($1, $2, $3, $4, $5, $6)
           `,
           [

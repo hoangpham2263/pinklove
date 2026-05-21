@@ -1740,7 +1740,7 @@ export function ChatInboxClient({
                   <input
                     value={groupTitle}
                     onChange={(event) => setGroupTitle(event.target.value)}
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none"
                     placeholder="VD: CSKH - đơn tháng 4"
                   />
                 </div>
@@ -2042,7 +2042,7 @@ export function ChatInboxClient({
                           name="supportInboxUsernames"
                           value={supportInboxUsernamesInput}
                           onChange={(event) => setSupportInboxUsernamesInput(event.target.value)}
-                          className="min-h-48 w-full resize-y rounded-md border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                          className="min-h-48 w-full resize-y rounded-md border bg-background px-3 py-3 text-sm outline-none"
                           placeholder="admin"
                         />
                         <p className="text-xs text-muted-foreground">
@@ -2065,7 +2065,7 @@ export function ChatInboxClient({
                         <textarea
                           value={quickRepliesInput}
                           onChange={(event) => setQuickRepliesInput(event.target.value)}
-                          className="min-h-72 w-full resize-y rounded-md border bg-background px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                          className="min-h-72 w-full resize-y rounded-md border bg-background px-3 py-3 text-sm outline-none"
                           placeholder="Mỗi dòng là một mẫu sẵn"
                         />
                         <p className="text-xs text-muted-foreground">

@@ -313,7 +313,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
 
 function normalizeTemplateFieldValue(field: {
   name: string;
-  type: "text" | "textarea" | "media" | "wysiwyg" | "product-select";
+  type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "product-select";
   multiple?: boolean;
 }, formData: FormData) {
   if (field.type === "media" && field.multiple) {
@@ -321,6 +321,10 @@ function normalizeTemplateFieldValue(field: {
       .getAll(field.name)
       .map((entry) => String(entry).trim())
       .filter(Boolean);
+  }
+
+  if (field.type === "switch") {
+    return formData.get(field.name) === "on";
   }
 
   return String(formData.get(field.name) ?? "");

@@ -150,7 +150,7 @@ export function AdminNotificationUpsertDialog({
                 name="body"
                 rows={4}
                 defaultValue={notification?.body ?? ""}
-                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground"
                 placeholder="Nội dung hiển thị trong dropdown thông báo."
               />
             </div>
@@ -290,7 +290,7 @@ export function AdminNotificationUpsertDialog({
                 onChange={(event) => {
                   setSelectedUserIds(Array.from(event.target.selectedOptions, (option) => option.value));
                 }}
-                className="h-52 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                className="h-52 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none"
               >
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>

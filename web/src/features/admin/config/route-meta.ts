@@ -10,10 +10,11 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.CODED_TEMPLATES)) return "Mẫu coded";
   if (pathname.startsWith(ROUTES.ADMIN.BUILDER)) return "Builder";
   if (pathname.startsWith(ROUTES.ADMIN.VENDOR_PRODUCTS)) return "Vendor Product Review";
-  if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_LIST)) return "Product";
   if (pathname.startsWith(ROUTES.ADMIN.PRODUCT_CATEGORIES)) return "Product Cat";
+  if (pathname.startsWith("/admin/products/categories")) return "Product Cat";
   if (pathname === ROUTES.ADMIN.PRODUCTS) return "Create Product";
   if (pathname.startsWith(`${ROUTES.ADMIN.PRODUCT_LIST}/`)) return "Edit Product";
+  if (pathname === ROUTES.ADMIN.PRODUCT_LIST) return "Product";
   if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
   if (pathname.startsWith(ROUTES.ADMIN.PAYMENTS)) return "Payments";
   if (pathname.startsWith(ROUTES.ADMIN.SHIPMENTS)) return "Shipments";
@@ -22,7 +23,10 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_USERS)) return "Đối tác / CTV";
   if (pathname.startsWith(ROUTES.ADMIN.VENDORS)) return "Nhà cung cấp";
   if (pathname.startsWith(ROUTES.ADMIN.INTERNAL_ACCOUNTS)) return "Tài khoản nội bộ";
-  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_APPLICATIONS)) return "Hồ sơ Guest Affiliate";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_ACCOUNTS)) return "Duyệt Customer Affiliate";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_CONVERSIONS)) return "Hoa hồng Affiliate";
+  if (pathname.startsWith(ROUTES.ADMIN.AFFILIATES)) return "Affiliate Overview";
   if (pathname.startsWith(ROUTES.ADMIN.MEDIA)) return "Media";
   if (pathname.startsWith(ROUTES.ADMIN.COMMENTS)) return "Comments";
   if (pathname.startsWith(ROUTES.ADMIN.NOTIFICATIONS)) return "Thông báo";

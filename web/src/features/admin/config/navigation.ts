@@ -65,11 +65,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Product List", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "package" },
-      { label: "Product Categories", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
+      { label: "Product", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "package" },
       { label: "Coded Templates", href: ROUTES.ADMIN.CODED_TEMPLATES, iconName: "file-code-2" },
       { label: "Builder", href: ROUTES.ADMIN.BUILDER, iconName: "blocks" },
-      { label: "Vendor Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
+      { label: "Product Cat", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
     ],
   },
   {
@@ -84,13 +83,24 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    label: "Partners",
+    label: "Vendors",
     iconName: "store",
     defaultOpen: false,
     children: [
-      { label: "Vendors", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Vendor Accounts", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Vendor Product Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
+    ],
+  },
+  {
+    label: "Affiliate Marketing",
+    iconName: "badge-percent",
+    defaultOpen: false,
+    children: [
+      { label: "Affiliate Overview", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
+      { label: "Duyệt Customer Affiliate", href: ROUTES.ADMIN.AFFILIATE_ACCOUNTS, iconName: "badge-percent" },
+      { label: "Hồ sơ Guest Affiliate", href: ROUTES.ADMIN.AFFILIATE_APPLICATIONS, iconName: "users" },
+      { label: "Hoa hồng Affiliate", href: ROUTES.ADMIN.AFFILIATE_CONVERSIONS, iconName: "badge-percent" },
       { label: "Affiliate Users", href: ROUTES.ADMIN.AFFILIATE_USERS, iconName: "users" },
-      { label: "Affiliate Programs", href: ROUTES.ADMIN.AFFILIATES, iconName: "badge-percent" },
     ],
   },
   {

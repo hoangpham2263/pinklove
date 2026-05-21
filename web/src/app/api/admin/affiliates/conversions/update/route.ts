@@ -16,14 +16,14 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "missing_conversion",
       message: "Thiếu conversion cần cập nhật.",
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=missing_conversion`,
+      location: `${ROUTES.ADMIN.AFFILIATE_CONVERSIONS}?error=missing_conversion`,
     });
   }
 
   try {
     await adminUpdateAffiliateConversion({ conversionId, status });
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.AFFILIATES,
+      location: ROUTES.ADMIN.AFFILIATE_CONVERSIONS,
       message: "Đã cập nhật trạng thái conversion.",
     });
   } catch (error) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: code,
       message,
-      location: `${ROUTES.ADMIN.AFFILIATES}?error=${encodeURIComponent(code)}`,
+      location: `${ROUTES.ADMIN.AFFILIATE_CONVERSIONS}?error=${encodeURIComponent(code)}`,
     });
   }
 }

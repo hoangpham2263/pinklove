@@ -49,14 +49,14 @@ function renderCompactField(
           value={String(value ?? "")}
           onChange={(event) => onChange(field.name, event.target.value)}
           rows={field.rows ?? 4}
-          className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-ring"
+          className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none"
           placeholder={field.label}
         />
       ) : (
         <input
           value={String(value ?? "")}
           onChange={(event) => onChange(field.name, event.target.value)}
-          className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none"
           placeholder={field.label}
         />
       )}

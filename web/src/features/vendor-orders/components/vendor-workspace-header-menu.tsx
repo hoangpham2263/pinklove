@@ -89,19 +89,16 @@ function MenuChildItem({
   item: VendorNavChild;
   onNavigate: () => void;
 }) {
-  const Icon = iconMap[item.iconName];
-
   return (
     <VendorWorkspaceNavLink
       href={item.href}
       exact={item.exact}
       matchPrefixes={item.matchPrefixes}
-      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
+      className="flex items-center rounded-lg px-3 py-2.5 transition-colors"
       activeClassName="bg-muted"
       inactiveClassName="hover:bg-muted"
       onNavigate={onNavigate}
     >
-      <Icon className="h-4 w-4" />
       <span>{item.label}</span>
     </VendorWorkspaceNavLink>
   );

@@ -70,24 +70,19 @@ export function VendorWorkspaceSidebarGroup({
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none data-[state=open]:animate-none data-[state=closed]:h-0 data-[state=open]:h-[var(--radix-collapsible-content-height)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-[height,opacity] duration-200 ease-out">
         <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-2.5">
-          {items.map((item) => {
-            const ItemIcon = iconMap[item.iconName];
-
-            return (
-              <VendorWorkspaceNavLink
-                key={item.href}
-                href={item.href}
-                exact={item.exact}
-                matchPrefixes={item.matchPrefixes}
-                className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
-                activeClassName="bg-muted"
-                inactiveClassName="hover:bg-muted"
-              >
-                <ItemIcon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </VendorWorkspaceNavLink>
-            );
-          })}
+          {items.map((item) => (
+            <VendorWorkspaceNavLink
+              key={item.href}
+              href={item.href}
+              exact={item.exact}
+              matchPrefixes={item.matchPrefixes}
+              className="flex items-center rounded-md px-3 py-2 transition-colors"
+              activeClassName="bg-muted"
+              inactiveClassName="hover:bg-muted"
+            >
+              <span>{item.label}</span>
+            </VendorWorkspaceNavLink>
+          ))}
         </div>
       </CollapsibleContent>
     </Collapsible>

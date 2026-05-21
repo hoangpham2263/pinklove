@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AboutContent } from "@/app/(guest)/(marketing)/about/_components/about-content";
+import { ServicesContent } from "@/app/(guest)/(marketing)/services/_components/services-content";
 import {
   GuestInput,
   GuestLinkButton,
@@ -32,42 +33,6 @@ import { ROUTES } from "@/lib/routes";
 import { getCurrentUser } from "@/lib/auth";
 
 type ManagedSearchParams = Promise<Record<string, string | string[] | undefined>> | undefined;
-
-const plans = [
-  {
-    name: "Free Plan",
-    price: "0đ",
-    summary: "Bắt đầu nhanh với nhu cầu cơ bản.",
-    features: [
-      "Dùng mẫu thiệp có sẵn",
-      "Tự chỉnh nội dung cơ bản",
-      "Xuất bản 1 thiệp",
-      "Phù hợp để thử nghiệm ban đầu",
-    ],
-  },
-  {
-    name: "Basic Plan",
-    price: "499.000đ",
-    summary: "Phù hợp cho nhu cầu triển khai thực tế, gọn và đủ dùng.",
-    features: [
-      "Dùng mẫu có sẵn và starter builder",
-      "Tùy chỉnh nội dung đầy đủ",
-      "Ưu tiên hỗ trợ khi setup",
-      "Phù hợp cho đa số cặp đôi",
-    ],
-  },
-  {
-    name: "Premium Plan",
-    price: "1.490.000đ",
-    summary: "Dành cho nhu cầu chỉn chu hơn và cần hỗ trợ sâu hơn.",
-    features: [
-      "Tùy chỉnh sâu hơn theo yêu cầu",
-      "Ưu tiên hỗ trợ nhanh",
-      "Định hướng giao diện và nội dung",
-      "Phù hợp khi cần trải nghiệm riêng",
-    ],
-  },
-];
 
 const budgetCategories = [
   { label: "Nhà hàng", percent: "50%" },
@@ -382,7 +347,6 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
   const managedPathMap = new Map(
     (await listManagedPages()).map((item) => [item.slug, getManagedPagePath(item)])
   );
-  const contactPath = managedPathMap.get("lien-he") || ROUTES.CONTACT;
   const templatesPath = managedPathMap.get("mau-thiep") || ROUTES.TEMPLATES;
   const qrBuilderPath = managedPathMap.get("cong-cu/tao-ma-qr") || ROUTES.TOOLS_PAGES.QR_BUILDER;
   const weddingBudgetPath = managedPathMap.get("cong-cu/du-toan-cuoi") || ROUTES.TOOLS_PAGES.WEDDING_BUDGET;
@@ -649,40 +613,10 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
     }
     case "dich-vu":
       return (
-        <GuestShell className="gap-10 py-12">
+        <>
           <PageStructuredData page={page} />
-          <PageHero
-            page={page}
-            fallbackTitle="Gói dịch vụ"
-            fallbackExcerpt="Chọn gói phù hợp với mức độ tùy chỉnh và hỗ trợ mà bạn cần cho thiệp cưới online của mình."
-          />
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <GuestPanel key={plan.name} className="h-full">
-                <GuestPanelHeader>
-                  <p className="text-xs uppercase tracking-[0.3em] text-stone-400">{plan.name}</p>
-                  <GuestPanelTitle className="mt-3">{plan.price}</GuestPanelTitle>
-                  <p className="mt-3 text-sm leading-7 text-stone-600">{plan.summary}</p>
-                </GuestPanelHeader>
-                <GuestPanelBody className="flex h-full flex-col gap-6">
-                  <div className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <div key={feature} className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 lg:rounded-2xl">
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-auto">
-                    <GuestLinkButton href={contactPath} className="flex w-full justify-center">
-                      Liên hệ tư vấn
-                    </GuestLinkButton>
-                  </div>
-                </GuestPanelBody>
-              </GuestPanel>
-            ))}
-          </div>
-        </GuestShell>
+          <ServicesContent page={page} />
+        </>
       );
     case "cong-cu": {
       const tools = [
@@ -839,15 +773,81 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       ]);
 
       return (
-        <GuestShell className="gap-10 py-12">
-          <PageStructuredData page={page} />
-          <PageHero
-            page={page}
-            fallbackTitle="Blog cưới"
-            fallbackExcerpt="Chia sẻ kinh nghiệm chọn mẫu thiệp, lên ngân sách cưới, tối ưu nội dung và dùng công cụ đúng lúc để chuẩn bị nhanh hơn."
-          />
-          <BlogTabs categories={categories} posts={posts} />
-        </GuestShell>
+        <section
+          className="contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]"
+          style={{
+            background:
+              "radial-gradient(circle at 16% 7%, color-mix(in srgb, var(--color-guest-primary) 12%, transparent) 0%, transparent 30%), radial-gradient(circle at 84% 9%, color-mix(in srgb, var(--color-guest-primary) 9%, transparent) 0%, transparent 28%), linear-gradient(180deg, color-mix(in srgb, var(--color-guest-primary) 8%, white) 0%, color-mix(in srgb, var(--color-guest-primary) 3%, white) 22%, #fff 50%, #fff 100%)",
+          }}
+        >
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <span className="contact-cloud-decor blog-cloud-decor-one" />
+            <span className="contact-cloud-decor blog-cloud-decor-two" />
+            <span className="contact-cloud-decor blog-cloud-decor-three" />
+            <span className="contact-cloud-decor blog-cloud-decor-four" />
+            <span className="contact-cloud-decor blog-cloud-decor-five" />
+            <span className="contact-cloud-decor blog-cloud-decor-six" />
+            <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/10 blur-3xl" />
+            <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/7 blur-3xl" />
+            <div className="absolute left-[18%] top-[58%] size-22 rounded-full bg-[#ffb8fb]/8 blur-3xl" />
+            <div className="absolute right-[16%] top-[74%] size-24 rounded-full bg-[#ff6ff5]/7 blur-3xl" />
+            <span
+              className="cta-sparkle-float absolute left-[13%] top-[16%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+              style={{ animationDelay: "-0.2s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="cta-sparkle-float absolute right-[15%] top-[36%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-70 drop-shadow-[0_6px_14px_rgba(255,184,251,0.12)]"
+              style={{ animationDelay: "-1.1s" }}
+            >
+              ✦
+            </span>
+            <span
+              className="cta-heart-pop absolute left-[24%] top-[70%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-35 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
+              style={{ animationDelay: "-1.7s" }}
+            >
+              ♥
+            </span>
+          </div>
+
+          <GuestShell className="relative z-10 gap-10 py-12">
+            <PageStructuredData page={page} />
+            <div className="relative overflow-hidden py-4">
+              <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+                <span className="contact-cloud-decor blog-banner-cloud-one" />
+                <span className="contact-cloud-decor blog-banner-cloud-two" />
+                <span className="contact-cloud-decor blog-banner-cloud-three" />
+                <span
+                  className="cta-sparkle-float absolute left-[7%] top-[26%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+                  style={{ animationDelay: "-0.45s" }}
+                >
+                  ✦
+                </span>
+                <span
+                  className="cta-sparkle-float absolute right-[8%] top-[30%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-75 drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
+                  style={{ animationDelay: "-1.35s" }}
+                >
+                  ✦
+                </span>
+                <span
+                  className="cta-heart-pop absolute right-[30%] top-[18%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-60 drop-shadow-[0_8px_18px_rgba(217,77,206,0.14)]"
+                  style={{ animationDelay: "-1.75s" }}
+                >
+                  ♥
+                </span>
+              </div>
+              <div className="relative z-10">
+                <PageHero
+                  page={page}
+                  fallbackTitle="Blog cưới"
+                  fallbackExcerpt="Chia sẻ kinh nghiệm chọn mẫu thiệp, lên ngân sách cưới, tối ưu nội dung và dùng công cụ đúng lúc để chuẩn bị nhanh hơn."
+                />
+              </div>
+            </div>
+            <BlogTabs categories={categories} posts={posts} />
+          </GuestShell>
+        </section>
       );
     }
     default:

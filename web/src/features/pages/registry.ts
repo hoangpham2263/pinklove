@@ -196,9 +196,68 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     name: "Giới thiệu",
     label: "Trang giới thiệu",
     fields: [
-      { name: "bannerImage", label: "Ảnh banner đầu trang", type: "media" },
-      { name: "introHeading", label: "Tiêu đề giới thiệu", type: "text" },
-      { name: "introText", label: "Nội dung giới thiệu", type: "textarea" },
+      {
+        type: "section",
+        label: "Banner",
+        description: "Nội dung đầu trang giới thiệu doanh nghiệp.",
+        fields: [
+          { name: "bannerImage", label: "Ảnh banner đầu trang", type: "media", width: 4 },
+          { name: "introHeading", label: "Tiêu đề giới thiệu", type: "text", width: 12 },
+          { name: "introText", label: "Nội dung giới thiệu", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        type: "section",
+        label: "Sứ mệnh",
+        description: "Thông điệp chính về lý do doanh nghiệp tồn tại và cách tạo giá trị.",
+        fields: [
+          { name: "missionTitle", label: "Tiêu đề sứ mệnh", type: "text", width: 12 },
+          { name: "missionText", label: "Mô tả sứ mệnh", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "stats",
+        type: "repeater",
+        label: "Số liệu nổi bật",
+        addLabel: "Thêm số liệu",
+        fields: [
+          { name: "value", label: "Số liệu", type: "text", width: 3 },
+          { name: "label", label: "Nhãn", type: "text", width: 5 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "valueItems",
+        type: "repeater",
+        label: "Giá trị cốt lõi",
+        addLabel: "Thêm giá trị",
+        fields: [
+          { name: "title", label: "Tiêu đề", type: "text", width: 5 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "storyItems",
+        type: "repeater",
+        label: "Hành trình / câu chuyện",
+        addLabel: "Thêm mốc",
+        fields: [
+          { name: "label", label: "Nhãn mốc", type: "text", width: 3 },
+          { name: "title", label: "Tiêu đề", type: "text", width: 9 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        type: "section",
+        label: "CTA cuối trang",
+        description: "Kêu gọi khách truy cập liên hệ hoặc xem thêm.",
+        fields: [
+          { name: "ctaTitle", label: "Tiêu đề CTA", type: "text", width: 12 },
+          { name: "ctaDescription", label: "Mô tả CTA", type: "textarea", width: 12 },
+          { name: "ctaButtonText", label: "Nút CTA", type: "text", width: 4 },
+          { name: "ctaButtonLink", label: "Link CTA", type: "text", width: 8 },
+        ],
+      },
     ],
   },
   "lien-he": {
@@ -211,9 +270,10 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
         label: "Intro",
         description: "Nội dung mở đầu của trang liên hệ.",
         fields: [
-          { name: "heroBadge", label: "Nhãn nhỏ đầu trang", type: "text", width: 3 },
-          { name: "supportTitle", label: "Tiêu đề khối giới thiệu", type: "text", width: 9 },
-          { name: "supportDescription", label: "Mô tả khối giới thiệu", type: "textarea", width: 12 },
+          { name: "heroTitleText", label: "Tiêu đề", type: "text", width: 5 },
+          { name: "heroTitleKeyword", label: "Keyword tiêu đề", type: "text", width: 5 },
+          { name: "heroTitleKeywordHighlight", label: "Bật hiệu ứng keyword", type: "switch", width: 2 },
+          { name: "supportDescription", label: "Mô tả", type: "textarea", width: 12 },
           { name: "responseTime", label: "Thời gian phản hồi", type: "text", width: 6 },
           { name: "officeHours", label: "Khung giờ hỗ trợ", type: "text", width: 6 },
         ],
@@ -242,19 +302,6 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
         ],
       },
       {
-        name: "contactMethods",
-        type: "repeater",
-        label: "Contact Methods",
-        description: "Các card phương thức liên hệ như email, hotline, địa chỉ.",
-        addLabel: "Thêm contact method",
-        fields: [
-          { name: "label", label: "Tên field", type: "text", width: 3 },
-          { name: "value", label: "Giá trị hiển thị", type: "text", width: 3 },
-          { name: "href", label: "Liên kết khi click", type: "text", width: 3 },
-          { name: "description", label: "Mô tả ngắn", type: "textarea", width: 3 },
-        ],
-      },
-      {
         name: "faqItems",
         type: "repeater",
         label: "FAQ",
@@ -263,13 +310,6 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
         fields: [
           { name: "question", label: "Câu hỏi", type: "text", width: 4 },
           { name: "answer", label: "Trả lời", type: "textarea", width: 8 },
-        ],
-      },
-      {
-        type: "section",
-        label: "Map",
-        fields: [
-          { name: "googleMapsEmbed", label: "Liên kết nhúng Google Maps", type: "textarea", width: 12 },
         ],
       },
     ],
@@ -296,7 +336,102 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     slug: "dich-vu",
     name: "Dịch vụ",
     label: "Trang gói dịch vụ",
-    fields: [],
+    fields: [
+      {
+        type: "section",
+        label: "Banner",
+        description: "Nội dung đầu trang dịch vụ.",
+        fields: [
+          { name: "heroImage", label: "Ảnh banner", type: "media", width: 4 },
+          { name: "heroTitle", label: "Tiêu đề", type: "text", width: 12 },
+          { name: "heroDescription", label: "Mô tả", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        type: "section",
+        label: "Dịch vụ chính",
+        description: "Tiêu đề và mô tả cho danh sách hạng mục dịch vụ.",
+        fields: [
+          { name: "servicesTitle", label: "Tiêu đề phần dịch vụ", type: "text", width: 12 },
+          { name: "servicesDescription", label: "Mô tả phần dịch vụ", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "serviceItems",
+        type: "repeater",
+        label: "Service Items",
+        addLabel: "Thêm dịch vụ",
+        fields: [
+          { name: "headerImage", label: "Ảnh", type: "media", width: 3 },
+          { name: "title", label: "Tiêu đề", type: "text", width: 4 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+          { name: "descriptionItems", label: "Các ý chính, mỗi dòng một ý", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        type: "section",
+        label: "Bảng gói",
+        description: "Tiêu đề phần bảng gói dịch vụ.",
+        fields: [
+          { name: "plansTitle", label: "Tiêu đề bảng gói", type: "text", width: 12 },
+          { name: "plansDescription", label: "Mô tả bảng gói", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "servicePlans",
+        type: "repeater",
+        label: "Service Plans",
+        addLabel: "Thêm gói",
+        fields: [
+          { name: "name", label: "Tên gói", type: "text", width: 3 },
+          { name: "price", label: "Giá", type: "text", width: 3 },
+          { name: "badge", label: "Nhãn nổi bật", type: "text", width: 3 },
+          { name: "summary", label: "Mô tả ngắn", type: "textarea", width: 12 },
+          { name: "features", label: "Tính năng, mỗi dòng một ý", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        type: "section",
+        label: "Quy trình",
+        description: "Nội dung giới thiệu quy trình triển khai.",
+        fields: [
+          { name: "processTitle", label: "Tiêu đề quy trình", type: "text", width: 12 },
+          { name: "processDescription", label: "Mô tả quy trình", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "processSteps",
+        type: "repeater",
+        label: "Process Steps",
+        addLabel: "Thêm bước",
+        fields: [
+          { name: "label", label: "Nhãn bước", type: "text", width: 3 },
+          { name: "title", label: "Tiêu đề", type: "text", width: 9 },
+          { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+        ],
+      },
+      {
+        name: "faqItems",
+        type: "repeater",
+        label: "FAQ",
+        addLabel: "Thêm câu hỏi",
+        fields: [
+          { name: "question", label: "Câu hỏi", type: "text", width: 4 },
+          { name: "answer", label: "Trả lời", type: "textarea", width: 8 },
+        ],
+      },
+      {
+        type: "section",
+        label: "CTA cuối trang",
+        description: "Kêu gọi khách truy cập liên hệ tư vấn.",
+        fields: [
+          { name: "ctaTitle", label: "Tiêu đề CTA", type: "text", width: 12 },
+          { name: "ctaDescription", label: "Mô tả CTA", type: "textarea", width: 12 },
+          { name: "ctaButtonText", label: "Nút CTA", type: "text", width: 4 },
+          { name: "ctaButtonLink", label: "Link CTA", type: "text", width: 8 },
+        ],
+      },
+    ],
   },
   "partner-apply": {
     slug: "partner-apply",

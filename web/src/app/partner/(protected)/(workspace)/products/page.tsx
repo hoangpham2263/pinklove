@@ -60,7 +60,7 @@ export default async function PartnerProductsPage() {
               </div>
             ) : (
               <div className="rounded-md border">
-                <table className="w-full table-fixed text-sm">
+                <table className="w-full table-auto text-sm">
                   <thead className="text-left text-muted-foreground">
                     <tr className="border-b">
                       <th className="w-[40%] px-4 py-3 font-medium">Sản phẩm</th>

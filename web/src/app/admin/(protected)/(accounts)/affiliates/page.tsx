@@ -3,52 +3,68 @@ import { BadgePercent, CheckCircle2, Clock3, MousePointerClick, ShieldAlert, Tre
 import {
   getAffiliateApplicationSummary,
   getAffiliateProgramSummary,
-  listAffiliateConversions,
-  listAffiliateAccounts,
-  listAffiliateApplications,
 } from "@/features/affiliate/server/service";
-import { AdminAffiliateApplicationsTable } from "@/features/admin/components/affiliates/admin-affiliate-applications-table";
-import { AdminAffiliateConversionsTable } from "@/features/admin/components/affiliates/admin-affiliate-conversions-table";
-import { AdminAffiliatesTable } from "@/features/admin/components/affiliates/admin-affiliates-table";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin } from "@/lib/auth";
+import { ROUTES } from "@/lib/routes";
 
-type AdminAffiliatesPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
-
-export default async function AdminAffiliatesPage({ searchParams }: AdminAffiliatesPageProps) {
+export default async function AdminAffiliatesPage() {
   await requireAdmin();
-  await searchParams;
-  const [summary, applicationSummary, accounts, applications, conversions] = await Promise.all([
+  const [summary, applicationSummary] = await Promise.all([
     getAffiliateProgramSummary(),
     getAffiliateApplicationSummary(),
-    listAffiliateAccounts(),
-    listAffiliateApplications(),
-    listAffiliateConversions(),
   ]);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <AdminOverviewGrid>
-        <AdminOverviewCard title="Guest Pending" value={applicationSummary.pendingCount} icon={Clock3} />
-        <AdminOverviewCard title="Contacted" value={applicationSummary.contactedCount} icon={Users} />
-        <AdminOverviewCard title="Guest Approved" value={applicationSummary.approvedCount} icon={CheckCircle2} />
-        <AdminOverviewCard title="Rejected" value={applicationSummary.rejectedCount} icon={ShieldAlert} />
-      </AdminOverviewGrid>
-
-      <AdminAffiliateApplicationsTable applications={applications} />
+      <div className="rounded-md border bg-background p-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Affiliate Overview</h1>
+        <p className="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
+          Luồng customer đăng ký ở `/customer/affiliate` sẽ tạo tài khoản affiliate trạng thái pending và được duyệt tại mục Duyệt Customer Affiliate. Hồ sơ guest từ trang public `/affiliate-apply` nằm riêng ở mục Hồ sơ Guest Affiliate.
+        </p>
+      </div>
 
       <AdminOverviewGrid>
-        <AdminOverviewCard title="Account Pending" value={summary.pendingCount} icon={BadgePercent} />
-        <AdminOverviewCard title="Active" value={summary.activeCount} icon={UserCheck} />
-        <AdminOverviewCard title="Clicks" value={summary.clickCount} icon={MousePointerClick} />
-        <AdminOverviewCard title="Conversions" value={summary.conversionCount} icon={TrendingUp} />
+        <AdminOverviewCard
+          title="Duyệt Customer Affiliate"
+          value={summary.pendingCount}
+          description="Customer đã login gửi yêu cầu, admin bật active tại đây."
+          icon={BadgePercent}
+          href={ROUTES.ADMIN.AFFILIATE_ACCOUNTS}
+          hrefLabel="Mở trang duyệt"
+        />
+        <AdminOverviewCard
+          title="Affiliate đang active"
+          value={summary.activeCount}
+          description="Tài khoản có link hoạt động."
+          icon={UserCheck}
+          href={ROUTES.ADMIN.AFFILIATE_ACCOUNTS}
+          hrefLabel="Quản lý tài khoản"
+        />
+        <AdminOverviewCard
+          title="Hồ sơ guest chờ review"
+          value={applicationSummary.pendingCount}
+          description="Đơn đăng ký từ trang public."
+          icon={Clock3}
+          href={ROUTES.ADMIN.AFFILIATE_APPLICATIONS}
+          hrefLabel="Duyệt hồ sơ guest"
+        />
+        <AdminOverviewCard
+          title="Conversion"
+          value={summary.conversionCount}
+          description="Đơn hàng ghi nhận qua link affiliate."
+          icon={TrendingUp}
+          href={ROUTES.ADMIN.AFFILIATE_CONVERSIONS}
+          hrefLabel="Quản lý hoa hồng"
+        />
       </AdminOverviewGrid>
 
-      <AdminAffiliatesTable accounts={accounts} />
-
-      <AdminAffiliateConversionsTable conversions={conversions} />
+      <AdminOverviewGrid>
+        <AdminOverviewCard title="Guest contacted" value={applicationSummary.contactedCount} icon={Users} />
+        <AdminOverviewCard title="Guest approved" value={applicationSummary.approvedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Guest rejected" value={applicationSummary.rejectedCount} icon={ShieldAlert} />
+        <AdminOverviewCard title="Clicks toàn hệ thống" value={summary.clickCount} icon={MousePointerClick} />
+      </AdminOverviewGrid>
     </section>
   );
 }
