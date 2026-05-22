@@ -28,13 +28,13 @@ Current database has 101 public tables:
 | Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
 | CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Offerings | `offering_categories`, `offerings`, `coded_template_offerings`, `builder_offerings`, `general_offerings`, `wedding_sites`, `shopping_cart_items` |
+| Offerings | `offering_types`, `offering_categories`, `offerings`, `coded_template_offerings`, `builder_offerings`, `general_offerings`, `wedding_sites`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
 | Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_offering_submissions`, `vendor_offering_submission_events`, `offering_vendor_suppliers`, `vendor_offering_supplier_requests`, `vendor_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
-| Offerings core | `offerings`, `digital_template_offerings`, `wedding_site_offerings`, `physical_offering_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
+| Offering domain extensions | `digital_template_offerings`, `wedding_site_offerings`, `physical_offering_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
 | Universal media | `media_asset_links` |
 | Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
 | Creator ecosystem | `creator_profiles`, `creator_services`, `creator_portfolios`, `creator_reviews`, `creator_orders` |
@@ -46,24 +46,43 @@ Current database has 101 public tables:
 
 ## Core Refactor Status
 
-The database now has the future-facing `offerings` domain while the legacy
-`offerings` domain remains for application compatibility during the transition.
+The sellable catalog source of truth is `offerings`. The older product naming
+has been removed from the application surface and new catalog work should not
+create `products` tables, routes, services, or API names.
 
-Current backfill from `offerings` into `offerings`:
+Offering types are data-driven through `offering_types`:
 
-| Offering type | Backfilled rows |
+- `offerings.offering_type` stores the type key.
+- `offering_types.key` defines available type keys, labels, fulfillment behavior,
+  inventory/vendor flags, and the admin field schema.
+- Custom type-specific values are stored under `offerings.config.customFields`.
+- A new type such as `video_invitation` or `creator_service` can be created from
+  `/admin/offerings/types` without adding a new table or hardcoded union.
+- Add a dedicated subtype table only when a domain needs strongly queried,
+  relational columns at scale.
+
+System offering subtype tables remain for protected first-party flows:
+
+- `coded_template_offerings` for fixed coded invitation templates.
+- `builder_offerings` for editable builder starters.
+- `general_offerings` for regular physical/service catalog items with inventory
+  or vendor supply behavior.
+
+Current runtime seed data:
+
+| Type key | Label | Status | Fulfillment | Template key | Inventory | Vendor supply | System | Fields |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: |
+| `builder` | Builder | active | digital | `freeform_sections` | no | no | yes | 0 |
+| `coded_template` | Coded Template | active | digital | `coded_template` | no | no | yes | 0 |
+| `general_offering` | Sản phẩm | active | physical | `general_offering` | yes | yes | yes | 0 |
+
+Current runtime offering data:
+
+| Offering type | Rows |
 | --- | ---: |
-| `digital_template` | 6 |
-| `wedding_site` | 6 |
-| `physical_offering` | 5 |
-| `service` | 1 |
-
-Migration strategy:
-
-- Phase 1: create future tables and backfill `offerings` from `offerings`.
-- Phase 2: move server services from offering-centric queries to offering-centric queries.
-- Phase 3: rename admin/API/user-facing language from offerings to offerings where it is not specifically a physical offering.
-- Phase 4: remove legacy offering tables only after all reads/writes use the offering model.
+| `builder` | 6 |
+| `coded_template` | 6 |
+| `general_offering` | 6 |
 
 ## Overview
 
@@ -80,6 +99,7 @@ erDiagram
   users ||--o{ notifications : receives
 
   offering_categories ||--o{ offerings : categorizes
+  offering_types ||--o{ offerings : defines
   offerings ||--o| digital_template_offerings : has
   offerings ||--o| wedding_site_offerings : has
   offerings ||--o| physical_offering_offerings : has
@@ -111,13 +131,26 @@ erDiagram
 erDiagram
   offerings {
     text id PK
-    text legacy_offering_id UK
     text slug UK
-    text title
+    text name
     text offering_type
+    text fulfillment_type
     text status
-    numeric base_price
+    numeric price
     jsonb config
+  }
+
+  offering_types {
+    text id PK
+    text key UK
+    text label
+    text status
+    text fulfillment_type
+    text template_key
+    boolean supports_inventory
+    boolean supports_vendor_supply
+    boolean is_system
+    jsonb field_schema
   }
 
   digital_template_offerings {
@@ -182,6 +215,7 @@ erDiagram
   }
 
   users ||--o{ creator_service_offerings : provides
+  offering_types ||--o{ offerings : defines
   offerings ||--o| digital_template_offerings : digital_template
   offerings ||--o| wedding_site_offerings : wedding_site
   offerings ||--o| physical_offering_offerings : physical_offering
@@ -199,7 +233,7 @@ erDiagram
   wedding_sites {
     bigint id PK
     bigint user_id FK
-    bigint offering_id FK
+    text offering_id FK
     text slug UK
     jsonb custom_data
   }
@@ -462,8 +496,21 @@ erDiagram
     text status
   }
 
+  offering_types {
+    text id PK
+    text key UK
+    text label
+    text status
+    text fulfillment_type
+    text template_key
+    boolean supports_inventory
+    boolean supports_vendor_supply
+    boolean is_system
+    jsonb field_schema
+  }
+
   offerings {
-    bigint id PK
+    text id PK
     text slug UK
     text name
     text offering_type
@@ -474,19 +521,19 @@ erDiagram
   }
 
   coded_template_offerings {
-    bigint offering_id PK, FK
+    text offering_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
   builder_offerings {
-    bigint offering_id PK, FK
+    text offering_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
   general_offerings {
-    bigint offering_id PK, FK
+    text offering_id PK, FK
     text fulfillment_type
     bigint owner_vendor_user_id FK
     int stock_quantity
@@ -496,7 +543,7 @@ erDiagram
   wedding_sites {
     bigint id PK
     bigint user_id FK
-    bigint offering_id FK
+    text offering_id FK
     text slug UK
     text site_type
     jsonb custom_data
@@ -505,7 +552,7 @@ erDiagram
   shopping_cart_items {
     text id PK
     bigint user_id FK
-    bigint offering_id FK
+    text offering_id FK
     int quantity
   }
 
@@ -540,6 +587,7 @@ erDiagram
   users ||--o{ general_offerings : owns_vendor_offering
 
   offering_categories ||--o{ offerings : categorizes
+  offering_types ||--o{ offerings : defines
   offerings ||--o| coded_template_offerings : template_details
   offerings ||--o| builder_offerings : builder_details
   offerings ||--o| general_offerings : offering_details
@@ -597,7 +645,7 @@ erDiagram
   commerce_order_items {
     text id PK
     text order_id FK
-    bigint offering_id FK
+    text offering_id FK
     text offering_type
     int quantity
     numeric line_total
@@ -630,7 +678,7 @@ erDiagram
   commerce_entitlements {
     text id PK
     bigint user_id FK
-    bigint offering_id FK
+    text offering_id FK
     text order_id FK
     text order_item_id FK
     text status
@@ -653,7 +701,7 @@ erDiagram
   vendor_offering_submissions {
     text id PK
     bigint vendor_user_id FK
-    bigint linked_offering_id FK
+    text linked_offering_id FK
     text category_id FK
     text review_status
   }
@@ -667,14 +715,14 @@ erDiagram
 
   offering_vendor_suppliers {
     text id PK
-    bigint offering_id FK
+    text offering_id FK
     bigint vendor_user_id FK
     text status
   }
 
   vendor_offering_supplier_requests {
     text id PK
-    bigint offering_id FK
+    text offering_id FK
     bigint vendor_user_id FK
     text review_status
   }
@@ -807,9 +855,10 @@ erDiagram
 
 ## Legacy Foreign Key List
 
-This list covers the original tables before the offerings refactor. New
-refactor tables are documented in the diagrams above and will be folded into a
-generated FK list after the application services finish moving to `offerings`.
+This list covers the operational tables with database-level foreign keys.
+`offering_types.key` is intentionally referenced by application logic rather
+than a hard FK so type definitions can be managed as configuration data and
+archived without breaking existing catalog rows.
 
 | From | To | On delete |
 | --- | --- | --- |
@@ -897,4 +946,10 @@ docker compose exec db psql -U app -d app -P pager=off -c \
 
 docker compose exec db psql -U app -d app -P pager=off -c \
   "select tc.table_name, kcu.column_name, ccu.table_name as foreign_table_name, ccu.column_name as foreign_column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name=kcu.constraint_name and tc.table_schema=kcu.table_schema join information_schema.constraint_column_usage ccu on ccu.constraint_name=tc.constraint_name and ccu.table_schema=tc.table_schema join information_schema.referential_constraints rc on rc.constraint_name=tc.constraint_name and rc.constraint_schema=tc.table_schema where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public' order by tc.table_name,kcu.column_name;"
+
+docker compose exec db psql -U app -d app -P pager=off -c \
+  "select key,label,status,fulfillment_type,template_key,supports_inventory,supports_vendor_supply,is_system,jsonb_array_length(field_schema) as fields from offering_types order by is_system desc, key;"
+
+docker compose exec db psql -U app -d app -P pager=off -c \
+  "select offering_type,count(*) from offerings group by offering_type order by offering_type;"
 ```

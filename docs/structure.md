@@ -255,6 +255,8 @@ web/
 - Shared custom-field architecture uses code-registered schemas.
   Managed-page field schemas live under `src/features/pages/*`.
   Whole-site global field schemas live under `src/features/global-fields/*`.
+  Offering type field schemas are data-managed in `offering_types.field_schema`
+  and edited from `/admin/offerings/types`.
 
 ## API client architecture
 
@@ -305,7 +307,9 @@ web/
 
 - The admin shell lives under `src/app/admin/(protected)`.
 - Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, offerings, ecommerce operations, SEO, blog management, and config.
-- Admin offering management works at the catalog level, while order/payment/shipment operations live in the dedicated ecommerce section.
+- Admin offering management works at the catalog level, including dynamic
+  offering type definitions, while order/payment/shipment operations live in the
+  dedicated ecommerce section.
 
 ## Feature map
 
@@ -317,7 +321,7 @@ web/
 - `src/features/affiliate`: affiliate flows for customer and admin
 - `src/features/ecommerce`: wishlist-backed checkout, orders, payments, shipments, and entitlement services
 - `src/features/notifications`: user notice inbox, admin notice creation, read state, and realtime notice adapters
-- `src/features/offerings`: invitation catalog offerings plus admin offering/category management UI
+- `src/features/offerings`: sellable catalog offerings plus admin offering/category/type management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 - `src/features/search`: guest-facing search services and result aggregation
 - `src/features/website-hooks`: outbound website integration/webhook inventory surfaced in admin
@@ -330,5 +334,5 @@ web/
 - The current builder editor does not support dragging/resizing element height yet.
 - The current builder editor does not support grouping selected elements yet.
 - Checkout, order creation, entitlement grant, and admin order/payment/shipment management are now implemented in-app.
-- Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `offerings`.
+- Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users`; current offering references use text ids.
   The persisted SQL table names remain `commerce_*` for legacy compatibility.

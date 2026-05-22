@@ -16,6 +16,9 @@ This file covers the admin area and admin-controlled workflows.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin offering flows operate on catalog entries in `offerings`.
+- Admin offering type management lives at `/admin/offerings/types` and writes to
+  `offering_types`. Use it to define custom fields for new catalog types instead
+  of hardcoding type unions in forms or API routes.
 - Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
 - `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New offering flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
 - `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
@@ -57,6 +60,7 @@ This file covers the admin area and admin-controlled workflows.
 - offerings
   - offering list
   - offering categories
+  - offering types
 - seo
   - page seo
   - seo schema

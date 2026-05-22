@@ -6,10 +6,15 @@ Use this file for project-wide rules around field schema, field editors, and ric
 
 - Page-level custom fields stay registered in code per managed page.
 - Whole-site shared custom fields live in `Admin > Global Fields` as code-registered global fields backed by `app_settings.global_fields_config`.
+- Offering type fields live in `offering_types.field_schema` and are edited in
+  `Admin > Offerings > Offering Types`. They drive dynamic fields on offering
+  create/edit forms.
 
 ## Schema Rules
 
-- Treat the code schema as the only active contract between admin data entry and frontend rendering.
+- Treat the active schema source as the contract between admin data entry and
+  frontend rendering: code schemas for managed/global fields, database schemas
+  for offering type fields.
 - When a page or feature moves to a new field structure, remove old field readers and legacy fallback branches instead of supporting both shapes.
 - For complex managed-page fields, prefer top-to-bottom `section` groups and `repeater` collections so the editor order matches the public page layout.
 - Keep related content inside the same section and use repeater item fields only for repeatable UI blocks such as socials, FAQs, cards, timelines, or lists.
