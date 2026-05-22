@@ -85,4 +85,4 @@ Development note:
 - [customer](./docs/customer.md)
 - [admin](./docs/admin.md)
 - [structure](./docs/structure.md)
-- [schema](./docs/schema.md)
+- [database schema / ER diagram](./docs/schema.md)

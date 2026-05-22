@@ -1,391 +1,580 @@
 # Database Schema
 
-This document describes the tables the current code uses or expects.
-
-## Important compatibility note
-
-- The current bootstrap code in `src/lib/database.ts` creates new tables with `text` primary keys using `app_random_id()`.
-- Some existing environments may still contain older `bigserial` and `bigint` IDs from an earlier schema version.
-- When changing queries, write them defensively so they do not assume every environment already uses the new text-based IDs.
-
-## Auto-created by `src/lib/database.ts`
-
-### `users`
-
-- `id`: `text` in the current bootstrap, may be `bigserial` in older databases
-- `username`: `text`, unique
-- `password_hash`: `text`
-- `role`: `text`, one of `ADMIN`, `CUSTOMER`, `AFFILIATE`, or `VENDOR`
-- `wishlist_product_ids`: `jsonb`, ordered list of favorited `products.id` values stored as strings
-- `created_at`: `timestamptz`
-
-### `user_sessions`
-
-- `id`: `text`
-- `user_id`: FK to `users.id`
-- `token_hash`: `text`, unique
-- `expires_at`: `timestamptz`
-- `created_at`: `timestamptz`
-
-Index:
-
-- `user_sessions_token_hash_idx` on `token_hash`
-
-### `user_settings`
-
-- `user_id`: PK and FK to `users.id`
-- `ui_density`: `text`, `small`, `medium`, or `large`
-- `updated_at`: `timestamptz`
-
-### `media_assets`
-
-- `id`: `text`
-- `url`: `text`, internal upload path such as `/uploads/YYYY/MM/file.ext`
-- `file_name`: `text`
-- `original_name`: `text`
-- `mime_type`: `text`
-- `size_bytes`: `bigint`
-- `created_at`: `timestamptz`
-
-Indexes:
-
-- `idx_media_assets_created_at` on `created_at DESC`
-- `idx_media_assets_url` on `url`
-- `idx_media_assets_file_name` on `file_name`
-
-Notes:
-
-- Media metadata is database-backed and should stay in `media_assets`.
-- Uploaded files are stored separately under `web/public/uploads/YYYY/MM`.
-
-### `notifications`
-
-- `id`: `text`
-- `title`: `text`
-- `body`: `text`
-- `link_url`: `text`, optional internal destination opened from the notice
-- `audience_type`: `text`, one of `all`, `role`, or `users`
-- `created_by_user_id`: nullable FK to `users.id`
-- `status`: `text`, one of `draft`, `scheduled`, `sent`, or `archived`
-- `scheduled_at`: nullable `timestamptz`, future send time for scheduled notices
-- `metadata`: `jsonb`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-Related notification tables:
-
-- `notification_target_roles`: target roles for role-scoped notices
-- `notification_target_users`: target user ids for personal notices
-- `notification_user_states`: per-user read/dismissed state for every visible notice
-
-Notes:
-
-- All-role and role notices do not fan out rows per user at creation time; visibility is resolved at read time and read state is stored separately.
-- Notification realtime uses the shared `app_realtime` channel with a per-user resource id.
-- Scheduled notices stay hidden until they are promoted to `sent`; user inbox API calls and admin management refreshes publish due scheduled rows and emit realtime notices.
-
-### `app_settings`
-
-- `id`: `integer`, fixed to row `1`
-- `theme`: `text`
-- `seo_permalink`: `jsonb`
-- `seo_breadcrumb`: `jsonb`
-- `seo_sitemap`: `jsonb`
-- `seo_redirects`: `jsonb`
-- `seo_indexing`: `jsonb`
-- `seo_branding`: `jsonb`
-- `seo_opengraph`: `jsonb`
-- `seo_favicon`: `jsonb`
-- `global_fields_config`: `jsonb`
-- `commerce_config`: `jsonb`
-- `internal_api_config`: `jsonb`
-- `email_config`: `jsonb`
-- `updated_at`: `timestamptz`
-
-Notes:
-
-- Currently used for centralized SEO/system settings such as permalink, breadcrumb, and sitemap config.
-- Also stores site-wide indexing / robots settings.
-- Also stores whole-site shared global fields in `global_fields_config`.
-- Also stores reusable email sender settings in `email_config`.
-
-### `internal_accounts`
-
-- `id`: `text`
-- `platform`: `text`
-- `label`: `text`
-- `login_username`: `text`
-- `login_password`: `text`
-- `login_url`: `text`
-- `notes`: `text`
-- `sort_order`: `int`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-### `user_profiles`
-
-- `user_id`: PK and FK to `users.id`
-- `full_name`: `text`
-- `display_name`: `text`
-- `phone`: `text`
-- `bio`: `text`
-- `updated_at`: `timestamptz`
-
-### `user_addresses`
-
-- `id`: `text`
-- `user_id`: FK to `users.id`
-- `label`: `text`
-- `recipient_name`: `text`
-- `phone`: `text`
-- `line1`, `line2`, `ward`, `district`, `city`, `postal_code`, `country`: address fields
-- `is_default`: `boolean`; only one default address per user
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-Indexes:
-
-- `user_addresses_user_id_idx` on `(user_id, is_default DESC, updated_at DESC)`
-- `user_addresses_one_default_uidx` unique partial index on `user_id` where `is_default = true`
-
-### `user_oauth_accounts`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `user_id`: FK to `users.id`
-- `provider`: `text`
-- `provider_user_id`: `text`
-- `email`: `text`
-- `created_at`: `timestamptz`
-
-Constraint:
-
-- unique `(provider, provider_user_id)`
-
-### `managed_pages`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `slug`: `text`, unique
-- `name`: `text`
-- `title`: `text`
-- `excerpt`: `text`
-- `body`: `text`
-- `status`: `text`
-- `template`: `text`
-- `seo_title`: `text`
-- `seo_description`: `text`
-- `seo_keywords`: `text`
-- `canonical_url`: `text`
-- `permalink`: `text`, unique
-- `breadcrumb_title`: `text`
-- `breadcrumb_parent_slug`: `text`
-- `og_title`: `text`
-- `og_description`: `text`
-- `og_image`: `text`
-- `noindex`: `boolean`
-- `nofollow`: `boolean`
-- `custom_fields`: `jsonb`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-Notes:
-
-- `src/lib/database.ts` seeds the built-in `home`, `login`, and `register` rows if missing.
-
-### `navigation_menus`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `name`: `text`, unique
-- `label`: `text`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-### `navigation_menu_items`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `menu_id`: FK to `navigation_menus.id`
-- `label`: `text`
-- `type`: `text`, `page` or `custom`
-- `page_slug`: `text`, nullable
-- `url`: `text`, nullable
-- `position`: `int`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-### `affiliate_accounts`
-
-- `user_id`: PK and FK to `users.id`
-- `code`: `text`, unique
-- `status`: `text`, `pending`, `active`, `rejected`, or `blocked`
-- `commission_type`: `text`, `percent` or `fixed`
-- `commission_value`: `numeric(12,2)`
-- `notes`: `text`, nullable
-- `approved_by`: FK to `users.id`, nullable
-- `approved_at`: `timestamptz`, nullable
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-### `affiliate_clicks`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `affiliate_user_id`: FK to `affiliate_accounts.user_id`
-- `affiliate_code`: `text`
-- `landing_path`: `text`
-- `referrer`: `text`, nullable
-- `visitor_token`: `text`, nullable
-- `user_agent`: `text`, nullable
-- `created_at`: `timestamptz`
-
-Index:
-
-- `affiliate_clicks_affiliate_user_id_idx` on `affiliate_user_id`
-
-### `affiliate_conversions`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `affiliate_user_id`: FK to `affiliate_accounts.user_id`
-- `affiliate_code`: `text`
-- `external_order_ref`: `text`, nullable, unique
-- `order_value`: `numeric(12,2)`
-- `commission_amount`: `numeric(12,2)`
-- `status`: `text`, `pending`, `approved`, `rejected`, or `paid`
-- `metadata`: `jsonb`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-### `products`
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `slug`: `text`, unique
-- `name`: `text`
-- `excerpt`: `text`, nullable
-- `description`: `text`, nullable
-- `status`: `text`, `draft` or `published`
-- `product_type`: `text`, `coded_template`, `builder`, or `general_product`
-- `template_key`: `text`
-- `thumbnail_url`: `text`, nullable
-- `price`: `numeric(12,2)`
-- `config`: `jsonb`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-Business rule:
-
-- Product type determines the fixed workflow for a catalog product. `coded_template` products are created from code/seed, `builder` products can be seeded or created from the builder flow, and `general_product` products are added through admin/vendor/API paths.
-- Public catalog views should filter by product type first, then by category/price/sort.
-- Each coded invitation template identity should map to exactly one catalog product.
-
-### `wedding_sites`
-
-Current business meaning: invitation instances created by users and published at `/invitations/[slug]`.
-
-Business rule:
-
-- A `wedding_site` is a customer-specific copy created from a catalog product or from the system blank builder flow. It is not itself the catalog product.
-
-- `id`: `text` in current bootstrap, may be numeric in older databases
-- `user_id`: FK to `users.id`
-- `product_id`: FK to `products.id`, nullable
-- `title`: `text`
-- `slug`: `text`, unique
-- `site_type`: `text`, `coded_template` or `builder`
-- `template_key`: `text`
-- `status`: `text`, `draft` or `published`
-- `custom_data`: `jsonb`
-- `created_at`: `timestamptz`
-- `updated_at`: `timestamptz`
-
-Index:
-
-- `wedding_sites_user_id_idx` on `user_id`
-
-### Ecommerce tables
-
-- `shopping_cart_items`
-  - `id`: `text`
-  - `user_id`: matches the live SQL type of `users.id`
-  - `product_id`: matches the live SQL type of `products.id`
-  - `quantity`: `int`
-  - `metadata`: `jsonb`
-  - `created_at`: `timestamptz`
-  - `updated_at`: `timestamptz`
-- `commerce_orders`
-  - `id`: `text`
-  - `order_number`: `text`, unique
-  - `user_id`: matches the live SQL type of `users.id`
-  - `status`: `text`
-  - `payment_status`: `text`
-  - `fulfillment_status`: `text`
-  - customer, shipping, pricing, affiliate, and metadata fields are stored inline on the order row
-  - `affiliate_user_id`: matches the live SQL type of `affiliate_accounts.user_id`
-  - `created_at`: `timestamptz`
-  - `updated_at`: `timestamptz`
-- `commerce_order_items`
-  - `id`: `text`
-  - `order_id`: FK to `commerce_orders.id`
-  - `product_id`: matches the live SQL type of `products.id`, nullable
-  - product snapshot fields and pricing are stored per line item
-- `commerce_payments`
-  - `id`: `text`
-  - `order_id`: FK to `commerce_orders.id`
-  - `method`: `text`
-  - `provider`: `text`, copied from the admin payment method configuration at order creation time
-  - `amount`: `numeric(12,2)`
-  - `status`: `text`
-  - `external_ref`: `text`, nullable
-  - `metadata`: `jsonb`
-- `commerce_shipments`
-  - `id`: `text`
-  - `order_id`: FK to `commerce_orders.id`, unique
-  - `carrier`: `text`
-  - `tracking_number`: `text`
-  - `status`: `text`
-  - `notes`: `text`
-  - `metadata`: `jsonb`
-- `commerce_entitlements`
-  - `id`: `text`
-  - `user_id`: matches the live SQL type of `users.id`
-  - `product_id`: matches the live SQL type of `products.id`
-  - `order_id`: FK to `commerce_orders.id`
-  - `order_item_id`: FK to `commerce_order_items.id`, nullable
-  - `status`: `text`
-  - `metadata`: `jsonb`
-
-Compatibility note:
-
-- The ecommerce bootstrap derives the SQL type for `users.id`, `products.id`, and `affiliate_accounts.user_id` from the live database before creating the legacy `commerce_*` tables.
-
-### Ecommerce settings storage
-
-- `app_settings.commerce_config`: `jsonb`
-  - `enabled`: global checkout toggle
-  - currency, shipping, bank transfer, and cash instruction settings
-  - `paymentMethods`: ordered array of admin-managed payment method configs
-    - `code`: stable checkout/payment method identifier
-    - `label`: customer-facing label
-    - `description`: checkout description
-    - `instructions`: post-selection or post-order guidance
-    - `enabled`: availability toggle
-    - `provider`: gateway/provider identifier copied into `commerce_payments.provider`
-    - `type`: `manual`, `offline`, `redirect`, `embedded`, or `mock`
-    - `requiresShipping`: `true`, `false`, or `null`
-    - method-specific instructions and optional bank/VietQR account fields for manual payment methods
-
-### Email settings storage
-
-- `app_settings.email_config`: `jsonb`
-  - `enabled`: global email sending toggle
-  - `transport`: `log` for demo/local logging or `smtp` for SMTP delivery
-  - `fromName`, `fromEmail`, and optional `replyTo`: default sender identity
-  - `smtpHost`, `smtpPort`, `smtpSecure`, `smtpUsername`, `smtpPassword`: SMTP transport fields
-  - `demoRecipient`: default recipient used by the admin email demo card
-
-Email template rendering:
-
-- Shared shortcode rendering lives in `src/lib/email-template.ts`.
-- The admin email demo supports raw HTML, plain text fallback, preview rendering, and click-to-copy shortcode tokens.
-
-## Non-database storage
-
-### Uploaded files
-
-- Directory: `web/public/uploads/YYYY/MM`
+Current database schema snapshot for the PinkLove project.
+
+This file is meant to be readable directly on GitHub. GitHub renders the Mermaid
+ER diagrams below, so the table map can be reviewed without opening a database
+client.
+
+Snapshot source:
+
+- Runtime database: local Docker PostgreSQL `app`
+- Schema source in code: `web/src/lib/database.ts`
+- Last refreshed from DB: 2026-05-22
+
+## Compatibility Note
+
+Some existing local tables still use older `bigint` ids, while the current
+bootstrap code creates newer tables with `text` ids via `app_random_id()`.
+Application queries should keep using the existing helpers and avoid assuming
+all ids are the same physical type across every environment.
+
+## Table Count
+
+Current database has 50 public tables:
+
+| Area | Tables |
+| --- | --- |
+| Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
+| CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `app_settings` |
+| Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
+| Products | `product_categories`, `products`, `coded_template_products`, `builder_products`, `general_products`, `wedding_sites`, `shopping_cart_items` |
+| Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
+| Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
+| Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_product_submissions`, `vendor_product_submission_events`, `product_vendor_suppliers`, `vendor_product_supplier_requests`, `vendor_applications` |
+| Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
+| Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
+
+## Identity And CMS
+
+```mermaid
+erDiagram
+  users {
+    bigint id PK
+    text username UK
+    text role
+    text account_status
+    jsonb wishlist_product_ids
+  }
+
+  user_sessions {
+    text id PK
+    bigint user_id FK
+    text token_hash UK
+  }
+
+  user_settings {
+    bigint user_id PK FK
+    text ui_density
+  }
+
+  user_profiles {
+    bigint user_id PK FK
+    text display_name
+    text vendor_portal_slug
+  }
+
+  user_shipping_profiles {
+    text id PK
+    bigint user_id FK
+    text profile_type
+  }
+
+  user_addresses {
+    text id PK
+    bigint user_id FK
+    boolean is_default
+  }
+
+  user_oauth_accounts {
+    bigint id PK
+    bigint user_id FK
+    text provider
+    text provider_user_id
+  }
+
+  internal_accounts {
+    text id PK
+    text platform
+    text label
+  }
+
+  managed_pages {
+    bigint id PK
+    text slug UK
+    text status
+    text template
+    jsonb custom_fields
+  }
+
+  navigation_menus {
+    bigint id PK
+    text name UK
+    text label
+  }
+
+  navigation_menu_items {
+    bigint id PK
+    bigint menu_id FK
+    text parent_id
+    text type
+    text page_slug
+  }
+
+  media_assets {
+    text id PK
+    text url
+    text mime_type
+    bigint size_bytes
+  }
+
+  app_settings {
+    int id PK
+    text theme
+    jsonb seo_breadcrumb
+    jsonb seo_sitemap
+    jsonb global_fields_config
+  }
+
+  users ||--o{ user_sessions : owns
+  users ||--|| user_settings : has
+  users ||--|| user_profiles : has
+  users ||--o{ user_shipping_profiles : has
+  users ||--o{ user_addresses : has
+  users ||--o{ user_oauth_accounts : has
+  navigation_menus ||--o{ navigation_menu_items : contains
+```
+
+## Product, Catalog, And Public Content
+
+```mermaid
+erDiagram
+  product_categories {
+    text id PK
+    text slug UK
+    text name
+    text status
+  }
+
+  products {
+    bigint id PK
+    text slug UK
+    text name
+    text product_type
+    text template_key
+    text category_id FK
+    numeric price
+    jsonb config
+  }
+
+  coded_template_products {
+    bigint product_id PK FK
+    text template_key
+    jsonb site_defaults
+  }
+
+  builder_products {
+    bigint product_id PK FK
+    text template_key
+    jsonb site_defaults
+  }
+
+  general_products {
+    bigint product_id PK FK
+    text fulfillment_type
+    bigint owner_vendor_user_id FK
+    int stock_quantity
+    numeric cost_price
+  }
+
+  wedding_sites {
+    bigint id PK
+    bigint user_id FK
+    bigint product_id FK
+    text slug UK
+    text site_type
+    jsonb custom_data
+  }
+
+  shopping_cart_items {
+    text id PK
+    bigint user_id FK
+    bigint product_id FK
+    int quantity
+  }
+
+  blog_categories {
+    text id PK
+    text slug UK
+    text name
+    text status
+  }
+
+  blog_posts {
+    text id PK
+    text category_id FK
+    text slug UK
+    text title
+    text status
+  }
+
+  content_comments {
+    text id PK
+    text target_type
+    text target_id
+    bigint author_user_id FK
+    bigint approved_by FK
+    text status
+  }
+
+  users ||--o{ wedding_sites : creates
+  users ||--o{ shopping_cart_items : owns
+  users ||--o{ content_comments : writes
+  users ||--o{ content_comments : approves
+  users ||--o{ general_products : owns_vendor_product
+
+  product_categories ||--o{ products : categorizes
+  products ||--o| coded_template_products : template_details
+  products ||--o| builder_products : builder_details
+  products ||--o| general_products : product_details
+  products ||--o{ wedding_sites : starts_from
+  products ||--o{ shopping_cart_items : in_cart
+
+  blog_categories ||--o{ blog_posts : contains
+```
+
+## Commerce, Affiliate, And Vendor Flow
+
+```mermaid
+erDiagram
+  affiliate_accounts {
+    bigint user_id PK FK
+    text code UK
+    text status
+    text commission_type
+    numeric commission_value
+  }
+
+  affiliate_clicks {
+    bigint id PK
+    bigint affiliate_user_id FK
+    text affiliate_code
+    text landing_path
+  }
+
+  affiliate_conversions {
+    bigint id PK
+    bigint affiliate_user_id FK
+    text external_order_ref UK
+    numeric order_value
+    numeric commission_amount
+    text status
+  }
+
+  affiliate_applications {
+    text id PK
+    text email
+    text preferred_code
+    text review_status
+  }
+
+  commerce_orders {
+    text id PK
+    text order_number UK
+    bigint user_id FK
+    bigint affiliate_user_id FK
+    text status
+    text payment_status
+    numeric total_amount
+  }
+
+  commerce_order_items {
+    text id PK
+    text order_id FK
+    bigint product_id FK
+    text product_type
+    int quantity
+    numeric line_total
+  }
+
+  commerce_payments {
+    text id PK
+    text order_id FK
+    text provider
+    numeric amount
+    text status
+  }
+
+  commerce_payment_logs {
+    text id PK
+    text order_id FK
+    text payment_id FK
+    text provider
+    jsonb payload
+  }
+
+  commerce_shipments {
+    text id PK
+    text order_id FK
+    text carrier
+    text tracking_number
+    text status
+  }
+
+  commerce_entitlements {
+    text id PK
+    bigint user_id FK
+    bigint product_id FK
+    text order_id FK
+    text order_item_id FK
+    text status
+  }
+
+  vendor_order_assignments {
+    text id PK
+    text order_id FK
+    bigint vendor_user_id FK
+    text status
+  }
+
+  vendor_order_events {
+    text id PK
+    text assignment_id FK
+    bigint actor_user_id FK
+    text event_type
+  }
+
+  vendor_product_submissions {
+    text id PK
+    bigint vendor_user_id FK
+    bigint linked_product_id FK
+    text category_id FK
+    text review_status
+  }
+
+  vendor_product_submission_events {
+    text id PK
+    text submission_id FK
+    bigint actor_user_id FK
+    text event_type
+  }
+
+  product_vendor_suppliers {
+    text id PK
+    bigint product_id FK
+    bigint vendor_user_id FK
+    text status
+  }
+
+  vendor_product_supplier_requests {
+    text id PK
+    bigint product_id FK
+    bigint vendor_user_id FK
+    text review_status
+  }
+
+  vendor_applications {
+    text id PK
+    text email
+    text review_status
+  }
+
+  users ||--o| affiliate_accounts : can_have
+  users ||--o{ commerce_orders : places
+  users ||--o{ commerce_entitlements : receives
+  users ||--o{ vendor_order_assignments : fulfills
+  users ||--o{ vendor_product_submissions : submits
+  users ||--o{ product_vendor_suppliers : supplies
+  users ||--o{ vendor_product_supplier_requests : requests
+
+  affiliate_accounts ||--o{ affiliate_clicks : tracks
+  affiliate_accounts ||--o{ affiliate_conversions : earns
+  affiliate_accounts ||--o{ commerce_orders : attributes
+
+  commerce_orders ||--o{ commerce_order_items : contains
+  commerce_orders ||--o{ commerce_payments : paid_by
+  commerce_orders ||--o{ commerce_payment_logs : logs
+  commerce_orders ||--o| commerce_shipments : ships
+  commerce_orders ||--o{ commerce_entitlements : grants
+  commerce_orders ||--o| vendor_order_assignments : assigned_to
+
+  commerce_order_items ||--o{ commerce_entitlements : grants
+  commerce_payments ||--o{ commerce_payment_logs : logs
+  vendor_order_assignments ||--o{ vendor_order_events : records
+  vendor_product_submissions ||--o{ vendor_product_submission_events : records
+```
+
+## Chat And Notifications
+
+```mermaid
+erDiagram
+  chat_conversations {
+    text id PK
+    text kind
+    bigint created_by_user_id FK
+    bigint owner_user_id FK
+    bigint requester_user_id FK
+    text status
+    text priority
+  }
+
+  chat_conversation_participants {
+    text conversation_id PK FK
+    bigint user_id PK FK
+    timestamptz last_read_at
+  }
+
+  chat_messages {
+    text id PK
+    text conversation_id FK
+    bigint sender_user_id FK
+    text visibility
+    text reply_to_message_id FK
+  }
+
+  chat_message_user_states {
+    text message_id PK FK
+    bigint user_id PK FK
+    boolean is_pinned
+  }
+
+  chat_conversation_user_states {
+    text conversation_id PK FK
+    bigint user_id PK FK
+    boolean is_pinned
+    boolean is_hidden
+  }
+
+  chat_typing_states {
+    text conversation_id PK FK
+    bigint user_id PK FK
+  }
+
+  notifications {
+    text id PK
+    text audience_type
+    bigint created_by_user_id FK
+    text status
+    timestamptz scheduled_at
+  }
+
+  notification_target_roles {
+    text notification_id PK FK
+    text role PK
+  }
+
+  notification_target_users {
+    text notification_id PK FK
+    bigint user_id PK FK
+  }
+
+  notification_user_states {
+    text notification_id PK FK
+    bigint user_id PK FK
+    timestamptz read_at
+    timestamptz dismissed_at
+  }
+
+  users ||--o{ chat_conversations : creates
+  users ||--o{ chat_conversations : owns
+  users ||--o{ chat_conversations : requests
+  users ||--o{ chat_conversation_participants : participates
+  users ||--o{ chat_messages : sends
+  users ||--o{ chat_message_user_states : message_state
+  users ||--o{ chat_conversation_user_states : conversation_state
+  users ||--o{ chat_typing_states : typing
+
+  chat_conversations ||--o{ chat_conversation_participants : has
+  chat_conversations ||--o{ chat_messages : has
+  chat_conversations ||--o{ chat_conversation_user_states : has
+  chat_conversations ||--o{ chat_typing_states : has
+  chat_messages ||--o{ chat_message_user_states : has
+  chat_messages ||--o{ chat_messages : replies
+
+  users ||--o{ notifications : creates
+  users ||--o{ notification_target_users : targeted
+  users ||--o{ notification_user_states : state
+  notifications ||--o{ notification_target_roles : targets
+  notifications ||--o{ notification_target_users : targets
+  notifications ||--o{ notification_user_states : has
+```
+
+## Full Foreign Key List
+
+| From | To | On delete |
+| --- | --- | --- |
+| `affiliate_accounts.approved_by` | `users.id` | SET NULL |
+| `affiliate_accounts.user_id` | `users.id` | CASCADE |
+| `affiliate_clicks.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
+| `affiliate_conversions.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
+| `blog_posts.category_id` | `blog_categories.id` | CASCADE |
+| `builder_products.product_id` | `products.id` | CASCADE |
+| `chat_conversation_participants.conversation_id` | `chat_conversations.id` | CASCADE |
+| `chat_conversation_participants.user_id` | `users.id` | CASCADE |
+| `chat_conversation_user_states.conversation_id` | `chat_conversations.id` | CASCADE |
+| `chat_conversation_user_states.user_id` | `users.id` | CASCADE |
+| `chat_conversations.created_by_user_id` | `users.id` | SET NULL |
+| `chat_conversations.owner_user_id` | `users.id` | SET NULL |
+| `chat_conversations.requester_user_id` | `users.id` | SET NULL |
+| `chat_message_user_states.message_id` | `chat_messages.id` | CASCADE |
+| `chat_message_user_states.user_id` | `users.id` | CASCADE |
+| `chat_messages.conversation_id` | `chat_conversations.id` | CASCADE |
+| `chat_messages.reply_to_message_id` | `chat_messages.id` | SET NULL |
+| `chat_messages.sender_user_id` | `users.id` | CASCADE |
+| `chat_typing_states.conversation_id` | `chat_conversations.id` | CASCADE |
+| `chat_typing_states.user_id` | `users.id` | CASCADE |
+| `coded_template_products.product_id` | `products.id` | CASCADE |
+| `commerce_entitlements.order_id` | `commerce_orders.id` | CASCADE |
+| `commerce_entitlements.order_item_id` | `commerce_order_items.id` | SET NULL |
+| `commerce_entitlements.product_id` | `products.id` | CASCADE |
+| `commerce_entitlements.user_id` | `users.id` | CASCADE |
+| `commerce_order_items.order_id` | `commerce_orders.id` | CASCADE |
+| `commerce_order_items.product_id` | `products.id` | SET NULL |
+| `commerce_orders.affiliate_user_id` | `affiliate_accounts.user_id` | SET NULL |
+| `commerce_orders.user_id` | `users.id` | CASCADE |
+| `commerce_payment_logs.order_id` | `commerce_orders.id` | SET NULL |
+| `commerce_payment_logs.payment_id` | `commerce_payments.id` | SET NULL |
+| `commerce_payments.order_id` | `commerce_orders.id` | CASCADE |
+| `commerce_shipments.order_id` | `commerce_orders.id` | CASCADE |
+| `content_comments.approved_by` | `users.id` | SET NULL |
+| `content_comments.author_user_id` | `users.id` | SET NULL |
+| `general_products.owner_vendor_user_id` | `users.id` | SET NULL |
+| `general_products.product_id` | `products.id` | CASCADE |
+| `navigation_menu_items.menu_id` | `navigation_menus.id` | CASCADE |
+| `notification_target_roles.notification_id` | `notifications.id` | CASCADE |
+| `notification_target_users.notification_id` | `notifications.id` | CASCADE |
+| `notification_target_users.user_id` | `users.id` | CASCADE |
+| `notification_user_states.notification_id` | `notifications.id` | CASCADE |
+| `notification_user_states.user_id` | `users.id` | CASCADE |
+| `notifications.created_by_user_id` | `users.id` | SET NULL |
+| `product_vendor_suppliers.approved_by` | `users.id` | SET NULL |
+| `product_vendor_suppliers.product_id` | `products.id` | CASCADE |
+| `product_vendor_suppliers.vendor_user_id` | `users.id` | CASCADE |
+| `products.category_id` | `product_categories.id` | SET NULL |
+| `shopping_cart_items.product_id` | `products.id` | CASCADE |
+| `shopping_cart_items.user_id` | `users.id` | CASCADE |
+| `user_addresses.user_id` | `users.id` | CASCADE |
+| `user_oauth_accounts.user_id` | `users.id` | CASCADE |
+| `user_profiles.user_id` | `users.id` | CASCADE |
+| `user_sessions.user_id` | `users.id` | CASCADE |
+| `user_settings.user_id` | `users.id` | CASCADE |
+| `user_shipping_profiles.user_id` | `users.id` | CASCADE |
+| `users.account_status_updated_by` | `users.id` | SET NULL |
+| `vendor_order_assignments.order_id` | `commerce_orders.id` | CASCADE |
+| `vendor_order_assignments.vendor_user_id` | `users.id` | CASCADE |
+| `vendor_order_events.actor_user_id` | `users.id` | SET NULL |
+| `vendor_order_events.assignment_id` | `vendor_order_assignments.id` | CASCADE |
+| `vendor_product_submission_events.actor_user_id` | `users.id` | SET NULL |
+| `vendor_product_submission_events.submission_id` | `vendor_product_submissions.id` | CASCADE |
+| `vendor_product_submissions.category_id` | `product_categories.id` | SET NULL |
+| `vendor_product_submissions.linked_product_id` | `products.id` | SET NULL |
+| `vendor_product_submissions.reviewed_by` | `users.id` | SET NULL |
+| `vendor_product_submissions.vendor_user_id` | `users.id` | CASCADE |
+| `vendor_product_supplier_requests.product_id` | `products.id` | CASCADE |
+| `vendor_product_supplier_requests.reviewed_by` | `users.id` | SET NULL |
+| `vendor_product_supplier_requests.vendor_user_id` | `users.id` | CASCADE |
+| `wedding_sites.product_id` | `products.id` | SET NULL |
+| `wedding_sites.user_id` | `users.id` | CASCADE |
+
+## Refresh Commands
+
+Use these commands when the runtime DB changes and this document needs a manual
+refresh:
+
+```bash
+docker compose exec db psql -U app -d app -P pager=off -c \
+  "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by table_name;"
+
+docker compose exec db psql -U app -d app -P pager=off -c \
+  "select tc.table_name, kcu.column_name, ccu.table_name as foreign_table_name, ccu.column_name as foreign_column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name=kcu.constraint_name and tc.table_schema=kcu.table_schema join information_schema.constraint_column_usage ccu on ccu.constraint_name=tc.constraint_name and ccu.table_schema=tc.table_schema join information_schema.referential_constraints rc on rc.constraint_name=tc.constraint_name and rc.constraint_schema=tc.table_schema where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public' order by tc.table_name,kcu.column_name;"
+```
