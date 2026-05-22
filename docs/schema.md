@@ -35,6 +35,37 @@ Current database has 50 public tables:
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 
+## Overview
+
+```mermaid
+erDiagram
+  users ||--o{ user_sessions : owns
+  users ||--o{ user_profiles : has
+  users ||--o{ products : vendor_owns
+  users ||--o{ wedding_sites : creates
+  users ||--o{ commerce_orders : places
+  users ||--o| affiliate_accounts : can_have
+  users ||--o{ chat_conversations : participates
+  users ||--o{ notifications : receives
+
+  product_categories ||--o{ products : categorizes
+  products ||--o| coded_template_products : has
+  products ||--o| builder_products : has
+  products ||--o| general_products : has
+  products ||--o{ wedding_sites : creates
+  products ||--o{ commerce_order_items : sold_as
+
+  commerce_orders ||--o{ commerce_order_items : contains
+  commerce_orders ||--o{ commerce_payments : paid_by
+  commerce_orders ||--o{ commerce_entitlements : grants
+  commerce_orders ||--o| vendor_order_assignments : assigned_to
+
+  navigation_menus ||--o{ navigation_menu_items : contains
+  blog_categories ||--o{ blog_posts : contains
+  chat_conversations ||--o{ chat_messages : has
+  notifications ||--o{ notification_user_states : has
+```
+
 ## Identity And CMS
 
 ```mermaid
@@ -54,12 +85,12 @@ erDiagram
   }
 
   user_settings {
-    bigint user_id PK FK
+    bigint user_id PK, FK
     text ui_density
   }
 
   user_profiles {
-    bigint user_id PK FK
+    bigint user_id PK, FK
     text display_name
     text vendor_portal_slug
   }
@@ -158,19 +189,19 @@ erDiagram
   }
 
   coded_template_products {
-    bigint product_id PK FK
+    bigint product_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
   builder_products {
-    bigint product_id PK FK
+    bigint product_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
   general_products {
-    bigint product_id PK FK
+    bigint product_id PK, FK
     text fulfillment_type
     bigint owner_vendor_user_id FK
     int stock_quantity
@@ -238,7 +269,7 @@ erDiagram
 ```mermaid
 erDiagram
   affiliate_accounts {
-    bigint user_id PK FK
+    bigint user_id PK, FK
     text code UK
     text status
     text commission_type
@@ -409,8 +440,8 @@ erDiagram
   }
 
   chat_conversation_participants {
-    text conversation_id PK FK
-    bigint user_id PK FK
+    text conversation_id PK, FK
+    bigint user_id PK, FK
     timestamptz last_read_at
   }
 
@@ -423,21 +454,21 @@ erDiagram
   }
 
   chat_message_user_states {
-    text message_id PK FK
-    bigint user_id PK FK
+    text message_id PK, FK
+    bigint user_id PK, FK
     boolean is_pinned
   }
 
   chat_conversation_user_states {
-    text conversation_id PK FK
-    bigint user_id PK FK
+    text conversation_id PK, FK
+    bigint user_id PK, FK
     boolean is_pinned
     boolean is_hidden
   }
 
   chat_typing_states {
-    text conversation_id PK FK
-    bigint user_id PK FK
+    text conversation_id PK, FK
+    bigint user_id PK, FK
   }
 
   notifications {
@@ -449,18 +480,18 @@ erDiagram
   }
 
   notification_target_roles {
-    text notification_id PK FK
+    text notification_id PK, FK
     text role PK
   }
 
   notification_target_users {
-    text notification_id PK FK
-    bigint user_id PK FK
+    text notification_id PK, FK
+    bigint user_id PK, FK
   }
 
   notification_user_states {
-    text notification_id PK FK
-    bigint user_id PK FK
+    text notification_id PK, FK
+    bigint user_id PK, FK
     timestamptz read_at
     timestamptz dismissed_at
   }
