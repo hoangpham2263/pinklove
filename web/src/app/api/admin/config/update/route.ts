@@ -8,7 +8,7 @@ import {
   updateEcommerceSettings,
   updateFaviconSettings,
   updateEmailSettings,
-  updateInternalProductImportApiSettings,
+  updateInternalOfferingImportApiSettings,
   updateOpenGraphSettings,
   updateSitemapSettings,
   updateThirdPartySettings,
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         sitemapInput.includeBlogCategories = isChecked(formData, "includeBlogCategories");
       }
       if (formData.has("includeBlogPosts")) sitemapInput.includeBlogPosts = isChecked(formData, "includeBlogPosts");
-      if (formData.has("includeProducts")) sitemapInput.includeProducts = isChecked(formData, "includeProducts");
+      if (formData.has("includeOfferings")) sitemapInput.includeOfferings = isChecked(formData, "includeOfferings");
       if (formData.has("includePublicSites") || formData.has("includeInvitationSites")) {
         sitemapInput.includePublicSites =
           isChecked(formData, "includePublicSites") || isChecked(formData, "includeInvitationSites");
@@ -267,12 +267,12 @@ export async function POST(request: Request) {
       return respondSuccess(request, { message: "Đã lưu cấu hình bên thứ 3." });
     }
 
-    if (section === "internal_api_products") {
-      await updateInternalProductImportApiSettings({
+    if (section === "internal_api_offerings") {
+      await updateInternalOfferingImportApiSettings({
         enabled: isChecked(formData, "enabled"),
         token: String(formData.get("token") ?? "").trim(),
         defaultStatus: formData.get("defaultStatus") === "published" ? "published" : "draft",
-        allowedProductTypes: ["general_product"],
+        allowedOfferingTypes: ["general_offering"],
       });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình API import sản phẩm." });

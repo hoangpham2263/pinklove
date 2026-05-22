@@ -9,7 +9,7 @@ import { ROUTES } from "@/lib/routes";
 import { getPaymentMethodLabel } from "@/lib/payment-methods";
 import { getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import type { EcommerceSettings } from "@/lib/system-settings";
-import { isBuilderProductType, isInvitationProductType } from "@/features/products/types";
+import { isBuilderOfferingType, isInvitationOfferingType } from "@/features/offerings/types";
 
 type CustomerOrderDetailProps = {
   order: EcommerceOrder;
@@ -78,35 +78,35 @@ export function CustomerOrderDetail({ order, ecommerceSettings }: CustomerOrderD
         </CardHeader>
         <CardContent className="space-y-4">
           {order.items.map((item) => {
-            const canUseProduct =
-              order.paymentStatus === "paid" && item.fulfillmentType === "digital" && Boolean(item.productId) && isInvitationProductType(item.productType);
+            const canUseOffering =
+              order.paymentStatus === "paid" && item.fulfillmentType === "digital" && Boolean(item.offeringId) && isInvitationOfferingType(item.offeringType);
             const createAction =
-              isBuilderProductType(item.productType)
+              isBuilderOfferingType(item.offeringType)
                 ? ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER
-                : ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_PRODUCT;
+                : ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_OFFERING;
 
             return (
               <div key={item.id} className="rounded-md border p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold">{item.productName}</p>
+                    <p className="font-semibold">{item.offeringName}</p>
                     <p className="text-muted-foreground">
-                      {item.productType} • {item.fulfillmentType} • SL {item.quantity}
+                      {item.offeringType} • {item.fulfillmentType} • SL {item.quantity}
                     </p>
                   </div>
                   <p className="font-medium">{formatCurrency(item.lineTotal, ecommerceSettings)}</p>
                 </div>
 
-                {canUseProduct ? (
+                {canUseOffering ? (
                   <form action={createAction} method="POST" className="mt-4">
-                    <input type="hidden" name="productSlug" value={item.productSlug} />
+                    <input type="hidden" name="offeringSlug" value={item.offeringSlug} />
                     <Button type="submit">
-                      {isBuilderProductType(item.productType) ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
+                      {isBuilderOfferingType(item.offeringType) ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
                     </Button>
                   </form>
                 ) : (
                   <p className="mt-4 text-muted-foreground">
-                    {item.fulfillmentType === "digital" && isInvitationProductType(item.productType)
+                    {item.fulfillmentType === "digital" && isInvitationOfferingType(item.offeringType)
                       ? "Sản phẩm sẽ dùng được sau khi đơn chuyển sang trạng thái đã thanh toán."
                       : "Sản phẩm này không tạo thiệp trực tiếp trong hệ thống."}
                   </p>

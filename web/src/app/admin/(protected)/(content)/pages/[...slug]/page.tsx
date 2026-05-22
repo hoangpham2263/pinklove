@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
-import { listAllProducts } from "@/features/products/server/service";
+import { listAllOfferings } from "@/features/offerings/server/service";
 import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
@@ -31,17 +31,17 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
   }
 
   const previewHref = getPreviewHref(getManagedPagePath(page));
-  const products = await listAllProducts();
-  const productOptions = products.map((product) => ({
-    value: product.slug,
-    label: product.name,
+  const offerings = await listAllOfferings();
+  const offeringOptions = offerings.map((offering) => ({
+    value: offering.slug,
+    label: offering.name,
     description: `${
-      product.productType === "builder"
+      offering.offeringType === "builder"
         ? "Builder"
-        : product.productType === "general_product"
+        : offering.offeringType === "general_offering"
           ? "Sản phẩm"
           : "Template"
-    } • ${product.status}`,
+    } • ${offering.status}`,
   }));
 
   return (
@@ -54,7 +54,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
           <AdminTableActionButton action="external" href={previewHref} target="_blank" label="Xem trang" />
         </div>
       </div>
-      <PageEditorForm page={page} productOptions={productOptions} />
+      <PageEditorForm page={page} offeringOptions={offeringOptions} />
     </section>
   );
 }

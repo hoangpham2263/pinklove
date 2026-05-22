@@ -1,12 +1,12 @@
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 import type { InvitationSite } from "@/features/invitations/types";
-import type { Product } from "@/features/products/types";
+import type { Offering } from "@/features/offerings/types";
 
 const BLOG_CATEGORY_BASE = "blog";
 const BLOG_CATEGORY_SEGMENT = "category";
 const TEMPLATE_BASE = "mau-thiep";
 const BUILDER_BASE = "tu-tao-thiep";
-const PRODUCT_BASE = "thiep-giay";
+const OFFERING_BASE = "thiep-giay";
 const INVITATION_BASE = "invitations";
 
 function normalizeSegment(input: string) {
@@ -34,29 +34,29 @@ export function getBlogPostPath(post: Pick<BlogPost, "slug">) {
   return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${post.slug}`);
 }
 
-export function getTemplateProductPath(product: Pick<Product, "slug"> | string) {
-  const slug = typeof product === "string" ? product : product.slug;
+export function getTemplateOfferingPath(offering: Pick<Offering, "slug"> | string) {
+  const slug = typeof offering === "string" ? offering : offering.slug;
   return normalizePath(`/${normalizeSegment(TEMPLATE_BASE)}/${slug}`);
 }
 
-export function getBuilderProductPath(product: Pick<Product, "slug"> | string) {
-  const slug = typeof product === "string" ? product : product.slug;
+export function getBuilderOfferingPath(offering: Pick<Offering, "slug"> | string) {
+  const slug = typeof offering === "string" ? offering : offering.slug;
   return normalizePath(`/${normalizeSegment(BUILDER_BASE)}/${slug}`);
 }
 
-export function getGeneralProductPath(product: Pick<Product, "slug"> | string) {
-  const slug = typeof product === "string" ? product : product.slug;
-  return normalizePath(`/${normalizeSegment(PRODUCT_BASE)}/${slug}`);
+export function getGeneralOfferingPath(offering: Pick<Offering, "slug"> | string) {
+  const slug = typeof offering === "string" ? offering : offering.slug;
+  return normalizePath(`/${normalizeSegment(OFFERING_BASE)}/${slug}`);
 }
 
-export function getProductPath(product: Pick<Product, "slug" | "productType">) {
-  if (product.productType === "builder") {
-    return getBuilderProductPath(product);
+export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType">) {
+  if (offering.offeringType === "builder") {
+    return getBuilderOfferingPath(offering);
   }
-  if (product.productType === "general_product") {
-    return getGeneralProductPath(product);
+  if (offering.offeringType === "general_offering") {
+    return getGeneralOfferingPath(offering);
   }
-  return getTemplateProductPath(product);
+  return getTemplateOfferingPath(offering);
 }
 
 export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string) {

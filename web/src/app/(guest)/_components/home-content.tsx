@@ -5,9 +5,9 @@ import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated-cta-button";
 import { HeroAnimatedTitle } from "@/app/(guest)/_components/hero-animated-title";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
-import { listPublishedProducts } from "@/features/products/server/service";
-import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
-import { LoopProductCard } from "@/features/products/components/LoopProductCard";
+import { listPublishedOfferings } from "@/features/offerings/server/service";
+import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
+import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { resolveMediaUrl } from "@/lib/media-resolver";
@@ -70,13 +70,13 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     invitationGalleryDescription?: string;
     invitationGalleryCtaText?: string;
     invitationGalleryCtaLink?: string;
-    invitationGalleryProductSlugs?: string[];
+    invitationGalleryOfferingSlugs?: string[];
     sharedInvitationsBadge?: string;
     sharedInvitationsTitle?: string;
     sharedInvitationsDescription?: string;
     sharedInvitationsCtaText?: string;
     sharedInvitationsCtaLink?: string;
-    sharedInvitationsProductSlugs?: string[];
+    sharedInvitationsOfferingSlugs?: string[];
   }>(page);
 
   const serviceItems = (Array.isArray(fields.serviceItems) ? fields.serviceItems : []).filter(
@@ -145,31 +145,31 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         accentImage: await resolveMediaUrl(item.accentImage),
       }))
   );
-  const publishedProducts = await listPublishedProducts();
-  const invitationGalleryProductSlugs = Array.isArray(fields.invitationGalleryProductSlugs)
-    ? fields.invitationGalleryProductSlugs.map((item) => String(item).trim()).filter(Boolean)
+  const publishedOfferings = await listPublishedOfferings();
+  const invitationGalleryOfferingSlugs = Array.isArray(fields.invitationGalleryOfferingSlugs)
+    ? fields.invitationGalleryOfferingSlugs.map((item) => String(item).trim()).filter(Boolean)
     : [];
-  const publishedProductMap = new Map(publishedProducts.map((item) => [item.slug, item] as const));
-  const invitationGalleryItems = invitationGalleryProductSlugs
-    .map((slug) => publishedProductMap.get(slug))
+  const publishedOfferingMap = new Map(publishedOfferings.map((item) => [item.slug, item] as const));
+  const invitationGalleryItems = invitationGalleryOfferingSlugs
+    .map((slug) => publishedOfferingMap.get(slug))
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
     .filter((item) => item.thumbnailUrl?.trim());
-  const sharedInvitationsProductSlugs = Array.isArray(fields.sharedInvitationsProductSlugs)
-    ? fields.sharedInvitationsProductSlugs.map((item) => String(item).trim()).filter(Boolean)
+  const sharedInvitationsOfferingSlugs = Array.isArray(fields.sharedInvitationsOfferingSlugs)
+    ? fields.sharedInvitationsOfferingSlugs.map((item) => String(item).trim()).filter(Boolean)
     : [];
-  const sharedInvitationsItems = sharedInvitationsProductSlugs
-    .map((slug) => publishedProductMap.get(slug))
+  const sharedInvitationsItems = sharedInvitationsOfferingSlugs
+    .map((slug) => publishedOfferingMap.get(slug))
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
     .filter((item) => item.thumbnailUrl?.trim());
-  const heroPreviewProducts = (
+  const heroPreviewOfferings = (
     invitationGalleryItems.length
       ? invitationGalleryItems
       : sharedInvitationsItems.length
         ? sharedInvitationsItems
-        : publishedProducts.filter((item) => item.thumbnailUrl?.trim())
+        : publishedOfferings.filter((item) => item.thumbnailUrl?.trim())
   ).slice(0, 8);
-  const heroPreviewTrack = heroPreviewProducts.length > 0
-    ? [...heroPreviewProducts, ...heroPreviewProducts]
+  const heroPreviewTrack = heroPreviewOfferings.length > 0
+    ? [...heroPreviewOfferings, ...heroPreviewOfferings]
     : [];
   const hasAboutContent = Boolean(
     fields.aboutTitle?.trim() ||
@@ -302,7 +302,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
             </div>
             <div className="flex min-h-[280px] items-center lg:col-span-6 lg:h-full">
               <div className="flex w-full items-center justify-center lg:h-full">
-                <HeroInvitationOrb products={heroPreviewTrack} />
+                <HeroInvitationOrb offerings={heroPreviewTrack} />
               </div>
             </div>
 
@@ -606,17 +606,17 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
-                      {invitationGalleryItems.map((product) => (
-                        product.productType !== "general_product" ? (
+                      {invitationGalleryItems.map((offering) => (
+                        offering.offeringType !== "general_offering" ? (
                           <LoopOnlineInvitationCard
-                            key={product.id}
-                            product={product}
+                            key={offering.id}
+                            offering={offering}
                             className="h-[24rem] w-[15rem] shrink-0"
                           />
                         ) : (
-                          <LoopProductCard
-                            key={product.id}
-                            product={product}
+                          <LoopOfferingCard
+                            key={offering.id}
+                            offering={offering}
                             className="h-[24rem] w-[15rem] shrink-0"
                           />
                         )
@@ -679,17 +679,17 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
-                      {sharedInvitationsItems.map((product) => (
-                        product.productType !== "general_product" ? (
+                      {sharedInvitationsItems.map((offering) => (
+                        offering.offeringType !== "general_offering" ? (
                           <LoopOnlineInvitationCard
-                            key={product.id}
-                            product={product}
+                            key={offering.id}
+                            offering={offering}
                             className="h-[24rem] w-[15rem] shrink-0"
                           />
                         ) : (
-                          <LoopProductCard
-                            key={product.id}
-                            product={product}
+                          <LoopOfferingCard
+                            key={offering.id}
+                            offering={offering}
                             className="h-[24rem] w-[15rem] shrink-0"
                           />
                         )

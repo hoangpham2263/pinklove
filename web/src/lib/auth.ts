@@ -947,12 +947,12 @@ export async function adminSetVendorAccountStatus(
  if (nextStatus !== "active") {
   await query(
 `
- UPDATE products
+ UPDATE offerings
  SET status = 'draft',
      updated_at = NOW()
  WHERE id IN (
-   SELECT product_id
-   FROM general_products
+   SELECT offering_id
+   FROM general_offerings
    WHERE owner_type = 'vendor'
      AND owner_vendor_user_id = $1
  )
@@ -966,7 +966,7 @@ export async function adminSetVendorAccountStatus(
 
   await query(
 `
- UPDATE vendor_product_submissions
+ UPDATE vendor_offering_submissions
  SET review_status = 'archived',
      review_note = CASE
        WHEN BTRIM(COALESCE(review_note, '')) = '' THEN $2

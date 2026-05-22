@@ -2,13 +2,13 @@ import "server-only";
 
 import type { BlogPost } from "@/features/blog/types";
 import { listPublishedBlogPosts } from "@/features/blog/server/service";
-import type { Product } from "@/features/products/types";
-import { listPublishedProducts } from "@/features/products/server/service";
+import type { Offering } from "@/features/offerings/types";
+import { listPublishedOfferings } from "@/features/offerings/server/service";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { listManagedPages } from "@/lib/managed-pages";
 
 export type GuestSearchResult = {
-  products: Product[];
+  offerings: Offering[];
   posts: BlogPost[];
   pages: ManagedPage[];
 };
@@ -34,26 +34,26 @@ export async function searchGuestContent(rawQuery: string): Promise<GuestSearchR
 
   if (!query) {
     return {
-      products: [],
+      offerings: [],
       posts: [],
       pages: [],
     };
   }
 
-  const [products, posts, pages] = await Promise.all([
-    listPublishedProducts(),
+  const [offerings, posts, pages] = await Promise.all([
+    listPublishedOfferings(),
     listPublishedBlogPosts(),
     listManagedPages(),
   ]);
 
   return {
-    products: products.filter((product) =>
+    offerings: offerings.filter((offering) =>
       matchesSearchTerm(query, [
-        product.name,
-        product.excerpt,
-        product.description,
-        product.templateKey,
-        product.productType,
+        offering.name,
+        offering.excerpt,
+        offering.description,
+        offering.templateKey,
+        offering.offeringType,
       ])
     ),
     posts: posts.filter((post) =>

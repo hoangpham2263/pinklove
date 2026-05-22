@@ -80,7 +80,7 @@ export default async function PartnerDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Vendor có thể tạo hồ sơ sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
-            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.PRODUCTS}>Mở sản phẩm</Link>} />
+            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.OFFERINGS}>Mở sản phẩm</Link>} />
           </CardContent>
         </Card>
 

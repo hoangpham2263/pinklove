@@ -33,7 +33,7 @@ export type VendorNavGroupEntry = {
 export type VendorNavEntry = VendorNavGroupEntry | VendorNavLinkEntry;
 
 const partnerOrderPrefix = ROUTES.PARTNER.ORDER("").slice(0, -1);
-const partnerProductPrefix = ROUTES.PARTNER.PRODUCT("").slice(0, -1);
+const partnerOfferingPrefix = ROUTES.PARTNER.OFFERING("").slice(0, -1);
 
 export const VENDOR_NAV_PRIMARY_ITEMS: VendorNavLinkEntry[] = [
   {
@@ -60,13 +60,13 @@ export const VENDOR_NAV_GROUPS: VendorNavGroupEntry[] = [
       },
       {
         label: "Sản phẩm",
-        href: ROUTES.PARTNER.PRODUCTS,
+        href: ROUTES.PARTNER.OFFERINGS,
         iconName: "package-plus",
-        matchPrefixes: [ROUTES.PARTNER.PRODUCTS, partnerProductPrefix],
+        matchPrefixes: [ROUTES.PARTNER.OFFERINGS, partnerOfferingPrefix],
       },
       {
         label: "Tạo sản phẩm",
-        href: ROUTES.PARTNER.PRODUCT_NEW,
+        href: ROUTES.PARTNER.OFFERING_NEW,
         iconName: "package-plus",
         exact: true,
       },

@@ -49,11 +49,11 @@ export async function POST(request: Request) {
   const settings = await getSystemSettings();
 
   if (formData) {
-    const selectedProductIds = formData
-      .getAll("selectedProductIds")
+    const selectedOfferingIds = formData
+      .getAll("selectedOfferingIds")
       .map((value) => String(value).trim())
       .filter(Boolean);
-    await syncCartWithWishlist(user.id, selectedProductIds);
+    await syncCartWithWishlist(user.id, selectedOfferingIds);
 
     const cartItems = await listCartItems(user.id);
     const requiresShipping =

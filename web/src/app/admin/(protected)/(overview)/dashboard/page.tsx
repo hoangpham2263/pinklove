@@ -28,8 +28,8 @@ type RevenueSummaryRow = {
   pending_orders: string;
   published_invitations: string;
   draft_invitations: string;
-  published_products: string;
-  draft_products: string;
+  published_offerings: string;
+  draft_offerings: string;
   published_posts: string;
   published_pages: string;
   draft_posts: string;
@@ -141,14 +141,14 @@ export default async function AdminDashboardPage() {
         ) AS draft_invitations,
         (
           SELECT COUNT(*)::text
-          FROM products
+          FROM offerings
           WHERE status = 'published'
-        ) AS published_products,
+        ) AS published_offerings,
         (
           SELECT COUNT(*)::text
-          FROM products
+          FROM offerings
           WHERE status = 'draft'
-        ) AS draft_products,
+        ) AS draft_offerings,
         (
           SELECT COUNT(*)::text
           FROM blog_posts
@@ -225,8 +225,8 @@ export default async function AdminDashboardPage() {
   const pendingOrders = asNumber(summary?.pending_orders);
   const publishedInvitations = asNumber(summary?.published_invitations);
   const draftInvitations = asNumber(summary?.draft_invitations);
-  const publishedProducts = asNumber(summary?.published_products);
-  const draftProducts = asNumber(summary?.draft_products);
+  const publishedOfferings = asNumber(summary?.published_offerings);
+  const draftOfferings = asNumber(summary?.draft_offerings);
   const publishedContent = asNumber(summary?.published_posts) + asNumber(summary?.published_pages);
   const draftContent = asNumber(summary?.draft_posts) + asNumber(summary?.draft_pages);
   const activeUsers = asNumber(summary?.active_users);
@@ -277,10 +277,10 @@ export default async function AdminDashboardPage() {
     },
     {
       title: "Catalog đang chạy",
-      value: publishedProducts.toLocaleString("vi-VN"),
-      detail: `${draftProducts.toLocaleString("vi-VN")} sản phẩm còn ở draft`,
+      value: publishedOfferings.toLocaleString("vi-VN"),
+      detail: `${draftOfferings.toLocaleString("vi-VN")} sản phẩm còn ở draft`,
       icon: FileText,
-      href: ROUTES.ADMIN.PRODUCT_LIST,
+      href: ROUTES.ADMIN.OFFERING_LIST,
     },
     {
       title: "Nội dung live",
@@ -301,7 +301,7 @@ export default async function AdminDashboardPage() {
   const quickLinks = [
     { label: "Đơn hàng", href: ROUTES.ADMIN.ORDERS },
     { label: "Thanh toán", href: ROUTES.ADMIN.PAYMENTS },
-    { label: "Sản phẩm", href: ROUTES.ADMIN.PRODUCT_LIST },
+    { label: "Sản phẩm", href: ROUTES.ADMIN.OFFERING_LIST },
     { label: "Blog", href: ROUTES.ADMIN.BLOG },
     { label: "Pages", href: ROUTES.ADMIN.PAGES },
     { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG },
@@ -350,11 +350,11 @@ export default async function AdminDashboardPage() {
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <span className="text-sm text-muted-foreground">Sản phẩm live</span>
-                <span className="text-lg font-semibold">{publishedProducts}</span>
+                <span className="text-lg font-semibold">{publishedOfferings}</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <span className="text-sm text-muted-foreground">Sản phẩm draft</span>
-                <span className="text-lg font-semibold">{draftProducts}</span>
+                <span className="text-lg font-semibold">{draftOfferings}</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <span className="text-sm text-muted-foreground">Thiệp live</span>

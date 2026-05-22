@@ -29,7 +29,7 @@ const RESERVED_PREFIXES = [
   "/user",
   "/partner",
   "/checkout",
-  "/products",
+  "/offerings",
   "/paper",
   "/invitations",
 ] as const;

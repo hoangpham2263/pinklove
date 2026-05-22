@@ -13,12 +13,12 @@ This file covers the public `GUEST` area.
 - Public content pages are explicit code-managed routes, not admin-created arbitrary routes.
 - Keep page-specific UI close to the route under `src/app/(guest)`.
 - Use managed-page fields only where the page is already registered in the content registry.
-- `/mau-thiep` shows invitation templates with fixed product-type tabs: `coded_template` and `builder`.
-- `/tu-tao-thiep` shows only `builder` products.
-- `/thiep-giay` shows only `general_product` products.
-- Public catalog filtering should apply product type first, then category/price/sort filters for future expansion.
+- `/mau-thiep` shows invitation templates with fixed offering-type tabs: `coded_template` and `builder`.
+- `/tu-tao-thiep` shows only `builder` offerings.
+- `/thiep-giay` shows only `general_offering` offerings.
+- Public catalog filtering should apply offering type first, then category/price/sort filters for future expansion.
 - Public invitation rendering should read from published invitation records. The current table name is still `wedding_sites`.
-- Guest wishlist is available at `/wishlist`, requires login, persists on the authenticated `users.wishlist_product_ids` field, and is the primary customer-facing purchase list in place of a separate cart screen.
+- Guest wishlist is available at `/wishlist`, requires login, persists on the authenticated `users.wishlist_offering_ids` field, and is the primary customer-facing purchase list in place of a separate cart screen.
 - Guest search is available at `/search`; the header search opens a quick search popover and submits to this public result page.
 - Guest header shows a public notification bell for signed-out visitors. It reads only sent `all` notifications through `/api/notifications/public` and stores read/unread state in browser localStorage.
 - Guest heading convention:

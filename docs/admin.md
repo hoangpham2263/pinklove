@@ -15,9 +15,9 @@ This file covers the admin area and admin-controlled workflows.
 - Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR` for stored roles; `GUEST` is the public non-authenticated actor only.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
-- Admin product flows operate on catalog entries in `products`.
+- Admin offering flows operate on catalog entries in `offerings`.
 - Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
-- `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New product flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
+- `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New offering flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
 - `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
 - Admin order detail should keep operational updates close to the top of the right column. `Cập nhật đơn hàng` is a first-class action surface and should not be buried below long secondary content.
 - Menu management expects `navigation_menus` and `navigation_menu_items`.
@@ -26,7 +26,7 @@ This file covers the admin area and admin-controlled workflows.
 - Whole-site robots/indexing controls live inside `Admin > Cấu hình > Sitemap`.
 - Page-level SEO editor may override per-page permalink/breadcrumb data, but shared defaults and toggles live in admin config.
 - Admin blog management now includes dynamic CRUD for `Blog Posts` and `Blog Categories`.
-- Admin product categories now use a dedicated `product_categories` data model and products can be assigned to a category from admin product forms.
+- Admin offering categories now use a dedicated `offering_categories` data model and offerings can be assigned to a category from admin offering forms.
 - Actor accounts now have dedicated management screens for `CUSTOMER`, `AFFILIATE`, and `VENDOR`, in addition to the full account list.
 - `Admin > Nhà cung cấp` can expose a dedicated detail page per vendor account so operations can review that vendor's assigned orders in one place.
 - Vendor management may also expose a dedicated public entry link per vendor account that routes into the shared partner portal after login.
@@ -54,9 +54,9 @@ This file covers the admin area and admin-controlled workflows.
 - notifications
 - internal accounts
 - affiliates
-- products
-  - product list
-  - product categories
+- offerings
+  - offering list
+  - offering categories
 - seo
   - page seo
   - seo schema

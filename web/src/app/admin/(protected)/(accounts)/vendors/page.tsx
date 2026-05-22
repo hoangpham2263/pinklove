@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminVendorList, type AdminVendorRow } from "@/features/admin/components/vendors/admin-vendor-list";
-import { listVendorProductSubmissionsForAdmin } from "@/features/vendor-product-submissions/server/service";
+import { listVendorOfferingSubmissionsForAdmin } from "@/features/vendor-offering-submissions/server/service";
 import { countVendorAssignmentsForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, listAccounts, listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { USER_ROLES } from "@/lib/roles";
@@ -21,7 +21,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
   const [vendorAccounts, allUsers, submissions] = await Promise.all([
     listAccountsByRole(USER_ROLES.VENDOR),
     listAccounts(),
-    listVendorProductSubmissionsForAdmin(),
+    listVendorOfferingSubmissionsForAdmin(),
   ]);
 
   const vendors: AdminVendorRow[] = await Promise.all(
@@ -31,7 +31,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
         countVendorAssignmentsForVendor(vendor.id),
       ]);
       const vendorSubmissions = submissions.filter((submission) => submission.vendorUserId === vendor.id);
-      const pendingProducts = vendorSubmissions.filter((submission) =>
+      const pendingOfferings = vendorSubmissions.filter((submission) =>
         ["submitted", "under_review", "changes_requested"].includes(submission.reviewStatus)
       ).length;
 
@@ -42,8 +42,8 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
         assignmentActive: stats.active,
         assignmentReview: stats.review,
         assignmentCompleted: stats.completed,
-        submittedProducts: vendorSubmissions.length,
-        pendingProducts,
+        submittedOfferings: vendorSubmissions.length,
+        pendingOfferings,
       };
     })
   );
@@ -51,7 +51,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
   const activeCount = vendors.filter((vendor) => vendor.accountStatus === "active").length;
   const riskCount = vendors.filter((vendor) => vendor.accountStatus !== "active").length;
   const totalAssignments = vendors.reduce((sum, vendor) => sum + vendor.assignmentTotal, 0);
-  const totalPendingProducts = vendors.reduce((sum, vendor) => sum + vendor.pendingProducts, 0);
+  const totalPendingOfferings = vendors.reduce((sum, vendor) => sum + vendor.pendingOfferings, 0);
   const roleShare = allUsers.length === 0 ? 0 : Math.round((vendors.length / allUsers.length) * 100);
 
   return (
@@ -64,7 +64,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <AdminLinkButton href={ROUTES.ADMIN.VENDOR_PRODUCTS}>Review sản phẩm vendor</AdminLinkButton>
+          <AdminLinkButton href={ROUTES.ADMIN.VENDOR_OFFERINGS}>Review sản phẩm vendor</AdminLinkButton>
           <AdminCreateLinkButton href={ROUTES.ADMIN.VENDORS_CREATE}>Tạo nhà cung cấp</AdminCreateLinkButton>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
         <AdminOverviewCard title="Tổng vendor" value={vendors.length} description={`${roleShare}% tổng tài khoản`} icon={Store} />
         <AdminOverviewCard title="Đang hoạt động" value={activeCount} description={`${riskCount} tài khoản đang bị hạn chế`} icon={CheckCircle2} />
         <AdminOverviewCard title="Đơn đã phân công" value={totalAssignments} description="Tổng đơn vendor đang quản lý" icon={ClipboardList} />
-        <AdminOverviewCard title="Hồ sơ cần review" value={totalPendingProducts} description="Submitted / under review / cần bổ sung" icon={PackageSearch} />
+        <AdminOverviewCard title="Hồ sơ cần review" value={totalPendingOfferings} description="Submitted / under review / cần bổ sung" icon={PackageSearch} />
       </AdminOverviewGrid>
 
       <Card className="rounded-lg">

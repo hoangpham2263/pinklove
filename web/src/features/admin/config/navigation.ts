@@ -61,14 +61,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    label: "Products",
+    label: "Offerings",
     iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Product", href: ROUTES.ADMIN.PRODUCT_LIST, iconName: "package" },
-      { label: "Product Templates", href: ROUTES.ADMIN.PRODUCT_TEMPLATES, iconName: "file-code-2" },
-      { label: "Product Builder", href: ROUTES.ADMIN.PRODUCT_BUILDER, iconName: "blocks" },
-      { label: "Product Categories", href: ROUTES.ADMIN.PRODUCT_CATEGORIES, iconName: "tags" },
+      { label: "Offering", href: ROUTES.ADMIN.OFFERING_LIST, iconName: "package" },
+      { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES, iconName: "file-code-2" },
+      { label: "Offering Builder", href: ROUTES.ADMIN.OFFERING_BUILDER, iconName: "blocks" },
+      { label: "Offering Categories", href: ROUTES.ADMIN.OFFERING_CATEGORIES, iconName: "tags" },
     ],
   },
   {
@@ -88,7 +88,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     defaultOpen: false,
     children: [
       { label: "Vendor Accounts", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
-      { label: "Vendor Product Review", href: ROUTES.ADMIN.VENDOR_PRODUCTS, iconName: "package" },
+      { label: "Vendor Offering Review", href: ROUTES.ADMIN.VENDOR_OFFERINGS, iconName: "package" },
     ],
   },
   {

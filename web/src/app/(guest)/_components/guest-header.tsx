@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Heart, Search } from "lucide-react";
 import { GuestNotificationBell } from "@/features/notifications/components/guest-notification-bell";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
-import { useWishlist } from "@/features/products/use-wishlist";
+import { useWishlist } from "@/features/offerings/use-wishlist";
 import { getRoleLabel, isAdminRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { cn } from "@/lib/utils";

@@ -1,7 +1,7 @@
 import { requireAppUser } from "@/lib/auth";
-import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
+import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
 import { ROUTES } from "@/lib/routes";
-import { createBuilderInvitation, createInvitationFromProduct } from "@/features/invitations/server/service";
+import { createBuilderInvitation, createInvitationFromOffering } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
@@ -9,24 +9,24 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const formData = await request.formData();
-  const productSlug = String(formData.get("productSlug") ?? "");
+  const offeringSlug = String(formData.get("offeringSlug") ?? "");
 
-  const site = productSlug
+  const site = offeringSlug
       ? await (async () => {
-        const product = await getPublishedProductBySlugAndType(productSlug, "builder");
-        if (!product) {
+        const offering = await getPublishedOfferingBySlugAndType(offeringSlug, "builder");
+        if (!offering) {
           return null;
         }
 
-        return createInvitationFromProduct({
+        return createInvitationFromOffering({
           userId: user.id,
-          product,
+          offering,
         });
       })()
     : await createBuilderInvitation(user.id);
 
   if (!site) {
-    return respondError(request, { error: "product_not_found", message: "Không tìm thấy builder khả dụng.", location: `${ROUTES.BUILDER}?error=product_not_found` });
+    return respondError(request, { error: "offering_not_found", message: "Không tìm thấy builder khả dụng.", location: `${ROUTES.BUILDER}?error=offering_not_found` });
   }
 
   return respondSuccess(request, { location: ROUTES.CUSTOMER.DESIGN(site.id), message: "Đã tạo thiệp builder." });

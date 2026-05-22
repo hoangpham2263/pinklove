@@ -173,36 +173,36 @@ async function bulkUpdatePages(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.PAGES.BULK, formData);
 }
 
-async function createProduct(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.CREATE, formData);
+async function createOffering(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.CREATE, formData);
 }
 
-async function updateProduct(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.UPDATE, formData);
+async function updateOffering(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.UPDATE, formData);
 }
 
-async function deleteProduct(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.DELETE, formData);
+async function deleteOffering(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.DELETE, formData);
 }
 
-async function bulkUpdateProducts(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.BULK, formData);
+async function bulkUpdateOfferings(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.BULK, formData);
 }
 
-async function createProductCategory(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.CREATE, formData);
+async function createOfferingCategory(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.CREATE, formData);
 }
 
-async function updateProductCategory(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.UPDATE, formData);
+async function updateOfferingCategory(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.UPDATE, formData);
 }
 
-async function deleteProductCategory(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.DELETE, formData);
+async function deleteOfferingCategory(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.DELETE, formData);
 }
 
-async function bulkUpdateProductCategories(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.BULK, formData);
+async function bulkUpdateOfferingCategories(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.BULK, formData);
 }
 
 async function savePaymentMethod(formData: FormData) {
@@ -438,14 +438,14 @@ export const adminApi = {
   bulkUpdateNotifications,
   updatePage,
   bulkUpdatePages,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  bulkUpdateProducts,
-  createProductCategory,
-  updateProductCategory,
-  deleteProductCategory,
-  bulkUpdateProductCategories,
+  createOffering,
+  updateOffering,
+  deleteOffering,
+  bulkUpdateOfferings,
+  createOfferingCategory,
+  updateOfferingCategory,
+  deleteOfferingCategory,
+  bulkUpdateOfferingCategories,
   savePaymentMethod,
   deletePaymentMethod,
   fetchAdminOrderState,
@@ -494,14 +494,14 @@ export const adminApiActions = {
   bulkUpdateNotifications: ROUTES.API.ADMIN.NOTIFICATIONS.BULK,
   updatePage: ROUTES.API.ADMIN.PAGES.UPDATE,
   bulkUpdatePages: ROUTES.API.ADMIN.PAGES.BULK,
-  createProduct: ROUTES.API.ADMIN.PRODUCTS.CREATE,
-  updateProduct: ROUTES.API.ADMIN.PRODUCTS.UPDATE,
-  deleteProduct: ROUTES.API.ADMIN.PRODUCTS.DELETE,
-  bulkUpdateProducts: ROUTES.API.ADMIN.PRODUCTS.BULK,
-  createProductCategory: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.CREATE,
-  updateProductCategory: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.UPDATE,
-  deleteProductCategory: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.DELETE,
-  bulkUpdateProductCategories: ROUTES.API.ADMIN.PRODUCTS.CATEGORIES.BULK,
+  createOffering: ROUTES.API.ADMIN.OFFERINGS.CREATE,
+  updateOffering: ROUTES.API.ADMIN.OFFERINGS.UPDATE,
+  deleteOffering: ROUTES.API.ADMIN.OFFERINGS.DELETE,
+  bulkUpdateOfferings: ROUTES.API.ADMIN.OFFERINGS.BULK,
+  createOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.CREATE,
+  updateOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.UPDATE,
+  deleteOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.DELETE,
+  bulkUpdateOfferingCategories: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.BULK,
   savePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE,
   deletePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE,
 } as const;

@@ -59,7 +59,7 @@ export type VendorOrderSummary = {
   >;
   items: Array<{
     id: string;
-    productName: string;
+    offeringName: string;
     quantity: number;
     fulfillmentType: string;
   }>;

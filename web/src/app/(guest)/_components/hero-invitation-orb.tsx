@@ -1,12 +1,12 @@
 import Image from "next/image";
-import type { Product } from "@/features/products/types";
+import type { Offering } from "@/features/offerings/types";
 
 export function HeroInvitationOrb({
-  products,
+  offerings,
 }: {
-  products: Product[];
+  offerings: Offering[];
 }) {
-  const reverseProducts = [...products].reverse();
+  const reverseOfferings = [...offerings].reverse();
   const cardClassName =
     "group relative shrink-0 overflow-hidden rounded-lg bg-transparent p-0 shadow-[0_10px_20px_rgba(255,111,245,0.035)] ring-1 ring-white/10";
   const imageClassName =
@@ -33,7 +33,7 @@ export function HeroInvitationOrb({
         </defs>
       </svg>
 
-      {products.length ? (
+      {offerings.length ? (
         <>
           <div className="pointer-events-none absolute left-[24%] top-[50%] z-[18] h-22 w-[42%] rounded-full bg-[radial-gradient(circle,rgba(255,111,245,0.08),rgba(255,111,245,0.025)_45%,rgba(255,111,245,0)_78%)] blur-2xl" />
           <div className="pointer-events-none absolute left-[27%] top-[70%] z-[18] h-18 w-[36%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.14),rgba(255,255,255,0)_72%)] blur-2xl" />
@@ -43,12 +43,12 @@ export function HeroInvitationOrb({
               className="hero-invitation-marquee relative flex w-max items-center gap-3 py-2.5"
               style={{ animationDuration: "34s" }}
             >
-              {products.map((product, index) => (
-                <article key={`${product.id}-${index}`} className={cardClassName}>
+              {offerings.map((offering, index) => (
+                <article key={`${offering.id}-${index}`} className={cardClassName}>
                   <div className="relative h-[120px] w-[70px] overflow-hidden rounded-lg">
                     <Image
-                      src={product.thumbnailUrl || ""}
-                      alt={product.name}
+                      src={offering.thumbnailUrl || ""}
+                      alt={offering.name}
                       fill
                       className={imageClassName}
                       sizes="70px"
@@ -66,12 +66,12 @@ export function HeroInvitationOrb({
               className="hero-invitation-marquee-reverse relative flex w-max items-center gap-3 py-2.5 opacity-82"
               style={{ animationDuration: "36s" }}
             >
-              {reverseProducts.map((product, index) => (
-                <article key={`${product.id}-reverse-${index}`} className={cardClassName}>
+              {reverseOfferings.map((offering, index) => (
+                <article key={`${offering.id}-reverse-${index}`} className={cardClassName}>
                   <div className="relative h-[120px] w-[70px] overflow-hidden rounded-lg">
                     <Image
-                      src={product.thumbnailUrl || ""}
-                      alt={product.name}
+                      src={offering.thumbnailUrl || ""}
+                      alt={offering.name}
                       fill
                       className={imageClassName}
                       sizes="70px"

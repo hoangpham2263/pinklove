@@ -253,7 +253,7 @@ export function PartnerVendorPortalPanel({
         row.original.order.customerPhone,
         row.original.lastEvent?.message,
         row.original.assignment.vendorReference,
-        ...row.original.items.map((item) => item.productName),
+        ...row.original.items.map((item) => item.offeringName),
       ]
         .filter(Boolean)
         .join(" ")
@@ -408,7 +408,7 @@ export function PartnerVendorPortalPanel({
                 <div className="mt-2 space-y-2">
                   {previewEntry.items.map((item) => (
                     <p key={item.id}>
-                      {item.productName} • Số lượng {item.quantity}
+                      {item.offeringName} • Số lượng {item.quantity}
                     </p>
                   ))}
                 </div>

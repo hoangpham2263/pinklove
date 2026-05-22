@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
-import { generateBuilderProductMetadata, renderBuilderProductPage } from "@/features/products/server/renderers";
-import { getBuilderProductPath } from "@/lib/public-paths";
+import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
+import { generateBuilderOfferingMetadata, renderBuilderOfferingPage } from "@/features/offerings/server/renderers";
+import { getBuilderOfferingPath } from "@/lib/public-paths";
 
-type BuilderProductDetailPageProps = {
+type BuilderOfferingDetailPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: BuilderProductDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: BuilderOfferingDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getPublishedProductBySlugAndType(slug, "builder");
-  return await generateBuilderProductMetadata(product);
+  const offering = await getPublishedOfferingBySlugAndType(slug, "builder");
+  return await generateBuilderOfferingMetadata(offering);
 }
 
-export default async function BuilderProductDetailPage({ params }: BuilderProductDetailPageProps) {
+export default async function BuilderOfferingDetailPage({ params }: BuilderOfferingDetailPageProps) {
   const { slug } = await params;
-  const product = await getPublishedProductBySlugAndType(slug, "builder");
-  if (!product) {
+  const offering = await getPublishedOfferingBySlugAndType(slug, "builder");
+  if (!offering) {
     notFound();
   }
 
-  const targetPath = getBuilderProductPath(product);
-  if (targetPath !== `/tu-tao-thiep/${product.slug}`) {
+  const targetPath = getBuilderOfferingPath(offering);
+  if (targetPath !== `/tu-tao-thiep/${offering.slug}`) {
     redirect(targetPath);
   }
 
-  return renderBuilderProductPage(product);
+  return renderBuilderOfferingPage(offering);
 }

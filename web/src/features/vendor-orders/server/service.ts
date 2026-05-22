@@ -231,7 +231,7 @@ export async function listVendorOrderSummariesForVendor(vendorUserId: string): P
         },
         items: order.items.map((item) => ({
           id: item.id,
-          productName: item.productName,
+          offeringName: item.offeringName,
           quantity: item.quantity,
           fulfillmentType: item.fulfillmentType,
         })),
@@ -289,7 +289,7 @@ export async function getVendorOrderDetailByAssignmentId(assignmentId: string): 
     order,
     items: order.items.map((item) => ({
       id: item.id,
-      productName: item.productName,
+      offeringName: item.offeringName,
       quantity: item.quantity,
       fulfillmentType: item.fulfillmentType,
     })),

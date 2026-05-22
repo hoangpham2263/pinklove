@@ -17,10 +17,10 @@ import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcru
 import { PageStructuredData } from "@/components/common/page-structured-data";
 import { BlogTabs } from "@/features/blog/components/blog-tabs";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
-import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
-import { LoopProductCard } from "@/features/products/components/LoopProductCard";
-import { listAllProductCategories, listPublishedProductsFiltered } from "@/features/products/server/service";
-import type { Product, ProductCategory, ProductType } from "@/features/products/types";
+import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
+import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
+import { listAllOfferingCategories, listPublishedOfferingsFiltered } from "@/features/offerings/server/service";
+import type { Offering, OfferingCategory, OfferingType } from "@/features/offerings/types";
 import {
   buildManagedPageMetadata,
   getAccessiblePageBySlug,
@@ -171,7 +171,7 @@ function CatalogFilterSidebar({
   basePath: string;
   currentParams: Record<string, string | string[] | undefined>;
   filters: CatalogFilters;
-  categories: ProductCategory[];
+  categories: OfferingCategory[];
 }) {
   return (
     <aside className="space-y-5 rounded-lg border border-stone-200 bg-white p-5 lg:sticky lg:top-24 lg:self-start">
@@ -266,40 +266,40 @@ function CatalogOrderingBar({
   );
 }
 
-const templateProductTabs: Array<{
+const templateOfferingTabs: Array<{
   key: string;
   label: string;
-  productType: Extract<ProductType, "coded_template" | "builder">;
+  offeringType: Extract<OfferingType, "coded_template" | "builder">;
   description: string;
 }> = [
   {
     key: "coded",
     label: "Mẫu coded",
-    productType: "coded_template",
+    offeringType: "coded_template",
     description: "Mẫu code sẵn, cố định source trong code và chỉ seed/catalog từ hệ thống.",
   },
   {
     key: "builder",
     label: "Builder",
-    productType: "builder",
+    offeringType: "builder",
     description: "Mẫu kéo thả, có thể tạo từ admin builder hoặc seed sẵn bằng builder document.",
   },
 ];
 
-function TemplateProductTabs({
+function TemplateOfferingTabs({
   activeKey,
   currentParams,
-  productsByType,
+  offeringsByType,
 }: {
   activeKey: string;
   currentParams: Record<string, string | string[] | undefined>;
-  productsByType: Record<Extract<ProductType, "coded_template" | "builder">, Product[]>;
+  offeringsByType: Record<Extract<OfferingType, "coded_template" | "builder">, Offering[]>;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {templateProductTabs.map((tab) => {
+      {templateOfferingTabs.map((tab) => {
         const active = tab.key === activeKey;
-        const count = productsByType[tab.productType].length;
+        const count = offeringsByType[tab.offeringType].length;
 
         return (
           <GuestLinkButton
@@ -376,36 +376,36 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const resolvedSearchParams = (await searchParams) ?? {};
       const requestedType = getSearchParamValue(resolvedSearchParams, "loai") ?? "coded";
       const activeTab =
-        templateProductTabs.find((tab) => tab.key === requestedType) ?? templateProductTabs[0];
+        templateOfferingTabs.find((tab) => tab.key === requestedType) ?? templateOfferingTabs[0];
       const filters = getCatalogFilters(resolvedSearchParams);
       const priceFilter = getPriceFilter(filters.priceKey);
-      const [codedProducts, builderProducts, products, categories] = await Promise.all([
-        listPublishedProductsFiltered({
-          productTypes: ["coded_template"],
+      const [codedOfferings, builderOfferings, offerings, categories] = await Promise.all([
+        listPublishedOfferingsFiltered({
+          offeringTypes: ["coded_template"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
-        listPublishedProductsFiltered({
-          productTypes: ["builder"],
+        listPublishedOfferingsFiltered({
+          offeringTypes: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
-        listPublishedProductsFiltered({
-          productTypes: [activeTab.productType],
+        listPublishedOfferingsFiltered({
+          offeringTypes: [activeTab.offeringType],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
-        listAllProductCategories(),
+        listAllOfferingCategories(),
       ]);
-      const productsByType: Record<Extract<ProductType, "coded_template" | "builder">, Product[]> = {
-        coded_template: codedProducts,
-        builder: builderProducts,
+      const offeringsByType: Record<Extract<OfferingType, "coded_template" | "builder">, Offering[]> = {
+        coded_template: codedOfferings,
+        builder: builderOfferings,
       };
 
       return (
@@ -430,10 +430,10 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                 </p>
               </div>
 
-              <TemplateProductTabs
+              <TemplateOfferingTabs
                 activeKey={activeTab.key}
                 currentParams={resolvedSearchParams}
-                productsByType={productsByType}
+                offeringsByType={offeringsByType}
               />
 
               <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -444,20 +444,20 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                   categories={categories}
                 />
 
-                {products.length > 0 ? (
+                {offerings.length > 0 ? (
                   <div className="space-y-5">
                     <CatalogOrderingBar
                       basePath={ROUTES.TEMPLATES}
                       currentParams={resolvedSearchParams}
                       filters={filters}
-                      total={products.length}
+                      total={offerings.length}
                     />
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                      {products.map((product) => (
-                        product.productType !== "general_product" ? (
-                          <LoopOnlineInvitationCard key={product.id} product={product} />
+                      {offerings.map((offering) => (
+                        offering.offeringType !== "general_offering" ? (
+                          <LoopOnlineInvitationCard key={offering.id} offering={offering} />
                         ) : (
-                          <LoopProductCard key={product.id} product={product} />
+                          <LoopOfferingCard key={offering.id} offering={offering} />
                         )
                       ))}
                     </div>
@@ -479,15 +479,15 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const resolvedSearchParams = (await searchParams) ?? {};
       const filters = getCatalogFilters(resolvedSearchParams);
       const priceFilter = getPriceFilter(filters.priceKey);
-      const [paperProducts, categories] = await Promise.all([
-        listPublishedProductsFiltered({
-          productTypes: ["general_product"],
+      const [paperOfferings, categories] = await Promise.all([
+        listPublishedOfferingsFiltered({
+          offeringTypes: ["general_offering"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
-        listAllProductCategories(),
+        listAllOfferingCategories(),
       ]);
 
       return (
@@ -519,17 +519,17 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                   categories={categories}
                 />
 
-                {paperProducts.length > 0 ? (
+                {paperOfferings.length > 0 ? (
                   <div className="space-y-5">
                     <CatalogOrderingBar
                       basePath={ROUTES.PAPER}
                       currentParams={resolvedSearchParams}
                       filters={filters}
-                      total={paperProducts.length}
+                      total={paperOfferings.length}
                     />
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                      {paperProducts.map((product) => (
-                        <LoopProductCard key={product.id} product={product} />
+                      {paperOfferings.map((offering) => (
+                        <LoopOfferingCard key={offering.id} offering={offering} />
                       ))}
                     </div>
                   </div>
@@ -550,16 +550,16 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const resolvedSearchParams = (await searchParams) ?? {};
       const filters = getCatalogFilters(resolvedSearchParams);
       const priceFilter = getPriceFilter(filters.priceKey);
-      const [user, builderProducts, categories] = await Promise.all([
+      const [user, builderOfferings, categories] = await Promise.all([
         getCurrentUser(),
-        listPublishedProductsFiltered({
-          productTypes: ["builder"],
+        listPublishedOfferingsFiltered({
+          offeringTypes: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
-        listAllProductCategories(),
+        listAllOfferingCategories(),
       ]);
 
       return (
@@ -589,13 +589,13 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                 basePath={ROUTES.BUILDER}
                 currentParams={resolvedSearchParams}
                 filters={filters}
-                total={builderProducts.length}
+                total={builderOfferings.length}
               />
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {builderProducts.map((product) => (
+                {builderOfferings.map((offering) => (
                   <LoopOnlineInvitationCard
-                    key={product.id}
-                    product={product}
+                    key={offering.id}
+                    offering={offering}
                   />
                 ))}
               </div>

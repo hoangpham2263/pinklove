@@ -6,7 +6,7 @@ export function getSiteUrl() {
   const value =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     process.env.SITE_URL?.trim() ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+    process.env.VERCEL_PROJECT_OFFERINGION_URL?.trim();
 
   if (!value) {
     return "http://127.0.0.1:3000";

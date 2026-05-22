@@ -13,7 +13,7 @@ import { MediaSelector } from "@/features/media/components/media-selector";
 import type { FieldSchema } from "@/features/pages/schema";
 import { cn } from "@/lib/utils";
 
-export type FieldsEditorProductOption = {
+export type FieldsEditorOfferingOption = {
   value: string;
   label: string;
   description?: string;
@@ -23,7 +23,7 @@ type FieldsEditorProps = {
   fields: FieldSchema[];
   values: Record<string, unknown>;
   onChange?: (name: string, value: unknown) => void;
-  productOptions?: FieldsEditorProductOption[];
+  offeringOptions?: FieldsEditorOfferingOption[];
   className?: string;
 };
 
@@ -31,7 +31,7 @@ export function FieldsEditor({
   fields,
   values,
   onChange,
-  productOptions = [],
+  offeringOptions = [],
   className = "pt-4",
 }: FieldsEditorProps) {
   const [activeTab, setActiveTab] = useState(getFieldTabKey(fields[0], 0));
@@ -78,7 +78,7 @@ export function FieldsEditor({
 
         return (
           <Fragment key={tabKey}>
-            {renderField(field, values, onChange, { productOptions })}
+            {renderField(field, values, onChange, { offeringOptions })}
           </Fragment>
         );
       })}
@@ -92,7 +92,7 @@ function renderField(
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
-    productOptions?: FieldsEditorProductOption[];
+    offeringOptions?: FieldsEditorOfferingOption[];
   }
 ) {
   if (field.type === "section") {
@@ -118,17 +118,17 @@ function renderField(
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column !== "right")
-                .map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
+                .map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
             </div>
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column === "right")
-                .map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
+                .map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
             </div>
           </div>
         ) : (
           <div className={cn("grid grid-cols-12 gap-4", options?.compact ? "" : "p-4")}>
-            {field.fields.map((child, index) => renderChild(child, index, { compact: true, productOptions: options?.productOptions }))}
+            {field.fields.map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
           </div>
         )}
       </section>
@@ -153,7 +153,7 @@ function RepeaterField({
   onChange?: (name: string, value: unknown) => void;
   options?: {
     compact?: boolean;
-    productOptions?: FieldsEditorProductOption[];
+    offeringOptions?: FieldsEditorOfferingOption[];
   };
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -267,7 +267,7 @@ function SortableRepeaterItem({
   onChange?: (name: string, value: unknown) => void;
   options?: {
     compact?: boolean;
-    productOptions?: FieldsEditorProductOption[];
+    offeringOptions?: FieldsEditorOfferingOption[];
   };
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -340,7 +340,7 @@ function SortableRepeaterItem({
             {
               compact: true,
               fieldPath: `${field.name}.${itemIndex}.${child.name}`,
-              productOptions: options?.productOptions,
+              offeringOptions: options?.offeringOptions,
             }
           )
         )}
@@ -350,13 +350,13 @@ function SortableRepeaterItem({
 }
 
 function renderLeafField(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "offering-select" }>,
   values: Record<string, unknown>,
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
     fieldPath?: string;
-    productOptions?: FieldsEditorProductOption[];
+    offeringOptions?: FieldsEditorOfferingOption[];
   }
 ) {
   const fieldValue = values[field.name];
@@ -445,13 +445,13 @@ function renderLeafField(
           onChange={onChange ? (value) => onChange(field.name, value) : undefined}
         />
       )}
-      {field.type === "product-select" && (
-        <ProductSelectField
+      {field.type === "offering-select" && (
+        <OfferingSelectField
           fieldName={field.name}
           multiple={field.multiple}
           value={fieldValue}
           onChange={onChange}
-          options={options?.productOptions ?? []}
+          options={options?.offeringOptions ?? []}
         />
       )}
     </div>
@@ -522,9 +522,9 @@ function CheckboxField({
 }
 
 function getFirstFocusableRepeaterChild(
-  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>[]
+  fields: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "offering-select" }>[]
 ) {
-  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media" || child.type === "product-select" || child.type === "switch" || child.type === "checkbox");
+  return fields.find((child) => child.type === "text" || child.type === "textarea" || child.type === "wysiwyg" || child.type === "media" || child.type === "offering-select" || child.type === "switch" || child.type === "checkbox");
 }
 
 function focusRepeaterField(fieldPath: string) {
@@ -574,7 +574,7 @@ function getFieldWidthClass(
 }
 
 function getLeafWidthClass(
-  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select" }>,
+  field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "offering-select" }>,
   options?: {
     compact?: boolean;
   }
@@ -636,7 +636,7 @@ function normalizeStringArray(value: unknown) {
   return [];
 }
 
-function ProductSelectField({
+function OfferingSelectField({
   fieldName,
   multiple,
   value,
@@ -647,7 +647,7 @@ function ProductSelectField({
   multiple?: boolean;
   value: unknown;
   onChange?: (name: string, value: unknown) => void;
-  options: FieldsEditorProductOption[];
+  options: FieldsEditorOfferingOption[];
 }) {
   const [search, setSearch] = useState("");
   const selectedValues = normalizeStringArray(value);
@@ -675,7 +675,7 @@ function ProductSelectField({
 
     return selectedValues
       .map((item) => optionMap.get(item))
-      .filter((item): item is FieldsEditorProductOption => Boolean(item))
+      .filter((item): item is FieldsEditorOfferingOption => Boolean(item))
       .filter((option) => {
         if (!query) {
           return true;
@@ -685,26 +685,26 @@ function ProductSelectField({
       });
   }, [options, search, selectedValues]);
 
-  function addProduct(productValue: string) {
+  function addOffering(offeringValue: string) {
     if (!onChange) {
       return;
     }
 
     const next = multiple
-      ? [...selectedValues, productValue].filter((item, index, array) => array.indexOf(item) === index)
-      : [productValue];
+      ? [...selectedValues, offeringValue].filter((item, index, array) => array.indexOf(item) === index)
+      : [offeringValue];
 
     onChange(fieldName, next);
   }
 
-  function removeProduct(productValue: string) {
+  function removeOffering(offeringValue: string) {
     if (!onChange) {
       return;
     }
 
     onChange(
       fieldName,
-      selectedValues.filter((item) => item !== productValue)
+      selectedValues.filter((item) => item !== offeringValue)
     );
   }
 
@@ -743,7 +743,7 @@ function ProductSelectField({
                   variant="outline"
                   size="sm"
                   className="h-8 min-w-8 cursor-pointer px-2"
-                  onClick={() => addProduct(option.value)}
+                  onClick={() => addOffering(option.value)}
                   aria-label={`Thêm ${option.label}`}
                 >
                   <Plus className="size-4" />
@@ -778,7 +778,7 @@ function ProductSelectField({
                     variant="outline"
                     size="sm"
                     className="h-8 min-w-8 cursor-pointer px-2"
-                    onClick={() => removeProduct(option.value)}
+                    onClick={() => removeOffering(option.value)}
                     aria-label={`Bỏ ${option.label}`}
                   >
                     <Minus className="size-4" />

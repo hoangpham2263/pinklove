@@ -47,7 +47,7 @@ function SeoQuickLinks() {
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <AdminActionLinkTile href={ROUTES.ADMIN.PAGES} label="Vào quản lý Pages" />
-        <AdminActionLinkTile href={ROUTES.ADMIN.PRODUCT_LIST} label="Vào quản lý Products" />
+        <AdminActionLinkTile href={ROUTES.ADMIN.OFFERING_LIST} label="Vào quản lý Offerings" />
       </CardContent>
     </Card>
   );

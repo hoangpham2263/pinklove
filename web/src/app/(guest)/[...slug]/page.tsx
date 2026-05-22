@@ -3,13 +3,13 @@ import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { generateBlogCategoryMetadata, generateBlogPostMetadata, renderBlogCategoryPage, renderBlogPostPage } from "@/features/blog/server/renderers";
 import { listRelatedBlogPosts } from "@/features/blog/server/service";
 import {
-  generateBuilderProductMetadata,
-  generateGeneralProductMetadata,
-  generateTemplateProductMetadata,
-  renderBuilderProductPage,
-  renderGeneralProductPage,
-  renderTemplateProductPage,
-} from "@/features/products/server/renderers";
+  generateBuilderOfferingMetadata,
+  generateGeneralOfferingMetadata,
+  generateTemplateOfferingMetadata,
+  renderBuilderOfferingPage,
+  renderGeneralOfferingPage,
+  renderTemplateOfferingPage,
+} from "@/features/offerings/server/renderers";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { generateManagedPageMetadata, renderManagedPage } from "@/features/pages/server/managed-page-renderer";
 import { renderInvitationSite } from "@/features/invitations/templates/renderers";
@@ -46,12 +46,12 @@ export async function generateMetadata({ params, searchParams }: DynamicManagedP
       return generateBlogPostMetadata(resolvedContent.post);
     case "blog-category":
       return generateBlogCategoryMetadata(resolvedContent.category);
-    case "template-product":
-      return generateTemplateProductMetadata(resolvedContent.product);
-    case "builder-product":
-      return generateBuilderProductMetadata(resolvedContent.product);
-    case "general-product":
-      return generateGeneralProductMetadata(resolvedContent.product);
+    case "template-offering":
+      return generateTemplateOfferingMetadata(resolvedContent.offering);
+    case "builder-offering":
+      return generateBuilderOfferingMetadata(resolvedContent.offering);
+    case "general-offering":
+      return generateGeneralOfferingMetadata(resolvedContent.offering);
     default:
       return {};
   }
@@ -92,12 +92,12 @@ export default async function DynamicManagedPage({ params, searchParams }: Dynam
         categories: resolvedContent.categories,
         posts: resolvedContent.posts,
       });
-    case "template-product":
-      return renderTemplateProductPage(resolvedContent.product);
-    case "builder-product":
-      return renderBuilderProductPage(resolvedContent.product);
-    case "general-product":
-      return renderGeneralProductPage(resolvedContent.product);
+    case "template-offering":
+      return renderTemplateOfferingPage(resolvedContent.offering);
+    case "builder-offering":
+      return renderBuilderOfferingPage(resolvedContent.offering);
+    case "general-offering":
+      return renderGeneralOfferingPage(resolvedContent.offering);
     case "invitation": {
       const { invitation } = resolvedContent;
       if (invitation.status !== "published") {

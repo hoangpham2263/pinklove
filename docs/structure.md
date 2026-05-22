@@ -58,9 +58,9 @@ web/
             pages/[...slug]/page.tsx
             seo-guide/page.tsx
           (catalog)/
-            products/page.tsx
-            products/list/page.tsx
-            products/[slug]/page.tsx
+            offerings/page.tsx
+            offerings/list/page.tsx
+            offerings/[slug]/page.tsx
           (accounts)/
             affiliates/page.tsx
             affiliate-users/page.tsx
@@ -123,7 +123,7 @@ web/
         robots.txt/route.ts
         sitemap.xml/route.ts
         sitemap-pages.xml/route.ts
-        sitemap-products.xml/route.ts
+        sitemap-offerings.xml/route.ts
         sitemap-invitations.xml/route.ts
         sitemap-blog-categories.xml/route.ts
         sitemap-blog-posts.xml/route.ts
@@ -135,7 +135,7 @@ web/
           auth/login/route.ts
           menus/update/route.ts
           pages/update/route.ts
-          products/{create,delete,update}/route.ts
+          offerings/{create,delete,update}/route.ts
           users/{create,delete,role,update}/route.ts
         affiliate/track/route.ts
         auth/
@@ -151,7 +151,7 @@ web/
           wishlist/route.ts
           profile/route.ts
           invitations/create-builder/route.ts
-          invitations/create-from-product/route.ts
+          invitations/create-from-offering/route.ts
           invitations/update/route.ts
         partner/
           auth/login/route.ts
@@ -197,7 +197,7 @@ web/
         config/
         registry.ts
         schema.ts
-      products/
+      offerings/
         admin/
         components/
         server/
@@ -304,8 +304,8 @@ web/
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, products, ecommerce operations, SEO, blog management, and config.
-- Admin product management works at the catalog level, while order/payment/shipment operations live in the dedicated ecommerce section.
+- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, offerings, ecommerce operations, SEO, blog management, and config.
+- Admin offering management works at the catalog level, while order/payment/shipment operations live in the dedicated ecommerce section.
 
 ## Feature map
 
@@ -317,7 +317,7 @@ web/
 - `src/features/affiliate`: affiliate flows for customer and admin
 - `src/features/ecommerce`: wishlist-backed checkout, orders, payments, shipments, and entitlement services
 - `src/features/notifications`: user notice inbox, admin notice creation, read state, and realtime notice adapters
-- `src/features/products`: invitation catalog products plus admin product/category management UI
+- `src/features/offerings`: invitation catalog offerings plus admin offering/category management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 - `src/features/search`: guest-facing search services and result aggregation
 - `src/features/website-hooks`: outbound website integration/webhook inventory surfaced in admin
@@ -330,5 +330,5 @@ web/
 - The current builder editor does not support dragging/resizing element height yet.
 - The current builder editor does not support grouping selected elements yet.
 - Checkout, order creation, entitlement grant, and admin order/payment/shipment management are now implemented in-app.
-- Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `products`.
+- Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users` or `offerings`.
   The persisted SQL table names remain `commerce_*` for legacy compatibility.

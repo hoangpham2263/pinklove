@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listSupplierRequestsForVendor } from "@/features/vendor-product-submissions/server/service";
+import { listSupplierRequestsForVendor } from "@/features/vendor-offering-submissions/server/service";
 import { requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
@@ -49,7 +49,7 @@ export default async function PartnerSupplyRequestsPage() {
                   {requests.map((request) => (
                     <tr key={request.id} className="border-b last:border-0">
                       <td className="min-w-0 px-4 py-3">
-                        <p className="truncate font-medium">{request.productName}</p>
+                        <p className="truncate font-medium">{request.offeringName}</p>
                       </td>
                       <td className="hidden px-4 py-3 md:table-cell">{request.purchaseCost}</td>
                       <td className="hidden px-4 py-3 lg:table-cell">{request.leadTimeDays} ngày</td>

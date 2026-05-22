@@ -100,11 +100,11 @@ export default async function AdminSitemapSettingsPage() {
                     value: settings.sitemap.includeBlogPosts,
                   },
                   {
-                    id: "includeProducts",
-                    label: "Products",
-                    description: "Bao gồm template và builder products.",
+                    id: "includeOfferings",
+                    label: "Offerings",
+                    description: "Bao gồm template và builder offerings.",
                     type: "boolean",
-                    value: settings.sitemap.includeProducts,
+                    value: settings.sitemap.includeOfferings,
                   },
                   {
                     id: "includePublicSites",

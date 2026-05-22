@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { WishlistPageClient } from "@/features/products/components/wishlist-page-client";
-import { listPublishedProductsByIds } from "@/features/products/server/service";
-import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
+import { WishlistPageClient } from "@/features/offerings/components/wishlist-page-client";
+import { listPublishedOfferingsByIds } from "@/features/offerings/server/service";
+import { getUserWishlistOfferingIds } from "@/features/offerings/server/wishlist-service";
 import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
@@ -17,16 +17,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function WishlistPage() {
   const user = await requireAppUser(`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`);
-  const wishlistProductIds = await getUserWishlistProductIds(user.id);
-  const [products, settings, profile] = await Promise.all([
-    listPublishedProductsByIds(wishlistProductIds),
+  const wishlistOfferingIds = await getUserWishlistOfferingIds(user.id);
+  const [offerings, settings, profile] = await Promise.all([
+    listPublishedOfferingsByIds(wishlistOfferingIds),
     getSystemSettings(),
     getUserProfile(user.id),
   ]);
 
   return (
     <WishlistPageClient
-      products={products}
+      offerings={offerings}
       ecommerceSettings={settings.ecommerce}
       customerName={profile.displayName || profile.fullName || user.username}
       customerPhone={profile.phone}

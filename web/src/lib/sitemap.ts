@@ -3,7 +3,7 @@ import "server-only";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
-import { listPublishedProducts } from "@/features/products/server/service";
+import { listPublishedOfferings } from "@/features/offerings/server/service";
 import { listPublishedInvitations } from "@/features/invitations/server/service";
 import { listPublishedManagedPagesForSitemap } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
@@ -11,7 +11,7 @@ import {
   getBlogCategoryPath,
   getBlogPostPath,
   getInvitationPath,
-  getProductPath,
+  getOfferingPath,
 } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { type SystemSettings, getSystemSettings } from "@/lib/system-settings";
@@ -180,12 +180,12 @@ export async function getBlogPostSitemapItems(siteUrl: string): Promise<SitemapU
   }));
 }
 
-export async function getProductSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
-  const products = await listPublishedProducts();
+export async function getOfferingSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
+  const offerings = await listPublishedOfferings();
 
-  return products.map((product) => ({
-    loc: `${siteUrl}${getProductPath(product)}`,
-    lastmod: toIsoDate(product.updatedAt),
+  return offerings.map((offering) => ({
+    loc: `${siteUrl}${getOfferingPath(offering)}`,
+    lastmod: toIsoDate(offering.updatedAt),
     changefreq: "weekly",
     priority: "0.8",
   }));
@@ -226,11 +226,11 @@ function getSitemapProviders(): SitemapProvider[] {
       getItems: getBlogPostSitemapItems,
     },
     {
-      key: "products",
-      label: "Products",
-      routePath: ROUTES.SITEMAP.PRODUCTS,
-      enabled: (settings) => settings.sitemap.enabled && settings.sitemap.includeProducts,
-      getItems: getProductSitemapItems,
+      key: "offerings",
+      label: "Offerings",
+      routePath: ROUTES.SITEMAP.OFFERINGS,
+      enabled: (settings) => settings.sitemap.enabled && settings.sitemap.includeOfferings,
+      getItems: getOfferingSitemapItems,
     },
     {
       key: "invitations",

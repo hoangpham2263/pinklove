@@ -40,19 +40,19 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    const product = await fetchRow(
+    const offering = await fetchRow(
       client,
       `
-        SELECT id, name, slug, product_type AS type, fulfillment_type, price AS base_price
-        FROM products
+        SELECT id, name, slug, offering_type AS type, fulfillment_type, price AS base_price
+        FROM offerings
         WHERE status = 'published'
         ORDER BY created_at ASC
         LIMIT 1
       `
     );
 
-    if (!product) {
-      throw new Error("No product found. Product seed must exist before smoke seed.");
+    if (!offering) {
+      throw new Error("No offering found. Offering seed must exist before smoke seed.");
     }
 
     const vendor = await fetchRow(
@@ -119,7 +119,7 @@ async function main() {
       ]
     );
 
-    const subtotal = Number(product.base_price ?? 0);
+    const subtotal = Number(offering.base_price ?? 0);
     const total = subtotal;
 
     const order = await fetchRow(
@@ -177,10 +177,10 @@ async function main() {
       `
         INSERT INTO commerce_order_items (
           order_id,
-          product_id,
-          product_name,
-          product_slug,
-          product_type,
+          offering_id,
+          offering_name,
+          offering_slug,
+          offering_type,
           fulfillment_type,
           quantity,
           unit_price,
@@ -190,11 +190,11 @@ async function main() {
       `,
       [
         order.id,
-        product.id,
-        product.name,
-        product.slug,
-        product.type,
-        product.fulfillment_type,
+        offering.id,
+        offering.name,
+        offering.slug,
+        offering.type,
+        offering.fulfillment_type,
         subtotal,
       ]
     );

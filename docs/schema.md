@@ -21,19 +21,49 @@ all ids are the same physical type across every environment.
 
 ## Table Count
 
-Current database has 50 public tables:
+Current database has 101 public tables:
 
 | Area | Tables |
 | --- | --- |
 | Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
 | CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Products | `product_categories`, `products`, `coded_template_products`, `builder_products`, `general_products`, `wedding_sites`, `shopping_cart_items` |
+| Offerings | `offering_categories`, `offerings`, `coded_template_offerings`, `builder_offerings`, `general_offerings`, `wedding_sites`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
-| Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_product_submissions`, `vendor_product_submission_events`, `product_vendor_suppliers`, `vendor_product_supplier_requests`, `vendor_applications` |
+| Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_offering_submissions`, `vendor_offering_submission_events`, `offering_vendor_suppliers`, `vendor_offering_supplier_requests`, `vendor_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
+| Offerings core | `offerings`, `digital_template_offerings`, `wedding_site_offerings`, `physical_offering_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
+| Universal media | `media_asset_links` |
+| Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
+| Creator ecosystem | `creator_profiles`, `creator_services`, `creator_portfolios`, `creator_reviews`, `creator_orders` |
+| Vendor ecosystem | `vendors`, `vendor_profiles`, `vendor_services`, `vendor_regions`, `vendor_reviews`, `vendor_pricing`, `vendor_fulfillments` |
+| Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments` |
+| Digital access | `digital_access_grants`, `subscription_access`, `feature_access` |
+| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_analytics`, `template_views`, `template_shares`, `template_conversions` |
+| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `regions`, `shipping_regions`, `service_regions` |
+
+## Core Refactor Status
+
+The database now has the future-facing `offerings` domain while the legacy
+`offerings` domain remains for application compatibility during the transition.
+
+Current backfill from `offerings` into `offerings`:
+
+| Offering type | Backfilled rows |
+| --- | ---: |
+| `digital_template` | 6 |
+| `wedding_site` | 6 |
+| `physical_offering` | 5 |
+| `service` | 1 |
+
+Migration strategy:
+
+- Phase 1: create future tables and backfill `offerings` from `offerings`.
+- Phase 2: move server services from offering-centric queries to offering-centric queries.
+- Phase 3: rename admin/API/user-facing language from offerings to offerings where it is not specifically a physical offering.
+- Phase 4: remove legacy offering tables only after all reads/writes use the offering model.
 
 ## Overview
 
@@ -41,19 +71,28 @@ Current database has 50 public tables:
 erDiagram
   users ||--o{ user_sessions : owns
   users ||--o{ user_profiles : has
-  users ||--o{ products : vendor_owns
+  users ||--o{ offerings : vendor_owns
+  users ||--o{ offerings : owns
   users ||--o{ wedding_sites : creates
   users ||--o{ commerce_orders : places
   users ||--o| affiliate_accounts : can_have
   users ||--o{ chat_conversations : participates
   users ||--o{ notifications : receives
 
-  product_categories ||--o{ products : categorizes
-  products ||--o| coded_template_products : has
-  products ||--o| builder_products : has
-  products ||--o| general_products : has
-  products ||--o{ wedding_sites : creates
-  products ||--o{ commerce_order_items : sold_as
+  offering_categories ||--o{ offerings : categorizes
+  offerings ||--o| digital_template_offerings : has
+  offerings ||--o| wedding_site_offerings : has
+  offerings ||--o| physical_offering_offerings : has
+  offerings ||--o| service_offerings : has
+  offerings ||--o| creator_service_offerings : has
+  offerings ||--o| subscription_offerings : has
+  offerings ||--o| experience_offerings : has
+  offerings ||--o{ media_asset_links : media
+  offerings ||--o| coded_template_offerings : has
+  offerings ||--o| builder_offerings : has
+  offerings ||--o| general_offerings : has
+  offerings ||--o{ wedding_sites : creates
+  offerings ||--o{ commerce_order_items : sold_as
 
   commerce_orders ||--o{ commerce_order_items : contains
   commerce_orders ||--o{ commerce_payments : paid_by
@@ -66,6 +105,252 @@ erDiagram
   notifications ||--o{ notification_user_states : has
 ```
 
+## Offerings Core
+
+```mermaid
+erDiagram
+  offerings {
+    text id PK
+    text legacy_offering_id UK
+    text slug UK
+    text title
+    text offering_type
+    text status
+    numeric base_price
+    jsonb config
+  }
+
+  digital_template_offerings {
+    text offering_id PK, FK
+    text template_key
+    text template_engine
+    jsonb site_defaults
+  }
+
+  wedding_site_offerings {
+    text offering_id PK, FK
+    text template_key
+    jsonb builder_defaults
+  }
+
+  physical_offering_offerings {
+    text offering_id PK, FK
+    text sku
+    boolean track_inventory
+    int stock_quantity
+    numeric cost_price
+  }
+
+  service_offerings {
+    text offering_id PK, FK
+    text service_kind
+    int duration_minutes
+    boolean requires_consultation
+  }
+
+  creator_service_offerings {
+    text offering_id PK, FK
+    bigint creator_user_id FK
+    text service_kind
+    int delivery_days
+  }
+
+  experience_offerings {
+    text offering_id PK, FK
+    text experience_kind
+    text location_note
+  }
+
+  subscription_offerings {
+    text offering_id PK, FK
+    text billing_period
+    jsonb feature_set
+  }
+
+  media_assets {
+    text id PK
+    text url
+  }
+
+  media_asset_links {
+    text id PK
+    text media_asset_id FK
+    text target_type
+    text target_id
+    text role
+    int sort_order
+  }
+
+  users ||--o{ creator_service_offerings : provides
+  offerings ||--o| digital_template_offerings : digital_template
+  offerings ||--o| wedding_site_offerings : wedding_site
+  offerings ||--o| physical_offering_offerings : physical_offering
+  offerings ||--o| service_offerings : service
+  offerings ||--o| creator_service_offerings : creator_service
+  offerings ||--o| experience_offerings : experience
+  offerings ||--o| subscription_offerings : subscription
+  media_assets ||--o{ media_asset_links : linked
+```
+
+## Wedding Experience Split
+
+```mermaid
+erDiagram
+  wedding_sites {
+    bigint id PK
+    bigint user_id FK
+    bigint offering_id FK
+    text slug UK
+    jsonb custom_data
+  }
+
+  wedding_site_pages {
+    text id PK
+    bigint wedding_site_id FK
+    text slug
+    text title
+  }
+
+  wedding_site_sections {
+    text id PK
+    bigint wedding_site_id FK
+    text page_id FK
+    text section_type
+    jsonb content
+  }
+
+  wedding_site_guests {
+    text id PK
+    bigint wedding_site_id FK
+    text full_name
+    text invite_code
+  }
+
+  wedding_site_rsvps {
+    text id PK
+    bigint wedding_site_id FK
+    text guest_id FK
+    text response_status
+  }
+
+  wedding_site_events {
+    text id PK
+    bigint wedding_site_id FK
+    text title
+    timestamptz starts_at
+  }
+
+  wedding_site_galleries {
+    text id PK
+    bigint wedding_site_id FK
+    text title
+  }
+
+  wedding_sites ||--o{ wedding_site_pages : has
+  wedding_sites ||--o{ wedding_site_sections : has
+  wedding_site_pages ||--o{ wedding_site_sections : contains
+  wedding_sites ||--o{ wedding_site_guests : invites
+  wedding_sites ||--o{ wedding_site_rsvps : receives
+  wedding_site_guests ||--o{ wedding_site_rsvps : responds
+  wedding_sites ||--o{ wedding_site_events : schedules
+  wedding_sites ||--o{ wedding_site_galleries : has
+```
+
+## Ecosystem Extensions
+
+```mermaid
+erDiagram
+  vendors {
+    text id PK
+    bigint user_id FK
+    text slug UK
+    text display_name
+    text vendor_type
+  }
+
+  creator_profiles {
+    text id PK
+    bigint user_id FK
+    text slug UK
+    text display_name
+  }
+
+  bookings {
+    text id PK
+    bigint user_id FK
+    text booking_number UK
+    text status
+    numeric total_amount
+  }
+
+  booking_items {
+    text id PK
+    text booking_id FK
+    text offering_id FK
+    text vendor_id FK
+    text creator_profile_id FK
+  }
+
+  digital_access_grants {
+    text id PK
+    bigint user_id FK
+    text offering_id FK
+    text source_type
+    text status
+  }
+
+  tags {
+    text id PK
+    text slug UK
+    text tag_type
+  }
+
+  tag_relations {
+    text id PK
+    text tag_id FK
+    text target_type
+    text target_id
+  }
+
+  activities {
+    text id PK
+    text activity_type
+    text verb
+  }
+
+  activity_actors {
+    text id PK
+    text activity_id FK
+    text actor_type
+    text actor_id
+  }
+
+  activity_targets {
+    text id PK
+    text activity_id FK
+    text target_type
+    text target_id
+  }
+
+  regions {
+    text id PK
+    text slug UK
+    text region_type
+  }
+
+  users ||--o{ vendors : owns
+  users ||--o{ creator_profiles : owns
+  users ||--o{ bookings : creates
+  vendors ||--o{ booking_items : fulfills
+  creator_profiles ||--o{ booking_items : fulfills
+  bookings ||--o{ booking_items : contains
+  offerings ||--o{ booking_items : booked_as
+  offerings ||--o{ digital_access_grants : grants
+  tags ||--o{ tag_relations : labels
+  activities ||--o{ activity_actors : has
+  activities ||--o{ activity_targets : targets
+```
+
 ## Identity And CMS
 
 ```mermaid
@@ -75,7 +360,7 @@ erDiagram
     text username UK
     text role
     text account_status
-    jsonb wishlist_product_ids
+    jsonb wishlist_offering_ids
   }
 
   user_sessions {
@@ -166,42 +451,42 @@ erDiagram
   navigation_menus ||--o{ navigation_menu_items : contains
 ```
 
-## Product, Catalog, And Public Content
+## Offering, Catalog, And Public Content
 
 ```mermaid
 erDiagram
-  product_categories {
+  offering_categories {
     text id PK
     text slug UK
     text name
     text status
   }
 
-  products {
+  offerings {
     bigint id PK
     text slug UK
     text name
-    text product_type
+    text offering_type
     text template_key
     text category_id FK
     numeric price
     jsonb config
   }
 
-  coded_template_products {
-    bigint product_id PK, FK
+  coded_template_offerings {
+    bigint offering_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
-  builder_products {
-    bigint product_id PK, FK
+  builder_offerings {
+    bigint offering_id PK, FK
     text template_key
     jsonb site_defaults
   }
 
-  general_products {
-    bigint product_id PK, FK
+  general_offerings {
+    bigint offering_id PK, FK
     text fulfillment_type
     bigint owner_vendor_user_id FK
     int stock_quantity
@@ -211,7 +496,7 @@ erDiagram
   wedding_sites {
     bigint id PK
     bigint user_id FK
-    bigint product_id FK
+    bigint offering_id FK
     text slug UK
     text site_type
     jsonb custom_data
@@ -220,7 +505,7 @@ erDiagram
   shopping_cart_items {
     text id PK
     bigint user_id FK
-    bigint product_id FK
+    bigint offering_id FK
     int quantity
   }
 
@@ -252,14 +537,14 @@ erDiagram
   users ||--o{ shopping_cart_items : owns
   users ||--o{ content_comments : writes
   users ||--o{ content_comments : approves
-  users ||--o{ general_products : owns_vendor_product
+  users ||--o{ general_offerings : owns_vendor_offering
 
-  product_categories ||--o{ products : categorizes
-  products ||--o| coded_template_products : template_details
-  products ||--o| builder_products : builder_details
-  products ||--o| general_products : product_details
-  products ||--o{ wedding_sites : starts_from
-  products ||--o{ shopping_cart_items : in_cart
+  offering_categories ||--o{ offerings : categorizes
+  offerings ||--o| coded_template_offerings : template_details
+  offerings ||--o| builder_offerings : builder_details
+  offerings ||--o| general_offerings : offering_details
+  offerings ||--o{ wedding_sites : starts_from
+  offerings ||--o{ shopping_cart_items : in_cart
 
   blog_categories ||--o{ blog_posts : contains
 ```
@@ -312,8 +597,8 @@ erDiagram
   commerce_order_items {
     text id PK
     text order_id FK
-    bigint product_id FK
-    text product_type
+    bigint offering_id FK
+    text offering_type
     int quantity
     numeric line_total
   }
@@ -345,7 +630,7 @@ erDiagram
   commerce_entitlements {
     text id PK
     bigint user_id FK
-    bigint product_id FK
+    bigint offering_id FK
     text order_id FK
     text order_item_id FK
     text status
@@ -365,31 +650,31 @@ erDiagram
     text event_type
   }
 
-  vendor_product_submissions {
+  vendor_offering_submissions {
     text id PK
     bigint vendor_user_id FK
-    bigint linked_product_id FK
+    bigint linked_offering_id FK
     text category_id FK
     text review_status
   }
 
-  vendor_product_submission_events {
+  vendor_offering_submission_events {
     text id PK
     text submission_id FK
     bigint actor_user_id FK
     text event_type
   }
 
-  product_vendor_suppliers {
+  offering_vendor_suppliers {
     text id PK
-    bigint product_id FK
+    bigint offering_id FK
     bigint vendor_user_id FK
     text status
   }
 
-  vendor_product_supplier_requests {
+  vendor_offering_supplier_requests {
     text id PK
-    bigint product_id FK
+    bigint offering_id FK
     bigint vendor_user_id FK
     text review_status
   }
@@ -404,9 +689,9 @@ erDiagram
   users ||--o{ commerce_orders : places
   users ||--o{ commerce_entitlements : receives
   users ||--o{ vendor_order_assignments : fulfills
-  users ||--o{ vendor_product_submissions : submits
-  users ||--o{ product_vendor_suppliers : supplies
-  users ||--o{ vendor_product_supplier_requests : requests
+  users ||--o{ vendor_offering_submissions : submits
+  users ||--o{ offering_vendor_suppliers : supplies
+  users ||--o{ vendor_offering_supplier_requests : requests
 
   affiliate_accounts ||--o{ affiliate_clicks : tracks
   affiliate_accounts ||--o{ affiliate_conversions : earns
@@ -422,7 +707,7 @@ erDiagram
   commerce_order_items ||--o{ commerce_entitlements : grants
   commerce_payments ||--o{ commerce_payment_logs : logs
   vendor_order_assignments ||--o{ vendor_order_events : records
-  vendor_product_submissions ||--o{ vendor_product_submission_events : records
+  vendor_offering_submissions ||--o{ vendor_offering_submission_events : records
 ```
 
 ## Chat And Notifications
@@ -520,7 +805,11 @@ erDiagram
   notifications ||--o{ notification_user_states : has
 ```
 
-## Full Foreign Key List
+## Legacy Foreign Key List
+
+This list covers the original tables before the offerings refactor. New
+refactor tables are documented in the diagrams above and will be folded into a
+generated FK list after the application services finish moving to `offerings`.
 
 | From | To | On delete |
 | --- | --- | --- |
@@ -529,7 +818,7 @@ erDiagram
 | `affiliate_clicks.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
 | `affiliate_conversions.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
 | `blog_posts.category_id` | `blog_categories.id` | CASCADE |
-| `builder_products.product_id` | `products.id` | CASCADE |
+| `builder_offerings.offering_id` | `offerings.id` | CASCADE |
 | `chat_conversation_participants.conversation_id` | `chat_conversations.id` | CASCADE |
 | `chat_conversation_participants.user_id` | `users.id` | CASCADE |
 | `chat_conversation_user_states.conversation_id` | `chat_conversations.id` | CASCADE |
@@ -544,13 +833,13 @@ erDiagram
 | `chat_messages.sender_user_id` | `users.id` | CASCADE |
 | `chat_typing_states.conversation_id` | `chat_conversations.id` | CASCADE |
 | `chat_typing_states.user_id` | `users.id` | CASCADE |
-| `coded_template_products.product_id` | `products.id` | CASCADE |
+| `coded_template_offerings.offering_id` | `offerings.id` | CASCADE |
 | `commerce_entitlements.order_id` | `commerce_orders.id` | CASCADE |
 | `commerce_entitlements.order_item_id` | `commerce_order_items.id` | SET NULL |
-| `commerce_entitlements.product_id` | `products.id` | CASCADE |
+| `commerce_entitlements.offering_id` | `offerings.id` | CASCADE |
 | `commerce_entitlements.user_id` | `users.id` | CASCADE |
 | `commerce_order_items.order_id` | `commerce_orders.id` | CASCADE |
-| `commerce_order_items.product_id` | `products.id` | SET NULL |
+| `commerce_order_items.offering_id` | `offerings.id` | SET NULL |
 | `commerce_orders.affiliate_user_id` | `affiliate_accounts.user_id` | SET NULL |
 | `commerce_orders.user_id` | `users.id` | CASCADE |
 | `commerce_payment_logs.order_id` | `commerce_orders.id` | SET NULL |
@@ -559,8 +848,8 @@ erDiagram
 | `commerce_shipments.order_id` | `commerce_orders.id` | CASCADE |
 | `content_comments.approved_by` | `users.id` | SET NULL |
 | `content_comments.author_user_id` | `users.id` | SET NULL |
-| `general_products.owner_vendor_user_id` | `users.id` | SET NULL |
-| `general_products.product_id` | `products.id` | CASCADE |
+| `general_offerings.owner_vendor_user_id` | `users.id` | SET NULL |
+| `general_offerings.offering_id` | `offerings.id` | CASCADE |
 | `navigation_menu_items.menu_id` | `navigation_menus.id` | CASCADE |
 | `notification_target_roles.notification_id` | `notifications.id` | CASCADE |
 | `notification_target_users.notification_id` | `notifications.id` | CASCADE |
@@ -568,11 +857,11 @@ erDiagram
 | `notification_user_states.notification_id` | `notifications.id` | CASCADE |
 | `notification_user_states.user_id` | `users.id` | CASCADE |
 | `notifications.created_by_user_id` | `users.id` | SET NULL |
-| `product_vendor_suppliers.approved_by` | `users.id` | SET NULL |
-| `product_vendor_suppliers.product_id` | `products.id` | CASCADE |
-| `product_vendor_suppliers.vendor_user_id` | `users.id` | CASCADE |
-| `products.category_id` | `product_categories.id` | SET NULL |
-| `shopping_cart_items.product_id` | `products.id` | CASCADE |
+| `offering_vendor_suppliers.approved_by` | `users.id` | SET NULL |
+| `offering_vendor_suppliers.offering_id` | `offerings.id` | CASCADE |
+| `offering_vendor_suppliers.vendor_user_id` | `users.id` | CASCADE |
+| `offerings.category_id` | `offering_categories.id` | SET NULL |
+| `shopping_cart_items.offering_id` | `offerings.id` | CASCADE |
 | `shopping_cart_items.user_id` | `users.id` | CASCADE |
 | `user_addresses.user_id` | `users.id` | CASCADE |
 | `user_oauth_accounts.user_id` | `users.id` | CASCADE |
@@ -585,16 +874,16 @@ erDiagram
 | `vendor_order_assignments.vendor_user_id` | `users.id` | CASCADE |
 | `vendor_order_events.actor_user_id` | `users.id` | SET NULL |
 | `vendor_order_events.assignment_id` | `vendor_order_assignments.id` | CASCADE |
-| `vendor_product_submission_events.actor_user_id` | `users.id` | SET NULL |
-| `vendor_product_submission_events.submission_id` | `vendor_product_submissions.id` | CASCADE |
-| `vendor_product_submissions.category_id` | `product_categories.id` | SET NULL |
-| `vendor_product_submissions.linked_product_id` | `products.id` | SET NULL |
-| `vendor_product_submissions.reviewed_by` | `users.id` | SET NULL |
-| `vendor_product_submissions.vendor_user_id` | `users.id` | CASCADE |
-| `vendor_product_supplier_requests.product_id` | `products.id` | CASCADE |
-| `vendor_product_supplier_requests.reviewed_by` | `users.id` | SET NULL |
-| `vendor_product_supplier_requests.vendor_user_id` | `users.id` | CASCADE |
-| `wedding_sites.product_id` | `products.id` | SET NULL |
+| `vendor_offering_submission_events.actor_user_id` | `users.id` | SET NULL |
+| `vendor_offering_submission_events.submission_id` | `vendor_offering_submissions.id` | CASCADE |
+| `vendor_offering_submissions.category_id` | `offering_categories.id` | SET NULL |
+| `vendor_offering_submissions.linked_offering_id` | `offerings.id` | SET NULL |
+| `vendor_offering_submissions.reviewed_by` | `users.id` | SET NULL |
+| `vendor_offering_submissions.vendor_user_id` | `users.id` | CASCADE |
+| `vendor_offering_supplier_requests.offering_id` | `offerings.id` | CASCADE |
+| `vendor_offering_supplier_requests.reviewed_by` | `users.id` | SET NULL |
+| `vendor_offering_supplier_requests.vendor_user_id` | `users.id` | CASCADE |
+| `wedding_sites.offering_id` | `offerings.id` | SET NULL |
 | `wedding_sites.user_id` | `users.id` | CASCADE |
 
 ## Refresh Commands

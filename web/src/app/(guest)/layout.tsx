@@ -1,7 +1,7 @@
 import { GuestFooter } from "@/app/(guest)/_components/guest-footer";
 import { GuestHeader, type GuestHeaderLink, type GuestHeaderNode } from "@/app/(guest)/_components/guest-header";
-import { WishlistProvider } from "@/features/products/components/wishlist-provider";
-import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
+import { WishlistProvider } from "@/features/offerings/components/wishlist-provider";
+import { getUserWishlistOfferingIds } from "@/features/offerings/server/wishlist-service";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getGlobalFields } from "@/lib/global-fields";
 import { listManagedPages } from "@/lib/managed-pages";
@@ -85,11 +85,11 @@ export default async function GuestLayout({
       url: child.href,
     })),
   }));
-  const wishlistProductIds = user ? await getUserWishlistProductIds(user.id) : [];
+  const wishlistOfferingIds = user ? await getUserWishlistOfferingIds(user.id) : [];
 
   return (
     <div id="top" className="min-h-full w-full">
-      <WishlistProvider authenticated={Boolean(user)} initialProductIds={wishlistProductIds}>
+      <WishlistProvider authenticated={Boolean(user)} initialOfferingIds={wishlistOfferingIds}>
         <GuestHeader
           user={user ? { username: user.username, role: user.role } : null}
           headerTree={headerTree}

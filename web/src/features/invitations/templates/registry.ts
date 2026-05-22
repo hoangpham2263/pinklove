@@ -1,14 +1,14 @@
-import type { ProductType } from "@/features/products/types";
+import type { OfferingType } from "@/features/offerings/types";
 import type { FieldSchema } from "@/features/pages/schema";
 import { createDefaultBuilderDocument } from "@/features/invitations/builder/defaults";
 
 export type InvitationTemplateDefinition = {
   label: string;
-  productType: ProductType;
+  offeringType: OfferingType;
   defaultTitle: string;
   fields: FieldSchema[];
   defaults: Record<string, unknown>;
-  allowProduct?: boolean;
+  allowOffering?: boolean;
 };
 
 const INVITATION_TEMPLATE_BASE_FIELDS: FieldSchema[] = [
@@ -32,7 +32,7 @@ const INVITATION_TEMPLATE_BASE_DEFAULTS = {
 export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> = {
   aurora_veil: {
     label: "Aurora Veil",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Aurora Veil",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -45,7 +45,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   golden_aisle: {
     label: "Golden Aisle",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Golden Aisle",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -58,7 +58,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   blush_sonata: {
     label: "Blush Sonata",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Blush Sonata",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -71,7 +71,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   moonlight_garden: {
     label: "Moonlight Garden",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Moonlight Garden",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -84,7 +84,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   pearl_manor: {
     label: "Pearl Manor",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Pearl Manor",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -97,7 +97,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   linen_vows: {
     label: "Linen Vows",
-    productType: "coded_template",
+    offeringType: "coded_template",
     defaultTitle: "Thiệp cưới Linen Vows",
     fields: [
       { name: "storyTitle", label: "Tiêu đề câu chuyện", type: "text" },
@@ -110,17 +110,17 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   freeform_sections: {
     label: "Builder Trống Hệ Thống",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Thiệp cưới tự tạo",
     fields: [],
     defaults: {
       builderDocument: createDefaultBuilderDocument(),
     },
-    allowProduct: false,
+    allowOffering: false,
   },
   editorial_story_builder: {
     label: "Editorial Story",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Editorial Story",
     fields: [],
     defaults: {
@@ -129,7 +129,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   floral_scroll_builder: {
     label: "Floral Scroll",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Floral Scroll",
     fields: [],
     defaults: {
@@ -138,7 +138,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   timeline_ceremony_builder: {
     label: "Timeline Ceremony",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Timeline Ceremony",
     fields: [],
     defaults: {
@@ -147,7 +147,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   minimal_portrait_builder: {
     label: "Minimal Portrait",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Minimal Portrait",
     fields: [],
     defaults: {
@@ -156,7 +156,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   velvet_chapel_builder: {
     label: "Velvet Chapel",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Velvet Chapel",
     fields: [],
     defaults: {
@@ -165,7 +165,7 @@ export const INVITATION_TEMPLATES: Record<string, InvitationTemplateDefinition> 
   },
   ivory_atelier_builder: {
     label: "Ivory Atelier",
-    productType: "builder",
+    offeringType: "builder",
     defaultTitle: "Builder Ivory Atelier",
     fields: [],
     defaults: {
@@ -180,7 +180,7 @@ export function getInvitationTemplateDefaults(templateKey: string) {
     return {};
   }
 
-  return definition.productType === "coded_template"
+  return definition.offeringType === "coded_template"
     ? {
         ...INVITATION_TEMPLATE_BASE_DEFAULTS,
         ...definition.defaults,
@@ -194,7 +194,7 @@ export function getInvitationTemplateFields(templateKey: string): FieldSchema[] 
     return [];
   }
 
-  return definition.productType === "coded_template"
+  return definition.offeringType === "coded_template"
     ? [...INVITATION_TEMPLATE_BASE_FIELDS, ...definition.fields]
     : definition.fields;
 }
@@ -203,17 +203,17 @@ export function getInvitationTemplateLabel(templateKey: string) {
   return INVITATION_TEMPLATES[templateKey]?.label ?? templateKey;
 }
 
-export function getInvitationTemplateProductType(templateKey: string): ProductType | null {
-  return INVITATION_TEMPLATES[templateKey]?.productType ?? null;
+export function getInvitationTemplateOfferingType(templateKey: string): OfferingType | null {
+  return INVITATION_TEMPLATES[templateKey]?.offeringType ?? null;
 }
 
-export function getInvitationTemplateOptions(productType?: ProductType) {
+export function getInvitationTemplateOptions(offeringType?: OfferingType) {
   return Object.entries(INVITATION_TEMPLATES)
-    .filter(([, config]) => config.allowProduct !== false)
-    .filter(([, config]) => !productType || config.productType === productType)
+    .filter(([, config]) => config.allowOffering !== false)
+    .filter(([, config]) => !offeringType || config.offeringType === offeringType)
     .map(([value, config]) => ({
       value,
       label: config.label,
-      productType: config.productType,
+      offeringType: config.offeringType,
     }));
 }

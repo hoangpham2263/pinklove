@@ -221,7 +221,7 @@ export default async function AdminBreadcrumbSettingsPage() {
                   <span>{settings.breadcrumb.partnerSeparator}</span>
                   <span>Configs</span>
                   <span>{settings.breadcrumb.partnerSeparator}</span>
-                  <span>Products</span>
+                  <span>Offerings</span>
                 </div>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-sta
 import { getOrderById } from "@/features/ecommerce/server/service";
 import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
 import { getVendorAssignmentByOrderId } from "@/features/vendor-orders/server/service";
-import { listApprovedSupplierOptionsForProducts } from "@/features/vendor-product-submissions/server/service";
+import { listApprovedSupplierOptionsForOfferings } from "@/features/vendor-offering-submissions/server/service";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
@@ -40,8 +40,8 @@ export default async function AdminOrderDetailPage({
   }
 
   const shippingAddress = formatShippingAddress(order);
-  const approvedSupplierOptions = await listApprovedSupplierOptionsForProducts(
-    order.items.map((item) => item.productId ?? "")
+  const approvedSupplierOptions = await listApprovedSupplierOptionsForOfferings(
+    order.items.map((item) => item.offeringId ?? "")
   );
   const vendorOptions =
     approvedSupplierOptions.length > 0
@@ -110,9 +110,9 @@ export default async function AdminOrderDetailPage({
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-4 rounded-md border p-3">
                   <div className="min-w-0 space-y-1">
-                    <p className="font-medium">{item.productName}</p>
+                    <p className="font-medium">{item.offeringName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {item.productType} • {item.fulfillmentType} • SL {item.quantity}
+                      {item.offeringType} • {item.fulfillmentType} • SL {item.quantity}
                     </p>
                   </div>
                   <div className="shrink-0 font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>

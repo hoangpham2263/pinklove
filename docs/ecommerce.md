@@ -42,7 +42,7 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
 1. Customer wishlist is synced into `shopping_cart_items`.
 2. Checkout loads customer profile, cart items, and ecommerce settings.
 3. Checkout loads the user's address book and defaults to the user's default address when a physical order requires shipping.
-4. Checkout determines whether the cart requires shipping from product fulfillment type.
+4. Checkout determines whether the cart requires shipping from offering fulfillment type.
 5. Checkout filters enabled payment methods by `requiresShipping`.
 6. Customer submits contact, either a saved `addressId` or one-off shipping data, selected payment method, and notes.
 7. The API re-loads ecommerce settings and validates that the selected method is still enabled.

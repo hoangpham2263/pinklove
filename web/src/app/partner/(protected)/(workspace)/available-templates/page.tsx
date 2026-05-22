@@ -2,13 +2,13 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listAvailableProductsForVendorSupply } from "@/features/vendor-product-submissions/server/service";
+import { listAvailableOfferingsForVendorSupply } from "@/features/vendor-offering-submissions/server/service";
 import { requireVendor } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default async function PartnerAvailableTemplatesPage() {
   const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const products = await listAvailableProductsForVendorSupply(vendor.id);
+  const offerings = await listAvailableOfferingsForVendorSupply(vendor.id);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -23,33 +23,33 @@ export default async function PartnerAvailableTemplatesPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {products.map((product) => {
-          const locked = Boolean(product.supplierStatus) || ["submitted", "under_review"].includes(product.requestStatus ?? "");
-          const submitLabel = product.requestStatus === "changes_requested" ? "Gửi lại yêu cầu cung cấp mẫu" : "Gửi yêu cầu cung cấp mẫu";
+        {offerings.map((offering) => {
+          const locked = Boolean(offering.supplierStatus) || ["submitted", "under_review"].includes(offering.requestStatus ?? "");
+          const submitLabel = offering.requestStatus === "changes_requested" ? "Gửi lại yêu cầu cung cấp mẫu" : "Gửi yêu cầu cung cấp mẫu";
           return (
-            <Card key={product.id} className="rounded-lg">
+            <Card key={offering.id} className="rounded-lg">
               <CardHeader>
-                <CardTitle className="text-base">{product.name}</CardTitle>
-                <p className="text-sm text-muted-foreground">/{product.slug}</p>
+                <CardTitle className="text-base">{offering.name}</CardTitle>
+                <p className="text-sm text-muted-foreground">/{offering.slug}</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                {product.thumbnailUrl ? (
-                  <img src={product.thumbnailUrl} alt={product.name} className="h-40 w-full rounded-md object-cover" />
+                {offering.thumbnailUrl ? (
+                  <img src={offering.thumbnailUrl} alt={offering.name} className="h-40 w-full rounded-md object-cover" />
                 ) : null}
-                <p className="text-sm text-muted-foreground">{product.excerpt || "Chưa có mô tả ngắn."}</p>
+                <p className="text-sm text-muted-foreground">{offering.excerpt || "Chưa có mô tả ngắn."}</p>
                 <div className="rounded-md border bg-muted/30 p-3 text-sm">
-                  {product.supplierStatus ? (
-                    <p>Supplier status: {product.supplierStatus}</p>
-                  ) : product.requestStatus ? (
-                    <p>Request status: {product.requestStatus}</p>
+                  {offering.supplierStatus ? (
+                    <p>Supplier status: {offering.supplierStatus}</p>
+                  ) : offering.requestStatus ? (
+                    <p>Request status: {offering.requestStatus}</p>
                   ) : (
                     <p>Mẫu này đang có thể xin cung cấp.</p>
                   )}
                 </div>
 
                 {!locked ? (
-                  <form action={ROUTES.API.PARTNER.PRODUCTS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
-                    <input type="hidden" name="productId" value={product.id} />
+                  <form action={ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
+                    <input type="hidden" name="offeringId" value={offering.id} />
                     <input name="purchaseCost" type="number" min="0" step="1000" placeholder="Giá nhập/gia công" className="h-10 rounded-md border bg-background px-3 text-sm" />
                     <input name="vendorSku" placeholder="SKU vendor" className="h-10 rounded-md border bg-background px-3 text-sm" />
                     <input name="leadTimeDays" type="number" min="0" placeholder="Lead time ngày" className="h-10 rounded-md border bg-background px-3 text-sm" />

@@ -2,7 +2,7 @@
 
 Production data lives in two places:
 
-- PostgreSQL: application data, settings, users, orders, products, media metadata.
+- PostgreSQL: application data, settings, users, orders, offerings, media metadata.
 - Uploads volume: actual uploaded files served from `/uploads`.
 
 The production compose file mounts uploads at `/app/public/uploads` using the `uploads-data` volume. Back up both PostgreSQL and uploads together.

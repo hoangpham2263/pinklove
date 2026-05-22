@@ -10,7 +10,7 @@ const state = {
   codedSiteSlug: `smoke-coded-${runId}`.toLowerCase(),
   builderSiteSlug: `smoke-builder-${runId}`.toLowerCase(),
   adminManagedUsername: `smoke_admin_user_${runId}`.toLowerCase(),
-  productSlug: `smoke-product-${runId}`.toLowerCase(),
+  offeringSlug: `smoke-offering-${runId}`.toLowerCase(),
   pageMarker: `Smoke page marker ${runId}`,
   menuLabel: `Header Smoke ${runId}`,
 };
@@ -331,15 +331,15 @@ async function main() {
 
     let codedSiteId = "";
     await step("coded template site can be created, edited, and published", async () => {
-      const create = await user.postForm("/api/customer/invitations/create-from-product", {
-        productSlug: "mau-thiep-cuoi-golden-aisle",
+      const create = await user.postForm("/api/customer/invitations/create-from-offering", {
+        offeringSlug: "mau-thiep-cuoi-golden-aisle",
       });
       expectLocation(create.location, "/customer/invitations/");
       codedSiteId = create.location.split("/").pop();
       assert(Boolean(codedSiteId), "Failed to resolve coded site id");
 
       const editor = await user.getText(`/customer/invitations/${codedSiteId}`);
-      assert(editor.includes("Golden Aisle"), "Coded site editor did not load expected product");
+      assert(editor.includes("Golden Aisle"), "Coded site editor did not load expected offering");
 
       const update = await user.postForm("/api/customer/invitations/update", {
         siteId: codedSiteId,
@@ -487,8 +487,8 @@ async function main() {
         "/admin/dashboard",
         "/admin/config",
         "/admin/users",
-        "/admin/products",
-        "/admin/product-templates/mau-thiep-cuoi-golden-aisle",
+        "/admin/offerings",
+        "/admin/offering-templates/mau-thiep-cuoi-golden-aisle",
         "/admin/pages",
         "/admin/pages/gioi-thieu",
         "/admin/menus",
@@ -609,21 +609,21 @@ async function main() {
       assert(gone === null, "Admin user delete did not remove the account");
     });
 
-    await step("admin cannot create coded template products from admin", async () => {
-      const create = await admin.postForm("/api/admin/products/create", {
-        name: "Smoke Product",
-        slug: state.productSlug,
-        productType: "coded_template",
+    await step("admin cannot create coded template offerings from admin", async () => {
+      const create = await admin.postForm("/api/admin/offerings/create", {
+        name: "Smoke Offering",
+        slug: state.offeringSlug,
+        offeringType: "coded_template",
         templateKey: "golden_aisle",
       });
-      expectLocation(create.location, "/admin/products");
+      expectLocation(create.location, "/admin/offerings");
 
       const gone = await fetchValue(
         db,
-        "SELECT slug AS value FROM products WHERE slug = $1 LIMIT 1",
-        [state.productSlug]
+        "SELECT slug AS value FROM offerings WHERE slug = $1 LIMIT 1",
+        [state.offeringSlug]
       );
-      assert(gone === null, "Coded template admin create should not create a new product");
+      assert(gone === null, "Coded template admin create should not create a new offering");
     });
 
     await step("admin can update CMS page and published page reflects it", async () => {

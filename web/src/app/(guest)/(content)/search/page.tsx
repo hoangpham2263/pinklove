@@ -9,8 +9,8 @@ import {
   GuestShell,
 } from "@/app/(guest)/_components/guest-ui";
 import { BlogCard } from "@/features/blog/components/blog-card";
-import { LoopOnlineInvitationCard } from "@/features/products/components/LoopOnlineInvitationCard";
-import { LoopProductCard } from "@/features/products/components/LoopProductCard";
+import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
+import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
 import { searchGuestContent } from "@/features/search/server/service";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
@@ -42,8 +42,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = getSearchQuery((await searchParams)?.q);
-  const results = query ? await searchGuestContent(query) : { products: [], posts: [], pages: [] };
-  const totalResults = results.products.length + results.posts.length + results.pages.length;
+  const results = query ? await searchGuestContent(query) : { offerings: [], posts: [], pages: [] };
+  const totalResults = results.offerings.length + results.posts.length + results.pages.length;
 
   return (
     <GuestShell className="gap-10 pb-16 pt-32 lg:pt-36">
@@ -100,23 +100,23 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </GuestPanel>
       ) : null}
 
-      {results.products.length > 0 ? (
+      {results.offerings.length > 0 ? (
         <section className="space-y-6">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Sản phẩm</p>
             <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl">Mẫu thiệp và builder</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-            {results.products.map((product) => (
-              product.productType !== "general_product" ? (
+            {results.offerings.map((offering) => (
+              offering.offeringType !== "general_offering" ? (
                 <LoopOnlineInvitationCard
-                  key={product.id}
-                  product={product}
+                  key={offering.id}
+                  offering={offering}
                 />
               ) : (
-                <LoopProductCard
-                  key={product.id}
-                  product={product}
+                <LoopOfferingCard
+                  key={offering.id}
+                  offering={offering}
                 />
               )
             ))}

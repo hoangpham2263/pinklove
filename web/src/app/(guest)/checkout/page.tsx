@@ -7,20 +7,20 @@ import { getSystemSettings } from "@/lib/system-settings";
 
 type CheckoutPageProps = {
   searchParams?: Promise<{
-    selectedProductIds?: string | string[];
+    selectedOfferingIds?: string | string[];
   }>;
 };
 
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const params = await searchParams;
-  const selectedProductIds = Array.isArray(params?.selectedProductIds)
-    ? params.selectedProductIds
-    : params?.selectedProductIds
-      ? [params.selectedProductIds]
+  const selectedOfferingIds = Array.isArray(params?.selectedOfferingIds)
+    ? params.selectedOfferingIds
+    : params?.selectedOfferingIds
+      ? [params.selectedOfferingIds]
       : undefined;
 
-  await syncCartWithWishlist(user.id, selectedProductIds);
+  await syncCartWithWishlist(user.id, selectedOfferingIds);
   const [items, profile, addresses, settings] = await Promise.all([
     listCartItems(user.id),
     getUserProfile(user.id),

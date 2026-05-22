@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Product } from "@/features/products/types";
+import type { Offering } from "@/features/offerings/types";
 import { query } from "@/lib/database";
 import { slugify } from "@/lib/utils";
 import {
@@ -15,9 +15,9 @@ const BUILDER_KEY = "freeform_sections";
 type InvitationRow = {
   id: string;
   user_id: string;
-  product_id: string | null;
-  product_name: string | null;
-  product_thumbnail_url: string | null;
+  offering_id: string | null;
+  offering_name: string | null;
+  offering_thumbnail_url: string | null;
   title: string;
   slug: string;
   site_type: InvitationType;
@@ -32,9 +32,9 @@ function mapInvitationRow(row: InvitationRow): InvitationSite {
   return {
     id: row.id,
     userId: row.user_id,
-    productId: row.product_id ?? undefined,
-    productName: row.product_name ?? undefined,
-    productThumbnailUrl: row.product_thumbnail_url ?? undefined,
+    offeringId: row.offering_id ?? undefined,
+    offeringName: row.offering_name ?? undefined,
+    offeringThumbnailUrl: row.offering_thumbnail_url ?? undefined,
     title: row.title,
     slug: row.slug,
     siteType: row.site_type,
@@ -76,9 +76,9 @@ export async function listInvitationsForUser(userId: string): Promise<Invitation
       SELECT
         ws.id,
         ws.user_id,
-        ws.product_id,
-        p.name AS product_name,
-        p.thumbnail_url AS product_thumbnail_url,
+        ws.offering_id,
+        p.name AS offering_name,
+        p.thumbnail_url AS offering_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -88,7 +88,7 @@ export async function listInvitationsForUser(userId: string): Promise<Invitation
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
-      LEFT JOIN products p ON p.id = ws.product_id
+      LEFT JOIN offerings p ON p.id = ws.offering_id
       WHERE ws.user_id = $1
       ORDER BY ws.updated_at DESC
     `,
@@ -104,9 +104,9 @@ export async function getInvitationByIdForUser(userId: string, siteId: string): 
       SELECT
         ws.id,
         ws.user_id,
-        ws.product_id,
-        p.name AS product_name,
-        p.thumbnail_url AS product_thumbnail_url,
+        ws.offering_id,
+        p.name AS offering_name,
+        p.thumbnail_url AS offering_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -116,7 +116,7 @@ export async function getInvitationByIdForUser(userId: string, siteId: string): 
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
-      LEFT JOIN products p ON p.id = ws.product_id
+      LEFT JOIN offerings p ON p.id = ws.offering_id
       WHERE ws.id = $1
         AND ws.user_id = $2
       LIMIT 1
@@ -137,9 +137,9 @@ export async function getInvitationById(siteId: string): Promise<InvitationSite 
       SELECT
         ws.id,
         ws.user_id,
-        ws.product_id,
-        p.name AS product_name,
-        p.thumbnail_url AS product_thumbnail_url,
+        ws.offering_id,
+        p.name AS offering_name,
+        p.thumbnail_url AS offering_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -149,7 +149,7 @@ export async function getInvitationById(siteId: string): Promise<InvitationSite 
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
-      LEFT JOIN products p ON p.id = ws.product_id
+      LEFT JOIN offerings p ON p.id = ws.offering_id
       WHERE ws.id = $1
       LIMIT 1
     `,
@@ -169,9 +169,9 @@ export async function getPublicInvitationBySlug(slug: string): Promise<Invitatio
       SELECT
         ws.id,
         ws.user_id,
-        ws.product_id,
-        p.name AS product_name,
-        p.thumbnail_url AS product_thumbnail_url,
+        ws.offering_id,
+        p.name AS offering_name,
+        p.thumbnail_url AS offering_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -181,7 +181,7 @@ export async function getPublicInvitationBySlug(slug: string): Promise<Invitatio
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
-      LEFT JOIN products p ON p.id = ws.product_id
+      LEFT JOIN offerings p ON p.id = ws.offering_id
       WHERE ws.slug = $1
       LIMIT 1
     `,
@@ -201,9 +201,9 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
       SELECT
         ws.id,
         ws.user_id,
-        ws.product_id,
-        p.name AS product_name,
-        p.thumbnail_url AS product_thumbnail_url,
+        ws.offering_id,
+        p.name AS offering_name,
+        p.thumbnail_url AS offering_thumbnail_url,
         ws.title,
         ws.slug,
         ws.site_type,
@@ -213,7 +213,7 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
-      LEFT JOIN products p ON p.id = ws.product_id
+      LEFT JOIN offerings p ON p.id = ws.offering_id
       WHERE ws.status = 'published'
       ORDER BY ws.updated_at DESC
     `
@@ -222,40 +222,40 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
   return result.rows.map(mapInvitationRow);
 }
 
-export async function createInvitationFromProduct(input: {
+export async function createInvitationFromOffering(input: {
   userId: string;
-  product: Product;
+  offering: Offering;
   title?: string;
   customData?: Record<string, unknown>;
 }): Promise<InvitationSite> {
-  if (input.product.productType === "general_product") {
-    throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_PRODUCT");
+  if (input.offering.offeringType === "general_offering") {
+    throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_OFFERING");
   }
 
-  const templateKey = input.product.productType === "builder"
+  const templateKey = input.offering.offeringType === "builder"
     ? BUILDER_KEY
-    : input.product.templateKey;
+    : input.offering.templateKey;
   const defaults = {
     ...getInvitationTemplateDefaults(templateKey),
-    ...((input.product.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
-    ...(input.product.thumbnailUrl ? { previewImage: input.product.thumbnailUrl } : {}),
+    ...((input.offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
+    ...(input.offering.thumbnailUrl ? { previewImage: input.offering.thumbnailUrl } : {}),
     ...(input.customData ?? {}),
   };
-  const title = input.title || input.product.name;
+  const title = input.title || input.offering.name;
   const slug = await ensureUniqueInvitationSlug(title);
 
   const result = await query<InvitationRow>(
     `
       INSERT INTO wedding_sites (
-        user_id, product_id, title, slug, site_type, template_key, status, custom_data
+        user_id, offering_id, title, slug, site_type, template_key, status, custom_data
       )
       VALUES ($1, $2, $3, $4, $5, $6, 'draft', $7)
       RETURNING
         id,
         user_id,
-        product_id,
-        NULL::text AS product_name,
-        NULL::text AS product_thumbnail_url,
+        offering_id,
+        NULL::text AS offering_name,
+        NULL::text AS offering_thumbnail_url,
         title,
         slug,
         site_type,
@@ -267,10 +267,10 @@ export async function createInvitationFromProduct(input: {
     `,
     [
       input.userId,
-      input.product.id,
+      input.offering.id,
       title,
       slug,
-      input.product.productType,
+      input.offering.offeringType,
       templateKey,
       defaults,
     ]
@@ -287,15 +287,15 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
   const result = await query<InvitationRow>(
     `
       INSERT INTO wedding_sites (
-        user_id, product_id, title, slug, site_type, template_key, status, custom_data
+        user_id, offering_id, title, slug, site_type, template_key, status, custom_data
       )
       VALUES ($1, NULL, $2, $3, 'builder', $4, 'draft', $5)
       RETURNING
         id,
         user_id,
-        product_id,
-        NULL::text AS product_name,
-        NULL::text AS product_thumbnail_url,
+        offering_id,
+        NULL::text AS offering_name,
+        NULL::text AS offering_thumbnail_url,
         title,
         slug,
         site_type,
@@ -313,7 +313,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
 
 function normalizeTemplateFieldValue(field: {
   name: string;
-  type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "product-select";
+  type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "offering-select";
   multiple?: boolean;
 }, formData: FormData) {
   if (field.type === "media" && field.multiple) {
@@ -358,9 +358,9 @@ export async function updateInvitationForUser(input: {
       RETURNING
         id,
         user_id,
-        product_id,
-        NULL::text AS product_name,
-        NULL::text AS product_thumbnail_url,
+        offering_id,
+        NULL::text AS offering_name,
+        NULL::text AS offering_thumbnail_url,
         title,
         slug,
         site_type,

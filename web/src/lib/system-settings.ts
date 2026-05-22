@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ProductType } from "@/features/products/types";
+import type { OfferingType } from "@/features/offerings/types";
 import { query } from "@/lib/database";
 
 export type BreadcrumbSettings = {
@@ -24,7 +24,7 @@ export type SitemapSettings = {
   includeManagedPages: boolean;
   includeBlogCategories: boolean;
   includeBlogPosts: boolean;
-  includeProducts: boolean;
+  includeOfferings: boolean;
   includePublicSites: boolean;
 };
 
@@ -131,15 +131,15 @@ export type EcommercePaymentMethodSettings = {
   vnpayHashSecret?: string;
 };
 
-export type InternalProductImportApiSettings = {
+export type InternalOfferingImportApiSettings = {
   enabled: boolean;
   token: string;
   defaultStatus: "draft" | "published";
-  allowedProductTypes: ProductType[];
+  allowedOfferingTypes: OfferingType[];
 };
 
 export type InternalApisSettings = {
-  productsImport: InternalProductImportApiSettings;
+  offeringsImport: InternalOfferingImportApiSettings;
 };
 
 export type EmailSettings = {
@@ -215,7 +215,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
     includeManagedPages: true,
     includeBlogCategories: true,
     includeBlogPosts: true,
-    includeProducts: true,
+    includeOfferings: true,
     includePublicSites: true,
   },
   redirects: {
@@ -331,11 +331,11 @@ const DEFAULT_SETTINGS: SystemSettings = {
     shippingAccounts: [],
   },
   internalApis: {
-    productsImport: {
+    offeringsImport: {
       enabled: false,
       token: "",
       defaultStatus: "draft",
-      allowedProductTypes: ["general_product"],
+      allowedOfferingTypes: ["general_offering"],
     },
   },
   email: {
@@ -396,7 +396,7 @@ function parseSitemapSettings(value: Record<string, unknown> | null | undefined)
     includeManagedPages: Boolean(includeManagedPages),
     includeBlogCategories: Boolean(merged.includeBlogCategories),
     includeBlogPosts: Boolean(merged.includeBlogPosts),
-    includeProducts: Boolean(merged.includeProducts),
+    includeOfferings: Boolean(merged.includeOfferings),
     includePublicSites: Boolean(includePublicSites),
   };
 }
@@ -660,20 +660,20 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
 
 function parseInternalApisSettings(value: Record<string, unknown> | null | undefined): InternalApisSettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.internalApis as Record<string, unknown>, value);
-  const productsImportInput =
-    typeof merged.productsImport === "object" && merged.productsImport
-      ? (merged.productsImport as Record<string, unknown>)
+  const offeringsImportInput =
+    typeof merged.offeringsImport === "object" && merged.offeringsImport
+      ? (merged.offeringsImport as Record<string, unknown>)
       : {};
-  const productsImportMerged = mergeRecord(
-    DEFAULT_SETTINGS.internalApis.productsImport as unknown as Record<string, unknown>,
-    productsImportInput
+  const offeringsImportMerged = mergeRecord(
+    DEFAULT_SETTINGS.internalApis.offeringsImport as unknown as Record<string, unknown>,
+    offeringsImportInput
   );
   return {
-    productsImport: {
-      enabled: Boolean(productsImportMerged.enabled),
-      token: String(productsImportMerged.token ?? ""),
-      defaultStatus: productsImportMerged.defaultStatus === "published" ? "published" : "draft",
-      allowedProductTypes: ["general_product"],
+    offeringsImport: {
+      enabled: Boolean(offeringsImportMerged.enabled),
+      token: String(offeringsImportMerged.token ?? ""),
+      defaultStatus: offeringsImportMerged.defaultStatus === "published" ? "published" : "draft",
+      allowedOfferingTypes: ["general_offering"],
     },
   };
 }
@@ -903,12 +903,12 @@ export async function updateEcommerceSettings(input: Partial<EcommerceSettings>)
   return next;
 }
 
-export async function updateInternalProductImportApiSettings(input: Partial<InternalProductImportApiSettings>) {
+export async function updateInternalOfferingImportApiSettings(input: Partial<InternalOfferingImportApiSettings>) {
   const current = await getSystemSettings();
   const next = {
     ...current.internalApis,
-    productsImport: {
-      ...current.internalApis.productsImport,
+    offeringsImport: {
+      ...current.internalApis.offeringsImport,
       ...input,
     },
   };
@@ -923,7 +923,7 @@ export async function updateInternalProductImportApiSettings(input: Partial<Inte
     [JSON.stringify(next)]
   );
 
-  return next.productsImport;
+  return next.offeringsImport;
 }
 
 export async function updateEmailSettings(input: Partial<EmailSettings>) {

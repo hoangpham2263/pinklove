@@ -26,8 +26,8 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
   if (invitation.siteType === "builder") {
     redirect(ROUTES.CUSTOMER.DESIGN(invitation.id));
   }
-  const canPublish = invitation.productId
-    ? await userHasActiveEntitlement(user.id, invitation.productId)
+  const canPublish = invitation.offeringId
+    ? await userHasActiveEntitlement(user.id, invitation.offeringId)
     : true;
 
   return (

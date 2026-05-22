@@ -87,7 +87,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
         </div>
         <div className="flex gap-3">
           <AdminLinkButton href={`${ROUTES.ADMIN.USERS}/${vendor.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.VENDORS)}`}>Sửa tài khoản</AdminLinkButton>
-          <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Hồ sơ sản phẩm chờ duyệt</AdminLinkButton>
+          <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_OFFERINGS}?vendorId=${encodeURIComponent(vendor.id)}`}>Hồ sơ sản phẩm chờ duyệt</AdminLinkButton>
           {vendorPortalSlug ? (
             <>
               <VendorPortalCopyButton
@@ -129,7 +129,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                     username={vendor.username}
                     password="12313"
                   />
-                  <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}>Review sản phẩm vendor</AdminLinkButton>
+                  <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_OFFERINGS}?vendorId=${encodeURIComponent(vendor.id)}`}>Review sản phẩm vendor</AdminLinkButton>
                 </div>
               ) : null}
             </div>
@@ -188,7 +188,7 @@ export default async function AdminVendorDetailPage({ params }: AdminVendorDetai
                   <div className="space-y-1">
                     <p className="font-medium">{entry.order.orderNumber}</p>
                     <p className="text-sm text-muted-foreground">
-                      {entry.order.customerName} • {entry.items.map((item) => `${item.productName} x${item.quantity}`).join(", ")}
+                      {entry.order.customerName} • {entry.items.map((item) => `${item.offeringName} x${item.quantity}`).join(", ")}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Trạng thái vendor: {getVendorAssignmentStatusLabel(entry.assignment.status)} • Thanh toán: {getPaymentStatusLabel(entry.order.paymentStatus)}

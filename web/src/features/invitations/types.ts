@@ -4,9 +4,9 @@ export type InvitationStatus = "draft" | "published";
 export type InvitationSite = {
   id: string;
   userId: string;
-  productId?: string;
-  productName?: string;
-  productThumbnailUrl?: string;
+  offeringId?: string;
+  offeringName?: string;
+  offeringThumbnailUrl?: string;
   title: string;
   slug: string;
   siteType: InvitationType;

@@ -15,7 +15,7 @@ This file is the repo-wide source of truth.
 
 - The Next.js app lives in `web/`.
 - Paths in documentation are relative to `web/` unless a path starts with `docs/`.
-- The project is a monolithic Next.js App Router app with PostgreSQL, local auth, optional Google OAuth, managed pages, affiliate tracking, and invitation product flows.
+- The project is a monolithic Next.js App Router app with PostgreSQL, local auth, optional Google OAuth, managed pages, affiliate tracking, and invitation offering flows.
 
 ## Folder structure
 
@@ -44,16 +44,16 @@ This file is the repo-wide source of truth.
 - Public URLs must use descriptive, self-explanatory path bases. Avoid opaque short aliases like `/w` for primary public content routes.
 - When a public route base changes, keep the old route as a redirect-only legacy alias instead of serving two canonical public paths long-term.
 - Managed-page public paths must resolve from `src/lib/page-paths.ts`.
-- Blog, category, product, builder, and invitation public paths must resolve from `src/lib/public-paths.ts`.
+- Blog, category, offering, builder, and invitation public paths must resolve from `src/lib/public-paths.ts`.
 - Permalink settings should be per content type with a constrained whitelist of supported patterns, not a free-form global token engine.
 
 ## SEO routes
 
 - Keep `robots.txt` and `sitemap*.xml` under `src/app/(seo)` so route-level SEO files stay grouped without changing their public URLs.
 - `sitemap.xml` must be generated automatically from the project registry and publishable data sources. Do not maintain sitemap URLs as a manual hardcoded list.
-- When a managed page, product, blog post, category, or public site is added or published, the relevant sitemap output should update automatically.
+- When a managed page, offering, blog post, category, or public site is added or published, the relevant sitemap output should update automatically.
 - `robots.txt` may start from a safe automatic baseline, but it must support controlled manual rules for crawl budget and private paths.
-- Typical `robots.txt` manual rules should cover admin, account, checkout, cart, internal search, and other non-indexable routes when those areas exist in the product.
+- Typical `robots.txt` manual rules should cover admin, account, checkout, cart, internal search, and other non-indexable routes when those areas exist in the offering.
 - Never hardcode the production domain inside sitemap or robots output. Always resolve the live domain from the current request context.
 
 ## Naming
@@ -117,15 +117,15 @@ This file is the repo-wide source of truth.
 - Protected system slugs currently include `home`, `login`, and `register`.
 - System-page status must still be respected publicly. Draft pages are previewable only by admins.
 
-## Invitation product model
+## Invitation offering model
 
-- Treat `products` as the sellable catalog layer shown to guests.
-- Treat `wedding_sites` as customer-specific invitation instances cloned from a product.
-- `coded_template` products represent fixed coded invitation designs and should be created from code/seed only.
-- `builder` products represent editable builder starters that customers clone and customize; they can be seeded or created through the builder flow.
-- `general_product` products represent regular shop/vendor/API products such as paper invitations and add-ons.
-- Guest catalog pages should use fixed product-type scopes first, then category/price/sort filters.
-- Each coded invitation `template_key` should belong to only one catalog product. Do not create multiple products that reuse the same coded template identity.
+- Treat `offerings` as the sellable catalog layer shown to guests.
+- Treat `wedding_sites` as customer-specific invitation instances cloned from a offering.
+- `coded_template` offerings represent fixed coded invitation designs and should be created from code/seed only.
+- `builder` offerings represent editable builder starters that customers clone and customize; they can be seeded or created through the builder flow.
+- `general_offering` offerings represent regular shop/vendor/API offerings such as paper invitations and add-ons.
+- Guest catalog pages should use fixed offering-type scopes first, then category/price/sort filters.
+- Each coded invitation `template_key` should belong to only one catalog offering. Do not create multiple offerings that reuse the same coded template identity.
 
 ## Media
 
@@ -160,7 +160,7 @@ This file is the repo-wide source of truth.
 ## Agent workflow
 
 - When `docs/index.md` is referenced, read `docs/CONVENTIONS.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
-- Treat the docs as describing the repository as it exists now, including incomplete product areas.
+- Treat the docs as describing the repository as it exists now, including incomplete offering areas.
 - If a code change affects documented behavior, update the docs in the same task.
 - Database access is raw SQL through `web/src/lib/database.ts`.
 - Media metadata is stored in PostgreSQL table `media_assets`.
@@ -171,7 +171,7 @@ This file is the repo-wide source of truth.
   - `web/src/features/auth/auth-page-loader.ts`
 - Affiliate foundation lives in `web/src/features/affiliate/`.
 - Website integration catalog lives in `web/src/features/website-hooks/`.
-- Wedding product foundation lives in:
-  - `web/src/features/products/`
+- Wedding offering foundation lives in:
+  - `web/src/features/offerings/`
   - `web/src/features/invitations/`
 - Builder editing lives in `web/src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`.

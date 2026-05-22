@@ -1,14 +1,14 @@
-import type { ProductFulfillmentType, ProductType } from "@/features/products/types";
+import type { OfferingFulfillmentType, OfferingType } from "@/features/offerings/types";
 
 export type CartItem = {
   id: string;
   userId: string;
-  productId: string;
+  offeringId: string;
   quantity: number;
-  productName: string;
-  productSlug: string;
-  productType: ProductType;
-  fulfillmentType: ProductFulfillmentType;
+  offeringName: string;
+  offeringSlug: string;
+  offeringType: OfferingType;
+  fulfillmentType: OfferingFulfillmentType;
   price: number;
   thumbnailUrl?: string;
   createdAt: string;
@@ -33,11 +33,11 @@ export type ShipmentStatus = "pending" | "packing" | "shipped" | "delivered" | "
 export type EcommerceOrderItem = {
   id: string;
   orderId: string;
-  productId?: string;
-  productName: string;
-  productSlug: string;
-  productType: ProductType;
-  fulfillmentType: ProductFulfillmentType;
+  offeringId?: string;
+  offeringName: string;
+  offeringSlug: string;
+  offeringType: OfferingType;
+  fulfillmentType: OfferingFulfillmentType;
   quantity: number;
   unitPrice: number;
   lineTotal: number;
@@ -74,7 +74,7 @@ export type EcommerceShipment = {
 export type EcommerceEntitlement = {
   id: string;
   userId: string;
-  productId: string;
+  offeringId: string;
   orderId: string;
   orderItemId?: string;
   status: "active" | "revoked";

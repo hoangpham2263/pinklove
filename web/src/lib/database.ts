@@ -3,7 +3,7 @@ import"server-only";
 import { Pool, type PoolClient, type QueryResultRow } from"pg";
 import { CONTENT_PAGE_SLUG_ALIASES, CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
-import productSeedCatalog from "@/lib/product-seed-data.json";
+import offeringSeedCatalog from "@/lib/offering-seed-data.json";
 
 const globalForDb = globalThis as unknown as {
  pool?: Pool;
@@ -20,13 +20,14 @@ const globalForDb = globalThis as unknown as {
   menuTablesMigrationDone?: boolean;
   affiliateTablesMigrationDone?: boolean;
   internalAccountsMigrationDone?: boolean;
-  productTablesMigrationDone?: boolean;
+  offeringTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
   commerceTablesMigrationDone?: boolean;
-  productVendorPaperTypeMigrationDone?: boolean;
-  productVendorCostFieldsMigrationDone?: boolean;
+  offeringVendorPaperTypeMigrationDone?: boolean;
+  offeringVendorCostFieldsMigrationDone?: boolean;
+  coreDatabaseRefactorMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
-  vendorProductSubmissionsMigrationDone?: boolean;
+  vendorOfferingSubmissionsMigrationDone?: boolean;
   vendorApplicationsMigrationDone?: boolean;
   affiliateApplicationsMigrationDone?: boolean;
   chatTablesMigrationDone?: boolean;
@@ -41,8 +42,8 @@ const globalForDb = globalThis as unknown as {
 	  mediaTablesMigrationDone?: boolean;
 	  managedPagesMigrationDone?: boolean;
 	  managedPagesMigrationPromise?: Promise<void>;
-	  productSeedDone?: boolean;
-  productCategorySeedDone?: boolean;
+	  offeringSeedDone?: boolean;
+  offeringCategorySeedDone?: boolean;
   managedPagesSeedSignature?: string;
   blogSeedDone?: boolean;
 };
@@ -303,24 +304,24 @@ async function ensureUserWishlistMigration() {
 
  await pool.query(`
  ALTER TABLE users
- ADD COLUMN IF NOT EXISTS wishlist_product_ids JSONB;
+ ADD COLUMN IF NOT EXISTS wishlist_offering_ids JSONB;
  `);
 
  await pool.query(`
  UPDATE users
- SET wishlist_product_ids = '[]'::jsonb
- WHERE wishlist_product_ids IS NULL
- OR jsonb_typeof(wishlist_product_ids) <> 'array';
+ SET wishlist_offering_ids = '[]'::jsonb
+ WHERE wishlist_offering_ids IS NULL
+ OR jsonb_typeof(wishlist_offering_ids) <> 'array';
  `);
 
  await pool.query(`
  ALTER TABLE users
- ALTER COLUMN wishlist_product_ids SET DEFAULT '[]'::jsonb;
+ ALTER COLUMN wishlist_offering_ids SET DEFAULT '[]'::jsonb;
  `);
 
  await pool.query(`
  ALTER TABLE users
- ALTER COLUMN wishlist_product_ids SET NOT NULL;
+ ALTER COLUMN wishlist_offering_ids SET NOT NULL;
  `);
 }
 
@@ -970,31 +971,31 @@ async function ensureInternalAccountsMigration() {
   `);
 }
 
-async function ensureProductTablesMigration() {
+async function ensureOfferingTablesMigration() {
   const pool = getPool();
-  const productIdType = await getColumnTypeSql("products", "id", "TEXT");
+  const offeringIdType = await getColumnTypeSql("offerings", "id", "TEXT");
   const userIdType = await getColumnTypeSql("users", "id", "TEXT");
   const normalizedUserIdType = userIdType.toLowerCase();
   const ownerVendorUserIdSelectSql =
     normalizedUserIdType.includes("bigint") || normalizedUserIdType === "integer" || normalizedUserIdType === "int"
       ? `
           CASE
-            WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor'
-              AND COALESCE(products.config -> 'generalProduct' ->> 'vendorUserId', '') ~ '^[0-9]+$'
-              THEN NULLIF(products.config -> 'generalProduct' ->> 'vendorUserId', '')::${userIdType}
+            WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor'
+              AND COALESCE(offerings.config -> 'generalOffering' ->> 'vendorUserId', '') ~ '^[0-9]+$'
+              THEN NULLIF(offerings.config -> 'generalOffering' ->> 'vendorUserId', '')::${userIdType}
             ELSE NULL
           END
         `
       : `
           CASE
-            WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor'
-              THEN NULLIF(products.config -> 'generalProduct' ->> 'vendorUserId', '')::${userIdType}
+            WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor'
+              THEN NULLIF(offerings.config -> 'generalOffering' ->> 'vendorUserId', '')::${userIdType}
             ELSE NULL
           END
         `;
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS product_categories (
+    CREATE TABLE IF NOT EXISTS offering_categories (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
@@ -1002,20 +1003,20 @@ async function ensureProductTablesMigration() {
       status TEXT NOT NULL DEFAULT 'draft',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT product_categories_status_check CHECK (status IN ('draft', 'published'))
+      CONSTRAINT offering_categories_status_check CHECK (status IN ('draft', 'published'))
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS products (
+    CREATE TABLE IF NOT EXISTS offerings (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
-      category_id TEXT REFERENCES product_categories(id) ON DELETE SET NULL,
+      category_id TEXT REFERENCES offering_categories(id) ON DELETE SET NULL,
       name TEXT NOT NULL,
       excerpt TEXT,
       description TEXT,
       status TEXT NOT NULL DEFAULT 'draft',
-      product_type TEXT NOT NULL,
+      offering_type TEXT NOT NULL,
       template_key TEXT NOT NULL,
       thumbnail_url TEXT,
       price NUMERIC(12, 2) NOT NULL DEFAULT 0,
@@ -1027,16 +1028,16 @@ async function ensureProductTablesMigration() {
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT products_status_check CHECK (status IN ('draft', 'published')),
-      CONSTRAINT products_type_check CHECK (product_type IN ('coded_template', 'builder', 'general_product')),
-      CONSTRAINT products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
-      CONSTRAINT products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
+      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published')),
+      CONSTRAINT offerings_type_check CHECK (offering_type IN ('coded_template', 'builder', 'general_offering')),
+      CONSTRAINT offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
   `);
 
   await pool.query(`
-    ALTER TABLE products
+    ALTER TABLE offerings
     ADD COLUMN IF NOT EXISTS category_id TEXT,
     ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'digital',
     ADD COLUMN IF NOT EXISTS track_inventory BOOLEAN DEFAULT FALSE,
@@ -1046,7 +1047,7 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    UPDATE products
+    UPDATE offerings
     SET
       fulfillment_type = COALESCE(NULLIF(fulfillment_type, ''), 'digital'),
       track_inventory = COALESCE(track_inventory, FALSE),
@@ -1056,7 +1057,7 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    ALTER TABLE products
+    ALTER TABLE offerings
     ALTER COLUMN fulfillment_type SET NOT NULL,
     ALTER COLUMN track_inventory SET NOT NULL,
     ALTER COLUMN stock_quantity SET NOT NULL,
@@ -1065,17 +1066,17 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    ALTER TABLE products
-    DROP CONSTRAINT IF EXISTS products_fulfillment_type_check,
-    DROP CONSTRAINT IF EXISTS products_stock_quantity_check,
-    DROP CONSTRAINT IF EXISTS products_low_stock_threshold_check;
+    ALTER TABLE offerings
+    DROP CONSTRAINT IF EXISTS offerings_fulfillment_type_check,
+    DROP CONSTRAINT IF EXISTS offerings_stock_quantity_check,
+    DROP CONSTRAINT IF EXISTS offerings_low_stock_threshold_check;
   `);
 
   await pool.query(`
     DO $$
     BEGIN
-      ALTER TABLE products
-      ADD CONSTRAINT products_fulfillment_type_check
+      ALTER TABLE offerings
+      ADD CONSTRAINT offerings_fulfillment_type_check
       CHECK (fulfillment_type IN ('digital', 'physical', 'service'));
     EXCEPTION
       WHEN duplicate_object THEN
@@ -1087,8 +1088,8 @@ async function ensureProductTablesMigration() {
   await pool.query(`
     DO $$
     BEGIN
-      ALTER TABLE products
-      ADD CONSTRAINT products_stock_quantity_check
+      ALTER TABLE offerings
+      ADD CONSTRAINT offerings_stock_quantity_check
       CHECK (stock_quantity >= 0 OR allow_backorder = TRUE);
     EXCEPTION
       WHEN duplicate_object THEN
@@ -1100,8 +1101,8 @@ async function ensureProductTablesMigration() {
   await pool.query(`
     DO $$
     BEGIN
-      ALTER TABLE products
-      ADD CONSTRAINT products_low_stock_threshold_check
+      ALTER TABLE offerings
+      ADD CONSTRAINT offerings_low_stock_threshold_check
       CHECK (low_stock_threshold >= 0);
     EXCEPTION
       WHEN duplicate_object THEN
@@ -1116,28 +1117,28 @@ async function ensureProductTablesMigration() {
       IF NOT EXISTS (
         SELECT 1
         FROM pg_constraint
-        WHERE conname = 'products_category_id_fkey'
+        WHERE conname = 'offerings_category_id_fkey'
       ) THEN
-        ALTER TABLE products
-        ADD CONSTRAINT products_category_id_fkey
-        FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE SET NULL;
+        ALTER TABLE offerings
+        ADD CONSTRAINT offerings_category_id_fkey
+        FOREIGN KEY (category_id) REFERENCES offering_categories(id) ON DELETE SET NULL;
       END IF;
     END
     $$;
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS products_category_id_idx
-    ON products(category_id);
+    CREATE INDEX IF NOT EXISTS offerings_category_id_idx
+    ON offerings(category_id);
   `);
 
   await pool.query(`
-    DROP INDEX IF EXISTS products_template_key_unique_idx;
+    DROP INDEX IF EXISTS offerings_template_key_unique_idx;
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS coded_template_products (
-      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+    CREATE TABLE IF NOT EXISTS coded_template_offerings (
+      offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       template_key TEXT NOT NULL,
       site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -1146,8 +1147,8 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS builder_products (
-      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+    CREATE TABLE IF NOT EXISTS builder_offerings (
+      offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       template_key TEXT NOT NULL,
       site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -1156,8 +1157,8 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS general_products (
-      product_id ${productIdType} PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+    CREATE TABLE IF NOT EXISTS general_offerings (
+      offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
       stock_quantity INT NOT NULL DEFAULT 0,
@@ -1169,32 +1170,32 @@ async function ensureProductTablesMigration() {
       owner_vendor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT general_products_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT general_products_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
-      CONSTRAINT general_products_cost_price_check CHECK (cost_price >= 0),
-      CONSTRAINT general_products_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
-      CONSTRAINT general_products_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
+      CONSTRAINT general_offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT general_offerings_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
+      CONSTRAINT general_offerings_cost_price_check CHECK (cost_price >= 0),
+      CONSTRAINT general_offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT general_offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
   `);
 
   await pool.query(`
-    ALTER TABLE general_products
+    ALTER TABLE general_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(`
-    INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+    INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
     SELECT
-      products.id,
-      products.template_key,
+      offerings.id,
+      offerings.template_key,
       CASE
-        WHEN jsonb_typeof(products.config -> 'siteDefaults') = 'object' THEN products.config -> 'siteDefaults'
+        WHEN jsonb_typeof(offerings.config -> 'siteDefaults') = 'object' THEN offerings.config -> 'siteDefaults'
         ELSE '{}'::jsonb
       END
-    FROM products
-    WHERE products.product_type = 'coded_template'
-    ON CONFLICT (product_id) DO UPDATE
+    FROM offerings
+    WHERE offerings.offering_type = 'coded_template'
+    ON CONFLICT (offering_id) DO UPDATE
     SET
       template_key = EXCLUDED.template_key,
       site_defaults = EXCLUDED.site_defaults,
@@ -1202,17 +1203,17 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    INSERT INTO builder_products (product_id, template_key, site_defaults)
+    INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
     SELECT
-      products.id,
-      products.template_key,
+      offerings.id,
+      offerings.template_key,
       CASE
-        WHEN jsonb_typeof(products.config -> 'siteDefaults') = 'object' THEN products.config -> 'siteDefaults'
+        WHEN jsonb_typeof(offerings.config -> 'siteDefaults') = 'object' THEN offerings.config -> 'siteDefaults'
         ELSE '{}'::jsonb
       END
-    FROM products
-    WHERE products.product_type = 'builder'
-    ON CONFLICT (product_id) DO UPDATE
+    FROM offerings
+    WHERE offerings.offering_type = 'builder'
+    ON CONFLICT (offering_id) DO UPDATE
     SET
       template_key = EXCLUDED.template_key,
       site_defaults = EXCLUDED.site_defaults,
@@ -1220,8 +1221,8 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    INSERT INTO general_products (
-      product_id,
+    INSERT INTO general_offerings (
+      offering_id,
       fulfillment_type,
       track_inventory,
       stock_quantity,
@@ -1233,22 +1234,22 @@ async function ensureProductTablesMigration() {
       owner_vendor_user_id
     )
     SELECT
-      products.id,
-      products.fulfillment_type,
-      products.track_inventory,
-      products.stock_quantity,
-      products.low_stock_threshold,
-      products.allow_backorder,
+      offerings.id,
+      offerings.fulfillment_type,
+      offerings.track_inventory,
+      offerings.stock_quantity,
+      offerings.low_stock_threshold,
+      offerings.allow_backorder,
       0,
       '',
       CASE
-        WHEN COALESCE(products.config -> 'generalProduct' ->> 'ownerType', '') = 'vendor' THEN 'vendor'
+        WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor' THEN 'vendor'
         ELSE 'internal'
       END,
       ${ownerVendorUserIdSelectSql}
-    FROM products
-    WHERE products.product_type = 'general_product'
-    ON CONFLICT (product_id) DO UPDATE
+    FROM offerings
+    WHERE offerings.offering_type = 'general_offering'
+    ON CONFLICT (offering_id) DO UPDATE
     SET
       fulfillment_type = EXCLUDED.fulfillment_type,
       track_inventory = EXCLUDED.track_inventory,
@@ -1261,52 +1262,52 @@ async function ensureProductTablesMigration() {
   `);
 
   await pool.query(`
-    DELETE FROM coded_template_products
-    WHERE product_id IN (
+    DELETE FROM coded_template_offerings
+    WHERE offering_id IN (
       SELECT id
-      FROM products
-      WHERE product_type <> 'coded_template'
+      FROM offerings
+      WHERE offering_type <> 'coded_template'
     );
   `);
 
   await pool.query(`
-    DELETE FROM builder_products
-    WHERE product_id IN (
+    DELETE FROM builder_offerings
+    WHERE offering_id IN (
       SELECT id
-      FROM products
-      WHERE product_type <> 'builder'
+      FROM offerings
+      WHERE offering_type <> 'builder'
     );
   `);
 
   await pool.query(`
-    DELETE FROM general_products
-    WHERE product_id IN (
+    DELETE FROM general_offerings
+    WHERE offering_id IN (
       SELECT id
-      FROM products
-      WHERE product_type <> 'general_product'
+      FROM offerings
+      WHERE offering_type <> 'general_offering'
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS coded_template_products_template_key_idx
-    ON coded_template_products(template_key);
+    CREATE INDEX IF NOT EXISTS coded_template_offerings_template_key_idx
+    ON coded_template_offerings(template_key);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS builder_products_template_key_idx
-    ON builder_products(template_key);
+    CREATE INDEX IF NOT EXISTS builder_offerings_template_key_idx
+    ON builder_offerings(template_key);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS general_products_owner_vendor_user_id_idx
-    ON general_products(owner_vendor_user_id);
+    CREATE INDEX IF NOT EXISTS general_offerings_owner_vendor_user_id_idx
+    ON general_offerings(owner_vendor_user_id);
   `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_sites (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      product_id TEXT REFERENCES products(id) ON DELETE SET NULL,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
       title TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
       site_type TEXT NOT NULL,
@@ -1367,20 +1368,20 @@ async function ensureBlogTablesMigration() {
 async function ensureCommerceTablesMigration() {
   const pool = getPool();
   const userIdType = await getColumnTypeSql("users", "id");
-  const productIdType = await getColumnTypeSql("products", "id");
+  const offeringIdType = await getColumnTypeSql("offerings", "id");
   const affiliateUserIdType = await getColumnTypeSql("affiliate_accounts", "user_id", userIdType);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS shopping_cart_items (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
       quantity INT NOT NULL DEFAULT 1,
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT shopping_cart_items_quantity_check CHECK (quantity > 0),
-      CONSTRAINT shopping_cart_items_user_product_unique UNIQUE (user_id, product_id)
+      CONSTRAINT shopping_cart_items_user_offering_unique UNIQUE (user_id, offering_id)
     );
   `);
 
@@ -1443,10 +1444,10 @@ async function ensureCommerceTablesMigration() {
     CREATE TABLE IF NOT EXISTS commerce_order_items (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
-      product_id ${productIdType} REFERENCES products(id) ON DELETE SET NULL,
-      product_name TEXT NOT NULL,
-      product_slug TEXT NOT NULL,
-      product_type TEXT NOT NULL,
+      offering_id ${offeringIdType} REFERENCES offerings(id) ON DELETE SET NULL,
+      offering_name TEXT NOT NULL,
+      offering_slug TEXT NOT NULL,
+      offering_type TEXT NOT NULL,
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       quantity INT NOT NULL DEFAULT 1,
       unit_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
@@ -1455,7 +1456,7 @@ async function ensureCommerceTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT commerce_order_items_quantity_check CHECK (quantity > 0),
-      CONSTRAINT commerce_order_items_product_type_check CHECK (product_type IN ('coded_template', 'builder', 'general_product')),
+      CONSTRAINT commerce_order_items_offering_type_check CHECK (offering_type IN ('coded_template', 'builder', 'general_offering')),
       CONSTRAINT commerce_order_items_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
@@ -1541,7 +1542,7 @@ async function ensureCommerceTablesMigration() {
     CREATE TABLE IF NOT EXISTS commerce_entitlements (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
       order_id TEXT NOT NULL REFERENCES commerce_orders(id) ON DELETE CASCADE,
       order_item_id TEXT REFERENCES commerce_order_items(id) ON DELETE SET NULL,
       status TEXT NOT NULL DEFAULT 'active',
@@ -1559,8 +1560,745 @@ async function ensureCommerceTablesMigration() {
 
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS commerce_entitlements_unique_active_idx
-    ON commerce_entitlements(user_id, product_id, order_id);
+    ON commerce_entitlements(user_id, offering_id, order_id);
   `);
+}
+
+async function ensureCoreDatabaseRefactorMigration() {
+  const pool = getPool();
+  const userIdType = await getColumnTypeSql("users", "id", "TEXT");
+  const weddingSiteIdType = await getColumnTypeSql("wedding_sites", "id", "TEXT");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offerings (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      legacy_offering_id TEXT UNIQUE,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      summary TEXT,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      offering_type TEXT NOT NULL,
+      base_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      currency TEXT NOT NULL DEFAULT 'VND',
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published', 'archived')),
+      CONSTRAINT offerings_type_check CHECK (offering_type IN ('digital_template', 'wedding_site', 'physical_product', 'service', 'creator_service', 'subscription', 'addon', 'experience'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS offerings_type_status_idx ON offerings(offering_type, status, updated_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS digital_template_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      template_key TEXT NOT NULL,
+      template_engine TEXT NOT NULL DEFAULT 'coded',
+      site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT digital_template_offerings_engine_check CHECK (template_engine IN ('coded', 'builder', 'external'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      template_key TEXT NOT NULL,
+      builder_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS physical_product_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      sku TEXT NOT NULL DEFAULT '',
+      track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
+      stock_quantity INT NOT NULL DEFAULT 0,
+      low_stock_threshold INT NOT NULL DEFAULT 0,
+      allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
+      cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS service_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      service_kind TEXT NOT NULL DEFAULT 'general',
+      duration_minutes INT NOT NULL DEFAULT 0,
+      requires_consultation BOOLEAN NOT NULL DEFAULT TRUE,
+      service_area TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_service_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      creator_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      service_kind TEXT NOT NULL DEFAULT 'creator_service',
+      delivery_days INT NOT NULL DEFAULT 0,
+      revision_limit INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS experience_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      experience_kind TEXT NOT NULL DEFAULT 'wedding_experience',
+      location_note TEXT NOT NULL DEFAULT '',
+      capacity_min INT NOT NULL DEFAULT 0,
+      capacity_max INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS subscription_offerings (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      billing_period TEXT NOT NULL DEFAULT 'month',
+      feature_set JSONB NOT NULL DEFAULT '{}'::jsonb,
+      trial_days INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT subscription_offerings_period_check CHECK (billing_period IN ('month', 'year', 'lifetime'))
+    );
+  `);
+
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS media_asset_links (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      media_asset_id TEXT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT media_asset_links_role_check CHECK (role IN ('thumbnail', 'gallery', 'hero', 'preview', 'background_music', 'video', 'attachment'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS media_asset_links_target_idx ON media_asset_links(target_type, target_id, role, sort_order);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS media_asset_links_media_asset_id_idx ON media_asset_links(media_asset_id);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_pages (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      slug TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'draft',
+      settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (wedding_site_id, slug)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_sections (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      page_id TEXT REFERENCES wedding_site_pages(id) ON DELETE CASCADE,
+      section_type TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      content JSONB NOT NULL DEFAULT '{}'::jsonb,
+      settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_guests (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      full_name TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      group_name TEXT NOT NULL DEFAULT '',
+      invite_code TEXT,
+      status TEXT NOT NULL DEFAULT 'invited',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (wedding_site_id, invite_code)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_rsvps (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      guest_id TEXT REFERENCES wedding_site_guests(id) ON DELETE SET NULL,
+      attendee_name TEXT NOT NULL DEFAULT '',
+      attendee_count INT NOT NULL DEFAULT 1,
+      response_status TEXT NOT NULL DEFAULT 'pending',
+      message TEXT NOT NULL DEFAULT '',
+      responded_at TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT wedding_site_rsvps_status_check CHECK (response_status IN ('pending', 'accepted', 'declined', 'maybe'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+      venue_name TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_site_galleries (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      title TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_profiles (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      display_name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      bio TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_services (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      base_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_portfolios (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_reviews (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      rating INT NOT NULL DEFAULT 5,
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'published',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT creator_reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS creator_orders (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      service_id TEXT REFERENCES creator_services(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendors (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      slug TEXT NOT NULL UNIQUE,
+      display_name TEXT NOT NULL,
+      vendor_type TEXT NOT NULL DEFAULT 'general',
+      status TEXT NOT NULL DEFAULT 'draft',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO vendors (user_id, slug, display_name, vendor_type, status)
+    SELECT
+      users.id,
+      COALESCE(NULLIF(user_profiles.vendor_portal_slug, ''), 'vendor-' || users.id::text),
+      COALESCE(NULLIF(user_profiles.store_name, ''), NULLIF(user_profiles.business_name, ''), NULLIF(user_profiles.display_name, ''), users.username),
+      'general',
+      'published'
+    FROM users
+    LEFT JOIN user_profiles ON user_profiles.user_id = users.id
+    WHERE users.role = 'VENDOR'
+    ON CONFLICT (slug) DO UPDATE
+    SET user_id = EXCLUDED.user_id,
+        display_name = EXCLUDED.display_name,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_profiles (
+      vendor_id TEXT PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
+      business_name TEXT NOT NULL DEFAULT '',
+      contact_email TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_services (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS regions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      region_type TEXT NOT NULL DEFAULT 'city',
+      parent_id TEXT REFERENCES regions(id) ON DELETE SET NULL,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_regions (
+      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      region_id TEXT NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
+      service_mode TEXT NOT NULL DEFAULT 'available',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (vendor_id, region_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS shipping_regions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      region_id TEXT NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
+      label TEXT NOT NULL,
+      base_fee NUMERIC(12,2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS service_regions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      region_id TEXT NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
+      availability_status TEXT NOT NULL DEFAULT 'available',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (offering_id, region_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_reviews (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      rating INT NOT NULL DEFAULT 5,
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'published',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_pricing (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE CASCADE,
+      price_type TEXT NOT NULL DEFAULT 'base',
+      amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      currency TEXT NOT NULL DEFAULT 'VND',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_fulfillments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      fulfillment_type TEXT NOT NULL DEFAULT 'service',
+      lead_time_days INT NOT NULL DEFAULT 0,
+      capacity INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      booking_number TEXT NOT NULL UNIQUE,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      scheduled_at TIMESTAMPTZ,
+      total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_items (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      vendor_id TEXT REFERENCES vendors(id) ON DELETE SET NULL,
+      creator_profile_id TEXT REFERENCES creator_profiles(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      quantity INT NOT NULL DEFAULT 1,
+      unit_price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      line_total NUMERIC(12,2) NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_status_logs (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      actor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      from_status TEXT,
+      to_status TEXT NOT NULL,
+      note TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_payments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+      provider TEXT NOT NULL DEFAULT '',
+      amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS digital_access_grants (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE CASCADE,
+      source_type TEXT NOT NULL DEFAULT 'manual',
+      source_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS subscription_access (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      current_period_start TIMESTAMPTZ,
+      current_period_end TIMESTAMPTZ,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS feature_access (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      feature_key TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      credit_balance INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, feature_key)
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO digital_access_grants (
+      user_id,
+      offering_id,
+      source_type,
+      source_id,
+      status,
+      starts_at,
+      metadata,
+      created_at,
+      updated_at
+    )
+    SELECT
+      commerce_entitlements.user_id,
+      commerce_entitlements.offering_id::text,
+      'commerce_entitlement',
+      commerce_entitlements.id,
+      commerce_entitlements.status,
+      commerce_entitlements.created_at,
+      commerce_entitlements.metadata,
+      commerce_entitlements.created_at,
+      commerce_entitlements.updated_at
+    FROM commerce_entitlements
+    ON CONFLICT DO NOTHING;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_collections (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_variants (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      slug TEXT NOT NULL,
+      name TEXT NOT NULL,
+      variant_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (offering_id, slug)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_tags (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_styles (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_categories (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      parent_id TEXT REFERENCES template_categories(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_analytics (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      metric_key TEXT NOT NULL,
+      metric_value NUMERIC(14,2) NOT NULL DEFAULT 0,
+      bucket_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (offering_id, metric_key, bucket_date)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tags (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      tag_type TEXT NOT NULL DEFAULT 'general',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tag_relations (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (tag_id, target_type, target_id)
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS tag_relations_target_idx ON tag_relations(target_type, target_id, sort_order);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS activities (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      activity_type TEXT NOT NULL,
+      verb TEXT NOT NULL,
+      summary TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS activity_actors (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+      actor_type TEXT NOT NULL,
+      actor_id TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'actor',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS activity_targets (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'target',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS activity_targets_lookup_idx ON activity_targets(target_type, target_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS activity_actors_lookup_idx ON activity_actors(actor_type, actor_id, created_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_views (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      visitor_token TEXT NOT NULL DEFAULT '',
+      source TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_shares (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      channel TEXT NOT NULL DEFAULT '',
+      visitor_token TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_conversions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      conversion_type TEXT NOT NULL DEFAULT 'checkout',
+      source_id TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS template_views_offering_created_idx ON template_views(offering_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS template_shares_offering_created_idx ON template_shares(offering_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS template_conversions_offering_created_idx ON template_conversions(offering_id, created_at DESC);`);
 }
 
 async function ensureVendorOrdersMigration() {
@@ -1615,18 +2353,18 @@ async function ensureVendorOrdersMigration() {
   `);
 }
 
-async function ensureVendorProductSubmissionsMigration() {
+async function ensureVendorOfferingSubmissionsMigration() {
   const pool = getPool();
   const userIdType = await getColumnTypeSql("users", "id");
-  const productIdType = await getColumnTypeSql("products", "id");
-  const categoryIdType = await getColumnTypeSql("product_categories", "id");
+  const offeringIdType = await getColumnTypeSql("offerings", "id");
+  const categoryIdType = await getColumnTypeSql("offering_categories", "id");
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_product_submissions (
+    CREATE TABLE IF NOT EXISTS vendor_offering_submissions (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      linked_product_id ${productIdType} REFERENCES products(id) ON DELETE SET NULL,
-      category_id ${categoryIdType} REFERENCES product_categories(id) ON DELETE SET NULL,
+      linked_offering_id ${offeringIdType} REFERENCES offerings(id) ON DELETE SET NULL,
+      category_id ${categoryIdType} REFERENCES offering_categories(id) ON DELETE SET NULL,
       submission_type TEXT NOT NULL DEFAULT 'create',
       review_status TEXT NOT NULL DEFAULT 'draft',
       name TEXT NOT NULL DEFAULT '',
@@ -1649,59 +2387,59 @@ async function ensureVendorProductSubmissionsMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT vendor_product_submissions_submission_type_check
+      CONSTRAINT vendor_offering_submissions_submission_type_check
       CHECK (submission_type IN ('create', 'update', 'discontinue')),
-      CONSTRAINT vendor_product_submissions_review_status_check
+      CONSTRAINT vendor_offering_submissions_review_status_check
       CHECK (review_status IN ('draft', 'submitted', 'under_review', 'changes_requested', 'approved', 'rejected', 'archived')),
-      CONSTRAINT vendor_product_submissions_fulfillment_type_check
+      CONSTRAINT vendor_offering_submissions_fulfillment_type_check
       CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT vendor_product_submissions_purchase_cost_check
+      CONSTRAINT vendor_offering_submissions_purchase_cost_check
       CHECK (purchase_cost >= 0),
-      CONSTRAINT vendor_product_submissions_admin_sell_price_check
+      CONSTRAINT vendor_offering_submissions_admin_sell_price_check
       CHECK (admin_sell_price IS NULL OR admin_sell_price >= 0),
-      CONSTRAINT vendor_product_submissions_stock_quantity_check
+      CONSTRAINT vendor_offering_submissions_stock_quantity_check
       CHECK (proposed_stock_quantity >= 0 OR allow_backorder = TRUE),
-      CONSTRAINT vendor_product_submissions_low_stock_threshold_check
+      CONSTRAINT vendor_offering_submissions_low_stock_threshold_check
       CHECK (low_stock_threshold >= 0)
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS vendor_product_submissions_vendor_user_id_idx
-    ON vendor_product_submissions(vendor_user_id, review_status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS vendor_offering_submissions_vendor_user_id_idx
+    ON vendor_offering_submissions(vendor_user_id, review_status, updated_at DESC);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS vendor_product_submissions_review_status_idx
-    ON vendor_product_submissions(review_status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS vendor_offering_submissions_review_status_idx
+    ON vendor_offering_submissions(review_status, updated_at DESC);
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_product_submission_events (
+    CREATE TABLE IF NOT EXISTS vendor_offering_submission_events (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      submission_id TEXT NOT NULL REFERENCES vendor_product_submissions(id) ON DELETE CASCADE,
+      submission_id TEXT NOT NULL REFERENCES vendor_offering_submissions(id) ON DELETE CASCADE,
       actor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       actor_type TEXT NOT NULL DEFAULT 'system',
       event_type TEXT NOT NULL DEFAULT 'note_added',
       message TEXT NOT NULL DEFAULT '',
       payload JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT vendor_product_submission_events_actor_type_check
+      CONSTRAINT vendor_offering_submission_events_actor_type_check
       CHECK (actor_type IN ('admin', 'vendor', 'system')),
-      CONSTRAINT vendor_product_submission_events_event_type_check
+      CONSTRAINT vendor_offering_submission_events_event_type_check
       CHECK (event_type IN ('created', 'submitted', 'review_started', 'changes_requested', 'approved', 'rejected', 'updated', 'archived', 'note_added'))
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS vendor_product_submission_events_submission_id_idx
-    ON vendor_product_submission_events(submission_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS vendor_offering_submission_events_submission_id_idx
+    ON vendor_offering_submission_events(submission_id, created_at DESC);
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS product_vendor_suppliers (
+    CREATE TABLE IF NOT EXISTS offering_vendor_suppliers (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
       vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       status TEXT NOT NULL DEFAULT 'active',
       source TEXT NOT NULL DEFAULT 'admin',
@@ -1715,29 +2453,29 @@ async function ensureVendorProductSubmissionsMigration() {
       approved_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT product_vendor_suppliers_status_check CHECK (status IN ('active', 'paused', 'suspended', 'revoked')),
-      CONSTRAINT product_vendor_suppliers_source_check CHECK (source IN ('admin', 'proposal', 'supplier_request')),
-      CONSTRAINT product_vendor_suppliers_purchase_cost_check CHECK (purchase_cost >= 0),
-      CONSTRAINT product_vendor_suppliers_lead_time_days_check CHECK (lead_time_days >= 0),
-      CONSTRAINT product_vendor_suppliers_monthly_capacity_check CHECK (monthly_capacity >= 0),
-      CONSTRAINT product_vendor_suppliers_product_vendor_unique UNIQUE (product_id, vendor_user_id)
+      CONSTRAINT offering_vendor_suppliers_status_check CHECK (status IN ('active', 'paused', 'suspended', 'revoked')),
+      CONSTRAINT offering_vendor_suppliers_source_check CHECK (source IN ('admin', 'proposal', 'supplier_request')),
+      CONSTRAINT offering_vendor_suppliers_purchase_cost_check CHECK (purchase_cost >= 0),
+      CONSTRAINT offering_vendor_suppliers_lead_time_days_check CHECK (lead_time_days >= 0),
+      CONSTRAINT offering_vendor_suppliers_monthly_capacity_check CHECK (monthly_capacity >= 0),
+      CONSTRAINT offering_vendor_suppliers_offering_vendor_unique UNIQUE (offering_id, vendor_user_id)
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS product_vendor_suppliers_vendor_user_id_idx
-    ON product_vendor_suppliers(vendor_user_id, status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS offering_vendor_suppliers_vendor_user_id_idx
+    ON offering_vendor_suppliers(vendor_user_id, status, updated_at DESC);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS product_vendor_suppliers_product_id_idx
-    ON product_vendor_suppliers(product_id, status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS offering_vendor_suppliers_offering_id_idx
+    ON offering_vendor_suppliers(offering_id, status, updated_at DESC);
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_product_supplier_requests (
+    CREATE TABLE IF NOT EXISTS vendor_offering_supplier_requests (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      product_id ${productIdType} NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
       vendor_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       review_status TEXT NOT NULL DEFAULT 'submitted',
       purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
@@ -1755,31 +2493,31 @@ async function ensureVendorProductSubmissionsMigration() {
       reviewed_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT vendor_product_supplier_requests_review_status_check CHECK (review_status IN ('submitted', 'under_review', 'changes_requested', 'approved', 'rejected', 'archived')),
-      CONSTRAINT vendor_product_supplier_requests_purchase_cost_check CHECK (purchase_cost >= 0),
-      CONSTRAINT vendor_product_supplier_requests_lead_time_days_check CHECK (lead_time_days >= 0),
-      CONSTRAINT vendor_product_supplier_requests_monthly_capacity_check CHECK (monthly_capacity >= 0)
+      CONSTRAINT vendor_offering_supplier_requests_review_status_check CHECK (review_status IN ('submitted', 'under_review', 'changes_requested', 'approved', 'rejected', 'archived')),
+      CONSTRAINT vendor_offering_supplier_requests_purchase_cost_check CHECK (purchase_cost >= 0),
+      CONSTRAINT vendor_offering_supplier_requests_lead_time_days_check CHECK (lead_time_days >= 0),
+      CONSTRAINT vendor_offering_supplier_requests_monthly_capacity_check CHECK (monthly_capacity >= 0)
     );
   `);
 
   await pool.query(`
-    DROP INDEX IF EXISTS vendor_product_supplier_requests_open_uidx;
+    DROP INDEX IF EXISTS vendor_offering_supplier_requests_open_uidx;
   `);
 
   await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS vendor_product_supplier_requests_active_uidx
-    ON vendor_product_supplier_requests(product_id, vendor_user_id)
+    CREATE UNIQUE INDEX IF NOT EXISTS vendor_offering_supplier_requests_active_uidx
+    ON vendor_offering_supplier_requests(offering_id, vendor_user_id)
     WHERE review_status IN ('submitted', 'under_review', 'changes_requested');
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS vendor_product_supplier_requests_vendor_user_id_idx
-    ON vendor_product_supplier_requests(vendor_user_id, review_status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS vendor_offering_supplier_requests_vendor_user_id_idx
+    ON vendor_offering_supplier_requests(vendor_user_id, review_status, updated_at DESC);
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS vendor_product_supplier_requests_review_status_idx
-    ON vendor_product_supplier_requests(review_status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS vendor_offering_supplier_requests_review_status_idx
+    ON vendor_offering_supplier_requests(review_status, updated_at DESC);
   `);
 }
 
@@ -2306,7 +3044,7 @@ async function ensureContentCommentsMigration() {
    approved_by ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-   CONSTRAINT content_comments_target_type_check CHECK (target_type IN ('product', 'blog_post', 'page', 'invitation')),
+   CONSTRAINT content_comments_target_type_check CHECK (target_type IN ('offering', 'blog_post', 'page', 'invitation')),
    CONSTRAINT content_comments_status_check CHECK (status IN ('pending', 'approved', 'rejected', 'spam', 'deleted'))
   );
  `);
@@ -2327,15 +3065,15 @@ async function ensureContentCommentsMigration() {
  `);
 }
 
-async function ensureProductVendorPaperTypeMigration() {
+async function ensureOfferingVendorPaperTypeMigration() {
   const pool = getPool();
-  await pool.query(`ALTER TABLE products DROP CONSTRAINT IF EXISTS products_type_check`);
+  await pool.query(`ALTER TABLE offerings DROP CONSTRAINT IF EXISTS offerings_type_check`);
   await pool.query(`ALTER TABLE wedding_sites DROP CONSTRAINT IF EXISTS wedding_sites_type_check`);
-  await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_product_type_check`);
+  await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_offering_type_check`);
   await pool.query(`
-    UPDATE products
-    SET product_type = 'builder'
-    WHERE product_type = 'builder_template'
+    UPDATE offerings
+    SET offering_type = 'builder'
+    WHERE offering_type = 'builder_template'
   `);
   await pool.query(`
     UPDATE wedding_sites
@@ -2344,28 +3082,28 @@ async function ensureProductVendorPaperTypeMigration() {
   `);
   await pool.query(`
     UPDATE commerce_order_items
-    SET product_type = 'builder'
-    WHERE product_type = 'builder_template'
+    SET offering_type = 'builder'
+    WHERE offering_type = 'builder_template'
   `);
   await pool.query(`
-    UPDATE products
-    SET product_type = 'general_product'
-    WHERE product_type = 'vendor_paper'
+    UPDATE offerings
+    SET offering_type = 'general_offering'
+    WHERE offering_type = 'vendor_paper'
   `);
   await pool.query(`
     UPDATE commerce_order_items
-    SET product_type = 'general_product'
-    WHERE product_type = 'vendor_paper'
+    SET offering_type = 'general_offering'
+    WHERE offering_type = 'vendor_paper'
   `);
   await pool.query(`
-    ALTER TABLE products
-    ADD CONSTRAINT products_type_check
-    CHECK (product_type IN ('coded_template', 'builder', 'general_product'))
+    ALTER TABLE offerings
+    ADD CONSTRAINT offerings_type_check
+    CHECK (offering_type IN ('coded_template', 'builder', 'general_offering'))
   `);
   await pool.query(`
     ALTER TABLE commerce_order_items
-    ADD CONSTRAINT commerce_order_items_product_type_check
-    CHECK (product_type IN ('coded_template', 'builder', 'general_product'))
+    ADD CONSTRAINT commerce_order_items_offering_type_check
+    CHECK (offering_type IN ('coded_template', 'builder', 'general_offering'))
   `);
   await pool.query(`
     ALTER TABLE wedding_sites
@@ -2374,11 +3112,11 @@ async function ensureProductVendorPaperTypeMigration() {
   `);
 }
 
-async function ensureProductVendorCostFieldsMigration() {
+async function ensureOfferingVendorCostFieldsMigration() {
   const pool = getPool();
 
   await pool.query(`
-    ALTER TABLE general_products
+    ALTER TABLE general_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
   `);
@@ -2389,27 +3127,27 @@ async function ensureProductVendorCostFieldsMigration() {
       IF NOT EXISTS (
         SELECT 1
         FROM pg_constraint
-        WHERE conname = 'general_products_cost_price_check'
+        WHERE conname = 'general_offerings_cost_price_check'
       ) THEN
-        ALTER TABLE general_products
-        ADD CONSTRAINT general_products_cost_price_check
+        ALTER TABLE general_offerings
+        ADD CONSTRAINT general_offerings_cost_price_check
         CHECK (cost_price >= 0);
       END IF;
     END $$;
   `);
 }
 
-async function ensureProductSeed() {
+async function ensureOfferingSeed() {
   const pool = getPool();
 
-  if (productSeedCatalog.categories.length === 0 || productSeedCatalog.products.length === 0) {
+  if (offeringSeedCatalog.categories.length === 0 || offeringSeedCatalog.offerings.length === 0) {
     return;
   }
 
-  for (const category of productSeedCatalog.categories) {
+  for (const category of offeringSeedCatalog.categories) {
     await pool.query(
       `
-          INSERT INTO product_categories (slug, name, description, status)
+          INSERT INTO offering_categories (slug, name, description, status)
           VALUES ($1, $2, $3, $4)
           ON CONFLICT (slug) DO UPDATE
           SET
@@ -2422,17 +3160,17 @@ async function ensureProductSeed() {
     );
   }
 
-  for (const product of productSeedCatalog.products) {
+  for (const offering of offeringSeedCatalog.offerings) {
     const created = await pool.query<{ id: string }>(
       `
-          INSERT INTO products (
+          INSERT INTO offerings (
             slug,
             category_id,
             name,
             excerpt,
             description,
             status,
-            product_type,
+            offering_type,
             template_key,
             thumbnail_url,
             price,
@@ -2460,7 +3198,7 @@ async function ensureProductSeed() {
             $12,
             $13,
             $14
-          FROM product_categories categories
+          FROM offering_categories categories
           WHERE categories.slug = $15
           ON CONFLICT (slug) DO UPDATE
           SET
@@ -2469,7 +3207,7 @@ async function ensureProductSeed() {
             excerpt = EXCLUDED.excerpt,
             description = EXCLUDED.description,
             status = EXCLUDED.status,
-            product_type = EXCLUDED.product_type,
+            offering_type = EXCLUDED.offering_type,
             template_key = EXCLUDED.template_key,
             thumbnail_url = EXCLUDED.thumbnail_url,
             price = EXCLUDED.price,
@@ -2483,58 +3221,58 @@ async function ensureProductSeed() {
           RETURNING id
         `,
       [
-        product.slug,
-        product.name,
-        product.excerpt,
-        product.description,
-        product.productType,
-        product.templateKey,
-        product.thumbnailUrl,
-        product.price,
-        product.fulfillmentType,
-        product.trackInventory ?? false,
-        product.stockQuantity ?? 0,
-        product.lowStockThreshold ?? 0,
-        product.allowBackorder ?? false,
-        product.config,
-        product.categorySlug,
+        offering.slug,
+        offering.name,
+        offering.excerpt,
+        offering.description,
+        offering.offeringType,
+        offering.templateKey,
+        offering.thumbnailUrl,
+        offering.price,
+        offering.fulfillmentType,
+        offering.trackInventory ?? false,
+        offering.stockQuantity ?? 0,
+        offering.lowStockThreshold ?? 0,
+        offering.allowBackorder ?? false,
+        offering.config,
+        offering.categorySlug,
       ]
     );
 
-    const productId = created.rows[0]?.id;
-    if (!productId) {
+    const offeringId = created.rows[0]?.id;
+    if (!offeringId) {
       continue;
     }
 
-    await pool.query("DELETE FROM coded_template_products WHERE product_id = $1", [productId]);
-    await pool.query("DELETE FROM builder_products WHERE product_id = $1", [productId]);
-    await pool.query("DELETE FROM general_products WHERE product_id = $1", [productId]);
+    await pool.query("DELETE FROM coded_template_offerings WHERE offering_id = $1", [offeringId]);
+    await pool.query("DELETE FROM builder_offerings WHERE offering_id = $1", [offeringId]);
+    await pool.query("DELETE FROM general_offerings WHERE offering_id = $1", [offeringId]);
 
-    if (product.productType === "coded_template") {
+    if (offering.offeringType === "coded_template") {
       await pool.query(
         `
-            INSERT INTO coded_template_products (product_id, template_key, site_defaults)
+            INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
             VALUES ($1, $2, $3)
           `,
-        [productId, product.templateKey, product.config.siteDefaults ?? {}]
+        [offeringId, offering.templateKey, offering.config.siteDefaults ?? {}]
       );
     }
 
-    if (product.productType === "builder") {
+    if (offering.offeringType === "builder") {
       await pool.query(
         `
-            INSERT INTO builder_products (product_id, template_key, site_defaults)
+            INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
             VALUES ($1, $2, $3)
           `,
-        [productId, product.templateKey, product.config.siteDefaults ?? {}]
+        [offeringId, offering.templateKey, offering.config.siteDefaults ?? {}]
       );
     }
 
-    if (product.productType === "general_product") {
+    if (offering.offeringType === "general_offering") {
       await pool.query(
         `
-            INSERT INTO general_products (
-              product_id,
+            INSERT INTO general_offerings (
+              offering_id,
               fulfillment_type,
               track_inventory,
               stock_quantity,
@@ -2548,29 +3286,29 @@ async function ensureProductSeed() {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL)
           `,
         [
-          productId,
-          product.fulfillmentType,
-          product.trackInventory ?? false,
-          product.stockQuantity ?? 0,
-          product.lowStockThreshold ?? 0,
-          product.allowBackorder ?? false,
-          product.config.generalProduct?.costPrice ?? 0,
-          product.config.generalProduct?.vendorSku ?? "",
-          product.config.generalProduct?.ownerType === "vendor" ? "vendor" : "internal",
+          offeringId,
+          offering.fulfillmentType,
+          offering.trackInventory ?? false,
+          offering.stockQuantity ?? 0,
+          offering.lowStockThreshold ?? 0,
+          offering.allowBackorder ?? false,
+          offering.config.generalOffering?.costPrice ?? 0,
+          offering.config.generalOffering?.vendorSku ?? "",
+          offering.config.generalOffering?.ownerType === "vendor" ? "vendor" : "internal",
         ]
       );
     }
   }
 }
 
-async function ensureProductTemplateKeyUniqueness() {
+async function ensureOfferingTemplateKeyUniqueness() {
   const pool = getPool();
-  await pool.query(`DROP INDEX IF EXISTS products_product_type_template_key_unique_idx`);
+  await pool.query(`DROP INDEX IF EXISTS offerings_offering_type_template_key_unique_idx`);
 
   const duplicates = await pool.query<{ template_key: string; total: string }>(`
     SELECT template_key, COUNT(*)::text AS total
-    FROM products
-    WHERE product_type = 'coded_template'
+    FROM offerings
+    WHERE offering_type = 'coded_template'
     GROUP BY template_key
     HAVING COUNT(*) > 1
   `);
@@ -2584,18 +3322,18 @@ async function ensureProductTemplateKeyUniqueness() {
   }
 
   await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS products_coded_template_key_unique_idx
-    ON products(template_key)
-    WHERE product_type = 'coded_template';
+    CREATE UNIQUE INDEX IF NOT EXISTS offerings_coded_template_key_unique_idx
+    ON offerings(template_key)
+    WHERE offering_type = 'coded_template';
   `);
 }
 
-export async function ensureProductCatalogReady() {
+export async function ensureOfferingCatalogReady() {
   await ensureDb();
-  await ensureProductTablesMigration();
-  await ensureProductVendorPaperTypeMigration();
-  await ensureProductSeed();
-  await ensureProductTemplateKeyUniqueness();
+  await ensureOfferingTablesMigration();
+  await ensureOfferingVendorPaperTypeMigration();
+  await ensureOfferingSeed();
+  await ensureOfferingTemplateKeyUniqueness();
 }
 
 async function ensureManagedPagesSeed() {
@@ -2848,9 +3586,9 @@ export async function ensureDb() {
         globalForDb.internalAccountsMigrationDone = true;
       }
 
-      if (!globalForDb.productTablesMigrationDone) {
-        await ensureProductTablesMigration();
-        globalForDb.productTablesMigrationDone = true;
+      if (!globalForDb.offeringTablesMigrationDone) {
+        await ensureOfferingTablesMigration();
+        globalForDb.offeringTablesMigrationDone = true;
       }
 
       if (!globalForDb.blogTablesMigrationDone) {
@@ -2863,14 +3601,14 @@ export async function ensureDb() {
         globalForDb.commerceTablesMigrationDone = true;
       }
 
-      if (!globalForDb.productVendorPaperTypeMigrationDone) {
-        await ensureProductVendorPaperTypeMigration();
-        globalForDb.productVendorPaperTypeMigrationDone = true;
+      if (!globalForDb.offeringVendorPaperTypeMigrationDone) {
+        await ensureOfferingVendorPaperTypeMigration();
+        globalForDb.offeringVendorPaperTypeMigrationDone = true;
       }
 
-      if (!globalForDb.productVendorCostFieldsMigrationDone) {
-        await ensureProductVendorCostFieldsMigration();
-        globalForDb.productVendorCostFieldsMigrationDone = true;
+      if (!globalForDb.offeringVendorCostFieldsMigrationDone) {
+        await ensureOfferingVendorCostFieldsMigration();
+        globalForDb.offeringVendorCostFieldsMigrationDone = true;
       }
 
       if (!globalForDb.vendorOrdersMigrationDone) {
@@ -2878,9 +3616,9 @@ export async function ensureDb() {
         globalForDb.vendorOrdersMigrationDone = true;
       }
 
-      if (!globalForDb.vendorProductSubmissionsMigrationDone) {
-        await ensureVendorProductSubmissionsMigration();
-        globalForDb.vendorProductSubmissionsMigrationDone = true;
+      if (!globalForDb.vendorOfferingSubmissionsMigrationDone) {
+        await ensureVendorOfferingSubmissionsMigration();
+        globalForDb.vendorOfferingSubmissionsMigrationDone = true;
       }
 
       if (!globalForDb.vendorApplicationsMigrationDone) {
@@ -2938,15 +3676,20 @@ export async function ensureDb() {
         globalForDb.contentCommentsMigrationDone = true;
       }
 
+      if (!globalForDb.coreDatabaseRefactorMigrationDone) {
+        await ensureCoreDatabaseRefactorMigration();
+        globalForDb.coreDatabaseRefactorMigrationDone = true;
+      }
+
       const managedPagesSeedSignature = getManagedPagesSeedSignature();
       if (globalForDb.managedPagesSeedSignature !== managedPagesSeedSignature) {
         await ensureManagedPagesSeed();
         globalForDb.managedPagesSeedSignature = managedPagesSeedSignature;
       }
 
-      if (!globalForDb.productSeedDone) {
-        await ensureProductSeed();
-        globalForDb.productSeedDone = true;
+      if (!globalForDb.offeringSeedDone) {
+        await ensureOfferingSeed();
+        globalForDb.offeringSeedDone = true;
       }
 
       if (!globalForDb.blogSeedDone) {

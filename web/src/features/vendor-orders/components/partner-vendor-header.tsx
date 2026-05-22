@@ -51,10 +51,10 @@ export function PartnerVendorHeader({
       matchPrefixes: [ROUTES.PARTNER.ORDERS, ROUTES.PARTNER.ORDER("").slice(0, -1)],
     },
     {
-      href: ROUTES.PARTNER.PRODUCTS,
+      href: ROUTES.PARTNER.OFFERINGS,
       label: "Sản phẩm",
       icon: PackagePlus,
-      matchPrefixes: [ROUTES.PARTNER.PRODUCTS],
+      matchPrefixes: [ROUTES.PARTNER.OFFERINGS],
     },
     {
       href: ROUTES.PARTNER.CONFIG_ACCOUNT,

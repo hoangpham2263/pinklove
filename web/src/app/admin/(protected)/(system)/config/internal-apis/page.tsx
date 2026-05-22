@@ -14,7 +14,7 @@ const INTERNAL_API_SECTIONS = [
       {
         title: "API import sản phẩm",
         description: "Quản lý endpoint, token và phạm vi import sản phẩm từ hệ thống nội bộ hoặc bên thứ ba.",
-        href: ROUTES.ADMIN.CONFIG_INTERNAL_API_PRODUCTS,
+        href: ROUTES.ADMIN.CONFIG_INTERNAL_API_OFFERINGS,
       },
     ],
   },
@@ -35,7 +35,7 @@ export default async function AdminInternalApisPage() {
 
       <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
         <AdminOverviewCard title="Tổng API" value={1} icon={FileCode2} />
-        <AdminOverviewCard title="API đang bật" value={settings.internalApis.productsImport.enabled ? 1 : 0} icon={CheckCircle2} />
+        <AdminOverviewCard title="API đang bật" value={settings.internalApis.offeringsImport.enabled ? 1 : 0} icon={CheckCircle2} />
         <AdminOverviewCard title="API đầu tiên" description="Hiện tại đang cấu hình trước cho import sản phẩm." icon={Code2} />
       </AdminOverviewGrid>
 

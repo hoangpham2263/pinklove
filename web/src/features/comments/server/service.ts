@@ -20,7 +20,7 @@ type CommentRow = {
   updated_at: string;
 };
 
-const VALID_TARGET_TYPES: CommentTargetType[] = ["product", "blog_post", "page", "invitation"];
+const VALID_TARGET_TYPES: CommentTargetType[] = ["offering", "blog_post", "page", "invitation"];
 const VALID_STATUSES: CommentStatus[] = ["pending", "approved", "rejected", "spam", "deleted"];
 
 function mapComment(row: CommentRow): ContentComment {
@@ -45,7 +45,7 @@ function mapComment(row: CommentRow): ContentComment {
 }
 
 function normalizeTargetType(value: string): CommentTargetType {
-  return VALID_TARGET_TYPES.includes(value as CommentTargetType) ? (value as CommentTargetType) : "product";
+  return VALID_TARGET_TYPES.includes(value as CommentTargetType) ? (value as CommentTargetType) : "offering";
 }
 
 function normalizeStatus(value: string): CommentStatus {
@@ -62,7 +62,7 @@ function cleanContent(value: string) {
 
 export function parseCommentTargetFromForm(formData: FormData): CommentTarget {
   return {
-    type: normalizeTargetType(String(formData.get("targetType") ?? "product")),
+    type: normalizeTargetType(String(formData.get("targetType") ?? "offering")),
     id: cleanText(String(formData.get("targetId") ?? ""), 120),
     slug: cleanText(String(formData.get("targetSlug") ?? ""), 200),
     title: cleanText(String(formData.get("targetTitle") ?? ""), 240),

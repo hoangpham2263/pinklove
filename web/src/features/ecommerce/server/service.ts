@@ -15,30 +15,30 @@ import type {
   ShipmentStatus,
 } from "@/features/ecommerce/types";
 import { getAffiliateAccountByCode } from "@/features/affiliate/server/service";
-import { listPublishedProductsByIds } from "@/features/products/server/service";
-import { getUserWishlistProductIds } from "@/features/products/server/wishlist-service";
-import { isInvitationProductType, type ProductFulfillmentType, type ProductType } from "@/features/products/types";
+import { listPublishedOfferingsByIds } from "@/features/offerings/server/service";
+import { getUserWishlistOfferingIds } from "@/features/offerings/server/wishlist-service";
+import { isInvitationOfferingType, type OfferingFulfillmentType, type OfferingType } from "@/features/offerings/types";
 import { query, withTransaction } from "@/lib/database";
 import { getSystemSettings, type EcommercePaymentMethodSettings } from "@/lib/system-settings";
 
 type CartItemRow = {
   id: string;
   user_id: string;
-  product_id: string;
+  offering_id: string;
   quantity: string;
   created_at: string;
   updated_at: string;
-  product_name: string;
-  product_slug: string;
-  product_type: ProductType;
-  fulfillment_type: ProductFulfillmentType;
+  offering_name: string;
+  offering_slug: string;
+  offering_type: OfferingType;
+  fulfillment_type: OfferingFulfillmentType;
   price: string;
   thumbnail_url: string | null;
 };
 
 type CartInventoryRow = {
-  product_id: string;
-  product_name: string;
+  offering_id: string;
+  offering_name: string;
   quantity: string;
   track_inventory: boolean;
   stock_quantity: string;
@@ -82,11 +82,11 @@ type OrderRow = {
 type OrderItemRow = {
   id: string;
   order_id: string;
-  product_id: string | null;
-  product_name: string;
-  product_slug: string;
-  product_type: ProductType;
-  fulfillment_type: ProductFulfillmentType;
+  offering_id: string | null;
+  offering_name: string;
+  offering_slug: string;
+  offering_type: OfferingType;
+  fulfillment_type: OfferingFulfillmentType;
   quantity: string;
   unit_price: string;
   line_total: string;
@@ -123,7 +123,7 @@ type ShipmentRow = {
 type EntitlementRow = {
   id: string;
   user_id: string;
-  product_id: string;
+  offering_id: string;
   order_id: string;
   order_item_id: string | null;
   status: "active" | "revoked";
@@ -139,11 +139,11 @@ function mapCartItemRow(row: CartItemRow): CartItem {
   return {
     id: row.id,
     userId: row.user_id,
-    productId: row.product_id,
+    offeringId: row.offering_id,
     quantity: Number(row.quantity ?? "1"),
-    productName: row.product_name,
-    productSlug: row.product_slug,
-    productType: row.product_type,
+    offeringName: row.offering_name,
+    offeringSlug: row.offering_slug,
+    offeringType: row.offering_type,
     fulfillmentType: row.fulfillment_type,
     price: toNumber(row.price),
     thumbnailUrl: row.thumbnail_url ?? undefined,
@@ -192,10 +192,10 @@ function mapOrderItemRow(row: OrderItemRow): EcommerceOrderItem {
   return {
     id: row.id,
     orderId: row.order_id,
-    productId: row.product_id ?? undefined,
-    productName: row.product_name,
-    productSlug: row.product_slug,
-    productType: row.product_type,
+    offeringId: row.offering_id ?? undefined,
+    offeringName: row.offering_name,
+    offeringSlug: row.offering_slug,
+    offeringType: row.offering_type,
     fulfillmentType: row.fulfillment_type,
     quantity: Number(row.quantity ?? "1"),
     unitPrice: toNumber(row.unit_price),
@@ -239,7 +239,7 @@ function mapEntitlementRow(row: EntitlementRow): EcommerceEntitlement {
   return {
     id: row.id,
     userId: row.user_id,
-    productId: row.product_id,
+    offeringId: row.offering_id,
     orderId: row.order_id,
     orderItemId: row.order_item_id ?? undefined,
     status: row.status,
@@ -296,19 +296,19 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
       SELECT
         cart.id,
         cart.user_id,
-        cart.product_id,
+        cart.offering_id,
         cart.quantity::text,
         cart.created_at,
         cart.updated_at,
-        products.name AS product_name,
-        products.slug AS product_slug,
-        products.product_type,
-        COALESCE(general.fulfillment_type, products.fulfillment_type) AS fulfillment_type,
-        products.price::text,
-        products.thumbnail_url
+        offerings.name AS offering_name,
+        offerings.slug AS offering_slug,
+        offerings.offering_type,
+        COALESCE(general.fulfillment_type, offerings.fulfillment_type) AS fulfillment_type,
+        offerings.price::text,
+        offerings.thumbnail_url
       FROM shopping_cart_items cart
-      JOIN products ON products.id = cart.product_id
-      LEFT JOIN general_products general ON general.product_id = products.id
+      JOIN offerings ON offerings.id = cart.offering_id
+      LEFT JOIN general_offerings general ON general.offering_id = offerings.id
       WHERE cart.user_id = $1
       ORDER BY cart.updated_at DESC
     `,
@@ -318,31 +318,31 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
   return result.rows.map(mapCartItemRow);
 }
 
-export async function syncCartWithWishlist(userId: string, selectedProductIds?: string[]) {
-  const wishlistProductIds = await getUserWishlistProductIds(userId);
-  const selectedSet = selectedProductIds?.length ? new Set(selectedProductIds) : null;
-  const productIds = selectedSet ? wishlistProductIds.filter((id) => selectedSet.has(id)) : wishlistProductIds;
-  const products = await listPublishedProductsByIds(productIds);
+export async function syncCartWithWishlist(userId: string, selectedOfferingIds?: string[]) {
+  const wishlistOfferingIds = await getUserWishlistOfferingIds(userId);
+  const selectedSet = selectedOfferingIds?.length ? new Set(selectedOfferingIds) : null;
+  const offeringIds = selectedSet ? wishlistOfferingIds.filter((id) => selectedSet.has(id)) : wishlistOfferingIds;
+  const offerings = await listPublishedOfferingsByIds(offeringIds);
 
   await withTransaction(async (execute) => {
     await execute("DELETE FROM shopping_cart_items WHERE user_id = $1", [userId]);
 
-    for (const product of products) {
+    for (const offering of offerings) {
       await execute(
         `
-          INSERT INTO shopping_cart_items (user_id, product_id, quantity)
+          INSERT INTO shopping_cart_items (user_id, offering_id, quantity)
           VALUES ($1, $2, 1)
-          ON CONFLICT (user_id, product_id)
+          ON CONFLICT (user_id, offering_id)
           DO UPDATE SET
             quantity = EXCLUDED.quantity,
             updated_at = NOW()
         `,
-        [userId, product.id]
+        [userId, offering.id]
       );
     }
   });
 
-  return products;
+  return offerings;
 }
 
 export async function listEntitlementsForUser(userId: string): Promise<EcommerceEntitlement[]> {
@@ -359,17 +359,17 @@ export async function listEntitlementsForUser(userId: string): Promise<Ecommerce
   return result.rows.map(mapEntitlementRow);
 }
 
-export async function userHasActiveEntitlement(userId: string, productId: string): Promise<boolean> {
+export async function userHasActiveEntitlement(userId: string, offeringId: string): Promise<boolean> {
   const result = await query<{ id: string }>(
     `
       SELECT id
       FROM commerce_entitlements
       WHERE user_id = $1
-        AND product_id = $2
+        AND offering_id = $2
         AND status = 'active'
       LIMIT 1
     `,
-    [userId, productId]
+    [userId, offeringId]
   );
   return Boolean(result.rows[0]);
 }
@@ -469,17 +469,17 @@ async function ensureEntitlementsForOrder(orderId: string) {
   }
 
   for (const item of order.items) {
-    if (!item.productId || item.fulfillmentType !== "digital" || !isInvitationProductType(item.productType)) {
+    if (!item.offeringId || item.fulfillmentType !== "digital" || !isInvitationOfferingType(item.offeringType)) {
       continue;
     }
 
     await query(
       `
-        INSERT INTO commerce_entitlements (user_id, product_id, order_id, order_item_id, status)
+        INSERT INTO commerce_entitlements (user_id, offering_id, order_id, order_item_id, status)
         VALUES ($1, $2, $3, $4, 'active')
-        ON CONFLICT (user_id, product_id, order_id) DO NOTHING
+        ON CONFLICT (user_id, offering_id, order_id) DO NOTHING
       `,
-      [order.userId, item.productId, order.id, item.id]
+      [order.userId, item.offeringId, order.id, item.id]
     );
   }
 }
@@ -552,17 +552,17 @@ export async function createOrderFromCart(input: {
     const inventoryRows = await execute<CartInventoryRow>(
       `
         SELECT
-          cart.product_id,
-          products.name AS product_name,
+          cart.offering_id,
+          offerings.name AS offering_name,
           cart.quantity::text,
-          COALESCE(general.track_inventory, products.track_inventory) AS track_inventory,
-          COALESCE(general.stock_quantity, products.stock_quantity)::text AS stock_quantity,
-          COALESCE(general.allow_backorder, products.allow_backorder) AS allow_backorder
+          COALESCE(general.track_inventory, offerings.track_inventory) AS track_inventory,
+          COALESCE(general.stock_quantity, offerings.stock_quantity)::text AS stock_quantity,
+          COALESCE(general.allow_backorder, offerings.allow_backorder) AS allow_backorder
         FROM shopping_cart_items cart
-        JOIN products ON products.id = cart.product_id
-        LEFT JOIN general_products general ON general.product_id = cart.product_id
+        JOIN offerings ON offerings.id = cart.offering_id
+        LEFT JOIN general_offerings general ON general.offering_id = cart.offering_id
         WHERE cart.user_id = $1
-        FOR UPDATE OF products
+        FOR UPDATE OF offerings
       `,
       [input.userId]
     );
@@ -571,7 +571,7 @@ export async function createOrderFromCart(input: {
       const requested = Number(row.quantity ?? "0");
       const stockQuantity = Number(row.stock_quantity ?? "0");
       if (row.track_inventory && !row.allow_backorder && stockQuantity < requested) {
-        throw new Error(`OUT_OF_STOCK:${row.product_name}`);
+        throw new Error(`OUT_OF_STOCK:${row.offering_name}`);
       }
     }
 
@@ -647,10 +647,10 @@ export async function createOrderFromCart(input: {
         `
           INSERT INTO commerce_order_items (
             order_id,
-            product_id,
-            product_name,
-            product_slug,
-            product_type,
+            offering_id,
+            offering_name,
+            offering_slug,
+            offering_type,
             fulfillment_type,
             quantity,
             unit_price,
@@ -660,10 +660,10 @@ export async function createOrderFromCart(input: {
         `,
         [
           createdOrder.id,
-          item.productId,
-          item.productName,
-          item.productSlug,
-          item.productType,
+          item.offeringId,
+          item.offeringName,
+          item.offeringSlug,
+          item.offeringType,
           item.fulfillmentType,
           item.quantity,
           item.price,
@@ -671,19 +671,19 @@ export async function createOrderFromCart(input: {
         ]
       );
 
-      if (item.productId) {
+      if (item.offeringId) {
         await execute(
           `
-            UPDATE general_products
+            UPDATE general_offerings
             SET
               stock_quantity = CASE
                 WHEN track_inventory THEN stock_quantity - $2
                 ELSE stock_quantity
               END,
               updated_at = NOW()
-            WHERE product_id = $1
+            WHERE offering_id = $1
           `,
-          [item.productId, item.quantity]
+          [item.offeringId, item.quantity]
         );
       }
     }

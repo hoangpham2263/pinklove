@@ -1,15 +1,15 @@
 import { getPublishedBlogCategoryBySlug, getPublishedBlogPostBySlug, listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
 import { getPublicInvitationBySlug } from "@/features/invitations/server/service";
-import { getPublishedProductBySlugAndType } from "@/features/products/server/service";
+import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
 import { getAccessiblePageBySlug, getPageByPath, type ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import {
   getBlogCategoryPath,
   getBlogPostPath,
-  getBuilderProductPath,
-  getGeneralProductPath,
+  getBuilderOfferingPath,
+  getGeneralOfferingPath,
   getInvitationPath,
-  getTemplateProductPath,
+  getTemplateOfferingPath,
 } from "@/lib/public-paths";
 
 export type ResolvedGuestPublicContent =
@@ -24,16 +24,16 @@ export type ResolvedGuestPublicContent =
       posts: Awaited<ReturnType<typeof listPublishedBlogPosts>>;
     }
   | {
-      type: "template-product";
-      product: Awaited<ReturnType<typeof getPublishedProductBySlugAndType>> extends infer T ? Exclude<T, null> : never;
+      type: "template-offering";
+      offering: Awaited<ReturnType<typeof getPublishedOfferingBySlugAndType>> extends infer T ? Exclude<T, null> : never;
     }
   | {
-      type: "builder-product";
-      product: Awaited<ReturnType<typeof getPublishedProductBySlugAndType>> extends infer T ? Exclude<T, null> : never;
+      type: "builder-offering";
+      offering: Awaited<ReturnType<typeof getPublishedOfferingBySlugAndType>> extends infer T ? Exclude<T, null> : never;
     }
   | {
-      type: "general-product";
-      product: Awaited<ReturnType<typeof getPublishedProductBySlugAndType>> extends infer T ? Exclude<T, null> : never;
+      type: "general-offering";
+      offering: Awaited<ReturnType<typeof getPublishedOfferingBySlugAndType>> extends infer T ? Exclude<T, null> : never;
     }
   | {
       type: "invitation";
@@ -85,19 +85,19 @@ export async function resolveGuestPublicContent(
     return { type: "blog-category", category: blogCategory, categories, posts };
   }
 
-  const templateProduct = await getPublishedProductBySlugAndType(slug, "coded_template");
-  if (templateProduct && getTemplateProductPath(templateProduct) === pathname) {
-    return { type: "template-product", product: templateProduct };
+  const templateOffering = await getPublishedOfferingBySlugAndType(slug, "coded_template");
+  if (templateOffering && getTemplateOfferingPath(templateOffering) === pathname) {
+    return { type: "template-offering", offering: templateOffering };
   }
 
-  const builderProduct = await getPublishedProductBySlugAndType(slug, "builder");
-  if (builderProduct && getBuilderProductPath(builderProduct) === pathname) {
-    return { type: "builder-product", product: builderProduct };
+  const builderOffering = await getPublishedOfferingBySlugAndType(slug, "builder");
+  if (builderOffering && getBuilderOfferingPath(builderOffering) === pathname) {
+    return { type: "builder-offering", offering: builderOffering };
   }
 
-  const generalProduct = await getPublishedProductBySlugAndType(slug, "general_product");
-  if (generalProduct && getGeneralProductPath(generalProduct) === pathname) {
-    return { type: "general-product", product: generalProduct };
+  const generalOffering = await getPublishedOfferingBySlugAndType(slug, "general_offering");
+  if (generalOffering && getGeneralOfferingPath(generalOffering) === pathname) {
+    return { type: "general-offering", offering: generalOffering };
   }
 
   const invitation = await getPublicInvitationBySlug(slug);

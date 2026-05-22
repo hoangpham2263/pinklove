@@ -229,7 +229,7 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
         order.status,
         order.paymentStatus,
         order.fulfillmentStatus,
-        order.items.map((item) => item.productName).join(" "),
+        order.items.map((item) => item.offeringName).join(" "),
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));

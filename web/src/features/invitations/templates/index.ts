@@ -3,6 +3,6 @@ export {
   getInvitationTemplateFields,
   getInvitationTemplateLabel,
   getInvitationTemplateOptions,
-  getInvitationTemplateProductType,
+  getInvitationTemplateOfferingType,
   INVITATION_TEMPLATES,
 } from "./registry";

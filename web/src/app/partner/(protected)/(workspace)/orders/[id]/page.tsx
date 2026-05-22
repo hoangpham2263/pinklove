@@ -92,7 +92,7 @@ export default async function PartnerOrderDetailPage({
             {detail.order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
                 <div>
-                  <p className="font-medium">{item.productName}</p>
+                  <p className="font-medium">{item.offeringName}</p>
                   <p className="text-sm text-muted-foreground">{item.fulfillmentType} • Số lượng {item.quantity}</p>
                 </div>
                 <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>

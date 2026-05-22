@@ -79,7 +79,7 @@ export function CheckoutPageView({
 
         <form id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-6">
           {items.map((item) => (
-            <input key={item.productId} type="hidden" name="selectedProductIds" value={item.productId} />
+            <input key={item.offeringId} type="hidden" name="selectedOfferingIds" value={item.offeringId} />
           ))}
 
           <Card>
@@ -184,7 +184,7 @@ export function CheckoutPageView({
             {items.map((item) => (
               <div key={item.id} className="flex items-start justify-between gap-3 rounded-md border p-3">
                 <div className="min-w-0">
-                  <p className="font-medium">{item.productName}</p>
+                  <p className="font-medium">{item.offeringName}</p>
                   <p className="text-muted-foreground">SL: {item.quantity}</p>
                 </div>
                 <div className="text-right font-medium">{formatCurrency(item.price * item.quantity, settings.ecommerce)}</div>

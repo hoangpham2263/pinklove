@@ -420,10 +420,10 @@ async function createOrderItems(client, orderId, items) {
       `
         INSERT INTO commerce_order_items (
           order_id,
-          product_id,
-          product_name,
-          product_slug,
-          product_type,
+          offering_id,
+          offering_name,
+          offering_slug,
+          offering_type,
           fulfillment_type,
           quantity,
           unit_price,
@@ -433,11 +433,11 @@ async function createOrderItems(client, orderId, items) {
       `,
       [
         orderId,
-        item.product.id,
-        item.product.name,
-        item.product.slug,
-        item.product.product_type,
-        item.product.fulfillment_type,
+        item.offering.id,
+        item.offering.name,
+        item.offering.slug,
+        item.offering.offering_type,
+        item.offering.fulfillment_type,
         item.quantity,
         item.unitPrice,
         item.unitPrice * item.quantity,
@@ -513,26 +513,26 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    const products = await fetchRows(
+    const offerings = await fetchRows(
       client,
       `
-        SELECT id, slug, name, product_type, fulfillment_type, price
-        FROM products
+        SELECT id, slug, name, offering_type, fulfillment_type, price
+        FROM offerings
         WHERE status = 'published'
         ORDER BY created_at ASC
         LIMIT 3
       `
     );
 
-    if (products.length === 0) {
+    if (offerings.length === 0) {
       throw new Error(
-        "No published products found. Start the dev stack with `./setup up` first so database bootstrap seeds product/blog/page data."
+        "No published offerings found. Start the dev stack with `./setup up` first so database bootstrap seeds offering/blog/page data."
       );
     }
 
-    const [productA, productB = products[0], productC = products[0]] = products.map((product) => ({
-      ...product,
-      price: Number(product.price ?? 0),
+    const [offeringA, offeringB = offerings[0], offeringC = offerings[0]] = offerings.map((offering) => ({
+      ...offering,
+      price: Number(offering.price ?? 0),
     }));
 
     await seedManagedPages(client);
@@ -665,7 +665,7 @@ async function main() {
         internalNote: "Don demo 001 dang cho vendor xac nhan.",
         vendorNote: "",
         vendorReference: "",
-        items: [{ product: productA, quantity: 1, unitPrice: productA.price || 990000 }],
+        items: [{ offering: offeringA, quantity: 1, unitPrice: offeringA.price || 990000 }],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 001." },
         ],
@@ -688,8 +688,8 @@ async function main() {
         vendorReference: "ALPHA-002",
         acceptedAt: "2026-04-10T08:00:00.000Z",
         items: [
-          { product: productA, quantity: 1, unitPrice: productA.price || 990000 },
-          { product: productB, quantity: 1, unitPrice: productB.price || 1290000 },
+          { offering: offeringA, quantity: 1, unitPrice: offeringA.price || 990000 },
+          { offering: offeringB, quantity: 1, unitPrice: offeringB.price || 1290000 },
         ],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 002." },
@@ -714,7 +714,7 @@ async function main() {
         vendorNote: "Da in xong mau, cho duyet.",
         vendorReference: "BETA-003",
         acceptedAt: "2026-04-09T09:30:00.000Z",
-        items: [{ product: productC, quantity: 2, unitPrice: productC.price || 500000 }],
+        items: [{ offering: offeringC, quantity: 2, unitPrice: offeringC.price || 500000 }],
         affiliateUserId: affiliateRose.id,
         affiliateCode: "rose-love",
         events: [
@@ -741,7 +741,7 @@ async function main() {
         vendorReference: "BETA-004",
         acceptedAt: "2026-04-08T10:00:00.000Z",
         completedAt: "2026-04-11T16:30:00.000Z",
-        items: [{ product: productB, quantity: 1, unitPrice: productB.price || 1290000 }],
+        items: [{ offering: offeringB, quantity: 1, unitPrice: offeringB.price || 1290000 }],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 004." },
           { actorUserId: vendorBeta.id, actorType: "vendor", eventType: "status_changed", message: "Vendor đã cập nhật trạng thái sang completed." },
@@ -828,7 +828,7 @@ async function main() {
           orders: seededOrders,
           notes: [
             "Khong tao admin moi. Hay dung admin co san cua he thong de test admin area.",
-            "Script nay gia dinh migration + product/blog/page seed he thong da duoc bootstrap sau khi chay `./setup up`.",
+            "Script nay gia dinh migration + offering/blog/page seed he thong da duoc bootstrap sau khi chay `./setup up`.",
           ],
         },
         null,

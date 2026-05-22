@@ -11,7 +11,7 @@ export function InvitationCard({ invitation, publicHref }: { invitation: Invitat
     ? ROUTES.CUSTOMER.DESIGN(invitation.id)
     : `${ROUTES.CUSTOMER.INVITATIONS}/${invitation.id}`;
   const previewImage =
-    invitation.productThumbnailUrl ||
+    invitation.offeringThumbnailUrl ||
     (typeof invitation.customData.previewImage === "string" ? invitation.customData.previewImage : "");
 
   return (
@@ -24,7 +24,7 @@ export function InvitationCard({ invitation, publicHref }: { invitation: Invitat
       <CardHeader>
         <CardTitle>{invitation.title}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          {invitation.productName || getInvitationTemplateLabel(invitation.templateKey)}
+          {invitation.offeringName || getInvitationTemplateLabel(invitation.templateKey)}
         </p>
       </CardHeader>
       <CardContent className="space-y-2">

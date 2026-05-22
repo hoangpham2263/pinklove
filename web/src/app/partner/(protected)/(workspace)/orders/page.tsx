@@ -58,7 +58,7 @@ export default async function PartnerOrdersPage() {
                 <div className="space-y-1">
                   <p className="font-medium">{entry.order.orderNumber}</p>
                   <p className="text-sm text-muted-foreground">
-                    {entry.order.customerName} • {entry.items.map((item) => `${item.productName} x${item.quantity}`).join(", ")}
+                    {entry.order.customerName} • {entry.items.map((item) => `${item.offeringName} x${item.quantity}`).join(", ")}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Trạng thái vendor: {getVendorAssignmentStatusLabel(entry.assignment.status)} • Thanh toán: {getPaymentStatusLabel(entry.order.paymentStatus)}

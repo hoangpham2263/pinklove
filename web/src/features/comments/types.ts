@@ -1,4 +1,4 @@
-export type CommentTargetType = "product" | "blog_post" | "page" | "invitation";
+export type CommentTargetType = "offering" | "blog_post" | "page" | "invitation";
 
 export type CommentStatus = "pending" | "approved" | "rejected" | "spam" | "deleted";
 

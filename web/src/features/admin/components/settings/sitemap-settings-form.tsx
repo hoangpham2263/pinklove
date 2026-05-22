@@ -14,7 +14,7 @@ const OPTIONS: Array<{ key: keyof SitemapSettings; title: string; description: s
   { key: "includeManagedPages", title: "Pages", description: "Bao gồm managed pages như home, gioi-thieu, dich-vu, cong-cu, blog landing..." },
   { key: "includeBlogCategories", title: "Blog Categories", description: "Bao gồm trang category của blog trong sitemap.xml." },
   { key: "includeBlogPosts", title: "Blog Posts", description: "Bao gồm bài viết blog đã publish." },
-  { key: "includeProducts", title: "Products", description: "Bao gồm template coded và builder products đã publish." },
+  { key: "includeOfferings", title: "Offerings", description: "Bao gồm template coded và builder offerings đã publish." },
   { key: "includePublicSites", title: "Public Sites", description: "Bao gồm các public sites đã publish." },
 ];
 

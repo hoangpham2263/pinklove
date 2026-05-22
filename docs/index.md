@@ -63,7 +63,7 @@ Use this file as the entrypoint for project documentation.
 - Media Library upload surfaces should allow batch uploads into the shared library even when the consuming field stores only one selected asset.
 - For admin/vendor operational screens, prefer `toast + partial JSON refresh` over redirect-driven saves or full-route reloads.
 - Use `web/src/lib/page-paths.ts` as the source of truth for managed-page public paths.
-- Use `web/src/lib/public-paths.ts` as the source of truth for blog, product, builder, and invitation public paths.
+- Use `web/src/lib/public-paths.ts` as the source of truth for blog, offering, builder, and invitation public paths.
 - Use explicit route handlers for `robots.txt` and `sitemap*.xml` when SEO output needs plain-text or XML control.
 - Use the standard admin/customer/editor 12-column layout language for protected screens.
 - Show human-facing order and vendor status labels in Vietnamese on management screens when that improves operational clarity.

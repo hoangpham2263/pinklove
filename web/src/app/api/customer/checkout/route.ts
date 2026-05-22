@@ -31,11 +31,11 @@ function getCookieValue(request: Request, name: string) {
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const formData = await request.formData();
-  const selectedProductIds = formData
-    .getAll("selectedProductIds")
+  const selectedOfferingIds = formData
+    .getAll("selectedOfferingIds")
     .map((value) => String(value).trim())
     .filter(Boolean);
-  await syncCartWithWishlist(user.id, selectedProductIds);
+  await syncCartWithWishlist(user.id, selectedOfferingIds);
   const settings = await getSystemSettings();
 
   if (!settings.ecommerce.enabled) {

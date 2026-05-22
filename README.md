@@ -18,11 +18,11 @@ Current notable behavior:
 - Auth-page config and shared loading logic live in:
   - `web/src/features/auth/page-registry.ts`
   - `web/src/features/auth/auth-page-loader.ts`
-- Wedding product catalog and wedding-site flow live in:
-  - `web/src/features/products/`
+- Wedding offering catalog and wedding-site flow live in:
+  - `web/src/features/offerings/`
   - `web/src/features/sites/`
 - Domain server services now live with their features:
-  - `web/src/features/products/server/service.ts`
+  - `web/src/features/offerings/server/service.ts`
   - `web/src/features/sites/server/service.ts`
   - `web/src/features/affiliate/server/service.ts`
 - Public content pages are code-managed routes, not admin-created CMS routes:
@@ -33,12 +33,12 @@ Current notable behavior:
 - Admin `Pages` edits only managed content/system pages already registered in code.
 - Account roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR`; the first registered account becomes `ADMIN`
 - Affiliate foundation is implemented: customers can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
-- Wedding invitation product foundation is implemented:
+- Wedding invitation offering foundation is implemented:
   - `Thiếp mẫu sẵn` for coded templates
   - `Tự tạo thiệp` for builder starters
   - per-customer `wedding_sites` drafts/published sites
 - Managed content pages now use page-specific route-local UI plus slug-based field config.
-- Admin product management now includes basic create/edit/delete flow.
+- Admin offering management now includes basic create/edit/delete flow.
 - Builder now uses `konva` + `react-konva` for direct visual editing of `builder_template` sites.
 - Builder-template sites are edited in a dedicated design route at `/customer/design/[id]` with:
   - top builder property controls

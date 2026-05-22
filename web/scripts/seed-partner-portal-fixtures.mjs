@@ -175,10 +175,10 @@ async function createOrderItems(client, orderId, items) {
       `
         INSERT INTO commerce_order_items (
           order_id,
-          product_id,
-          product_name,
-          product_slug,
-          product_type,
+          offering_id,
+          offering_name,
+          offering_slug,
+          offering_type,
           fulfillment_type,
           quantity,
           unit_price,
@@ -188,11 +188,11 @@ async function createOrderItems(client, orderId, items) {
       `,
       [
         orderId,
-        item.product.id,
-        item.product.name,
-        item.product.slug,
-        item.product.type,
-        item.product.fulfillment_type,
+        item.offering.id,
+        item.offering.name,
+        item.offering.slug,
+        item.offering.type,
+        item.offering.fulfillment_type,
         item.quantity,
         item.unitPrice,
         item.unitPrice * item.quantity,
@@ -270,22 +270,22 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    const products = await fetchRows(
+    const offerings = await fetchRows(
       client,
       `
-        SELECT id, name, slug, product_type AS type, fulfillment_type, price AS base_price
-        FROM products
+        SELECT id, name, slug, offering_type AS type, fulfillment_type, price AS base_price
+        FROM offerings
         WHERE status = 'published'
         ORDER BY created_at ASC
         LIMIT 3
       `
     );
 
-    if (products.length === 0) {
-      throw new Error("No published product found. Product seed must exist before fixture seed.");
+    if (offerings.length === 0) {
+      throw new Error("No published offering found. Offering seed must exist before fixture seed.");
     }
 
-    const [productA, productB = products[0], productC = products[0]] = products;
+    const [offeringA, offeringB = offerings[0], offeringC = offerings[0]] = offerings;
 
     const admin = await upsertUser(client, {
       username: "admin_seed",
@@ -352,7 +352,7 @@ async function main() {
         vendorNote: "",
         vendorReference: "",
         items: [
-          { product: productA, quantity: 1, unitPrice: Number(productA.base_price ?? 0) || 990000 },
+          { offering: offeringA, quantity: 1, unitPrice: Number(offeringA.base_price ?? 0) || 990000 },
         ],
         events: [
           ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 001."],
@@ -376,8 +376,8 @@ async function main() {
         vendorReference: "ALPHA-002",
         acceptedAt: "2026-04-10T08:00:00.000Z",
         items: [
-          { product: productA, quantity: 1, unitPrice: Number(productA.base_price ?? 0) || 990000 },
-          { product: productB, quantity: 1, unitPrice: Number(productB.base_price ?? 0) || 1290000 },
+          { offering: offeringA, quantity: 1, unitPrice: Number(offeringA.base_price ?? 0) || 990000 },
+          { offering: offeringB, quantity: 1, unitPrice: Number(offeringB.base_price ?? 0) || 1290000 },
         ],
         events: [
           ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 002."],
@@ -404,7 +404,7 @@ async function main() {
         vendorReference: "BETA-003",
         acceptedAt: "2026-04-09T09:30:00.000Z",
         items: [
-          { product: productC, quantity: 2, unitPrice: Number(productC.base_price ?? 0) || 500000 },
+          { offering: offeringC, quantity: 2, unitPrice: Number(offeringC.base_price ?? 0) || 500000 },
         ],
         events: [
           ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 003."],
@@ -432,7 +432,7 @@ async function main() {
         acceptedAt: "2026-04-08T10:00:00.000Z",
         completedAt: "2026-04-11T16:30:00.000Z",
         items: [
-          { product: productB, quantity: 1, unitPrice: Number(productB.base_price ?? 0) || 1290000 },
+          { offering: offeringB, quantity: 1, unitPrice: Number(offeringB.base_price ?? 0) || 1290000 },
         ],
         events: [
           ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 004."],

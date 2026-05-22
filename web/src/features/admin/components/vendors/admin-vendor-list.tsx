@@ -47,8 +47,8 @@ export type AdminVendorRow = AccountUser & {
   assignmentActive: number;
   assignmentReview: number;
   assignmentCompleted: number;
-  submittedProducts: number;
-  pendingProducts: number;
+  submittedOfferings: number;
+  pendingOfferings: number;
 };
 
 type AdminVendorListProps = {
@@ -123,7 +123,7 @@ function getVendorTableCellClassName(columnId: string) {
       return "w-[38%] min-w-0";
     case "assignmentTotal":
       return "hidden w-[18%] lg:table-cell";
-    case "submittedProducts":
+    case "submittedOfferings":
       return "hidden w-[16%] xl:table-cell";
     case "accountStatus":
       return "hidden w-[18%] md:table-cell";
@@ -260,14 +260,14 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
         ),
       },
       {
-        accessorKey: "submittedProducts",
+        accessorKey: "submittedOfferings",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
             Sản phẩm
           </AdminTableSortButton>
         ),
         cell: ({ row }) => (
-          <p className="text-sm">{row.original.submittedProducts} hồ sơ</p>
+          <p className="text-sm">{row.original.submittedOfferings} hồ sơ</p>
         ),
       },
       {
@@ -309,7 +309,7 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
               <AdminTableActionButton
                 action="approve"
                 label="Review sản phẩm"
-                href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(vendor.id)}`}
+                href={`${ROUTES.ADMIN.VENDOR_OFFERINGS}?vendorId=${encodeURIComponent(vendor.id)}`}
               />
             </AdminTableActions>
           );
@@ -452,8 +452,8 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
                   <PreviewField label="Đang xử lý" value={previewVendor.assignmentActive} />
                   <PreviewField label="Chờ review" value={previewVendor.assignmentReview} />
                   <PreviewField label="Hoàn tất" value={previewVendor.assignmentCompleted} />
-                  <PreviewField label="Hồ sơ sản phẩm" value={previewVendor.submittedProducts} />
-                  <PreviewField label="Cần xử lý" value={previewVendor.pendingProducts} />
+                  <PreviewField label="Hồ sơ sản phẩm" value={previewVendor.submittedOfferings} />
+                  <PreviewField label="Cần xử lý" value={previewVendor.pendingOfferings} />
                 </div>
               </PreviewSection>
 
@@ -469,7 +469,7 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
                 <AdminLinkButton href={`${ROUTES.ADMIN.USERS}/${previewVendor.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.VENDORS)}`}>
                   Sửa account
                 </AdminLinkButton>
-                <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_PRODUCTS}?vendorId=${encodeURIComponent(previewVendor.id)}`}>
+                <AdminLinkButton href={`${ROUTES.ADMIN.VENDOR_OFFERINGS}?vendorId=${encodeURIComponent(previewVendor.id)}`}>
                   Review sản phẩm
                 </AdminLinkButton>
               </div>

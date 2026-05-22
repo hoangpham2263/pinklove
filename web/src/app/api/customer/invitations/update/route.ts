@@ -24,8 +24,8 @@ export async function POST(request: Request) {
     return respondError(request, { error: "site_not_found", message: "Không tìm thấy thiệp mời.", location: `${ROUTES.CUSTOMER.INVITATIONS}?error=site_not_found` });
   }
 
-  if (status === "published" && existing.productId) {
-    const entitled = await userHasActiveEntitlement(user.id, existing.productId);
+  if (status === "published" && existing.offeringId) {
+    const entitled = await userHasActiveEntitlement(user.id, existing.offeringId);
     if (!entitled) {
       return respondError(request, {
         error: "purchase_required",

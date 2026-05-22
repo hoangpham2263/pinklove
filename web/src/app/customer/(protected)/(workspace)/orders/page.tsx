@@ -45,7 +45,7 @@ export default async function CustomerOrdersPage() {
                 <div className="min-w-0">
                   <p className="font-semibold">{order.orderNumber}</p>
                   <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {order.items.map((item) => item.productName).join(", ")}
+                    {order.items.map((item) => item.offeringName).join(", ")}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Đơn: {getOrderStatusLabel(order.status)} • Thanh toán: {getPaymentStatusLabel(order.paymentStatus)} • Giao hàng: {getFulfillmentStatusLabel(order.fulfillmentStatus)}

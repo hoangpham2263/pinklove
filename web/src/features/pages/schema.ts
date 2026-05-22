@@ -12,15 +12,15 @@ export type TextFieldSchema = BaseFieldSchema & {
   rows?: number;
 };
 
-export type ProductSelectFieldSchema = BaseFieldSchema & {
+export type OfferingSelectFieldSchema = BaseFieldSchema & {
   name: string;
-  type: "product-select";
+  type: "offering-select";
   multiple?: boolean;
 };
 
 export type LeafFieldSchema =
   | TextFieldSchema
-  | ProductSelectFieldSchema;
+  | OfferingSelectFieldSchema;
 
 export type SectionFieldSchema = BaseFieldSchema & {
   type: "section";

@@ -24,16 +24,16 @@ async function updateVendorAssignment(formData: FormData) {
   return submitForm(ROUTES.API.PARTNER.ORDERS.UPDATE, formData);
 }
 
-async function saveProductSubmission(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.PRODUCTS.SUBMISSIONS, formData);
+async function saveOfferingSubmission(formData: FormData) {
+  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUBMISSIONS, formData);
 }
 
-async function submitProductSubmission(submissionId: string, formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.PRODUCTS.SUBMIT(submissionId), formData);
+async function submitOfferingSubmission(submissionId: string, formData: FormData) {
+  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUBMIT(submissionId), formData);
 }
 
 async function createSupplyRequest(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.PRODUCTS.SUPPLY_REQUESTS, formData);
+  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS, formData);
 }
 
 async function fetchVendorOrderDetail(url: string) {
@@ -74,8 +74,8 @@ async function fetchVendorPortalSummary(url: string) {
 export const vendorApi = {
   updateShippingProfile,
   updateVendorAssignment,
-  saveProductSubmission,
-  submitProductSubmission,
+  saveOfferingSubmission,
+  submitOfferingSubmission,
   createSupplyRequest,
   fetchVendorOrderDetail,
   fetchRequiredVendorOrderDetail,
@@ -85,7 +85,7 @@ export const vendorApi = {
 export const vendorApiActions = {
   updateShippingProfile: ROUTES.API.PARTNER.SHIPPING_PROFILE,
   updateVendorAssignment: ROUTES.API.PARTNER.ORDERS.UPDATE,
-  saveProductSubmission: ROUTES.API.PARTNER.PRODUCTS.SUBMISSIONS,
-  submitProductSubmission: ROUTES.API.PARTNER.PRODUCTS.SUBMIT,
-  createSupplyRequest: ROUTES.API.PARTNER.PRODUCTS.SUPPLY_REQUESTS,
+  saveOfferingSubmission: ROUTES.API.PARTNER.OFFERINGS.SUBMISSIONS,
+  submitOfferingSubmission: ROUTES.API.PARTNER.OFFERINGS.SUBMIT,
+  createSupplyRequest: ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS,
 } as const;
