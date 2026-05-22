@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminVendorList, type AdminVendorRow } from "@/features/admin/components/vendors/admin-vendor-list";
+import { listProvidersByUserIds } from "@/features/providers/server/service";
 import { listVendorOfferingSubmissionsForAdmin } from "@/features/vendor-offering-submissions/server/service";
 import { countVendorAssignmentsForVendor } from "@/features/vendor-orders/server/service";
 import { ensureVendorPortalSlug, listAccounts, listAccountsByRole, requireAdmin } from "@/lib/auth";
@@ -23,6 +24,7 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
     listAccounts(),
     listVendorOfferingSubmissionsForAdmin(),
   ]);
+  const providersByUserId = await listProvidersByUserIds(vendorAccounts.map((vendor) => vendor.id));
 
   const vendors: AdminVendorRow[] = await Promise.all(
     vendorAccounts.map(async (vendor) => {
@@ -34,10 +36,14 @@ export default async function AdminVendorsPage({ searchParams }: AdminVendorsPag
       const pendingOfferings = vendorSubmissions.filter((submission) =>
         ["submitted", "under_review", "changes_requested"].includes(submission.reviewStatus)
       ).length;
+      const provider = providersByUserId.get(vendor.id);
 
       return {
         ...vendor,
         vendorPortalSlug: vendorPortalSlug || "",
+        providerId: typeof provider?.id === "string" ? provider.id : "",
+        providerType: typeof provider?.provider_type === "string" ? provider.provider_type : "vendor",
+        providerStatus: typeof provider?.status === "string" ? provider.status : "draft",
         assignmentTotal: stats.total,
         assignmentActive: stats.active,
         assignmentReview: stats.review,

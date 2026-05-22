@@ -6,12 +6,11 @@ Use this file for project-wide rules around field schema, field editors, and ric
 
 - Page-level custom fields stay registered in code per managed page.
 - Whole-site shared custom fields live in `Admin > Global Fields` as code-registered global fields backed by `app_settings.global_fields_config`.
-- Offering type fields live in `offering_types.field_schema` and are edited in
-  `Admin > Offerings > Offering Types`. They drive dynamic fields on offering
-  create/edit forms.
-- Final architecture should move offering type fields to relational
-  `offering_type_fields` rows so sections, repeaters, relations, media, blocks,
-  conditional rules, and validation can be queried and managed cleanly.
+- Offering type field definitions live in relational
+  `offering_type_fields` rows.
+- Admin offering type editing lives in `Admin > Offerings > Offering Types`.
+  It should manage relational fields, groups, validation rules, and conditional
+  logic instead of writing duplicate JSON schema definitions.
 
 ## Schema Rules
 
@@ -26,6 +25,22 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Offering type fields should support the final field set documented in
   `docs/architecture-todo.md`, including relation, repeater, media, gallery,
   blocks, and conditional field behavior.
+- Offering type field groups should be represented by
+  `offering_type_field_groups`, with stable `key`, visible `label`, sortable
+  `sort_order`, and per-group `ui_config`.
+- Runtime bootstrap now creates `offering_type_field_groups` and the
+  `offering_type_fields.group_id`, `visibility_conditions`, and
+  `dependency_conditions` columns. Admin offering create/edit forms render
+  dynamic fields through the relational field rows and group visible fields into
+  predictable sections.
+- Field validation rules should use a predictable JSON shape that supports
+  `min`, `max`, `regex`, `required`, `unique`, and `allowed_values`; the same
+  rules are enforced in admin inputs where possible and in server-side
+  create/update save paths.
+- Conditional rendering should be data-driven through `visibility_conditions`
+  and `dependency_conditions` so forms can hide, show, or require fields based
+  on other field values. The current renderer supports `equals`, `not_equals`,
+  `in`, `empty`, and `not_empty` conditions.
 
 ## Editor Rules
 

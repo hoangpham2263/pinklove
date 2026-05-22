@@ -7,6 +7,7 @@ import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { DynamicOfferingFields } from "@/features/offerings/admin/dynamic-offering-fields";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
@@ -128,62 +129,12 @@ export function QuickCreateOfferingForm({
               />
             </div>
 
-            {activeOfferingType?.fieldSchema.length ? (
-              <div className="space-y-4 md:col-span-2">
-                <div>
-                  <h3 className="font-medium">Fields của {activeOfferingType.label}</h3>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {activeOfferingType.fieldSchema.map((field) => (
-                    <div key={field.key} className={field.type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}>
-                      <label htmlFor={`field-${field.key}`} className="font-medium">
-                        {field.label}
-                      </label>
-                      {field.type === "textarea" ? (
-                        <textarea
-                          id={`field-${field.key}`}
-                          value={String(customFields[field.key] ?? "")}
-                          required={field.required}
-                          placeholder={field.placeholder}
-                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.value }))}
-                          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                        />
-                      ) : field.type === "boolean" ? (
-                        <label className="flex items-center gap-2 rounded-md border bg-card p-3">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(customFields[field.key])}
-                            onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.checked }))}
-                          />
-                          <span className="text-sm text-muted-foreground">Có</span>
-                        </label>
-                      ) : field.type === "select" ? (
-                        <select
-                          id={`field-${field.key}`}
-                          value={String(customFields[field.key] ?? "")}
-                          required={field.required}
-                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.value }))}
-                          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                        >
-                          <option value="">Chọn</option>
-                          {(field.options ?? []).map((option) => (
-                            <option key={option} value={option}>{option}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <Input
-                          id={`field-${field.key}`}
-                          type={field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "url" ? "url" : "text"}
-                          value={String(customFields[field.key] ?? "")}
-                          required={field.required}
-                          placeholder={field.placeholder}
-                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: field.type === "number" ? Number(e.target.value || "0") : e.target.value }))}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {activeOfferingType ? (
+              <DynamicOfferingFields
+                offeringType={activeOfferingType}
+                values={customFields}
+                onChange={setCustomFields}
+              />
             ) : null}
 
             <div className="space-y-2">

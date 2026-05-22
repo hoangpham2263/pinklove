@@ -8,11 +8,12 @@ import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { DynamicOfferingFields } from "@/features/offerings/admin/dynamic-offering-fields";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
-import type { Offering, OfferingCategory, OfferingFulfillmentType } from "@/features/offerings/types";
+import type { Offering, OfferingCategory, OfferingFulfillmentType, OfferingTypeDefinition } from "@/features/offerings/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import type { AccountUser } from "@/lib/auth";
@@ -21,6 +22,7 @@ import { slugify } from "@/lib/utils";
 
 type OfferingEditorFormProps = {
   offering: Offering;
+  offeringTypeDefinition: OfferingTypeDefinition | null;
   categories: OfferingCategory[];
   vendors: AccountUser[];
   returnTo?: string;
@@ -28,6 +30,7 @@ type OfferingEditorFormProps = {
 
 export function OfferingEditorForm({
   offering,
+  offeringTypeDefinition,
   categories,
   vendors,
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
@@ -45,19 +48,10 @@ export function OfferingEditorForm({
   const [vendorSku, setVendorSku] = useState(offering.vendorSku);
   const [ownerType, setOwnerType] = useState<"internal" | "vendor">(offering.ownerType);
   const [ownerVendorUserId, setOwnerVendorUserId] = useState(offering.ownerVendorUserId || "");
-  const vendorSupplyConfig =
-    typeof offering.config.vendorSupply === "object" && offering.config.vendorSupply
-      ? (offering.config.vendorSupply as Record<string, unknown>)
-      : {};
-  const [allowVendorSupply, setAllowVendorSupply] = useState(Boolean(vendorSupplyConfig.enabled));
+  const [allowVendorSupply, setAllowVendorSupply] = useState(offering.allowVendorSupply);
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
-  const offeringTypeDefinition =
-    typeof offering.config.offeringTypeDefinition === "object" && offering.config.offeringTypeDefinition
-      ? (offering.config.offeringTypeDefinition as { label?: string; fieldSchema?: Array<Record<string, unknown>> })
-      : null;
-  const dynamicFieldSchema = Array.isArray(offeringTypeDefinition?.fieldSchema) ? offeringTypeDefinition.fieldSchema : [];
   const [customFields, setCustomFields] = useState<Record<string, unknown>>(
     (offering.config.customFields as Record<string, unknown> | undefined) ?? {}
   );
@@ -269,57 +263,12 @@ export function OfferingEditorForm({
               />
             </div>
 
-            {dynamicFieldSchema.length ? (
-              <div className="space-y-4 md:col-span-2">
-                <h3 className="font-medium">Fields của {offeringTypeDefinition?.label ?? offering.offeringType}</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {dynamicFieldSchema.map((field) => {
-                    const key = String(field.key ?? "");
-                    const label = String(field.label ?? key);
-                    const type = String(field.type ?? "text");
-                    const options = Array.isArray(field.options) ? field.options.map(String) : [];
-                    if (!key) return null;
-                    return (
-                      <div key={key} className={type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}>
-                        <label className="font-medium">{label}</label>
-                        {type === "textarea" ? (
-                          <textarea
-                            value={String(customFields[key] ?? "")}
-                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.value }))}
-                            className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                          />
-                        ) : type === "boolean" ? (
-                          <label className="flex items-center gap-2 rounded-md border bg-card p-3 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(customFields[key])}
-                              onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.checked }))}
-                            />
-                            Có
-                          </label>
-                        ) : type === "select" ? (
-                          <select
-                            value={String(customFields[key] ?? "")}
-                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.value }))}
-                            className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                          >
-                            <option value="">Chọn</option>
-                            {options.map((option) => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <Input
-                            type={type === "number" ? "number" : type === "date" ? "date" : type === "url" ? "url" : "text"}
-                            value={String(customFields[key] ?? "")}
-                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: type === "number" ? Number(e.target.value || "0") : e.target.value }))}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            {offeringTypeDefinition ? (
+              <DynamicOfferingFields
+                offeringType={offeringTypeDefinition}
+                values={customFields}
+                onChange={setCustomFields}
+              />
             ) : null}
             <div className="space-y-2">
               <label className="font-medium">Slug</label>

@@ -43,6 +43,9 @@ import type { AccountStatus, AccountUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export type AdminVendorRow = AccountUser & {
+  providerId: string;
+  providerType: string;
+  providerStatus: string;
   assignmentTotal: number;
   assignmentActive: number;
   assignmentReview: number;
@@ -441,8 +444,10 @@ export function AdminVendorList({ vendors }: AdminVendorListProps) {
                   <PreviewField label="Họ tên" value={previewVendor.fullName || "—"} />
                   <PreviewField label="Điện thoại" value={previewVendor.phone || "—"} />
                   <PreviewField label="Trạng thái" value={getAccountStatusLabel(previewVendor.accountStatus)} />
+                  <PreviewField label="Provider" value={`${previewVendor.providerType} / ${previewVendor.providerStatus}`} />
                   <PreviewField label="Tạo lúc" value={formatDateTime(previewVendor.createdAt)} />
                   <PreviewField label="Portal" value={previewVendor.vendorPortalSlug ? ROUTES.PARTNER.PORTAL(previewVendor.vendorPortalSlug) : "—"} />
+                  <PreviewField label="Provider ID" value={<span className="break-all">{previewVendor.providerId || "—"}</span>} />
                 </div>
               </PreviewSection>
 

@@ -588,6 +588,7 @@ export async function listAvailableOfferingsForVendorSupply(vendorUserId: string
         supplier.status AS supplier_status,
         request.review_status AS request_status
       FROM offerings offering
+      INNER JOIN physical_offerings physical ON physical.offering_id = offering.id
       LEFT JOIN offering_vendor_suppliers supplier
         ON supplier.offering_id = offering.id
        AND supplier.vendor_user_id = $1
@@ -603,7 +604,7 @@ export async function listAvailableOfferingsForVendorSupply(vendorUserId: string
       ) request ON TRUE
       WHERE offering.status = 'published'
         AND offering.offering_type = 'physical_product'
-        AND COALESCE(offering.config -> 'vendorSupply' ->> 'enabled', 'false') = 'true'
+        AND physical.allow_vendor_supply = TRUE
       ORDER BY offering.updated_at DESC
     `,
     [vendorUserId]
@@ -701,12 +702,8 @@ export async function listSupplierRequestsForAdmin(): Promise<VendorOfferingSupp
 
 export async function createSupplierRequest(input: CreateSupplierRequestInput): Promise<string> {
   const offering = await getOfferingById(input.offeringId);
-  const vendorSupplyConfig =
-    typeof offering?.config.vendorSupply === "object" && offering.config.vendorSupply
-      ? (offering.config.vendorSupply as Record<string, unknown>)
-      : {};
 
-  if (!offering || offering.status !== "published" || offering.offeringType !== "physical_product" || vendorSupplyConfig.enabled !== true) {
+  if (!offering || offering.status !== "published" || offering.offeringType !== "physical_product" || !offering.allowVendorSupply) {
     throw new Error("OFFERING_NOT_AVAILABLE");
   }
 
@@ -1355,15 +1352,9 @@ export async function approveVendorOfferingSubmission(input: ApproveVendorOfferi
       allowBackorder: submission.allow_backorder,
       costPrice: toNumber(submission.purchase_cost),
       vendorSku: submission.vendor_sku,
-      config: {
-        generalOffering: {
-          ownerType,
-          vendorUserId: offeringOwnership === "vendor_originated" ? submission.vendor_user_id : "",
-          vendorSku: submission.vendor_sku,
-          costPrice: toNumber(submission.purchase_cost),
-          vendorNote: submission.vendor_note,
-        },
-      },
+      ownerType,
+      ownerVendorUserId: offeringOwnership === "vendor_originated" ? submission.vendor_user_id : undefined,
+      config: {},
     });
 
     linkedOfferingId = created.id;
@@ -1392,15 +1383,9 @@ export async function approveVendorOfferingSubmission(input: ApproveVendorOfferi
       allowBackorder: submission.allow_backorder,
       costPrice: toNumber(submission.purchase_cost),
       vendorSku: submission.vendor_sku,
-      config: {
-        generalOffering: {
-          ownerType: "vendor",
-          vendorUserId: submission.vendor_user_id,
-          vendorSku: submission.vendor_sku,
-          costPrice: toNumber(submission.purchase_cost),
-          vendorNote: submission.vendor_note,
-        },
-      },
+      ownerType: "vendor",
+      ownerVendorUserId: submission.vendor_user_id,
+      config: offering.config,
     });
   } else {
     if (!submission.linked_offering_id) {

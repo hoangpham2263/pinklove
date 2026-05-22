@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
-import { getOfferingBySlug, listAllOfferingCategories } from "@/features/offerings/server/service";
+import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -44,7 +44,13 @@ export default async function AdminOfferingTemplateEditorPage({
           <h1 className="text-2xl font-bold tracking-tight">Edit Offering Template: {offering.name}</h1>
         </div>
       </div>
-      <OfferingEditorForm offering={offering} categories={categories} vendors={vendors} returnTo={returnTo} />
+      <OfferingEditorForm
+        offering={offering}
+        offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
+        categories={categories}
+        vendors={vendors}
+        returnTo={returnTo}
+      />
     </section>
   );
 }

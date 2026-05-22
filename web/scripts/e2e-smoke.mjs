@@ -609,11 +609,12 @@ async function main() {
       assert(gone === null, "Admin user delete did not remove the account");
     });
 
-    await step("admin cannot create coded template offerings from admin", async () => {
+    await step("admin cannot create fixed digital template offerings from generic admin create", async () => {
       const create = await admin.postForm("/api/admin/offerings/create", {
         name: "Smoke Offering",
         slug: state.offeringSlug,
-        offeringType: "coded_template",
+        offeringType: "digital_template",
+        templateEngine: "coded",
         templateKey: "golden_aisle",
       });
       expectLocation(create.location, "/admin/offerings");
@@ -623,7 +624,7 @@ async function main() {
         "SELECT slug AS value FROM offerings WHERE slug = $1 LIMIT 1",
         [state.offeringSlug]
       );
-      assert(gone === null, "Coded template admin create should not create a new offering");
+      assert(gone === null, "Fixed digital template admin create should not create a new offering");
     });
 
     await step("admin can update CMS page and published page reflects it", async () => {

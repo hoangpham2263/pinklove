@@ -28,6 +28,21 @@ type InvitationRow = {
   updated_at: string;
 };
 
+const WEDDING_SITE_DATA_SELECT = `
+  COALESCE(
+    (
+      SELECT section.content
+      FROM wedding_site_sections section
+      WHERE section.wedding_site_id = ws.id
+        AND section.section_type = 'template_data'
+      ORDER BY section.sort_order ASC, section.created_at ASC
+      LIMIT 1
+    ),
+    
+    '{}'::jsonb
+  ) AS custom_data
+`;
+
 function mapInvitationRow(row: InvitationRow): InvitationSite {
   return {
     id: row.id,
@@ -44,6 +59,108 @@ function mapInvitationRow(row: InvitationRow): InvitationSite {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+async function syncWeddingSiteRelationalData(siteId: string, customData: Record<string, unknown>) {
+  await query("DELETE FROM wedding_site_sections WHERE wedding_site_id = $1 AND section_type = 'template_data'", [siteId]);
+  await query(
+    `
+      INSERT INTO wedding_site_sections (
+        wedding_site_id, section_type, title, sort_order, content, settings
+      )
+      VALUES ($1, 'template_data', 'Template data', 0, $2::jsonb, '{}'::jsonb)
+    `,
+    [siteId, customData]
+  );
+
+  await query("DELETE FROM wedding_site_events WHERE wedding_site_id = $1", [siteId]);
+  const events = asArray(customData.events);
+  for (let index = 0; index < events.length; index += 1) {
+    const event = asRecord(events[index]);
+    const title = String(event.title ?? event.name ?? "").trim();
+    if (!title) {
+      continue;
+    }
+    await query(
+      `
+        INSERT INTO wedding_site_events (
+          wedding_site_id, title, starts_at, ends_at, venue_name, address, sort_order, metadata
+        )
+        VALUES ($1, $2, NULLIF($3, '')::timestamptz, NULLIF($4, '')::timestamptz, $5, $6, $7, $8::jsonb)
+      `,
+      [
+        siteId,
+        title,
+        String(event.startsAt ?? event.starts_at ?? event.date ?? ""),
+        String(event.endsAt ?? event.ends_at ?? ""),
+        String(event.venueName ?? event.venue_name ?? event.venue ?? ""),
+        String(event.address ?? ""),
+        index,
+        event,
+      ]
+    );
+  }
+
+  await query("DELETE FROM wedding_site_guests WHERE wedding_site_id = $1", [siteId]);
+  const guests = asArray(customData.guests);
+  for (let index = 0; index < guests.length; index += 1) {
+    const guest = asRecord(guests[index]);
+    const fullName = String(guest.fullName ?? guest.full_name ?? guest.name ?? "").trim();
+    if (!fullName) {
+      continue;
+    }
+    await query(
+      `
+        INSERT INTO wedding_site_guests (
+          wedding_site_id, full_name, phone, email, group_name, invite_code, status, metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''), $7, $8::jsonb)
+      `,
+      [
+        siteId,
+        fullName,
+        String(guest.phone ?? ""),
+        String(guest.email ?? ""),
+        String(guest.groupName ?? guest.group_name ?? ""),
+        String(guest.inviteCode ?? guest.invite_code ?? ""),
+        String(guest.status ?? "invited"),
+        guest,
+      ]
+    );
+  }
+
+  await query("DELETE FROM wedding_site_rsvps WHERE wedding_site_id = $1", [siteId]);
+  const rsvps = asArray(customData.rsvps);
+  for (let index = 0; index < rsvps.length; index += 1) {
+    const rsvp = asRecord(rsvps[index]);
+    await query(
+      `
+        INSERT INTO wedding_site_rsvps (
+          wedding_site_id, attendee_name, attendee_count, response_status, message, responded_at, metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, NULLIF($6, '')::timestamptz, $7::jsonb)
+      `,
+      [
+        siteId,
+        String(rsvp.attendeeName ?? rsvp.attendee_name ?? rsvp.name ?? ""),
+        Math.max(1, Number(rsvp.attendeeCount ?? rsvp.attendee_count ?? 1)),
+        String(rsvp.responseStatus ?? rsvp.response_status ?? "pending"),
+        String(rsvp.message ?? ""),
+        String(rsvp.respondedAt ?? rsvp.responded_at ?? ""),
+        rsvp,
+      ]
+    );
+  }
+
+  await query("UPDATE wedding_sites SET custom_data = '{}'::jsonb WHERE id = $1", [siteId]);
 }
 
 async function ensureUniqueInvitationSlug(base: string, ignoreId?: string) {
@@ -84,7 +201,7 @@ export async function listInvitationsForUser(userId: string): Promise<Invitation
         ws.site_type,
         ws.template_key,
         ws.status,
-        ws.custom_data,
+        ${WEDDING_SITE_DATA_SELECT},
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
@@ -112,7 +229,7 @@ export async function getInvitationByIdForUser(userId: string, siteId: string): 
         ws.site_type,
         ws.template_key,
         ws.status,
-        ws.custom_data,
+        ${WEDDING_SITE_DATA_SELECT},
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
@@ -145,7 +262,7 @@ export async function getInvitationById(siteId: string): Promise<InvitationSite 
         ws.site_type,
         ws.template_key,
         ws.status,
-        ws.custom_data,
+        ${WEDDING_SITE_DATA_SELECT},
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
@@ -177,7 +294,7 @@ export async function getPublicInvitationBySlug(slug: string): Promise<Invitatio
         ws.site_type,
         ws.template_key,
         ws.status,
-        ws.custom_data,
+        ${WEDDING_SITE_DATA_SELECT},
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
@@ -209,7 +326,7 @@ export async function listPublishedInvitations(): Promise<InvitationSite[]> {
         ws.site_type,
         ws.template_key,
         ws.status,
-        ws.custom_data,
+        ${WEDDING_SITE_DATA_SELECT},
         ws.created_at,
         ws.updated_at
       FROM wedding_sites ws
@@ -250,7 +367,7 @@ export async function createInvitationFromOffering(input: {
       INSERT INTO wedding_sites (
         user_id, offering_id, title, slug, site_type, template_key, status, custom_data
       )
-      VALUES ($1, $2, $3, $4, $5, $6, 'draft', $7)
+      VALUES ($1, $2, $3, $4, $5, $6, 'draft', '{}'::jsonb)
       RETURNING
         id,
         user_id,
@@ -262,7 +379,7 @@ export async function createInvitationFromOffering(input: {
         site_type,
         template_key,
         status,
-        custom_data,
+        '{}'::jsonb AS custom_data,
         created_at,
         updated_at
     `,
@@ -273,11 +390,11 @@ export async function createInvitationFromOffering(input: {
       slug,
       siteType,
       templateKey,
-      defaults,
     ]
   );
 
-  return mapInvitationRow(result.rows[0]);
+  await syncWeddingSiteRelationalData(result.rows[0].id, defaults);
+  return { ...mapInvitationRow(result.rows[0]), customData: defaults };
 }
 
 export async function createBuilderInvitation(userId: string): Promise<InvitationSite> {
@@ -290,7 +407,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
       INSERT INTO wedding_sites (
         user_id, offering_id, title, slug, site_type, template_key, status, custom_data
       )
-      VALUES ($1, NULL, $2, $3, 'editable', $4, 'draft', $5)
+      VALUES ($1, NULL, $2, $3, 'editable', $4, 'draft', '{}'::jsonb)
       RETURNING
         id,
         user_id,
@@ -302,14 +419,15 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
         site_type,
         template_key,
         status,
-        custom_data,
+        '{}'::jsonb AS custom_data,
         created_at,
         updated_at
     `,
-    [userId, title, slug, BUILDER_KEY, defaults]
+    [userId, title, slug, BUILDER_KEY]
   );
 
-  return mapInvitationRow(result.rows[0]);
+  await syncWeddingSiteRelationalData(result.rows[0].id, defaults);
+  return { ...mapInvitationRow(result.rows[0]), customData: defaults };
 }
 
 function normalizeTemplateFieldValue(field: {
@@ -352,10 +470,10 @@ export async function updateInvitationForUser(input: {
         title = $1,
         slug = $2,
         status = $3,
-        custom_data = $4,
+        custom_data = '{}'::jsonb,
         updated_at = NOW()
-      WHERE id = $5
-        AND user_id = $6
+      WHERE id = $4
+        AND user_id = $5
       RETURNING
         id,
         user_id,
@@ -367,18 +485,19 @@ export async function updateInvitationForUser(input: {
         site_type,
         template_key,
         status,
-        custom_data,
+        '{}'::jsonb AS custom_data,
         created_at,
         updated_at
     `,
-    [input.title.trim() || existing.title, safeSlug, input.status, input.customData, input.siteId, input.userId]
+    [input.title.trim() || existing.title, safeSlug, input.status, input.siteId, input.userId]
   );
 
   if (!result.rows[0]) {
     return null;
   }
 
-  return mapInvitationRow(result.rows[0]);
+  await syncWeddingSiteRelationalData(result.rows[0].id, input.customData);
+  return { ...mapInvitationRow(result.rows[0]), customData: input.customData };
 }
 
 export function buildInvitationPayload(formData: FormData, templateKey: string) {

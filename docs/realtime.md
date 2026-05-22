@@ -17,6 +17,9 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Current transport implementation uses `Postgres LISTEN/NOTIFY` behind the shared SSE core.
 - The server should stay idle until Postgres emits a matching notification for the current resource.
 - Admin order-state editing now uses a client-side mutation panel and a small JSON read endpoint instead of a native form redirect flow.
+- `domain_events` is the durable event table for business events. Offering
+  create/update mutations now write `offering.created` and `offering.updated`;
+  new booking, payment, and RSVP mutations should follow the same pattern.
 
 ## Core Rules
 
@@ -36,6 +39,9 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Keep feature-specific resource loaders in the owning feature module.
 - Shared realtime notifications should move through a small channel contract instead of per-feature polling loops.
 - Mutations that change a realtime resource must emit `NOTIFY` in the same transaction path as the write.
+- Business mutations should write a durable `domain_events` row near the state
+  change, then emit the lightweight realtime signal when a realtime resource is
+  attached to that workflow.
 - Emit `ready` on initial connect so the client can establish a baseline state.
 - Emit `*.changed` when the version changes.
 - Emit `*.deleted` only when the resource is no longer available to the authorized caller and the client must tear down the current view.

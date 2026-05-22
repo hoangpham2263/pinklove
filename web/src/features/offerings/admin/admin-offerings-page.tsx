@@ -8,7 +8,7 @@ import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingsPageViewProps = {
   query: Record<string, string | string[] | undefined>;
-  fixedOfferingType: OfferingType;
+  fixedOfferingType?: OfferingType;
   fixedTemplateEngine?: OfferingTemplateEngine;
   title: string;
   description: string;
@@ -31,6 +31,9 @@ export async function AdminOfferingsPageView({
   const search = getQueryValue(query.q) ?? "";
   const status = (getQueryValue(query.status) ?? "") as "" | Offering["status"];
   const filteredOfferings = offerings.filter((offering) => {
+    if (!fixedOfferingType) {
+      return true;
+    }
     if (fixedTemplateEngine) {
       return offering.offeringType === fixedOfferingType && offering.templateEngine === fixedTemplateEngine;
     }
@@ -38,11 +41,12 @@ export async function AdminOfferingsPageView({
   });
   const publishedCount = filteredOfferings.filter((offering) => offering.status === "published").length;
   const draftCount = filteredOfferings.length - publishedCount;
-  const canCreateOffering = fixedOfferingType === "physical_product" || fixedTemplateEngine === "builder";
+  const canCreateOffering =
+    fixedOfferingType === "physical_product" || (fixedOfferingType === "digital_template" && fixedTemplateEngine === "builder");
   const createHref =
     fixedTemplateEngine === "builder"
       ? `${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
-      : `${ROUTES.ADMIN.OFFERINGS}?type=${fixedOfferingType}&returnTo=${encodeURIComponent(returnTo)}`;
+      : `${ROUTES.ADMIN.OFFERINGS}?type=${fixedOfferingType ?? "physical_product"}&returnTo=${encodeURIComponent(returnTo)}`;
   const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateOffering;
 
   return (
@@ -73,7 +77,7 @@ export async function AdminOfferingsPageView({
         offerings={filteredOfferings}
         search={search}
         status={status}
-        offeringType={fixedOfferingType}
+        offeringType={fixedOfferingType ?? ""}
         title={undefined}
         returnTo={returnTo}
       />

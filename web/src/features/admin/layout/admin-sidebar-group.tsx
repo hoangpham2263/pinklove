@@ -5,6 +5,10 @@ import {
   Bell,
   Blocks,
   BookOpenText,
+  Boxes,
+  BriefcaseBusiness,
+  CalendarClock,
+  ChartNoAxesCombined,
   CreditCard,
   ChevronRight,
   FileCode2,
@@ -15,6 +19,8 @@ import {
   MessageCircle,
   MessagesSquare,
   Package,
+  Radio,
+  Search,
   Settings,
   ShoppingBag,
   Store,
@@ -32,7 +38,13 @@ type AdminSidebarIconName =
   | "files"
   | "file-code-2"
   | "blocks"
+  | "boxes"
+  | "briefcase-business"
+  | "calendar-clock"
+  | "chart-no-axes-combined"
   | "package"
+  | "radio"
+  | "search"
   | "tags"
   | "receipt-text"
   | "credit-card"
@@ -67,7 +79,13 @@ const iconMap = {
   files: Files,
   "file-code-2": FileCode2,
   blocks: Blocks,
+  boxes: Boxes,
+  "briefcase-business": BriefcaseBusiness,
+  "calendar-clock": CalendarClock,
+  "chart-no-axes-combined": ChartNoAxesCombined,
   package: Package,
+  radio: Radio,
+  search: Search,
   tags: Tags,
   "receipt-text": ReceiptText,
   "credit-card": CreditCard,

@@ -10,9 +10,12 @@ import type {
   OfferingType,
   OfferingTypeDefinition,
   OfferingTypeField,
+  OfferingTypeFieldGroup,
 } from "@/features/offerings/types";
 import { ensureOfferingCatalogReady, query, withTransaction } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
+import { recordDomainEvent } from "@/features/platform/server/domain-events";
+import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 
 type OfferingInput = {
   slug: string;
@@ -34,6 +37,9 @@ type OfferingInput = {
   allowBackorder?: boolean;
   costPrice?: number;
   vendorSku?: string;
+  allowVendorSupply?: boolean;
+  ownerType?: OfferingOwnerType;
+  ownerVendorUserId?: string;
   config?: Record<string, unknown>;
 };
 
@@ -71,9 +77,36 @@ type OfferingTypeRow = {
   supports_inventory: boolean;
   supports_vendor_supply: boolean;
   is_system: boolean;
-  field_schema: OfferingTypeField[] | null;
   created_at: string;
   updated_at: string;
+};
+
+type OfferingTypeFieldRow = {
+  id: string;
+  offering_type_id: string;
+  group_id: string | null;
+  field_key: string;
+  field_label: string;
+  field_type: OfferingTypeField["type"];
+  is_required: boolean;
+  default_value: unknown;
+  validation_rules: Record<string, unknown> | null;
+  ui_config: Record<string, unknown> | null;
+  visibility_conditions: Record<string, unknown> | null;
+  dependency_conditions: Record<string, unknown> | null;
+  relation_target: string | null;
+  relation_multiple: boolean;
+  relation_config: Record<string, unknown> | null;
+  sort_order: number;
+};
+
+type OfferingTypeFieldGroupRow = {
+  id: string;
+  offering_type_id: string;
+  key: string;
+  label: string;
+  sort_order: number;
+  ui_config: Record<string, unknown> | null;
 };
 
 type OfferingCatalogFilterInput = {
@@ -95,7 +128,282 @@ type OfferingCategoryRow = {
   updated_at: string;
 };
 
-function mapOfferingTypeRow(row: OfferingTypeRow): OfferingTypeDefinition {
+const validOfferingFieldTypes = new Set<OfferingTypeField["type"]>([
+  "text",
+  "textarea",
+  "richtext",
+  "number",
+  "boolean",
+  "select",
+  "multiselect",
+  "date",
+  "datetime",
+  "media",
+  "gallery",
+  "price",
+  "location",
+  "json",
+  "repeater",
+  "relation",
+  "blocks",
+  "url",
+]);
+
+function normalizeOfferingTypeFields(fields: OfferingTypeField[]): OfferingTypeField[] {
+  const seenKeys = new Set<string>();
+
+  return fields.map((field, index) => {
+    const key = field.key.trim().toLowerCase();
+    if (!/^[a-z][a-z0-9_]*$/.test(key)) {
+      throw new Error("INVALID_OFFERING_FIELD_KEY");
+    }
+
+    if (seenKeys.has(key)) {
+      throw new Error("DUPLICATE_OFFERING_FIELD_KEY");
+    }
+    seenKeys.add(key);
+
+    const label = field.label.trim();
+    if (!label) {
+      throw new Error("MISSING_OFFERING_FIELD_LABEL");
+    }
+
+    if (!validOfferingFieldTypes.has(field.type)) {
+      throw new Error("INVALID_OFFERING_FIELD_TYPE");
+    }
+
+    const validationRules = { ...(field.validationRules ?? {}) };
+    const allowedValues = Array.isArray(validationRules.allowed_values)
+      ? validationRules.allowed_values.map(String).map((value) => value.trim()).filter(Boolean)
+      : Array.isArray(field.options)
+        ? field.options.map(String).map((value) => value.trim()).filter(Boolean)
+        : [];
+
+    if ((field.type === "select" || field.type === "multiselect") && allowedValues.length === 0) {
+      throw new Error("MISSING_OFFERING_FIELD_ALLOWED_VALUES");
+    }
+
+    if (allowedValues.length > 0) {
+      validationRules.allowed_values = Array.from(new Set(allowedValues));
+    }
+
+    for (const ruleKey of ["min", "max"] as const) {
+      if (validationRules[ruleKey] !== undefined && !Number.isFinite(Number(validationRules[ruleKey]))) {
+        throw new Error("INVALID_OFFERING_FIELD_VALIDATION_RULE");
+      }
+    }
+
+    if (validationRules.regex !== undefined) {
+      try {
+        new RegExp(String(validationRules.regex));
+      } catch {
+        throw new Error("INVALID_OFFERING_FIELD_REGEX");
+      }
+    }
+
+    if (validationRules.unique !== undefined && typeof validationRules.unique !== "boolean") {
+      throw new Error("INVALID_OFFERING_FIELD_VALIDATION_RULE");
+    }
+
+    return {
+      ...field,
+      key,
+      label,
+      validationRules,
+      sortOrder: field.sortOrder ?? index,
+    };
+  });
+}
+
+function isFieldVisible(field: OfferingTypeField, values: Record<string, unknown>) {
+  const conditions = field.visibilityConditions ?? {};
+  const allConditions =
+    Array.isArray(conditions.all) ? conditions.all :
+    Array.isArray(conditions.conditions) ? conditions.conditions :
+    [];
+
+  if (allConditions.length === 0) {
+    return true;
+  }
+
+  return allConditions.every((condition) => {
+    if (!condition || typeof condition !== "object") {
+      return true;
+    }
+
+    const conditionRecord = condition as Record<string, unknown>;
+    const fieldKey = String(conditionRecord.field ?? conditionRecord.fieldKey ?? "");
+    const operator = String(conditionRecord.operator ?? "equals");
+    const expected = conditionRecord.value;
+    const actual = values[fieldKey];
+
+    switch (operator) {
+      case "not_equals":
+        return actual !== expected;
+      case "in":
+        return Array.isArray(expected) && expected.includes(actual);
+      case "not_empty":
+        return actual !== undefined && actual !== null && String(actual).trim() !== "";
+      case "empty":
+        return actual === undefined || actual === null || String(actual).trim() === "";
+      case "equals":
+      default:
+        return actual === expected;
+    }
+  });
+}
+
+function coerceOfferingFieldValue(field: OfferingTypeField, rawValue: unknown) {
+  if (rawValue === undefined || rawValue === null || rawValue === "") {
+    return undefined;
+  }
+
+  if (field.type === "number" || field.type === "price") {
+    const value = Number(rawValue);
+    if (!Number.isFinite(value)) {
+      throw new Error(`INVALID_CUSTOM_FIELD:${field.key}`);
+    }
+    return value;
+  }
+
+  if (field.type === "boolean") {
+    return Boolean(rawValue);
+  }
+
+  if (field.type === "multiselect") {
+    return Array.isArray(rawValue) ? rawValue.map(String).filter(Boolean) : String(rawValue).split(",").map((value) => value.trim()).filter(Boolean);
+  }
+
+  if (field.type === "json" || field.type === "repeater" || field.type === "blocks" || field.type === "gallery") {
+    if (typeof rawValue === "string") {
+      try {
+        return JSON.parse(rawValue) as unknown;
+      } catch {
+        throw new Error(`INVALID_CUSTOM_FIELD:${field.key}`);
+      }
+    }
+    return rawValue;
+  }
+
+  return String(rawValue);
+}
+
+export async function validateOfferingCustomFields(input: {
+  offeringTypeDefinition: OfferingTypeDefinition;
+  values: Record<string, unknown>;
+  excludeOfferingId?: string;
+}): Promise<Record<string, unknown>> {
+  const normalizedValues: Record<string, unknown> = {};
+
+  for (const field of input.offeringTypeDefinition.fieldSchema) {
+    if (!isFieldVisible(field, input.values)) {
+      continue;
+    }
+
+    const value = coerceOfferingFieldValue(field, input.values[field.key]);
+    const validationRules = field.validationRules ?? {};
+    const required = Boolean(field.required || validationRules.required);
+
+    if (required && (value === undefined || value === null || String(value).trim() === "")) {
+      throw new Error(`REQUIRED_CUSTOM_FIELD:${field.key}`);
+    }
+
+    if (value === undefined) {
+      continue;
+    }
+
+    if ((field.type === "number" || field.type === "price") && typeof value === "number") {
+      if (validationRules.min !== undefined && value < Number(validationRules.min)) {
+        throw new Error(`CUSTOM_FIELD_TOO_SMALL:${field.key}`);
+      }
+      if (validationRules.max !== undefined && value > Number(validationRules.max)) {
+        throw new Error(`CUSTOM_FIELD_TOO_LARGE:${field.key}`);
+      }
+    }
+
+    if (typeof value === "string") {
+      if (validationRules.min !== undefined && value.length < Number(validationRules.min)) {
+        throw new Error(`CUSTOM_FIELD_TOO_SHORT:${field.key}`);
+      }
+      if (validationRules.max !== undefined && value.length > Number(validationRules.max)) {
+        throw new Error(`CUSTOM_FIELD_TOO_LONG:${field.key}`);
+      }
+      if (validationRules.regex !== undefined && !new RegExp(String(validationRules.regex)).test(value)) {
+        throw new Error(`CUSTOM_FIELD_REGEX_FAILED:${field.key}`);
+      }
+    }
+
+    const allowedValues = Array.isArray(validationRules.allowed_values)
+      ? validationRules.allowed_values.map(String)
+      : field.options ?? [];
+    if (allowedValues.length > 0) {
+      const values = Array.isArray(value) ? value.map(String) : [String(value)];
+      if (values.some((item) => !allowedValues.includes(item))) {
+        throw new Error(`CUSTOM_FIELD_NOT_ALLOWED:${field.key}`);
+      }
+    }
+
+    if (validationRules.unique === true) {
+      const duplicateResult = await query<{ count: string }>(
+        `
+          SELECT COUNT(*)::text AS count
+          FROM offerings
+          WHERE offering_type = $1
+            AND config -> 'customFields' ->> $2 = $3
+            AND ($4::text IS NULL OR id <> $4)
+        `,
+        [input.offeringTypeDefinition.key, field.key, String(value), input.excludeOfferingId ?? null]
+      );
+      if (Number(duplicateResult.rows[0]?.count ?? "0") > 0) {
+        throw new Error(`CUSTOM_FIELD_NOT_UNIQUE:${field.key}`);
+      }
+    }
+
+    normalizedValues[field.key] = value;
+  }
+
+  return normalizedValues;
+}
+
+function mapOfferingTypeFieldRow(row: OfferingTypeFieldRow): OfferingTypeField {
+  const validationRules = row.validation_rules ?? {};
+  const options = Array.isArray(validationRules.allowed_values) ? validationRules.allowed_values.map(String) : undefined;
+
+  return {
+    id: row.id,
+    key: row.field_key,
+    label: row.field_label,
+    type: row.field_type,
+    required: row.is_required,
+    options,
+    defaultValue: row.default_value ?? undefined,
+    validationRules,
+    uiConfig: row.ui_config ?? {},
+    sortOrder: row.sort_order,
+    groupId: row.group_id ?? undefined,
+    visibilityConditions: row.visibility_conditions ?? {},
+    dependencyConditions: row.dependency_conditions ?? {},
+    relationTarget: row.relation_target ?? undefined,
+    relationMultiple: row.relation_multiple,
+    relationConfig: row.relation_config ?? {},
+  };
+}
+
+function mapOfferingTypeFieldGroupRow(row: OfferingTypeFieldGroupRow): OfferingTypeFieldGroup {
+  return {
+    id: row.id,
+    key: row.key,
+    label: row.label,
+    sortOrder: row.sort_order,
+    uiConfig: row.ui_config ?? {},
+  };
+}
+
+function mapOfferingTypeRow(
+  row: OfferingTypeRow,
+  fields: OfferingTypeField[] = [],
+  fieldGroups: OfferingTypeFieldGroup[] = []
+): OfferingTypeDefinition {
   return {
     id: row.id,
     key: row.key,
@@ -109,7 +417,8 @@ function mapOfferingTypeRow(row: OfferingTypeRow): OfferingTypeDefinition {
     supportsInventory: row.supports_inventory,
     supportsVendorSupply: row.supports_vendor_supply,
     isSystem: row.is_system,
-    fieldSchema: Array.isArray(row.field_schema) ? row.field_schema : [],
+    fieldGroups,
+    fieldSchema: fields,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -147,6 +456,7 @@ type OfferingRow = {
   physical_allow_backorder: boolean | null;
   physical_cost_price: string | null;
   physical_vendor_sku: string | null;
+  physical_allow_vendor_supply: boolean | null;
   physical_owner_type: OfferingOwnerType | null;
   physical_owner_vendor_user_id: string | null;
   config: Record<string, unknown> | null;
@@ -190,20 +500,11 @@ function mapOfferingCategoryRow(row: OfferingCategoryRow): OfferingCategory {
 }
 
 function mapOfferingRow(row: OfferingRow): Offering {
-  const baseConfig = row.config ?? {};
-  const rawGeneralOfferingConfig =
-    typeof baseConfig.generalOffering === "object" && baseConfig.generalOffering
-      ? (baseConfig.generalOffering as Record<string, unknown>)
-      : null;
-  const ownerType =
-    row.physical_owner_type === "vendor" || rawGeneralOfferingConfig?.ownerType === "vendor"
-      ? "vendor"
-      : "internal";
-  const ownerVendorUserId =
-    ownerType === "vendor"
-      ? row.physical_owner_vendor_user_id ??
-        (typeof rawGeneralOfferingConfig?.vendorUserId === "string" ? rawGeneralOfferingConfig.vendorUserId : undefined)
-      : undefined;
+  const { generalOffering: _generalOffering, vendorSupply: _vendorSupply, ...baseConfig } = row.config ?? {};
+  void _generalOffering;
+  void _vendorSupply;
+  const ownerType = row.physical_owner_type === "vendor" ? "vendor" : "internal";
+  const ownerVendorUserId = ownerType === "vendor" ? row.physical_owner_vendor_user_id ?? undefined : undefined;
   const templateKey = row.digital_template_key ?? row.template_key;
   const templateEngine = (row.digital_template_engine ?? row.template_engine ?? undefined) as OfferingTemplateEngine | undefined;
   const templateMode = (row.digital_template_mode ?? row.template_mode ?? undefined) as OfferingTemplateMode | undefined;
@@ -215,18 +516,10 @@ function mapOfferingRow(row: OfferingRow): Offering {
   const allowBackorder = row.physical_allow_backorder ?? row.allow_backorder;
   const costPrice = row.physical_cost_price ?? "0";
   const vendorSku = row.physical_vendor_sku ?? "";
+  const allowVendorSupply = row.physical_allow_vendor_supply ?? false;
   const config: Record<string, unknown> = {
     ...baseConfig,
     ...(siteDefaults ? { siteDefaults } : {}),
-    ...(row.offering_type === "physical_product"
-      ? {
-          generalOffering: {
-            ...(rawGeneralOfferingConfig ?? {}),
-            ownerType,
-            ...(ownerVendorUserId ? { vendorUserId: ownerVendorUserId } : {}),
-          },
-        }
-      : {}),
   };
 
   return {
@@ -252,6 +545,7 @@ function mapOfferingRow(row: OfferingRow): Offering {
     allowBackorder: Boolean(allowBackorder),
     costPrice: Number(costPrice ?? "0"),
     vendorSku,
+    allowVendorSupply,
     ownerType: ownerType as OfferingOwnerType,
     ownerVendorUserId,
     config,
@@ -293,6 +587,7 @@ const OFFERING_SELECT = `
     physical.allow_backorder AS physical_allow_backorder,
     physical.cost_price::text AS physical_cost_price,
     physical.vendor_sku AS physical_vendor_sku,
+    physical.allow_vendor_supply AS physical_allow_vendor_supply,
     physical.owner_type AS physical_owner_type,
     physical.owner_vendor_user_id AS physical_owner_vendor_user_id,
     offerings.config,
@@ -311,7 +606,11 @@ type PgLikeError = {
 
 function isMissingOfferingCatalogRelation(error: unknown) {
   const pgError = error as PgLikeError;
-  return pgError?.code === "42P01" || pgError?.code === "42703" || /offering_categories|category_id/i.test(pgError?.message ?? "");
+  return (
+    pgError?.code === "42P01" ||
+    pgError?.code === "42703" ||
+    /offering_categories|offering_type_fields|offering_type_field_groups|category_id/i.test(pgError?.message ?? "")
+  );
 }
 
 async function withOfferingCatalogRetry<T>(operation: () => Promise<T>): Promise<T> {
@@ -334,6 +633,74 @@ async function mapOfferingRows(rows: OfferingRow[]): Promise<Offering[]> {
       thumbnailUrl: await resolveMediaUrl(row.thumbnail_url),
     }))
   );
+}
+
+async function listOfferingTypeFieldsByTypeIds(typeIds: string[]): Promise<Map<string, OfferingTypeField[]>> {
+  const fieldsByTypeId = new Map<string, OfferingTypeField[]>();
+
+  if (typeIds.length === 0) {
+    return fieldsByTypeId;
+  }
+
+  const result = await query<OfferingTypeFieldRow>(
+    `
+      SELECT
+        id,
+        offering_type_id,
+        group_id,
+        field_key,
+        field_label,
+        field_type,
+        is_required,
+        default_value,
+        validation_rules,
+        ui_config,
+        visibility_conditions,
+        dependency_conditions,
+        relation_target,
+        relation_multiple,
+        relation_config,
+        sort_order
+      FROM offering_type_fields
+      WHERE offering_type_id = ANY($1::text[])
+      ORDER BY sort_order ASC, field_label ASC, field_key ASC
+    `,
+    [typeIds]
+  );
+
+  for (const row of result.rows) {
+    const fields = fieldsByTypeId.get(row.offering_type_id) ?? [];
+    fields.push(mapOfferingTypeFieldRow(row));
+    fieldsByTypeId.set(row.offering_type_id, fields);
+  }
+
+  return fieldsByTypeId;
+}
+
+async function listOfferingTypeFieldGroupsByTypeIds(typeIds: string[]): Promise<Map<string, OfferingTypeFieldGroup[]>> {
+  const groupsByTypeId = new Map<string, OfferingTypeFieldGroup[]>();
+
+  if (typeIds.length === 0) {
+    return groupsByTypeId;
+  }
+
+  const result = await query<OfferingTypeFieldGroupRow>(
+    `
+      SELECT id, offering_type_id, key, label, sort_order, ui_config
+      FROM offering_type_field_groups
+      WHERE offering_type_id = ANY($1::text[])
+      ORDER BY sort_order ASC, label ASC, key ASC
+    `,
+    [typeIds]
+  );
+
+  for (const row of result.rows) {
+    const groups = groupsByTypeId.get(row.offering_type_id) ?? [];
+    groups.push(mapOfferingTypeFieldGroupRow(row));
+    groupsByTypeId.set(row.offering_type_id, groups);
+  }
+
+  return groupsByTypeId;
 }
 
 async function getOfferingUsingTemplateKey(input: {
@@ -446,7 +813,6 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
           supports_inventory,
           supports_vendor_supply,
           is_system,
-          field_schema,
           created_at,
           updated_at
         FROM offering_types
@@ -457,7 +823,15 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
     )
   );
 
-  return result.rows.map(mapOfferingTypeRow);
+  const typeIds = result.rows.map((row) => row.id);
+  const [fieldsByTypeId, groupsByTypeId] = await Promise.all([
+    listOfferingTypeFieldsByTypeIds(typeIds),
+    listOfferingTypeFieldGroupsByTypeIds(typeIds),
+  ]);
+
+  return result.rows.map((row) =>
+    mapOfferingTypeRow(row, fieldsByTypeId.get(row.id) ?? [], groupsByTypeId.get(row.id) ?? [])
+  );
 }
 
 export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDefinition | null> {
@@ -477,7 +851,6 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
           supports_inventory,
           supports_vendor_supply,
           is_system,
-          field_schema,
           created_at,
           updated_at
         FROM offering_types
@@ -488,7 +861,17 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
     )
   );
 
-  return result.rows[0] ? mapOfferingTypeRow(result.rows[0]) : null;
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  const [fieldsByTypeId, groupsByTypeId] = await Promise.all([
+    listOfferingTypeFieldsByTypeIds([row.id]),
+    listOfferingTypeFieldGroupsByTypeIds([row.id]),
+  ]);
+
+  return mapOfferingTypeRow(row, fieldsByTypeId.get(row.id) ?? [], groupsByTypeId.get(row.id) ?? []);
 }
 
 export async function saveOfferingType(input: OfferingTypeInput): Promise<OfferingTypeDefinition> {
@@ -502,9 +885,10 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
     throw new Error("MISSING_OFFERING_TYPE_LABEL");
   }
 
-  const fieldSchema = Array.isArray(input.fieldSchema) ? input.fieldSchema : [];
-  const result = await withOfferingCatalogRetry(() =>
-    query<OfferingTypeRow>(
+  const fieldSchema = normalizeOfferingTypeFields(Array.isArray(input.fieldSchema) ? input.fieldSchema : []);
+  const savedType = await withOfferingCatalogRetry(() =>
+    withTransaction(async (execute) => {
+      const result = await execute<OfferingTypeRow>(
       `
         INSERT INTO offering_types (
           key,
@@ -517,10 +901,9 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           template_mode,
           supports_inventory,
           supports_vendor_supply,
-          is_system,
-          field_schema
+          is_system
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE, $11::jsonb)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE)
         ON CONFLICT (key) DO UPDATE
         SET
           label = EXCLUDED.label,
@@ -532,7 +915,6 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           template_mode = EXCLUDED.template_mode,
           supports_inventory = EXCLUDED.supports_inventory,
           supports_vendor_supply = EXCLUDED.supports_vendor_supply,
-          field_schema = EXCLUDED.field_schema,
           updated_at = NOW()
         RETURNING
           id,
@@ -547,7 +929,6 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           supports_inventory,
           supports_vendor_supply,
           is_system,
-          field_schema,
           created_at,
           updated_at
       `,
@@ -562,12 +943,81 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
         input.templateMode?.trim() || "",
         Boolean(input.supportsInventory),
         Boolean(input.supportsVendorSupply),
-        JSON.stringify(fieldSchema),
       ]
-    )
+      );
+
+      const typeRow = result.rows[0];
+      await execute("DELETE FROM offering_type_fields WHERE offering_type_id = $1", [typeRow.id]);
+
+      for (const [index, field] of fieldSchema.entries()) {
+        const validationRules = {
+          ...(field.validationRules ?? {}),
+          ...(Array.isArray(field.options) && field.options.length > 0 ? { allowed_values: field.options } : {}),
+        };
+
+        await execute(
+          `
+            INSERT INTO offering_type_fields (
+              offering_type_id,
+              group_id,
+              field_key,
+              field_label,
+              field_type,
+              is_required,
+              default_value,
+              validation_rules,
+              ui_config,
+              visibility_conditions,
+              dependency_conditions,
+              relation_target,
+              relation_multiple,
+              relation_config,
+              sort_order
+            )
+            VALUES (
+              $1,
+              $2,
+              $3,
+              $4,
+              $5,
+              $6,
+              $7::jsonb,
+              $8::jsonb,
+              $9::jsonb,
+              $10::jsonb,
+              $11::jsonb,
+              $12,
+              $13,
+              $14::jsonb,
+              $15
+            )
+          `,
+          [
+            typeRow.id,
+            field.groupId ?? null,
+            field.key,
+            field.label,
+            field.type,
+            Boolean(field.required),
+            field.defaultValue === undefined ? null : JSON.stringify(field.defaultValue),
+            JSON.stringify(validationRules),
+            JSON.stringify(field.uiConfig ?? {}),
+            JSON.stringify(field.visibilityConditions ?? {}),
+            JSON.stringify(field.dependencyConditions ?? {}),
+            field.relationTarget ?? null,
+            Boolean(field.relationMultiple),
+            JSON.stringify(field.relationConfig ?? {}),
+            field.sortOrder ?? index,
+          ]
+        );
+      }
+
+      return typeRow;
+    })
   );
 
-  return mapOfferingTypeRow(result.rows[0]);
+  const fieldsByTypeId = await listOfferingTypeFieldsByTypeIds([savedType.id]);
+  return mapOfferingTypeRow(savedType, fieldsByTypeId.get(savedType.id) ?? []);
 }
 
 export async function getOfferingBySlug(slug: string): Promise<Offering | null> {
@@ -757,23 +1207,10 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
       }
 
       if (input.offeringType === "physical_product") {
-        const generalConfig =
-          typeof input.config?.generalOffering === "object" && input.config.generalOffering
-            ? (input.config.generalOffering as Record<string, unknown>)
-            : null;
-        const ownerType = generalConfig?.ownerType === "vendor" ? "vendor" : "internal";
-        const ownerVendorUserId =
-          ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
-            ? generalConfig.vendorUserId
-            : null;
-        const costPrice =
-          typeof generalConfig?.costPrice === "number"
-            ? generalConfig.costPrice
-            : input.costPrice ?? 0;
-        const vendorSku =
-          typeof generalConfig?.vendorSku === "string"
-            ? generalConfig.vendorSku
-            : input.vendorSku ?? "";
+        const ownerType = input.ownerType === "vendor" ? "vendor" : "internal";
+        const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? null : null;
+        const costPrice = input.costPrice ?? 0;
+        const vendorSku = input.vendorSku ?? "";
 
         await execute(
           `
@@ -786,10 +1223,11 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
               allow_backorder,
               cost_price,
               vendor_sku,
+              allow_vendor_supply,
               owner_type,
               owner_vendor_user_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           `,
           [
             offeringId,
@@ -800,6 +1238,7 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
             input.allowBackorder ?? false,
             costPrice,
             vendorSku,
+            input.allowVendorSupply ?? false,
             ownerType,
             ownerVendorUserId,
           ]
@@ -812,6 +1251,14 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
   if (!created) {
     throw new Error("OFFERING_CREATE_FAILED");
   }
+
+  await upsertOfferingSearchDocument(created);
+  await recordDomainEvent({
+    eventName: "offering.created",
+    aggregateType: "offering",
+    aggregateId: created.id,
+    payload: { slug: created.slug, offeringType: created.offeringType },
+  });
 
   return created;
 }
@@ -920,23 +1367,10 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
       }
 
       if (nextOfferingType === "physical_product") {
-        const generalConfig =
-          typeof nextConfig?.generalOffering === "object" && nextConfig.generalOffering
-            ? (nextConfig.generalOffering as Record<string, unknown>)
-            : null;
-        const ownerType = generalConfig?.ownerType === "vendor" ? "vendor" : "internal";
-        const ownerVendorUserId =
-          ownerType === "vendor" && typeof generalConfig?.vendorUserId === "string"
-            ? generalConfig.vendorUserId
-            : null;
-        const costPrice =
-          typeof generalConfig?.costPrice === "number"
-            ? generalConfig.costPrice
-            : input.costPrice ?? existing.costPrice;
-        const vendorSku =
-          typeof generalConfig?.vendorSku === "string"
-            ? generalConfig.vendorSku
-            : input.vendorSku ?? existing.vendorSku;
+        const ownerType = input.ownerType ?? existing.ownerType;
+        const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? existing.ownerVendorUserId ?? null : null;
+        const costPrice = input.costPrice ?? existing.costPrice;
+        const vendorSku = input.vendorSku ?? existing.vendorSku;
 
         await execute(
           `
@@ -949,10 +1383,11 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
               allow_backorder,
               cost_price,
               vendor_sku,
+              allow_vendor_supply,
               owner_type,
               owner_vendor_user_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           `,
           [
             offeringId,
@@ -963,6 +1398,7 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             input.allowBackorder ?? existing.allowBackorder,
             costPrice,
             vendorSku,
+            input.allowVendorSupply ?? existing.allowVendorSupply,
             ownerType,
             ownerVendorUserId,
           ]
@@ -977,7 +1413,18 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
     return null;
   }
 
-  return await getOfferingBySlug(input.slug ?? slug);
+  const updatedOffering = await getOfferingBySlug(input.slug ?? slug);
+  if (updatedOffering) {
+    await upsertOfferingSearchDocument(updatedOffering);
+    await recordDomainEvent({
+      eventName: "offering.updated",
+      aggregateType: "offering",
+      aggregateId: updatedOffering.id,
+      payload: { slug: updatedOffering.slug, offeringType: updatedOffering.offeringType },
+    });
+  }
+
+  return updatedOffering;
 }
 
 export async function deleteOffering(slug: string): Promise<boolean> {

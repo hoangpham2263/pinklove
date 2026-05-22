@@ -12,37 +12,35 @@ Snapshot source:
 - Schema source in code: `web/src/lib/database.ts`
 - Last refreshed from DB: 2026-05-22
 
-## Compatibility Note
+## ID Policy
 
-Some existing local tables still use older `bigint` ids, while the current
-bootstrap code creates newer tables with `text` ids via `app_random_id()`.
-Application queries should keep using the existing helpers and avoid assuming
-all ids are the same physical type across every environment.
+The clean runtime schema uses `text` primary keys and foreign keys. The current
+ID generator is `app_random_id()`, a nanoid-compatible 24 character text
+generator. The latest DB audit returned zero non-text primary keys.
 
 ## Table Count
 
-Current database has 100 public tables:
+Current database has 111 public tables:
 
 | Area | Tables |
 | --- | --- |
 | Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
-| CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `app_settings` |
+| CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `media_asset_links`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Offerings | `offering_types`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `wedding_sites`, `shopping_cart_items` |
+| Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `offering_bundles`, `offering_bundle_items`, `offering_search_documents`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
 | Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_offering_submissions`, `vendor_offering_submission_events`, `offering_vendor_suppliers`, `vendor_offering_supplier_requests`, `vendor_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 | Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
-| Universal media | `media_asset_links` |
 | Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
-| Creator ecosystem | `creator_profiles`, `creator_services`, `creator_portfolios`, `creator_reviews`, `creator_orders` |
-| Vendor ecosystem | `vendors`, `vendor_profiles`, `vendor_services`, `vendor_regions`, `vendor_reviews`, `vendor_pricing`, `vendor_fulfillments` |
-| Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments` |
+| Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments` |
+| Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments`, `booking_calendars`, `provider_availability`, `provider_time_slots` |
 | Digital access | `digital_access_grants`, `subscription_access`, `feature_access` |
-| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_analytics`, `template_views`, `template_shares`, `template_conversions` |
-| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `regions`, `shipping_regions`, `service_regions` |
+| Organizations | `organizations`, `organization_members`, `organization_roles` |
+| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_attributes`, `template_attribute_values`, `template_analytics`, `template_views`, `template_shares`, `template_conversions` |
+| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `domain_events`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
 
 ## Core Refactor Status
 
@@ -58,8 +56,13 @@ Offering types are data-driven through `offering_types`:
 
 - `offerings.offering_type` stores the type key.
 - `offering_types.key` defines available type keys, labels, fulfillment behavior,
-  inventory/vendor flags, and the admin field schema.
+  and inventory/vendor flags.
+- Relational `offering_type_fields` rows are the source of truth for admin field
+  definitions.
+- `offering_types.field_schema` has been removed from the clean runtime schema.
 - Custom type-specific values are stored under `offerings.config.customFields`.
+- Physical inventory, cost, vendor ownership, and vendor supply flags live in
+  `physical_offerings`, not in `offerings.config`.
 - A new type such as `video_invitation` or `creator_service` can be created from
   `/admin/offerings/types` without adding a new table or hardcoded union.
 - Add a dedicated subtype table only when a domain needs strongly queried,
@@ -88,7 +91,14 @@ Current offering type keys:
 - `subscription`
 - `addon`
 
-Field definitions are now available as relational `offering_type_fields` rows.
+Field definitions are relational `offering_type_fields` rows grouped by
+`offering_type_field_groups`. Admin offering create/edit forms read these rows
+directly, render grouped dynamic field sections, apply visibility conditions,
+and validate custom values before writing `offerings.config.customFields`.
+
+The clean schema includes the provider, bundle, availability, search document,
+organization, domain event, template attribute, and analytics tables from the
+final architecture checklist.
 
 Current runtime seed data:
 
@@ -126,6 +136,9 @@ erDiagram
 
   offering_categories ||--o{ offerings : categorizes
   offering_types ||--o{ offerings : defines
+  offering_types ||--o{ offering_type_field_groups : field_groups
+  offering_types ||--o{ offering_type_fields : fields
+  offering_type_field_groups ||--o{ offering_type_fields : groups
   offerings ||--o| digital_template_offerings : has
   offerings ||--o| wedding_site_offerings : has
   offerings ||--o| physical_offerings : has
@@ -173,7 +186,29 @@ erDiagram
     boolean supports_inventory
     boolean supports_vendor_supply
     boolean is_system
-    jsonb field_schema
+  }
+
+  offering_type_fields {
+    text id PK
+    text offering_type_id FK
+    text group_id FK
+    text field_key
+    text field_label
+    text field_type
+    boolean is_required
+    jsonb validation_rules
+    jsonb ui_config
+    jsonb visibility_conditions
+    jsonb dependency_conditions
+  }
+
+  offering_type_field_groups {
+    text id PK
+    text offering_type_id FK
+    text key
+    text label
+    int sort_order
+    jsonb ui_config
   }
 
   digital_template_offerings {
@@ -195,6 +230,7 @@ erDiagram
     boolean track_inventory
     int stock_quantity
     numeric cost_price
+    boolean allow_vendor_supply
   }
 
   service_offerings {
@@ -239,6 +275,9 @@ erDiagram
 
   users ||--o{ creator_service_offerings : provides
   offering_types ||--o{ offerings : defines
+  offering_types ||--o{ offering_type_field_groups : field_groups
+  offering_types ||--o{ offering_type_fields : fields
+  offering_type_field_groups ||--o{ offering_type_fields : groups
   offerings ||--o| digital_template_offerings : digital_template
   offerings ||--o| wedding_site_offerings : wedding_site
   offerings ||--o| physical_offerings : physical_product
@@ -254,23 +293,23 @@ erDiagram
 ```mermaid
 erDiagram
   wedding_sites {
-    bigint id PK
-    bigint user_id FK
+    text id PK
+    text user_id FK
     text offering_id FK
     text slug UK
-    jsonb custom_data
+    jsonb custom_data "legacy fallback only"
   }
 
   wedding_site_pages {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text slug
     text title
   }
 
   wedding_site_sections {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text page_id FK
     text section_type
     jsonb content
@@ -278,28 +317,28 @@ erDiagram
 
   wedding_site_guests {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text full_name
     text invite_code
   }
 
   wedding_site_rsvps {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text guest_id FK
     text response_status
   }
 
   wedding_site_events {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text title
     timestamptz starts_at
   }
 
   wedding_site_galleries {
     text id PK
-    bigint wedding_site_id FK
+    text wedding_site_id FK
     text title
   }
 
@@ -313,28 +352,38 @@ erDiagram
   wedding_sites ||--o{ wedding_site_galleries : has
 ```
 
+Invitation runtime data is now persisted through `wedding_site_sections` with
+`section_type = template_data`. `wedding_sites.custom_data` is retained only as a
+legacy fallback and is cleared during bootstrap migration. Structured arrays in
+template data are also synced into `wedding_site_events`,
+`wedding_site_guests`, and `wedding_site_rsvps` when present.
+
 ## Ecosystem Extensions
 
 ```mermaid
 erDiagram
-  vendors {
+  providers {
     text id PK
-    bigint user_id FK
+    text user_id FK
+    text organization_id FK
     text slug UK
     text display_name
-    text vendor_type
+    text provider_type
   }
 
-  creator_profiles {
+  provider_profiles {
+    text provider_id PK
+  }
+
+  provider_services {
     text id PK
-    bigint user_id FK
-    text slug UK
-    text display_name
+    text provider_id FK
+    text offering_id FK
   }
 
   bookings {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text booking_number UK
     text status
     numeric total_amount
@@ -344,13 +393,13 @@ erDiagram
     text id PK
     text booking_id FK
     text offering_id FK
-    text vendor_id FK
-    text creator_profile_id FK
+    text provider_type
+    text provider_id FK
   }
 
   digital_access_grants {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text offering_id FK
     text source_type
     text status
@@ -395,11 +444,11 @@ erDiagram
     text region_type
   }
 
-  users ||--o{ vendors : owns
-  users ||--o{ creator_profiles : owns
+  users ||--o{ providers : owns
   users ||--o{ bookings : creates
-  vendors ||--o{ booking_items : fulfills
-  creator_profiles ||--o{ booking_items : fulfills
+  providers ||--o{ provider_profiles : has
+  providers ||--o{ provider_services : offers
+  providers ||--o{ booking_items : fulfills
   bookings ||--o{ booking_items : contains
   offerings ||--o{ booking_items : booked_as
   offerings ||--o{ digital_access_grants : grants
@@ -413,7 +462,7 @@ erDiagram
 ```mermaid
 erDiagram
   users {
-    bigint id PK
+    text id PK
     text username UK
     text role
     text account_status
@@ -422,36 +471,36 @@ erDiagram
 
   user_sessions {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text token_hash UK
   }
 
   user_settings {
-    bigint user_id PK, FK
+    text user_id PK, FK
     text ui_density
   }
 
   user_profiles {
-    bigint user_id PK, FK
+    text user_id PK, FK
     text display_name
     text vendor_portal_slug
   }
 
   user_shipping_profiles {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text profile_type
   }
 
   user_addresses {
     text id PK
-    bigint user_id FK
+    text user_id FK
     boolean is_default
   }
 
   user_oauth_accounts {
-    bigint id PK
-    bigint user_id FK
+    text id PK
+    text user_id FK
     text provider
     text provider_user_id
   }
@@ -463,7 +512,7 @@ erDiagram
   }
 
   managed_pages {
-    bigint id PK
+    text id PK
     text slug UK
     text status
     text template
@@ -471,13 +520,13 @@ erDiagram
   }
 
   navigation_menus {
-    bigint id PK
+    text id PK
     text name UK
     text label
   }
 
   navigation_menu_items {
-    bigint id PK
+    text id PK
     bigint menu_id FK
     text parent_id
     text type
@@ -529,7 +578,29 @@ erDiagram
     boolean supports_inventory
     boolean supports_vendor_supply
     boolean is_system
-    jsonb field_schema
+  }
+
+  offering_type_fields {
+    text id PK
+    text offering_type_id FK
+    text group_id FK
+    text field_key
+    text field_label
+    text field_type
+    boolean is_required
+    jsonb validation_rules
+    jsonb ui_config
+    jsonb visibility_conditions
+    jsonb dependency_conditions
+  }
+
+  offering_type_field_groups {
+    text id PK
+    text offering_type_id FK
+    text key
+    text label
+    int sort_order
+    jsonb ui_config
   }
 
   offerings {
@@ -546,14 +617,15 @@ erDiagram
   physical_offerings {
     text offering_id PK, FK
     text fulfillment_type
-    bigint owner_vendor_user_id FK
+    text owner_vendor_user_id FK
     int stock_quantity
     numeric cost_price
+    boolean allow_vendor_supply
   }
 
   wedding_sites {
-    bigint id PK
-    bigint user_id FK
+    text id PK
+    text user_id FK
     text offering_id FK
     text slug UK
     text site_type
@@ -562,7 +634,7 @@ erDiagram
 
   shopping_cart_items {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text offering_id FK
     int quantity
   }
@@ -599,6 +671,9 @@ erDiagram
 
   offering_categories ||--o{ offerings : categorizes
   offering_types ||--o{ offerings : defines
+  offering_types ||--o{ offering_type_field_groups : field_groups
+  offering_types ||--o{ offering_type_fields : fields
+  offering_type_field_groups ||--o{ offering_type_fields : groups
   offerings ||--o| digital_template_offerings : template_details
   offerings ||--o| physical_offerings : physical_details
   offerings ||--o{ wedding_sites : starts_from
@@ -612,7 +687,7 @@ erDiagram
 ```mermaid
 erDiagram
   affiliate_accounts {
-    bigint user_id PK, FK
+    text user_id PK, FK
     text code UK
     text status
     text commission_type
@@ -620,14 +695,14 @@ erDiagram
   }
 
   affiliate_clicks {
-    bigint id PK
+    text id PK
     bigint affiliate_user_id FK
     text affiliate_code
     text landing_path
   }
 
   affiliate_conversions {
-    bigint id PK
+    text id PK
     bigint affiliate_user_id FK
     text external_order_ref UK
     numeric order_value
@@ -645,7 +720,7 @@ erDiagram
   commerce_orders {
     text id PK
     text order_number UK
-    bigint user_id FK
+    text user_id FK
     bigint affiliate_user_id FK
     text status
     text payment_status
@@ -687,7 +762,7 @@ erDiagram
 
   commerce_entitlements {
     text id PK
-    bigint user_id FK
+    text user_id FK
     text offering_id FK
     text order_id FK
     text order_item_id FK
@@ -784,7 +859,7 @@ erDiagram
 
   chat_conversation_participants {
     text conversation_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
     timestamptz last_read_at
   }
 
@@ -798,20 +873,20 @@ erDiagram
 
   chat_message_user_states {
     text message_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
     boolean is_pinned
   }
 
   chat_conversation_user_states {
     text conversation_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
     boolean is_pinned
     boolean is_hidden
   }
 
   chat_typing_states {
     text conversation_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
   }
 
   notifications {
@@ -829,12 +904,12 @@ erDiagram
 
   notification_target_users {
     text notification_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
   }
 
   notification_user_states {
     text notification_id PK, FK
-    bigint user_id PK, FK
+    text user_id PK, FK
     timestamptz read_at
     timestamptz dismissed_at
   }
@@ -956,7 +1031,7 @@ docker compose exec db psql -U app -d app -P pager=off -c \
   "select tc.table_name, kcu.column_name, ccu.table_name as foreign_table_name, ccu.column_name as foreign_column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name=kcu.constraint_name and tc.table_schema=kcu.table_schema join information_schema.constraint_column_usage ccu on ccu.constraint_name=tc.constraint_name and ccu.table_schema=tc.table_schema join information_schema.referential_constraints rc on rc.constraint_name=tc.constraint_name and rc.constraint_schema=tc.table_schema where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public' order by tc.table_name,kcu.column_name;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
-  "select key,label,status,fulfillment_type,template_key,supports_inventory,supports_vendor_supply,is_system,jsonb_array_length(field_schema) as fields from offering_types order by is_system desc, key;"
+  "select ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_vendor_supply,ot.is_system,count(otf.id) as fields from offering_types ot left join offering_type_fields otf on otf.offering_type_id=ot.id group by ot.id,ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_vendor_supply,ot.is_system order by ot.is_system desc, ot.key;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
   "select offering_type,count(*) from offerings group by offering_type order by offering_type;"

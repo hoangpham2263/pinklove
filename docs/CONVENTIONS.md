@@ -124,7 +124,10 @@ This file is the repo-wide source of truth.
 - Treat `offering_types` as the runtime registry for catalog types. New offering
   types should be created through data/admin configuration before adding code.
 - Store custom type-specific fields in `offerings.config.customFields` according
-  to `offering_types.field_schema`.
+  to relational `offering_type_fields` definitions.
+- Keep `offerings.config` limited to UI configuration, lightweight metadata, and
+  flexible display data. Move inventory, pricing rules, booking logic,
+  permissions, analytics, and relationships into dedicated relational tables.
 - `digital_template` offerings represent online templates, motion/video templates,
   and builder starters.
 - `physical_product` offerings represent regular shop/vendor/API products such

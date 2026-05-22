@@ -255,8 +255,9 @@ web/
 - Shared custom-field architecture uses code-registered schemas.
   Managed-page field schemas live under `src/features/pages/*`.
   Whole-site global field schemas live under `src/features/global-fields/*`.
-  Offering type field schemas are data-managed in `offering_types.field_schema`
-  and edited from `/admin/offerings/types`.
+  Offering type field schemas should be data-managed through relational
+  `offering_type_fields` and `offering_type_field_groups` rows edited from
+  `/admin/offerings/types`.
 
 ## API client architecture
 

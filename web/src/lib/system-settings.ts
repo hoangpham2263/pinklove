@@ -730,7 +730,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
       SELECT seo_breadcrumb, seo_sitemap, seo_redirects, seo_indexing, seo_branding, seo_opengraph, commerce_config
       , internal_api_config, email_config, third_party_config
       FROM app_settings
-      WHERE id = 1
+      WHERE id = 'system'
       LIMIT 1
     `);
     row = result.rows[0];
@@ -773,7 +773,7 @@ export async function updateBreadcrumbSettings(input: Partial<BreadcrumbSettings
     UPDATE app_settings
     SET seo_breadcrumb = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -790,7 +790,7 @@ export async function updateSitemapSettings(input: Partial<SitemapSettings>) {
     UPDATE app_settings
     SET seo_sitemap = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -807,7 +807,7 @@ export async function updateSeoRedirectSettings(input: Partial<SeoRedirectSettin
     UPDATE app_settings
     SET seo_redirects = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -824,7 +824,7 @@ export async function updateIndexingSettings(input: Partial<IndexingSettings>) {
     UPDATE app_settings
     SET seo_indexing = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -837,7 +837,7 @@ async function updateBrandingStorageSettings(input: Partial<BrandingStorageSetti
     `
     SELECT seo_branding
     FROM app_settings
-    WHERE id = 1
+    WHERE id = 'system'
     LIMIT 1
     `
   );
@@ -849,7 +849,7 @@ async function updateBrandingStorageSettings(input: Partial<BrandingStorageSetti
     UPDATE app_settings
     SET seo_branding = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -870,7 +870,7 @@ export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>)
     UPDATE app_settings
     SET seo_opengraph = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -895,7 +895,7 @@ export async function updateEcommerceSettings(input: Partial<EcommerceSettings>)
     UPDATE app_settings
     SET commerce_config = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -918,7 +918,7 @@ export async function updateInternalOfferingImportApiSettings(input: Partial<Int
     UPDATE app_settings
     SET internal_api_config = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -935,7 +935,7 @@ export async function updateEmailSettings(input: Partial<EmailSettings>) {
     UPDATE app_settings
     SET email_config = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );
@@ -959,7 +959,7 @@ export async function updateThirdPartySettings(input: Partial<ThirdPartySettings
     UPDATE app_settings
     SET third_party_config = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );

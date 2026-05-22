@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { OfferingTypeFieldType } from "@/features/offerings/types";
+import type { OfferingTypeField, OfferingTypeFieldType } from "@/features/offerings/types";
 
 type FieldRow = {
   id: string;
@@ -36,7 +36,7 @@ const fieldTypes: OfferingTypeFieldType[] = [
   "url",
 ];
 
-const defaultRows: FieldRow[] = [
+const starterRows: FieldRow[] = [
   { id: "duration_seconds", key: "duration_seconds", label: "Thời lượng video", type: "number", required: "yes", options: "" },
   { id: "video_style", key: "video_style", label: "Phong cách video", type: "select", required: "no", options: "cinematic, modern, minimal" },
   { id: "source_url", key: "source_url", label: "Link source", type: "url", required: "no", options: "" },
@@ -53,8 +53,35 @@ function createRow(): FieldRow {
   };
 }
 
-export function OfferingTypeFieldsBuilder() {
-  const [rows, setRows] = useState<FieldRow[]>(defaultRows);
+function fieldToRow(field: OfferingTypeField): FieldRow {
+  const allowedValues = Array.isArray(field.validationRules?.allowed_values)
+    ? field.validationRules.allowed_values.map(String)
+    : field.options ?? [];
+
+  return {
+    id: field.id ?? field.key,
+    key: field.key,
+    label: field.label,
+    type: field.type,
+    required: field.required ? "yes" : "no",
+    options: allowedValues.join(", "),
+  };
+}
+
+export function OfferingTypeFieldsBuilder({
+  initialFields,
+  useStarterRows = false,
+}: {
+  initialFields?: OfferingTypeField[];
+  useStarterRows?: boolean;
+}) {
+  const initialRows = useMemo(() => {
+    if (initialFields?.length) {
+      return initialFields.map(fieldToRow);
+    }
+    return useStarterRows ? starterRows : [createRow()];
+  }, [initialFields, useStarterRows]);
+  const [rows, setRows] = useState<FieldRow[]>(initialRows);
 
   const updateRow = (id: string, patch: Partial<FieldRow>) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)));
@@ -121,7 +148,7 @@ export function OfferingTypeFieldsBuilder() {
                   <option value="yes">Yes</option>
                 </select>
               </div>
-              {row.type === "select" ? (
+              {row.type === "select" || row.type === "multiselect" ? (
                 <Input
                   name="fieldOptions"
                   value={row.options}

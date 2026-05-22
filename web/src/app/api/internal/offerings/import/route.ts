@@ -21,6 +21,9 @@ type OfferingImportPayload = {
     stockQuantity?: number;
     lowStockThreshold?: number;
     allowBackorder?: boolean;
+    costPrice?: number;
+    vendorSku?: string;
+    allowVendorSupply?: boolean;
     ownerType?: OfferingOwnerType;
     ownerVendorUserId?: string;
     siteDefaults?: Record<string, unknown>;
@@ -116,19 +119,12 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "not_found", message: "Không tìm thấy sản phẩm để cập nhật." }, { status: 404 });
   }
 
-  const baseConfig = offering.config && typeof offering.config === "object" ? offering.config : {};
+  const baseConfig = offering.config && typeof offering.config === "object" ? { ...offering.config } : {};
+  delete baseConfig.generalOffering;
+  delete baseConfig.vendorSupply;
   const config =
     offeringType === "physical_product"
-      ? {
-          ...baseConfig,
-          generalOffering: {
-            ownerType: offering.ownerType === "vendor" ? "vendor" : "internal",
-            vendorUserId:
-              offering.ownerType === "vendor" && offering.ownerVendorUserId
-                ? String(offering.ownerVendorUserId)
-                : undefined,
-          },
-        }
+      ? baseConfig
       : {
           ...baseConfig,
           siteDefaults:
@@ -153,6 +149,11 @@ export async function POST(request: Request) {
           stockQuantity: typeof offering.stockQuantity === "number" ? offering.stockQuantity : 0,
           lowStockThreshold: typeof offering.lowStockThreshold === "number" ? offering.lowStockThreshold : 0,
           allowBackorder: Boolean(offering.allowBackorder),
+          costPrice: typeof offering.costPrice === "number" ? offering.costPrice : 0,
+          vendorSku: typeof offering.vendorSku === "string" ? offering.vendorSku : "",
+          allowVendorSupply: Boolean(offering.allowVendorSupply),
+          ownerType: offering.ownerType === "vendor" ? "vendor" : "internal",
+          ownerVendorUserId: offering.ownerType === "vendor" ? String(offering.ownerVendorUserId ?? "") : undefined,
           config,
         })
       : await createOffering({
@@ -171,6 +172,11 @@ export async function POST(request: Request) {
           stockQuantity: typeof offering.stockQuantity === "number" ? offering.stockQuantity : 0,
           lowStockThreshold: typeof offering.lowStockThreshold === "number" ? offering.lowStockThreshold : 0,
           allowBackorder: Boolean(offering.allowBackorder),
+          costPrice: typeof offering.costPrice === "number" ? offering.costPrice : 0,
+          vendorSku: typeof offering.vendorSku === "string" ? offering.vendorSku : "",
+          allowVendorSupply: Boolean(offering.allowVendorSupply),
+          ownerType: offering.ownerType === "vendor" ? "vendor" : "internal",
+          ownerVendorUserId: offering.ownerType === "vendor" ? String(offering.ownerVendorUserId ?? "") : undefined,
           config,
         });
 

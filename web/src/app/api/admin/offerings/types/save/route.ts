@@ -47,6 +47,22 @@ function parseFieldSchema(raw: string): OfferingTypeField[] {
       required: Boolean(item?.required),
       placeholder: typeof item?.placeholder === "string" ? item.placeholder : undefined,
       options: Array.isArray(item?.options) ? item.options.map(String) : undefined,
+      defaultValue: item?.defaultValue,
+      validationRules: item?.validationRules && typeof item.validationRules === "object" ? (item.validationRules as Record<string, unknown>) : undefined,
+      uiConfig: item?.uiConfig && typeof item.uiConfig === "object" ? (item.uiConfig as Record<string, unknown>) : undefined,
+      sortOrder: Number.isFinite(Number(item?.sortOrder)) ? Number(item?.sortOrder) : undefined,
+      visibilityConditions:
+        item?.visibilityConditions && typeof item.visibilityConditions === "object"
+          ? (item.visibilityConditions as Record<string, unknown>)
+          : undefined,
+      dependencyConditions:
+        item?.dependencyConditions && typeof item.dependencyConditions === "object"
+          ? (item.dependencyConditions as Record<string, unknown>)
+          : undefined,
+      relationTarget: typeof item?.relationTarget === "string" ? item.relationTarget : undefined,
+      relationMultiple: Boolean(item?.relationMultiple),
+      relationConfig:
+        item?.relationConfig && typeof item.relationConfig === "object" ? (item.relationConfig as Record<string, unknown>) : undefined,
     }))
     .filter((field) => field.key && field.label);
 }
@@ -61,7 +77,8 @@ function parseFieldRows(formData: FormData): OfferingTypeField[] {
   return keys
     .map((fieldKey, index) => {
       const type = validFieldTypes.has(types[index]) ? (types[index] as OfferingTypeField["type"]) : "text";
-      const optionValues = type === "select" ? (options[index] ?? "").split(",").map((option) => option.trim()).filter(Boolean) : undefined;
+      const optionValues =
+        type === "select" || type === "multiselect" ? (options[index] ?? "").split(",").map((option) => option.trim()).filter(Boolean) : undefined;
 
       return {
         key: fieldKey,
@@ -69,6 +86,8 @@ function parseFieldRows(formData: FormData): OfferingTypeField[] {
         type,
         required: required[index] === "yes",
         options: optionValues,
+        sortOrder: index,
+        validationRules: optionValues?.length ? { allowed_values: optionValues } : {},
       };
     })
     .filter((field) => field.key && field.label);
@@ -93,9 +112,9 @@ export async function POST(request: Request) {
     fieldSchema = formData.has("fieldKey") ? parseFieldRows(formData) : parseFieldSchema(fieldSchemaRaw);
   } catch {
     return respondError(request, {
-      error: "invalid_field_schema",
-      message: "Field schema phải là JSON array hợp lệ.",
-      location: `${ROUTES.ADMIN.OFFERING_TYPES}?error=invalid_field_schema`,
+      error: "invalid_field_definitions",
+      message: "Field definitions phải hợp lệ.",
+      location: `${ROUTES.ADMIN.OFFERING_TYPES}?error=invalid_field_definitions`,
     });
   }
 

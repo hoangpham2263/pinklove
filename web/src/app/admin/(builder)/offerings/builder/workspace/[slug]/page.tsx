@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { listAccountsByRole } from "@/lib/auth";
-import { getOfferingBySlug, listAllOfferingCategories } from "@/features/offerings/server/service";
+import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -36,7 +36,15 @@ export default async function AdminBuilderEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_BUILDER;
 
-  return <OfferingEditorForm offering={offering} categories={categories} vendors={vendors} returnTo={returnTo} />;
+  return (
+    <OfferingEditorForm
+      offering={offering}
+      offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
+      categories={categories}
+      vendors={vendors}
+      returnTo={returnTo}
+    />
+  );
 }
 
 function getQueryValue(value: string | string[] | undefined) {

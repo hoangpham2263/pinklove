@@ -294,11 +294,6 @@
       "lowStockThreshold": 5,
       "allowBackorder": false,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-001",
-          "costPrice": 420000
-        },
         "offeringDetails": {
           "spec": "Bộ thiệp in mẫu cơ bản.",
           "leadTimeNote": "5-7 ngày làm việc."
@@ -321,11 +316,6 @@
       "lowStockThreshold": 8,
       "allowBackorder": false,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-002",
-          "costPrice": 260000
-        },
         "offeringDetails": {
           "spec": "Bộ phụ kiện trang trí sinh nhật.",
           "leadTimeNote": "3-5 ngày làm việc."
@@ -348,11 +338,6 @@
       "lowStockThreshold": 6,
       "allowBackorder": false,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-003",
-          "costPrice": 310000
-        },
         "offeringDetails": {
           "spec": "Bộ quà tặng tốt nghiệp.",
           "leadTimeNote": "4-6 ngày làm việc."
@@ -375,11 +360,6 @@
       "lowStockThreshold": 0,
       "allowBackorder": true,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-004",
-          "costPrice": 350000
-        },
         "offeringDetails": {
           "spec": "Gói hỗ trợ setup sự kiện cơ bản.",
           "leadTimeNote": "Liên hệ để xếp lịch."
@@ -402,11 +382,6 @@
       "lowStockThreshold": 10,
       "allowBackorder": false,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-005",
-          "costPrice": 220000
-        },
         "offeringDetails": {
           "spec": "Set quà tặng tiêu chuẩn.",
           "leadTimeNote": "3-5 ngày làm việc."
@@ -429,11 +404,6 @@
       "lowStockThreshold": 12,
       "allowBackorder": false,
       "config": {
-        "generalOffering": {
-          "ownerType": "internal",
-          "vendorSku": "GENERAL-006",
-          "costPrice": 180000
-        },
         "offeringDetails": {
           "spec": "Set phụ kiện đơn giản.",
           "leadTimeNote": "2-4 ngày làm việc."

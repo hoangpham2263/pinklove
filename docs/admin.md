@@ -16,14 +16,20 @@ This file covers the admin area and admin-controlled workflows.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin offering flows operate on catalog entries in `offerings`.
-- `/admin/offerings` should become an overview dashboard for catalog health,
-  metrics, shortcuts, and recent activity. Move direct table management to route
-  children such as `/admin/offerings/list` so the overview stays clean.
+- `/admin/offerings` is the main offering management table across all offering
+  types. Route children such as `/admin/offerings/templates`,
+  `/admin/offerings/builder`, and `/admin/offerings/list` keep scoped table
+  views for focused operations.
 - Offering management screens should keep the same dense table management style
-  as the current `/admin/offerings` list.
+  as the main `/admin/offerings` table.
 - Admin offering type management lives at `/admin/offerings/types` and writes to
-  `offering_types`. Use it to define custom fields for new catalog types instead
-  of hardcoding type unions in forms or API routes.
+  `offering_types` plus relational `offering_type_fields`. The type management
+  UI is also table-first, with preview and create/edit dialogs. Use it to define
+  custom fields for new catalog types instead of hardcoding type unions in forms
+  or API routes.
+- Admin dynamic offering forms should render from relational field groups,
+  fields, validation rules, and conditional logic. The expected backing tables
+  are `offering_type_field_groups` and `offering_type_fields`.
 - Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
 - `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New offering flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
 - `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
@@ -63,10 +69,19 @@ This file covers the admin area and admin-controlled workflows.
 - internal accounts
 - affiliates
 - offerings
-  - overview
+  - main offering management table
   - offering list
   - offering categories
   - offering types
+  - offering type fields and groups
+  - template attributes
+  - bundles
+  - providers
+  - search documents
+  - provider availability
+- analytics
+  - analytics events
+  - domain events
 - seo
   - page seo
   - seo schema

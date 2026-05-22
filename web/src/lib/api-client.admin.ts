@@ -205,6 +205,10 @@ async function bulkUpdateOfferingCategories(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.BULK, formData);
 }
 
+async function saveOfferingType(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.TYPES.SAVE, formData);
+}
+
 async function savePaymentMethod(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE, formData);
 }
@@ -446,6 +450,7 @@ export const adminApi = {
   updateOfferingCategory,
   deleteOfferingCategory,
   bulkUpdateOfferingCategories,
+  saveOfferingType,
   savePaymentMethod,
   deletePaymentMethod,
   fetchAdminOrderState,
@@ -502,6 +507,7 @@ export const adminApiActions = {
   updateOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.UPDATE,
   deleteOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.DELETE,
   bulkUpdateOfferingCategories: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.BULK,
+  saveOfferingType: ROUTES.API.ADMIN.OFFERINGS.TYPES.SAVE,
   savePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE,
   deletePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE,
 } as const;

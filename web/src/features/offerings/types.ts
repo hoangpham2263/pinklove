@@ -25,6 +25,7 @@ export type OfferingTypeFieldType =
   | "url";
 
 export type OfferingTypeField = {
+  id?: string;
   key: string;
   label: string;
   type: OfferingTypeFieldType;
@@ -35,6 +36,9 @@ export type OfferingTypeField = {
   validationRules?: Record<string, unknown>;
   uiConfig?: Record<string, unknown>;
   sortOrder?: number;
+  groupId?: string;
+  visibilityConditions?: Record<string, unknown>;
+  dependencyConditions?: Record<string, unknown>;
   relationTarget?: string;
   relationMultiple?: boolean;
   relationConfig?: Record<string, unknown>;
@@ -53,9 +57,18 @@ export type OfferingTypeDefinition = {
   supportsInventory: boolean;
   supportsVendorSupply: boolean;
   isSystem: boolean;
+  fieldGroups?: OfferingTypeFieldGroup[];
   fieldSchema: OfferingTypeField[];
   createdAt: string;
   updatedAt: string;
+};
+
+export type OfferingTypeFieldGroup = {
+  id?: string;
+  key: string;
+  label: string;
+  sortOrder?: number;
+  uiConfig?: Record<string, unknown>;
 };
 
 export type OfferingCategory = {
@@ -91,6 +104,7 @@ export type Offering = {
   allowBackorder: boolean;
   costPrice: number;
   vendorSku: string;
+  allowVendorSupply: boolean;
   ownerType: OfferingOwnerType;
   ownerVendorUserId?: string;
   config: Record<string, unknown>;

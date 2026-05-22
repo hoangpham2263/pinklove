@@ -52,41 +52,33 @@ function getSiteDefaults(offering) {
   return siteDefaults && typeof siteDefaults === "object" ? siteDefaults : {};
 }
 
-function getGeneralOfferingConfig(offering) {
-  const generalOffering = offering.config?.generalOffering;
-  return generalOffering && typeof generalOffering === "object" ? generalOffering : {};
+function getOfferingConfig(offering) {
+  const config = offering.config && typeof offering.config === "object" ? { ...offering.config } : {};
+  delete config.generalOffering;
+  delete config.vendorSupply;
+  return config;
 }
 
 async function syncOfferingTypeDetails(client, offeringId, offering) {
-  await client.query("DELETE FROM coded_template_offerings WHERE offering_id = $1", [offeringId]);
-  await client.query("DELETE FROM builder_offerings WHERE offering_id = $1", [offeringId]);
-  await client.query("DELETE FROM general_offerings WHERE offering_id = $1", [offeringId]);
+  await client.query("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
+  await client.query("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-  if (offering.offeringType === "coded_template") {
+  if (offering.offeringType === "digital_template") {
+    const templateEngine = offering.templateEngine || "coded";
+    const templateMode = offering.templateMode || (templateEngine === "builder" ? "editable" : "fixed");
     await client.query(
       `
-        INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
-        VALUES ($1, $2, $3::jsonb)
+        INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
+        VALUES ($1, $2, $3, $4, $5::jsonb)
       `,
-      [offeringId, offering.templateKey, JSON.stringify(getSiteDefaults(offering))]
+      [offeringId, offering.templateKey, templateEngine, templateMode, JSON.stringify(getSiteDefaults(offering))]
     );
   }
 
-  if (offering.offeringType === "builder") {
+  if (offering.offeringType === "physical_product") {
     await client.query(
       `
-        INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
-        VALUES ($1, $2, $3::jsonb)
-      `,
-      [offeringId, offering.templateKey, JSON.stringify(getSiteDefaults(offering))]
-    );
-  }
-
-  if (offering.offeringType === "general_offering") {
-    const generalOffering = getGeneralOfferingConfig(offering);
-    await client.query(
-      `
-        INSERT INTO general_offerings (
+        INSERT INTO physical_offerings (
           offering_id,
           fulfillment_type,
           track_inventory,
@@ -95,10 +87,11 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
           allow_backorder,
           cost_price,
           vendor_sku,
+          allow_vendor_supply,
           owner_type,
           owner_vendor_user_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL)
       `,
       [
         offeringId,
@@ -107,9 +100,9 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
         offering.stockQuantity ?? 0,
         offering.lowStockThreshold ?? 0,
         offering.allowBackorder ?? false,
-        generalOffering.costPrice ?? 0,
-        generalOffering.vendorSku ?? "",
-        generalOffering.ownerType === "vendor" ? "vendor" : "internal",
+        offering.costPrice ?? 0,
+        offering.vendorSku ?? "",
+        offering.ownerType === "vendor" ? "vendor" : "internal",
       ]
     );
   }
@@ -136,6 +129,8 @@ async function main() {
     }
 
     for (const offering of seedCatalog.offerings) {
+      const templateEngine = offering.templateEngine || "";
+      const templateMode = offering.templateMode || (templateEngine === "builder" ? "editable" : "fixed");
       const created = await client.query(
         `
           INSERT INTO offerings (
@@ -147,6 +142,8 @@ async function main() {
             status,
             offering_type,
             template_key,
+            template_engine,
+            template_mode,
             thumbnail_url,
             price,
             fulfillment_type,
@@ -172,9 +169,11 @@ async function main() {
             $11,
             $12,
             $13,
-            $14::jsonb
+            $14,
+            $15,
+            $16::jsonb
           FROM offering_categories categories
-          WHERE categories.slug = $15
+          WHERE categories.slug = $17
           RETURNING id
         `,
         [
@@ -184,6 +183,8 @@ async function main() {
           offering.description,
           offering.offeringType,
           offering.templateKey,
+          templateEngine,
+          templateMode,
           offering.thumbnailUrl,
           offering.price,
           offering.fulfillmentType,
@@ -191,7 +192,7 @@ async function main() {
           offering.stockQuantity ?? 0,
           offering.lowStockThreshold ?? 0,
           offering.allowBackorder ?? false,
-          JSON.stringify(offering.config ?? {}),
+          JSON.stringify(getOfferingConfig(offering)),
           offering.categorySlug,
         ]
       );
@@ -203,6 +204,45 @@ async function main() {
 
       await syncOfferingTypeDetails(client, offeringId, offering);
     }
+
+    await client.query(`
+      INSERT INTO offering_search_documents (
+        offering_id, search_text, filter_json, embedding
+      )
+      SELECT
+        offering.id,
+        CONCAT_WS(
+          ' ',
+          offering.name,
+          offering.slug,
+          offering.excerpt,
+          offering.description,
+          category.name,
+          offering.offering_type,
+          offering.template_key,
+          offering.template_engine,
+          offering.config::text
+        ),
+        jsonb_build_object(
+          'status', offering.status,
+          'offeringType', offering.offering_type,
+          'fulfillmentType', offering.fulfillment_type,
+          'categoryId', offering.category_id,
+          'categorySlug', category.slug,
+          'price', offering.price,
+          'templateEngine', NULLIF(offering.template_engine, ''),
+          'templateMode', NULLIF(offering.template_mode, ''),
+          'customFields', COALESCE(offering.config -> 'customFields', '{}'::jsonb)
+        ),
+        NULL
+      FROM offerings offering
+      LEFT JOIN offering_categories category ON category.id = offering.category_id
+      ON CONFLICT (offering_id) DO UPDATE
+      SET
+        search_text = EXCLUDED.search_text,
+        filter_json = EXCLUDED.filter_json,
+        updated_at = NOW()
+    `);
 
     await client.query("COMMIT");
 

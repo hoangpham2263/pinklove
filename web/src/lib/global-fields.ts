@@ -17,7 +17,7 @@ export async function getGlobalFields<TFields extends PageFields = PageFields>()
       `
       SELECT global_fields_config
       FROM app_settings
-      WHERE id = 1
+      WHERE id = 'system'
       LIMIT 1
       `
     );
@@ -37,7 +37,7 @@ export async function updateGlobalFields(input: Record<string, unknown>) {
     UPDATE app_settings
     SET global_fields_config = $1::jsonb,
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
     `,
     [JSON.stringify(next)]
   );

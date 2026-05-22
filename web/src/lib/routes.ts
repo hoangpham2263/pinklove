@@ -145,6 +145,9 @@ export const ROUTES = {
     OFFERING_BUILDER: "/admin/offerings/builder",
     OFFERING_TYPES: "/admin/offerings/types",
     OFFERING_CATEGORIES: "/admin/offerings/categories",
+    OFFERING_BUNDLES: "/admin/offerings/bundles",
+    OFFERING_SEARCH_DOCUMENTS: "/admin/offerings/search-documents",
+    TEMPLATE_ATTRIBUTES: "/admin/offerings/template-attributes",
     OFFERING_CATEGORY: (slug: string) => `/admin/offerings/categories/${slug}`,
     OFFERING: (slug: string) => `/admin/offerings/${slug}`,
     OFFERING_BUILDER_CREATE: "/admin/offerings/builder/workspace/new",
@@ -156,6 +159,8 @@ export const ROUTES = {
     AFFILIATE_USERS: "/admin/affiliates/users",
     AFFILIATE_USERS_CREATE: "/admin/affiliates/users/create",
     VENDORS: "/admin/vendors",
+    PROVIDERS: "/admin/providers",
+    PROVIDER_AVAILABILITY: "/admin/providers/availability",
     VENDORS_CREATE: "/admin/vendors/create",
     VENDOR: (id: string) => `/admin/vendors/${id}`,
     VENDOR_OFFERINGS: "/admin/vendor-offerings",
@@ -173,6 +178,8 @@ export const ROUTES = {
     ORDER: (id: string) => `/admin/orders/${id}`,
     PAYMENTS: "/admin/payments",
     SHIPMENTS: "/admin/shipments",
+    ANALYTICS: "/admin/analytics",
+    DOMAIN_EVENTS: "/admin/domain-events",
   },
   API: {
     COMMENTS: {

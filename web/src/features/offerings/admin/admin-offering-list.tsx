@@ -102,7 +102,8 @@ export function AdminOfferingList({
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: AdminOfferingListProps) {
   const router = useRouter();
-  const canBulkDelete = offeringType !== "digital_template";
+  const showsAllOfferingTypes = offeringType === "";
+  const canBulkDelete = offeringType !== "" && offeringType !== "digital_template";
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -261,7 +262,7 @@ export function AdminOfferingList({
       globalFilter,
       rowSelection,
       columnVisibility: {
-        offeringType: false,
+        offeringType: showsAllOfferingTypes,
       },
     },
     onSortingChange: setSorting,

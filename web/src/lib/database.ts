@@ -109,8 +109,12 @@ async function initSchema() {
  await pool.query(`
  CREATE OR REPLACE FUNCTION app_random_id()
  RETURNS TEXT AS $$
-   SELECT md5(random()::text || clock_timestamp()::text || random()::text)
- $$ LANGUAGE SQL;
+   SELECT string_agg(
+    substr('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-', (floor(random() * 64)::int + 1), 1),
+    ''
+   )
+   FROM generate_series(1, 24)
+ $$ LANGUAGE SQL VOLATILE;
  `);
 
   await pool.query(`
@@ -544,10 +548,10 @@ async function ensureAppSettingsMigration() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS app_settings (
-      id INTEGER PRIMARY KEY,
+      id TEXT PRIMARY KEY,
       theme TEXT NOT NULL DEFAULT 'pink',
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT app_settings_id_check CHECK (id = 1),
+      CONSTRAINT app_settings_id_check CHECK (id = 'system'),
       CONSTRAINT app_settings_theme_check CHECK (theme IN ('pink', 'black'))
     );
   `);
@@ -575,7 +579,7 @@ async function ensureAppSettingsMigration() {
 
   await pool.query(`
     INSERT INTO app_settings (id, theme, updated_at)
-    VALUES (1, 'pink', NOW())
+    VALUES ('system', 'pink', NOW())
     ON CONFLICT (id) DO NOTHING;
   `);
 
@@ -599,7 +603,7 @@ async function ensureAppSettingsMigration() {
           )
         ),
         updated_at = NOW()
-    WHERE id = 1
+    WHERE id = 'system'
       AND seo_favicon IS NOT NULL;
   `);
 }
@@ -975,24 +979,6 @@ async function ensureOfferingTablesMigration() {
   const pool = getPool();
   const offeringIdType = await getColumnTypeSql("offerings", "id", "TEXT");
   const userIdType = await getColumnTypeSql("users", "id", "TEXT");
-  const normalizedUserIdType = userIdType.toLowerCase();
-  const ownerVendorUserIdSelectSql =
-    normalizedUserIdType.includes("bigint") || normalizedUserIdType === "integer" || normalizedUserIdType === "int"
-      ? `
-          CASE
-            WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor'
-              AND COALESCE(offerings.config -> 'generalOffering' ->> 'vendorUserId', '') ~ '^[0-9]+$'
-              THEN NULLIF(offerings.config -> 'generalOffering' ->> 'vendorUserId', '')::${userIdType}
-            ELSE NULL
-          END
-        `
-      : `
-          CASE
-            WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor'
-              THEN NULLIF(offerings.config -> 'generalOffering' ->> 'vendorUserId', '')::${userIdType}
-            ELSE NULL
-          END
-        `;
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS offering_categories (
@@ -1051,12 +1037,10 @@ async function ensureOfferingTablesMigration() {
       supports_inventory BOOLEAN NOT NULL DEFAULT FALSE,
       supports_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE,
       is_system BOOLEAN NOT NULL DEFAULT FALSE,
-      field_schema JSONB NOT NULL DEFAULT '[]'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT offering_types_status_check CHECK (status IN ('draft', 'active', 'archived')),
-      CONSTRAINT offering_types_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT offering_types_field_schema_array_check CHECK (jsonb_typeof(field_schema) = 'array')
+      CONSTRAINT offering_types_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
 
@@ -1089,17 +1073,16 @@ async function ensureOfferingTablesMigration() {
       template_mode,
       supports_inventory,
       supports_vendor_supply,
-      is_system,
-      field_schema
+      is_system
     )
     VALUES
-      ('digital_template', 'Digital Template', 'Mẫu digital, thiệp online, motion, video hoặc builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE, '[]'::jsonb),
-      ('physical_product', 'Physical Product', 'Sản phẩm vật lý như thiệp giấy, quà tặng hoặc addon hữu hình.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE, '[]'::jsonb),
-      ('service', 'Service', 'Dịch vụ cưới có thể booking hoặc tư vấn.', 'active', 'service', 'service', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
-      ('creator_service', 'Creator Service', 'Dịch vụ từ creator trong hệ sinh thái cưới.', 'active', 'service', 'creator_service', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
-      ('experience', 'Experience', 'Trải nghiệm cưới hoặc gói sự kiện.', 'active', 'service', 'experience', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
-      ('subscription', 'Subscription', 'Gói đăng ký hoặc quyền truy cập định kỳ.', 'active', 'digital', 'subscription', '', '', FALSE, FALSE, TRUE, '[]'::jsonb),
-      ('addon', 'Addon', 'Tiện ích hoặc dịch vụ bổ sung.', 'active', 'digital', 'addon', '', '', FALSE, FALSE, TRUE, '[]'::jsonb)
+      ('digital_template', 'Digital Template', 'Mẫu digital, thiệp online, motion, video hoặc builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE),
+      ('physical_product', 'Physical Product', 'Sản phẩm vật lý như thiệp giấy, quà tặng hoặc addon hữu hình.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE),
+      ('service', 'Service', 'Dịch vụ cưới có thể booking hoặc tư vấn.', 'active', 'service', 'service', '', '', FALSE, TRUE, TRUE),
+      ('creator_service', 'Creator Service', 'Dịch vụ từ creator trong hệ sinh thái cưới.', 'active', 'service', 'creator_service', '', '', FALSE, TRUE, TRUE),
+      ('experience', 'Experience', 'Trải nghiệm cưới hoặc gói sự kiện.', 'active', 'service', 'experience', '', '', FALSE, TRUE, TRUE),
+      ('subscription', 'Subscription', 'Gói đăng ký hoặc quyền truy cập định kỳ.', 'active', 'digital', 'subscription', '', '', FALSE, FALSE, TRUE),
+      ('addon', 'Addon', 'Tiện ích hoặc dịch vụ bổ sung.', 'active', 'digital', 'addon', '', '', FALSE, FALSE, TRUE)
     ON CONFLICT (key) DO UPDATE
     SET
       label = EXCLUDED.label,
@@ -1260,6 +1243,7 @@ async function ensureOfferingTablesMigration() {
       allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
       cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
       vendor_sku TEXT NOT NULL DEFAULT '',
+      allow_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE,
       owner_type TEXT NOT NULL DEFAULT 'internal',
       owner_vendor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -1275,7 +1259,8 @@ async function ensureOfferingTablesMigration() {
   await pool.query(`
     ALTER TABLE physical_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
+    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS allow_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE;
   `);
 
   await pool.query(`
@@ -1310,6 +1295,7 @@ async function ensureOfferingTablesMigration() {
       allow_backorder,
       cost_price,
       vendor_sku,
+      allow_vendor_supply,
       owner_type,
       owner_vendor_user_id
     )
@@ -1322,11 +1308,9 @@ async function ensureOfferingTablesMigration() {
       offerings.allow_backorder,
       0,
       '',
-      CASE
-        WHEN COALESCE(offerings.config -> 'generalOffering' ->> 'ownerType', '') = 'vendor' THEN 'vendor'
-        ELSE 'internal'
-      END,
-      ${ownerVendorUserIdSelectSql}
+      FALSE,
+      'internal',
+      NULL::${userIdType}
     FROM offerings
     WHERE offerings.offering_type = 'physical_product'
     ON CONFLICT (offering_id) DO UPDATE
@@ -1336,6 +1320,7 @@ async function ensureOfferingTablesMigration() {
       stock_quantity = EXCLUDED.stock_quantity,
       low_stock_threshold = EXCLUDED.low_stock_threshold,
       allow_backorder = EXCLUDED.allow_backorder,
+      allow_vendor_supply = EXCLUDED.allow_vendor_supply,
       owner_type = EXCLUDED.owner_type,
       owner_vendor_user_id = EXCLUDED.owner_vendor_user_id,
       updated_at = NOW();
@@ -1360,6 +1345,13 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
+    UPDATE offerings
+    SET config = config - 'generalOffering' - 'vendorSupply'
+    WHERE offering_type = 'physical_product'
+      AND (config ? 'generalOffering' OR config ? 'vendorSupply');
+  `);
+
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS digital_template_offerings_template_key_idx
     ON digital_template_offerings(template_key);
   `);
@@ -1375,9 +1367,24 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_type_field_groups (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_type_id TEXT NOT NULL REFERENCES offering_types(id) ON DELETE CASCADE,
+      key TEXT NOT NULL,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      ui_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offering_type_field_groups_key_unique UNIQUE (offering_type_id, key)
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS offering_type_fields (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       offering_type_id TEXT NOT NULL REFERENCES offering_types(id) ON DELETE CASCADE,
+      group_id TEXT REFERENCES offering_type_field_groups(id) ON DELETE SET NULL,
       field_key TEXT NOT NULL,
       field_label TEXT NOT NULL,
       field_type TEXT NOT NULL,
@@ -1385,6 +1392,8 @@ async function ensureOfferingTablesMigration() {
       default_value JSONB,
       validation_rules JSONB NOT NULL DEFAULT '{}'::jsonb,
       ui_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      visibility_conditions JSONB NOT NULL DEFAULT '{}'::jsonb,
+      dependency_conditions JSONB NOT NULL DEFAULT '{}'::jsonb,
       relation_target TEXT,
       relation_multiple BOOLEAN NOT NULL DEFAULT FALSE,
       relation_config JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -1397,50 +1406,52 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
-    INSERT INTO offering_type_fields (
-      offering_type_id,
-      field_key,
-      field_label,
-      field_type,
-      is_required,
-      default_value,
-      validation_rules,
-      ui_config,
-      relation_target,
-      relation_multiple,
-      relation_config,
-      sort_order
-    )
-    SELECT
-      types.id,
-      field ->> 'key',
-      field ->> 'label',
-      COALESCE(NULLIF(field ->> 'type', ''), 'text'),
-      COALESCE((field ->> 'required')::boolean, FALSE),
-      field -> 'defaultValue',
-      COALESCE(field -> 'validationRules', '{}'::jsonb),
-      COALESCE(field -> 'uiConfig', '{}'::jsonb),
-      NULLIF(field ->> 'relationTarget', ''),
-      COALESCE((field ->> 'relationMultiple')::boolean, FALSE),
-      COALESCE(field -> 'relationConfig', '{}'::jsonb),
-      COALESCE((field ->> 'sortOrder')::int, ordinality::int)
-    FROM offering_types types
-    CROSS JOIN LATERAL jsonb_array_elements(types.field_schema) WITH ORDINALITY AS schema(field, ordinality)
-    WHERE COALESCE(field ->> 'key', '') <> ''
-      AND COALESCE(field ->> 'label', '') <> ''
-    ON CONFLICT (offering_type_id, field_key) DO UPDATE
-    SET
-      field_label = EXCLUDED.field_label,
-      field_type = EXCLUDED.field_type,
-      is_required = EXCLUDED.is_required,
-      default_value = EXCLUDED.default_value,
-      validation_rules = EXCLUDED.validation_rules,
-      ui_config = EXCLUDED.ui_config,
-      relation_target = EXCLUDED.relation_target,
-      relation_multiple = EXCLUDED.relation_multiple,
-      relation_config = EXCLUDED.relation_config,
-      sort_order = EXCLUDED.sort_order,
-      updated_at = NOW();
+    ALTER TABLE offering_type_fields
+    ADD COLUMN IF NOT EXISTS group_id TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_type_fields
+    ADD COLUMN IF NOT EXISTS visibility_conditions JSONB NOT NULL DEFAULT '{}'::jsonb;
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_type_fields
+    ADD COLUMN IF NOT EXISTS dependency_conditions JSONB NOT NULL DEFAULT '{}'::jsonb;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conrelid = 'offering_type_fields'::regclass
+          AND conname = 'offering_type_fields_group_id_fkey'
+      ) THEN
+        ALTER TABLE offering_type_fields
+        ADD CONSTRAINT offering_type_fields_group_id_fkey
+        FOREIGN KEY (group_id)
+        REFERENCES offering_type_field_groups(id)
+        ON DELETE SET NULL;
+      END IF;
+    END
+    $$;
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS offering_type_field_groups_type_sort_idx
+    ON offering_type_field_groups(offering_type_id, sort_order, label);
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_types
+    DROP CONSTRAINT IF EXISTS offering_types_field_schema_array_check;
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_types
+    DROP COLUMN IF EXISTS field_schema;
   `);
 
   await pool.query(`
@@ -1826,7 +1837,8 @@ async function ensureCoreDatabaseRefactorMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT media_asset_links_role_check CHECK (role IN ('thumbnail', 'gallery', 'hero', 'preview', 'background_music', 'video', 'attachment'))
+      CONSTRAINT media_asset_links_target_type_check CHECK (target_type IN ('offering', 'wedding_site', 'gallery', 'provider', 'booking', 'template')),
+      CONSTRAINT media_asset_links_role_check CHECK (role IN ('thumbnail', 'hero', 'gallery', 'preview', 'video', 'music', 'background', 'avatar'))
     );
   `);
 
@@ -1927,95 +1939,98 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS creator_profiles (
+    INSERT INTO wedding_site_sections (
+      wedding_site_id, section_type, title, sort_order, content, settings
+    )
+    SELECT
+      wedding_sites.id,
+      'template_data',
+      'Template data',
+      0,
+      wedding_sites.custom_data,
+      '{}'::jsonb
+    FROM wedding_sites
+    WHERE wedding_sites.custom_data <> '{}'::jsonb
+      AND NOT EXISTS (
+        SELECT 1
+        FROM wedding_site_sections section
+        WHERE section.wedding_site_id = wedding_sites.id
+          AND section.section_type = 'template_data'
+      );
+  `);
+
+  await pool.query(`
+    UPDATE wedding_sites
+    SET custom_data = '{}'::jsonb
+    WHERE custom_data <> '{}'::jsonb;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS organizations (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
-      display_name TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
-      bio TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'draft',
+      name TEXT NOT NULL,
+      organization_type TEXT NOT NULL DEFAULT 'studio',
+      status TEXT NOT NULL DEFAULT 'active',
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS creator_services (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
-      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
-      title TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'draft',
-      base_price NUMERIC(12,2) NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS creator_portfolios (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL DEFAULT '',
-      sort_order INT NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS creator_reviews (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
-      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
-      rating INT NOT NULL DEFAULT 5,
-      content TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'published',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT creator_reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
+      CONSTRAINT organizations_type_check CHECK (organization_type IN ('studio', 'agency', 'vendor_group', 'creator_group', 'wedding_team'))
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS creator_orders (
+    CREATE TABLE IF NOT EXISTS organization_roles (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      creator_profile_id TEXT NOT NULL REFERENCES creator_profiles(id) ON DELETE CASCADE,
-      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
-      service_id TEXT REFERENCES creator_services(id) ON DELETE SET NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
-      total_amount NUMERIC(12,2) NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      key TEXT NOT NULL,
+      label TEXT NOT NULL,
+      permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
+      sort_order INT NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (organization_id, key)
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendors (
+    CREATE TABLE IF NOT EXISTS organization_members (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role_id TEXT REFERENCES organization_roles(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (organization_id, user_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS providers (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL,
       slug TEXT NOT NULL UNIQUE,
       display_name TEXT NOT NULL,
-      vendor_type TEXT NOT NULL DEFAULT 'general',
+      provider_type TEXT NOT NULL DEFAULT 'vendor',
       status TEXT NOT NULL DEFAULT 'draft',
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT providers_type_check CHECK (provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist'))
     );
   `);
 
   await pool.query(`
-    INSERT INTO vendors (user_id, slug, display_name, vendor_type, status)
+    INSERT INTO providers (user_id, slug, display_name, provider_type, status)
     SELECT
       users.id,
-      COALESCE(NULLIF(user_profiles.vendor_portal_slug, ''), 'vendor-' || users.id::text),
+      COALESCE(NULLIF(user_profiles.vendor_portal_slug, ''), 'provider-' || users.id::text),
       COALESCE(NULLIF(user_profiles.store_name, ''), NULLIF(user_profiles.business_name, ''), NULLIF(user_profiles.display_name, ''), users.username),
-      'general',
+      'vendor',
       'published'
     FROM users
     LEFT JOIN user_profiles ON user_profiles.user_id = users.id
@@ -2023,15 +2038,17 @@ async function ensureCoreDatabaseRefactorMigration() {
     ON CONFLICT (slug) DO UPDATE
     SET user_id = EXCLUDED.user_id,
         display_name = EXCLUDED.display_name,
+        provider_type = EXCLUDED.provider_type,
         updated_at = NOW();
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_profiles (
-      vendor_id TEXT PRIMARY KEY REFERENCES vendors(id) ON DELETE CASCADE,
+    CREATE TABLE IF NOT EXISTS provider_profiles (
+      provider_id TEXT PRIMARY KEY REFERENCES providers(id) ON DELETE CASCADE,
       business_name TEXT NOT NULL DEFAULT '',
       contact_email TEXT NOT NULL DEFAULT '',
       phone TEXT NOT NULL DEFAULT '',
+      bio TEXT NOT NULL DEFAULT '',
       description TEXT NOT NULL DEFAULT '',
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -2040,12 +2057,13 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_services (
+    CREATE TABLE IF NOT EXISTS provider_services (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
+      base_price NUMERIC(12,2) NOT NULL DEFAULT 0,
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -2066,12 +2084,12 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_regions (
-      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+    CREATE TABLE IF NOT EXISTS provider_regions (
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       region_id TEXT NOT NULL REFERENCES regions(id) ON DELETE CASCADE,
       service_mode TEXT NOT NULL DEFAULT 'available',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY (vendor_id, region_id)
+      PRIMARY KEY (provider_id, region_id)
     );
   `);
 
@@ -2101,23 +2119,23 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_reviews (
+    CREATE TABLE IF NOT EXISTS provider_reviews (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       rating INT NOT NULL DEFAULT 5,
       content TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'published',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT vendor_reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
+      CONSTRAINT provider_reviews_rating_check CHECK (rating BETWEEN 1 AND 5)
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_pricing (
+    CREATE TABLE IF NOT EXISTS provider_pricing (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       offering_id TEXT REFERENCES offerings(id) ON DELETE CASCADE,
       price_type TEXT NOT NULL DEFAULT 'base',
       amount NUMERIC(12,2) NOT NULL DEFAULT 0,
@@ -2129,9 +2147,9 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS vendor_fulfillments (
+    CREATE TABLE IF NOT EXISTS provider_fulfillments (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      vendor_id TEXT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
       fulfillment_type TEXT NOT NULL DEFAULT 'service',
       lead_time_days INT NOT NULL DEFAULT 0,
@@ -2161,15 +2179,16 @@ async function ensureCoreDatabaseRefactorMigration() {
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
       offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
-      vendor_id TEXT REFERENCES vendors(id) ON DELETE SET NULL,
-      creator_profile_id TEXT REFERENCES creator_profiles(id) ON DELETE SET NULL,
+      provider_type TEXT,
+      provider_id TEXT REFERENCES providers(id) ON DELETE SET NULL,
       title TEXT NOT NULL,
       quantity INT NOT NULL DEFAULT 1,
       unit_price NUMERIC(12,2) NOT NULL DEFAULT 0,
       line_total NUMERIC(12,2) NOT NULL DEFAULT 0,
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT booking_items_provider_type_check CHECK (provider_type IS NULL OR provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist'))
     );
   `);
 
@@ -2197,6 +2216,61 @@ async function ensureCoreDatabaseRefactorMigration() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS booking_calendars (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      key TEXT NOT NULL,
+      label TEXT NOT NULL,
+      timezone TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+      status TEXT NOT NULL DEFAULT 'active',
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (provider_id, key)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_availability (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      calendar_id TEXT REFERENCES booking_calendars(id) ON DELETE CASCADE,
+      day_of_week INT,
+      starts_at TIME,
+      ends_at TIME,
+      valid_from DATE,
+      valid_until DATE,
+      capacity INT NOT NULL DEFAULT 1,
+      status TEXT NOT NULL DEFAULT 'available',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT provider_availability_day_check CHECK (day_of_week IS NULL OR day_of_week BETWEEN 0 AND 6),
+      CONSTRAINT provider_availability_status_check CHECK (status IN ('available', 'unavailable', 'blocked'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_time_slots (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      calendar_id TEXT REFERENCES booking_calendars(id) ON DELETE CASCADE,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      starts_at TIMESTAMPTZ NOT NULL,
+      ends_at TIMESTAMPTZ NOT NULL,
+      capacity INT NOT NULL DEFAULT 1,
+      booked_count INT NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'available',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT provider_time_slots_status_check CHECK (status IN ('available', 'held', 'booked', 'blocked'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS provider_time_slots_lookup_idx ON provider_time_slots(provider_id, starts_at, status);`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS digital_access_grants (
@@ -2241,6 +2315,49 @@ async function ensureCoreDatabaseRefactorMigration() {
       UNIQUE (user_id, feature_key)
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_bundles (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      slug TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      currency TEXT NOT NULL DEFAULT 'VND',
+      config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offering_bundles_status_check CHECK (status IN ('draft', 'published', 'archived'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_bundle_items (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      bundle_id TEXT NOT NULL REFERENCES offering_bundles(id) ON DELETE CASCADE,
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      quantity INT NOT NULL DEFAULT 1,
+      sort_order INT NOT NULL DEFAULT 0,
+      pricing_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (bundle_id, offering_id)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_search_documents (
+      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
+      search_text TEXT NOT NULL DEFAULT '',
+      filter_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      embedding JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS offering_search_documents_filter_idx ON offering_search_documents USING GIN (filter_json);`);
 
   await pool.query(`
     INSERT INTO digital_access_grants (
@@ -2329,6 +2446,35 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_attributes (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      key TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      attribute_type TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT template_attributes_type_check CHECK (attribute_type IN ('style', 'theme', 'mood', 'culture', 'season', 'color', 'event_type'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_attribute_values (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      attribute_id TEXT NOT NULL REFERENCES template_attributes(id) ON DELETE CASCADE,
+      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      value_key TEXT NOT NULL,
+      value_label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (attribute_id, offering_id, value_key)
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS template_analytics (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
@@ -2378,6 +2524,69 @@ async function ensureCoreDatabaseRefactorMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS domain_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      event_name TEXT NOT NULL,
+      aggregate_type TEXT NOT NULL,
+      aggregate_id TEXT NOT NULL,
+      actor_type TEXT,
+      actor_id TEXT,
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      processed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS domain_events_aggregate_idx ON domain_events(aggregate_type, aggregate_id, occurred_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS domain_events_name_idx ON domain_events(event_name, occurred_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS analytics_sessions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      visitor_token TEXT NOT NULL,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ended_at TIMESTAMPTZ,
+      referrer TEXT NOT NULL DEFAULT '',
+      user_agent TEXT NOT NULL DEFAULT '',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS analytics_page_views (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      session_id TEXT REFERENCES analytics_sessions(id) ON DELETE SET NULL,
+      path TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      target_type TEXT,
+      target_id TEXT,
+      viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS analytics_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      session_id TEXT REFERENCES analytics_sessions(id) ON DELETE SET NULL,
+      page_view_id TEXT REFERENCES analytics_page_views(id) ON DELETE SET NULL,
+      event_name TEXT NOT NULL,
+      target_type TEXT,
+      target_id TEXT,
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS analytics_events_name_idx ON analytics_events(event_name, occurred_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS analytics_page_views_target_idx ON analytics_page_views(target_type, target_id, viewed_at DESC);`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS activity_actors (
@@ -3227,7 +3436,8 @@ async function ensureOfferingVendorCostFieldsMigration() {
   await pool.query(`
     ALTER TABLE physical_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
+    ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS allow_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE;
   `);
 
   await pool.query(`
@@ -3394,10 +3604,11 @@ async function ensureOfferingSeed() {
               allow_backorder,
               cost_price,
               vendor_sku,
+              allow_vendor_supply,
               owner_type,
               owner_vendor_user_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL)
           `,
         [
           offeringId,
@@ -3406,9 +3617,9 @@ async function ensureOfferingSeed() {
           offering.stockQuantity ?? 0,
           offering.lowStockThreshold ?? 0,
           offering.allowBackorder ?? false,
-          offering.config.generalOffering?.costPrice ?? 0,
-          offering.config.generalOffering?.vendorSku ?? "",
-          offering.config.generalOffering?.ownerType === "vendor" ? "vendor" : "internal",
+          0,
+          "",
+          "internal",
         ]
       );
     }

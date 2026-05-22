@@ -1,9 +1,9 @@
 import { requireAdmin } from "@/lib/auth";
-import { getOfferingBySlug, getOfferingTypeByKey, updateOffering } from "@/features/offerings/server/service";
+import { getOfferingBySlug, getOfferingTypeByKey, updateOffering, validateOfferingCustomFields } from "@/features/offerings/server/service";
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationTemplateEngine } from "@/features/invitations/templates/registry";
-import type { OfferingFulfillmentType, OfferingOwnerType, OfferingTemplateEngine, OfferingTemplateMode, OfferingType } from "@/features/offerings/types";
+import type { OfferingFulfillmentType, OfferingTemplateEngine, OfferingTemplateMode, OfferingType } from "@/features/offerings/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
@@ -145,17 +145,18 @@ export async function POST(request: Request) {
   let customFields: Record<string, unknown> = {};
   try {
     customFields = JSON.parse(customFieldsRaw) as Record<string, unknown>;
+    customFields = await validateOfferingCustomFields({
+      offeringTypeDefinition,
+      values: customFields,
+      excludeOfferingId: existingOffering.id,
+    });
   } catch {
     return respondError(request, {
       error: "invalid_custom_fields",
-      message: "Dữ liệu fields của loại sản phẩm không hợp lệ.",
+      message: "Dữ liệu fields của loại sản phẩm không hợp lệ hoặc thiếu field bắt buộc.",
       location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_custom_fields`,
     });
   }
-  const ownerConfig = {
-    ownerType: ownerType as OfferingOwnerType,
-    vendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
-  };
   let offering = null;
 
   try {
@@ -179,21 +180,12 @@ export async function POST(request: Request) {
       allowBackorder,
       costPrice,
       vendorSku,
+      allowVendorSupply,
+      ownerType,
+      ownerVendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
       config: {
-        offeringTypeDefinition: {
-          key: offeringTypeDefinition.key,
-          label: offeringTypeDefinition.label,
-          fieldSchema: offeringTypeDefinition.fieldSchema,
-        },
         customFields,
-        ...(supportsInventory
-          ? {
-              generalOffering: { ...ownerConfig, costPrice, vendorSku },
-              vendorSupply: { enabled: allowVendorSupply },
-            }
-          : offeringType === "digital_template"
-            ? { siteDefaults: normalizedSiteDefaults }
-            : {}),
+        ...(!supportsInventory && offeringType === "digital_template" ? { siteDefaults: normalizedSiteDefaults } : {}),
       },
     });
   } catch (error) {

@@ -4,7 +4,13 @@ export type AdminNavIconName =
   | "files"
   | "file-code-2"
   | "blocks"
+  | "boxes"
+  | "briefcase-business"
+  | "calendar-clock"
+  | "chart-no-axes-combined"
   | "package"
+  | "radio"
+  | "search"
   | "tags"
   | "receipt-text"
   | "credit-card"
@@ -71,6 +77,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES, iconName: "file-code-2" },
       { label: "Offering Builder", href: ROUTES.ADMIN.OFFERING_BUILDER, iconName: "blocks" },
       { label: "Offering Categories", href: ROUTES.ADMIN.OFFERING_CATEGORIES, iconName: "tags" },
+      { label: "Bundles", href: ROUTES.ADMIN.OFFERING_BUNDLES, iconName: "boxes" },
+      { label: "Search Documents", href: ROUTES.ADMIN.OFFERING_SEARCH_DOCUMENTS, iconName: "search" },
+      { label: "Template Attributes", href: ROUTES.ADMIN.TEMPLATE_ATTRIBUTES, iconName: "tags" },
     ],
   },
   {
@@ -90,6 +99,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     defaultOpen: false,
     children: [
       { label: "Vendor Accounts", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Providers", href: ROUTES.ADMIN.PROVIDERS, iconName: "briefcase-business" },
+      { label: "Availability", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock" },
       { label: "Vendor Offering Review", href: ROUTES.ADMIN.VENDOR_OFFERINGS, iconName: "package" },
     ],
   },
@@ -118,6 +129,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
 
 export const ADMIN_NAV_SECONDARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Global Fields", href: ROUTES.ADMIN.GLOBAL_FIELDS, iconName: "list-tree" },
+  { label: "Analytics", href: ROUTES.ADMIN.ANALYTICS, iconName: "chart-no-axes-combined" },
+  { label: "Domain Events", href: ROUTES.ADMIN.DOMAIN_EVENTS, iconName: "radio" },
   { label: "Configuration", href: ROUTES.ADMIN.CONFIG, iconName: "settings" },
 ];
 
