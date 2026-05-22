@@ -1029,11 +1029,65 @@ async function ensureOfferingTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published')),
-      CONSTRAINT offerings_type_check CHECK (offering_type IN ('coded_template', 'builder', 'general_offering')),
       CONSTRAINT offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
       CONSTRAINT offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
       CONSTRAINT offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_types (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      key TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      description TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      fulfillment_type TEXT NOT NULL DEFAULT 'digital',
+      template_key TEXT NOT NULL DEFAULT '',
+      supports_inventory BOOLEAN NOT NULL DEFAULT FALSE,
+      supports_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE,
+      is_system BOOLEAN NOT NULL DEFAULT FALSE,
+      field_schema JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offering_types_status_check CHECK (status IN ('draft', 'active', 'archived')),
+      CONSTRAINT offering_types_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT offering_types_field_schema_array_check CHECK (jsonb_typeof(field_schema) = 'array')
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE offerings
+    DROP CONSTRAINT IF EXISTS offerings_type_check;
+  `);
+
+  await pool.query(`
+    INSERT INTO offering_types (
+      key,
+      label,
+      description,
+      status,
+      fulfillment_type,
+      template_key,
+      supports_inventory,
+      supports_vendor_supply,
+      is_system,
+      field_schema
+    )
+    VALUES
+      ('coded_template', 'Coded Template', 'Mẫu thiệp cố định theo source code.', 'active', 'digital', 'coded_template', FALSE, FALSE, TRUE, '[]'::jsonb),
+      ('builder', 'Builder', 'Mẫu thiệp kéo thả dùng builder editor.', 'active', 'digital', 'freeform_sections', FALSE, FALSE, TRUE, '[]'::jsonb),
+      ('general_offering', 'Sản phẩm', 'Offering bán ra dạng generic, có thể bật kho và vendor supply.', 'active', 'physical', 'general_offering', TRUE, TRUE, TRUE, '[]'::jsonb)
+    ON CONFLICT (key) DO UPDATE
+    SET
+      label = EXCLUDED.label,
+      description = EXCLUDED.description,
+      fulfillment_type = EXCLUDED.fulfillment_type,
+      template_key = EXCLUDED.template_key,
+      supports_inventory = EXCLUDED.supports_inventory,
+      supports_vendor_supply = EXCLUDED.supports_vendor_supply,
+      is_system = TRUE,
+      updated_at = NOW();
   `);
 
   await pool.query(`
@@ -1456,7 +1510,7 @@ async function ensureCommerceTablesMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT commerce_order_items_quantity_check CHECK (quantity > 0),
-      CONSTRAINT commerce_order_items_offering_type_check CHECK (offering_type IN ('coded_template', 'builder', 'general_offering')),
+      CONSTRAINT commerce_order_items_offering_type_check CHECK (offering_type <> ''),
       CONSTRAINT commerce_order_items_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
   `);
@@ -1584,8 +1638,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published', 'archived')),
-      CONSTRAINT offerings_type_check CHECK (offering_type IN ('digital_template', 'wedding_site', 'physical_product', 'service', 'creator_service', 'subscription', 'addon', 'experience'))
+      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published', 'archived'))
     );
   `);
 
@@ -3096,14 +3149,9 @@ async function ensureOfferingVendorPaperTypeMigration() {
     WHERE offering_type = 'vendor_paper'
   `);
   await pool.query(`
-    ALTER TABLE offerings
-    ADD CONSTRAINT offerings_type_check
-    CHECK (offering_type IN ('coded_template', 'builder', 'general_offering'))
-  `);
-  await pool.query(`
     ALTER TABLE commerce_order_items
     ADD CONSTRAINT commerce_order_items_offering_type_check
-    CHECK (offering_type IN ('coded_template', 'builder', 'general_offering'))
+    CHECK (offering_type <> '')
   `);
   await pool.query(`
     ALTER TABLE wedding_sites

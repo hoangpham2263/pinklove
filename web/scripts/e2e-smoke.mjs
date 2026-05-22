@@ -488,7 +488,7 @@ async function main() {
         "/admin/config",
         "/admin/users",
         "/admin/offerings",
-        "/admin/offering-templates/mau-thiep-cuoi-golden-aisle",
+        "/admin/offerings/templates/mau-thiep-cuoi-golden-aisle",
         "/admin/pages",
         "/admin/pages/gioi-thieu",
         "/admin/menus",

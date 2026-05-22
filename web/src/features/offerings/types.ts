@@ -1,6 +1,33 @@
-export type OfferingType = "coded_template" | "builder" | "general_offering";
+export type OfferingType = string;
 export type OfferingFulfillmentType = "digital" | "physical" | "service";
 export type OfferingOwnerType = "internal" | "vendor";
+
+export type OfferingTypeFieldType = "text" | "textarea" | "number" | "boolean" | "select" | "url" | "date";
+
+export type OfferingTypeField = {
+  key: string;
+  label: string;
+  type: OfferingTypeFieldType;
+  required?: boolean;
+  options?: string[];
+  placeholder?: string;
+};
+
+export type OfferingTypeDefinition = {
+  id: string;
+  key: OfferingType;
+  label: string;
+  description?: string;
+  status: "draft" | "active" | "archived";
+  fulfillmentType: OfferingFulfillmentType;
+  templateKey: string;
+  supportsInventory: boolean;
+  supportsVendorSupply: boolean;
+  isSystem: boolean;
+  fieldSchema: OfferingTypeField[];
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type OfferingCategory = {
   id: string;

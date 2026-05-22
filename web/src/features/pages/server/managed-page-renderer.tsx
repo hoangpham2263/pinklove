@@ -20,7 +20,7 @@ import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
 import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
 import { listAllOfferingCategories, listPublishedOfferingsFiltered } from "@/features/offerings/server/service";
-import type { Offering, OfferingCategory, OfferingType } from "@/features/offerings/types";
+import type { Offering, OfferingCategory } from "@/features/offerings/types";
 import {
   buildManagedPageMetadata,
   getAccessiblePageBySlug,
@@ -269,7 +269,7 @@ function CatalogOrderingBar({
 const templateOfferingTabs: Array<{
   key: string;
   label: string;
-  offeringType: Extract<OfferingType, "coded_template" | "builder">;
+  offeringType: "coded_template" | "builder";
   description: string;
 }> = [
   {
@@ -293,7 +293,7 @@ function TemplateOfferingTabs({
 }: {
   activeKey: string;
   currentParams: Record<string, string | string[] | undefined>;
-  offeringsByType: Record<Extract<OfferingType, "coded_template" | "builder">, Offering[]>;
+  offeringsByType: Record<"coded_template" | "builder", Offering[]>;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -403,7 +403,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
         }),
         listAllOfferingCategories(),
       ]);
-      const offeringsByType: Record<Extract<OfferingType, "coded_template" | "builder">, Offering[]> = {
+      const offeringsByType: Record<"coded_template" | "builder", Offering[]> = {
         coded_template: codedOfferings,
         builder: builderOfferings,
       };

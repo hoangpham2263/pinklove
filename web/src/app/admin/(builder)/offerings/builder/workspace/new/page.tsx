@@ -1,4 +1,4 @@
-import { OfferingBuilderCreateForm } from "@/features/offerings/admin/offering-builder-create-form";
+import { OfferingBuilderCreateForm } from "@/features/offerings/admin/builder-create-form";
 import { listAllOfferingCategories } from "@/features/offerings/server/service";
 import { ROUTES } from "@/lib/routes";
 

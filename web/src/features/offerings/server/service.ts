@@ -1,6 +1,14 @@
 import "server-only";
 
-import type { Offering, OfferingCategory, OfferingFulfillmentType, OfferingOwnerType, OfferingType } from "@/features/offerings/types";
+import type {
+  Offering,
+  OfferingCategory,
+  OfferingFulfillmentType,
+  OfferingOwnerType,
+  OfferingType,
+  OfferingTypeDefinition,
+  OfferingTypeField,
+} from "@/features/offerings/types";
 import { ensureOfferingCatalogReady, query, withTransaction } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 
@@ -32,6 +40,34 @@ type OfferingCategoryInput = {
   status?: "draft" | "published";
 };
 
+type OfferingTypeInput = {
+  key: string;
+  label: string;
+  description?: string;
+  status?: "draft" | "active" | "archived";
+  fulfillmentType?: OfferingFulfillmentType;
+  templateKey?: string;
+  supportsInventory?: boolean;
+  supportsVendorSupply?: boolean;
+  fieldSchema?: OfferingTypeField[];
+};
+
+type OfferingTypeRow = {
+  id: string;
+  key: string;
+  label: string;
+  description: string | null;
+  status: "draft" | "active" | "archived";
+  fulfillment_type: OfferingFulfillmentType;
+  template_key: string;
+  supports_inventory: boolean;
+  supports_vendor_supply: boolean;
+  is_system: boolean;
+  field_schema: OfferingTypeField[] | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type OfferingCatalogFilterInput = {
   offeringTypes: OfferingType[];
   categorySlug?: string;
@@ -49,6 +85,24 @@ type OfferingCategoryRow = {
   created_at: string;
   updated_at: string;
 };
+
+function mapOfferingTypeRow(row: OfferingTypeRow): OfferingTypeDefinition {
+  return {
+    id: row.id,
+    key: row.key,
+    label: row.label,
+    description: row.description ?? undefined,
+    status: row.status,
+    fulfillmentType: row.fulfillment_type,
+    templateKey: row.template_key,
+    supportsInventory: row.supports_inventory,
+    supportsVendorSupply: row.supports_vendor_supply,
+    isSystem: row.is_system,
+    fieldSchema: Array.isArray(row.field_schema) ? row.field_schema : [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
 type OfferingRow = {
   id: string;
@@ -352,6 +406,135 @@ export async function listAllOfferings(): Promise<Offering[]> {
   );
 
   return mapOfferingRows(result.rows);
+}
+
+export async function listOfferingTypes(options: { includeArchived?: boolean } = {}): Promise<OfferingTypeDefinition[]> {
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingTypeRow>(
+      `
+        SELECT
+          id,
+          key,
+          label,
+          description,
+          status,
+          fulfillment_type,
+          template_key,
+          supports_inventory,
+          supports_vendor_supply,
+          is_system,
+          field_schema,
+          created_at,
+          updated_at
+        FROM offering_types
+        WHERE ($1::boolean = TRUE OR status <> 'archived')
+        ORDER BY is_system DESC, label ASC, key ASC
+      `,
+      [Boolean(options.includeArchived)]
+    )
+  );
+
+  return result.rows.map(mapOfferingTypeRow);
+}
+
+export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDefinition | null> {
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingTypeRow>(
+      `
+        SELECT
+          id,
+          key,
+          label,
+          description,
+          status,
+          fulfillment_type,
+          template_key,
+          supports_inventory,
+          supports_vendor_supply,
+          is_system,
+          field_schema,
+          created_at,
+          updated_at
+        FROM offering_types
+        WHERE key = $1
+        LIMIT 1
+      `,
+      [key]
+    )
+  );
+
+  return result.rows[0] ? mapOfferingTypeRow(result.rows[0]) : null;
+}
+
+export async function saveOfferingType(input: OfferingTypeInput): Promise<OfferingTypeDefinition> {
+  const key = input.key.trim().toLowerCase();
+  if (!/^[a-z][a-z0-9_]*$/.test(key)) {
+    throw new Error("INVALID_OFFERING_TYPE_KEY");
+  }
+
+  const label = input.label.trim();
+  if (!label) {
+    throw new Error("MISSING_OFFERING_TYPE_LABEL");
+  }
+
+  const fieldSchema = Array.isArray(input.fieldSchema) ? input.fieldSchema : [];
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingTypeRow>(
+      `
+        INSERT INTO offering_types (
+          key,
+          label,
+          description,
+          status,
+          fulfillment_type,
+          template_key,
+          supports_inventory,
+          supports_vendor_supply,
+          is_system,
+          field_schema
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9::jsonb)
+        ON CONFLICT (key) DO UPDATE
+        SET
+          label = EXCLUDED.label,
+          description = EXCLUDED.description,
+          status = EXCLUDED.status,
+          fulfillment_type = EXCLUDED.fulfillment_type,
+          template_key = EXCLUDED.template_key,
+          supports_inventory = EXCLUDED.supports_inventory,
+          supports_vendor_supply = EXCLUDED.supports_vendor_supply,
+          field_schema = EXCLUDED.field_schema,
+          updated_at = NOW()
+        RETURNING
+          id,
+          key,
+          label,
+          description,
+          status,
+          fulfillment_type,
+          template_key,
+          supports_inventory,
+          supports_vendor_supply,
+          is_system,
+          field_schema,
+          created_at,
+          updated_at
+      `,
+      [
+        key,
+        label,
+        input.description?.trim() || null,
+        input.status ?? "active",
+        input.fulfillmentType ?? "digital",
+        input.templateKey?.trim() || key,
+        Boolean(input.supportsInventory),
+        Boolean(input.supportsVendorSupply),
+        JSON.stringify(fieldSchema),
+      ]
+    )
+  );
+
+  return mapOfferingTypeRow(result.rows[0]);
 }
 
 export async function getOfferingBySlug(slug: string): Promise<Offering | null> {

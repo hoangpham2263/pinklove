@@ -53,6 +53,14 @@ export function OfferingEditorForm({
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
+  const offeringTypeDefinition =
+    typeof offering.config.offeringTypeDefinition === "object" && offering.config.offeringTypeDefinition
+      ? (offering.config.offeringTypeDefinition as { label?: string; fieldSchema?: Array<Record<string, unknown>> })
+      : null;
+  const dynamicFieldSchema = Array.isArray(offeringTypeDefinition?.fieldSchema) ? offeringTypeDefinition.fieldSchema : [];
+  const [customFields, setCustomFields] = useState<Record<string, unknown>>(
+    (offering.config.customFields as Record<string, unknown> | undefined) ?? {}
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isGeneralOffering = offering.offeringType === "general_offering";
@@ -234,6 +242,7 @@ export function OfferingEditorForm({
       <input type="hidden" name="originalSlug" value={offering.slug} />
       <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
       <input type="hidden" name="siteDefaults" value={JSON.stringify(siteDefaults)} />
+      <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="offeringType" value={offering.offeringType} />
       <input type="hidden" name="templateKey" value={offering.templateKey} />
@@ -256,6 +265,59 @@ export function OfferingEditorForm({
                 }}
               />
             </div>
+
+            {dynamicFieldSchema.length ? (
+              <div className="space-y-4 md:col-span-2">
+                <h3 className="font-medium">Fields của {offeringTypeDefinition?.label ?? offering.offeringType}</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {dynamicFieldSchema.map((field) => {
+                    const key = String(field.key ?? "");
+                    const label = String(field.label ?? key);
+                    const type = String(field.type ?? "text");
+                    const options = Array.isArray(field.options) ? field.options.map(String) : [];
+                    if (!key) return null;
+                    return (
+                      <div key={key} className={type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}>
+                        <label className="font-medium">{label}</label>
+                        {type === "textarea" ? (
+                          <textarea
+                            value={String(customFields[key] ?? "")}
+                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.value }))}
+                            className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                          />
+                        ) : type === "boolean" ? (
+                          <label className="flex items-center gap-2 rounded-md border bg-card p-3 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(customFields[key])}
+                              onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.checked }))}
+                            />
+                            Có
+                          </label>
+                        ) : type === "select" ? (
+                          <select
+                            value={String(customFields[key] ?? "")}
+                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: e.target.value }))}
+                            className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                          >
+                            <option value="">Chọn</option>
+                            {options.map((option) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Input
+                            type={type === "number" ? "number" : type === "date" ? "date" : type === "url" ? "url" : "text"}
+                            value={String(customFields[key] ?? "")}
+                            onChange={(e) => setCustomFields((current) => ({ ...current, [key]: type === "number" ? Number(e.target.value || "0") : e.target.value }))}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <label className="font-medium">Slug</label>
               <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />

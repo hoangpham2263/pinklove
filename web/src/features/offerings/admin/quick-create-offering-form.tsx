@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
@@ -11,23 +11,35 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
-import type { OfferingCategory, OfferingFulfillmentType } from "@/features/offerings/types";
+import type { OfferingCategory, OfferingFulfillmentType, OfferingTypeDefinition } from "@/features/offerings/types";
 import type { AccountUser } from "@/lib/auth";
 
 export function QuickCreateOfferingForm({
   categories = [],
   vendors = [],
+  offeringTypes = [],
+  initialOfferingType = "general_offering",
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: {
   categories?: OfferingCategory[];
   vendors?: AccountUser[];
+  offeringTypes?: OfferingTypeDefinition[];
+  initialOfferingType?: string;
   returnTo?: string;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
-  const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>("digital");
+  const [offeringType, setOfferingType] = useState(initialOfferingType);
+  const activeOfferingType = useMemo(
+    () => offeringTypes.find((type) => type.key === offeringType) ?? offeringTypes.find((type) => type.key === "general_offering"),
+    [offeringType, offeringTypes]
+  );
+  const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>(activeOfferingType?.fulfillmentType ?? "digital");
+  const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === "general_offering";
+  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === "general_offering";
+  const [customFields, setCustomFields] = useState<Record<string, unknown>>({});
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQuantity, setStockQuantity] = useState(0);
   const [lowStockThreshold, setLowStockThreshold] = useState(0);
@@ -62,8 +74,8 @@ export function QuickCreateOfferingForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
-      <input type="hidden" name="offeringType" value="general_offering" />
-      <input type="hidden" name="templateKey" value="general_offering" />
+      <input type="hidden" name="templateKey" value={activeOfferingType?.templateKey || offeringType} />
+      <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
 
       <Card className="min-w-0 rounded-lg lg:col-span-9">
         <CardHeader>
@@ -71,6 +83,33 @@ export function QuickCreateOfferingForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="offeringType" className="font-medium">
+                Loại
+              </label>
+              <select
+                id="offeringType"
+                name="offeringType"
+                value={offeringType}
+                onChange={(e) => {
+                  const nextType = e.target.value;
+                  const definition = offeringTypes.find((type) => type.key === nextType);
+                  setOfferingType(nextType);
+                  setFulfillmentType(definition?.fulfillmentType ?? "digital");
+                  setCustomFields({});
+                }}
+                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              >
+                {offeringTypes
+                  .filter((type) => type.status === "active" && type.key !== "coded_template" && type.key !== "builder")
+                  .map((type) => (
+                    <option key={type.key} value={type.key}>
+                      {type.label}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="name" className="font-medium">
                 Tên sản phẩm
@@ -88,6 +127,64 @@ export function QuickCreateOfferingForm({
                 required
               />
             </div>
+
+            {activeOfferingType?.fieldSchema.length ? (
+              <div className="space-y-4 md:col-span-2">
+                <div>
+                  <h3 className="font-medium">Fields của {activeOfferingType.label}</h3>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {activeOfferingType.fieldSchema.map((field) => (
+                    <div key={field.key} className={field.type === "textarea" ? "space-y-2 md:col-span-2" : "space-y-2"}>
+                      <label htmlFor={`field-${field.key}`} className="font-medium">
+                        {field.label}
+                      </label>
+                      {field.type === "textarea" ? (
+                        <textarea
+                          id={`field-${field.key}`}
+                          value={String(customFields[field.key] ?? "")}
+                          required={field.required}
+                          placeholder={field.placeholder}
+                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.value }))}
+                          className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                        />
+                      ) : field.type === "boolean" ? (
+                        <label className="flex items-center gap-2 rounded-md border bg-card p-3">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(customFields[field.key])}
+                            onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.checked }))}
+                          />
+                          <span className="text-sm text-muted-foreground">Có</span>
+                        </label>
+                      ) : field.type === "select" ? (
+                        <select
+                          id={`field-${field.key}`}
+                          value={String(customFields[field.key] ?? "")}
+                          required={field.required}
+                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: e.target.value }))}
+                          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                        >
+                          <option value="">Chọn</option>
+                          {(field.options ?? []).map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Input
+                          id={`field-${field.key}`}
+                          type={field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "url" ? "url" : "text"}
+                          value={String(customFields[field.key] ?? "")}
+                          required={field.required}
+                          placeholder={field.placeholder}
+                          onChange={(e) => setCustomFields((current) => ({ ...current, [field.key]: field.type === "number" ? Number(e.target.value || "0") : e.target.value }))}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-2">
               <label htmlFor="slug" className="font-medium">
@@ -148,7 +245,7 @@ export function QuickCreateOfferingForm({
                 name="ownerVendorUserId"
                 value={ownerVendorUserId}
                 onChange={(e) => setOwnerVendorUserId(e.target.value)}
-                disabled={ownerType !== "vendor"}
+                  disabled={ownerType !== "vendor" || !supportsVendorSupply}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
               >
                 <option value="">Chọn đối tác</option>
@@ -170,6 +267,7 @@ export function QuickCreateOfferingForm({
                   type="checkbox"
                   name="allowVendorSupply"
                   checked={allowVendorSupply}
+                  disabled={!supportsVendorSupply}
                   onChange={(e) => setAllowVendorSupply(e.target.checked)}
                   className="mt-1 rounded border-input"
                 />
@@ -225,7 +323,7 @@ export function QuickCreateOfferingForm({
                   type="number"
                   min="0"
                   value={stockQuantity}
-                  disabled={!trackInventory}
+                  disabled={!supportsInventory || !trackInventory}
                   onChange={(e) => setStockQuantity(Math.max(0, Number(e.target.value || "0")))}
                 />
               </div>
@@ -237,7 +335,7 @@ export function QuickCreateOfferingForm({
                   type="number"
                   min="0"
                   value={lowStockThreshold}
-                  disabled={!trackInventory}
+                  disabled={!supportsInventory || !trackInventory}
                   onChange={(e) => setLowStockThreshold(Math.max(0, Number(e.target.value || "0")))}
                 />
               </div>
@@ -248,7 +346,7 @@ export function QuickCreateOfferingForm({
                     type="checkbox"
                     name="allowBackorder"
                     checked={allowBackorder}
-                    disabled={!trackInventory}
+                    disabled={!supportsInventory || !trackInventory}
                     onChange={(e) => setAllowBackorder(e.target.checked)}
                     className="mt-1 rounded border-input"
                   />

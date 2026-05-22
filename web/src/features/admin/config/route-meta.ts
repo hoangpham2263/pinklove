@@ -7,6 +7,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.BLOG)) return "Blog Posts";
   if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
   if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
+  if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TYPES)) return "Offering Types";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TEMPLATES)) return "Offering Templates";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_BUILDER)) return "Offering Builder";
   if (pathname.startsWith(ROUTES.ADMIN.VENDOR_OFFERINGS)) return "Vendor Offering Review";

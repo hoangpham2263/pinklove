@@ -2,7 +2,7 @@ import { Package } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
-import { listAllOfferingCategories } from "@/features/offerings/server/service";
+import { listAllOfferingCategories, listOfferingTypes } from "@/features/offerings/server/service";
 import { QuickCreateOfferingForm } from "@/features/offerings/admin/quick-create-offering-form";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -27,9 +27,10 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
-  const [categories, vendors] = await Promise.all([
+  const [categories, vendors, offeringTypes] = await Promise.all([
     listAllOfferingCategories(),
     listAccountsByRole(USER_ROLES.VENDOR),
+    listOfferingTypes(),
   ]);
 
   return (
@@ -53,6 +54,8 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
       <QuickCreateOfferingForm
         categories={categories}
         vendors={vendors}
+        offeringTypes={offeringTypes}
+        initialOfferingType={requestedType && requestedType !== "builder" ? requestedType : "general_offering"}
         returnTo={returnTo}
       />
     </section>

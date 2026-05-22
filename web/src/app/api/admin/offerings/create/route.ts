@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { createOffering } from "@/features/offerings/server/service";
+import { createOffering, getOfferingTypeByKey } from "@/features/offerings/server/service";
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
@@ -28,7 +28,8 @@ export async function POST(request: Request) {
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
-  const supportsInventory = offeringType === "general_offering";
+  const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
+  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "general_offering";
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   const vendorSku = supportsInventory ? String(formData.get("vendorSku") ?? "").trim() : "";
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
-  const allowVendorSupply = offeringType === "general_offering" && formData.get("allowVendorSupply") === "on";
+  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "general_offering") && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
     offeringType === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER_CREATE : ROUTES.ADMIN.OFFERINGS;
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
 
-  if (!["coded_template", "builder", "general_offering"].includes(offeringType)) {
+  if (!offeringTypeDefinition || offeringTypeDefinition.status !== "active") {
     return respondError(request, {
       error: "invalid_offering_type",
       message: "Luồng tạo sản phẩm không hợp lệ.",
@@ -63,11 +64,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!name || !slug || (offeringType !== "general_offering" && !templateKey)) {
+  if (!name || !slug || (!offeringTypeDefinition && offeringType !== "general_offering" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để tạo sản phẩm.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
 
-  if (offeringType !== "general_offering" && getInvitationTemplateOfferingType(templateKey) !== offeringType) {
+  if ((offeringType === "coded_template" || offeringType === "builder") && getInvitationTemplateOfferingType(templateKey) !== offeringType) {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
@@ -75,7 +76,23 @@ export async function POST(request: Request) {
     return respondError(request, { error: "missing_vendor", message: "Hãy chọn đối tác sở hữu nguồn hàng cho sản phẩm này.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_vendor` });
   }
 
-  const resolvedTemplateKey = offeringType === "general_offering" ? "general_offering" : templateKey;
+  const resolvedTemplateKey =
+    offeringType === "general_offering"
+      ? "general_offering"
+      : offeringType === "coded_template" || offeringType === "builder"
+        ? templateKey
+        : offeringTypeDefinition.templateKey || offeringType;
+  const customFieldsRaw = String(formData.get("customFields") ?? "{}");
+  let customFields: Record<string, unknown> = {};
+  try {
+    customFields = JSON.parse(customFieldsRaw) as Record<string, unknown>;
+  } catch {
+    return respondError(request, {
+      error: "invalid_custom_fields",
+      message: "Dữ liệu fields của loại sản phẩm không hợp lệ.",
+      location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=invalid_custom_fields`,
+    });
+  }
   const ownerConfig = {
     ownerType: ownerType as OfferingOwnerType,
     vendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
@@ -115,17 +132,25 @@ export async function POST(request: Request) {
       costPrice,
       vendorSku,
       config: {
-        ...(offeringType === "general_offering"
+        offeringTypeDefinition: {
+          key: offeringTypeDefinition.key,
+          label: offeringTypeDefinition.label,
+          fieldSchema: offeringTypeDefinition.fieldSchema,
+        },
+        customFields,
+        ...(supportsInventory
           ? {
               generalOffering: { ...ownerConfig, costPrice, vendorSku },
               vendorSupply: { enabled: allowVendorSupply },
             }
-          : {
+          : offeringType === "coded_template" || offeringType === "builder"
+            ? {
               siteDefaults: {
                 ...getInvitationTemplateDefaults(templateKey),
                 ...(builderDocument ? { builderDocument } : {}),
               },
-            }),
+            }
+            : {}),
       },
     });
 
