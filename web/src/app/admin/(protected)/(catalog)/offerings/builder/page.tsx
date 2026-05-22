@@ -13,7 +13,8 @@ export default async function AdminBuilderOfferingsPage({ searchParams }: AdminB
   return (
     <AdminOfferingsPageView
       query={query}
-      fixedOfferingType="builder"
+      fixedOfferingType="digital_template"
+      fixedTemplateEngine="builder"
       title="Offering Builder"
       description=""
       returnTo={ROUTES.ADMIN.OFFERING_BUILDER}

@@ -7,7 +7,7 @@ import type { InvitationSite } from "../types";
 import { getInvitationTemplateLabel } from "../templates";
 
 export function InvitationCard({ invitation, publicHref }: { invitation: InvitationSite; publicHref: string }) {
-  const editHref = invitation.siteType === "builder"
+  const editHref = invitation.siteType === "editable"
     ? ROUTES.CUSTOMER.DESIGN(invitation.id)
     : `${ROUTES.CUSTOMER.INVITATIONS}/${invitation.id}`;
   const previewImage =

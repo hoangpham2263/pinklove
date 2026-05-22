@@ -65,7 +65,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Offering", href: ROUTES.ADMIN.OFFERING_LIST, iconName: "package" },
+      { label: "Overview", href: ROUTES.ADMIN.OFFERING_LIST, iconName: "package" },
+      { label: "Offering", href: ROUTES.ADMIN.OFFERING_MANAGE, iconName: "package" },
       { label: "Offering Types", href: ROUTES.ADMIN.OFFERING_TYPES, iconName: "list-tree" },
       { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES, iconName: "file-code-2" },
       { label: "Offering Builder", href: ROUTES.ADMIN.OFFERING_BUILDER, iconName: "blocks" },

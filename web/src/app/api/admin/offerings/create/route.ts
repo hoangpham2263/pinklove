@@ -5,9 +5,9 @@ import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import {
   getInvitationTemplateDefaults,
-  getInvitationTemplateOfferingType,
+  getInvitationTemplateEngine,
 } from "@/features/invitations/templates/registry";
-import type { OfferingFulfillmentType, OfferingOwnerType, OfferingType } from "@/features/offerings/types";
+import type { OfferingFulfillmentType, OfferingOwnerType, OfferingTemplateEngine, OfferingTemplateMode, OfferingType } from "@/features/offerings/types";
 
 export const runtime = "nodejs";
 const BUILDER_KEY = "freeform_sections";
@@ -22,14 +22,19 @@ export async function POST(request: Request) {
   const excerpt = String(formData.get("excerpt") ?? "");
   const description = String(formData.get("description") ?? "");
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
-  const offeringType = String(formData.get("offeringType") ?? "coded_template") as OfferingType;
+  const requestedOfferingType = String(formData.get("offeringType") ?? "physical_product") as OfferingType;
+  const templateEngineInput = String(formData.get("templateEngine") ?? "").trim() as OfferingTemplateEngine | "";
+  const offeringType = requestedOfferingType;
+  const templateEngine: OfferingTemplateEngine | undefined =
+    offeringType === "digital_template" ? templateEngineInput || "coded" : undefined;
+  const templateMode: OfferingTemplateMode | undefined = templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : undefined;
   const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
-  const templateKey = offeringType === "builder" ? BUILDER_KEY : submittedTemplateKey;
+  const templateKey = templateEngine === "builder" ? BUILDER_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
-  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "general_offering";
+  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "physical_product";
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
@@ -38,12 +43,12 @@ export async function POST(request: Request) {
   const vendorSku = supportsInventory ? String(formData.get("vendorSku") ?? "").trim() : "";
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
-  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "general_offering") && formData.get("allowVendorSupply") === "on";
+  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "physical_product") && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
-    offeringType === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER_CREATE : ROUTES.ADMIN.OFFERINGS;
+    templateEngine === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER_CREATE : ROUTES.ADMIN.OFFERINGS;
   const createQuery = new URLSearchParams({
-    ...(offeringType !== "builder" ? { type: offeringType } : {}),
+    ...(templateEngine !== "builder" ? { type: offeringType } : {}),
     ...(returnTo ? { returnTo } : {}),
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
@@ -56,19 +61,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if (offeringType === "coded_template") {
-    return respondError(request, {
-      error: "template_create_disabled",
-      message: "Coded template là mẫu cố định theo code, không tạo mới từ trang admin này.",
-      location: returnTo || ROUTES.ADMIN.OFFERING_LIST,
-    });
-  }
-
-  if (!name || !slug || (!offeringTypeDefinition && offeringType !== "general_offering" && !templateKey)) {
+  if (!name || !slug || (!offeringTypeDefinition && offeringType !== "physical_product" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để tạo sản phẩm.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
 
-  if ((offeringType === "coded_template" || offeringType === "builder") && getInvitationTemplateOfferingType(templateKey) !== offeringType) {
+  if (templateEngine === "builder" && getInvitationTemplateEngine(templateKey) !== "builder") {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
@@ -77,9 +74,9 @@ export async function POST(request: Request) {
   }
 
   const resolvedTemplateKey =
-    offeringType === "general_offering"
-      ? "general_offering"
-      : offeringType === "coded_template" || offeringType === "builder"
+    offeringType === "physical_product"
+      ? "physical_product"
+      : offeringType === "digital_template"
         ? templateKey
         : offeringTypeDefinition.templateKey || offeringType;
   const customFieldsRaw = String(formData.get("customFields") ?? "{}");
@@ -100,7 +97,7 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
-  if (offeringType === "builder" && builderDocumentRaw) {
+  if (templateEngine === "builder" && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
     } catch {
@@ -120,6 +117,8 @@ export async function POST(request: Request) {
       excerpt,
       description,
       offeringType,
+      templateEngine,
+      templateMode,
       templateKey: resolvedTemplateKey,
       status,
       thumbnailUrl,
@@ -143,7 +142,7 @@ export async function POST(request: Request) {
               generalOffering: { ...ownerConfig, costPrice, vendorSku },
               vendorSupply: { enabled: allowVendorSupply },
             }
-          : offeringType === "coded_template" || offeringType === "builder"
+          : offeringType === "digital_template"
             ? {
               siteDefaults: {
                 ...getInvitationTemplateDefaults(templateKey),
@@ -155,9 +154,9 @@ export async function POST(request: Request) {
     });
 
     const nextLocation =
-      offering.offeringType === "builder"
+      offering.offeringType === "digital_template" && offering.templateEngine === "builder"
         ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)
-        : offering.offeringType === "coded_template"
+        : offering.offeringType === "digital_template"
           ? ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)
         : ROUTES.ADMIN.OFFERING(offering.slug);
 

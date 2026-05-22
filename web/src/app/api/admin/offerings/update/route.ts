@@ -2,8 +2,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, updateOffering } from "@/features/offerings/server/service";
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
-import { getInvitationTemplateOfferingType } from "@/features/invitations/templates/registry";
-import type { OfferingFulfillmentType, OfferingOwnerType, OfferingType } from "@/features/offerings/types";
+import { getInvitationTemplateEngine } from "@/features/invitations/templates/registry";
+import type { OfferingFulfillmentType, OfferingOwnerType, OfferingTemplateEngine, OfferingTemplateMode, OfferingType } from "@/features/offerings/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
@@ -20,14 +20,19 @@ export async function POST(request: Request) {
   const excerpt = String(formData.get("excerpt") ?? "");
   const description = String(formData.get("description") ?? "");
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
-  const offeringType = String(formData.get("offeringType") ?? "coded_template") as OfferingType;
+  const requestedOfferingType = String(formData.get("offeringType") ?? "digital_template") as OfferingType;
+  const templateEngineInput = String(formData.get("templateEngine") ?? "").trim() as OfferingTemplateEngine | "";
+  const offeringType = requestedOfferingType;
+  const templateEngine: OfferingTemplateEngine | undefined =
+    offeringType === "digital_template" ? templateEngineInput || "coded" : undefined;
+  const templateMode: OfferingTemplateMode | undefined = templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : undefined;
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
   const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
-  const templateKey = offeringType === "builder" ? BUILDER_KEY : submittedTemplateKey;
+  const templateKey = templateEngine === "builder" ? BUILDER_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
-  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "general_offering";
+  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "physical_product";
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
@@ -37,12 +42,12 @@ export async function POST(request: Request) {
   const siteDefaultsRaw = String(formData.get("siteDefaults") ?? "{}");
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
-  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "general_offering") && formData.get("allowVendorSupply") === "on";
+  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "physical_product") && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
-    offeringType === "builder"
+    templateEngine === "builder"
       ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(originalSlug)
-      : offeringType === "coded_template"
+      : offeringType === "digital_template"
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.OFFERING(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
@@ -55,7 +60,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!originalSlug || !slug || !name || ((offeringType === "coded_template" || offeringType === "builder") && !templateKey)) {
+  if (!originalSlug || !slug || !name || (offeringType === "digital_template" && !templateKey)) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để lưu sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
 
@@ -73,11 +78,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if ((offeringType === "coded_template" || offeringType === "builder") && getInvitationTemplateOfferingType(templateKey) !== offeringType) {
+  if (templateEngine === "builder" && getInvitationTemplateEngine(templateKey) !== "builder") {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
-  if (offeringType === "coded_template" && templateKey !== existingOffering.templateKey) {
+  if (offeringType === "digital_template" && existingOffering.templateEngine === "coded" && templateKey !== existingOffering.templateKey) {
     return respondError(request, {
       error: "template_source_locked",
       message: "Template source của bản mẫu chuẩn đã bị khóa, chỉ cho phép chỉnh nội dung và trạng thái.",
@@ -85,7 +90,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if ((offeringType === "coded_template" || offeringType === "builder") && fulfillmentType !== existingOffering.fulfillmentType) {
+  if (offeringType === "digital_template" && fulfillmentType !== existingOffering.fulfillmentType) {
     return respondError(request, {
       error: "fulfillment_locked",
       message: "Hình thức bàn giao của mẫu chuẩn đã bị khóa.",
@@ -111,7 +116,7 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
-  if (offeringType === "builder" && builderDocumentRaw) {
+  if (templateEngine === "builder" && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
     } catch {
@@ -124,16 +129,16 @@ export async function POST(request: Request) {
   }
 
   const normalizedSiteDefaults =
-    offeringType === "builder"
+    templateEngine === "builder"
       ? {
           ...siteDefaults,
           ...(builderDocument ? { builderDocument } : {}),
         }
       : siteDefaults;
   const resolvedTemplateKey =
-    offeringType === "general_offering"
-      ? "general_offering"
-      : offeringType === "coded_template" || offeringType === "builder"
+    offeringType === "physical_product"
+      ? "physical_product"
+      : offeringType === "digital_template"
         ? templateKey
         : offeringTypeDefinition.templateKey || offeringType;
   const customFieldsRaw = String(formData.get("customFields") ?? JSON.stringify(existingOffering.config.customFields ?? {}));
@@ -162,6 +167,8 @@ export async function POST(request: Request) {
       description,
       status,
       offeringType,
+      templateEngine,
+      templateMode,
       fulfillmentType,
       templateKey: resolvedTemplateKey,
       thumbnailUrl,
@@ -184,7 +191,7 @@ export async function POST(request: Request) {
               generalOffering: { ...ownerConfig, costPrice, vendorSku },
               vendorSupply: { enabled: allowVendorSupply },
             }
-          : offeringType === "coded_template" || offeringType === "builder"
+          : offeringType === "digital_template"
             ? { siteDefaults: normalizedSiteDefaults }
             : {}),
       },
@@ -213,9 +220,9 @@ export async function POST(request: Request) {
   }
 
   const nextLocation =
-    offering.offeringType === "builder"
+    offering.offeringType === "digital_template" && offering.templateEngine === "builder"
       ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)
-      : offering.offeringType === "coded_template"
+      : offering.offeringType === "digital_template"
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)
       : ROUTES.ADMIN.OFFERING(offering.slug);
 

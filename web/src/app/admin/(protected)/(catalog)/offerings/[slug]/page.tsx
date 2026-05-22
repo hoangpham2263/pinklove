@@ -27,13 +27,13 @@ export default async function AdminOfferingEditorPage({
     notFound();
   }
 
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_LIST;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_MANAGE;
 
-  if (offering.offeringType === "builder") {
+  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
-  if (offering.offeringType === "coded_template") {
+  if (offering.offeringType === "digital_template" && offering.templateEngine === "coded") {
     redirect(`${ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TEMPLATES)}`);
   }
 
@@ -42,7 +42,7 @@ export default async function AdminOfferingEditorPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            {offering.offeringType === "general_offering" ? "Edit Offering" : "Edit Template"}: {offering.name}
+            {offering.offeringType === "physical_product" ? "Edit Offering" : "Edit Template"}: {offering.name}
           </h1>
         </div>
       </div>

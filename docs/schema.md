@@ -21,20 +21,20 @@ all ids are the same physical type across every environment.
 
 ## Table Count
 
-Current database has 101 public tables:
+Current database has 100 public tables:
 
 | Area | Tables |
 | --- | --- |
 | Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
 | CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Offerings | `offering_types`, `offering_categories`, `offerings`, `coded_template_offerings`, `builder_offerings`, `general_offerings`, `wedding_sites`, `shopping_cart_items` |
+| Offerings | `offering_types`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `wedding_sites`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
 | Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_offering_submissions`, `vendor_offering_submission_events`, `offering_vendor_suppliers`, `vendor_offering_supplier_requests`, `vendor_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
-| Offering domain extensions | `digital_template_offerings`, `wedding_site_offerings`, `physical_offering_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
+| Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
 | Universal media | `media_asset_links` |
 | Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
 | Creator ecosystem | `creator_profiles`, `creator_services`, `creator_portfolios`, `creator_reviews`, `creator_orders` |
@@ -50,6 +50,10 @@ The sellable catalog source of truth is `offerings`. The older product naming
 has been removed from the application surface and new catalog work should not
 create `products` tables, routes, services, or API names.
 
+The final roadmap lives in `docs/architecture-todo.md`. This schema document
+tracks the runtime database plus the next target shape when the runtime has
+known transitional tables.
+
 Offering types are data-driven through `offering_types`:
 
 - `offerings.offering_type` stores the type key.
@@ -61,28 +65,50 @@ Offering types are data-driven through `offering_types`:
 - Add a dedicated subtype table only when a domain needs strongly queried,
   relational columns at scale.
 
-System offering subtype tables remain for protected first-party flows:
+Runtime now uses business-domain offering tables. Implementation-based subtype
+tables have been removed. Coded/builder behavior is stored as rendering strategy
+through `template_engine` and `template_mode`, not as product type.
 
-- `coded_template_offerings` for fixed coded invitation templates.
-- `builder_offerings` for editable builder starters.
-- `general_offerings` for regular physical/service catalog items with inventory
-  or vendor supply behavior.
+Current domain tables:
+
+- `digital_template_offerings`
+- `physical_offerings`
+- `service_offerings`
+- `creator_service_offerings`
+- `experience_offerings`
+- `subscription_offerings`
+
+Current offering type keys:
+
+- `digital_template`
+- `physical_product`
+- `service`
+- `creator_service`
+- `experience`
+- `subscription`
+- `addon`
+
+Field definitions are now available as relational `offering_type_fields` rows.
 
 Current runtime seed data:
 
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Vendor supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
-| `builder` | Builder | active | digital | `freeform_sections` | no | no | yes | 0 |
-| `coded_template` | Coded Template | active | digital | `coded_template` | no | no | yes | 0 |
-| `general_offering` | Sản phẩm | active | physical | `general_offering` | yes | yes | yes | 0 |
+| `addon` | Addon | active | digital | `addon` | no | no | yes | 0 |
+| `creator_service` | Creator Service | active | service | `creator_service` | no | yes | yes | 0 |
+| `digital_template` | Digital Template | active | digital | `digital_template` | no | no | yes | 0 |
+| `experience` | Experience | active | service | `experience` | no | yes | yes | 0 |
+| `physical_product` | Physical Product | active | physical | `physical_product` | yes | yes | yes | 0 |
+| `service` | Service | active | service | `service` | no | yes | yes | 0 |
+| `subscription` | Subscription | active | digital | `subscription` | no | no | yes | 0 |
 
 Current runtime offering data:
 
-| Offering type | Rows |
-| --- | ---: |
-| `builder` | 6 |
-| `coded_template` | 6 |
-| `general_offering` | 6 |
+| Offering type | Template engine | Rows |
+| --- | --- | ---: |
+| `digital_template` | `builder` | 6 |
+| `digital_template` | `coded` | 6 |
+| `physical_product` | none | 6 |
 
 ## Overview
 
@@ -102,15 +128,12 @@ erDiagram
   offering_types ||--o{ offerings : defines
   offerings ||--o| digital_template_offerings : has
   offerings ||--o| wedding_site_offerings : has
-  offerings ||--o| physical_offering_offerings : has
+  offerings ||--o| physical_offerings : has
   offerings ||--o| service_offerings : has
   offerings ||--o| creator_service_offerings : has
   offerings ||--o| subscription_offerings : has
   offerings ||--o| experience_offerings : has
   offerings ||--o{ media_asset_links : media
-  offerings ||--o| coded_template_offerings : has
-  offerings ||--o| builder_offerings : has
-  offerings ||--o| general_offerings : has
   offerings ||--o{ wedding_sites : creates
   offerings ||--o{ commerce_order_items : sold_as
 
@@ -166,7 +189,7 @@ erDiagram
     jsonb builder_defaults
   }
 
-  physical_offering_offerings {
+  physical_offerings {
     text offering_id PK, FK
     text sku
     boolean track_inventory
@@ -218,7 +241,7 @@ erDiagram
   offering_types ||--o{ offerings : defines
   offerings ||--o| digital_template_offerings : digital_template
   offerings ||--o| wedding_site_offerings : wedding_site
-  offerings ||--o| physical_offering_offerings : physical_offering
+  offerings ||--o| physical_offerings : physical_product
   offerings ||--o| service_offerings : service
   offerings ||--o| creator_service_offerings : creator_service
   offerings ||--o| experience_offerings : experience
@@ -520,19 +543,7 @@ erDiagram
     jsonb config
   }
 
-  coded_template_offerings {
-    text offering_id PK, FK
-    text template_key
-    jsonb site_defaults
-  }
-
-  builder_offerings {
-    text offering_id PK, FK
-    text template_key
-    jsonb site_defaults
-  }
-
-  general_offerings {
+  physical_offerings {
     text offering_id PK, FK
     text fulfillment_type
     bigint owner_vendor_user_id FK
@@ -584,13 +595,12 @@ erDiagram
   users ||--o{ shopping_cart_items : owns
   users ||--o{ content_comments : writes
   users ||--o{ content_comments : approves
-  users ||--o{ general_offerings : owns_vendor_offering
+  users ||--o{ physical_offerings : owns_vendor_offering
 
   offering_categories ||--o{ offerings : categorizes
   offering_types ||--o{ offerings : defines
-  offerings ||--o| coded_template_offerings : template_details
-  offerings ||--o| builder_offerings : builder_details
-  offerings ||--o| general_offerings : offering_details
+  offerings ||--o| digital_template_offerings : template_details
+  offerings ||--o| physical_offerings : physical_details
   offerings ||--o{ wedding_sites : starts_from
   offerings ||--o{ shopping_cart_items : in_cart
 
@@ -867,7 +877,6 @@ archived without breaking existing catalog rows.
 | `affiliate_clicks.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
 | `affiliate_conversions.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
 | `blog_posts.category_id` | `blog_categories.id` | CASCADE |
-| `builder_offerings.offering_id` | `offerings.id` | CASCADE |
 | `chat_conversation_participants.conversation_id` | `chat_conversations.id` | CASCADE |
 | `chat_conversation_participants.user_id` | `users.id` | CASCADE |
 | `chat_conversation_user_states.conversation_id` | `chat_conversations.id` | CASCADE |
@@ -882,7 +891,6 @@ archived without breaking existing catalog rows.
 | `chat_messages.sender_user_id` | `users.id` | CASCADE |
 | `chat_typing_states.conversation_id` | `chat_conversations.id` | CASCADE |
 | `chat_typing_states.user_id` | `users.id` | CASCADE |
-| `coded_template_offerings.offering_id` | `offerings.id` | CASCADE |
 | `commerce_entitlements.order_id` | `commerce_orders.id` | CASCADE |
 | `commerce_entitlements.order_item_id` | `commerce_order_items.id` | SET NULL |
 | `commerce_entitlements.offering_id` | `offerings.id` | CASCADE |
@@ -897,8 +905,8 @@ archived without breaking existing catalog rows.
 | `commerce_shipments.order_id` | `commerce_orders.id` | CASCADE |
 | `content_comments.approved_by` | `users.id` | SET NULL |
 | `content_comments.author_user_id` | `users.id` | SET NULL |
-| `general_offerings.owner_vendor_user_id` | `users.id` | SET NULL |
-| `general_offerings.offering_id` | `offerings.id` | CASCADE |
+| `physical_offerings.owner_vendor_user_id` | `users.id` | SET NULL |
+| `physical_offerings.offering_id` | `offerings.id` | CASCADE |
 | `navigation_menu_items.menu_id` | `navigation_menus.id` | CASCADE |
 | `notification_target_roles.notification_id` | `notifications.id` | CASCADE |
 | `notification_target_users.notification_id` | `notifications.id` | CASCADE |

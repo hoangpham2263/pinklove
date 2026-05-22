@@ -13,10 +13,9 @@ This file covers the public `GUEST` area.
 - Public content pages are explicit code-managed routes, not admin-created arbitrary routes.
 - Keep page-specific UI close to the route under `src/app/(guest)`.
 - Use managed-page fields only where the page is already registered in the content registry.
-- `/mau-thiep` shows invitation templates using the configured system offering
-  type scopes `coded_template` and `builder`.
-- `/tu-tao-thiep` shows only `builder` offerings.
-- `/thiep-giay` shows only `general_offering` offerings.
+- `/mau-thiep` shows `digital_template` offerings with `template_engine = coded`.
+- `/tu-tao-thiep` shows `digital_template` offerings with `template_engine = builder`.
+- `/thiep-giay` shows `physical_product` offerings.
 - Public catalog filtering should apply offering type first, then category/price/sort filters for future expansion. New public catalog sections should read the type key from configuration instead of introducing hardcoded product terminology.
 - Public invitation rendering should read from published invitation records. The current table name is still `wedding_sites`.
 - Guest wishlist is available at `/wishlist`, requires login, persists on the authenticated `users.wishlist_offering_ids` field, and is the primary customer-facing purchase list in place of a separate cart screen.

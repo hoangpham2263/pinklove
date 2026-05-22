@@ -1,6 +1,6 @@
 import { getPublishedBlogCategoryBySlug, getPublishedBlogPostBySlug, listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
 import { getPublicInvitationBySlug } from "@/features/invitations/server/service";
-import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
+import { getPublishedDigitalTemplateOfferingBySlug, getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
 import { getAccessiblePageBySlug, getPageByPath, type ManagedPage } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import {
@@ -29,11 +29,11 @@ export type ResolvedGuestPublicContent =
     }
   | {
       type: "builder-offering";
-      offering: Awaited<ReturnType<typeof getPublishedOfferingBySlugAndType>> extends infer T ? Exclude<T, null> : never;
+      offering: Awaited<ReturnType<typeof getPublishedDigitalTemplateOfferingBySlug>> extends infer T ? Exclude<T, null> : never;
     }
   | {
       type: "general-offering";
-      offering: Awaited<ReturnType<typeof getPublishedOfferingBySlugAndType>> extends infer T ? Exclude<T, null> : never;
+      offering: Awaited<ReturnType<typeof getPublishedDigitalTemplateOfferingBySlug>> extends infer T ? Exclude<T, null> : never;
     }
   | {
       type: "invitation";
@@ -85,17 +85,17 @@ export async function resolveGuestPublicContent(
     return { type: "blog-category", category: blogCategory, categories, posts };
   }
 
-  const templateOffering = await getPublishedOfferingBySlugAndType(slug, "coded_template");
+  const templateOffering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
   if (templateOffering && getTemplateOfferingPath(templateOffering) === pathname) {
     return { type: "template-offering", offering: templateOffering };
   }
 
-  const builderOffering = await getPublishedOfferingBySlugAndType(slug, "builder");
+  const builderOffering = await getPublishedDigitalTemplateOfferingBySlug(slug, "builder");
   if (builderOffering && getBuilderOfferingPath(builderOffering) === pathname) {
     return { type: "builder-offering", offering: builderOffering };
   }
 
-  const generalOffering = await getPublishedOfferingBySlugAndType(slug, "general_offering");
+  const generalOffering = await getPublishedOfferingBySlugAndType(slug, "physical_product");
   if (generalOffering && getGeneralOfferingPath(generalOffering) === pathname) {
     return { type: "general-offering", offering: generalOffering };
   }

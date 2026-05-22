@@ -1,5 +1,5 @@
 import { requireAppUser } from "@/lib/auth";
-import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
+import { getPublishedDigitalTemplateOfferingBySlug } from "@/features/offerings/server/service";
 import { ROUTES } from "@/lib/routes";
 import { createBuilderInvitation, createInvitationFromOffering } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const site = offeringSlug
       ? await (async () => {
-        const offering = await getPublishedOfferingBySlugAndType(offeringSlug, "builder");
+        const offering = await getPublishedDigitalTemplateOfferingBySlug(offeringSlug, "builder");
         if (!offering) {
           return null;
         }

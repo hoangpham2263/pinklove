@@ -31,11 +31,11 @@ export async function POST(request: Request) {
     try {
       count = await deleteOfferings(slugs);
     } catch (error) {
-      if (error instanceof Error && error.message === "CODED_TEMPLATE_DELETE_BLOCKED") {
+      if (error instanceof Error && error.message === "SYSTEM_TEMPLATE_DELETE_BLOCKED") {
         return respondError(request, {
-          error: "coded_template_delete_blocked",
-          message: "Danh sách đang chọn có mẫu coded. Mẫu coded là template gốc trong code nên không thể xóa từ admin.",
-          location: `${returnTo}?error=coded_template_delete_blocked`,
+          error: "system_template_delete_blocked",
+          message: "Danh sách đang chọn có mẫu coded. Mẫu hệ thống là template gốc trong code nên không thể xóa từ admin.",
+          location: `${returnTo}?error=system_template_delete_blocked`,
         });
       }
 

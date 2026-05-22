@@ -53,7 +53,7 @@ export default async function AdminOfferingTypesPage() {
                       {type.isSystem ? <span className="ml-2 rounded border px-1.5 py-0.5 text-xs text-muted-foreground">system</span> : null}
                     </td>
                     <td className="py-3 pr-4">
-                      {type.key === "coded_template" || type.key === "builder" ? (
+                      {type.key === "digital_template" ? (
                         <span className="text-xs text-muted-foreground">Luồng riêng</span>
                       ) : (
                         <a

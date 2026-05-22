@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     return respondError(request, { error: "offering_not_found", message: "Không tìm thấy template khả dụng.", location: `${ROUTES.TEMPLATES}?error=offering_not_found` });
   }
 
-  if (offering.offeringType === "general_offering") {
+  if (offering.offeringType === "physical_product") {
     return respondError(request, {
       error: "not_invitation_offering",
       message: "Sản phẩm này không tạo thiệp web trong hệ thống.",
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   });
 
   const nextLocation =
-    site.siteType === "builder"
+    site.siteType === "editable"
       ? ROUTES.CUSTOMER.DESIGN(site.id)
       : `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}`;
 

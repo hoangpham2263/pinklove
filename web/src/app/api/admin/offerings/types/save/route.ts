@@ -6,7 +6,26 @@ import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";
 
-const validFieldTypes = new Set(["text", "textarea", "number", "boolean", "select", "url", "date"]);
+const validFieldTypes = new Set([
+  "text",
+  "textarea",
+  "richtext",
+  "number",
+  "boolean",
+  "select",
+  "multiselect",
+  "date",
+  "datetime",
+  "media",
+  "gallery",
+  "price",
+  "location",
+  "json",
+  "repeater",
+  "relation",
+  "blocks",
+  "url",
+]);
 
 function parseFieldSchema(raw: string): OfferingTypeField[] {
   if (!raw.trim()) {

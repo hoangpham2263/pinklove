@@ -19,10 +19,11 @@ Use this file as the entrypoint for project documentation.
 
 1. [CONVENTIONS](./CONVENTIONS.md)
 2. [structure](./structure.md)
-3. [schema](./schema.md)
-4. [fields](./fields.md)
-5. [realtime](./realtime.md)
-6. Area docs as needed:
+3. [architecture todo](./architecture-todo.md)
+4. [schema](./schema.md)
+5. [fields](./fields.md)
+6. [realtime](./realtime.md)
+7. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
@@ -37,6 +38,8 @@ Use this file as the entrypoint for project documentation.
   Repo workflow, naming, routing, import/export, runtime, and cross-cutting engineering rules.
 - `docs/structure.md`
   Folder structure, route groups, architecture layout, and implemented feature map.
+- `docs/architecture-todo.md`
+  Final refactor roadmap for the headless dynamic wedding commerce platform.
 - `docs/schema.md`
   Database tables, storage shape, and persistence compatibility notes.
 - `docs/fields.md`
@@ -74,6 +77,7 @@ Use this file as the entrypoint for project documentation.
 - When a rule belongs to a specific concern, update the owned doc directly:
   - workflow/routing/imports/runtime: `conventions.md`
   - folders/routes/feature map: `structure.md`
+  - platform refactor roadmap: `architecture-todo.md`
   - database/storage: `schema.md`
   - fields/rich text/editor contract: `fields.md`
   - shared realtime/event transport: `realtime.md`

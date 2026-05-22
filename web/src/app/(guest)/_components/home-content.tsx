@@ -607,7 +607,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
                       {invitationGalleryItems.map((offering) => (
-                        offering.offeringType !== "general_offering" ? (
+                        offering.offeringType !== "physical_product" ? (
                           <LoopOnlineInvitationCard
                             key={offering.id}
                             offering={offering}
@@ -680,7 +680,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                   <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex min-w-max gap-4 lg:gap-5">
                       {sharedInvitationsItems.map((offering) => (
-                        offering.offeringType !== "general_offering" ? (
+                        offering.offeringType !== "physical_product" ? (
                           <LoopOnlineInvitationCard
                             key={offering.id}
                             offering={offering}

@@ -23,7 +23,7 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
   }
   const publicHref = getInvitationPath(invitation);
 
-  if (invitation.siteType === "builder") {
+  if (invitation.siteType === "editable") {
     redirect(ROUTES.CUSTOMER.DESIGN(invitation.id));
   }
   const canPublish = invitation.offeringId
@@ -36,7 +36,7 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
         <div>
           <h1 className="text-2xl font-semibold">{invitation.title}</h1>
           <p className="text-sm text-muted-foreground">
-            {invitation.siteType === "coded_template"
+            {invitation.siteType === "coded"
               ? "Chỉnh nội dung theo schema của template code sẵn."
               : "Builder đang dùng Konva để chỉnh các block text, shape, image trực tiếp trên thiệp mời."}
           </p>

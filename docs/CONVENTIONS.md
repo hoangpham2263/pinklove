@@ -125,9 +125,11 @@ This file is the repo-wide source of truth.
   types should be created through data/admin configuration before adding code.
 - Store custom type-specific fields in `offerings.config.customFields` according
   to `offering_types.field_schema`.
-- `coded_template` offerings represent fixed coded invitation designs and should be created from code/seed only.
-- `builder` offerings represent editable builder starters that customers clone and customize; they can be seeded or created through the builder flow.
-- `general_offering` offerings represent regular shop/vendor/API offerings such as paper invitations and add-ons.
+- `digital_template` offerings represent online templates, motion/video templates,
+  and builder starters.
+- `physical_product` offerings represent regular shop/vendor/API products such
+  as paper invitations and add-ons.
+- Coded/builder behavior belongs to `template_engine`, not `offering_type`.
 - Guest catalog pages should use the configured offering type scope first, then category/price/sort filters.
 - Each coded invitation `template_key` should belong to only one catalog offering. Do not create multiple offerings that reuse the same coded template identity.
 - Add a dedicated subtype table only when the type needs relational querying or

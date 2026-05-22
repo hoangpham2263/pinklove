@@ -1,8 +1,28 @@
 export type OfferingType = string;
 export type OfferingFulfillmentType = "digital" | "physical" | "service";
 export type OfferingOwnerType = "internal" | "vendor";
+export type OfferingTemplateEngine = "coded" | "builder" | "hybrid" | "motion" | "video" | "ai_generated";
+export type OfferingTemplateMode = "fixed" | "editable" | "hybrid";
 
-export type OfferingTypeFieldType = "text" | "textarea" | "number" | "boolean" | "select" | "url" | "date";
+export type OfferingTypeFieldType =
+  | "text"
+  | "textarea"
+  | "richtext"
+  | "number"
+  | "boolean"
+  | "select"
+  | "multiselect"
+  | "date"
+  | "datetime"
+  | "media"
+  | "gallery"
+  | "price"
+  | "location"
+  | "json"
+  | "repeater"
+  | "relation"
+  | "blocks"
+  | "url";
 
 export type OfferingTypeField = {
   key: string;
@@ -11,6 +31,13 @@ export type OfferingTypeField = {
   required?: boolean;
   options?: string[];
   placeholder?: string;
+  defaultValue?: unknown;
+  validationRules?: Record<string, unknown>;
+  uiConfig?: Record<string, unknown>;
+  sortOrder?: number;
+  relationTarget?: string;
+  relationMultiple?: boolean;
+  relationConfig?: Record<string, unknown>;
 };
 
 export type OfferingTypeDefinition = {
@@ -21,6 +48,8 @@ export type OfferingTypeDefinition = {
   status: "draft" | "active" | "archived";
   fulfillmentType: OfferingFulfillmentType;
   templateKey: string;
+  templateEngine?: OfferingTemplateEngine;
+  templateMode?: OfferingTemplateMode;
   supportsInventory: boolean;
   supportsVendorSupply: boolean;
   isSystem: boolean;
@@ -48,6 +77,8 @@ export type Offering = {
   status: "draft" | "published";
   offeringType: OfferingType;
   templateKey: string;
+  templateEngine?: OfferingTemplateEngine;
+  templateMode?: OfferingTemplateMode;
   categoryId?: string;
   categorySlug?: string;
   categoryName?: string;
@@ -72,25 +103,34 @@ export function isOfferingInStock(offering: Pick<Offering, "trackInventory" | "s
 }
 
 export function isInvitationOfferingType(offeringType: OfferingType) {
-  return offeringType === "coded_template" || offeringType === "builder";
+  return offeringType === "digital_template";
 }
 
 export function isBuilderOfferingType(offeringType: OfferingType) {
-  return offeringType === "builder";
+  return offeringType === "digital_template";
 }
 
 export function isGeneralOfferingType(offeringType: OfferingType) {
-  return offeringType === "general_offering";
+  return offeringType === "physical_product";
 }
 
 export function getOfferingTypeLabel(offeringType: OfferingType) {
   switch (offeringType) {
-    case "builder":
-      return "Builder";
-    case "general_offering":
-      return "Sản phẩm";
-    case "coded_template":
+    case "digital_template":
+      return "Mẫu digital";
+    case "physical_product":
+      return "Sản phẩm vật lý";
+    case "service":
+      return "Dịch vụ";
+    case "creator_service":
+      return "Creator service";
+    case "experience":
+      return "Experience";
+    case "subscription":
+      return "Subscription";
+    case "addon":
+      return "Addon";
     default:
-      return "Coded";
+      return offeringType;
   }
 }

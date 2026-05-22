@@ -9,6 +9,9 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Offering type fields live in `offering_types.field_schema` and are edited in
   `Admin > Offerings > Offering Types`. They drive dynamic fields on offering
   create/edit forms.
+- Final architecture should move offering type fields to relational
+  `offering_type_fields` rows so sections, repeaters, relations, media, blocks,
+  conditional rules, and validation can be queried and managed cleanly.
 
 ## Schema Rules
 
@@ -20,6 +23,9 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Keep related content inside the same section and use repeater item fields only for repeatable UI blocks such as socials, FAQs, cards, timelines, or lists.
 - Use per-field `width` in the schema for admin layout control instead of hardcoded renderer grid presets.
 - Use `type: "wysiwyg"` for reusable visual rich-text fields that should use the shared editor.
+- Offering type fields should support the final field set documented in
+  `docs/architecture-todo.md`, including relation, repeater, media, gallery,
+  blocks, and conditional field behavior.
 
 ## Editor Rules
 

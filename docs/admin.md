@@ -16,6 +16,11 @@ This file covers the admin area and admin-controlled workflows.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin offering flows operate on catalog entries in `offerings`.
+- `/admin/offerings` should become an overview dashboard for catalog health,
+  metrics, shortcuts, and recent activity. Move direct table management to route
+  children such as `/admin/offerings/list` so the overview stays clean.
+- Offering management screens should keep the same dense table management style
+  as the current `/admin/offerings` list.
 - Admin offering type management lives at `/admin/offerings/types` and writes to
   `offering_types`. Use it to define custom fields for new catalog types instead
   of hardcoding type unions in forms or API routes.
@@ -58,6 +63,7 @@ This file covers the admin area and admin-controlled workflows.
 - internal accounts
 - affiliates
 - offerings
+  - overview
   - offering list
   - offering categories
   - offering types

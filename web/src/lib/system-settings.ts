@@ -335,7 +335,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
       enabled: false,
       token: "",
       defaultStatus: "draft",
-      allowedOfferingTypes: ["general_offering"],
+      allowedOfferingTypes: ["physical_product"],
     },
   },
   email: {
@@ -673,7 +673,7 @@ function parseInternalApisSettings(value: Record<string, unknown> | null | undef
       enabled: Boolean(offeringsImportMerged.enabled),
       token: String(offeringsImportMerged.token ?? ""),
       defaultStatus: offeringsImportMerged.defaultStatus === "published" ? "published" : "draft",
-      allowedOfferingTypes: ["general_offering"],
+      allowedOfferingTypes: ["physical_product"],
     },
   };
 }

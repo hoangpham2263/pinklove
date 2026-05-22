@@ -36,9 +36,9 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
     value: offering.slug,
     label: offering.name,
     description: `${
-      offering.offeringType === "builder"
+      offering.offeringType === "digital_template" && offering.templateEngine === "builder"
         ? "Builder"
-        : offering.offeringType === "general_offering"
+        : offering.offeringType === "physical_product"
           ? "Sản phẩm"
           : "Template"
     } • ${offering.status}`,

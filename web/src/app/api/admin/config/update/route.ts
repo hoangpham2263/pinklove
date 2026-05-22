@@ -272,7 +272,7 @@ export async function POST(request: Request) {
         enabled: isChecked(formData, "enabled"),
         token: String(formData.get("token") ?? "").trim(),
         defaultStatus: formData.get("defaultStatus") === "published" ? "published" : "draft",
-        allowedOfferingTypes: ["general_offering"],
+        allowedOfferingTypes: ["physical_product"],
       });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình API import sản phẩm." });

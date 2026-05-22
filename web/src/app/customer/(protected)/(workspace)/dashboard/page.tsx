@@ -29,7 +29,7 @@ export default async function CustomerDashboardPage() {
 
   const publishedInvitations = invitations.filter((invitation) => invitation.status === "published").length;
   const draftInvitations = invitations.length - publishedInvitations;
-  const codedInvitations = invitations.filter((invitation) => invitation.siteType === "coded_template").length;
+  const codedInvitations = invitations.filter((invitation) => invitation.siteType === "coded").length;
   const builderInvitations = invitations.length - codedInvitations;
   const recentInvitations = invitations.slice(0, 2);
   const vendorActor = isVendorRole(user.role);

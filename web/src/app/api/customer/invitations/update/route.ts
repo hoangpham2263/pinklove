@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     return respondError(request, { error: "site_not_found", message: "Không tìm thấy thiệp mời.", location: `${ROUTES.CUSTOMER.INVITATIONS}?error=site_not_found` });
   }
 
-  const nextLocation = site.siteType === "builder"
+  const nextLocation = site.siteType === "editable"
     ? `${ROUTES.CUSTOMER.DESIGN(site.id)}?saved=1`
     : `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}?saved=1`;
 

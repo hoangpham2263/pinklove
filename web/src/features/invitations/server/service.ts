@@ -228,11 +228,11 @@ export async function createInvitationFromOffering(input: {
   title?: string;
   customData?: Record<string, unknown>;
 }): Promise<InvitationSite> {
-  if (input.offering.offeringType === "general_offering") {
+  if (input.offering.offeringType === "physical_product") {
     throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_OFFERING");
   }
 
-  const templateKey = input.offering.offeringType === "builder"
+  const templateKey = input.offering.templateEngine === "builder"
     ? BUILDER_KEY
     : input.offering.templateKey;
   const defaults = {
@@ -243,6 +243,7 @@ export async function createInvitationFromOffering(input: {
   };
   const title = input.title || input.offering.name;
   const slug = await ensureUniqueInvitationSlug(title);
+  const siteType = input.offering.templateEngine === "builder" ? "editable" : "coded";
 
   const result = await query<InvitationRow>(
     `
@@ -270,7 +271,7 @@ export async function createInvitationFromOffering(input: {
       input.offering.id,
       title,
       slug,
-      input.offering.offeringType,
+      siteType,
       templateKey,
       defaults,
     ]
@@ -289,7 +290,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
       INSERT INTO wedding_sites (
         user_id, offering_id, title, slug, site_type, template_key, status, custom_data
       )
-      VALUES ($1, NULL, $2, $3, 'builder', $4, 'draft', $5)
+      VALUES ($1, NULL, $2, $3, 'editable', $4, 'draft', $5)
       RETURNING
         id,
         user_id,

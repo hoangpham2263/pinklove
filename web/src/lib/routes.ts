@@ -139,6 +139,7 @@ export const ROUTES = {
     CONFIG_BACKUPS: "/admin/config/backups",
     OFFERINGS: "/admin/offerings/new",
     OFFERING_LIST: "/admin/offerings",
+    OFFERING_MANAGE: "/admin/offerings/list",
     OFFERING_TEMPLATES: "/admin/offerings/templates",
     OFFERING_TEMPLATE: (slug: string) => `/admin/offerings/templates/${slug}`,
     OFFERING_BUILDER: "/admin/offerings/builder",

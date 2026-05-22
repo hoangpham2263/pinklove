@@ -14,7 +14,7 @@ export default async function BuilderDesignPage({ params }: BuilderDesignPagePro
   const { id } = await params;
   const invitation = await getInvitationByIdForUser(user.id, id);
 
-  if (!invitation || invitation.siteType !== "builder") {
+  if (!invitation || invitation.siteType !== "editable") {
     notFound();
   }
 

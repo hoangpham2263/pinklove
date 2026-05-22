@@ -533,7 +533,7 @@ async function assertLinkedOfferingOwnership(vendorUserId: string, linkedOfferin
   }
 
   const offering = await getOfferingById(linkedOfferingId);
-  if (!offering || offering.offeringType !== "general_offering" || offering.ownerType !== "vendor" || offering.ownerVendorUserId !== vendorUserId) {
+  if (!offering || offering.offeringType !== "physical_product" || offering.ownerType !== "vendor" || offering.ownerVendorUserId !== vendorUserId) {
     throw new Error("LINKED_OFFERING_NOT_ALLOWED");
   }
 
@@ -602,7 +602,7 @@ export async function listAvailableOfferingsForVendorSupply(vendorUserId: string
         LIMIT 1
       ) request ON TRUE
       WHERE offering.status = 'published'
-        AND offering.offering_type = 'general_offering'
+        AND offering.offering_type = 'physical_product'
         AND COALESCE(offering.config -> 'vendorSupply' ->> 'enabled', 'false') = 'true'
       ORDER BY offering.updated_at DESC
     `,
@@ -706,7 +706,7 @@ export async function createSupplierRequest(input: CreateSupplierRequestInput): 
       ? (offering.config.vendorSupply as Record<string, unknown>)
       : {};
 
-  if (!offering || offering.status !== "published" || offering.offeringType !== "general_offering" || vendorSupplyConfig.enabled !== true) {
+  if (!offering || offering.status !== "published" || offering.offeringType !== "physical_product" || vendorSupplyConfig.enabled !== true) {
     throw new Error("OFFERING_NOT_AVAILABLE");
   }
 
@@ -1344,8 +1344,8 @@ export async function approveVendorOfferingSubmission(input: ApproveVendorOfferi
       excerpt: submission.excerpt,
       description: submission.description,
       status: "draft",
-      offeringType: "general_offering",
-      templateKey: "general_offering",
+      offeringType: "physical_product",
+      templateKey: "physical_product",
       thumbnailUrl: submission.thumbnail_url || undefined,
       price: input.adminSellPrice,
       fulfillmentType: submission.fulfillment_type,

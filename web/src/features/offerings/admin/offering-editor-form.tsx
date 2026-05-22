@@ -63,9 +63,10 @@ export function OfferingEditorForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const isGeneralOffering = offering.offeringType === "general_offering";
-  const isBuilder = offering.offeringType === "builder";
-  const canDeleteOffering = offering.offeringType !== "coded_template";
+  const isGeneralOffering = offering.offeringType === "physical_product";
+  const isBuilder = offering.offeringType === "digital_template" && offering.templateEngine === "builder";
+  const isCodedTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "coded";
+  const canDeleteOffering = !isCodedTemplate;
   const templateFields = useMemo(
     () => (isGeneralOffering || isBuilder ? [] : getInvitationTemplateFields(offering.templateKey)),
     [isGeneralOffering, isBuilder, offering.templateKey]
@@ -123,7 +124,8 @@ export function OfferingEditorForm({
         <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
         <input type="hidden" name="siteDefaults" value={JSON.stringify(siteDefaults)} />
         <input type="hidden" name="returnTo" value={returnTo} />
-        <input type="hidden" name="offeringType" value={offering.offeringType} />
+        <input type="hidden" name="offeringType" value="digital_template" />
+        <input type="hidden" name="templateEngine" value="builder" />
         <input type="hidden" name="templateKey" value={offering.templateKey} />
         <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
 
@@ -245,6 +247,7 @@ export function OfferingEditorForm({
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <input type="hidden" name="offeringType" value={offering.offeringType} />
+      {offering.templateEngine ? <input type="hidden" name="templateEngine" value={offering.templateEngine} /> : null}
       <input type="hidden" name="templateKey" value={offering.templateKey} />
 
       <Card className="min-w-0 rounded-lg lg:col-span-9">

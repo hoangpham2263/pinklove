@@ -13,7 +13,8 @@ export default async function AdminCodedOfferingsPage({ searchParams }: AdminCod
   return (
     <AdminOfferingsPageView
       query={query}
-      fixedOfferingType="coded_template"
+      fixedOfferingType="digital_template"
+      fixedTemplateEngine="coded"
       title=""
       description=""
       returnTo={ROUTES.ADMIN.OFFERING_TEMPLATES}

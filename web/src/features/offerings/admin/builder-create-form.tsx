@@ -57,7 +57,8 @@ export function OfferingBuilderCreateForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
-      <input type="hidden" name="offeringType" value="builder" />
+      <input type="hidden" name="offeringType" value="digital_template" />
+      <input type="hidden" name="templateEngine" value="builder" />
       <input type="hidden" name="templateKey" value={BUILDER_KEY} />
       <input type="hidden" name="fulfillmentType" value="digital" />
       <input type="hidden" name="ownerType" value="internal" />

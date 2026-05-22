@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CodedTemplateCustomizer } from "@/features/offerings/components/coded-template-customizer";
-import { getPublishedOfferingBySlugAndType } from "@/features/offerings/server/service";
+import { getPublishedDigitalTemplateOfferingBySlug } from "@/features/offerings/server/service";
 import {
   getInvitationTemplateDefaults,
   getInvitationTemplateFields,
@@ -15,7 +15,7 @@ type CodedTemplateCustomizePageProps = {
 
 export async function generateMetadata({ params }: CodedTemplateCustomizePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const offering = await getPublishedOfferingBySlugAndType(slug, "coded_template");
+  const offering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
 
   return createSeoMetadata({
     title: offering ? `Xem trước ${offering.name}` : "Xem trước mẫu thiệp",
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: CodedTemplateCustomizePagePro
 
 export default async function CodedTemplateCustomizePage({ params }: CodedTemplateCustomizePageProps) {
   const { slug } = await params;
-  const offering = await getPublishedOfferingBySlugAndType(slug, "coded_template");
+  const offering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
   if (!offering) {
     notFound();
   }

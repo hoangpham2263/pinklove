@@ -26,9 +26,9 @@ export default async function AdminBuilderEditorPage({
     notFound();
   }
 
-  if (offering.offeringType !== "builder") {
+  if (!(offering.offeringType === "digital_template" && offering.templateEngine === "builder")) {
     const fallbackHref =
-      offering.offeringType === "coded_template"
+      offering.offeringType === "digital_template"
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)
         : ROUTES.ADMIN.OFFERING(offering.slug);
     redirect(`${fallbackHref}${query.returnTo ? `?returnTo=${encodeURIComponent(getQueryValue(query.returnTo) ?? "")}` : ""}`);

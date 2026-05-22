@@ -5,6 +5,8 @@ import type {
   OfferingCategory,
   OfferingFulfillmentType,
   OfferingOwnerType,
+  OfferingTemplateEngine,
+  OfferingTemplateMode,
   OfferingType,
   OfferingTypeDefinition,
   OfferingTypeField,
@@ -24,6 +26,8 @@ type OfferingInput = {
   thumbnailUrl?: string;
   price?: number;
   fulfillmentType?: OfferingFulfillmentType;
+  templateEngine?: OfferingTemplateEngine;
+  templateMode?: OfferingTemplateMode;
   trackInventory?: boolean;
   stockQuantity?: number;
   lowStockThreshold?: number;
@@ -47,6 +51,8 @@ type OfferingTypeInput = {
   status?: "draft" | "active" | "archived";
   fulfillmentType?: OfferingFulfillmentType;
   templateKey?: string;
+  templateEngine?: OfferingTemplateEngine;
+  templateMode?: OfferingTemplateMode;
   supportsInventory?: boolean;
   supportsVendorSupply?: boolean;
   fieldSchema?: OfferingTypeField[];
@@ -60,6 +66,8 @@ type OfferingTypeRow = {
   status: "draft" | "active" | "archived";
   fulfillment_type: OfferingFulfillmentType;
   template_key: string;
+  template_engine: string | null;
+  template_mode: string | null;
   supports_inventory: boolean;
   supports_vendor_supply: boolean;
   is_system: boolean;
@@ -70,6 +78,7 @@ type OfferingTypeRow = {
 
 type OfferingCatalogFilterInput = {
   offeringTypes: OfferingType[];
+  templateEngines?: OfferingTemplateEngine[];
   categorySlug?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -95,6 +104,8 @@ function mapOfferingTypeRow(row: OfferingTypeRow): OfferingTypeDefinition {
     status: row.status,
     fulfillmentType: row.fulfillment_type,
     templateKey: row.template_key,
+    templateEngine: row.template_engine ? (row.template_engine as OfferingTemplateEngine) : undefined,
+    templateMode: row.template_mode ? (row.template_mode as OfferingTemplateMode) : undefined,
     supportsInventory: row.supports_inventory,
     supportsVendorSupply: row.supports_vendor_supply,
     isSystem: row.is_system,
@@ -116,6 +127,8 @@ type OfferingRow = {
   status: "draft" | "published";
   offering_type: OfferingType;
   template_key: string;
+  template_engine: string | null;
+  template_mode: string | null;
   thumbnail_url: string | null;
   price: string;
   fulfillment_type: OfferingFulfillmentType;
@@ -123,19 +136,19 @@ type OfferingRow = {
   stock_quantity: string;
   low_stock_threshold: string;
   allow_backorder: boolean;
-  coded_template_key: string | null;
-  coded_site_defaults: Record<string, unknown> | null;
-  builder_key: string | null;
-  builder_site_defaults: Record<string, unknown> | null;
-  general_fulfillment_type: OfferingFulfillmentType | null;
-  general_track_inventory: boolean | null;
-  general_stock_quantity: string | null;
-  general_low_stock_threshold: string | null;
-  general_allow_backorder: boolean | null;
-  general_cost_price: string | null;
-  general_vendor_sku: string | null;
-  general_owner_type: OfferingOwnerType | null;
-  general_owner_vendor_user_id: string | null;
+  digital_template_key: string | null;
+  digital_template_engine: OfferingTemplateEngine | null;
+  digital_template_mode: OfferingTemplateMode | null;
+  digital_site_defaults: Record<string, unknown> | null;
+  physical_fulfillment_type: OfferingFulfillmentType | null;
+  physical_track_inventory: boolean | null;
+  physical_stock_quantity: string | null;
+  physical_low_stock_threshold: string | null;
+  physical_allow_backorder: boolean | null;
+  physical_cost_price: string | null;
+  physical_vendor_sku: string | null;
+  physical_owner_type: OfferingOwnerType | null;
+  physical_owner_vendor_user_id: string | null;
   config: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
@@ -145,6 +158,24 @@ type OfferingTemplateUsageRow = {
   slug: string;
   name: string;
 };
+
+function normalizeOfferingTypeFilter(offeringTypes: OfferingType[]) {
+  const mappedTypes = new Set<OfferingType>();
+  const templateEngines = new Set<OfferingTemplateEngine>();
+  let restrictTemplateEngine = false;
+
+  for (const type of offeringTypes) {
+    mappedTypes.add(type);
+    if (type === "digital_template") {
+      restrictTemplateEngine = false;
+    }
+  }
+
+  return {
+    offeringTypes: Array.from(mappedTypes),
+    templateEngines: restrictTemplateEngine ? Array.from(templateEngines) : null,
+  };
+}
 
 function mapOfferingCategoryRow(row: OfferingCategoryRow): OfferingCategory {
   return {
@@ -165,37 +196,29 @@ function mapOfferingRow(row: OfferingRow): Offering {
       ? (baseConfig.generalOffering as Record<string, unknown>)
       : null;
   const ownerType =
-    row.general_owner_type === "vendor" || rawGeneralOfferingConfig?.ownerType === "vendor"
+    row.physical_owner_type === "vendor" || rawGeneralOfferingConfig?.ownerType === "vendor"
       ? "vendor"
       : "internal";
   const ownerVendorUserId =
     ownerType === "vendor"
-      ? row.general_owner_vendor_user_id ??
+      ? row.physical_owner_vendor_user_id ??
         (typeof rawGeneralOfferingConfig?.vendorUserId === "string" ? rawGeneralOfferingConfig.vendorUserId : undefined)
       : undefined;
-  const templateKey =
-    row.offering_type === "coded_template"
-      ? row.coded_template_key ?? row.template_key
-      : row.offering_type === "builder"
-        ? row.builder_key ?? row.template_key
-        : row.template_key;
-  const siteDefaults =
-    row.offering_type === "coded_template"
-      ? row.coded_site_defaults
-      : row.offering_type === "builder"
-        ? row.builder_site_defaults
-        : null;
-  const fulfillmentType = row.general_fulfillment_type ?? row.fulfillment_type;
-  const trackInventory = row.general_track_inventory ?? row.track_inventory;
-  const stockQuantity = row.general_stock_quantity ?? row.stock_quantity;
-  const lowStockThreshold = row.general_low_stock_threshold ?? row.low_stock_threshold;
-  const allowBackorder = row.general_allow_backorder ?? row.allow_backorder;
-  const costPrice = row.general_cost_price ?? "0";
-  const vendorSku = row.general_vendor_sku ?? "";
+  const templateKey = row.digital_template_key ?? row.template_key;
+  const templateEngine = (row.digital_template_engine ?? row.template_engine ?? undefined) as OfferingTemplateEngine | undefined;
+  const templateMode = (row.digital_template_mode ?? row.template_mode ?? undefined) as OfferingTemplateMode | undefined;
+  const siteDefaults = row.digital_site_defaults;
+  const fulfillmentType = row.physical_fulfillment_type ?? row.fulfillment_type;
+  const trackInventory = row.physical_track_inventory ?? row.track_inventory;
+  const stockQuantity = row.physical_stock_quantity ?? row.stock_quantity;
+  const lowStockThreshold = row.physical_low_stock_threshold ?? row.low_stock_threshold;
+  const allowBackorder = row.physical_allow_backorder ?? row.allow_backorder;
+  const costPrice = row.physical_cost_price ?? "0";
+  const vendorSku = row.physical_vendor_sku ?? "";
   const config: Record<string, unknown> = {
     ...baseConfig,
     ...(siteDefaults ? { siteDefaults } : {}),
-    ...(row.offering_type === "general_offering"
+    ...(row.offering_type === "physical_product"
       ? {
           generalOffering: {
             ...(rawGeneralOfferingConfig ?? {}),
@@ -218,6 +241,8 @@ function mapOfferingRow(row: OfferingRow): Offering {
     status: row.status,
     offeringType: row.offering_type,
     templateKey,
+    templateEngine,
+    templateMode,
     thumbnailUrl: row.thumbnail_url ?? undefined,
     price: Number(row.price ?? "0"),
     fulfillmentType,
@@ -248,6 +273,8 @@ const OFFERING_SELECT = `
     offerings.status,
     offerings.offering_type,
     offerings.template_key,
+    offerings.template_engine,
+    offerings.template_mode,
     offerings.thumbnail_url,
     offerings.price::text,
     offerings.fulfillment_type,
@@ -255,27 +282,26 @@ const OFFERING_SELECT = `
     offerings.stock_quantity::text,
     offerings.low_stock_threshold::text,
     offerings.allow_backorder,
-    coded.template_key AS coded_template_key,
-    coded.site_defaults AS coded_site_defaults,
-    builder.template_key AS builder_key,
-    builder.site_defaults AS builder_site_defaults,
-    general.fulfillment_type AS general_fulfillment_type,
-    general.track_inventory AS general_track_inventory,
-    general.stock_quantity::text AS general_stock_quantity,
-    general.low_stock_threshold::text AS general_low_stock_threshold,
-    general.allow_backorder AS general_allow_backorder,
-    general.cost_price::text AS general_cost_price,
-    general.vendor_sku AS general_vendor_sku,
-    general.owner_type AS general_owner_type,
-    general.owner_vendor_user_id AS general_owner_vendor_user_id,
+    digital.template_key AS digital_template_key,
+    digital.template_engine AS digital_template_engine,
+    digital.template_mode AS digital_template_mode,
+    digital.site_defaults AS digital_site_defaults,
+    physical.fulfillment_type AS physical_fulfillment_type,
+    physical.track_inventory AS physical_track_inventory,
+    physical.stock_quantity::text AS physical_stock_quantity,
+    physical.low_stock_threshold::text AS physical_low_stock_threshold,
+    physical.allow_backorder AS physical_allow_backorder,
+    physical.cost_price::text AS physical_cost_price,
+    physical.vendor_sku AS physical_vendor_sku,
+    physical.owner_type AS physical_owner_type,
+    physical.owner_vendor_user_id AS physical_owner_vendor_user_id,
     offerings.config,
     offerings.created_at,
     offerings.updated_at
   FROM offerings
   LEFT JOIN offering_categories categories ON categories.id = offerings.category_id
-  LEFT JOIN coded_template_offerings coded ON coded.offering_id = offerings.id
-  LEFT JOIN builder_offerings builder ON builder.offering_id = offerings.id
-  LEFT JOIN general_offerings general ON general.offering_id = offerings.id
+  LEFT JOIN digital_template_offerings digital ON digital.offering_id = offerings.id
+  LEFT JOIN physical_offerings physical ON physical.offering_id = offerings.id
 `;
 
 type PgLikeError = {
@@ -313,6 +339,7 @@ async function mapOfferingRows(rows: OfferingRow[]): Promise<Offering[]> {
 async function getOfferingUsingTemplateKey(input: {
   templateKey: string;
   offeringType: OfferingType;
+  templateEngine?: OfferingTemplateEngine;
   excludeSlug?: string;
 }) {
   if (!input.templateKey) {
@@ -321,26 +348,17 @@ async function getOfferingUsingTemplateKey(input: {
 
   const result = await withOfferingCatalogRetry(() =>
     query<OfferingTemplateUsageRow>(
-      input.offeringType === "coded_template"
-        ? `
-            SELECT offerings.slug, offerings.name
-            FROM offerings
-            INNER JOIN coded_template_offerings coded ON coded.offering_id = offerings.id
-            WHERE coded.template_key = $1
-              AND offerings.offering_type = $2
-              AND ($3::text IS NULL OR offerings.slug <> $3)
-            LIMIT 1
-          `
-        : `
-            SELECT offerings.slug, offerings.name
-            FROM offerings
-            INNER JOIN builder_offerings builder ON builder.offering_id = offerings.id
-            WHERE builder.template_key = $1
-              AND offerings.offering_type = $2
-              AND ($3::text IS NULL OR offerings.slug <> $3)
-            LIMIT 1
-          `,
-      [input.templateKey, input.offeringType, input.excludeSlug ?? null]
+      `
+        SELECT offerings.slug, offerings.name
+        FROM offerings
+        INNER JOIN digital_template_offerings digital ON digital.offering_id = offerings.id
+        WHERE digital.template_key = $1
+          AND offerings.offering_type = 'digital_template'
+          AND ($2::text IS NULL OR digital.template_engine = $2)
+          AND ($3::text IS NULL OR offerings.slug <> $3)
+        LIMIT 1
+      `,
+      [input.templateKey, input.templateEngine ?? null, input.excludeSlug ?? null]
     )
   );
 
@@ -366,6 +384,8 @@ export async function listPublishedOfferingsFiltered(input: OfferingCatalogFilte
     return [];
   }
 
+  const normalizedFilter = normalizeOfferingTypeFilter(input.offeringTypes);
+  const templateEngines = input.templateEngines?.length ? input.templateEngines : normalizedFilter.templateEngines;
   const categorySlug = input.categorySlug && input.categorySlug !== "all" ? input.categorySlug : null;
   const minPrice = Number.isFinite(input.minPrice) ? input.minPrice ?? 0 : 0;
   const maxPrice = Number.isFinite(input.maxPrice) ? input.maxPrice ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
@@ -386,9 +406,10 @@ export async function listPublishedOfferingsFiltered(input: OfferingCatalogFilte
           AND ($2::text IS NULL OR categories.slug = $2)
           AND offerings.price >= $3
           AND offerings.price < $4
+          AND ($5::text[] IS NULL OR COALESCE(digital.template_engine, offerings.template_engine) = ANY($5::text[]))
         ORDER BY ${orderBy}
       `,
-      [input.offeringTypes, categorySlug, minPrice, maxPrice]
+      [normalizedFilter.offeringTypes, categorySlug, minPrice, maxPrice, templateEngines]
     )
   );
 
@@ -420,6 +441,8 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
           status,
           fulfillment_type,
           template_key,
+          template_engine,
+          template_mode,
           supports_inventory,
           supports_vendor_supply,
           is_system,
@@ -449,6 +472,8 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
           status,
           fulfillment_type,
           template_key,
+          template_engine,
+          template_mode,
           supports_inventory,
           supports_vendor_supply,
           is_system,
@@ -488,12 +513,14 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           status,
           fulfillment_type,
           template_key,
+          template_engine,
+          template_mode,
           supports_inventory,
           supports_vendor_supply,
           is_system,
           field_schema
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9::jsonb)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE, $11::jsonb)
         ON CONFLICT (key) DO UPDATE
         SET
           label = EXCLUDED.label,
@@ -501,6 +528,8 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           status = EXCLUDED.status,
           fulfillment_type = EXCLUDED.fulfillment_type,
           template_key = EXCLUDED.template_key,
+          template_engine = EXCLUDED.template_engine,
+          template_mode = EXCLUDED.template_mode,
           supports_inventory = EXCLUDED.supports_inventory,
           supports_vendor_supply = EXCLUDED.supports_vendor_supply,
           field_schema = EXCLUDED.field_schema,
@@ -513,6 +542,8 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           status,
           fulfillment_type,
           template_key,
+          template_engine,
+          template_mode,
           supports_inventory,
           supports_vendor_supply,
           is_system,
@@ -527,6 +558,8 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
         input.status ?? "active",
         input.fulfillmentType ?? "digital",
         input.templateKey?.trim() || key,
+        input.templateEngine?.trim() || "",
+        input.templateMode?.trim() || "",
         Boolean(input.supportsInventory),
         Boolean(input.supportsVendorSupply),
         JSON.stringify(fieldSchema),
@@ -579,16 +612,43 @@ export async function getPublishedOfferingBySlugAndType(
   slug: string,
   offeringType: OfferingType
 ): Promise<Offering | null> {
+  const normalizedFilter = normalizeOfferingTypeFilter([offeringType]);
   const result = await withOfferingCatalogRetry(() =>
     query<OfferingRow>(
       `
         ${OFFERING_SELECT}
         WHERE offerings.slug = $1
           AND offerings.status = 'published'
-          AND offerings.offering_type = $2
+          AND offerings.offering_type = ANY($2::text[])
+          AND ($3::text[] IS NULL OR COALESCE(digital.template_engine, offerings.template_engine) = ANY($3::text[]))
         LIMIT 1
       `,
-      [slug, offeringType]
+      [slug, normalizedFilter.offeringTypes, normalizedFilter.templateEngines]
+    )
+  );
+
+  if (!result) {
+    return null;
+  }
+
+  return (await mapOfferingRows(result.rows))[0] ?? null;
+}
+
+export async function getPublishedDigitalTemplateOfferingBySlug(
+  slug: string,
+  templateEngine: OfferingTemplateEngine
+): Promise<Offering | null> {
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingRow>(
+      `
+        ${OFFERING_SELECT}
+        WHERE offerings.slug = $1
+          AND offerings.status = 'published'
+          AND offerings.offering_type = 'digital_template'
+          AND COALESCE(digital.template_engine, offerings.template_engine) = $2
+        LIMIT 1
+      `,
+      [slug, templateEngine]
     )
   );
 
@@ -626,10 +686,14 @@ export async function listPublishedOfferingsByIds(ids: string[]): Promise<Offeri
 }
 
 export async function createOffering(input: OfferingInput): Promise<Offering> {
-  if (input.offeringType === "coded_template") {
+  const templateEngine = input.templateEngine ?? (input.offeringType === "digital_template" ? "coded" : undefined);
+  const templateMode = input.templateMode ?? (templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : undefined);
+
+  if (input.offeringType === "digital_template") {
     const existingTemplateOffering = await getOfferingUsingTemplateKey({
       templateKey: input.templateKey,
       offeringType: input.offeringType,
+      templateEngine,
     });
 
     if (existingTemplateOffering) {
@@ -642,9 +706,9 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
       const created = await execute<{ id: string }>(
         `
           INSERT INTO offerings (
-            slug, category_id, name, excerpt, description, status, offering_type, template_key, thumbnail_url, price, fulfillment_type, track_inventory, stock_quantity, low_stock_threshold, allow_backorder, config
+            slug, category_id, name, excerpt, description, status, offering_type, template_key, template_engine, template_mode, thumbnail_url, price, fulfillment_type, track_inventory, stock_quantity, low_stock_threshold, allow_backorder, config
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
           RETURNING id
         `,
         [
@@ -656,6 +720,8 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
           input.status || "draft",
           input.offeringType,
           input.templateKey,
+          templateEngine ?? "",
+          templateMode ?? "",
           input.thumbnailUrl || null,
           input.price ?? 0,
           input.fulfillmentType ?? "digital",
@@ -672,11 +738,10 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
         throw new Error("OFFERING_CREATE_FAILED");
       }
 
-      await execute("DELETE FROM coded_template_offerings WHERE offering_id = $1", [offeringId]);
-      await execute("DELETE FROM builder_offerings WHERE offering_id = $1", [offeringId]);
-      await execute("DELETE FROM general_offerings WHERE offering_id = $1", [offeringId]);
+      await execute("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
+      await execute("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-      if (input.offeringType === "coded_template") {
+      if (input.offeringType === "digital_template") {
         const siteDefaults =
           typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
             ? input.config.siteDefaults
@@ -684,29 +749,14 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
 
         await execute(
           `
-            INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3::jsonb)
+            INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
+            VALUES ($1, $2, $3, $4, $5::jsonb)
           `,
-          [offeringId, input.templateKey, JSON.stringify(siteDefaults)]
+          [offeringId, input.templateKey, templateEngine ?? "coded", templateMode ?? "fixed", JSON.stringify(siteDefaults)]
         );
       }
 
-      if (input.offeringType === "builder") {
-        const siteDefaults =
-          typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
-            ? input.config.siteDefaults
-            : {};
-
-        await execute(
-          `
-            INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3::jsonb)
-          `,
-          [offeringId, input.templateKey, JSON.stringify(siteDefaults)]
-        );
-      }
-
-      if (input.offeringType === "general_offering") {
+      if (input.offeringType === "physical_product") {
         const generalConfig =
           typeof input.config?.generalOffering === "object" && input.config.generalOffering
             ? (input.config.generalOffering as Record<string, unknown>)
@@ -727,7 +777,7 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
 
         await execute(
           `
-            INSERT INTO general_offerings (
+            INSERT INTO physical_offerings (
               offering_id,
               fulfillment_type,
               track_inventory,
@@ -774,14 +824,17 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
 
   const nextTemplateKey = input.templateKey ?? existing.templateKey;
   const nextOfferingType = input.offeringType ?? existing.offeringType;
+  const nextTemplateEngine = input.templateEngine ?? existing.templateEngine;
+  const nextTemplateMode = input.templateMode ?? existing.templateMode;
   if (nextOfferingType !== existing.offeringType) {
     throw new Error("OFFERING_TYPE_LOCKED");
   }
 
-  if (nextOfferingType === "coded_template") {
+  if (nextOfferingType === "digital_template") {
     const existingTemplateOffering = await getOfferingUsingTemplateKey({
       templateKey: nextTemplateKey,
       offeringType: nextOfferingType,
+      templateEngine: nextTemplateEngine,
       excludeSlug: slug,
     });
 
@@ -806,16 +859,18 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             status = COALESCE($6, status),
             offering_type = COALESCE($7, offering_type),
             template_key = COALESCE($8, template_key),
-            thumbnail_url = $9,
-            price = COALESCE($10, price),
-            fulfillment_type = COALESCE($11, fulfillment_type),
-            track_inventory = COALESCE($12, track_inventory),
-            stock_quantity = COALESCE($13, stock_quantity),
-            low_stock_threshold = COALESCE($14, low_stock_threshold),
-            allow_backorder = COALESCE($15, allow_backorder),
-            config = $16,
+            template_engine = COALESCE($9, template_engine),
+            template_mode = COALESCE($10, template_mode),
+            thumbnail_url = $11,
+            price = COALESCE($12, price),
+            fulfillment_type = COALESCE($13, fulfillment_type),
+            track_inventory = COALESCE($14, track_inventory),
+            stock_quantity = COALESCE($15, stock_quantity),
+            low_stock_threshold = COALESCE($16, low_stock_threshold),
+            allow_backorder = COALESCE($17, allow_backorder),
+            config = $18,
             updated_at = NOW()
-          WHERE slug = $17
+          WHERE slug = $19
           RETURNING id
         `,
         [
@@ -827,6 +882,8 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
           input.status,
           input.offeringType,
           input.templateKey,
+          input.templateEngine,
+          input.templateMode,
           input.thumbnailUrl !== undefined ? input.thumbnailUrl : existing.thumbnailUrl ?? null,
           input.price,
           input.fulfillmentType,
@@ -844,11 +901,10 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
         return null;
       }
 
-      await execute("DELETE FROM coded_template_offerings WHERE offering_id = $1", [offeringId]);
-      await execute("DELETE FROM builder_offerings WHERE offering_id = $1", [offeringId]);
-      await execute("DELETE FROM general_offerings WHERE offering_id = $1", [offeringId]);
+      await execute("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
+      await execute("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-      if (nextOfferingType === "coded_template") {
+      if (nextOfferingType === "digital_template") {
         const siteDefaults =
           typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
             ? nextConfig.siteDefaults
@@ -856,29 +912,14 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
 
         await execute(
           `
-            INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3::jsonb)
+            INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
+            VALUES ($1, $2, $3, $4, $5::jsonb)
           `,
-          [offeringId, nextTemplateKey, JSON.stringify(siteDefaults)]
+          [offeringId, nextTemplateKey, nextTemplateEngine ?? "coded", nextTemplateMode ?? "fixed", JSON.stringify(siteDefaults)]
         );
       }
 
-      if (nextOfferingType === "builder") {
-        const siteDefaults =
-          typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
-            ? nextConfig.siteDefaults
-            : {};
-
-        await execute(
-          `
-            INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3::jsonb)
-          `,
-          [offeringId, nextTemplateKey, JSON.stringify(siteDefaults)]
-        );
-      }
-
-      if (nextOfferingType === "general_offering") {
+      if (nextOfferingType === "physical_product") {
         const generalConfig =
           typeof nextConfig?.generalOffering === "object" && nextConfig.generalOffering
             ? (nextConfig.generalOffering as Record<string, unknown>)
@@ -899,7 +940,7 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
 
         await execute(
           `
-            INSERT INTO general_offerings (
+            INSERT INTO physical_offerings (
               offering_id,
               fulfillment_type,
               track_inventory,
@@ -956,8 +997,9 @@ export async function deleteOffering(slug: string): Promise<boolean> {
       return false;
     }
 
-    if (offering.offering_type === "coded_template") {
-      throw new Error("CODED_TEMPLATE_DELETE_BLOCKED");
+    const fullOffering = await getOfferingBySlug(slug);
+    if (fullOffering?.offeringType === "digital_template" && fullOffering.templateEngine === "coded") {
+      throw new Error("SYSTEM_TEMPLATE_DELETE_BLOCKED");
     }
 
     const result = await query(
@@ -983,8 +1025,10 @@ export async function hasCodedTemplateOfferings(slugs: string[]): Promise<boolea
         SELECT EXISTS (
           SELECT 1
           FROM offerings
+          LEFT JOIN digital_template_offerings digital ON digital.offering_id = offerings.id
           WHERE slug = ANY($1::text[])
-            AND offering_type = 'coded_template'
+            AND offerings.offering_type = 'digital_template'
+            AND COALESCE(digital.template_engine, offerings.template_engine) = 'coded'
         ) AS exists
       `,
       [slugs]
@@ -1025,7 +1069,7 @@ export async function deleteOfferings(slugs: string[]): Promise<number> {
 
   return withOfferingCatalogRetry(async () => {
     if (await hasCodedTemplateOfferings(slugs)) {
-      throw new Error("CODED_TEMPLATE_DELETE_BLOCKED");
+      throw new Error("SYSTEM_TEMPLATE_DELETE_BLOCKED");
     }
 
     const result = await query(

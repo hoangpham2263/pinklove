@@ -77,8 +77,8 @@ export async function POST(request: Request) {
 
   const slug = String(offering.slug ?? "").trim();
   const name = String(offering.name ?? "").trim();
-  const offeringType = "general_offering";
-  const templateKey = "general_offering";
+  const offeringType = "physical_product";
+  const templateKey = "physical_product";
   const status = offering.status === "published" ? "published" : apiSettings.defaultStatus;
   const fulfillmentType = (offering.fulfillmentType ?? "physical") as OfferingFulfillmentType;
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
   }
 
   const existing = await getOfferingBySlug(slug);
-  if (existing && existing.offeringType !== "general_offering") {
+  if (existing && existing.offeringType !== "physical_product") {
     return Response.json(
       {
         ok: false,
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
   const baseConfig = offering.config && typeof offering.config === "object" ? offering.config : {};
   const config =
-    offeringType === "general_offering"
+    offeringType === "physical_product"
       ? {
           ...baseConfig,
           generalOffering: {

@@ -303,12 +303,12 @@ export async function listCartItems(userId: string): Promise<CartItem[]> {
         offerings.name AS offering_name,
         offerings.slug AS offering_slug,
         offerings.offering_type,
-        COALESCE(general.fulfillment_type, offerings.fulfillment_type) AS fulfillment_type,
+        COALESCE(physical.fulfillment_type, offerings.fulfillment_type) AS fulfillment_type,
         offerings.price::text,
         offerings.thumbnail_url
       FROM shopping_cart_items cart
       JOIN offerings ON offerings.id = cart.offering_id
-      LEFT JOIN general_offerings general ON general.offering_id = offerings.id
+      LEFT JOIN physical_offerings physical ON physical.offering_id = offerings.id
       WHERE cart.user_id = $1
       ORDER BY cart.updated_at DESC
     `,
@@ -555,12 +555,12 @@ export async function createOrderFromCart(input: {
           cart.offering_id,
           offerings.name AS offering_name,
           cart.quantity::text,
-          COALESCE(general.track_inventory, offerings.track_inventory) AS track_inventory,
-          COALESCE(general.stock_quantity, offerings.stock_quantity)::text AS stock_quantity,
-          COALESCE(general.allow_backorder, offerings.allow_backorder) AS allow_backorder
+          COALESCE(physical.track_inventory, offerings.track_inventory) AS track_inventory,
+          COALESCE(physical.stock_quantity, offerings.stock_quantity)::text AS stock_quantity,
+          COALESCE(physical.allow_backorder, offerings.allow_backorder) AS allow_backorder
         FROM shopping_cart_items cart
         JOIN offerings ON offerings.id = cart.offering_id
-        LEFT JOIN general_offerings general ON general.offering_id = cart.offering_id
+        LEFT JOIN physical_offerings physical ON physical.offering_id = cart.offering_id
         WHERE cart.user_id = $1
         FOR UPDATE OF offerings
       `,
@@ -674,7 +674,7 @@ export async function createOrderFromCart(input: {
       if (item.offeringId) {
         await execute(
           `
-            UPDATE general_offerings
+            UPDATE physical_offerings
             SET
               stock_quantity = CASE
                 WHEN track_inventory THEN stock_quantity - $2

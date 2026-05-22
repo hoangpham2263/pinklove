@@ -269,19 +269,19 @@ function CatalogOrderingBar({
 const templateOfferingTabs: Array<{
   key: string;
   label: string;
-  offeringType: "coded_template" | "builder";
+  templateEngine: "coded" | "builder";
   description: string;
 }> = [
   {
     key: "coded",
     label: "Mẫu coded",
-    offeringType: "coded_template",
+    templateEngine: "coded",
     description: "Mẫu code sẵn, cố định source trong code và chỉ seed/catalog từ hệ thống.",
   },
   {
     key: "builder",
     label: "Builder",
-    offeringType: "builder",
+    templateEngine: "builder",
     description: "Mẫu kéo thả, có thể tạo từ admin builder hoặc seed sẵn bằng builder document.",
   },
 ];
@@ -293,13 +293,13 @@ function TemplateOfferingTabs({
 }: {
   activeKey: string;
   currentParams: Record<string, string | string[] | undefined>;
-  offeringsByType: Record<"coded_template" | "builder", Offering[]>;
+  offeringsByType: Record<"coded" | "builder", Offering[]>;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
       {templateOfferingTabs.map((tab) => {
         const active = tab.key === activeKey;
-        const count = offeringsByType[tab.offeringType].length;
+        const count = offeringsByType[tab.templateEngine].length;
 
         return (
           <GuestLinkButton
@@ -381,21 +381,24 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const priceFilter = getPriceFilter(filters.priceKey);
       const [codedOfferings, builderOfferings, offerings, categories] = await Promise.all([
         listPublishedOfferingsFiltered({
-          offeringTypes: ["coded_template"],
+          offeringTypes: ["digital_template"],
+          templateEngines: ["coded"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
         listPublishedOfferingsFiltered({
-          offeringTypes: ["builder"],
+          offeringTypes: ["digital_template"],
+          templateEngines: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
           sort: filters.sortKey,
         }),
         listPublishedOfferingsFiltered({
-          offeringTypes: [activeTab.offeringType],
+          offeringTypes: ["digital_template"],
+          templateEngines: [activeTab.templateEngine],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
@@ -403,8 +406,8 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
         }),
         listAllOfferingCategories(),
       ]);
-      const offeringsByType: Record<"coded_template" | "builder", Offering[]> = {
-        coded_template: codedOfferings,
+      const offeringsByType: Record<"coded" | "builder", Offering[]> = {
+        coded: codedOfferings,
         builder: builderOfferings,
       };
 
@@ -454,7 +457,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                     />
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                       {offerings.map((offering) => (
-                        offering.offeringType !== "general_offering" ? (
+                        offering.offeringType !== "physical_product" ? (
                           <LoopOnlineInvitationCard key={offering.id} offering={offering} />
                         ) : (
                           <LoopOfferingCard key={offering.id} offering={offering} />
@@ -481,7 +484,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const priceFilter = getPriceFilter(filters.priceKey);
       const [paperOfferings, categories] = await Promise.all([
         listPublishedOfferingsFiltered({
-          offeringTypes: ["general_offering"],
+          offeringTypes: ["physical_product"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
@@ -553,7 +556,8 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const [user, builderOfferings, categories] = await Promise.all([
         getCurrentUser(),
         listPublishedOfferingsFiltered({
-          offeringTypes: ["builder"],
+          offeringTypes: ["digital_template"],
+          templateEngines: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,

@@ -13,8 +13,9 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.VENDOR_OFFERINGS)) return "Vendor Offering Review";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_CATEGORIES)) return "Offering Categories";
   if (pathname === ROUTES.ADMIN.OFFERINGS) return "Create Offering";
+  if (pathname === ROUTES.ADMIN.OFFERING_MANAGE) return "Offering";
   if (pathname.startsWith(`${ROUTES.ADMIN.OFFERING_LIST}/`)) return "Edit Offering";
-  if (pathname === ROUTES.ADMIN.OFFERING_LIST) return "Offering";
+  if (pathname === ROUTES.ADMIN.OFFERING_LIST) return "Offerings Overview";
   if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
   if (pathname.startsWith(ROUTES.ADMIN.PAYMENTS)) return "Payments";
   if (pathname.startsWith(ROUTES.ADMIN.SHIPMENTS)) return "Shipments";

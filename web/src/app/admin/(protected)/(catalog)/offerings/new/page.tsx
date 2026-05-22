@@ -20,7 +20,7 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_LIST
+    requestedType === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_MANAGE
   );
 
   if (requestedType === "builder") {
@@ -55,7 +55,7 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
         categories={categories}
         vendors={vendors}
         offeringTypes={offeringTypes}
-        initialOfferingType={requestedType && requestedType !== "builder" ? requestedType : "general_offering"}
+        initialOfferingType={requestedType && requestedType !== "builder" ? requestedType : "physical_product"}
         returnTo={returnTo}
       />
     </section>

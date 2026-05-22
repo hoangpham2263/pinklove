@@ -1018,6 +1018,8 @@ async function ensureOfferingTablesMigration() {
       status TEXT NOT NULL DEFAULT 'draft',
       offering_type TEXT NOT NULL,
       template_key TEXT NOT NULL,
+      template_engine TEXT NOT NULL DEFAULT '',
+      template_mode TEXT NOT NULL DEFAULT '',
       thumbnail_url TEXT,
       price NUMERIC(12, 2) NOT NULL DEFAULT 0,
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
@@ -1044,6 +1046,8 @@ async function ensureOfferingTablesMigration() {
       status TEXT NOT NULL DEFAULT 'active',
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       template_key TEXT NOT NULL DEFAULT '',
+      template_engine TEXT NOT NULL DEFAULT '',
+      template_mode TEXT NOT NULL DEFAULT '',
       supports_inventory BOOLEAN NOT NULL DEFAULT FALSE,
       supports_vendor_supply BOOLEAN NOT NULL DEFAULT FALSE,
       is_system BOOLEAN NOT NULL DEFAULT FALSE,
@@ -1062,6 +1066,18 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
+    ALTER TABLE offerings
+    ADD COLUMN IF NOT EXISTS template_engine TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS template_mode TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_types
+    ADD COLUMN IF NOT EXISTS template_engine TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS template_mode TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
     INSERT INTO offering_types (
       key,
       label,
@@ -1069,21 +1085,29 @@ async function ensureOfferingTablesMigration() {
       status,
       fulfillment_type,
       template_key,
+      template_engine,
+      template_mode,
       supports_inventory,
       supports_vendor_supply,
       is_system,
       field_schema
     )
     VALUES
-      ('coded_template', 'Coded Template', 'Mẫu thiệp cố định theo source code.', 'active', 'digital', 'coded_template', FALSE, FALSE, TRUE, '[]'::jsonb),
-      ('builder', 'Builder', 'Mẫu thiệp kéo thả dùng builder editor.', 'active', 'digital', 'freeform_sections', FALSE, FALSE, TRUE, '[]'::jsonb),
-      ('general_offering', 'Sản phẩm', 'Offering bán ra dạng generic, có thể bật kho và vendor supply.', 'active', 'physical', 'general_offering', TRUE, TRUE, TRUE, '[]'::jsonb)
+      ('digital_template', 'Digital Template', 'Mẫu digital, thiệp online, motion, video hoặc builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE, '[]'::jsonb),
+      ('physical_product', 'Physical Product', 'Sản phẩm vật lý như thiệp giấy, quà tặng hoặc addon hữu hình.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE, '[]'::jsonb),
+      ('service', 'Service', 'Dịch vụ cưới có thể booking hoặc tư vấn.', 'active', 'service', 'service', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
+      ('creator_service', 'Creator Service', 'Dịch vụ từ creator trong hệ sinh thái cưới.', 'active', 'service', 'creator_service', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
+      ('experience', 'Experience', 'Trải nghiệm cưới hoặc gói sự kiện.', 'active', 'service', 'experience', '', '', FALSE, TRUE, TRUE, '[]'::jsonb),
+      ('subscription', 'Subscription', 'Gói đăng ký hoặc quyền truy cập định kỳ.', 'active', 'digital', 'subscription', '', '', FALSE, FALSE, TRUE, '[]'::jsonb),
+      ('addon', 'Addon', 'Tiện ích hoặc dịch vụ bổ sung.', 'active', 'digital', 'addon', '', '', FALSE, FALSE, TRUE, '[]'::jsonb)
     ON CONFLICT (key) DO UPDATE
     SET
       label = EXCLUDED.label,
       description = EXCLUDED.description,
       fulfillment_type = EXCLUDED.fulfillment_type,
       template_key = EXCLUDED.template_key,
+      template_engine = EXCLUDED.template_engine,
+      template_mode = EXCLUDED.template_mode,
       supports_inventory = EXCLUDED.supports_inventory,
       supports_vendor_supply = EXCLUDED.supports_vendor_supply,
       is_system = TRUE,
@@ -1191,27 +1215,43 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS coded_template_offerings (
+    CREATE TABLE IF NOT EXISTS digital_template_offerings (
       offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       template_key TEXT NOT NULL,
+      template_engine TEXT NOT NULL DEFAULT 'coded',
+      template_mode TEXT NOT NULL DEFAULT 'fixed',
       site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT digital_template_offerings_engine_check CHECK (template_engine IN ('coded', 'builder', 'hybrid', 'motion', 'video', 'ai_generated')),
+      CONSTRAINT digital_template_offerings_mode_check CHECK (template_mode IN ('fixed', 'editable', 'hybrid'))
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS builder_offerings (
-      offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
-      template_key TEXT NOT NULL,
-      site_defaults JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    ALTER TABLE digital_template_offerings
+    ADD COLUMN IF NOT EXISTS template_engine TEXT NOT NULL DEFAULT 'coded',
+    ADD COLUMN IF NOT EXISTS template_mode TEXT NOT NULL DEFAULT 'fixed';
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS general_offerings (
+    ALTER TABLE digital_template_offerings
+    DROP CONSTRAINT IF EXISTS digital_template_offerings_engine_check,
+    DROP CONSTRAINT IF EXISTS digital_template_offerings_mode_check;
+  `);
+
+  await pool.query(`
+    ALTER TABLE digital_template_offerings
+    ADD CONSTRAINT digital_template_offerings_engine_check CHECK (template_engine IN ('coded', 'builder', 'hybrid', 'motion', 'video', 'ai_generated'));
+  `);
+
+  await pool.query(`
+    ALTER TABLE digital_template_offerings
+    ADD CONSTRAINT digital_template_offerings_mode_check CHECK (template_mode IN ('fixed', 'editable', 'hybrid'));
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS physical_offerings (
       offering_id ${offeringIdType} PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
@@ -1224,58 +1264,44 @@ async function ensureOfferingTablesMigration() {
       owner_vendor_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT general_offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT general_offerings_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
-      CONSTRAINT general_offerings_cost_price_check CHECK (cost_price >= 0),
-      CONSTRAINT general_offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
-      CONSTRAINT general_offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
+      CONSTRAINT physical_offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
+      CONSTRAINT physical_offerings_owner_type_check CHECK (owner_type IN ('internal', 'vendor')),
+      CONSTRAINT physical_offerings_cost_price_check CHECK (cost_price >= 0),
+      CONSTRAINT physical_offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
+      CONSTRAINT physical_offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
     );
   `);
 
   await pool.query(`
-    ALTER TABLE general_offerings
+    ALTER TABLE physical_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(`
-    INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
+    INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
     SELECT
       offerings.id,
       offerings.template_key,
+      COALESCE(NULLIF(offerings.template_engine, ''), 'coded'),
+      COALESCE(NULLIF(offerings.template_mode, ''), CASE WHEN COALESCE(NULLIF(offerings.template_engine, ''), 'coded') = 'builder' THEN 'editable' ELSE 'fixed' END),
       CASE
         WHEN jsonb_typeof(offerings.config -> 'siteDefaults') = 'object' THEN offerings.config -> 'siteDefaults'
         ELSE '{}'::jsonb
       END
     FROM offerings
-    WHERE offerings.offering_type = 'coded_template'
+    WHERE offerings.offering_type = 'digital_template'
     ON CONFLICT (offering_id) DO UPDATE
     SET
       template_key = EXCLUDED.template_key,
+      template_engine = EXCLUDED.template_engine,
+      template_mode = EXCLUDED.template_mode,
       site_defaults = EXCLUDED.site_defaults,
       updated_at = NOW();
   `);
 
   await pool.query(`
-    INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
-    SELECT
-      offerings.id,
-      offerings.template_key,
-      CASE
-        WHEN jsonb_typeof(offerings.config -> 'siteDefaults') = 'object' THEN offerings.config -> 'siteDefaults'
-        ELSE '{}'::jsonb
-      END
-    FROM offerings
-    WHERE offerings.offering_type = 'builder'
-    ON CONFLICT (offering_id) DO UPDATE
-    SET
-      template_key = EXCLUDED.template_key,
-      site_defaults = EXCLUDED.site_defaults,
-      updated_at = NOW();
-  `);
-
-  await pool.query(`
-    INSERT INTO general_offerings (
+    INSERT INTO physical_offerings (
       offering_id,
       fulfillment_type,
       track_inventory,
@@ -1302,7 +1328,7 @@ async function ensureOfferingTablesMigration() {
       END,
       ${ownerVendorUserIdSelectSql}
     FROM offerings
-    WHERE offerings.offering_type = 'general_offering'
+    WHERE offerings.offering_type = 'physical_product'
     ON CONFLICT (offering_id) DO UPDATE
     SET
       fulfillment_type = EXCLUDED.fulfillment_type,
@@ -1316,45 +1342,105 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
-    DELETE FROM coded_template_offerings
+    DELETE FROM digital_template_offerings
     WHERE offering_id IN (
       SELECT id
       FROM offerings
-      WHERE offering_type <> 'coded_template'
+      WHERE offering_type <> 'digital_template'
     );
   `);
 
   await pool.query(`
-    DELETE FROM builder_offerings
+    DELETE FROM physical_offerings
     WHERE offering_id IN (
       SELECT id
       FROM offerings
-      WHERE offering_type <> 'builder'
+      WHERE offering_type <> 'physical_product'
     );
   `);
 
   await pool.query(`
-    DELETE FROM general_offerings
-    WHERE offering_id IN (
-      SELECT id
-      FROM offerings
-      WHERE offering_type <> 'general_offering'
+    CREATE INDEX IF NOT EXISTS digital_template_offerings_template_key_idx
+    ON digital_template_offerings(template_key);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS digital_template_offerings_engine_idx
+    ON digital_template_offerings(template_engine, template_mode);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS physical_offerings_owner_vendor_user_id_idx
+    ON physical_offerings(owner_vendor_user_id);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_type_fields (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      offering_type_id TEXT NOT NULL REFERENCES offering_types(id) ON DELETE CASCADE,
+      field_key TEXT NOT NULL,
+      field_label TEXT NOT NULL,
+      field_type TEXT NOT NULL,
+      is_required BOOLEAN NOT NULL DEFAULT FALSE,
+      default_value JSONB,
+      validation_rules JSONB NOT NULL DEFAULT '{}'::jsonb,
+      ui_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      relation_target TEXT,
+      relation_multiple BOOLEAN NOT NULL DEFAULT FALSE,
+      relation_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offering_type_fields_key_unique UNIQUE (offering_type_id, field_key),
+      CONSTRAINT offering_type_fields_type_check CHECK (field_type IN ('text', 'textarea', 'richtext', 'number', 'boolean', 'select', 'multiselect', 'date', 'datetime', 'media', 'gallery', 'price', 'location', 'json', 'repeater', 'relation', 'blocks', 'url'))
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS coded_template_offerings_template_key_idx
-    ON coded_template_offerings(template_key);
-  `);
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS builder_offerings_template_key_idx
-    ON builder_offerings(template_key);
-  `);
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS general_offerings_owner_vendor_user_id_idx
-    ON general_offerings(owner_vendor_user_id);
+    INSERT INTO offering_type_fields (
+      offering_type_id,
+      field_key,
+      field_label,
+      field_type,
+      is_required,
+      default_value,
+      validation_rules,
+      ui_config,
+      relation_target,
+      relation_multiple,
+      relation_config,
+      sort_order
+    )
+    SELECT
+      types.id,
+      field ->> 'key',
+      field ->> 'label',
+      COALESCE(NULLIF(field ->> 'type', ''), 'text'),
+      COALESCE((field ->> 'required')::boolean, FALSE),
+      field -> 'defaultValue',
+      COALESCE(field -> 'validationRules', '{}'::jsonb),
+      COALESCE(field -> 'uiConfig', '{}'::jsonb),
+      NULLIF(field ->> 'relationTarget', ''),
+      COALESCE((field ->> 'relationMultiple')::boolean, FALSE),
+      COALESCE(field -> 'relationConfig', '{}'::jsonb),
+      COALESCE((field ->> 'sortOrder')::int, ordinality::int)
+    FROM offering_types types
+    CROSS JOIN LATERAL jsonb_array_elements(types.field_schema) WITH ORDINALITY AS schema(field, ordinality)
+    WHERE COALESCE(field ->> 'key', '') <> ''
+      AND COALESCE(field ->> 'label', '') <> ''
+    ON CONFLICT (offering_type_id, field_key) DO UPDATE
+    SET
+      field_label = EXCLUDED.field_label,
+      field_type = EXCLUDED.field_type,
+      is_required = EXCLUDED.is_required,
+      default_value = EXCLUDED.default_value,
+      validation_rules = EXCLUDED.validation_rules,
+      ui_config = EXCLUDED.ui_config,
+      relation_target = EXCLUDED.relation_target,
+      relation_multiple = EXCLUDED.relation_multiple,
+      relation_config = EXCLUDED.relation_config,
+      sort_order = EXCLUDED.sort_order,
+      updated_at = NOW();
   `);
 
   await pool.query(`
@@ -1370,7 +1456,7 @@ async function ensureOfferingTablesMigration() {
       custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT wedding_sites_type_check CHECK (site_type IN ('coded_template', 'builder')),
+      CONSTRAINT wedding_sites_type_check CHECK (site_type IN ('coded', 'editable')),
       CONSTRAINT wedding_sites_status_check CHECK (status IN ('draft', 'published'))
     );
   `);
@@ -3124,31 +3210,6 @@ async function ensureOfferingVendorPaperTypeMigration() {
   await pool.query(`ALTER TABLE wedding_sites DROP CONSTRAINT IF EXISTS wedding_sites_type_check`);
   await pool.query(`ALTER TABLE commerce_order_items DROP CONSTRAINT IF EXISTS commerce_order_items_offering_type_check`);
   await pool.query(`
-    UPDATE offerings
-    SET offering_type = 'builder'
-    WHERE offering_type = 'builder_template'
-  `);
-  await pool.query(`
-    UPDATE wedding_sites
-    SET site_type = 'builder'
-    WHERE site_type = 'builder_template'
-  `);
-  await pool.query(`
-    UPDATE commerce_order_items
-    SET offering_type = 'builder'
-    WHERE offering_type = 'builder_template'
-  `);
-  await pool.query(`
-    UPDATE offerings
-    SET offering_type = 'general_offering'
-    WHERE offering_type = 'vendor_paper'
-  `);
-  await pool.query(`
-    UPDATE commerce_order_items
-    SET offering_type = 'general_offering'
-    WHERE offering_type = 'vendor_paper'
-  `);
-  await pool.query(`
     ALTER TABLE commerce_order_items
     ADD CONSTRAINT commerce_order_items_offering_type_check
     CHECK (offering_type <> '')
@@ -3156,7 +3217,7 @@ async function ensureOfferingVendorPaperTypeMigration() {
   await pool.query(`
     ALTER TABLE wedding_sites
     ADD CONSTRAINT wedding_sites_type_check
-    CHECK (site_type IN ('coded_template', 'builder'))
+    CHECK (site_type IN ('coded', 'editable'))
   `);
 }
 
@@ -3164,7 +3225,7 @@ async function ensureOfferingVendorCostFieldsMigration() {
   const pool = getPool();
 
   await pool.query(`
-    ALTER TABLE general_offerings
+    ALTER TABLE physical_offerings
     ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS vendor_sku TEXT NOT NULL DEFAULT '';
   `);
@@ -3175,10 +3236,10 @@ async function ensureOfferingVendorCostFieldsMigration() {
       IF NOT EXISTS (
         SELECT 1
         FROM pg_constraint
-        WHERE conname = 'general_offerings_cost_price_check'
+        WHERE conname = 'physical_offerings_cost_price_check'
       ) THEN
-        ALTER TABLE general_offerings
-        ADD CONSTRAINT general_offerings_cost_price_check
+        ALTER TABLE physical_offerings
+        ADD CONSTRAINT physical_offerings_cost_price_check
         CHECK (cost_price >= 0);
       END IF;
     END $$;
@@ -3209,6 +3270,14 @@ async function ensureOfferingSeed() {
   }
 
   for (const offering of offeringSeedCatalog.offerings) {
+    const offeringType = offering.offeringType;
+    const seedTemplateEngine = typeof offering.templateEngine === "string" ? offering.templateEngine : "";
+    const templateEngine =
+      seedTemplateEngine ||
+      (offeringType === "digital_template" ? "coded" : "");
+    const templateMode = templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : "";
+    const templateKey = offering.templateKey;
+
     const created = await pool.query<{ id: string }>(
       `
           INSERT INTO offerings (
@@ -3220,6 +3289,8 @@ async function ensureOfferingSeed() {
             status,
             offering_type,
             template_key,
+            template_engine,
+            template_mode,
             thumbnail_url,
             price,
             fulfillment_type,
@@ -3245,9 +3316,11 @@ async function ensureOfferingSeed() {
             $11,
             $12,
             $13,
-            $14
+            $14,
+            $15,
+            $16
           FROM offering_categories categories
-          WHERE categories.slug = $15
+          WHERE categories.slug = $17
           ON CONFLICT (slug) DO UPDATE
           SET
             category_id = EXCLUDED.category_id,
@@ -3257,6 +3330,8 @@ async function ensureOfferingSeed() {
             status = EXCLUDED.status,
             offering_type = EXCLUDED.offering_type,
             template_key = EXCLUDED.template_key,
+            template_engine = EXCLUDED.template_engine,
+            template_mode = EXCLUDED.template_mode,
             thumbnail_url = EXCLUDED.thumbnail_url,
             price = EXCLUDED.price,
             fulfillment_type = EXCLUDED.fulfillment_type,
@@ -3273,8 +3348,10 @@ async function ensureOfferingSeed() {
         offering.name,
         offering.excerpt,
         offering.description,
-        offering.offeringType,
-        offering.templateKey,
+        offeringType,
+        templateKey,
+        templateEngine,
+        templateMode,
         offering.thumbnailUrl,
         offering.price,
         offering.fulfillmentType,
@@ -3292,34 +3369,23 @@ async function ensureOfferingSeed() {
       continue;
     }
 
-    await pool.query("DELETE FROM coded_template_offerings WHERE offering_id = $1", [offeringId]);
-    await pool.query("DELETE FROM builder_offerings WHERE offering_id = $1", [offeringId]);
-    await pool.query("DELETE FROM general_offerings WHERE offering_id = $1", [offeringId]);
+    await pool.query("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
+    await pool.query("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-    if (offering.offeringType === "coded_template") {
+    if (offeringType === "digital_template") {
       await pool.query(
         `
-            INSERT INTO coded_template_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3)
+            INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
+            VALUES ($1, $2, $3, $4, $5)
           `,
-        [offeringId, offering.templateKey, offering.config.siteDefaults ?? {}]
+        [offeringId, templateKey, templateEngine || "coded", templateMode || "fixed", offering.config.siteDefaults ?? {}]
       );
     }
 
-    if (offering.offeringType === "builder") {
+    if (offeringType === "physical_product") {
       await pool.query(
         `
-            INSERT INTO builder_offerings (offering_id, template_key, site_defaults)
-            VALUES ($1, $2, $3)
-          `,
-        [offeringId, offering.templateKey, offering.config.siteDefaults ?? {}]
-      );
-    }
-
-    if (offering.offeringType === "general_offering") {
-      await pool.query(
-        `
-            INSERT INTO general_offerings (
+            INSERT INTO physical_offerings (
               offering_id,
               fulfillment_type,
               track_inventory,
@@ -3356,23 +3422,24 @@ async function ensureOfferingTemplateKeyUniqueness() {
   const duplicates = await pool.query<{ template_key: string; total: string }>(`
     SELECT template_key, COUNT(*)::text AS total
     FROM offerings
-    WHERE offering_type = 'coded_template'
+    WHERE offering_type = 'digital_template'
+      AND template_engine = 'coded'
     GROUP BY template_key
     HAVING COUNT(*) > 1
   `);
 
   if (duplicates.rows.length > 0) {
     console.warn(
-      "Skipping coded template unique index because duplicate template keys still exist:",
+      "Skipping digital template unique index because duplicate template keys still exist:",
       duplicates.rows
     );
     return;
   }
 
   await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS offerings_coded_template_key_unique_idx
+    CREATE UNIQUE INDEX IF NOT EXISTS offerings_digital_template_coded_key_unique_idx
     ON offerings(template_key)
-    WHERE offering_type = 'coded_template';
+    WHERE offering_type = 'digital_template' AND template_engine = 'coded';
   `);
 }
 

@@ -49,11 +49,11 @@ export function getGeneralOfferingPath(offering: Pick<Offering, "slug"> | string
   return normalizePath(`/${normalizeSegment(OFFERING_BASE)}/${slug}`);
 }
 
-export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType">) {
-  if (offering.offeringType === "builder") {
+export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType" | "templateEngine">) {
+  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
     return getBuilderOfferingPath(offering);
   }
-  if (offering.offeringType === "general_offering") {
+  if (offering.offeringType === "physical_product") {
     return getGeneralOfferingPath(offering);
   }
   return getTemplateOfferingPath(offering);

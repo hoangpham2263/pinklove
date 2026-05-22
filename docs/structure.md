@@ -308,8 +308,9 @@ web/
 - The admin shell lives under `src/app/admin/(protected)`.
 - Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, offerings, ecommerce operations, SEO, blog management, and config.
 - Admin offering management works at the catalog level, including dynamic
-  offering type definitions, while order/payment/shipment operations live in the
-  dedicated ecommerce section.
+  offering type definitions. `/admin/offerings` is reserved for overview, while
+  table management belongs in route children such as `/admin/offerings/list`.
+  Order/payment/shipment operations live in the dedicated ecommerce section.
 
 ## Feature map
 

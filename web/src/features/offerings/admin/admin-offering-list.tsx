@@ -102,7 +102,7 @@ export function AdminOfferingList({
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: AdminOfferingListProps) {
   const router = useRouter();
-  const canBulkDelete = offeringType !== "coded_template";
+  const canBulkDelete = offeringType !== "digital_template";
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -203,12 +203,14 @@ export function AdminOfferingList({
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const offering = row.original;
-          const canDeleteOffering = offering.offeringType !== "coded_template";
+          const isBuilderTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "builder";
+          const isCodedTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "coded";
+          const canDeleteOffering = !isCodedTemplate;
           const publicHref = getOfferingPath(offering);
           const adminEditHref =
-            offering.offeringType === "builder"
+            isBuilderTemplate
               ? `${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`
-              : offering.offeringType === "coded_template"
+              : isCodedTemplate
                 ? `${ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`
               : `${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`;
 

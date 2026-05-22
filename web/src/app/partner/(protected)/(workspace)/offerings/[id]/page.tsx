@@ -29,7 +29,7 @@ export default async function PartnerOfferingDetailPage({ params }: { params: Pr
   }
 
   const liveOfferings = offerings
-    .filter((offering) => offering.offeringType === "general_offering" && offering.ownerType === "vendor" && offering.ownerVendorUserId === vendor.id)
+    .filter((offering) => offering.offeringType === "physical_product" && offering.ownerType === "vendor" && offering.ownerVendorUserId === vendor.id)
     .map((offering) => ({ id: offering.id, name: offering.name, slug: offering.slug }));
 
   return (

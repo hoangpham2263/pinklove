@@ -42,7 +42,8 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.SEO_SCHEMA, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Schema" }] },
   { pattern: ROUTES.ADMIN.SEO_RULES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "SEO Rules" }] },
 
-  { pattern: ROUTES.ADMIN.OFFERING_LIST, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm" }] },
+  { pattern: ROUTES.ADMIN.OFFERING_LIST, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offerings Overview" }] },
+  { pattern: ROUTES.ADMIN.OFFERING_MANAGE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offerings", href: ROUTES.ADMIN.OFFERING_LIST }, { label: "Quản lý" }] },
   { pattern: ROUTES.ADMIN.OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm", href: ROUTES.ADMIN.OFFERING_LIST }, { label: "Tạo sản phẩm" }] },
   { pattern: ROUTES.ADMIN.OFFERING_TYPES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Types" }] },
   { pattern: ROUTES.ADMIN.OFFERING_TEMPLATES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Templates" }] },

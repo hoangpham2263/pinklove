@@ -15,7 +15,26 @@ type FieldRow = {
   options: string;
 };
 
-const fieldTypes: OfferingTypeFieldType[] = ["text", "textarea", "number", "boolean", "select", "url", "date"];
+const fieldTypes: OfferingTypeFieldType[] = [
+  "text",
+  "textarea",
+  "richtext",
+  "number",
+  "boolean",
+  "select",
+  "multiselect",
+  "date",
+  "datetime",
+  "media",
+  "gallery",
+  "price",
+  "location",
+  "json",
+  "repeater",
+  "relation",
+  "blocks",
+  "url",
+];
 
 const defaultRows: FieldRow[] = [
   { id: "duration_seconds", key: "duration_seconds", label: "Thời lượng video", type: "number", required: "yes", options: "" },

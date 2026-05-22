@@ -29,12 +29,12 @@ export default async function AdminOfferingTemplateEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_TEMPLATES;
 
-  if (offering.offeringType === "builder") {
+  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_BUILDER)}`);
   }
 
-  if (offering.offeringType === "general_offering") {
-    redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_LIST)}`);
+  if (offering.offeringType === "physical_product") {
+    redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_MANAGE)}`);
   }
 
   return (

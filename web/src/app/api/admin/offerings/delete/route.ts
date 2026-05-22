@@ -19,11 +19,11 @@ export async function POST(request: Request) {
   try {
     await deleteOffering(slug);
   } catch (error) {
-    if (error instanceof Error && error.message === "CODED_TEMPLATE_DELETE_BLOCKED") {
+    if (error instanceof Error && error.message === "SYSTEM_TEMPLATE_DELETE_BLOCKED") {
       return respondError(request, {
-        error: "coded_template_delete_blocked",
-        message: "Mẫu coded là template gốc trong code, không thể xóa từ admin.",
-        location: `${returnTo}?error=coded_template_delete_blocked`,
+        error: "system_template_delete_blocked",
+        message: "Mẫu hệ thống là template gốc trong code, không thể xóa từ admin.",
+        location: `${returnTo}?error=system_template_delete_blocked`,
       });
     }
 

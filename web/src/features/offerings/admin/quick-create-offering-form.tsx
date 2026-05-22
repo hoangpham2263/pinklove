@@ -18,7 +18,7 @@ export function QuickCreateOfferingForm({
   categories = [],
   vendors = [],
   offeringTypes = [],
-  initialOfferingType = "general_offering",
+  initialOfferingType = "physical_product",
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: {
   categories?: OfferingCategory[];
@@ -33,12 +33,12 @@ export function QuickCreateOfferingForm({
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [offeringType, setOfferingType] = useState(initialOfferingType);
   const activeOfferingType = useMemo(
-    () => offeringTypes.find((type) => type.key === offeringType) ?? offeringTypes.find((type) => type.key === "general_offering"),
+    () => offeringTypes.find((type) => type.key === offeringType) ?? offeringTypes.find((type) => type.key === "physical_product"),
     [offeringType, offeringTypes]
   );
   const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>(activeOfferingType?.fulfillmentType ?? "digital");
-  const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === "general_offering";
-  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === "general_offering";
+  const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === "physical_product";
+  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === "physical_product";
   const [customFields, setCustomFields] = useState<Record<string, unknown>>({});
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQuantity, setStockQuantity] = useState(0);
@@ -101,7 +101,7 @@ export function QuickCreateOfferingForm({
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 {offeringTypes
-                  .filter((type) => type.status === "active" && type.key !== "coded_template" && type.key !== "builder")
+                  .filter((type) => type.status === "active")
                   .map((type) => (
                     <option key={type.key} value={type.key}>
                       {type.label}

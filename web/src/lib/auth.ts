@@ -952,7 +952,7 @@ export async function adminSetVendorAccountStatus(
      updated_at = NOW()
  WHERE id IN (
    SELECT offering_id
-   FROM general_offerings
+   FROM physical_offerings
    WHERE owner_type = 'vendor'
      AND owner_vendor_user_id = $1
  )
