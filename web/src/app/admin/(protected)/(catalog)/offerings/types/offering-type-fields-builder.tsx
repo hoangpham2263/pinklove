@@ -4,7 +4,11 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { OfferingTypeField, OfferingTypeFieldType } from "@/features/offerings/types";
+import {
+  OFFERING_TYPE_FIELD_TYPES,
+  type OfferingTypeField,
+  type OfferingTypeFieldType,
+} from "@/features/offerings/types";
 
 type FieldRow = {
   id: string;
@@ -14,33 +18,6 @@ type FieldRow = {
   required: "yes" | "no";
   options: string;
 };
-
-const fieldTypes: OfferingTypeFieldType[] = [
-  "text",
-  "textarea",
-  "richtext",
-  "number",
-  "boolean",
-  "select",
-  "multiselect",
-  "date",
-  "datetime",
-  "media",
-  "gallery",
-  "price",
-  "location",
-  "json",
-  "repeater",
-  "relation",
-  "blocks",
-  "url",
-];
-
-const starterRows: FieldRow[] = [
-  { id: "duration_seconds", key: "duration_seconds", label: "Thời lượng video", type: "number", required: "yes", options: "" },
-  { id: "video_style", key: "video_style", label: "Phong cách video", type: "select", required: "no", options: "cinematic, modern, minimal" },
-  { id: "source_url", key: "source_url", label: "Link source", type: "url", required: "no", options: "" },
-];
 
 function createRow(): FieldRow {
   return {
@@ -70,17 +47,15 @@ function fieldToRow(field: OfferingTypeField): FieldRow {
 
 export function OfferingTypeFieldsBuilder({
   initialFields,
-  useStarterRows = false,
 }: {
   initialFields?: OfferingTypeField[];
-  useStarterRows?: boolean;
 }) {
   const initialRows = useMemo(() => {
     if (initialFields?.length) {
       return initialFields.map(fieldToRow);
     }
-    return useStarterRows ? starterRows : [createRow()];
-  }, [initialFields, useStarterRows]);
+    return [createRow()];
+  }, [initialFields]);
   const [rows, setRows] = useState<FieldRow[]>(initialRows);
 
   const updateRow = (id: string, patch: Partial<FieldRow>) => {
@@ -132,7 +107,7 @@ export function OfferingTypeFieldsBuilder({
                   className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   onChange={(event) => updateRow(row.id, { type: event.target.value as OfferingTypeFieldType })}
                 >
-                  {fieldTypes.map((type) => (
+                  {OFFERING_TYPE_FIELD_TYPES.map((type) => (
                     <option key={type} value={type}>
                       {type}
                     </option>

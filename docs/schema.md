@@ -10,17 +10,17 @@ Snapshot source:
 
 - Runtime database: local Docker PostgreSQL `app`
 - Schema source in code: `web/src/lib/database.ts`
-- Last refreshed from DB: 2026-05-22
+- Last refreshed from DB: 2026-05-23
 
 ## ID Policy
 
 The clean runtime schema uses `text` primary keys and foreign keys. The current
 ID generator is `app_random_id()`, a nanoid-compatible 24 character text
-generator. The latest DB audit returned zero non-text primary keys.
+generator. The latest DB audit returned zero `bigint`/`integer` ID columns.
 
 ## Table Count
 
-Current database has 111 public tables:
+Current database has 121 public tables:
 
 | Area | Tables |
 | --- | --- |
@@ -35,12 +35,14 @@ Current database has 111 public tables:
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 | Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
 | Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
-| Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments` |
+| Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments`, `provider_types` |
 | Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments`, `booking_calendars`, `provider_availability`, `provider_time_slots` |
 | Digital access | `digital_access_grants`, `subscription_access`, `feature_access` |
 | Organizations | `organizations`, `organization_members`, `organization_roles` |
-| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_attributes`, `template_attribute_values`, `template_analytics`, `template_views`, `template_shares`, `template_conversions` |
-| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `domain_events`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
+| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_attributes`, `template_attribute_values`, `template_analytics`, `template_views`, `template_shares`, `template_conversions`, `template_engines` |
+| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `domain_events`, `domain_event_types`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
+| System config / constraints | `offering_statuses`, `media_target_types`, `media_roles` |
+| SEO / audit | `seo_redirects`, `seo_metadata`, `seo_indexing_rules`, `field_change_logs` |
 
 ## Core Refactor Status
 
@@ -61,6 +63,10 @@ Offering types are data-driven through `offering_types`:
   definitions.
 - `offering_types.field_schema` has been removed from the clean runtime schema.
 - Custom type-specific values are stored under `offerings.config.customFields`.
+- `offerings.config` is guarded as lightweight UI/metadata storage only. The
+  database boundary rejects `inventory`, `pricing_rules`, `permissions`,
+  `analytics`, `booking_logic`, `relational_data`, `siteDefaults`,
+  `generalOffering`, and `vendorSupply`.
 - Physical inventory, cost, vendor ownership, and vendor supply flags live in
   `physical_offerings`, not in `offerings.config`.
 - A new type such as `video_invitation` or `creator_service` can be created from
@@ -100,6 +106,12 @@ The clean schema includes the provider, bundle, availability, search document,
 organization, domain event, template attribute, and analytics tables from the
 final architecture checklist.
 
+Config tables seed controlled values for `provider_types`, `template_engines`,
+`offering_statuses`, `media_target_types`, `media_roles`, and
+`domain_event_types`. This keeps admin forms extensible without allowing random
+provider types, media targets, media roles, template engines, or cache
+invalidation event names.
+
 Current runtime seed data:
 
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Vendor supply | System | Fields |
@@ -119,6 +131,35 @@ Current runtime offering data:
 | `digital_template` | `builder` | 6 |
 | `digital_template` | `coded` | 6 |
 | `physical_product` | none | 6 |
+
+## Final Cleanup Runtime Contracts
+
+- ID columns are text-only. User references, menu references, affiliate
+  references, chat references, vendor fulfillment references, and
+  `app_settings.id` have all been migrated away from `bigint`/`integer` IDs.
+- Provider types are controlled by `provider_types`; current seeded values are
+  `vendor`, `creator`, `studio`, `planner`, `photographer`, `makeup`,
+  `florist`, and `videographer`.
+- Template rendering strategy is controlled by `template_engines`; current
+  seeded values are `coded`, `builder`, `hybrid`, `motion`, `video`, and
+  `ai_generated`.
+- Offering moderation status is controlled by `offering_statuses`; current
+  seeded values are `draft`, `pending_review`, `published`, `archived`, and
+  `disabled`.
+- Media link constraints are backed by `media_target_types` and `media_roles`.
+  The runtime accepts targets such as `offering`, `provider`, `wedding_site`,
+  `gallery`, `booking`, `organization`, and `template`.
+- `offering_search_documents.search_vector` is a generated PostgreSQL
+  `tsvector` with a GIN index for full-text search.
+- `field_change_logs` stores auditable field changes across modules.
+- `seo_redirects`, `seo_metadata`, and `seo_indexing_rules` hold SEO domain
+  state outside generic JSON settings.
+- `domain_event_types` declares canonical event names and marks cache
+  invalidation events such as `offering.updated`, `template.updated`,
+  `provider.updated`, and `site.published`.
+- Vendor-prefixed fulfillment tables remain intentionally as the physical
+  fulfillment domain. Provider-facing marketplace identity lives in
+  `providers` and `provider_*` tables.
 
 ## Overview
 
@@ -242,7 +283,7 @@ erDiagram
 
   creator_service_offerings {
     text offering_id PK, FK
-    bigint creator_user_id FK
+    text creator_user_id FK
     text service_kind
     int delivery_days
   }
@@ -297,7 +338,7 @@ erDiagram
     text user_id FK
     text offering_id FK
     text slug UK
-    jsonb custom_data "legacy fallback only"
+    jsonb custom_data "always empty after bootstrap"
   }
 
   wedding_site_pages {
@@ -352,11 +393,12 @@ erDiagram
   wedding_sites ||--o{ wedding_site_galleries : has
 ```
 
-Invitation runtime data is now persisted through `wedding_site_sections` with
-`section_type = template_data`. `wedding_sites.custom_data` is retained only as a
-legacy fallback and is cleared during bootstrap migration. Structured arrays in
-template data are also synced into `wedding_site_events`,
-`wedding_site_guests`, and `wedding_site_rsvps` when present.
+Invitation runtime data is persisted through `wedding_site_sections` with
+`section_type = template_data`. `wedding_sites.custom_data` is no longer a write
+target; bootstrap clears old values and runtime create/update paths keep it as
+`{}`. Structured arrays in template data are also synced into
+`wedding_site_events`, `wedding_site_guests`, and `wedding_site_rsvps` when
+present.
 
 ## Ecosystem Extensions
 
@@ -527,7 +569,7 @@ erDiagram
 
   navigation_menu_items {
     text id PK
-    bigint menu_id FK
+    text menu_id FK
     text parent_id
     text type
     text page_slug
@@ -541,7 +583,7 @@ erDiagram
   }
 
   app_settings {
-    int id PK
+    text id PK
     text theme
     jsonb seo_breadcrumb
     jsonb seo_sitemap
@@ -658,8 +700,8 @@ erDiagram
     text id PK
     text target_type
     text target_id
-    bigint author_user_id FK
-    bigint approved_by FK
+    text author_user_id FK
+    text approved_by FK
     text status
   }
 
@@ -696,14 +738,14 @@ erDiagram
 
   affiliate_clicks {
     text id PK
-    bigint affiliate_user_id FK
+    text affiliate_user_id FK
     text affiliate_code
     text landing_path
   }
 
   affiliate_conversions {
     text id PK
-    bigint affiliate_user_id FK
+    text affiliate_user_id FK
     text external_order_ref UK
     numeric order_value
     numeric commission_amount
@@ -721,7 +763,7 @@ erDiagram
     text id PK
     text order_number UK
     text user_id FK
-    bigint affiliate_user_id FK
+    text affiliate_user_id FK
     text status
     text payment_status
     numeric total_amount
@@ -772,20 +814,20 @@ erDiagram
   vendor_order_assignments {
     text id PK
     text order_id FK
-    bigint vendor_user_id FK
+    text vendor_user_id FK
     text status
   }
 
   vendor_order_events {
     text id PK
     text assignment_id FK
-    bigint actor_user_id FK
+    text actor_user_id FK
     text event_type
   }
 
   vendor_offering_submissions {
     text id PK
-    bigint vendor_user_id FK
+    text vendor_user_id FK
     text linked_offering_id FK
     text category_id FK
     text review_status
@@ -794,21 +836,21 @@ erDiagram
   vendor_offering_submission_events {
     text id PK
     text submission_id FK
-    bigint actor_user_id FK
+    text actor_user_id FK
     text event_type
   }
 
   offering_vendor_suppliers {
     text id PK
     text offering_id FK
-    bigint vendor_user_id FK
+    text vendor_user_id FK
     text status
   }
 
   vendor_offering_supplier_requests {
     text id PK
     text offering_id FK
-    bigint vendor_user_id FK
+    text vendor_user_id FK
     text review_status
   }
 
@@ -850,9 +892,9 @@ erDiagram
   chat_conversations {
     text id PK
     text kind
-    bigint created_by_user_id FK
-    bigint owner_user_id FK
-    bigint requester_user_id FK
+    text created_by_user_id FK
+    text owner_user_id FK
+    text requester_user_id FK
     text status
     text priority
   }
@@ -866,7 +908,7 @@ erDiagram
   chat_messages {
     text id PK
     text conversation_id FK
-    bigint sender_user_id FK
+    text sender_user_id FK
     text visibility
     text reply_to_message_id FK
   }
@@ -892,7 +934,7 @@ erDiagram
   notifications {
     text id PK
     text audience_type
-    bigint created_by_user_id FK
+    text created_by_user_id FK
     text status
     timestamptz scheduled_at
   }

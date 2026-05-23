@@ -3,11 +3,21 @@ import { getOfferingBySlug, getOfferingTypeByKey, updateOffering, validateOfferi
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationTemplateEngine } from "@/features/invitations/templates/registry";
-import type { OfferingFulfillmentType, OfferingTemplateEngine, OfferingTemplateMode, OfferingType } from "@/features/offerings/types";
+import {
+  BUILDER_TEMPLATE_KEY,
+  PHYSICAL_PRODUCT_TEMPLATE_KEY,
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  SYSTEM_TEMPLATE_MODES,
+  type OfferingFulfillmentType,
+  type OfferingStatus,
+  type OfferingTemplateEngine,
+  type OfferingTemplateMode,
+  type OfferingType,
+} from "@/features/offerings/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 
 export const runtime = "nodejs";
-const BUILDER_KEY = "freeform_sections";
 
 export async function POST(request: Request) {
   await requireAdmin();
@@ -19,20 +29,25 @@ export async function POST(request: Request) {
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const excerpt = String(formData.get("excerpt") ?? "");
   const description = String(formData.get("description") ?? "");
-  const status = String(formData.get("status") ?? "draft") as "draft" | "published";
-  const requestedOfferingType = String(formData.get("offeringType") ?? "digital_template") as OfferingType;
+  const status = String(formData.get("status") ?? "draft") as OfferingStatus;
+  const requestedOfferingType = String(formData.get("offeringType") ?? SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) as OfferingType;
   const templateEngineInput = String(formData.get("templateEngine") ?? "").trim() as OfferingTemplateEngine | "";
   const offeringType = requestedOfferingType;
   const templateEngine: OfferingTemplateEngine | undefined =
-    offeringType === "digital_template" ? templateEngineInput || "coded" : undefined;
-  const templateMode: OfferingTemplateMode | undefined = templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : undefined;
+    offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? templateEngineInput || SYSTEM_TEMPLATE_ENGINES.CODED : undefined;
+  const templateMode: OfferingTemplateMode | undefined =
+    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
+      ? SYSTEM_TEMPLATE_MODES.EDITABLE
+      : templateEngine
+        ? SYSTEM_TEMPLATE_MODES.FIXED
+        : undefined;
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
   const submittedTemplateKey = String(formData.get("templateKey") ?? "").trim();
-  const templateKey = templateEngine === "builder" ? BUILDER_KEY : submittedTemplateKey;
+  const templateKey = templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER ? BUILDER_TEMPLATE_KEY : submittedTemplateKey;
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
-  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === "physical_product";
+  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
@@ -42,12 +57,12 @@ export async function POST(request: Request) {
   const siteDefaultsRaw = String(formData.get("siteDefaults") ?? "{}");
   const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
   const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
-  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === "physical_product") && formData.get("allowVendorSupply") === "on";
+  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) && formData.get("allowVendorSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
-    templateEngine === "builder"
+    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(originalSlug)
-      : offeringType === "digital_template"
+      : offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.OFFERING(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
@@ -60,7 +75,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!originalSlug || !slug || !name || (offeringType === "digital_template" && !templateKey)) {
+  if (!originalSlug || !slug || !name || !templateKey) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để lưu sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
 
@@ -78,11 +93,11 @@ export async function POST(request: Request) {
     });
   }
 
-  if (templateEngine === "builder" && getInvitationTemplateEngine(templateKey) !== "builder") {
+  if (templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER && getInvitationTemplateEngine(templateKey) !== SYSTEM_TEMPLATE_ENGINES.BUILDER) {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
-  if (offeringType === "digital_template" && existingOffering.templateEngine === "coded" && templateKey !== existingOffering.templateKey) {
+  if (offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && existingOffering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED && templateKey !== existingOffering.templateKey) {
     return respondError(request, {
       error: "template_source_locked",
       message: "Template source của bản mẫu chuẩn đã bị khóa, chỉ cho phép chỉnh nội dung và trạng thái.",
@@ -90,7 +105,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (offeringType === "digital_template" && fulfillmentType !== existingOffering.fulfillmentType) {
+  if (offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && fulfillmentType !== existingOffering.fulfillmentType) {
     return respondError(request, {
       error: "fulfillment_locked",
       message: "Hình thức bàn giao của mẫu chuẩn đã bị khóa.",
@@ -116,7 +131,7 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
-  if (templateEngine === "builder" && builderDocumentRaw) {
+  if (templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
     } catch {
@@ -129,16 +144,16 @@ export async function POST(request: Request) {
   }
 
   const normalizedSiteDefaults =
-    templateEngine === "builder"
+    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? {
           ...siteDefaults,
           ...(builderDocument ? { builderDocument } : {}),
         }
       : siteDefaults;
   const resolvedTemplateKey =
-    offeringType === "physical_product"
-      ? "physical_product"
-      : offeringType === "digital_template"
+    offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT
+      ? PHYSICAL_PRODUCT_TEMPLATE_KEY
+      : offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
         ? templateKey
         : offeringTypeDefinition.templateKey || offeringType;
   const customFieldsRaw = String(formData.get("customFields") ?? JSON.stringify(existingOffering.config.customFields ?? {}));
@@ -185,7 +200,7 @@ export async function POST(request: Request) {
       ownerVendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
       config: {
         customFields,
-        ...(!supportsInventory && offeringType === "digital_template" ? { siteDefaults: normalizedSiteDefaults } : {}),
+        ...(!supportsInventory && offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? { siteDefaults: normalizedSiteDefaults } : {}),
       },
     });
   } catch (error) {
@@ -212,9 +227,9 @@ export async function POST(request: Request) {
   }
 
   const nextLocation =
-    offering.offeringType === "digital_template" && offering.templateEngine === "builder"
+    offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)
-      : offering.offeringType === "digital_template"
+      : offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)
       : ROUTES.ADMIN.OFFERING(offering.slug);
 

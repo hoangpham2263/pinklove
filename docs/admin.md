@@ -35,7 +35,9 @@ This file covers the admin area and admin-controlled workflows.
 - `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
 - Admin order detail should keep operational updates close to the top of the right column. `Cập nhật đơn hàng` is a first-class action surface and should not be buried below long secondary content.
 - Menu management expects `navigation_menus` and `navigation_menu_items`.
-- Current public guest navigation is still hardcoded even though menu management exists in admin.
+- Public guest header/footer navigation is loaded from `navigation_menus`
+  (`header` and `footer`) through the guest layout. Admin Menu Management is the
+  source of truth for those links.
 - `Admin > Cấu hình` is the centralized place for system-wide permalink, breadcrumb, sitemap, and robots behavior.
 - Whole-site robots/indexing controls live inside `Admin > Cấu hình > Sitemap`.
 - Page-level SEO editor may override per-page permalink/breadcrumb data, but shared defaults and toggles live in admin config.

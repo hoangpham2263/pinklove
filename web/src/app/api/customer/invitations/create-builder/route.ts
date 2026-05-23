@@ -3,6 +3,7 @@ import { getPublishedDigitalTemplateOfferingBySlug } from "@/features/offerings/
 import { ROUTES } from "@/lib/routes";
 import { createBuilderInvitation, createInvitationFromOffering } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
 
   const site = offeringSlug
       ? await (async () => {
-        const offering = await getPublishedDigitalTemplateOfferingBySlug(offeringSlug, "builder");
+        const offering = await getPublishedDigitalTemplateOfferingBySlug(offeringSlug, SYSTEM_TEMPLATE_ENGINES.BUILDER);
         if (!offering) {
           return null;
         }

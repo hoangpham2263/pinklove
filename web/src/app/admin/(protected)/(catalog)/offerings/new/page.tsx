@@ -4,6 +4,7 @@ import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/component
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { listAllOfferingCategories, listOfferingTypes } from "@/features/offerings/server/service";
 import { QuickCreateOfferingForm } from "@/features/offerings/admin/quick-create-offering-form";
+import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -20,10 +21,10 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === "builder" ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_MANAGE
+    requestedType === SYSTEM_TEMPLATE_ENGINES.BUILDER ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_MANAGE
   );
 
-  if (requestedType === "builder") {
+  if (requestedType === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
@@ -55,7 +56,7 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
         categories={categories}
         vendors={vendors}
         offeringTypes={offeringTypes}
-        initialOfferingType={requestedType && requestedType !== "builder" ? requestedType : "physical_product"}
+        initialOfferingType={requestedType && requestedType !== SYSTEM_TEMPLATE_ENGINES.BUILDER ? requestedType : SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}
         returnTo={returnTo}
       />
     </section>

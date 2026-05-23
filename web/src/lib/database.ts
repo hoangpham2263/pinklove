@@ -26,6 +26,7 @@ const globalForDb = globalThis as unknown as {
   offeringVendorPaperTypeMigrationDone?: boolean;
   offeringVendorCostFieldsMigrationDone?: boolean;
   coreDatabaseRefactorMigrationDone?: boolean;
+  finalArchitectureCleanupMigrationDone?: boolean;
   vendorOrdersMigrationDone?: boolean;
   vendorOfferingSubmissionsMigrationDone?: boolean;
   vendorApplicationsMigrationDone?: boolean;
@@ -101,6 +102,125 @@ async function getColumnTypeSql(tableName: string, columnName: string, fallbackT
  );
 
  return result.rows[0]?.formatted_type ?? fallbackType;
+}
+
+async function ensureTextForeignKeyColumn({
+ tableName,
+ columnName,
+ referenceTable = "users",
+ referenceColumn = "id",
+ onDelete = "SET NULL",
+ notNull = false,
+}: {
+ tableName: string;
+ columnName: string;
+ referenceTable?: string;
+ referenceColumn?: string;
+ onDelete?: "CASCADE" | "SET NULL" | "RESTRICT";
+ notNull?: boolean;
+}) {
+ const pool = getPool();
+ const identifierPattern = /^[a-z_][a-z0-9_]*$/;
+ for (const identifier of [tableName, columnName, referenceTable, referenceColumn]) {
+  if (!identifierPattern.test(identifier)) {
+   throw new Error(`Invalid database identifier: ${identifier}`);
+  }
+ }
+
+ await pool.query(
+  `
+  DO $$
+  DECLARE
+    target_table regclass;
+    target_attnum smallint;
+    constraint_record record;
+  BEGIN
+    SELECT to_regclass(format('%I.%I', current_schema(), '${tableName}')) INTO target_table;
+    IF target_table IS NULL THEN
+      RETURN;
+    END IF;
+
+    SELECT attnum
+    INTO target_attnum
+    FROM pg_attribute
+    WHERE attrelid = target_table
+      AND attname = '${columnName}'
+      AND attnum > 0
+      AND NOT attisdropped;
+
+    IF target_attnum IS NULL THEN
+      RETURN;
+    END IF;
+
+    FOR constraint_record IN
+      SELECT conname
+      FROM pg_constraint
+      WHERE conrelid = target_table
+        AND contype = 'f'
+        AND target_attnum = ANY(conkey)
+    LOOP
+      EXECUTE format('ALTER TABLE %s DROP CONSTRAINT IF EXISTS %I', target_table, constraint_record.conname);
+    END LOOP;
+
+    EXECUTE format('ALTER TABLE %s ALTER COLUMN %I DROP DEFAULT', target_table, '${columnName}');
+    EXECUTE format('ALTER TABLE %s ALTER COLUMN %I TYPE TEXT USING %I::text', target_table, '${columnName}', '${columnName}');
+  END $$;
+  `
+ );
+
+ await pool.query(`
+  ALTER TABLE ${tableName}
+  ALTER COLUMN ${columnName} ${notNull ? "SET" : "DROP"} NOT NULL;
+ `);
+
+ await pool.query(`
+  DO $$
+  BEGIN
+    IF to_regclass(format('%I.%I', current_schema(), '${tableName}')) IS NOT NULL
+       AND to_regclass(format('%I.%I', current_schema(), '${referenceTable}')) IS NOT NULL
+       AND NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conrelid = '${tableName}'::regclass
+          AND conname = '${tableName}_${columnName}_fkey'
+       ) THEN
+      ALTER TABLE ${tableName}
+      ADD CONSTRAINT ${tableName}_${columnName}_fkey
+      FOREIGN KEY (${columnName})
+      REFERENCES ${referenceTable}(${referenceColumn})
+      ON DELETE ${onDelete}
+      NOT VALID;
+    END IF;
+  END $$;
+ `);
+}
+
+async function ensureAppSettingsTextId() {
+ const pool = getPool();
+
+ await pool.query(`
+  DO $$
+  BEGIN
+    IF to_regclass(format('%I.%I', current_schema(), 'app_settings')) IS NULL THEN
+      RETURN;
+    END IF;
+
+    ALTER TABLE app_settings DROP CONSTRAINT IF EXISTS app_settings_id_check;
+
+    IF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_name = 'app_settings'
+        AND column_name = 'id'
+        AND data_type <> 'text'
+    ) THEN
+      ALTER TABLE app_settings
+      ALTER COLUMN id DROP DEFAULT,
+      ALTER COLUMN id TYPE TEXT USING CASE WHEN id::text IN ('1', 'system') THEN 'system' ELSE id::text END;
+    END IF;
+  END $$;
+ `);
 }
 
 async function initSchema() {
@@ -546,6 +666,8 @@ async function ensureUserSettingsDensityMigration() {
 async function ensureAppSettingsMigration() {
   const pool = getPool();
 
+  await ensureAppSettingsTextId();
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS app_settings (
       id TEXT PRIMARY KEY,
@@ -839,6 +961,14 @@ async function ensureMenuTablesMigration() {
     ADD COLUMN IF NOT EXISTS parent_id TEXT;
   `);
 
+  await ensureTextForeignKeyColumn({
+    tableName: "navigation_menu_items",
+    columnName: "menu_id",
+    referenceTable: "navigation_menus",
+    onDelete: "CASCADE",
+    notNull: true,
+  });
+
   await pool.query(`
     CREATE INDEX IF NOT EXISTS navigation_menu_items_menu_id_idx
     ON navigation_menu_items(menu_id);
@@ -1016,7 +1146,7 @@ async function ensureOfferingTablesMigration() {
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published')),
+      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'pending_review', 'published', 'archived', 'disabled')),
       CONSTRAINT offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
       CONSTRAINT offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
       CONSTRAINT offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
@@ -1735,7 +1865,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       config JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'published', 'archived'))
+      CONSTRAINT offerings_status_check CHECK (status IN ('draft', 'pending_review', 'published', 'archived', 'disabled'))
     );
   `);
 
@@ -1837,7 +1967,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT media_asset_links_target_type_check CHECK (target_type IN ('offering', 'wedding_site', 'gallery', 'provider', 'booking', 'template')),
+      CONSTRAINT media_asset_links_target_type_check CHECK (target_type IN ('offering', 'provider', 'wedding_site', 'gallery', 'booking', 'organization', 'template')),
       CONSTRAINT media_asset_links_role_check CHECK (role IN ('thumbnail', 'hero', 'gallery', 'preview', 'video', 'music', 'background', 'avatar'))
     );
   `);
@@ -2020,7 +2150,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT providers_type_check CHECK (provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist'))
+      CONSTRAINT providers_type_check CHECK (provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist', 'videographer'))
     );
   `);
 
@@ -2188,7 +2318,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT booking_items_provider_type_check CHECK (provider_type IS NULL OR provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist'))
+      CONSTRAINT booking_items_provider_type_check CHECK (provider_type IS NULL OR provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist', 'videographer'))
     );
   `);
 
@@ -2647,6 +2777,316 @@ async function ensureCoreDatabaseRefactorMigration() {
   await pool.query(`CREATE INDEX IF NOT EXISTS template_views_offering_created_idx ON template_views(offering_id, created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS template_shares_offering_created_idx ON template_shares(offering_id, created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS template_conversions_offering_created_idx ON template_conversions(offering_id, created_at DESC);`);
+}
+
+async function ensureFinalArchitectureCleanupMigration() {
+  const pool = getPool();
+
+  const textUserColumns = [
+    ["affiliate_accounts", "user_id", "CASCADE", true],
+    ["creator_service_offerings", "creator_user_id", "SET NULL", false],
+    ["affiliate_clicks", "affiliate_user_id", "CASCADE", true],
+    ["affiliate_conversions", "affiliate_user_id", "CASCADE", true],
+    ["chat_messages", "sender_user_id", "CASCADE", true],
+    ["chat_conversations", "created_by_user_id", "SET NULL", false],
+    ["chat_conversations", "owner_user_id", "SET NULL", false],
+    ["chat_conversations", "requester_user_id", "SET NULL", false],
+    ["content_comments", "author_user_id", "SET NULL", false],
+    ["content_comments", "approved_by", "SET NULL", false],
+    ["vendor_order_assignments", "vendor_user_id", "CASCADE", true],
+    ["vendor_order_events", "actor_user_id", "SET NULL", false],
+    ["vendor_offering_submissions", "vendor_user_id", "CASCADE", true],
+    ["vendor_offering_submission_events", "actor_user_id", "SET NULL", false],
+    ["offering_vendor_suppliers", "vendor_user_id", "CASCADE", true],
+    ["offering_vendor_suppliers", "approved_by", "SET NULL", false],
+    ["vendor_offering_supplier_requests", "vendor_user_id", "CASCADE", true],
+    ["vendor_offering_supplier_requests", "reviewed_by", "SET NULL", false],
+  ] as const;
+
+  for (const [tableName, columnName, onDelete, notNull] of textUserColumns) {
+    await ensureTextForeignKeyColumn({
+      tableName,
+      columnName,
+      referenceTable: columnName === "affiliate_user_id" ? "affiliate_accounts" : "users",
+      referenceColumn: columnName === "affiliate_user_id" ? "user_id" : "id",
+      onDelete,
+      notNull,
+    });
+  }
+
+  await ensureAppSettingsTextId();
+  await ensureTextForeignKeyColumn({
+    tableName: "navigation_menu_items",
+    columnName: "menu_id",
+    referenceTable: "navigation_menus",
+    onDelete: "CASCADE",
+    notNull: true,
+  });
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_types (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO provider_types (key, label, sort_order)
+    VALUES
+      ('vendor', 'Vendor', 10),
+      ('creator', 'Creator', 20),
+      ('studio', 'Studio', 30),
+      ('planner', 'Planner', 40),
+      ('photographer', 'Photographer', 50),
+      ('makeup', 'Makeup', 60),
+      ('florist', 'Florist', 70),
+      ('videographer', 'Videographer', 80)
+    ON CONFLICT (key) DO UPDATE
+    SET label = EXCLUDED.label,
+        sort_order = EXCLUDED.sort_order,
+        is_system = TRUE,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS template_engines (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO template_engines (key, label, sort_order)
+    VALUES
+      ('coded', 'Coded', 10),
+      ('builder', 'Builder', 20),
+      ('hybrid', 'Hybrid', 30),
+      ('motion', 'Motion', 40),
+      ('video', 'Video', 50),
+      ('ai_generated', 'AI Generated', 60)
+    ON CONFLICT (key) DO UPDATE
+    SET label = EXCLUDED.label,
+        sort_order = EXCLUDED.sort_order,
+        is_system = TRUE,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_statuses (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO offering_statuses (key, label, sort_order)
+    VALUES
+      ('draft', 'Draft', 10),
+      ('pending_review', 'Pending Review', 20),
+      ('published', 'Published', 30),
+      ('archived', 'Archived', 40),
+      ('disabled', 'Disabled', 50)
+    ON CONFLICT (key) DO UPDATE
+    SET label = EXCLUDED.label,
+        sort_order = EXCLUDED.sort_order,
+        is_system = TRUE,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS domain_event_types (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'business',
+      is_cache_invalidation BOOLEAN NOT NULL DEFAULT FALSE,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    INSERT INTO domain_event_types (key, label, category, is_cache_invalidation)
+    VALUES
+      ('offering.created', 'Offering created', 'offering', FALSE),
+      ('offering.updated', 'Offering updated', 'offering', TRUE),
+      ('template.updated', 'Template updated', 'template', TRUE),
+      ('provider.updated', 'Provider updated', 'provider', TRUE),
+      ('site.published', 'Site published', 'wedding_site', TRUE),
+      ('booking.confirmed', 'Booking confirmed', 'booking', FALSE),
+      ('payment.completed', 'Payment completed', 'payment', FALSE),
+      ('rsvp.updated', 'RSVP updated', 'wedding_site', TRUE)
+    ON CONFLICT (key) DO UPDATE
+    SET label = EXCLUDED.label,
+        category = EXCLUDED.category,
+        is_cache_invalidation = EXCLUDED.is_cache_invalidation,
+        is_system = TRUE,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`ALTER TABLE providers DROP CONSTRAINT IF EXISTS providers_type_check;`);
+  await pool.query(`
+    ALTER TABLE providers
+    ADD CONSTRAINT providers_type_check
+    CHECK (provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist', 'videographer'));
+  `);
+  await pool.query(`ALTER TABLE booking_items DROP CONSTRAINT IF EXISTS booking_items_provider_type_check;`);
+  await pool.query(`
+    ALTER TABLE booking_items
+    ADD CONSTRAINT booking_items_provider_type_check
+    CHECK (provider_type IS NULL OR provider_type IN ('vendor', 'creator', 'studio', 'planner', 'makeup', 'photographer', 'florist', 'videographer'));
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS media_target_types (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE
+    );
+  `);
+  await pool.query(`
+    INSERT INTO media_target_types (key, label, sort_order)
+    VALUES
+      ('offering', 'Offering', 10),
+      ('provider', 'Provider', 20),
+      ('wedding_site', 'Wedding Site', 30),
+      ('gallery', 'Gallery', 40),
+      ('booking', 'Booking', 50),
+      ('organization', 'Organization', 60),
+      ('template', 'Template', 70)
+    ON CONFLICT (key) DO UPDATE SET label = EXCLUDED.label, sort_order = EXCLUDED.sort_order;
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS media_roles (
+      key TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_system BOOLEAN NOT NULL DEFAULT TRUE
+    );
+  `);
+  await pool.query(`
+    INSERT INTO media_roles (key, label, sort_order)
+    VALUES
+      ('thumbnail', 'Thumbnail', 10),
+      ('hero', 'Hero', 20),
+      ('gallery', 'Gallery', 30),
+      ('preview', 'Preview', 40),
+      ('avatar', 'Avatar', 50),
+      ('video', 'Video', 60),
+      ('music', 'Music', 70),
+      ('background', 'Background', 80)
+    ON CONFLICT (key) DO UPDATE SET label = EXCLUDED.label, sort_order = EXCLUDED.sort_order;
+  `);
+  await pool.query(`ALTER TABLE media_asset_links DROP CONSTRAINT IF EXISTS media_asset_links_target_type_check;`);
+  await pool.query(`
+    ALTER TABLE media_asset_links
+    ADD CONSTRAINT media_asset_links_target_type_check
+    CHECK (target_type IN ('offering', 'provider', 'wedding_site', 'gallery', 'booking', 'organization', 'template'));
+  `);
+  await pool.query(`ALTER TABLE media_asset_links DROP CONSTRAINT IF EXISTS media_asset_links_role_check;`);
+  await pool.query(`
+    ALTER TABLE media_asset_links
+    ADD CONSTRAINT media_asset_links_role_check
+    CHECK (role IN ('thumbnail', 'hero', 'gallery', 'preview', 'avatar', 'video', 'music', 'background'));
+  `);
+
+  await pool.query(`ALTER TABLE offerings DROP CONSTRAINT IF EXISTS offerings_status_check;`);
+  await pool.query(`
+    ALTER TABLE offerings
+    ADD CONSTRAINT offerings_status_check
+    CHECK (status IN ('draft', 'pending_review', 'published', 'archived', 'disabled'));
+  `);
+  await pool.query(`ALTER TABLE offerings DROP CONSTRAINT IF EXISTS offerings_config_boundary_check;`);
+  await pool.query(`
+    UPDATE offerings
+    SET config = config - 'inventory' - 'pricing_rules' - 'permissions' - 'analytics' - 'booking_logic' - 'relational_data' - 'siteDefaults' - 'generalOffering' - 'vendorSupply'
+    WHERE config ?| ARRAY['inventory', 'pricing_rules', 'permissions', 'analytics', 'booking_logic', 'relational_data', 'siteDefaults', 'generalOffering', 'vendorSupply'];
+  `);
+  await pool.query(`
+    ALTER TABLE offerings
+    ADD CONSTRAINT offerings_config_boundary_check
+    CHECK (NOT (config ?| ARRAY['inventory', 'pricing_rules', 'permissions', 'analytics', 'booking_logic', 'relational_data', 'siteDefaults', 'generalOffering', 'vendorSupply']));
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_search_documents
+    ADD COLUMN IF NOT EXISTS search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('simple', search_text)) STORED;
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS offering_search_documents_search_vector_idx
+    ON offering_search_documents USING GIN (search_vector);
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS field_change_logs (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      field_key TEXT NOT NULL,
+      old_value JSONB,
+      new_value JSONB,
+      actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS field_change_logs_target_idx ON field_change_logs(target_type, target_id, created_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS seo_redirects (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      source_path TEXT NOT NULL UNIQUE,
+      target_path TEXT NOT NULL,
+      status_code INT NOT NULL DEFAULT 301,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT seo_redirects_status_code_check CHECK (status_code IN (301, 302, 307, 308))
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS seo_metadata (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      canonical_path TEXT NOT NULL DEFAULT '',
+      title TEXT NOT NULL DEFAULT '',
+      description TEXT NOT NULL DEFAULT '',
+      robots TEXT NOT NULL DEFAULT '',
+      open_graph JSONB NOT NULL DEFAULT '{}'::jsonb,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (target_type, target_id)
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS seo_indexing_rules (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      target_type TEXT NOT NULL,
+      target_pattern TEXT NOT NULL,
+      indexable BOOLEAN NOT NULL DEFAULT TRUE,
+      follow_links BOOLEAN NOT NULL DEFAULT TRUE,
+      priority INT NOT NULL DEFAULT 0,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (target_type, target_pattern)
+    );
+  `);
 }
 
 async function ensureVendorOrdersMigration() {
@@ -4005,6 +4445,11 @@ export async function ensureDb() {
       if (!globalForDb.coreDatabaseRefactorMigrationDone) {
         await ensureCoreDatabaseRefactorMigration();
         globalForDb.coreDatabaseRefactorMigrationDone = true;
+      }
+
+      if (!globalForDb.finalArchitectureCleanupMigrationDone) {
+        await ensureFinalArchitectureCleanupMigration();
+        globalForDb.finalArchitectureCleanupMigrationDone = true;
       }
 
       const managedPagesSeedSignature = getManagedPagesSeedSignature();

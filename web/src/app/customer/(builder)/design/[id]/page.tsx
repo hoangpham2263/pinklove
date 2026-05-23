@@ -4,6 +4,7 @@ import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { getInvitationByIdForUser } from "@/features/invitations/server/service";
 import { BuilderInvitationForm } from "@/features/invitations/builder/builder-invitation-form";
+import { INVITATION_SITE_TYPES } from "@/features/invitations/types";
 
 type BuilderDesignPageProps = {
   params: Promise<{ id: string }>;
@@ -14,7 +15,7 @@ export default async function BuilderDesignPage({ params }: BuilderDesignPagePro
   const { id } = await params;
   const invitation = await getInvitationByIdForUser(user.id, id);
 
-  if (!invitation || invitation.siteType !== "editable") {
+  if (!invitation || invitation.siteType !== INVITATION_SITE_TYPES.EDITABLE) {
     notFound();
   }
 

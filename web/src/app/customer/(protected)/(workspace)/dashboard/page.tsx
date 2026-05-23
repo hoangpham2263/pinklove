@@ -12,6 +12,7 @@ import { ROUTES } from "@/lib/routes";
 import { listInvitationsForUser } from "@/features/invitations/server/service";
 import { getAffiliateAccountForUser } from "@/features/affiliate/server/service";
 import { InvitationCard } from "@/features/invitations/components/invitation-card";
+import { INVITATION_SITE_TYPES } from "@/features/invitations/types";
 
 function getAffiliateStatusLabel(status: string) {
   if (status === "active") return "Active";
@@ -29,7 +30,7 @@ export default async function CustomerDashboardPage() {
 
   const publishedInvitations = invitations.filter((invitation) => invitation.status === "published").length;
   const draftInvitations = invitations.length - publishedInvitations;
-  const codedInvitations = invitations.filter((invitation) => invitation.siteType === "coded").length;
+  const codedInvitations = invitations.filter((invitation) => invitation.siteType === INVITATION_SITE_TYPES.CODED).length;
   const builderInvitations = invitations.length - codedInvitations;
   const recentInvitations = invitations.slice(0, 2);
   const vendorActor = isVendorRole(user.role);

@@ -37,7 +37,11 @@ import {
 import { AdminCancelButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
-import type { OfferingFulfillmentType, OfferingTypeDefinition } from "@/features/offerings/types";
+import {
+  SYSTEM_OFFERING_TYPES,
+  type OfferingFulfillmentType,
+  type OfferingTypeDefinition,
+} from "@/features/offerings/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
@@ -143,7 +147,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
                 action="external"
                 label="Tạo offering"
                 href={
-                  type.key === "digital_template"
+                  type.key === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
                     ? ROUTES.ADMIN.OFFERING_BUILDER
                     : `${ROUTES.ADMIN.OFFERINGS}?type=${encodeURIComponent(type.key)}`
                 }

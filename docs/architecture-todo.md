@@ -74,8 +74,9 @@ seed/bootstrap data, docs, and verification commands are updated together.
   - Add `providers`, `provider_profiles`, `provider_services`,
     `provider_reviews`, and `provider_regions`.
   - Remove clean-schema `vendors` and `creator_profiles` tables.
-  - Support provider types: `vendor`, `creator`, `studio`, `planner`,
-    `makeup`, `photographer`, and `florist`.
+  - Support provider types through `provider_types`: `vendor`, `creator`,
+    `studio`, `planner`, `makeup`, `photographer`, `florist`, and
+    `videographer`.
 - [x] Make booking assignments polymorphic.
   - Replace `vendor_id` and `creator_profile_id` booking columns with
     `provider_type` and `provider_id`.
@@ -90,12 +91,16 @@ seed/bootstrap data, docs, and verification commands are updated together.
 - [x] Add `offering_search_documents`.
   - Required columns: `offering_id`, `search_text`, `filter_json`,
     `embedding`.
+  - Add generated `search_vector` for PostgreSQL full-text search.
   - Use it as the optimized query/search layer for dynamic offering fields.
 - [x] Enforce the `offerings.config` boundary across offering admin, import,
   seed, and vendor submission paths.
   - Allowed: UI config, lightweight metadata, flexible display configuration.
   - Not allowed: inventory, pricing rules, booking logic, permissions,
-    analytics, or relationships.
+    analytics, relationships, site defaults, general offering state, or vendor
+    supply state.
+  - Enforce the same rule with a database check constraint and service-layer
+    sanitization.
 - [x] Add organization support.
   - Add `organizations`, `organization_members`, and `organization_roles`.
   - Use organizations for studios, agencies, wedding teams, and multi-user
@@ -114,6 +119,7 @@ seed/bootstrap data, docs, and verification commands are updated together.
 - [x] Add `domain_events`.
   - Event examples: `offering.created`, `booking.confirmed`,
     `payment.completed`, `rsvp.updated`.
+  - Add `domain_event_types` so cache invalidation event names are canonical.
   - Use events for notifications, automation, analytics, and realtime sync.
 - [x] Add template attribute discovery.
   - Add `template_attributes` and `template_attribute_values`.
@@ -325,6 +331,8 @@ marking the phase complete:
   - `makeup`
   - `florist`
   - `photographer`
+  - `videographer`
+- [x] Add `provider_types` as the config table for supported provider types.
 - [x] Refactor booking assignments from:
   - `vendor_id`
   - `creator_profile_id`
@@ -364,7 +372,9 @@ marking the phase complete:
   - `gallery`
   - `provider`
   - `booking`
+  - `organization`
   - `template`
+- [x] Add `media_target_types` and `media_roles` config tables.
 - [x] Standardize media roles:
   - `thumbnail`
   - `hero`
@@ -396,6 +406,11 @@ marking the phase complete:
 - [x] Use one recommended ID family:
   - Current choice: nanoid-compatible 24 character IDs from `app_random_id()`.
 - [x] Remove mixed `bigint` and `text` IDs.
+- [x] Convert remaining user/menu/settings references:
+  - `creator_service_offerings.creator_user_id`
+  - affiliate, chat, content, vendor fulfillment, and supplier user references
+  - `navigation_menu_items.menu_id`
+  - `app_settings.id`
 - [x] Update foreign keys and app type assumptions together.
 
 ## Phase 14: Events And Realtime
@@ -406,8 +421,13 @@ marking the phase complete:
   - `activity_targets`
   - `notifications`
 - [x] Add `domain_events`.
+- [x] Add `domain_event_types`.
 - [x] Use event names like:
   - `offering.created`
+  - `offering.updated`
+  - `template.updated`
+  - `provider.updated`
+  - `site.published`
   - `booking.confirmed`
   - `payment.completed`
   - `rsvp.updated`

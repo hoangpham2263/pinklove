@@ -128,6 +128,10 @@ This file is the repo-wide source of truth.
 - Keep `offerings.config` limited to UI configuration, lightweight metadata, and
   flexible display data. Move inventory, pricing rules, booking logic,
   permissions, analytics, and relationships into dedicated relational tables.
+- The runtime strips and rejects business-domain keys in `offerings.config`,
+  including `inventory`, `pricing_rules`, `permissions`, `analytics`,
+  `booking_logic`, `relational_data`, `siteDefaults`, `generalOffering`, and
+  `vendorSupply`.
 - `digital_template` offerings represent online templates, motion/video templates,
   and builder starters.
 - `physical_product` offerings represent regular shop/vendor/API products such

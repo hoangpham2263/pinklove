@@ -40,7 +40,15 @@ import { AdminTableThumbnail } from "@/features/admin/components/admin-table-thu
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import { getOfferingTypeLabel, type Offering, type OfferingType } from "@/features/offerings/types";
+import {
+  OFFERING_STATUSES,
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  getOfferingStatusLabel,
+  getOfferingTypeLabel,
+  type Offering,
+  type OfferingType,
+} from "@/features/offerings/types";
 import { getOfferingPath } from "@/lib/public-paths";
 
 function formatDateTime(value: string) {
@@ -103,7 +111,7 @@ export function AdminOfferingList({
 }: AdminOfferingListProps) {
   const router = useRouter();
   const showsAllOfferingTypes = offeringType === "";
-  const canBulkDelete = offeringType !== "" && offeringType !== "digital_template";
+  const canBulkDelete = offeringType !== "" && offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     ...(status ? [{ id: "status", value: status }] : []),
@@ -204,8 +212,8 @@ export function AdminOfferingList({
         header: () => <div className="text-right">Hành động</div>,
         cell: ({ row }) => {
           const offering = row.original;
-          const isBuilderTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "builder";
-          const isCodedTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "coded";
+          const isBuilderTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER;
+          const isCodedTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED;
           const canDeleteOffering = !isCodedTemplate;
           const publicHref = getOfferingPath(offering);
           const adminEditHref =
@@ -315,8 +323,10 @@ export function AdminOfferingList({
             onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
             options={[
               { value: "", label: "Tất cả trạng thái" },
-              { value: "published", label: "Published" },
-              { value: "draft", label: "Draft" },
+              ...OFFERING_STATUSES.map((statusOption) => ({
+                value: statusOption,
+                label: getOfferingStatusLabel(statusOption),
+              })),
             ]}
           />
           <AdminTableClearButton

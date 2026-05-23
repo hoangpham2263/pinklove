@@ -13,7 +13,16 @@ import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
-import type { Offering, OfferingCategory, OfferingFulfillmentType, OfferingTypeDefinition } from "@/features/offerings/types";
+import {
+  OFFERING_STATUSES,
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  getOfferingStatusLabel,
+  type Offering,
+  type OfferingCategory,
+  type OfferingFulfillmentType,
+  type OfferingTypeDefinition,
+} from "@/features/offerings/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import type { AccountUser } from "@/lib/auth";
@@ -57,9 +66,9 @@ export function OfferingEditorForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const isGeneralOffering = offering.offeringType === "physical_product";
-  const isBuilder = offering.offeringType === "digital_template" && offering.templateEngine === "builder";
-  const isCodedTemplate = offering.offeringType === "digital_template" && offering.templateEngine === "coded";
+  const isGeneralOffering = offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const isBuilder = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER;
+  const isCodedTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED;
   const canDeleteOffering = !isCodedTemplate;
   const templateFields = useMemo(
     () => (isGeneralOffering || isBuilder ? [] : getInvitationTemplateFields(offering.templateKey)),
@@ -118,8 +127,8 @@ export function OfferingEditorForm({
         <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
         <input type="hidden" name="siteDefaults" value={JSON.stringify(siteDefaults)} />
         <input type="hidden" name="returnTo" value={returnTo} />
-        <input type="hidden" name="offeringType" value="digital_template" />
-        <input type="hidden" name="templateEngine" value="builder" />
+        <input type="hidden" name="offeringType" value={SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE} />
+        <input type="hidden" name="templateEngine" value={SYSTEM_TEMPLATE_ENGINES.BUILDER} />
         <input type="hidden" name="templateKey" value={offering.templateKey} />
         <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
 
@@ -161,8 +170,9 @@ export function OfferingEditorForm({
                     defaultValue={offering.status}
                     className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
-                    <option value="draft">draft</option>
-                    <option value="published">published</option>
+                    {OFFERING_STATUSES.map((statusOption) => (
+                      <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -521,8 +531,9 @@ export function OfferingEditorForm({
                 defaultValue={offering.status}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
-                <option value="draft">draft</option>
-                <option value="published">published</option>
+                {OFFERING_STATUSES.map((statusOption) => (
+                  <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
+                ))}
               </select>
             </div>
 

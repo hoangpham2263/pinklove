@@ -3,11 +3,11 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
-import type { InvitationSite } from "../types";
+import { INVITATION_SITE_TYPES, type InvitationSite } from "../types";
 import { getInvitationTemplateLabel } from "../templates";
 
 export function InvitationCard({ invitation, publicHref }: { invitation: InvitationSite; publicHref: string }) {
-  const editHref = invitation.siteType === "editable"
+  const editHref = invitation.siteType === INVITATION_SITE_TYPES.EDITABLE
     ? ROUTES.CUSTOMER.DESIGN(invitation.id)
     : `${ROUTES.CUSTOMER.INVITATIONS}/${invitation.id}`;
   const previewImage =

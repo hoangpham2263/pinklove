@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
+import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -29,11 +30,11 @@ export default async function AdminOfferingEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_MANAGE;
 
-  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
+  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
-  if (offering.offeringType === "digital_template" && offering.templateEngine === "coded") {
+  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED) {
     redirect(`${ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TEMPLATES)}`);
   }
 
@@ -42,7 +43,7 @@ export default async function AdminOfferingEditorPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            {offering.offeringType === "physical_product" ? "Edit Offering" : "Edit Template"}: {offering.name}
+            {offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT ? "Edit Offering" : "Edit Template"}: {offering.name}
           </h1>
         </div>
       </div>

@@ -14,9 +14,14 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
-import type { OfferingCategory } from "@/features/offerings/types";
-
-const BUILDER_KEY = "freeform_sections";
+import {
+  BUILDER_TEMPLATE_KEY,
+  OFFERING_STATUSES,
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  getOfferingStatusLabel,
+  type OfferingCategory,
+} from "@/features/offerings/types";
 
 type OfferingBuilderCreateFormProps = {
   categories: OfferingCategory[];
@@ -57,9 +62,9 @@ export function OfferingBuilderCreateForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
-      <input type="hidden" name="offeringType" value="digital_template" />
-      <input type="hidden" name="templateEngine" value="builder" />
-      <input type="hidden" name="templateKey" value={BUILDER_KEY} />
+      <input type="hidden" name="offeringType" value={SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE} />
+      <input type="hidden" name="templateEngine" value={SYSTEM_TEMPLATE_ENGINES.BUILDER} />
+      <input type="hidden" name="templateKey" value={BUILDER_TEMPLATE_KEY} />
       <input type="hidden" name="fulfillmentType" value="digital" />
       <input type="hidden" name="ownerType" value="internal" />
       <input type="hidden" name="ownerVendorUserId" value="" />
@@ -113,8 +118,9 @@ export function OfferingBuilderCreateForm({
                   defaultValue="draft"
                   className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 >
-                  <option value="draft">draft</option>
-                  <option value="published">published</option>
+                  {OFFERING_STATUSES.map((statusOption) => (
+                    <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
+                  ))}
                 </select>
               </div>
 

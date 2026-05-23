@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { BuilderInvitationTemplate } from "@/features/invitations/builder/renderer";
-import type { InvitationSite } from "../types";
+import { INVITATION_SITE_TYPES, type InvitationSite } from "../types";
 
 function getCoupleTitle(data: Record<string, unknown>, fallback: string) {
   const brideName = String(data.brideName || "").trim();
@@ -129,7 +129,7 @@ export async function ClassicGardenTemplate({ site }: { site: InvitationSite }) 
 }
 
 export async function renderInvitationSite(site: InvitationSite) {
-  if (site.siteType === "editable") {
+  if (site.siteType === INVITATION_SITE_TYPES.EDITABLE) {
     return <BuilderInvitationTemplate site={site} />;
   }
 

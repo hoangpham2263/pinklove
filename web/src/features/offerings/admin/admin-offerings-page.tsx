@@ -2,7 +2,13 @@ import { CheckCircle2, FileText, Package } from "lucide-react";
 import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { listAllOfferings } from "@/features/offerings/server/service";
-import type { Offering, OfferingTemplateEngine, OfferingType } from "@/features/offerings/types";
+import {
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  type Offering,
+  type OfferingTemplateEngine,
+  type OfferingType,
+} from "@/features/offerings/types";
 import { AdminOfferingList } from "@/features/offerings/admin/admin-offering-list";
 import { ROUTES } from "@/lib/routes";
 
@@ -42,11 +48,12 @@ export async function AdminOfferingsPageView({
   const publishedCount = filteredOfferings.filter((offering) => offering.status === "published").length;
   const draftCount = filteredOfferings.length - publishedCount;
   const canCreateOffering =
-    fixedOfferingType === "physical_product" || (fixedOfferingType === "digital_template" && fixedTemplateEngine === "builder");
+    fixedOfferingType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT ||
+    (fixedOfferingType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && fixedTemplateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER);
   const createHref =
-    fixedTemplateEngine === "builder"
+    fixedTemplateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? `${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
-      : `${ROUTES.ADMIN.OFFERINGS}?type=${fixedOfferingType ?? "physical_product"}&returnTo=${encodeURIComponent(returnTo)}`;
+      : `${ROUTES.ADMIN.OFFERINGS}?type=${fixedOfferingType ?? SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}&returnTo=${encodeURIComponent(returnTo)}`;
   const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateOffering;
 
   return (
@@ -61,7 +68,7 @@ export async function AdminOfferingsPageView({
           ) : null}
           {canCreateOffering ? (
             <AdminCreateLinkButton href={createHref}>
-              {fixedTemplateEngine === "builder" ? "Tạo builder" : "Tạo sản phẩm"}
+              {fixedTemplateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER ? "Tạo builder" : "Tạo sản phẩm"}
             </AdminCreateLinkButton>
           ) : null}
         </div>

@@ -1,16 +1,20 @@
 import "server-only";
 
-import type {
-  Offering,
-  OfferingCategory,
-  OfferingFulfillmentType,
-  OfferingOwnerType,
-  OfferingTemplateEngine,
-  OfferingTemplateMode,
-  OfferingType,
-  OfferingTypeDefinition,
-  OfferingTypeField,
-  OfferingTypeFieldGroup,
+import {
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  SYSTEM_TEMPLATE_MODES,
+  type Offering,
+  type OfferingCategory,
+  type OfferingFulfillmentType,
+  type OfferingOwnerType,
+  type OfferingStatus,
+  type OfferingTemplateEngine,
+  type OfferingTemplateMode,
+  type OfferingType,
+  type OfferingTypeDefinition,
+  type OfferingTypeField,
+  type OfferingTypeFieldGroup,
 } from "@/features/offerings/types";
 import { ensureOfferingCatalogReady, query, withTransaction } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
@@ -23,7 +27,7 @@ type OfferingInput = {
   name: string;
   excerpt?: string;
   description?: string;
-  status?: "draft" | "published";
+  status?: OfferingStatus;
   offeringType: OfferingType;
   templateKey: string;
   thumbnailUrl?: string;
@@ -433,7 +437,7 @@ type OfferingRow = {
   name: string;
   excerpt: string | null;
   description: string | null;
-  status: "draft" | "published";
+  status: OfferingStatus;
   offering_type: OfferingType;
   template_key: string;
   template_engine: string | null;
@@ -476,7 +480,7 @@ function normalizeOfferingTypeFilter(offeringTypes: OfferingType[]) {
 
   for (const type of offeringTypes) {
     mappedTypes.add(type);
-    if (type === "digital_template") {
+    if (type === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
       restrictTemplateEngine = false;
     }
   }
@@ -1020,6 +1024,33 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
   return mapOfferingTypeRow(savedType, fieldsByTypeId.get(savedType.id) ?? []);
 }
 
+function sanitizeOfferingConfig(config: Record<string, unknown> | undefined): Record<string, unknown> {
+  const {
+    inventory: _inventory,
+    pricing_rules: _pricingRules,
+    permissions: _permissions,
+    analytics: _analytics,
+    booking_logic: _bookingLogic,
+    relational_data: _relationalData,
+    siteDefaults: _siteDefaults,
+    generalOffering: _generalOffering,
+    vendorSupply: _vendorSupply,
+    ...safeConfig
+  } = config ?? {};
+
+  void _inventory;
+  void _pricingRules;
+  void _permissions;
+  void _analytics;
+  void _bookingLogic;
+  void _relationalData;
+  void _siteDefaults;
+  void _generalOffering;
+  void _vendorSupply;
+
+  return safeConfig;
+}
+
 export async function getOfferingBySlug(slug: string): Promise<Offering | null> {
   const result = await withOfferingCatalogRetry(() =>
     query<OfferingRow>(
@@ -1136,10 +1167,17 @@ export async function listPublishedOfferingsByIds(ids: string[]): Promise<Offeri
 }
 
 export async function createOffering(input: OfferingInput): Promise<Offering> {
-  const templateEngine = input.templateEngine ?? (input.offeringType === "digital_template" ? "coded" : undefined);
-  const templateMode = input.templateMode ?? (templateEngine === "builder" ? "editable" : templateEngine ? "fixed" : undefined);
+  const safeConfig = sanitizeOfferingConfig(input.config);
+  const templateEngine = input.templateEngine ?? (input.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? SYSTEM_TEMPLATE_ENGINES.CODED : undefined);
+  const templateMode = input.templateMode ?? (
+    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
+      ? SYSTEM_TEMPLATE_MODES.EDITABLE
+      : templateEngine
+        ? SYSTEM_TEMPLATE_MODES.FIXED
+        : undefined
+  );
 
-  if (input.offeringType === "digital_template") {
+  if (input.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
     const existingTemplateOffering = await getOfferingUsingTemplateKey({
       templateKey: input.templateKey,
       offeringType: input.offeringType,
@@ -1179,7 +1217,7 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
           input.stockQuantity ?? 0,
           input.lowStockThreshold ?? 0,
           input.allowBackorder ?? false,
-          input.config || {},
+          safeConfig,
         ]
       );
 
@@ -1191,7 +1229,7 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
       await execute("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
       await execute("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-      if (input.offeringType === "digital_template") {
+      if (input.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
         const siteDefaults =
           typeof input.config?.siteDefaults === "object" && input.config.siteDefaults
             ? input.config.siteDefaults
@@ -1202,11 +1240,11 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
             INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
             VALUES ($1, $2, $3, $4, $5::jsonb)
           `,
-          [offeringId, input.templateKey, templateEngine ?? "coded", templateMode ?? "fixed", JSON.stringify(siteDefaults)]
+          [offeringId, input.templateKey, templateEngine ?? SYSTEM_TEMPLATE_ENGINES.CODED, templateMode ?? SYSTEM_TEMPLATE_MODES.FIXED, JSON.stringify(siteDefaults)]
         );
       }
 
-      if (input.offeringType === "physical_product") {
+      if (input.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
         const ownerType = input.ownerType === "vendor" ? "vendor" : "internal";
         const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? null : null;
         const costPrice = input.costPrice ?? 0;
@@ -1277,7 +1315,7 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
     throw new Error("OFFERING_TYPE_LOCKED");
   }
 
-  if (nextOfferingType === "digital_template") {
+  if (nextOfferingType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
     const existingTemplateOffering = await getOfferingUsingTemplateKey({
       templateKey: nextTemplateKey,
       offeringType: nextOfferingType,
@@ -1290,7 +1328,13 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
     }
   }
 
-  const nextConfig = input.config !== undefined ? input.config : existing.config;
+  const nextConfig = input.config !== undefined ? sanitizeOfferingConfig(input.config) : sanitizeOfferingConfig(existing.config);
+  const nextSiteDefaults =
+    input.config !== undefined && typeof input.config.siteDefaults === "object" && input.config.siteDefaults
+      ? input.config.siteDefaults
+      : typeof existing.config.siteDefaults === "object" && existing.config.siteDefaults
+        ? existing.config.siteDefaults
+        : {};
 
   const result = await withOfferingCatalogRetry(() =>
     withTransaction(async (execute) => {
@@ -1351,22 +1395,17 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
       await execute("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
       await execute("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
 
-      if (nextOfferingType === "digital_template") {
-        const siteDefaults =
-          typeof nextConfig?.siteDefaults === "object" && nextConfig.siteDefaults
-            ? nextConfig.siteDefaults
-            : {};
-
+      if (nextOfferingType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
         await execute(
           `
             INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
             VALUES ($1, $2, $3, $4, $5::jsonb)
           `,
-          [offeringId, nextTemplateKey, nextTemplateEngine ?? "coded", nextTemplateMode ?? "fixed", JSON.stringify(siteDefaults)]
+          [offeringId, nextTemplateKey, nextTemplateEngine ?? SYSTEM_TEMPLATE_ENGINES.CODED, nextTemplateMode ?? SYSTEM_TEMPLATE_MODES.FIXED, JSON.stringify(nextSiteDefaults)]
         );
       }
 
-      if (nextOfferingType === "physical_product") {
+      if (nextOfferingType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
         const ownerType = input.ownerType ?? existing.ownerType;
         const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? existing.ownerVendorUserId ?? null : null;
         const costPrice = input.costPrice ?? existing.costPrice;
@@ -1445,7 +1484,7 @@ export async function deleteOffering(slug: string): Promise<boolean> {
     }
 
     const fullOffering = await getOfferingBySlug(slug);
-    if (fullOffering?.offeringType === "digital_template" && fullOffering.templateEngine === "coded") {
+    if (fullOffering?.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && fullOffering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED) {
       throw new Error("SYSTEM_TEMPLATE_DELETE_BLOCKED");
     }
 
@@ -1487,7 +1526,7 @@ export async function hasCodedTemplateOfferings(slugs: string[]): Promise<boolea
 
 export async function updateOfferingsStatus(
   slugs: string[],
-  status: "draft" | "published"
+  status: OfferingStatus
 ): Promise<number> {
   if (slugs.length === 0) {
     return 0;

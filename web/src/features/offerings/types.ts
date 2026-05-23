@@ -1,8 +1,61 @@
 export type OfferingType = string;
+export type OfferingStatus = "draft" | "pending_review" | "published" | "archived" | "disabled";
 export type OfferingFulfillmentType = "digital" | "physical" | "service";
 export type OfferingOwnerType = "internal" | "vendor";
 export type OfferingTemplateEngine = "coded" | "builder" | "hybrid" | "motion" | "video" | "ai_generated";
 export type OfferingTemplateMode = "fixed" | "editable" | "hybrid";
+
+export const SYSTEM_OFFERING_TYPES = {
+  DIGITAL_TEMPLATE: "digital_template",
+  PHYSICAL_PRODUCT: "physical_product",
+  SERVICE: "service",
+  CREATOR_SERVICE: "creator_service",
+  EXPERIENCE: "experience",
+  SUBSCRIPTION: "subscription",
+  ADDON: "addon",
+} as const;
+
+export const SYSTEM_TEMPLATE_ENGINES = {
+  CODED: "coded",
+  BUILDER: "builder",
+  HYBRID: "hybrid",
+  MOTION: "motion",
+  VIDEO: "video",
+  AI_GENERATED: "ai_generated",
+} as const;
+
+export const SYSTEM_TEMPLATE_MODES = {
+  FIXED: "fixed",
+  EDITABLE: "editable",
+  HYBRID: "hybrid",
+} as const;
+
+export const BUILDER_TEMPLATE_KEY = "freeform_sections";
+export const PHYSICAL_PRODUCT_TEMPLATE_KEY = SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+
+export const OFFERING_STATUSES: OfferingStatus[] = [
+  "draft",
+  "pending_review",
+  "published",
+  "archived",
+  "disabled",
+];
+
+export function getOfferingStatusLabel(status: OfferingStatus) {
+  switch (status) {
+    case "pending_review":
+      return "Pending review";
+    case "published":
+      return "Published";
+    case "archived":
+      return "Archived";
+    case "disabled":
+      return "Disabled";
+    case "draft":
+    default:
+      return "Draft";
+  }
+}
 
 export type OfferingTypeFieldType =
   | "text"
@@ -23,6 +76,27 @@ export type OfferingTypeFieldType =
   | "relation"
   | "blocks"
   | "url";
+
+export const OFFERING_TYPE_FIELD_TYPES: OfferingTypeFieldType[] = [
+  "text",
+  "textarea",
+  "richtext",
+  "number",
+  "boolean",
+  "select",
+  "multiselect",
+  "date",
+  "datetime",
+  "media",
+  "gallery",
+  "price",
+  "location",
+  "json",
+  "repeater",
+  "relation",
+  "blocks",
+  "url",
+];
 
 export type OfferingTypeField = {
   id?: string;
@@ -87,7 +161,7 @@ export type Offering = {
   name: string;
   excerpt?: string;
   description?: string;
-  status: "draft" | "published";
+  status: OfferingStatus;
   offeringType: OfferingType;
   templateKey: string;
   templateEngine?: OfferingTemplateEngine;
@@ -117,32 +191,32 @@ export function isOfferingInStock(offering: Pick<Offering, "trackInventory" | "s
 }
 
 export function isInvitationOfferingType(offeringType: OfferingType) {
-  return offeringType === "digital_template";
+  return offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
 }
 
 export function isBuilderOfferingType(offeringType: OfferingType) {
-  return offeringType === "digital_template";
+  return offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
 }
 
 export function isGeneralOfferingType(offeringType: OfferingType) {
-  return offeringType === "physical_product";
+  return offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
 }
 
 export function getOfferingTypeLabel(offeringType: OfferingType) {
   switch (offeringType) {
-    case "digital_template":
+    case SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE:
       return "Mẫu digital";
-    case "physical_product":
+    case SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT:
       return "Sản phẩm vật lý";
-    case "service":
+    case SYSTEM_OFFERING_TYPES.SERVICE:
       return "Dịch vụ";
-    case "creator_service":
+    case SYSTEM_OFFERING_TYPES.CREATOR_SERVICE:
       return "Creator service";
-    case "experience":
+    case SYSTEM_OFFERING_TYPES.EXPERIENCE:
       return "Experience";
-    case "subscription":
+    case SYSTEM_OFFERING_TYPES.SUBSCRIPTION:
       return "Subscription";
-    case "addon":
+    case SYSTEM_OFFERING_TYPES.ADDON:
       return "Addon";
     default:
       return offeringType;

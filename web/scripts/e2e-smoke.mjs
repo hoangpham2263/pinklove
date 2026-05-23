@@ -360,12 +360,20 @@ async function main() {
 
       const siteRow = await fetchRow(
         db,
-        "SELECT slug, status, custom_data FROM wedding_sites WHERE id::text = $1 LIMIT 1",
+        `
+          SELECT ws.slug, ws.status, COALESCE(section.content, '{}'::jsonb) AS template_data
+          FROM wedding_sites ws
+          LEFT JOIN wedding_site_sections section
+            ON section.site_id = ws.id
+           AND section.section_type = 'template_data'
+          WHERE ws.id::text = $1
+          LIMIT 1
+        `,
         [codedSiteId]
       );
       assert(siteRow?.slug === state.codedSiteSlug, "Coded site slug was not updated");
       assert(siteRow?.status === "published", "Coded site should be published");
-      assert(siteRow?.custom_data?.brideName === "Alice", "Coded site brideName missing");
+      assert(siteRow?.template_data?.brideName === "Alice", "Coded site brideName missing");
 
       const publicHtml = await guest.getText(`/invitations/${state.codedSiteSlug}`);
       assert(publicHtml.includes("Alice"), "Public coded site is missing bride name");
@@ -440,13 +448,21 @@ async function main() {
 
       const siteRow = await fetchRow(
         db,
-        "SELECT slug, status, custom_data FROM wedding_sites WHERE id::text = $1 LIMIT 1",
+        `
+          SELECT ws.slug, ws.status, COALESCE(section.content, '{}'::jsonb) AS template_data
+          FROM wedding_sites ws
+          LEFT JOIN wedding_site_sections section
+            ON section.site_id = ws.id
+           AND section.section_type = 'template_data'
+          WHERE ws.id::text = $1
+          LIMIT 1
+        `,
         [builderSiteId]
       );
       assert(siteRow?.slug === state.builderSiteSlug, "Builder site slug was not updated");
       assert(siteRow?.status === "published", "Builder site should be published");
-      assert(siteRow?.custom_data?.builderDocument?.height === 2200, "Builder document height was not saved");
-      assert(siteRow?.custom_data?.builderDocument?.nodes?.[0]?.type === "group", "Builder group node was not saved");
+      assert(siteRow?.template_data?.builderDocument?.height === 2200, "Builder document height was not saved");
+      assert(siteRow?.template_data?.builderDocument?.nodes?.[0]?.type === "group", "Builder group node was not saved");
 
       const publicHtml = await guest.getText(`/invitations/${state.builderSiteSlug}`);
       assert(publicHtml.includes(`Builder Smoke ${runId}`), "Public builder site is missing grouped text");

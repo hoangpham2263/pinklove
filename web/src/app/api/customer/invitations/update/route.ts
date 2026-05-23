@@ -3,6 +3,7 @@ import { ROUTES } from "@/lib/routes";
 import { buildInvitationPayload, getInvitationByIdForUser, updateInvitationForUser } from "@/features/invitations/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { userHasActiveEntitlement } from "@/features/ecommerce/server/service";
+import { INVITATION_SITE_TYPES } from "@/features/invitations/types";
 
 export const runtime = "nodejs";
 
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     return respondError(request, { error: "site_not_found", message: "Không tìm thấy thiệp mời.", location: `${ROUTES.CUSTOMER.INVITATIONS}?error=site_not_found` });
   }
 
-  const nextLocation = site.siteType === "editable"
+  const nextLocation = site.siteType === INVITATION_SITE_TYPES.EDITABLE
     ? `${ROUTES.CUSTOMER.DESIGN(site.id)}?saved=1`
     : `${ROUTES.CUSTOMER.INVITATIONS}/${site.id}?saved=1`;
 

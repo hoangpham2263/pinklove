@@ -12,14 +12,22 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
-import type { OfferingCategory, OfferingFulfillmentType, OfferingTypeDefinition } from "@/features/offerings/types";
+import {
+  OFFERING_STATUSES,
+  SYSTEM_OFFERING_TYPES,
+  getOfferingStatusLabel,
+  type OfferingCategory,
+  type OfferingFulfillmentType,
+  type OfferingStatus,
+  type OfferingTypeDefinition,
+} from "@/features/offerings/types";
 import type { AccountUser } from "@/lib/auth";
 
 export function QuickCreateOfferingForm({
   categories = [],
   vendors = [],
   offeringTypes = [],
-  initialOfferingType = "physical_product",
+  initialOfferingType = SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT,
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: {
   categories?: OfferingCategory[];
@@ -31,15 +39,15 @@ export function QuickCreateOfferingForm({
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [status, setStatus] = useState<OfferingStatus>("draft");
   const [offeringType, setOfferingType] = useState(initialOfferingType);
   const activeOfferingType = useMemo(
-    () => offeringTypes.find((type) => type.key === offeringType) ?? offeringTypes.find((type) => type.key === "physical_product"),
+    () => offeringTypes.find((type) => type.key === offeringType) ?? offeringTypes.find((type) => type.key === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT),
     [offeringType, offeringTypes]
   );
   const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>(activeOfferingType?.fulfillmentType ?? "digital");
-  const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === "physical_product";
-  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === "physical_product";
+  const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
   const [customFields, setCustomFields] = useState<Record<string, unknown>>({});
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQuantity, setStockQuantity] = useState(0);
@@ -348,11 +356,12 @@ export function QuickCreateOfferingForm({
                 id="status"
                 name="status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as "draft" | "published")}
+                onChange={(e) => setStatus(e.target.value as OfferingStatus)}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
-                <option value="draft">draft</option>
-                <option value="published">published</option>
+                {OFFERING_STATUSES.map((statusOption) => (
+                  <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
+                ))}
               </select>
             </div>
             <p className="text-sm text-muted-foreground">

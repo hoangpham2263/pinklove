@@ -20,6 +20,10 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - `domain_events` is the durable event table for business events. Offering
   create/update mutations now write `offering.created` and `offering.updated`;
   new booking, payment, and RSVP mutations should follow the same pattern.
+- `domain_event_types` is the canonical registry for event names and cache
+  invalidation flags. Current cache invalidation event names include
+  `offering.updated`, `template.updated`, `provider.updated`, and
+  `site.published`.
 
 ## Core Rules
 

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
+import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -29,11 +30,11 @@ export default async function AdminOfferingTemplateEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_TEMPLATES;
 
-  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
+  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_BUILDER)}`);
   }
 
-  if (offering.offeringType === "physical_product") {
+  if (offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
     redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_MANAGE)}`);
   }
 

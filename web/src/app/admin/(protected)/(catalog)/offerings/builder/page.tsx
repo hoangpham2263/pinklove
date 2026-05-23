@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { AdminOfferingsPageView } from "@/features/offerings/admin/admin-offerings-page";
+import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { ROUTES } from "@/lib/routes";
 
 type AdminBuilderOfferingsPageProps = {
@@ -13,8 +14,8 @@ export default async function AdminBuilderOfferingsPage({ searchParams }: AdminB
   return (
     <AdminOfferingsPageView
       query={query}
-      fixedOfferingType="digital_template"
-      fixedTemplateEngine="builder"
+      fixedOfferingType={SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE}
+      fixedTemplateEngine={SYSTEM_TEMPLATE_ENGINES.BUILDER}
       title="Offering Builder"
       description=""
       returnTo={ROUTES.ADMIN.OFFERING_BUILDER}

@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { Offering } from "@/features/offerings/types";
+import {
+  BUILDER_TEMPLATE_KEY,
+  SYSTEM_OFFERING_TYPES,
+  SYSTEM_TEMPLATE_ENGINES,
+  type Offering,
+} from "@/features/offerings/types";
 import { query } from "@/lib/database";
 import { slugify } from "@/lib/utils";
 import {
@@ -8,9 +13,12 @@ import {
   getInvitationTemplateFields,
 } from "@/features/invitations/templates/registry";
 import { ensureBuilderDocument } from "@/features/invitations/builder/utils";
-import type { InvitationSite, InvitationStatus, InvitationType } from "@/features/invitations/types";
-
-const BUILDER_KEY = "freeform_sections";
+import {
+  INVITATION_SITE_TYPES,
+  type InvitationSite,
+  type InvitationStatus,
+  type InvitationType,
+} from "@/features/invitations/types";
 
 type InvitationRow = {
   id: string;
@@ -345,12 +353,12 @@ export async function createInvitationFromOffering(input: {
   title?: string;
   customData?: Record<string, unknown>;
 }): Promise<InvitationSite> {
-  if (input.offering.offeringType === "physical_product") {
+  if (input.offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
     throw new Error("INVITATION_NOT_SUPPORTED_FOR_GENERAL_OFFERING");
   }
 
-  const templateKey = input.offering.templateEngine === "builder"
-    ? BUILDER_KEY
+  const templateKey = input.offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
+    ? BUILDER_TEMPLATE_KEY
     : input.offering.templateKey;
   const defaults = {
     ...getInvitationTemplateDefaults(templateKey),
@@ -360,7 +368,9 @@ export async function createInvitationFromOffering(input: {
   };
   const title = input.title || input.offering.name;
   const slug = await ensureUniqueInvitationSlug(title);
-  const siteType = input.offering.templateEngine === "builder" ? "editable" : "coded";
+  const siteType = input.offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
+    ? INVITATION_SITE_TYPES.EDITABLE
+    : INVITATION_SITE_TYPES.CODED;
 
   const result = await query<InvitationRow>(
     `
@@ -400,7 +410,7 @@ export async function createInvitationFromOffering(input: {
 export async function createBuilderInvitation(userId: string): Promise<InvitationSite> {
   const title = "Thiệp cưới tự tạo";
   const slug = await ensureUniqueInvitationSlug(title);
-  const defaults = getInvitationTemplateDefaults(BUILDER_KEY);
+  const defaults = getInvitationTemplateDefaults(BUILDER_TEMPLATE_KEY);
 
   const result = await query<InvitationRow>(
     `
@@ -423,7 +433,7 @@ export async function createBuilderInvitation(userId: string): Promise<Invitatio
         created_at,
         updated_at
     `,
-    [userId, title, slug, BUILDER_KEY]
+    [userId, title, slug, BUILDER_TEMPLATE_KEY]
   );
 
   await syncWeddingSiteRelationalData(result.rows[0].id, defaults);
@@ -501,7 +511,7 @@ export async function updateInvitationForUser(input: {
 }
 
 export function buildInvitationPayload(formData: FormData, templateKey: string) {
-  if (templateKey === "freeform_sections") {
+  if (templateKey === BUILDER_TEMPLATE_KEY) {
     try {
       return {
         builderDocument: ensureBuilderDocument(

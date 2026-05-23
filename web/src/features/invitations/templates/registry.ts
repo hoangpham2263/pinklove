@@ -1,4 +1,4 @@
-import type { OfferingTemplateEngine } from "@/features/offerings/types";
+import { SYSTEM_TEMPLATE_ENGINES, type OfferingTemplateEngine } from "@/features/offerings/types";
 import type { FieldSchema } from "@/features/pages/schema";
 import { createDefaultBuilderDocument } from "@/features/invitations/builder/defaults";
 
@@ -180,7 +180,7 @@ export function getInvitationTemplateDefaults(templateKey: string) {
     return {};
   }
 
-  return definition.templateEngine === "coded"
+  return definition.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED
     ? {
         ...INVITATION_TEMPLATE_BASE_DEFAULTS,
         ...definition.defaults,
@@ -194,7 +194,7 @@ export function getInvitationTemplateFields(templateKey: string): FieldSchema[] 
     return [];
   }
 
-  return definition.templateEngine === "coded"
+  return definition.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED
     ? [...INVITATION_TEMPLATE_BASE_FIELDS, ...definition.fields]
     : definition.fields;
 }
