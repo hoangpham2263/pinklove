@@ -154,6 +154,8 @@ Current runtime offering data:
 - `field_change_logs` stores auditable field changes across modules.
 - `seo_redirects`, `seo_metadata`, and `seo_indexing_rules` hold SEO domain
   state outside generic JSON settings.
+- Admin redirect management and runtime redirect lookup use `seo_redirects`;
+  legacy `app_settings.seo_redirects` is only a fallback/backfill source.
 - `domain_event_types` declares canonical event names and marks cache
   invalidation events such as `offering.updated`, `template.updated`,
   `provider.updated`, and `site.published`.

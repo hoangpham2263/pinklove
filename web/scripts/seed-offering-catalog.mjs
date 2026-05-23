@@ -54,6 +54,13 @@ function getSiteDefaults(offering) {
 
 function getOfferingConfig(offering) {
   const config = offering.config && typeof offering.config === "object" ? { ...offering.config } : {};
+  delete config.inventory;
+  delete config.pricing_rules;
+  delete config.permissions;
+  delete config.analytics;
+  delete config.booking_logic;
+  delete config.relational_data;
+  delete config.siteDefaults;
   delete config.generalOffering;
   delete config.vendorSupply;
   return config;

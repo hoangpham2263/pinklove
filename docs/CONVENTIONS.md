@@ -132,6 +132,9 @@ This file is the repo-wide source of truth.
   including `inventory`, `pricing_rules`, `permissions`, `analytics`,
   `booking_logic`, `relational_data`, `siteDefaults`, `generalOffering`, and
   `vendorSupply`.
+- Run `npm run audit:schema` after DB architecture changes. The audit must pass
+  before considering ID, offering config, search index, SEO table, or enum-like
+  config cleanup complete.
 - `digital_template` offerings represent online templates, motion/video templates,
   and builder starters.
 - `physical_product` offerings represent regular shop/vendor/API products such

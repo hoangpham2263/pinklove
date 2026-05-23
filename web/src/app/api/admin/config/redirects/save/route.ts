@@ -1,15 +1,14 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { ROUTES } from "@/lib/routes";
+import type { SeoRedirectRule } from "@/lib/system-settings";
 import {
-  getSystemSettings,
-  updateSeoRedirectSettings,
-  type SeoRedirectRule,
-} from "@/lib/system-settings";
-import {
+  getSeoRedirectRuleById,
+  getSeoRedirectRuleBySourcePath,
   isValidSeoRedirectTarget,
   normalizeSeoRedirectSource,
   normalizeSeoRedirectTarget,
+  saveSeoRedirectRule,
 } from "@/lib/seo-redirects";
 
 export const runtime = "nodejs";
@@ -52,9 +51,18 @@ export async function POST(request: Request) {
     });
   }
 
-  const settings = await getSystemSettings();
   const now = new Date().toISOString();
-  const existingRule = id ? settings.redirects.rules.find((rule) => rule.id === id) : null;
+  const existingRule = id ? await getSeoRedirectRuleById(id) : null;
+  const existingSourceRule = await getSeoRedirectRuleBySourcePath(sourcePath);
+
+  if (existingSourceRule && existingSourceRule.id !== existingRule?.id) {
+    return respondError(request, {
+      status: 409,
+      error: "DUPLICATE_SOURCE_PATH",
+      message: "Source path này đã có redirect.",
+    });
+  }
+
   const nextRule: SeoRedirectRule = {
     id: existingRule?.id ?? crypto.randomUUID(),
     sourcePath,
@@ -66,11 +74,7 @@ export async function POST(request: Request) {
     updatedAt: now,
   };
 
-  const rules = existingRule
-    ? settings.redirects.rules.map((rule) => (rule.id === existingRule.id ? nextRule : rule))
-    : [nextRule, ...settings.redirects.rules];
-
-  await updateSeoRedirectSettings({ rules });
+  await saveSeoRedirectRule(nextRule);
 
   return respondSuccess(request, {
     message: existingRule ? "Đã cập nhật redirect." : "Đã thêm redirect.",

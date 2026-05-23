@@ -1,0 +1,178 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { Client } from "pg";
+
+const rootDir = path.resolve(process.cwd(), "..");
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile(path.join(rootDir, ".env"));
+loadEnvFile(path.join(rootDir, ".env.local"));
+
+function getDatabaseUrl() {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+
+  const user = process.env.POSTGRES_USER || "app";
+  const password = process.env.POSTGRES_PASSWORD || "change-me";
+  const db = process.env.POSTGRES_DB || "app";
+  const port = process.env.POSTGRES_PORT || "5433";
+
+  return `postgresql://${user}:${password}@localhost:${port}/${db}`;
+}
+
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+async function scalar(client, sql, values = []) {
+  const result = await client.query(sql, values);
+  return result.rows[0] ? Object.values(result.rows[0])[0] : undefined;
+}
+
+async function main() {
+  const client = new Client({ connectionString: getDatabaseUrl() });
+  await client.connect();
+
+  try {
+    const nonTextIdColumns = await client.query(`
+      SELECT table_name, column_name, data_type
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND data_type IN ('bigint', 'integer')
+        AND (
+          column_name = 'id'
+          OR column_name LIKE '%\\_id' ESCAPE '\\'
+        )
+      ORDER BY table_name, column_name
+    `);
+    assert(
+      nonTextIdColumns.rowCount === 0,
+      `Non-text ID columns found: ${nonTextIdColumns.rows
+        .map((row) => `${row.table_name}.${row.column_name}:${row.data_type}`)
+        .join(", ")}`
+    );
+
+    const requiredTables = [
+      "provider_types",
+      "template_engines",
+      "offering_statuses",
+      "media_target_types",
+      "media_roles",
+      "domain_event_types",
+      "field_change_logs",
+      "seo_redirects",
+      "seo_metadata",
+      "seo_indexing_rules",
+    ];
+    const existingTables = await client.query(
+      `
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name = ANY($1)
+      `,
+      [requiredTables]
+    );
+    const existingTableSet = new Set(existingTables.rows.map((row) => row.table_name));
+    const missingTables = requiredTables.filter((tableName) => !existingTableSet.has(tableName));
+    assert(missingTables.length === 0, `Missing required architecture tables: ${missingTables.join(", ")}`);
+
+    const seedExpectations = [
+      ["provider_types", 8],
+      ["template_engines", 6],
+      ["offering_statuses", 5],
+      ["media_target_types", 7],
+      ["media_roles", 8],
+      ["domain_event_types", 8],
+    ];
+    for (const [tableName, minimumCount] of seedExpectations) {
+      const count = Number(await scalar(client, `SELECT COUNT(*) FROM ${tableName}`));
+      assert(count >= minimumCount, `${tableName} seed count is ${count}; expected at least ${minimumCount}`);
+    }
+
+    const searchVectorType = await scalar(
+      client,
+      `
+      SELECT data_type
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'offering_search_documents'
+        AND column_name = 'search_vector'
+      `
+    );
+    assert(searchVectorType === "tsvector", "offering_search_documents.search_vector must be tsvector");
+
+    const forbiddenConfigRows = Number(
+      await scalar(
+        client,
+        `
+        SELECT COUNT(*)
+        FROM offerings
+        WHERE config ?| ARRAY[
+          'inventory',
+          'pricing_rules',
+          'permissions',
+          'analytics',
+          'booking_logic',
+          'relational_data',
+          'siteDefaults',
+          'generalOffering',
+          'vendorSupply'
+        ]
+        `
+      )
+    );
+    assert(forbiddenConfigRows === 0, `offerings.config has ${forbiddenConfigRows} rows with forbidden keys`);
+
+    const offeringStatusConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'offerings_status_check'
+          AND conrelid = 'offerings'::regclass
+        `
+      ) ?? ""
+    );
+    for (const status of ["draft", "pending_review", "published", "archived", "disabled"]) {
+      assert(offeringStatusConstraint.includes(status), `offerings_status_check is missing ${status}`);
+    }
+
+    console.log("Schema audit passed.");
+  } finally {
+    await client.end();
+  }
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

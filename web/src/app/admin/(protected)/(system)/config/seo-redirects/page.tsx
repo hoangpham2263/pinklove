@@ -2,14 +2,13 @@ import { CheckCircle2, Link2, MoveRight, ToggleLeft } from "lucide-react";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { SeoRedirectsManager } from "@/features/admin/components/settings/seo-redirects-manager";
 import { requireAdmin } from "@/lib/auth";
-import { getSystemSettings } from "@/lib/system-settings";
+import { listSeoRedirectRules } from "@/lib/seo-redirects";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSeoRedirectsPage() {
   await requireAdmin();
-  const settings = await getSystemSettings();
-  const rules = settings.redirects.rules;
+  const rules = await listSeoRedirectRules();
   const activeRules = rules.filter((rule) => rule.enabled);
   const permanentRules = rules.filter((rule) => rule.statusCode === 301);
 

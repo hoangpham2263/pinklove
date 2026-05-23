@@ -93,6 +93,10 @@ seed/bootstrap data, docs, and verification commands are updated together.
     `embedding`.
   - Add generated `search_vector` for PostgreSQL full-text search.
   - Use it as the optimized query/search layer for dynamic offering fields.
+- [x] Add automated schema regression audit.
+  - `npm run audit:schema` checks text-only IDs, required architecture tables,
+    seed/config rows, `search_vector`, offering status constraint, and forbidden
+    `offerings.config` keys.
 - [x] Enforce the `offerings.config` boundary across offering admin, import,
   seed, and vendor submission paths.
   - Allowed: UI config, lightweight metadata, flexible display configuration.
@@ -121,6 +125,9 @@ seed/bootstrap data, docs, and verification commands are updated together.
     `payment.completed`, `rsvp.updated`.
   - Add `domain_event_types` so cache invalidation event names are canonical.
   - Use events for notifications, automation, analytics, and realtime sync.
+- [x] Move SEO redirect runtime storage to `seo_redirects`.
+  - Keep legacy `app_settings.seo_redirects` as read-only fallback/backfill
+    source.
 - [x] Add template attribute discovery.
   - Add `template_attributes` and `template_attribute_values`.
   - Support `style`, `theme`, `mood`, `culture`, `season`, and `color`.

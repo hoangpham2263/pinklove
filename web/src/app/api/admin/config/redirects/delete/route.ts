@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings, updateSeoRedirectSettings } from "@/lib/system-settings";
+import { deleteSeoRedirectRule } from "@/lib/seo-redirects";
 
 export const runtime = "nodejs";
 
@@ -19,10 +19,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const settings = await getSystemSettings();
-  await updateSeoRedirectSettings({
-    rules: settings.redirects.rules.filter((rule) => rule.id !== id),
-  });
+  await deleteSeoRedirectRule(id);
 
   return respondSuccess(request, {
     message: "Đã xóa redirect.",

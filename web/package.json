@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "audit:schema": "node scripts/audit-schema.mjs",
     "seed:offerings": "node scripts/seed-offering-catalog.mjs",
     "seed:website": "node scripts/seed-website-demo.mjs",
     "seed:notifications": "node scripts/seed-notifications.mjs",

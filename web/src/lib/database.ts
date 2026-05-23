@@ -3058,6 +3058,27 @@ async function ensureFinalArchitectureCleanupMigration() {
     );
   `);
   await pool.query(`
+    INSERT INTO seo_redirects (id, source_path, target_path, status_code, is_active, metadata)
+    SELECT
+      COALESCE(NULLIF(BTRIM(rule->>'id'), ''), app_random_id()),
+      rule->>'sourcePath',
+      rule->>'targetPath',
+      CASE WHEN rule->>'statusCode' = '302' THEN 302 ELSE 301 END,
+      CASE WHEN jsonb_typeof(rule->'enabled') = 'boolean' THEN (rule->>'enabled')::boolean ELSE TRUE END,
+      jsonb_build_object('label', COALESCE(rule->>'label', ''))
+    FROM app_settings
+    CROSS JOIN LATERAL jsonb_array_elements(COALESCE(seo_redirects->'rules', '[]'::jsonb)) AS rule
+    WHERE id = 'system'
+      AND NULLIF(BTRIM(rule->>'sourcePath'), '') IS NOT NULL
+      AND NULLIF(BTRIM(rule->>'targetPath'), '') IS NOT NULL
+    ON CONFLICT (source_path) DO UPDATE
+    SET target_path = EXCLUDED.target_path,
+        status_code = EXCLUDED.status_code,
+        is_active = EXCLUDED.is_active,
+        metadata = EXCLUDED.metadata,
+        updated_at = NOW();
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS seo_metadata (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       target_type TEXT NOT NULL,
