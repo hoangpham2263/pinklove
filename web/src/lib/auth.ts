@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { query } from "@/lib/database";
-import { canAccessUserPortal, isAdminRole, isVendorRole, type UserRole, USER_ROLES } from "@/lib/roles";
+import { canAccessUserPortal, isAdminRole, isProviderRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 export const SESSION_COOKIE_NAME = "pinklove_session";
@@ -24,7 +24,7 @@ export type UserProfile = {
   fullName: string;
   displayName: string;
   phone: string;
-  vendorPortalSlug?: string;
+  providerPortalSlug?: string;
   bio: string;
 };
 
@@ -57,7 +57,7 @@ export type AccountUser = {
   fullName: string;
   displayName: string;
   phone: string;
-  vendorPortalSlug: string;
+  providerPortalSlug: string;
   bio: string;
 };
 
@@ -133,7 +133,7 @@ export function getSessionCookieOptions() {
  };
 }
 
-function normalizeVendorPortalSlug(value: string): string {
+function normalizeProviderPortalSlug(value: string): string {
  const normalized = value
  .trim()
  .toLowerCase()
@@ -141,11 +141,11 @@ function normalizeVendorPortalSlug(value: string): string {
  .replace(/^-+|-+$/g, "")
  .slice(0, 48);
 
- return normalized || "vendor";
+ return normalized || "provider";
 }
 
-async function createUniqueVendorPortalSlug(base: string, excludeUserId?: string): Promise<string> {
- const root = normalizeVendorPortalSlug(base);
+async function createUniqueProviderPortalSlug(base: string, excludeUserId?: string): Promise<string> {
+ const root = normalizeProviderPortalSlug(base);
 
  for (let i = 0; i < 1000; i += 1) {
  const candidate = i === 0 ? root : `${root}-${i + 1}`;
@@ -153,7 +153,7 @@ async function createUniqueVendorPortalSlug(base: string, excludeUserId?: string
  `
   SELECT user_id
   FROM user_profiles
-  WHERE LOWER(vendor_portal_slug) = LOWER($1)
+  WHERE LOWER(provider_portal_slug) = LOWER($1)
   AND ($2::text IS NULL OR user_id::text <> $2::text)
   LIMIT 1
  `,
@@ -394,10 +394,10 @@ export async function requireAppUser(redirectTo: string = ROUTES.AUTH.LOGIN): Pr
 
 }
 
-export async function requireVendor(redirectTo: string = ROUTES.PARTNER.LOGIN): Promise<AuthUser> {
+export async function requireProvider(redirectTo: string = ROUTES.PARTNER.LOGIN): Promise<AuthUser> {
   const user = await requireUser(redirectTo);
 
-  if (!isVendorRole(user.role)) {
+  if (!isProviderRole(user.role)) {
     redirect(ROUTES.CUSTOMER.DASHBOARD);
   }
 
@@ -409,7 +409,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  full_name: string | null;
  display_name: string | null;
  phone: string | null;
- vendor_portal_slug: string | null;
+ provider_portal_slug: string | null;
  bio: string | null;
  }>(
  `
@@ -417,7 +417,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     full_name,
     display_name,
     phone,
-    vendor_portal_slug,
+    provider_portal_slug,
     bio
   FROM user_profiles
   WHERE user_id = $1
@@ -431,7 +431,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  fullName: row?.full_name ??"",
  displayName: row?.display_name ??"",
  phone: row?.phone ??"",
- vendorPortalSlug: row?.vendor_portal_slug ?? "",
+ providerPortalSlug: row?.provider_portal_slug ?? "",
  bio: row?.bio ??"",
  };
 }
@@ -440,19 +440,19 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
  const fullName = profile.fullName.trim();
  const displayName = profile.displayName.trim();
  const phone = profile.phone.trim();
- const vendorPortalSlug = profile.vendorPortalSlug?.trim() ?? "";
+ const providerPortalSlug = profile.providerPortalSlug?.trim() ?? "";
  const bio = profile.bio.trim();
 
  await query(
  `
-  INSERT INTO user_profiles (user_id, full_name, display_name, phone, vendor_portal_slug, bio)
+  INSERT INTO user_profiles (user_id, full_name, display_name, phone, provider_portal_slug, bio)
   VALUES ($1, $2, $3, $4, $5, $6)
   ON CONFLICT (user_id)
   DO UPDATE SET
   full_name = EXCLUDED.full_name,
   display_name = EXCLUDED.display_name,
   phone = EXCLUDED.phone,
-  vendor_portal_slug = EXCLUDED.vendor_portal_slug,
+  provider_portal_slug = EXCLUDED.provider_portal_slug,
   bio = EXCLUDED.bio,
   updated_at = NOW()
  `,
@@ -461,7 +461,7 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
   fullName.length > 0 ? fullName : null,
   displayName.length > 0 ? displayName : null,
   phone.length > 0 ? phone : null,
-  vendorPortalSlug.length > 0 ? normalizeVendorPortalSlug(vendorPortalSlug) : null,
+  providerPortalSlug.length > 0 ? normalizeProviderPortalSlug(providerPortalSlug) : null,
   bio.length > 0 ? bio : null,
  ]
  );
@@ -640,7 +640,7 @@ export async function listAccounts(): Promise<AccountUser[]> {
  full_name: string | null;
  display_name: string | null;
  phone: string | null;
- vendor_portal_slug: string | null;
+ provider_portal_slug: string | null;
  bio: string | null;
  }>(
  `
@@ -654,7 +654,7 @@ export async function listAccounts(): Promise<AccountUser[]> {
    p.full_name,
    p.display_name,
    p.phone,
-   p.vendor_portal_slug,
+   p.provider_portal_slug,
    p.bio
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
@@ -672,7 +672,7 @@ export async function listAccounts(): Promise<AccountUser[]> {
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
  phone: row.phone ?? "",
- vendorPortalSlug: row.vendor_portal_slug ?? "",
+ providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
  }));
 }
@@ -693,7 +693,7 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  full_name: string | null;
  display_name: string | null;
  phone: string | null;
- vendor_portal_slug: string | null;
+ provider_portal_slug: string | null;
  bio: string | null;
  }>(
  `
@@ -707,7 +707,7 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
    p.full_name,
    p.display_name,
    p.phone,
-   p.vendor_portal_slug,
+   p.provider_portal_slug,
    p.bio
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
@@ -729,20 +729,20 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
  phone: row.phone ?? "",
- vendorPortalSlug: row.vendor_portal_slug ?? "",
+ providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
  };
 }
 
-export async function ensureVendorPortalSlug(userId: string): Promise<string | null> {
+export async function ensureProviderPortalSlug(userId: string): Promise<string | null> {
  const result = await query<{
  username: string;
  role: UserRole;
  account_status: AccountStatus;
- vendor_portal_slug: string | null;
+ provider_portal_slug: string | null;
  }>(
  `
-  SELECT u.username, u.role, u.account_status, p.vendor_portal_slug
+  SELECT u.username, u.role, u.account_status, p.provider_portal_slug
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
   WHERE u.id = $1
@@ -752,22 +752,22 @@ export async function ensureVendorPortalSlug(userId: string): Promise<string | n
  );
 
  const row = result.rows[0];
- if (!row || !isVendorRole(row.role) || row.account_status !== "active") {
+ if (!row || !isProviderRole(row.role) || row.account_status !== "active") {
   return null;
  }
 
- if (row.vendor_portal_slug) {
-  return row.vendor_portal_slug;
+ if (row.provider_portal_slug) {
+  return row.provider_portal_slug;
  }
 
- const slug = await createUniqueVendorPortalSlug(row.username, userId);
+ const slug = await createUniqueProviderPortalSlug(row.username, userId);
  await query(
  `
-  INSERT INTO user_profiles (user_id, vendor_portal_slug)
+  INSERT INTO user_profiles (user_id, provider_portal_slug)
   VALUES ($1, $2)
   ON CONFLICT (user_id)
   DO UPDATE SET
-  vendor_portal_slug = EXCLUDED.vendor_portal_slug,
+  provider_portal_slug = EXCLUDED.provider_portal_slug,
   updated_at = NOW()
  `,
  [userId, slug]
@@ -776,8 +776,8 @@ export async function ensureVendorPortalSlug(userId: string): Promise<string | n
  return slug;
 }
 
-export async function getVendorPortalAccountBySlug(slug: string): Promise<AccountUser | null> {
- const normalizedSlug = normalizeVendorPortalSlug(slug);
+export async function getProviderPortalAccountBySlug(slug: string): Promise<AccountUser | null> {
+ const normalizedSlug = normalizeProviderPortalSlug(slug);
  const result = await query<{
  id: string;
  username: string;
@@ -788,7 +788,7 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
  full_name: string | null;
  display_name: string | null;
  phone: string | null;
- vendor_portal_slug: string | null;
+ provider_portal_slug: string | null;
  bio: string | null;
  }>(
  `
@@ -802,16 +802,16 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
    p.full_name,
    p.display_name,
    p.phone,
-   p.vendor_portal_slug,
+   p.provider_portal_slug,
    p.bio
   FROM users u
   JOIN user_profiles p ON p.user_id = u.id
   WHERE u.role = $1
   AND u.account_status = 'active'
-  AND LOWER(p.vendor_portal_slug) = LOWER($2)
+  AND LOWER(p.provider_portal_slug) = LOWER($2)
   LIMIT 1
  `,
- [USER_ROLES.VENDOR, normalizedSlug]
+ [USER_ROLES.PROVIDER, normalizedSlug]
  );
 
  const row = result.rows[0];
@@ -827,7 +827,7 @@ export async function getVendorPortalAccountBySlug(slug: string): Promise<Accoun
  fullName: row.full_name ?? "",
  displayName: row.display_name ?? "",
  phone: row.phone ?? "",
- vendorPortalSlug: row.vendor_portal_slug ?? "",
+ providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
  };
 }
@@ -909,7 +909,7 @@ export async function adminUpdateAccount(
  }
 }
 
-export async function adminSetVendorAccountStatus(
+export async function adminSetProviderAccountStatus(
  actorId: string,
  targetUserId: string,
  nextStatus: AccountStatus,
@@ -924,8 +924,8 @@ export async function adminSetVendorAccountStatus(
   throw new Error("USER_NOT_FOUND");
  }
 
- if (!isVendorRole(target.role)) {
-  throw new Error("TARGET_NOT_VENDOR");
+ if (!isProviderRole(target.role)) {
+  throw new Error("TARGET_NOT_PROVIDER");
  }
 
  const normalizedReason = reason?.trim() ?? "";
@@ -953,8 +953,9 @@ export async function adminSetVendorAccountStatus(
  WHERE id IN (
    SELECT offering_id
    FROM physical_offerings
-   WHERE owner_type = 'vendor'
-     AND owner_vendor_user_id = $1
+   INNER JOIN providers ON providers.id = physical_offerings.provider_id
+   WHERE physical_offerings.owner_type = 'provider'
+     AND providers.user_id = $1
  )
 `,
    [targetUserId]
@@ -966,7 +967,7 @@ export async function adminSetVendorAccountStatus(
 
   await query(
 `
- UPDATE vendor_offering_submissions
+ UPDATE provider_offering_submissions
  SET review_status = 'archived',
      review_note = CASE
        WHEN BTRIM(COALESCE(review_note, '')) = '' THEN $2
@@ -975,7 +976,7 @@ export async function adminSetVendorAccountStatus(
      reviewed_at = NOW(),
      reviewed_by = $3,
      updated_at = NOW()
- WHERE vendor_user_id = $1
+ WHERE provider_id = $1
    AND review_status <> 'archived'
 `,
    [targetUserId, archiveMessage, actorId]
@@ -1004,13 +1005,13 @@ export async function adminDeleteAccount(actorId: string, targetUserId: string):
  }
  }
 
- if (isVendorRole(target.role)) {
-  await adminSetVendorAccountStatus(actorId, targetUserId, "deleted", "Nhà cung cấp đã bị xóa mềm khỏi hệ thống.");
+ if (isProviderRole(target.role)) {
+  await adminSetProviderAccountStatus(actorId, targetUserId, "deleted", "Nhà cung cấp đã bị xóa mềm khỏi hệ thống.");
   return;
  }
 
  await query("DELETE FROM users WHERE id = $1", [targetUserId]);
 }
 
-export { canAccessUserPortal, isAdminRole, isVendorRole, USER_ROLES };
+export { canAccessUserPortal, isAdminRole, isProviderRole, USER_ROLES };
 export type { UserRole };

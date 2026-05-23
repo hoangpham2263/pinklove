@@ -104,7 +104,7 @@ export async function POST(request: Request) {
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
   const templateKey = String(formData.get("templateKey") ?? "").trim();
   const supportsInventory = formData.get("supportsInventory") === "on";
-  const supportsVendorSupply = formData.get("supportsVendorSupply") === "on";
+  const supportsProviderSupply = formData.get("supportsProviderSupply") === "on";
   const fieldSchemaRaw = String(formData.get("fieldSchema") ?? "");
 
   let fieldSchema: OfferingTypeField[];
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       fulfillmentType,
       templateKey: templateKey || key,
       supportsInventory,
-      supportsVendorSupply,
+      supportsProviderSupply,
       fieldSchema,
     });
 

@@ -24,7 +24,7 @@ export default async function AdminProvidersPage() {
   return (
     <AdminDatabasePage
       title="Providers"
-      description="Unified provider layer cho vendor, creator, studio, planner, makeup, photographer."
+      description="Unified provider layer cho provider, creator, studio, planner, makeup, photographer."
       rows={result.rows}
       icon={BriefcaseBusiness}
       metricLabel="Providers"

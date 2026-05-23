@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getVendorAssignmentRealtimeState, createVendorAssignmentRealtimeStream } from "@/features/vendor-orders/realtime";
+import { getProviderAssignmentRealtimeState, createProviderAssignmentRealtimeStream } from "@/features/provider-orders/realtime";
 import { getCurrentUserFromRequest, isAdminRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -12,12 +12,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params;
-  const state = await getVendorAssignmentRealtimeState(id);
+  const state = await getProviderAssignmentRealtimeState(id);
   if (!state) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  return new Response(createVendorAssignmentRealtimeStream(id), {
+  return new Response(createProviderAssignmentRealtimeStream(id), {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",

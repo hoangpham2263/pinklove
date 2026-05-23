@@ -67,7 +67,7 @@ export function OfferingBuilderCreateForm({
       <input type="hidden" name="templateKey" value={BUILDER_TEMPLATE_KEY} />
       <input type="hidden" name="fulfillmentType" value="digital" />
       <input type="hidden" name="ownerType" value="internal" />
-      <input type="hidden" name="ownerVendorUserId" value="" />
+      <input type="hidden" name="ownerProviderId" value="" />
       <input type="hidden" name="thumbnailUrl" value={thumbnailUrl} />
       <input type="hidden" name="stockQuantity" value="0" />
       <input type="hidden" name="lowStockThreshold" value="0" />

@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listSupplierRequestsForVendor } from "@/features/vendor-offering-submissions/server/service";
-import { requireVendor } from "@/lib/auth";
+import { listSupplierRequestsForProvider } from "@/features/provider-offering-submissions/server/service";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 function formatDate(value: string) {
@@ -11,8 +11,8 @@ function formatDate(value: string) {
 }
 
 export default async function PartnerSupplyRequestsPage() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const requests = await listSupplierRequestsForVendor(vendor.id);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
+  const requests = await listSupplierRequestsForProvider(provider.id);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

@@ -1,27 +1,27 @@
 import { NextResponse } from "next/server";
 
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { saveVendorOfferingSubmission, listVendorOfferingSubmissionsForVendor } from "@/features/vendor-offering-submissions/server/service";
+import { saveProviderOfferingSubmission, listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
 import type { OfferingFulfillmentType } from "@/features/offerings/types";
-import type { VendorOfferingSubmissionType } from "@/features/vendor-offering-submissions/types";
+import type { ProviderOfferingSubmissionType } from "@/features/provider-offering-submissions/types";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const submissions = await listVendorOfferingSubmissionsForVendor(vendor.id);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
+  const submissions = await listProviderOfferingSubmissionsForProvider(provider.id);
   return NextResponse.json({ submissions });
 }
 
 export async function POST(request: Request) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const formData = await request.formData();
   const submissionId = String(formData.get("submissionId") ?? "").trim();
   const linkedOfferingId = String(formData.get("linkedOfferingId") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "").trim();
-  const submissionType = String(formData.get("submissionType") ?? "create").trim() as VendorOfferingSubmissionType;
+  const submissionType = String(formData.get("submissionType") ?? "create").trim() as ProviderOfferingSubmissionType;
   const name = String(formData.get("name") ?? "").trim();
   const slugCandidate = String(formData.get("slugCandidate") ?? "").trim();
   const excerpt = String(formData.get("excerpt") ?? "");
@@ -32,8 +32,8 @@ export async function POST(request: Request) {
   const proposedStockQuantity = Math.max(0, Number(formData.get("proposedStockQuantity") ?? "0"));
   const lowStockThreshold = Math.max(0, Number(formData.get("lowStockThreshold") ?? "0"));
   const allowBackorder = formData.get("allowBackorder") === "on";
-  const vendorSku = String(formData.get("vendorSku") ?? "");
-  const vendorNote = String(formData.get("vendorNote") ?? "");
+  const providerSku = String(formData.get("providerSku") ?? "");
+  const providerNote = String(formData.get("providerNote") ?? "");
 
   if (!name || !slugCandidate || !["create", "update", "discontinue"].includes(submissionType)) {
     return respondError(request, {
@@ -44,9 +44,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const id = await saveVendorOfferingSubmission({
+    const id = await saveProviderOfferingSubmission({
       submissionId: submissionId || undefined,
-      vendorUserId: vendor.id,
+      providerId: provider.id,
       linkedOfferingId: linkedOfferingId || undefined,
       categoryId: categoryId || undefined,
       submissionType,
@@ -60,8 +60,8 @@ export async function POST(request: Request) {
       proposedStockQuantity,
       lowStockThreshold,
       allowBackorder,
-      vendorSku,
-      vendorNote,
+      providerSku,
+      providerNote,
     });
 
     return respondSuccess(request, {
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const code = error instanceof Error ? error.message : "unknown_error";
     const message =
       code === "LINKED_OFFERING_NOT_ALLOWED"
-        ? "Bạn không thể liên kết đến sản phẩm không thuộc vendor này."
+        ? "Bạn không thể liên kết đến sản phẩm không thuộc provider này."
         : code === "LINKED_OFFERING_REQUIRED"
           ? "Hãy chọn sản phẩm live cần cập nhật hoặc ngừng bán."
           : code === "SUBMISSION_LOCKED"

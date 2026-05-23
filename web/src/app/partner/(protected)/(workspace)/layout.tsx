@@ -11,20 +11,20 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
-import { VendorWorkspaceNavLink } from "@/features/vendor-orders/components/vendor-workspace-nav-link";
-import { VendorWorkspaceSidebarGroup } from "@/features/vendor-orders/components/vendor-workspace-sidebar-group";
-import { VendorWorkspaceTopHeader } from "@/features/vendor-orders/components/vendor-workspace-top-header";
+import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
+import { ProviderWorkspaceSidebarGroup } from "@/features/provider-orders/components/provider-workspace-sidebar-group";
+import { ProviderWorkspaceTopHeader } from "@/features/provider-orders/components/provider-workspace-top-header";
 import {
-  VENDOR_NAV_AUXILIARY_ITEMS,
-  VENDOR_NAV_GROUPS,
-  VENDOR_NAV_PRIMARY_ITEMS,
-  VENDOR_NAV_SECONDARY_ITEMS,
-} from "@/features/vendor-orders/config/navigation";
-import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
+  PROVIDER_NAV_AUXILIARY_ITEMS,
+  PROVIDER_NAV_GROUPS,
+  PROVIDER_NAV_PRIMARY_ITEMS,
+  PROVIDER_NAV_SECONDARY_ITEMS,
+} from "@/features/provider-orders/config/navigation";
+import { ensureProviderPortalSlug, requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
-const vendorIconMap = {
+const providerIconMap = {
   "layout-dashboard": LayoutDashboard,
   "map-pin": MapPin,
   "package-check": PackageCheck,
@@ -41,10 +41,10 @@ export default async function PartnerWorkspaceLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const [settings, portalSlug] = await Promise.all([
     getSystemSettings(),
-    ensureVendorPortalSlug(vendor.id),
+    ensureProviderPortalSlug(provider.id),
   ]);
   const portalHref = portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT;
 
@@ -61,10 +61,10 @@ export default async function PartnerWorkspaceLayout({
 
         <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="flex flex-col gap-2.5">
-            {VENDOR_NAV_PRIMARY_ITEMS.map((item) => {
-              const Icon = vendorIconMap[item.iconName];
+            {PROVIDER_NAV_PRIMARY_ITEMS.map((item) => {
+              const Icon = providerIconMap[item.iconName];
               return (
-                <VendorWorkspaceNavLink
+                <ProviderWorkspaceNavLink
                   key={item.href}
                   href={item.href}
                   exact={item.exact}
@@ -75,12 +75,12 @@ export default async function PartnerWorkspaceLayout({
                 >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
-                </VendorWorkspaceNavLink>
+                </ProviderWorkspaceNavLink>
               );
             })}
 
-            {VENDOR_NAV_GROUPS.map((entry) => (
-              <VendorWorkspaceSidebarGroup
+            {PROVIDER_NAV_GROUPS.map((entry) => (
+              <ProviderWorkspaceSidebarGroup
                 key={entry.label}
                 label={entry.label}
                 iconName={entry.iconName}
@@ -89,10 +89,10 @@ export default async function PartnerWorkspaceLayout({
               />
             ))}
 
-            {VENDOR_NAV_SECONDARY_ITEMS.map((item) => {
-              const Icon = vendorIconMap[item.iconName];
+            {PROVIDER_NAV_SECONDARY_ITEMS.map((item) => {
+              const Icon = providerIconMap[item.iconName];
               return (
-                <VendorWorkspaceNavLink
+                <ProviderWorkspaceNavLink
                   key={item.href}
                   href={item.href}
                   exact={item.exact}
@@ -103,15 +103,15 @@ export default async function PartnerWorkspaceLayout({
                 >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
-                </VendorWorkspaceNavLink>
+                </ProviderWorkspaceNavLink>
               );
             })}
           </div>
         </nav>
 
         <div className="mt-4 shrink-0 border-t pt-4">
-          {VENDOR_NAV_AUXILIARY_ITEMS.map((item) => {
-            const Icon = vendorIconMap[item.iconName];
+          {PROVIDER_NAV_AUXILIARY_ITEMS.map((item) => {
+            const Icon = providerIconMap[item.iconName];
             return (
               <Link
                 key={item.href}
@@ -129,8 +129,8 @@ export default async function PartnerWorkspaceLayout({
       </aside>
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
-        <VendorWorkspaceTopHeader
-          username={vendor.username}
+        <ProviderWorkspaceTopHeader
+          username={provider.username}
           portalHref={portalHref}
           breadcrumbEnabled={settings.breadcrumb.partnerEnabled}
           breadcrumbSeparator={settings.breadcrumb.partnerSeparator}

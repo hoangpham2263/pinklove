@@ -94,14 +94,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    label: "Vendors",
+    label: "Providers",
     iconName: "store",
     defaultOpen: false,
     children: [
-      { label: "Vendor Accounts", href: ROUTES.ADMIN.VENDORS, iconName: "store" },
+      { label: "Provider Accounts", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS, iconName: "store" },
       { label: "Providers", href: ROUTES.ADMIN.PROVIDERS, iconName: "briefcase-business" },
       { label: "Availability", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock" },
-      { label: "Vendor Offering Review", href: ROUTES.ADMIN.VENDOR_OFFERINGS, iconName: "package" },
+      { label: "Provider Offering Review", href: ROUTES.ADMIN.PROVIDER_OFFERINGS, iconName: "package" },
     ],
   },
   {

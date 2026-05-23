@@ -12,7 +12,7 @@ type CustomerProfileFormProps = {
     fullName: string;
     displayName: string;
     phone: string;
-    vendorPortalSlug?: string;
+    providerPortalSlug?: string;
     bio: string;
   };
 };
@@ -67,15 +67,15 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
         <Input id="phone" name="phone" defaultValue={initialProfile.phone} placeholder="0901234567" />
       </div>
 
-      {initialProfile.vendorPortalSlug ? (
+      {initialProfile.providerPortalSlug ? (
         <div className="space-y-2">
-          <label htmlFor="vendorPortalSlug" className="font-medium">
-            Vendor portal slug
+          <label htmlFor="providerPortalSlug" className="font-medium">
+            Provider portal slug
           </label>
-          <Input id="vendorPortalSlug" name="vendorPortalSlug" defaultValue={initialProfile.vendorPortalSlug} readOnly />
+          <Input id="providerPortalSlug" name="providerPortalSlug" defaultValue={initialProfile.providerPortalSlug} readOnly />
         </div>
       ) : (
-        <input type="hidden" name="vendorPortalSlug" value="" />
+        <input type="hidden" name="providerPortalSlug" value="" />
       )}
 
       <div className="space-y-2">

@@ -28,7 +28,7 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
   - `description`: short checkout copy.
   - `instructions`: post-selection or post-order guidance.
   - `category`: one of `manual`, `offline`, or `gateway`.
-  - `provider`: integration owner, for example `manual_bank_transfer`, `cash`, `stripe`, `paypal`, `momo`, or `vnpay`.
+  - `supplier`: integration owner, for example `manual_bank_transfer`, `cash`, `stripe`, `paypal`, `momo`, or `vnpay`.
   - `type`: one of `manual`, `offline`, `redirect`, `embedded`, or `mock`.
   - `requiresShipping`: `true`, `false`, or `null` to restrict method visibility by order type.
 - Method-specific payment instructions and account/QR details belong on the payment method itself, not in global checkout settings.
@@ -73,7 +73,7 @@ This file covers checkout, payment methods, orders, payments, shipments, and ent
 
 For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
 
-1. Add or enable a payment method in admin with stable `code`, gateway `provider`, and `type`.
+1. Add or enable a payment method in admin with stable `code`, gateway `supplier`, and `type`.
 2. Add provider-specific credentials in the provider's admin settings screen. Do not store secrets in customer-visible method instructions or `.env`.
 3. At checkout, create the local order first with pending payment state.
 4. Create the provider session/order/payment intent using local `order.id` or `order.orderNumber` in provider metadata.
@@ -88,7 +88,7 @@ For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
 
 - Add a payment method under `Cổng thanh toán trực tuyến` with:
   - `code`: `vnpay`
-  - `provider`: `vnpay`
+  - `supplier`: `vnpay`
   - `type`: `Chuyển khách sang cổng thanh toán`
 - Configure gateway credentials in the VNPAY payment method edit screen:
   - Payment URL, default sandbox: `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`
@@ -101,7 +101,7 @@ For a real gateway such as Stripe, PayPal, MoMo, or VNPAY:
 
 ## Admin operations
 
-- `Admin > Orders` owns order state, fulfillment state, and vendor assignment.
+- `Admin > Orders` owns order state, fulfillment state, and provider assignment.
 - `Admin > Payments` owns payment status correction and external reference reconciliation.
 - `Admin > Cấu hình > Ecommerce` owns checkout availability, currency, and shipping settings.
 - `Admin > Cấu hình > Payment Methods` owns payment method availability, provider/type settings, instructions, and method-specific account/QR details.

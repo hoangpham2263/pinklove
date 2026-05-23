@@ -1,16 +1,16 @@
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { submitVendorOfferingSubmission } from "@/features/vendor-offering-submissions/server/service";
+import { submitProviderOfferingSubmission } from "@/features/provider-offering-submissions/server/service";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const { id } = await params;
 
   try {
-    await submitVendorOfferingSubmission(vendor.id, id);
+    await submitProviderOfferingSubmission(provider.id, id);
     return respondSuccess(request, {
       location: ROUTES.PARTNER.OFFERING(id),
       message: "Đã gửi duyệt sản phẩm.",

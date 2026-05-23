@@ -1,9 +1,9 @@
 import { notFound, redirect } from "next/navigation";
-import { listAccountsByRole, requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
-import { USER_ROLES } from "@/lib/roles";
+import { listProviders } from "@/features/providers/server/service";
 import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingTemplateEditorPageProps = {
@@ -18,10 +18,10 @@ export default async function AdminOfferingTemplateEditorPage({
   await requireAdmin();
   const { slug } = await params;
   const query = (await searchParams) ?? {};
-  const [offering, categories, vendors] = await Promise.all([
+  const [offering, categories, providers] = await Promise.all([
     getOfferingBySlug(slug),
     listAllOfferingCategories(),
-    listAccountsByRole(USER_ROLES.VENDOR),
+    listProviders(),
   ]);
 
   if (!offering) {
@@ -49,7 +49,7 @@ export default async function AdminOfferingTemplateEditorPage({
         offering={offering}
         offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
         categories={categories}
-        vendors={vendors}
+        providers={providers}
         returnTo={returnTo}
       />
     </section>

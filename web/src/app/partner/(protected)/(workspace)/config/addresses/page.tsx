@@ -1,7 +1,7 @@
 import { PageToast } from "@/components/common/page-toast";
 import { AddressBookManager } from "@/components/common/address-book-manager";
 import { listUserAddresses } from "@/features/account/server/address-service";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default async function PartnerConfigAddressesPage({
@@ -9,14 +9,14 @@ export default async function PartnerConfigAddressesPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const query = (await searchParams) ?? {};
-  const addresses = await listUserAddresses(vendor.id);
+  const addresses = await listUserAddresses(provider.id);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       {query.addressesSaved ? (
-        <PageToast message="Đã cập nhật cấu hình địa chỉ vendor." variant="success" cleanupKeys={["addressesSaved"]} />
+        <PageToast message="Đã cập nhật cấu hình địa chỉ provider." variant="success" cleanupKeys={["addressesSaved"]} />
       ) : null}
       {query.addressError ? <PageToast message="Không thể lưu địa chỉ. Vui lòng kiểm tra các trường bắt buộc." variant="error" /> : null}
 
@@ -27,8 +27,8 @@ export default async function PartnerConfigAddressesPage({
         createHref={ROUTES.PARTNER.CONFIG_ADDRESS_NEW}
         getViewHref={ROUTES.PARTNER.CONFIG_ADDRESS}
         getEditHref={ROUTES.PARTNER.CONFIG_ADDRESS_EDIT}
-        title="Địa chỉ vendor"
-        description="Danh sách địa chỉ dùng chung cho giao nhận, lấy hàng, hoàn hàng và các luồng cần địa chỉ của vendor."
+        title="Địa chỉ provider"
+        description="Danh sách địa chỉ dùng chung cho giao nhận, lấy hàng, hoàn hàng và các luồng cần địa chỉ của provider."
       />
     </section>
   );

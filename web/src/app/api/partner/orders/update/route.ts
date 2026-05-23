@@ -1,10 +1,10 @@
-import type { VendorAssignmentStatus } from "@/features/vendor-orders/types";
-import { updateVendorAssignmentByVendor, VendorAssignmentError } from "@/features/vendor-orders/server/service";
+import type { ProviderAssignmentStatus } from "@/features/provider-orders/types";
+import { updateProviderAssignmentByProvider, ProviderAssignmentError } from "@/features/provider-orders/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
+import { ensureProviderPortalSlug, requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
-const VALID_STATUSES: VendorAssignmentStatus[] = [
+const VALID_STATUSES: ProviderAssignmentStatus[] = [
   "pending_confirmation",
   "accepted",
   "in_progress",
@@ -16,33 +16,33 @@ const VALID_STATUSES: VendorAssignmentStatus[] = [
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const portalSlug = await ensureVendorPortalSlug(vendor.id);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
+  const portalSlug = await ensureProviderPortalSlug(provider.id);
   const portalHref = portalSlug ? ROUTES.PARTNER.PORTAL(portalSlug) : ROUTES.PARTNER.ROOT;
   const formData = await request.formData();
   const assignmentId = String(formData.get("assignmentId") ?? "").trim();
-  const status = String(formData.get("status") ?? "").trim() as VendorAssignmentStatus;
-  const vendorNote = String(formData.get("vendorNote") ?? "");
-  const vendorReference = String(formData.get("vendorReference") ?? "");
+  const status = String(formData.get("status") ?? "").trim() as ProviderAssignmentStatus;
+  const providerNote = String(formData.get("providerNote") ?? "");
+  const providerReference = String(formData.get("providerReference") ?? "");
 
   if (!assignmentId || !VALID_STATUSES.includes(status)) {
     return respondError(request, {
       error: "invalid_payload",
-      message: "Du lieu cap nhat vendor khong hop le.",
+      message: "Du lieu cap nhat provider khong hop le.",
       location: `${portalHref}?error=invalid_payload`,
     });
   }
 
   try {
-    await updateVendorAssignmentByVendor({
+    await updateProviderAssignmentByProvider({
       assignmentId,
-      vendorUserId: vendor.id,
+      providerId: provider.id,
       status,
-      vendorNote,
-      vendorReference,
+      providerNote,
+      providerReference,
     });
   } catch (error) {
-    if (error instanceof VendorAssignmentError && error.code === "ASSIGNMENT_NOT_FOUND") {
+    if (error instanceof ProviderAssignmentError && error.code === "ASSIGNMENT_NOT_FOUND") {
       return respondError(request, {
         error: "assignment_not_found",
         message: "Assignment khong ton tai hoac ban khong con quyen truy cap.",
@@ -55,6 +55,6 @@ export async function POST(request: Request) {
 
   return respondSuccess(request, {
     location: `${ROUTES.PARTNER.ORDER(assignmentId)}?saved=1`,
-    message: "Da luu cap nhat vendor.",
+    message: "Da luu cap nhat provider.",
   });
 }

@@ -21,7 +21,7 @@ type RoleAccountManagementPageProps = {
   createLabel: string;
   showInlineCreateForm?: boolean;
   useCreateDialog?: boolean;
-  showVendorWorkspaceColumn?: boolean;
+  showProviderWorkspaceColumn?: boolean;
   children?: React.ReactNode;
 };
 
@@ -35,7 +35,7 @@ export function RoleAccountManagementPage({
   createLabel,
   showInlineCreateForm = true,
   useCreateDialog = false,
-  showVendorWorkspaceColumn = false,
+  showProviderWorkspaceColumn = false,
   children,
 }: RoleAccountManagementPageProps) {
   const roleShare = totalAccounts === 0 ? 0 : Math.round((users.length / totalAccounts) * 100);
@@ -85,7 +85,7 @@ export function RoleAccountManagementPage({
         actor={actor}
         returnTo={listHref}
         defaultRoleFilter={role}
-        showVendorWorkspaceColumn={showVendorWorkspaceColumn}
+        showProviderWorkspaceColumn={showProviderWorkspaceColumn}
       />
     </section>
   );

@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { VendorTableActionButton, VendorTableActions } from "@/features/vendor-orders/components/vendor-table-actions";
-import { requireVendor } from "@/lib/auth";
+import { ProviderTableActionButton, ProviderTableActions } from "@/features/provider-orders/components/provider-table-actions";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { listVendorOfferingSubmissionsForVendor } from "@/features/vendor-offering-submissions/server/service";
-import { getVendorOfferingSubmissionTypeLabel } from "@/features/vendor-offering-submissions/labels";
-import { VendorOfferingStatusBadge } from "@/features/vendor-offering-submissions/components/vendor-offering-status-badge";
+import { listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
+import { getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
+import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -18,17 +18,17 @@ function formatDateTime(value: string) {
 }
 
 export default async function PartnerOfferingsPage() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const submissions = await listVendorOfferingSubmissionsForVendor(vendor.id);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
+  const submissions = await listProviderOfferingSubmissionsForProvider(provider.id);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4 rounded-md border bg-background p-6">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Sản phẩm vendor</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Sản phẩm provider</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Vendor tự nhập thông tin sản phẩm, giá nhập và số lượng. Admin chỉ duyệt, phản hồi và nhập giá bán thực tế.
+              Provider tự nhập thông tin sản phẩm, giá nhập và số lượng. Admin chỉ duyệt, phản hồi và nhập giá bán thực tế.
             </p>
           </div>
           <Button render={<Link href={ROUTES.PARTNER.OFFERING_NEW}>Tạo hồ sơ mới</Link>} />
@@ -78,17 +78,17 @@ export default async function PartnerOfferingsPage() {
                         <td className="min-w-0 px-4 py-4">
                           <p className="truncate font-medium">{submission.name}</p>
                         </td>
-                        <td className="hidden px-4 py-4 text-muted-foreground lg:table-cell">{getVendorOfferingSubmissionTypeLabel(submission.submissionType)}</td>
+                        <td className="hidden px-4 py-4 text-muted-foreground lg:table-cell">{getProviderOfferingSubmissionTypeLabel(submission.submissionType)}</td>
                         <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.purchaseCost}</td>
                         <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.proposedStockQuantity}</td>
                         <td className="hidden px-4 py-4 md:table-cell">
-                          <VendorOfferingStatusBadge status={submission.reviewStatus} />
+                          <ProviderOfferingStatusBadge status={submission.reviewStatus} />
                         </td>
                         <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{formatDateTime(submission.updatedAt)}</td>
                         <td className="px-4 py-4 text-right">
-                          <VendorTableActions>
-                            <VendorTableActionButton action="view" label="Mở hồ sơ" href={ROUTES.PARTNER.OFFERING(submission.id)} />
-                          </VendorTableActions>
+                          <ProviderTableActions>
+                            <ProviderTableActionButton action="view" label="Mở hồ sơ" href={ROUTES.PARTNER.OFFERING(submission.id)} />
+                          </ProviderTableActions>
                         </td>
                       </tr>
                     ))}

@@ -53,11 +53,11 @@ export async function POST(request: Request) {
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
   const allowBackorder = supportsInventory && formData.get("allowBackorder") === "on";
   const costPrice = supportsInventory ? Math.max(0, Number(formData.get("costPrice") ?? "0")) : 0;
-  const vendorSku = supportsInventory ? String(formData.get("vendorSku") ?? "").trim() : "";
+  const providerSku = supportsInventory ? String(formData.get("providerSku") ?? "").trim() : "";
   const siteDefaultsRaw = String(formData.get("siteDefaults") ?? "{}");
-  const ownerType = String(formData.get("ownerType") ?? "internal") === "vendor" ? "vendor" : "internal";
-  const ownerVendorUserId = String(formData.get("ownerVendorUserId") ?? "").trim();
-  const allowVendorSupply = (offeringTypeDefinition?.supportsVendorSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) && formData.get("allowVendorSupply") === "on";
+  const ownerType = String(formData.get("ownerType") ?? "internal") === "provider" ? "provider" : "internal";
+  const ownerProviderId = String(formData.get("ownerProviderId") ?? "").trim();
+  const allowProviderSupply = (offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) && formData.get("allowProviderSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
@@ -113,8 +113,8 @@ export async function POST(request: Request) {
     });
   }
 
-  if (ownerType === "vendor" && !ownerVendorUserId) {
-    return respondError(request, { error: "missing_vendor", message: "Hãy chọn đối tác sở hữu nguồn hàng cho sản phẩm này.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_vendor` });
+  if (ownerType === "provider" && !ownerProviderId) {
+    return respondError(request, { error: "missing_provider", message: "Hãy chọn provider sở hữu nguồn hàng cho sản phẩm này.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_provider` });
   }
 
   let siteDefaults: Record<string, unknown>;
@@ -194,10 +194,10 @@ export async function POST(request: Request) {
       lowStockThreshold,
       allowBackorder,
       costPrice,
-      vendorSku,
-      allowVendorSupply,
+      providerSku,
+      allowProviderSupply,
       ownerType,
-      ownerVendorUserId: ownerType === "vendor" ? ownerVendorUserId : undefined,
+      ownerProviderId: ownerType === "provider" ? ownerProviderId : undefined,
       config: {
         customFields,
         ...(!supportsInventory && offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? { siteDefaults: normalizedSiteDefaults } : {}),

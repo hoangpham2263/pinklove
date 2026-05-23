@@ -22,10 +22,10 @@ type OfferingImportPayload = {
     lowStockThreshold?: number;
     allowBackorder?: boolean;
     costPrice?: number;
-    vendorSku?: string;
-    allowVendorSupply?: boolean;
+    providerSku?: string;
+    allowProviderSupply?: boolean;
     ownerType?: OfferingOwnerType;
-    ownerVendorUserId?: string;
+    ownerProviderId?: string;
     siteDefaults?: Record<string, unknown>;
     config?: Record<string, unknown>;
   };
@@ -121,7 +121,6 @@ export async function POST(request: Request) {
 
   const baseConfig = offering.config && typeof offering.config === "object" ? { ...offering.config } : {};
   delete baseConfig.generalOffering;
-  delete baseConfig.vendorSupply;
   const config =
     offeringType === "physical_product"
       ? baseConfig
@@ -150,10 +149,10 @@ export async function POST(request: Request) {
           lowStockThreshold: typeof offering.lowStockThreshold === "number" ? offering.lowStockThreshold : 0,
           allowBackorder: Boolean(offering.allowBackorder),
           costPrice: typeof offering.costPrice === "number" ? offering.costPrice : 0,
-          vendorSku: typeof offering.vendorSku === "string" ? offering.vendorSku : "",
-          allowVendorSupply: Boolean(offering.allowVendorSupply),
-          ownerType: offering.ownerType === "vendor" ? "vendor" : "internal",
-          ownerVendorUserId: offering.ownerType === "vendor" ? String(offering.ownerVendorUserId ?? "") : undefined,
+          providerSku: typeof offering.providerSku === "string" ? offering.providerSku : "",
+          allowProviderSupply: Boolean(offering.allowProviderSupply),
+          ownerType: offering.ownerType === "provider" ? "provider" : "internal",
+          ownerProviderId: offering.ownerType === "provider" ? String(offering.ownerProviderId ?? "") : undefined,
           config,
         })
       : await createOffering({
@@ -173,10 +172,10 @@ export async function POST(request: Request) {
           lowStockThreshold: typeof offering.lowStockThreshold === "number" ? offering.lowStockThreshold : 0,
           allowBackorder: Boolean(offering.allowBackorder),
           costPrice: typeof offering.costPrice === "number" ? offering.costPrice : 0,
-          vendorSku: typeof offering.vendorSku === "string" ? offering.vendorSku : "",
-          allowVendorSupply: Boolean(offering.allowVendorSupply),
-          ownerType: offering.ownerType === "vendor" ? "vendor" : "internal",
-          ownerVendorUserId: offering.ownerType === "vendor" ? String(offering.ownerVendorUserId ?? "") : undefined,
+          providerSku: typeof offering.providerSku === "string" ? offering.providerSku : "",
+          allowProviderSupply: Boolean(offering.allowProviderSupply),
+          ownerType: offering.ownerType === "provider" ? "provider" : "internal",
+          ownerProviderId: offering.ownerType === "provider" ? String(offering.ownerProviderId ?? "") : undefined,
           config,
         });
 

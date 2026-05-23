@@ -3,30 +3,30 @@ import { PackageCheck, PackagePlus, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
-import { ensureVendorPortalSlug, getUserProfile, requireVendor } from "@/lib/auth";
+import { countProviderAssignmentsForProvider, listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
+import { ensureProviderPortalSlug, getUserProfile, requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function PartnerDashboardPage() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const [slug, profile, stats, assignments, settings] = await Promise.all([
-    ensureVendorPortalSlug(vendor.id),
-    getUserProfile(vendor.id),
-    countVendorAssignmentsForVendor(vendor.id),
-    listVendorOrderSummariesForVendor(vendor.id),
+    ensureProviderPortalSlug(provider.id),
+    getUserProfile(provider.id),
+    countProviderAssignmentsForProvider(provider.id),
+    listProviderOrderSummariesForProvider(provider.id),
     getSystemSettings(),
   ]);
-  const vendorName = profile.displayName || profile.fullName || vendor.username;
+  const providerName = profile.displayName || profile.fullName || provider.username;
   const portalHref = slug ? ROUTES.PARTNER.PORTAL(slug) : ROUTES.PARTNER.ROOT;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-md border bg-background p-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard vendor</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard provider</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Workspace của {vendorName} trong {settings.branding.siteName}. Giao diện dùng cùng layout quản trị để vendor theo dõi đơn, sản phẩm và cấu hình tài khoản.
+            Workspace của {providerName} trong {settings.branding.siteName}. Giao diện dùng cùng layout quản trị để provider theo dõi đơn, sản phẩm và cấu hình tài khoản.
           </p>
         </div>
         <Button variant="outline" render={<Link href={portalHref}>Mở portal công khai</Link>} />
@@ -79,7 +79,7 @@ export default async function PartnerDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Vendor có thể tạo hồ sơ sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
+            <p>Provider có thể tạo hồ sơ sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
             <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.OFFERINGS}>Mở sản phẩm</Link>} />
           </CardContent>
         </Card>
@@ -92,7 +92,7 @@ export default async function PartnerDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Cập nhật thông tin cửa hàng, địa chỉ và hồ sơ giao nhận của vendor.</p>
+            <p>Cập nhật thông tin cửa hàng, địa chỉ và hồ sơ giao nhận của provider.</p>
             <Button variant="outline" className="w-full" render={<Link href={ROUTES.PARTNER.CONFIG_ACCOUNT}>Mở tài khoản</Link>} />
           </CardContent>
         </Card>

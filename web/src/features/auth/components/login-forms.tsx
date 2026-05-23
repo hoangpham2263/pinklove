@@ -192,7 +192,7 @@ type PartnerLoginFormProps = {
 
 export function PartnerLoginForm({
   title = "Partner Portal",
-  description = "Đăng nhập bằng tài khoản vendor để quản lý các đơn được phân công.",
+  description = "Đăng nhập bằng tài khoản provider để quản lý các đơn được phân công.",
   returnTo,
   portalSlug,
   embedded = false,
@@ -210,13 +210,13 @@ export function PartnerLoginForm({
 
       <Card className={`w-full ${embedded ? "border-zinc-200/80 bg-white/95 shadow-sm" : "border-0 md:border"}`}>
         <CardHeader>
-          <CardTitle>Vendor Login</CardTitle>
+          <CardTitle>Provider Login</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <NativeForm action={ROUTES.API.PARTNER.AUTH.LOGIN} method="POST" className="space-y-3">
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             {portalSlug ? <input type="hidden" name="portalSlug" value={portalSlug} /> : null}
-            <Input name="username" placeholder="Tên đăng nhập vendor" autoComplete="username" />
+            <Input name="username" placeholder="Tên đăng nhập provider" autoComplete="username" />
             <div className="flex items-center gap-2">
               <Input
                 name="password"

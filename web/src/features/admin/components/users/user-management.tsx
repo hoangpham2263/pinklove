@@ -41,14 +41,14 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
-import { VendorPortalCopyButton } from "@/features/admin/components/vendors/vendor-portal-copy-button";
+import { ProviderPortalCopyButton } from "@/features/admin/components/provider-accounts/provider-portal-copy-button";
 
 interface UserManagementProps {
   initialUsers: AccountUser[];
   actor: AuthUser;
   returnTo?: string;
   defaultRoleFilter?: UserRole | "";
-  showVendorWorkspaceColumn?: boolean;
+  showProviderWorkspaceColumn?: boolean;
 }
 
 function getAccountStatusLabel(status: AccountUser["accountStatus"]) {
@@ -84,7 +84,7 @@ export function UserManagement({
   actor,
   returnTo,
   defaultRoleFilter = "",
-  showVendorWorkspaceColumn = false,
+  showProviderWorkspaceColumn = false,
 }: UserManagementProps) {
   const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -172,30 +172,30 @@ export function UserManagement({
           </div>
         ),
       },
-      ...(showVendorWorkspaceColumn
+      ...(showProviderWorkspaceColumn
         ? [{
-            id: "vendorWorkspace",
+            id: "providerWorkspace",
             enableSorting: false,
             enableColumnFilter: false,
             header: () => <span>Workspace</span>,
             cell: ({ row }: { row: { original: AccountUser } }) => {
               const user = row.original;
-              const vendorPortalSlug = user.vendorPortalSlug || "";
+              const providerPortalSlug = user.providerPortalSlug || "";
 
-              if (!vendorPortalSlug) {
+              if (!providerPortalSlug) {
                 return <span className="text-sm text-muted-foreground">Chưa có workspace</span>;
               }
 
               return (
                 <div className="flex flex-wrap items-center gap-2">
-                  <VendorPortalCopyButton
+                  <ProviderPortalCopyButton
                     label="Xem thông tin"
-                    path={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}
+                    path={ROUTES.PARTNER.PORTAL(providerPortalSlug)}
                     username={user.username}
                     password="12313"
                   />
-                  <AdminLinkButton href={ROUTES.PARTNER.PORTAL(vendorPortalSlug)}>Portal Link</AdminLinkButton>
-                  <AdminLinkButton href={ROUTES.ADMIN.VENDOR(user.id)}>Quản lý đơn riêng</AdminLinkButton>
+                  <AdminLinkButton href={ROUTES.PARTNER.PORTAL(providerPortalSlug)}>Portal Link</AdminLinkButton>
+                  <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNT(user.id)}>Quản lý đơn riêng</AdminLinkButton>
                 </div>
               );
             },
@@ -247,7 +247,7 @@ export function UserManagement({
         },
       },
     ],
-    [actor.id, returnTo, router, showVendorWorkspaceColumn]
+    [actor.id, returnTo, router, showProviderWorkspaceColumn]
   );
 
   const table = useReactTable({

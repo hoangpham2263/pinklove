@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CustomerActionLinkTile, CustomerCreateLinkButton, CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { CustomerOverviewCard, CustomerOverviewGrid } from "@/features/customer/ui/customer-overview-card";
 import { requireAppUser } from "@/lib/auth";
-import { isVendorRole } from "@/lib/roles";
+import { isProviderRole } from "@/lib/roles";
 import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { listInvitationsForUser } from "@/features/invitations/server/service";
@@ -33,7 +33,7 @@ export default async function CustomerDashboardPage() {
   const codedInvitations = invitations.filter((invitation) => invitation.siteType === INVITATION_SITE_TYPES.CODED).length;
   const builderInvitations = invitations.length - codedInvitations;
   const recentInvitations = invitations.slice(0, 2);
-  const vendorActor = isVendorRole(user.role);
+  const providerActor = isProviderRole(user.role);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -69,8 +69,8 @@ export default async function CustomerDashboardPage() {
             <CustomerActionLinkTile href={ROUTES.CUSTOMER.ORDERS} label="Đơn hàng" description="Theo dõi checkout, thanh toán và giao hàng." showArrow />
             <CustomerActionLinkTile href={ROUTES.CUSTOMER.CONFIG_PROFILE} label="Profile" description="Cập nhật hồ sơ và thông tin hiển thị." showArrow />
             <CustomerActionLinkTile href={ROUTES.CUSTOMER.AFFILIATE} label="Affiliate" description="Theo dõi trạng thái và link giới thiệu." showArrow />
-            {vendorActor ? (
-              <CustomerActionLinkTile href={ROUTES.CUSTOMER.VENDOR} label="Vendor Workspace" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
+            {providerActor ? (
+              <CustomerActionLinkTile href={ROUTES.CUSTOMER.PROVIDER} label="Provider Workspace" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
             ) : null}
             <CustomerActionLinkTile href={ROUTES.BUILDER} label="Create New Site" description="Bắt đầu với builder hoặc template." showArrow />
           </CardContent>

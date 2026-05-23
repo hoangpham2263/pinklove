@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import {
   authenticateUser,
   createSession,
-  ensureVendorPortalSlug,
+  ensureProviderPortalSlug,
   getSessionCookieOptions,
-  isVendorRole,
+  isProviderRole,
   SESSION_COOKIE_NAME,
 } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -36,11 +36,11 @@ export async function POST(request: Request) {
   }
 
   const user = await authenticateUser(username, password);
-  if (!user || !isVendorRole(user.role)) {
+  if (!user || !isProviderRole(user.role)) {
     return new NextResponse(null, { status: 303, headers: { Location: `${loginPage}?error=invalid_credentials` } });
   }
 
-  const ensuredPortalSlug = await ensureVendorPortalSlug(user.id);
+  const ensuredPortalSlug = await ensureProviderPortalSlug(user.id);
   const token = await createSession(user.id);
   const nextLocation =
     portalSlug && ensuredPortalSlug === portalSlug

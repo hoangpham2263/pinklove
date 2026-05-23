@@ -5,12 +5,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PartnerVendorAssignmentPanel } from "@/features/vendor-orders/components/partner-vendor-assignment-panel";
-import { getVendorOrderDetailForVendor } from "@/features/vendor-orders/server/service";
-import { ensureVendorPortalSlug, requireVendor } from "@/lib/auth";
+import { PartnerProviderAssignmentPanel } from "@/features/provider-orders/components/partner-provider-assignment-panel";
+import { getProviderOrderDetailForProvider } from "@/features/provider-orders/server/service";
+import { ensureProviderPortalSlug, requireProvider } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
-import { getVendorAssignmentStatusLabel } from "@/lib/status-labels";
+import { getProviderAssignmentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function PartnerOrderDetailPage({
@@ -20,12 +20,12 @@ export default async function PartnerOrderDetailPage({
   params: Promise<{ id: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const { id } = await params;
   const query = (await searchParams) ?? {};
-  const portalSlug = await ensureVendorPortalSlug(vendor.id);
+  const portalSlug = await ensureProviderPortalSlug(provider.id);
   const [detail, settings] = await Promise.all([
-    getVendorOrderDetailForVendor(vendor.id, id),
+    getProviderOrderDetailForProvider(provider.id, id),
     getSystemSettings(),
   ]);
 
@@ -74,7 +74,7 @@ export default async function PartnerOrderDetailPage({
               </div>
               <div className="rounded-md border p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Trạng thái xử lý</p>
-                <p className="mt-1 font-medium">{getVendorAssignmentStatusLabel(detail.assignment.status)}</p>
+                <p className="mt-1 font-medium">{getProviderAssignmentStatusLabel(detail.assignment.status)}</p>
               </div>
               <div className="rounded-md border p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
@@ -101,8 +101,8 @@ export default async function PartnerOrderDetailPage({
           </CardContent>
         </Card>
 
-        <PartnerVendorAssignmentPanel
-          detailUrl={ROUTES.API.PARTNER.ORDERS.VENDOR_ASSIGNMENT(detail.assignment.id)}
+        <PartnerProviderAssignmentPanel
+          detailUrl={ROUTES.API.PARTNER.ORDERS.PROVIDER_ASSIGNMENT(detail.assignment.id)}
           portalHref={portalHref}
           initialDetail={detail}
         />

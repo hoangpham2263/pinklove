@@ -40,10 +40,11 @@ type OfferingInput = {
   lowStockThreshold?: number;
   allowBackorder?: boolean;
   costPrice?: number;
-  vendorSku?: string;
-  allowVendorSupply?: boolean;
+  providerSku?: string;
+  allowProviderSupply?: boolean;
   ownerType?: OfferingOwnerType;
-  ownerVendorUserId?: string;
+  ownerProviderId?: string;
+  ownerProviderType?: string;
   config?: Record<string, unknown>;
 };
 
@@ -64,7 +65,7 @@ type OfferingTypeInput = {
   templateEngine?: OfferingTemplateEngine;
   templateMode?: OfferingTemplateMode;
   supportsInventory?: boolean;
-  supportsVendorSupply?: boolean;
+  supportsProviderSupply?: boolean;
   fieldSchema?: OfferingTypeField[];
 };
 
@@ -79,7 +80,7 @@ type OfferingTypeRow = {
   template_engine: string | null;
   template_mode: string | null;
   supports_inventory: boolean;
-  supports_vendor_supply: boolean;
+  supports_provider_supply: boolean;
   is_system: boolean;
   created_at: string;
   updated_at: string;
@@ -419,7 +420,7 @@ function mapOfferingTypeRow(
     templateEngine: row.template_engine ? (row.template_engine as OfferingTemplateEngine) : undefined,
     templateMode: row.template_mode ? (row.template_mode as OfferingTemplateMode) : undefined,
     supportsInventory: row.supports_inventory,
-    supportsVendorSupply: row.supports_vendor_supply,
+    supportsProviderSupply: row.supports_provider_supply,
     isSystem: row.is_system,
     fieldGroups,
     fieldSchema: fields,
@@ -459,10 +460,11 @@ type OfferingRow = {
   physical_low_stock_threshold: string | null;
   physical_allow_backorder: boolean | null;
   physical_cost_price: string | null;
-  physical_vendor_sku: string | null;
-  physical_allow_vendor_supply: boolean | null;
+  physical_provider_sku: string | null;
+  physical_allow_provider_supply: boolean | null;
   physical_owner_type: OfferingOwnerType | null;
-  physical_owner_vendor_user_id: string | null;
+  physical_provider_id: string | null;
+  physical_provider_type: string | null;
   config: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
@@ -504,11 +506,11 @@ function mapOfferingCategoryRow(row: OfferingCategoryRow): OfferingCategory {
 }
 
 function mapOfferingRow(row: OfferingRow): Offering {
-  const { generalOffering: _generalOffering, vendorSupply: _vendorSupply, ...baseConfig } = row.config ?? {};
+  const { generalOffering: _generalOffering, ...baseConfig } = row.config ?? {};
   void _generalOffering;
-  void _vendorSupply;
-  const ownerType = row.physical_owner_type === "vendor" ? "vendor" : "internal";
-  const ownerVendorUserId = ownerType === "vendor" ? row.physical_owner_vendor_user_id ?? undefined : undefined;
+  const ownerType = row.physical_owner_type === "provider" ? "provider" : "internal";
+  const ownerProviderId = ownerType === "provider" ? row.physical_provider_id ?? undefined : undefined;
+  const ownerProviderType = ownerType === "provider" ? row.physical_provider_type ?? undefined : undefined;
   const templateKey = row.digital_template_key ?? row.template_key;
   const templateEngine = (row.digital_template_engine ?? row.template_engine ?? undefined) as OfferingTemplateEngine | undefined;
   const templateMode = (row.digital_template_mode ?? row.template_mode ?? undefined) as OfferingTemplateMode | undefined;
@@ -519,8 +521,8 @@ function mapOfferingRow(row: OfferingRow): Offering {
   const lowStockThreshold = row.physical_low_stock_threshold ?? row.low_stock_threshold;
   const allowBackorder = row.physical_allow_backorder ?? row.allow_backorder;
   const costPrice = row.physical_cost_price ?? "0";
-  const vendorSku = row.physical_vendor_sku ?? "";
-  const allowVendorSupply = row.physical_allow_vendor_supply ?? false;
+  const providerSku = row.physical_provider_sku ?? "";
+  const allowProviderSupply = row.physical_allow_provider_supply ?? false;
   const config: Record<string, unknown> = {
     ...baseConfig,
     ...(siteDefaults ? { siteDefaults } : {}),
@@ -548,10 +550,11 @@ function mapOfferingRow(row: OfferingRow): Offering {
     lowStockThreshold: Number(lowStockThreshold ?? "0"),
     allowBackorder: Boolean(allowBackorder),
     costPrice: Number(costPrice ?? "0"),
-    vendorSku,
-    allowVendorSupply,
+    providerSku,
+    allowProviderSupply,
     ownerType: ownerType as OfferingOwnerType,
-    ownerVendorUserId,
+    ownerProviderId,
+    ownerProviderType,
     config,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -590,10 +593,11 @@ const OFFERING_SELECT = `
     physical.low_stock_threshold::text AS physical_low_stock_threshold,
     physical.allow_backorder AS physical_allow_backorder,
     physical.cost_price::text AS physical_cost_price,
-    physical.vendor_sku AS physical_vendor_sku,
-    physical.allow_vendor_supply AS physical_allow_vendor_supply,
+    physical.provider_sku AS physical_provider_sku,
+    physical.allow_provider_supply AS physical_allow_provider_supply,
     physical.owner_type AS physical_owner_type,
-    physical.owner_vendor_user_id AS physical_owner_vendor_user_id,
+    physical.provider_id AS physical_provider_id,
+    physical.provider_type AS physical_provider_type,
     offerings.config,
     offerings.created_at,
     offerings.updated_at
@@ -815,7 +819,7 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
           template_engine,
           template_mode,
           supports_inventory,
-          supports_vendor_supply,
+          supports_provider_supply,
           is_system,
           created_at,
           updated_at
@@ -853,7 +857,7 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
           template_engine,
           template_mode,
           supports_inventory,
-          supports_vendor_supply,
+          supports_provider_supply,
           is_system,
           created_at,
           updated_at
@@ -904,7 +908,7 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           template_engine,
           template_mode,
           supports_inventory,
-          supports_vendor_supply,
+          supports_provider_supply,
           is_system
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE)
@@ -918,7 +922,7 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           template_engine = EXCLUDED.template_engine,
           template_mode = EXCLUDED.template_mode,
           supports_inventory = EXCLUDED.supports_inventory,
-          supports_vendor_supply = EXCLUDED.supports_vendor_supply,
+          supports_provider_supply = EXCLUDED.supports_provider_supply,
           updated_at = NOW()
         RETURNING
           id,
@@ -931,7 +935,7 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           template_engine,
           template_mode,
           supports_inventory,
-          supports_vendor_supply,
+          supports_provider_supply,
           is_system,
           created_at,
           updated_at
@@ -946,7 +950,7 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
         input.templateEngine?.trim() || "",
         input.templateMode?.trim() || "",
         Boolean(input.supportsInventory),
-        Boolean(input.supportsVendorSupply),
+        Boolean(input.supportsProviderSupply),
       ]
       );
 
@@ -1034,7 +1038,6 @@ function sanitizeOfferingConfig(config: Record<string, unknown> | undefined): Re
     relational_data: _relationalData,
     siteDefaults: _siteDefaults,
     generalOffering: _generalOffering,
-    vendorSupply: _vendorSupply,
     ...safeConfig
   } = config ?? {};
 
@@ -1046,9 +1049,22 @@ function sanitizeOfferingConfig(config: Record<string, unknown> | undefined): Re
   void _relationalData;
   void _siteDefaults;
   void _generalOffering;
-  void _vendorSupply;
 
   return safeConfig;
+}
+
+async function resolveProviderOwner(input: Pick<OfferingInput, "ownerProviderId" | "ownerProviderType">) {
+  if (input.ownerProviderId) {
+    return {
+      providerId: input.ownerProviderId,
+      providerType: input.ownerProviderType ?? "provider",
+    };
+  }
+
+  return {
+    providerId: null,
+    providerType: null,
+  };
 }
 
 export async function getOfferingBySlug(slug: string): Promise<Offering | null> {
@@ -1168,6 +1184,7 @@ export async function listPublishedOfferingsByIds(ids: string[]): Promise<Offeri
 
 export async function createOffering(input: OfferingInput): Promise<Offering> {
   const safeConfig = sanitizeOfferingConfig(input.config);
+  const ownerProvider = await resolveProviderOwner(input);
   const templateEngine = input.templateEngine ?? (input.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? SYSTEM_TEMPLATE_ENGINES.CODED : undefined);
   const templateMode = input.templateMode ?? (
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
@@ -1245,10 +1262,11 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
       }
 
       if (input.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
-        const ownerType = input.ownerType === "vendor" ? "vendor" : "internal";
-        const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? null : null;
+        const ownerType = input.ownerType === "provider" ? "provider" : "internal";
+        const ownerProviderId = ownerType === "provider" ? ownerProvider.providerId : null;
+        const ownerProviderType = ownerType === "provider" ? ownerProvider.providerType ?? "provider" : null;
         const costPrice = input.costPrice ?? 0;
-        const vendorSku = input.vendorSku ?? "";
+        const providerSku = input.providerSku ?? "";
 
         await execute(
           `
@@ -1260,10 +1278,11 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
               low_stock_threshold,
               allow_backorder,
               cost_price,
-              vendor_sku,
-              allow_vendor_supply,
+              provider_sku,
+              allow_provider_supply,
               owner_type,
-              owner_vendor_user_id
+              provider_type,
+              provider_id
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           `,
@@ -1275,10 +1294,11 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
             input.lowStockThreshold ?? 0,
             input.allowBackorder ?? false,
             costPrice,
-            vendorSku,
-            input.allowVendorSupply ?? false,
+            providerSku,
+            input.allowProviderSupply ?? false,
             ownerType,
-            ownerVendorUserId,
+            ownerProviderType,
+            ownerProviderId,
           ]
         );
       }
@@ -1329,6 +1349,10 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
   }
 
   const nextConfig = input.config !== undefined ? sanitizeOfferingConfig(input.config) : sanitizeOfferingConfig(existing.config);
+  const ownerProvider = await resolveProviderOwner({
+    ownerProviderId: input.ownerProviderId ?? existing.ownerProviderId,
+    ownerProviderType: input.ownerProviderType ?? existing.ownerProviderType,
+  });
   const nextSiteDefaults =
     input.config !== undefined && typeof input.config.siteDefaults === "object" && input.config.siteDefaults
       ? input.config.siteDefaults
@@ -1407,9 +1431,10 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
 
       if (nextOfferingType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
         const ownerType = input.ownerType ?? existing.ownerType;
-        const ownerVendorUserId = ownerType === "vendor" ? input.ownerVendorUserId ?? existing.ownerVendorUserId ?? null : null;
+        const ownerProviderId = ownerType === "provider" ? ownerProvider.providerId : null;
+        const ownerProviderType = ownerType === "provider" ? ownerProvider.providerType ?? "provider" : null;
         const costPrice = input.costPrice ?? existing.costPrice;
-        const vendorSku = input.vendorSku ?? existing.vendorSku;
+        const providerSku = input.providerSku ?? existing.providerSku;
 
         await execute(
           `
@@ -1421,10 +1446,11 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
               low_stock_threshold,
               allow_backorder,
               cost_price,
-              vendor_sku,
-              allow_vendor_supply,
+              provider_sku,
+              allow_provider_supply,
               owner_type,
-              owner_vendor_user_id
+              provider_type,
+              provider_id
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           `,
@@ -1436,10 +1462,11 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             input.lowStockThreshold ?? existing.lowStockThreshold,
             input.allowBackorder ?? existing.allowBackorder,
             costPrice,
-            vendorSku,
-            input.allowVendorSupply ?? existing.allowVendorSupply,
+            providerSku,
+            input.allowProviderSupply ?? existing.allowProviderSupply,
             ownerType,
-            ownerVendorUserId,
+            ownerProviderType,
+            ownerProviderId,
           ]
         );
       }
@@ -1685,7 +1712,7 @@ export async function deleteOfferingCategory(slug: string): Promise<boolean> {
 
       await execute(
         `
-          UPDATE vendor_offering_submissions
+          UPDATE provider_offering_submissions
           SET
             category_id = NULL,
             updated_at = NOW()
@@ -1765,7 +1792,7 @@ export async function deleteOfferingCategories(slugs: string[]): Promise<number>
 
       await execute(
         `
-          UPDATE vendor_offering_submissions
+          UPDATE provider_offering_submissions
           SET
             category_id = NULL,
             updated_at = NOW()

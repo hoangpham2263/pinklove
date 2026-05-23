@@ -1,12 +1,12 @@
-import { createSupplierRequest } from "@/features/vendor-offering-submissions/server/service";
+import { createSupplierRequest } from "@/features/provider-offering-submissions/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const formData = await request.formData();
   const offeringId = String(formData.get("offeringId") ?? "").trim();
 
@@ -21,16 +21,16 @@ export async function POST(request: Request) {
   try {
     await createSupplierRequest({
       offeringId,
-      vendorUserId: vendor.id,
+      providerId: provider.id,
       purchaseCost: Math.max(0, Number(formData.get("purchaseCost") ?? "0")),
-      vendorSku: String(formData.get("vendorSku") ?? ""),
+      providerSku: String(formData.get("providerSku") ?? ""),
       leadTimeDays: Math.max(0, Number(formData.get("leadTimeDays") ?? "0")),
       monthlyCapacity: Math.max(0, Number(formData.get("monthlyCapacity") ?? "0")),
       serviceArea: String(formData.get("serviceArea") ?? ""),
       sampleImageUrl: String(formData.get("sampleImageUrl") ?? ""),
       materialNote: String(formData.get("materialNote") ?? ""),
       qualityNote: String(formData.get("qualityNote") ?? ""),
-      vendorNote: String(formData.get("vendorNote") ?? ""),
+      providerNote: String(formData.get("providerNote") ?? ""),
     });
 
     return respondSuccess(request, {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       error: code,
       message:
         code === "OFFERING_NOT_AVAILABLE"
-          ? "Mẫu này hiện chưa mở để vendor xin cung cấp."
+          ? "Mẫu này hiện chưa mở để provider xin cung cấp."
           : code === "SUPPLIER_ALREADY_EXISTS"
             ? "Bạn đã là supplier của mẫu này."
             : code === "SUPPLIER_REQUEST_ALREADY_OPEN"

@@ -6,7 +6,7 @@ import { ROUTES } from "@/lib/routes";
 import type { ChatConversationDetail, ChatConversationSummary, ChatConversationUserPriority, ChatMessageVisibility } from "@/features/chat/types";
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import type { MediaAsset } from "@/features/media/types";
-import type { VendorOrderDetail } from "@/features/vendor-orders/types";
+import type { ProviderOrderDetail } from "@/features/provider-orders/types";
 
 export type AdminOrderStateSnapshot = {
   id: string;
@@ -69,8 +69,8 @@ async function updateOrderState(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.ORDERS.UPDATE, formData);
 }
 
-async function saveVendorAssignment(formData: FormData) {
-  return submitForm(ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT, formData);
+async function saveProviderAssignment(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.ORDERS.PROVIDER_ASSIGNMENT, formData);
 }
 
 async function createBlogCategory(formData: FormData) {
@@ -271,7 +271,7 @@ async function deleteMedia(id: string) {
   return (await response.json()) as { ok: true };
 }
 
-async function fetchVendorOrderDetail(url: string) {
+async function fetchProviderOrderDetail(url: string) {
   const response = await apiFetch(url, {
     cache: "no-store",
   });
@@ -284,7 +284,7 @@ async function fetchVendorOrderDetail(url: string) {
     throw new Error("LOAD_FAILED");
   }
 
-  const data = (await response.json()) as { detail?: VendorOrderDetail | null };
+  const data = (await response.json()) as { detail?: ProviderOrderDetail | null };
   return data.detail ?? null;
 }
 
@@ -416,7 +416,7 @@ async function updateChatConversation(conversationId: string, patch: ChatConvers
 export const adminApi = {
   updateGlobalFields,
   updateOrderState,
-  saveVendorAssignment,
+  saveProviderAssignment,
   createBlogCategory,
   updateBlogCategory,
   deleteBlogCategory,
@@ -458,7 +458,7 @@ export const adminApi = {
   getMediaByUrl,
   uploadMedia,
   deleteMedia,
-  fetchVendorOrderDetail,
+  fetchProviderOrderDetail,
   fetchChatConversations,
   fetchChatConversation,
   sendChatTyping,
@@ -473,7 +473,7 @@ export const adminApi = {
 export const adminApiActions = {
   updateGlobalFields: ROUTES.API.ADMIN.GLOBAL_FIELDS.UPDATE,
   updateOrderState: ROUTES.API.ADMIN.ORDERS.UPDATE,
-  saveVendorAssignment: ROUTES.API.ADMIN.ORDERS.VENDOR_ASSIGNMENT,
+  saveProviderAssignment: ROUTES.API.ADMIN.ORDERS.PROVIDER_ASSIGNMENT,
   createBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.CREATE,
   updateBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.UPDATE,
   deleteBlogCategory: ROUTES.API.ADMIN.BLOG.CATEGORIES.DELETE,

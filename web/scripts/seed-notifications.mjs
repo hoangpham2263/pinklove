@@ -108,7 +108,7 @@ async function ensureSchema(client) {
   await client.query("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
   await client.query(`
     ALTER TABLE users
-    ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'VENDOR'))
+    ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'PROVIDER'))
   `);
 
   const userIdType = await getColumnTypeSql(client, "users", "id");
@@ -154,7 +154,7 @@ async function ensureSchema(client) {
   await client.query("ALTER TABLE notification_target_roles DROP CONSTRAINT IF EXISTS notification_target_roles_role_check");
   await client.query(`
     ALTER TABLE notification_target_roles
-    ADD CONSTRAINT notification_target_roles_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'VENDOR'))
+    ADD CONSTRAINT notification_target_roles_role_check CHECK (role IN ('ADMIN', 'CUSTOMER', 'AFFILIATE', 'PROVIDER'))
   `);
 
   await client.query(`
@@ -253,7 +253,7 @@ async function main() {
     const admin = await upsertUser(client, { username: "seed-admin", role: "ADMIN" });
     const customer = await upsertUser(client, { username: "seed-customer", role: "CUSTOMER" });
     const affiliate = await upsertUser(client, { username: "seed-affiliate", role: "AFFILIATE" });
-    const vendor = await upsertUser(client, { username: "seed-vendor", role: "VENDOR" });
+    const provider = await upsertUser(client, { username: "seed-provider", role: "PROVIDER" });
 
     await client.query(
       `
@@ -302,13 +302,13 @@ async function main() {
       createdAt: minutesAgo(55),
     });
 
-    const vendorNoticeId = await insertNotification(client, {
-      key: "sent-vendor-role",
-      title: "Cập nhật quy trình vendor",
-      body: "Demo target role VENDOR, hiển thị trong bell ở partner portal.",
+    const providerNoticeId = await insertNotification(client, {
+      key: "sent-provider-role",
+      title: "Cập nhật quy trình provider",
+      body: "Demo target role PROVIDER, hiển thị trong bell ở partner portal.",
       linkUrl: "/partner/orders",
       audienceType: "role",
-      roles: ["VENDOR"],
+      roles: ["PROVIDER"],
       createdByUserId: admin.id,
       status: "sent",
       createdAt: minutesAgo(40),
@@ -339,12 +339,12 @@ async function main() {
     });
 
     await insertNotification(client, {
-      key: "scheduled-vendor",
-      title: "Lịch nhắc vendor kiểm tra đơn",
-      body: "Demo thông báo lên lịch theo role VENDOR.",
+      key: "scheduled-provider",
+      title: "Lịch nhắc provider kiểm tra đơn",
+      body: "Demo thông báo lên lịch theo role PROVIDER.",
       linkUrl: "/partner/orders",
       audienceType: "role",
-      roles: ["VENDOR"],
+      roles: ["PROVIDER"],
       createdByUserId: admin.id,
       status: "scheduled",
       scheduledAt: minutesFromNow(120),
@@ -384,13 +384,13 @@ async function main() {
         ON CONFLICT (notification_id, user_id)
         DO UPDATE SET read_at = EXCLUDED.read_at, updated_at = EXCLUDED.updated_at
       `,
-      [allNoticeId, admin.id, adminRoleNoticeId, admin.id, vendorNoticeId, vendor.id]
+      [allNoticeId, admin.id, adminRoleNoticeId, admin.id, providerNoticeId, provider.id]
     );
 
     await client.query("COMMIT");
     console.log("Seeded notification demo data.");
     console.log(`Demo password for seeded users: ${PASSWORD}`);
-    console.log("Users: seed-admin, seed-customer, seed-affiliate, seed-vendor");
+    console.log("Users: seed-admin, seed-customer, seed-affiliate, seed-provider");
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

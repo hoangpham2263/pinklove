@@ -21,17 +21,24 @@ import {
   type OfferingStatus,
   type OfferingTypeDefinition,
 } from "@/features/offerings/types";
-import type { AccountUser } from "@/lib/auth";
+
+type ProviderOption = {
+  id: string;
+  display_name?: string;
+  displayName?: string;
+  fullName?: string;
+  username?: string;
+};
 
 export function QuickCreateOfferingForm({
   categories = [],
-  vendors = [],
+  providers = [],
   offeringTypes = [],
   initialOfferingType = SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT,
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: {
   categories?: OfferingCategory[];
-  vendors?: AccountUser[];
+  providers?: ProviderOption[];
   offeringTypes?: OfferingTypeDefinition[];
   initialOfferingType?: string;
   returnTo?: string;
@@ -47,17 +54,17 @@ export function QuickCreateOfferingForm({
   );
   const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>(activeOfferingType?.fulfillmentType ?? "digital");
   const supportsInventory = activeOfferingType?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
-  const supportsVendorSupply = activeOfferingType?.supportsVendorSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsProviderSupply = activeOfferingType?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
   const [customFields, setCustomFields] = useState<Record<string, unknown>>({});
   const [trackInventory, setTrackInventory] = useState(false);
   const [stockQuantity, setStockQuantity] = useState(0);
   const [lowStockThreshold, setLowStockThreshold] = useState(0);
   const [allowBackorder, setAllowBackorder] = useState(false);
   const [costPrice, setCostPrice] = useState(0);
-  const [vendorSku, setVendorSku] = useState("");
-  const [ownerType, setOwnerType] = useState<"internal" | "vendor">("internal");
-  const [ownerVendorUserId, setOwnerVendorUserId] = useState("");
-  const [allowVendorSupply, setAllowVendorSupply] = useState(false);
+  const [providerSku, setProviderSku] = useState("");
+  const [ownerType, setOwnerType] = useState<"internal" | "provider">("internal");
+  const [ownerProviderId, setOwnerProviderId] = useState("");
+  const [allowProviderSupply, setAllowProviderSupply] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -187,30 +194,30 @@ export function QuickCreateOfferingForm({
                 id="ownerType"
                 name="ownerType"
                 value={ownerType}
-                onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
+                onChange={(e) => setOwnerType(e.target.value === "provider" ? "provider" : "internal")}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="internal">Sản phẩm của tôi / nội bộ</option>
-                <option value="vendor">Sản phẩm của đối tác</option>
+                <option value="provider">Sản phẩm của provider</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="ownerVendorUserId" className="font-medium">
-                Đối tác
+              <label htmlFor="ownerProviderId" className="font-medium">
+                Provider
               </label>
               <select
-                id="ownerVendorUserId"
-                name="ownerVendorUserId"
-                value={ownerVendorUserId}
-                onChange={(e) => setOwnerVendorUserId(e.target.value)}
-                  disabled={ownerType !== "vendor" || !supportsVendorSupply}
+                id="ownerProviderId"
+                name="ownerProviderId"
+                value={ownerProviderId}
+                onChange={(e) => setOwnerProviderId(e.target.value)}
+                disabled={ownerType !== "provider" || !supportsProviderSupply}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
               >
-                <option value="">Chọn đối tác</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.displayName || vendor.fullName || vendor.username}
+                <option value="">Chọn provider</option>
+                {providers.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.displayName || provider.display_name || provider.fullName || provider.username}
                   </option>
                 ))}
               </select>
@@ -220,20 +227,20 @@ export function QuickCreateOfferingForm({
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="font-medium">Vendor supplier requests</label>
+              <label className="font-medium">Provider supplier requests</label>
               <label className="flex items-start gap-3 rounded-md border bg-card p-3">
                 <input
                   type="checkbox"
-                  name="allowVendorSupply"
-                  checked={allowVendorSupply}
-                  disabled={!supportsVendorSupply}
-                  onChange={(e) => setAllowVendorSupply(e.target.checked)}
+                  name="allowProviderSupply"
+                  checked={allowProviderSupply}
+                  disabled={!supportsProviderSupply}
+                  onChange={(e) => setAllowProviderSupply(e.target.checked)}
                   className="mt-1 rounded border-input"
                 />
                 <span className="space-y-1">
-                  <span className="block font-medium">Cho phép vendor xin cung cấp sản phẩm này</span>
+                  <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
                   <span className="block text-sm text-muted-foreground">
-                    Bật khi bạn muốn vendor thấy mẫu này trong portal và gửi hồ sơ xin cung cấp.
+                    Bật khi bạn muốn provider thấy mẫu này trong portal và gửi hồ sơ xin cung cấp.
                   </span>
                 </span>
               </label>
@@ -328,13 +335,13 @@ export function QuickCreateOfferingForm({
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="vendorSku" className="font-medium">Vendor SKU</label>
+                <label htmlFor="providerSku" className="font-medium">Provider SKU</label>
                 <Input
-                  id="vendorSku"
-                  name="vendorSku"
-                  value={vendorSku}
-                  onChange={(e) => setVendorSku(e.target.value)}
-                  placeholder="Mã nội bộ phía vendor"
+                  id="providerSku"
+                  name="providerSku"
+                  value={providerSku}
+                  onChange={(e) => setProviderSku(e.target.value)}
+                  placeholder="Mã nội bộ phía provider"
                 />
               </div>
             </div>
@@ -369,7 +376,7 @@ export function QuickCreateOfferingForm({
             </p>
             <AdminSubmitButton
               className="h-10 w-full rounded-md"
-              disabled={isSubmitting || (ownerType === "vendor" && !ownerVendorUserId)}
+              disabled={isSubmitting || (ownerType === "provider" && !ownerProviderId)}
             >
               {isSubmitting ? "Đang tạo..." : "Tạo sản phẩm"}
             </AdminSubmitButton>

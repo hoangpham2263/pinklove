@@ -5,8 +5,8 @@ Use this file for project-wide rules around realtime transport, event contracts,
 ## Scope
 
 - Shared realtime infrastructure lives in `web/src/features/realtime/*`.
-- Feature-specific realtime adapters should stay in the owning feature, for example `web/src/features/vendor-orders/realtime.ts`.
-- Use this file for cross-area realtime rules. Keep vendor workflow specifics in `docs/partner.md`.
+- Feature-specific realtime adapters should stay in the owning feature, for example `web/src/features/provider-orders/realtime.ts`.
+- Use this file for cross-area realtime rules. Keep provider workflow specifics in `docs/partner.md`.
 
 ## Current Architecture
 
@@ -24,6 +24,8 @@ Use this file for project-wide rules around realtime transport, event contracts,
   invalidation flags. Current cache invalidation event names include
   `offering.updated`, `template.updated`, `provider.updated`, and
   `site.published`.
+- Search/indexing sync event names are also registered:
+  `offering.search.sync`, `template.search.sync`, and `provider.search.sync`.
 
 ## Core Rules
 
@@ -32,7 +34,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Realtime events are signals that a resource changed. The UI should fetch the updated JSON resource and update local state.
 - Do not use realtime events to force whole-route refresh when a smaller panel or resource can be updated directly.
 - Prefer partial client updates over `router.refresh()` for operational screens that need true realtime behavior.
-- For admin/vendor collaboration screens, saving a mutation should not reload the page. The expected flow is `toast + JSON refresh of the affected panel`.
+- For admin/provider collaboration screens, saving a mutation should not reload the page. The expected flow is `toast + JSON refresh of the affected panel`.
 
 ## Server Rules
 
@@ -63,7 +65,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Avoid `router.refresh()` unless the route is intentionally server-driven and partial update is not practical.
 - Track connection status in the client so UI can render `connecting`, `live`, or `reconnecting` when needed.
 - Admin order detail currently follows this model for both:
-  - vendor assignment panel
+  - provider assignment panel
   - order state panel
 - Partner order detail and partner portal should also stay on this same `SSE signal -> fetch JSON -> patch local state` contract.
 
@@ -73,7 +75,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Realtime toast copy should inform the passive side that the other side changed the resource.
 - Do not show a duplicate realtime toast immediately after the current user saves the same resource themselves.
 - Success/error toasts from direct mutations and informational toasts from incoming realtime events should remain separate concerns.
-- For the admin/vendor order collaboration flow:
+- For the admin/provider order collaboration flow:
   - the actor who clicks save sees a success or error toast for the direct mutation
   - the passive side sees an informational realtime toast when the other side changes the resource
   - the passive side should not need a page reload to see the updated values
@@ -86,13 +88,13 @@ Use this file for project-wide rules around realtime transport, event contracts,
   - one stable identity key
   - one version snapshot used for change detection
 - Good resource examples in the current codebase:
-  - vendor assignment detail
-  - vendor portal summary/list
+  - provider assignment detail
+  - provider portal summary/list
   - user notification inbox summary
 - Additional JSON resource examples now in use:
   - admin order state detail
-  - partner vendor assignment detail
-- Prefer resource-level channels such as `assignment` or `vendor portal` over page-level channels.
+  - partner provider assignment detail
+- Prefer resource-level channels such as `assignment` or `provider portal` over page-level channels.
 
 ## Scaling Path
 
@@ -114,7 +116,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
   - permission failures such as `401` or `404`
   - resource JSON fetch after event
   - toast behavior on the passive side
-- For admin/vendor operational screens, also verify:
+- For admin/provider operational screens, also verify:
   - saving does not trigger a full page navigation
   - only the affected panel data changes after save
   - the passive side receives the change without manual refresh

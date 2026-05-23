@@ -472,11 +472,11 @@ export function AdminOfferingList({
                         : "Không giới hạn tồn kho"
                     }
                   />
-                  <PreviewField label="Nguồn hàng" value={previewOffering.ownerType === "vendor" ? "Vendor" : "Nội bộ"} />
-                  <PreviewField label="Vendor SKU" value={previewOffering.vendorSku || "—"} />
+                  <PreviewField label="Nguồn hàng" value={previewOffering.ownerType === "provider" ? "Provider" : "Nội bộ"} />
+                  <PreviewField label="Provider SKU" value={previewOffering.providerSku || "—"} />
                   <PreviewField
-                    label="Vendor User ID"
-                    value={<span className="break-all">{previewOffering.ownerVendorUserId || "—"}</span>}
+                    label="Provider User ID"
+                    value={<span className="break-all">{previewOffering.ownerProviderId || "—"}</span>}
                     className="md:col-span-2"
                   />
                 </div>

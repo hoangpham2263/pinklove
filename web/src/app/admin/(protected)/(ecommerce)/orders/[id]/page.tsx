@@ -3,9 +3,9 @@ import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-state-panel";
 import { getOrderById } from "@/features/ecommerce/server/service";
-import { AdminVendorAssignmentPanel } from "@/features/vendor-orders/components/admin-vendor-assignment-panel";
-import { getVendorAssignmentByOrderId } from "@/features/vendor-orders/server/service";
-import { listApprovedSupplierOptionsForOfferings } from "@/features/vendor-offering-submissions/server/service";
+import { AdminProviderAssignmentPanel } from "@/features/provider-orders/components/admin-provider-assignment-panel";
+import { getProviderAssignmentByOrderId } from "@/features/provider-orders/server/service";
+import { listApprovedSupplierOptionsForOfferings } from "@/features/provider-offering-submissions/server/service";
 import { listAccountsByRole, requireAdmin } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
@@ -28,11 +28,11 @@ export default async function AdminOrderDetailPage({
   await requireAdmin();
   const { id } = await params;
   const query = (await searchParams) ?? {};
-  const [order, settings, vendors, vendorAssignment] = await Promise.all([
+  const [order, settings, providerAccounts, providerAssignment] = await Promise.all([
     getOrderById(id),
     getSystemSettings(),
-    listAccountsByRole(USER_ROLES.VENDOR),
-    getVendorAssignmentByOrderId(id),
+    listAccountsByRole(USER_ROLES.PROVIDER),
+    getProviderAssignmentByOrderId(id),
   ]);
 
   if (!order) {
@@ -43,19 +43,19 @@ export default async function AdminOrderDetailPage({
   const approvedSupplierOptions = await listApprovedSupplierOptionsForOfferings(
     order.items.map((item) => item.offeringId ?? "")
   );
-  const vendorOptions =
+  const providerOptions =
     approvedSupplierOptions.length > 0
       ? approvedSupplierOptions
-      : vendors.map((vendor) => ({
-          id: vendor.id,
-          label: vendor.displayName || vendor.fullName || vendor.username,
+      : providerAccounts.map((provider) => ({
+          id: provider.id,
+          label: provider.displayName || provider.fullName || provider.username,
         }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       {query.saved ? <PageToast message="Đã cập nhật trạng thái đơn hàng." variant="success" cleanupKeys={["saved"]} /> : null}
-      {query.vendorSaved ? <PageToast message="Đã lưu phân công vendor." variant="success" cleanupKeys={["vendorSaved"]} /> : null}
-      {query.error === "invalid_vendor" ? <PageToast message="Vendor được chọn không hợp lệ." variant="error" /> : null}
+      {query.providerSaved ? <PageToast message="Đã lưu phân công provider." variant="success" cleanupKeys={["providerSaved"]} /> : null}
+      {query.error === "invalid_provider" ? <PageToast message="Provider được chọn không hợp lệ." variant="error" /> : null}
 
       <Card>
         <CardContent className="flex flex-col gap-5 p-5 lg:flex-row lg:items-start lg:justify-between">
@@ -121,11 +121,11 @@ export default async function AdminOrderDetailPage({
             </CardContent>
           </Card>
 
-          <AdminVendorAssignmentPanel
+          <AdminProviderAssignmentPanel
             orderId={order.id}
-            detailUrl={ROUTES.API.ADMIN.ORDERS.DETAIL_VENDOR_ASSIGNMENT(order.id)}
-            initialDetail={vendorAssignment}
-            vendorOptions={vendorOptions}
+            detailUrl={ROUTES.API.ADMIN.ORDERS.DETAIL_PROVIDER_ASSIGNMENT(order.id)}
+            initialDetail={providerAssignment}
+            providerOptions={providerOptions}
           />
         </div>
 

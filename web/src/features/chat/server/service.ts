@@ -157,8 +157,8 @@ function labelSupportRequestCategory(category: ChatSupportRequestCategory | "") 
       return "Thanh toán và tài khoản";
     case "affiliate_support":
       return "Hỗ trợ affiliate";
-    case "vendor_support":
-      return "Hỗ trợ vendor";
+    case "provider_support":
+      return "Hỗ trợ provider";
     case "other":
       return "Trao đổi khác";
     case "general":

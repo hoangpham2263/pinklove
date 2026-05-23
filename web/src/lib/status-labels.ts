@@ -1,5 +1,5 @@
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
-import type { VendorAssignmentStatus } from "@/features/vendor-orders/types";
+import type { ProviderAssignmentStatus } from "@/features/provider-orders/types";
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: "Chờ thanh toán",
@@ -29,7 +29,7 @@ const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
   cancelled: "Đã hủy",
 };
 
-const VENDOR_ASSIGNMENT_STATUS_LABELS: Record<VendorAssignmentStatus, string> = {
+const PROVIDER_ASSIGNMENT_STATUS_LABELS: Record<ProviderAssignmentStatus, string> = {
   pending_confirmation: "Chờ xác nhận",
   accepted: "Đã nhận",
   in_progress: "Đang thực hiện",
@@ -50,6 +50,6 @@ export function getFulfillmentStatusLabel(status: FulfillmentStatus) {
   return FULFILLMENT_STATUS_LABELS[status] ?? status;
 }
 
-export function getVendorAssignmentStatusLabel(status: VendorAssignmentStatus) {
-  return VENDOR_ASSIGNMENT_STATUS_LABELS[status] ?? status;
+export function getProviderAssignmentStatusLabel(status: ProviderAssignmentStatus) {
+  return PROVIDER_ASSIGNMENT_STATUS_LABELS[status] ?? status;
 }

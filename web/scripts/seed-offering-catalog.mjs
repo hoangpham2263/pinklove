@@ -62,7 +62,6 @@ function getOfferingConfig(offering) {
   delete config.relational_data;
   delete config.siteDefaults;
   delete config.generalOffering;
-  delete config.vendorSupply;
   return config;
 }
 
@@ -93,12 +92,13 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
           low_stock_threshold,
           allow_backorder,
           cost_price,
-          vendor_sku,
-          allow_vendor_supply,
+          provider_sku,
+          allow_provider_supply,
           owner_type,
-          owner_vendor_user_id
+          provider_type,
+          provider_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL, NULL)
       `,
       [
         offeringId,
@@ -108,8 +108,8 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
         offering.lowStockThreshold ?? 0,
         offering.allowBackorder ?? false,
         offering.costPrice ?? 0,
-        offering.vendorSku ?? "",
-        offering.ownerType === "vendor" ? "vendor" : "internal",
+        offering.providerSku ?? "",
+        offering.ownerType === "provider" ? "provider" : "internal",
       ]
     );
   }

@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 
-import { getVendorOfferingSubmissionDetailForVendor } from "@/features/vendor-offering-submissions/server/service";
-import { getCurrentUserFromRequest, isVendorRole } from "@/lib/auth";
+import { getProviderOfferingSubmissionDetailForProvider } from "@/features/provider-offering-submissions/server/service";
+import { getCurrentUserFromRequest, isProviderRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUserFromRequest(request);
-  if (!user || !isVendorRole(user.role)) {
+  if (!user || !isProviderRole(user.role)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const detail = await getVendorOfferingSubmissionDetailForVendor(user.id, id);
+  const detail = await getProviderOfferingSubmissionDetailForProvider(user.id, id);
   if (!detail) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }

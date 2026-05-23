@@ -2,13 +2,13 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listAvailableOfferingsForVendorSupply } from "@/features/vendor-offering-submissions/server/service";
-import { requireVendor } from "@/lib/auth";
+import { listAvailableOfferingsForProviderSupply } from "@/features/provider-offering-submissions/server/service";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default async function PartnerAvailableTemplatesPage() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
-  const offerings = await listAvailableOfferingsForVendorSupply(vendor.id);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
+  const offerings = await listAvailableOfferingsForProviderSupply(provider.id);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -51,14 +51,14 @@ export default async function PartnerAvailableTemplatesPage() {
                   <form action={ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
                     <input type="hidden" name="offeringId" value={offering.id} />
                     <input name="purchaseCost" type="number" min="0" step="1000" placeholder="Giá nhập/gia công" className="h-10 rounded-md border bg-background px-3 text-sm" />
-                    <input name="vendorSku" placeholder="SKU vendor" className="h-10 rounded-md border bg-background px-3 text-sm" />
+                    <input name="providerSku" placeholder="SKU provider" className="h-10 rounded-md border bg-background px-3 text-sm" />
                     <input name="leadTimeDays" type="number" min="0" placeholder="Lead time ngày" className="h-10 rounded-md border bg-background px-3 text-sm" />
                     <input name="monthlyCapacity" type="number" min="0" placeholder="Năng lực/tháng" className="h-10 rounded-md border bg-background px-3 text-sm" />
                     <input name="serviceArea" placeholder="Khu vực phục vụ" className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2" />
                     <input name="sampleImageUrl" placeholder="Link ảnh mẫu in thử" className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2" />
                     <textarea name="materialNote" placeholder="Chất liệu/giấy/hoàn thiện" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
                     <textarea name="qualityNote" placeholder="Cam kết chất lượng/đóng gói" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
-                    <textarea name="vendorNote" placeholder="Ghi chú thêm cho admin" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
+                    <textarea name="providerNote" placeholder="Ghi chú thêm cho admin" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
                     <Button type="submit" className="md:col-span-2">{submitLabel}</Button>
                   </form>
                 ) : null}

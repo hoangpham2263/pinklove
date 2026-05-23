@@ -1,11 +1,11 @@
 import { PackageCheck } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { VendorTableActionButton, VendorTableActions } from "@/features/vendor-orders/components/vendor-table-actions";
-import { countVendorAssignmentsForVendor, listVendorOrderSummariesForVendor } from "@/features/vendor-orders/server/service";
-import { getUserProfile, requireVendor } from "@/lib/auth";
+import { ProviderTableActionButton, ProviderTableActions } from "@/features/provider-orders/components/provider-table-actions";
+import { countProviderAssignmentsForProvider, listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
+import { getUserProfile, requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { getPaymentStatusLabel, getVendorAssignmentStatusLabel } from "@/lib/status-labels";
+import { getPaymentStatusLabel, getProviderAssignmentStatusLabel } from "@/lib/status-labels";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -16,20 +16,20 @@ function formatDateTime(value: string) {
 }
 
 export default async function PartnerOrdersPage() {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const [profile, stats, assignments] = await Promise.all([
-    getUserProfile(vendor.id),
-    countVendorAssignmentsForVendor(vendor.id),
-    listVendorOrderSummariesForVendor(vendor.id),
+    getUserProfile(provider.id),
+    countProviderAssignmentsForProvider(provider.id),
+    listProviderOrderSummariesForProvider(provider.id),
   ]);
-  const vendorName = profile.displayName || profile.fullName || vendor.username;
+  const providerName = profile.displayName || profile.fullName || provider.username;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="rounded-md border bg-background p-6">
         <h1 className="text-2xl font-semibold tracking-tight">Đơn được giao</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          Danh sách đơn hàng admin đã giao cho {vendorName}. Vendor chỉ nhìn thấy và cập nhật phần việc được phân công.
+          Danh sách đơn hàng admin đã giao cho {providerName}. Provider chỉ nhìn thấy và cập nhật phần việc được phân công.
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export default async function PartnerOrdersPage() {
         <CardContent className="space-y-3 pt-5">
           {assignments.length === 0 ? (
             <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-              Chưa có đơn hàng nào được giao cho vendor này.
+              Chưa có đơn hàng nào được giao cho provider này.
             </div>
           ) : (
             assignments.map((entry) => (
@@ -61,7 +61,7 @@ export default async function PartnerOrdersPage() {
                     {entry.order.customerName} • {entry.items.map((item) => `${item.offeringName} x${item.quantity}`).join(", ")}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Trạng thái vendor: {getVendorAssignmentStatusLabel(entry.assignment.status)} • Thanh toán: {getPaymentStatusLabel(entry.order.paymentStatus)}
+                    Trạng thái provider: {getProviderAssignmentStatusLabel(entry.assignment.status)} • Thanh toán: {getPaymentStatusLabel(entry.order.paymentStatus)}
                   </p>
                 </div>
                 <div className="space-y-1 text-sm text-muted-foreground">
@@ -69,9 +69,9 @@ export default async function PartnerOrdersPage() {
                   <p>{entry.lastEvent?.message || "Chưa có activity"}</p>
                 </div>
                 <div className="flex justify-start lg:justify-end">
-                  <VendorTableActions>
-                    <VendorTableActionButton action="view" label="Mở chi tiết" href={ROUTES.PARTNER.ORDER(entry.assignment.id)} />
-                  </VendorTableActions>
+                  <ProviderTableActions>
+                    <ProviderTableActionButton action="view" label="Mở chi tiết" href={ROUTES.PARTNER.ORDER(entry.assignment.id)} />
+                  </ProviderTableActions>
                 </div>
               </div>
             ))

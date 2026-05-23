@@ -46,7 +46,7 @@ export async function POST(request: Request) {
                 body.category === "order_support" ||
                 body.category === "billing" ||
                 body.category === "affiliate_support" ||
-                body.category === "vendor_support" ||
+                body.category === "provider_support" ||
                 body.category === "other"
                   ? body.category
                   : "general",

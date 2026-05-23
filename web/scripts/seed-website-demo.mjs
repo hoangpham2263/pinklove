@@ -41,14 +41,14 @@ async function upsertUser(client, input) {
 
   await client.query(
     `
-      INSERT INTO user_profiles (user_id, display_name, full_name, phone, vendor_portal_slug, bio)
+      INSERT INTO user_profiles (user_id, display_name, full_name, phone, provider_portal_slug, bio)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (user_id)
       DO UPDATE SET
         display_name = EXCLUDED.display_name,
         full_name = EXCLUDED.full_name,
         phone = EXCLUDED.phone,
-        vendor_portal_slug = EXCLUDED.vendor_portal_slug,
+        provider_portal_slug = EXCLUDED.provider_portal_slug,
         bio = EXCLUDED.bio,
         updated_at = NOW()
     `,
@@ -57,7 +57,7 @@ async function upsertUser(client, input) {
       input.displayName ?? null,
       input.fullName ?? null,
       input.phone ?? null,
-      input.vendorPortalSlug ?? null,
+      input.providerPortalSlug ?? null,
       input.bio ?? null,
     ]
   );
@@ -75,7 +75,7 @@ async function seedManagedPages(client) {
       customFields: {
         heroTitle: "Thiệp cưới online, quản lý đơn hàng và cổng đối tác trong một nơi",
         heroDescription:
-          "PinkLove giúp bạn quản lý catalogue thiệp cưới, đơn hàng khách hàng và luồng phối hợp vendor theo thời gian thực.",
+          "PinkLove giúp bạn quản lý catalogue thiệp cưới, đơn hàng khách hàng và luồng phối hợp provider theo thời gian thực.",
         heroButtonText: "Xem mẫu thiệp",
         heroButtonLink: "/mau-thiep",
         secondaryButtonText: "Mở công cụ",
@@ -85,12 +85,12 @@ async function seedManagedPages(client) {
     {
       slug: "gioi-thieu",
       title: "Giới thiệu PinkLove",
-      excerpt: "Nền tảng hỗ trợ thiệp cưới online, catalog sản phẩm và quy trình phối hợp vendor.",
+      excerpt: "Nền tảng hỗ trợ thiệp cưới online, catalog sản phẩm và quy trình phối hợp provider.",
       status: "published",
       customFields: {
         introHeading: "PinkLove tập trung vào trải nghiệm cưới số hóa rõ ràng, dễ vận hành",
         introText:
-          "Website mẫu này đã được seed sẵn dữ liệu catalogue, blog, tài khoản khách hàng, affiliate và vendor để bạn kiểm thử toàn bộ flow end-to-end.",
+          "Website mẫu này đã được seed sẵn dữ liệu catalogue, blog, tài khoản khách hàng, affiliate và provider để bạn kiểm thử toàn bộ flow end-to-end.",
       },
     },
     {
@@ -117,7 +117,7 @@ async function seedManagedPages(client) {
     {
       slug: "dich-vu",
       title: "Dịch vụ PinkLove",
-      excerpt: "Gói dịch vụ thiệp cưới, builder và phối hợp vendor.",
+      excerpt: "Gói dịch vụ thiệp cưới, builder và phối hợp provider.",
       status: "published",
       customFields: {
         plansTitle: "Chọn gói phù hợp với mức độ hỗ trợ",
@@ -400,14 +400,14 @@ async function upsertOrder(client, input) {
 
   await client.query(
     `
-      DELETE FROM vendor_order_events
+      DELETE FROM provider_order_events
       WHERE assignment_id IN (
-        SELECT id FROM vendor_order_assignments WHERE order_id = $1
+        SELECT id FROM provider_order_assignments WHERE order_id = $1
       )
     `,
     [order.id]
   );
-  await client.query("DELETE FROM vendor_order_assignments WHERE order_id = $1", [order.id]);
+  await client.query("DELETE FROM provider_order_assignments WHERE order_id = $1", [order.id]);
   await client.query("DELETE FROM commerce_payments WHERE order_id = $1", [order.id]);
   await client.query("DELETE FROM commerce_order_items WHERE order_id = $1", [order.id]);
 
@@ -456,17 +456,17 @@ async function createPayment(client, orderId, amount, externalRef) {
   );
 }
 
-async function createVendorAssignment(client, input) {
+async function createProviderAssignment(client, input) {
   const assignment = await fetchRow(
     client,
     `
-      INSERT INTO vendor_order_assignments (
+      INSERT INTO provider_order_assignments (
         order_id,
-        vendor_user_id,
+        provider_id,
         status,
         internal_note,
-        vendor_note,
-        vendor_reference,
+        provider_note,
+        provider_reference,
         accepted_at,
         completed_at
       )
@@ -475,11 +475,11 @@ async function createVendorAssignment(client, input) {
     `,
     [
       input.orderId,
-      input.vendorUserId,
+      input.providerId,
       input.status,
       input.internalNote,
-      input.vendorNote,
-      input.vendorReference,
+      input.providerNote,
+      input.providerReference,
       input.acceptedAt ?? null,
       input.completedAt ?? null,
     ]
@@ -488,7 +488,7 @@ async function createVendorAssignment(client, input) {
   for (const event of input.events ?? []) {
     await client.query(
       `
-        INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
+        INSERT INTO provider_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
         VALUES ($1, $2, $3, $4, $5)
       `,
       [assignment.id, event.actorUserId ?? null, event.actorType, event.eventType, event.message]
@@ -556,24 +556,24 @@ async function main() {
       { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
     ]);
 
-    const vendorAlpha = await upsertUser(client, {
-      username: "vendor_alpha",
-      role: "VENDOR",
+    const providerAlpha = await upsertUser(client, {
+      username: "provider_alpha",
+      role: "PROVIDER",
       displayName: "Xuong In Alpha",
       fullName: "Xuong In Alpha",
       phone: "0900000001",
-      vendorPortalSlug: "xuong-in-alpha",
-      bio: "Vendor Alpha seeded for partner portal demo.",
+      providerPortalSlug: "xuong-in-alpha",
+      bio: "Provider Alpha seeded for partner portal demo.",
     });
 
-    const vendorBeta = await upsertUser(client, {
-      username: "vendor_beta",
-      role: "VENDOR",
+    const providerBeta = await upsertUser(client, {
+      username: "provider_beta",
+      role: "PROVIDER",
       displayName: "Xuong In Beta",
       fullName: "Xuong In Beta",
       phone: "0900000002",
-      vendorPortalSlug: "xuong-in-beta",
-      bio: "Vendor Beta seeded for partner portal demo.",
+      providerPortalSlug: "xuong-in-beta",
+      bio: "Provider Beta seeded for partner portal demo.",
     });
 
     const customerOne = await upsertUser(client, {
@@ -652,19 +652,19 @@ async function main() {
       {
         orderNumber: "PL-DEMO-001",
         customer: customerOne,
-        vendor: vendorAlpha,
-        vendorPortalSlug: "xuong-in-alpha",
+        provider: providerAlpha,
+        providerPortalSlug: "xuong-in-alpha",
         customerName: "Nguyen Lan",
         customerEmail: "customer.one@pinklove.local",
         customerPhone: "0900000011",
         orderStatus: "processing",
         paymentStatus: "paid",
         fulfillmentStatus: "pending",
-        notes: "Demo order pending vendor confirmation.",
+        notes: "Demo order pending provider confirmation.",
         assignmentStatus: "pending_confirmation",
-        internalNote: "Don demo 001 dang cho vendor xac nhan.",
-        vendorNote: "",
-        vendorReference: "",
+        internalNote: "Don demo 001 dang cho provider xac nhan.",
+        providerNote: "",
+        providerReference: "",
         items: [{ offering: offeringA, quantity: 1, unitPrice: offeringA.price || 990000 }],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 001." },
@@ -673,19 +673,19 @@ async function main() {
       {
         orderNumber: "PL-DEMO-002",
         customer: customerOne,
-        vendor: vendorAlpha,
-        vendorPortalSlug: "xuong-in-alpha",
+        provider: providerAlpha,
+        providerPortalSlug: "xuong-in-alpha",
         customerName: "Nguyen Lan",
         customerEmail: "customer.one@pinklove.local",
         customerPhone: "0900000011",
         orderStatus: "processing",
         paymentStatus: "paid",
         fulfillmentStatus: "processing",
-        notes: "Demo order in progress by vendor Alpha.",
+        notes: "Demo order in progress by provider Alpha.",
         assignmentStatus: "in_progress",
         internalNote: "Don in gap can theo doi hang ngay.",
-        vendorNote: "Da duyet file va dang san xuat.",
-        vendorReference: "ALPHA-002",
+        providerNote: "Da duyet file va dang san xuat.",
+        providerReference: "ALPHA-002",
         acceptedAt: "2026-04-10T08:00:00.000Z",
         items: [
           { offering: offeringA, quantity: 1, unitPrice: offeringA.price || 990000 },
@@ -693,15 +693,15 @@ async function main() {
         ],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 002." },
-          { actorUserId: vendorAlpha.id, actorType: "vendor", eventType: "status_changed", message: "Vendor đã cập nhật trạng thái sang in_progress." },
-          { actorUserId: vendorAlpha.id, actorType: "vendor", eventType: "note_added", message: "Vendor note: Da duyet file va dang san xuat." },
+          { actorUserId: providerAlpha.id, actorType: "provider", eventType: "status_changed", message: "Provider đã cập nhật trạng thái sang in_progress." },
+          { actorUserId: providerAlpha.id, actorType: "provider", eventType: "note_added", message: "Provider note: Da duyet file va dang san xuat." },
         ],
       },
       {
         orderNumber: "PL-DEMO-003",
         customer: customerTwo,
-        vendor: vendorBeta,
-        vendorPortalSlug: "xuong-in-beta",
+        provider: providerBeta,
+        providerPortalSlug: "xuong-in-beta",
         customerName: "Tran Minh",
         customerEmail: "customer.two@pinklove.local",
         customerPhone: "0900000012",
@@ -711,23 +711,23 @@ async function main() {
         notes: "Demo order waiting admin review.",
         assignmentStatus: "ready_for_review",
         internalNote: "Cho admin review mau in.",
-        vendorNote: "Da in xong mau, cho duyet.",
-        vendorReference: "BETA-003",
+        providerNote: "Da in xong mau, cho duyet.",
+        providerReference: "BETA-003",
         acceptedAt: "2026-04-09T09:30:00.000Z",
         items: [{ offering: offeringC, quantity: 2, unitPrice: offeringC.price || 500000 }],
         affiliateUserId: affiliateRose.id,
         affiliateCode: "rose-love",
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 003." },
-          { actorUserId: vendorBeta.id, actorType: "vendor", eventType: "status_changed", message: "Vendor đã cập nhật trạng thái sang ready_for_review." },
-          { actorUserId: vendorBeta.id, actorType: "vendor", eventType: "note_added", message: "Vendor note: Da in xong mau, cho duyet." },
+          { actorUserId: providerBeta.id, actorType: "provider", eventType: "status_changed", message: "Provider đã cập nhật trạng thái sang ready_for_review." },
+          { actorUserId: providerBeta.id, actorType: "provider", eventType: "note_added", message: "Provider note: Da in xong mau, cho duyet." },
         ],
       },
       {
         orderNumber: "PL-DEMO-004",
         customer: customerTwo,
-        vendor: vendorBeta,
-        vendorPortalSlug: "xuong-in-beta",
+        provider: providerBeta,
+        providerPortalSlug: "xuong-in-beta",
         customerName: "Tran Minh",
         customerEmail: "customer.two@pinklove.local",
         customerPhone: "0900000012",
@@ -737,15 +737,15 @@ async function main() {
         notes: "Demo order completed for reporting views.",
         assignmentStatus: "completed",
         internalNote: "Da giao xong don test 004.",
-        vendorNote: "Da giao hang thanh cong.",
-        vendorReference: "BETA-004",
+        providerNote: "Da giao hang thanh cong.",
+        providerReference: "BETA-004",
         acceptedAt: "2026-04-08T10:00:00.000Z",
         completedAt: "2026-04-11T16:30:00.000Z",
         items: [{ offering: offeringB, quantity: 1, unitPrice: offeringB.price || 1290000 }],
         events: [
           { actorUserId: null, actorType: "system", eventType: "assignment_created", message: "System seeded assignment for demo order 004." },
-          { actorUserId: vendorBeta.id, actorType: "vendor", eventType: "status_changed", message: "Vendor đã cập nhật trạng thái sang completed." },
-          { actorUserId: vendorBeta.id, actorType: "vendor", eventType: "note_added", message: "Vendor note: Da giao hang thanh cong." },
+          { actorUserId: providerBeta.id, actorType: "provider", eventType: "status_changed", message: "Provider đã cập nhật trạng thái sang completed." },
+          { actorUserId: providerBeta.id, actorType: "provider", eventType: "note_added", message: "Provider note: Da giao hang thanh cong." },
         ],
       },
     ];
@@ -773,13 +773,13 @@ async function main() {
       await createOrderItems(client, order.id, scenario.items);
       await createPayment(client, order.id, subtotal, `PAY-${scenario.orderNumber}`);
 
-      const assignment = await createVendorAssignment(client, {
+      const assignment = await createProviderAssignment(client, {
         orderId: order.id,
-        vendorUserId: scenario.vendor.id,
+        providerId: scenario.provider.id,
         status: scenario.assignmentStatus,
         internalNote: scenario.internalNote,
-        vendorNote: scenario.vendorNote,
-        vendorReference: scenario.vendorReference,
+        providerNote: scenario.providerNote,
+        providerReference: scenario.providerReference,
         acceptedAt: scenario.acceptedAt,
         completedAt: scenario.completedAt,
         events: scenario.events,
@@ -788,9 +788,9 @@ async function main() {
       seededOrders.push({
         orderNumber: scenario.orderNumber,
         assignmentId: assignment.id,
-        vendor: scenario.vendor.username,
+        provider: scenario.provider.username,
         orderDetailLink: withBaseUrl(`/partner/orders/${assignment.id}`),
-        portalLink: withBaseUrl(`/partner/${scenario.vendorPortalSlug}`),
+        portalLink: withBaseUrl(`/partner/${scenario.providerPortalSlug}`),
       });
     }
 
@@ -807,13 +807,13 @@ async function main() {
             blog: withBaseUrl("/blog"),
             contact: withBaseUrl("/lien-he"),
           },
-          vendors: [
+          providers: [
             {
-              username: vendorAlpha.username,
+              username: providerAlpha.username,
               portalLink: withBaseUrl("/partner/xuong-in-alpha"),
             },
             {
-              username: vendorBeta.username,
+              username: providerBeta.username,
               portalLink: withBaseUrl("/partner/xuong-in-beta"),
             },
           ],

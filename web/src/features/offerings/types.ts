@@ -1,7 +1,7 @@
 export type OfferingType = string;
 export type OfferingStatus = "draft" | "pending_review" | "published" | "archived" | "disabled";
 export type OfferingFulfillmentType = "digital" | "physical" | "service";
-export type OfferingOwnerType = "internal" | "vendor";
+export type OfferingOwnerType = "internal" | "provider";
 export type OfferingTemplateEngine = "coded" | "builder" | "hybrid" | "motion" | "video" | "ai_generated";
 export type OfferingTemplateMode = "fixed" | "editable" | "hybrid";
 
@@ -129,7 +129,7 @@ export type OfferingTypeDefinition = {
   templateEngine?: OfferingTemplateEngine;
   templateMode?: OfferingTemplateMode;
   supportsInventory: boolean;
-  supportsVendorSupply: boolean;
+  supportsProviderSupply: boolean;
   isSystem: boolean;
   fieldGroups?: OfferingTypeFieldGroup[];
   fieldSchema: OfferingTypeField[];
@@ -177,10 +177,11 @@ export type Offering = {
   lowStockThreshold: number;
   allowBackorder: boolean;
   costPrice: number;
-  vendorSku: string;
-  allowVendorSupply: boolean;
+  providerSku: string;
+  allowProviderSupply: boolean;
   ownerType: OfferingOwnerType;
-  ownerVendorUserId?: string;
+  ownerProviderId?: string;
+  ownerProviderType?: string;
   config: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;

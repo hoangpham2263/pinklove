@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync } from "node:crypto";
 import { Client } from "pg";
 
-const PASSWORD = process.env.SEED_VENDOR_PASSWORD ?? "12313";
+const PASSWORD = process.env.SEED_PROVIDER_PASSWORD ?? "12313";
 const BASE_URL = process.env.SEED_BASE_URL ?? "";
 
 function hashPassword(password) {
@@ -24,7 +24,7 @@ async function fetchRows(client, sql, params = []) {
   return result.rows;
 }
 
-async function upsertUser(client, { username, role, displayName, fullName, phone, vendorPortalSlug, bio }) {
+async function upsertUser(client, { username, role, displayName, fullName, phone, providerPortalSlug, bio }) {
   const user = await fetchRow(
     client,
     `
@@ -41,18 +41,18 @@ async function upsertUser(client, { username, role, displayName, fullName, phone
 
   await client.query(
     `
-      INSERT INTO user_profiles (user_id, display_name, full_name, phone, vendor_portal_slug, bio)
+      INSERT INTO user_profiles (user_id, display_name, full_name, phone, provider_portal_slug, bio)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (user_id)
       DO UPDATE SET
         display_name = EXCLUDED.display_name,
         full_name = EXCLUDED.full_name,
         phone = EXCLUDED.phone,
-        vendor_portal_slug = EXCLUDED.vendor_portal_slug,
+        provider_portal_slug = EXCLUDED.provider_portal_slug,
         bio = EXCLUDED.bio,
         updated_at = NOW()
     `,
-    [user.id, displayName, fullName, phone, vendorPortalSlug ?? null, bio]
+    [user.id, displayName, fullName, phone, providerPortalSlug ?? null, bio]
   );
 
   return user;
@@ -153,16 +153,16 @@ async function upsertOrder(client, orderInput) {
 
   await client.query(
     `
-      DELETE FROM vendor_order_events
+      DELETE FROM provider_order_events
       WHERE assignment_id IN (
         SELECT id
-        FROM vendor_order_assignments
+        FROM provider_order_assignments
         WHERE order_id = $1
       )
     `,
     [order.id]
   );
-  await client.query("DELETE FROM vendor_order_assignments WHERE order_id = $1", [order.id]);
+  await client.query("DELETE FROM provider_order_assignments WHERE order_id = $1", [order.id]);
   await client.query("DELETE FROM commerce_payments WHERE order_id = $1", [order.id]);
   await client.query("DELETE FROM commerce_order_items WHERE order_id = $1", [order.id]);
 
@@ -214,11 +214,11 @@ async function createPayment(client, orderId, amount, suffix) {
 async function createAssignment(client, assignmentInput) {
   const {
     orderId,
-    vendorUserId,
+    providerId,
     status,
     internalNote,
-    vendorNote,
-    vendorReference,
+    providerNote,
+    providerReference,
     acceptedAt,
     completedAt,
   } = assignmentInput;
@@ -226,20 +226,20 @@ async function createAssignment(client, assignmentInput) {
   const assignment = await fetchRow(
     client,
     `
-      INSERT INTO vendor_order_assignments (
+      INSERT INTO provider_order_assignments (
         order_id,
-        vendor_user_id,
+        provider_id,
         status,
         internal_note,
-        vendor_note,
-        vendor_reference,
+        provider_note,
+        provider_reference,
         accepted_at,
         completed_at
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id
     `,
-    [orderId, vendorUserId, status, internalNote, vendorNote, vendorReference, acceptedAt ?? null, completedAt ?? null]
+    [orderId, providerId, status, internalNote, providerNote, providerReference, acceptedAt ?? null, completedAt ?? null]
   );
 
   return assignment;
@@ -248,7 +248,7 @@ async function createAssignment(client, assignmentInput) {
 async function createEvent(client, assignmentId, actorUserId, actorType, eventType, message) {
   await client.query(
     `
-      INSERT INTO vendor_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
+      INSERT INTO provider_order_events (assignment_id, actor_user_id, actor_type, event_type, message)
       VALUES ($1, $2, $3, $4, $5)
     `,
     [assignmentId, actorUserId ?? null, actorType, eventType, message]
@@ -293,27 +293,27 @@ async function main() {
       displayName: "Admin Seed",
       fullName: "Admin Seed",
       phone: "0900000099",
-      bio: "Seeded admin account for vendor portal testing.",
+      bio: "Seeded admin account for provider portal testing.",
     });
 
-    const vendorAlpha = await upsertUser(client, {
-      username: "vendor_alpha",
-      role: "VENDOR",
+    const providerAlpha = await upsertUser(client, {
+      username: "provider_alpha",
+      role: "PROVIDER",
       displayName: "Xuong In Alpha",
       fullName: "Xuong In Alpha",
       phone: "0900000001",
-      vendorPortalSlug: "xuong-in-alpha",
-      bio: "Vendor Alpha seeded for partner portal testing.",
+      providerPortalSlug: "xuong-in-alpha",
+      bio: "Provider Alpha seeded for partner portal testing.",
     });
 
-    const vendorBeta = await upsertUser(client, {
-      username: "vendor_beta",
-      role: "VENDOR",
+    const providerBeta = await upsertUser(client, {
+      username: "provider_beta",
+      role: "PROVIDER",
       displayName: "Xuong In Beta",
       fullName: "Xuong In Beta",
       phone: "0900000002",
-      vendorPortalSlug: "xuong-in-beta",
-      bio: "Vendor Beta seeded for partner portal testing.",
+      providerPortalSlug: "xuong-in-beta",
+      bio: "Provider Beta seeded for partner portal testing.",
     });
 
     const customerOne = await upsertUser(client, {
@@ -338,59 +338,59 @@ async function main() {
       {
         orderNumber: "PL-SEED-PORTAL-001",
         customer: customerOne,
-        vendor: vendorAlpha,
-        vendorPortalSlug: "xuong-in-alpha",
+        provider: providerAlpha,
+        providerPortalSlug: "xuong-in-alpha",
         customerName: "Nguyen Lan",
         customerEmail: "customer.one@pinklove.local",
         customerPhone: "0900000011",
         orderStatus: "processing",
         paymentStatus: "paid",
         fulfillmentStatus: "pending",
-        notes: "Seed order waiting for vendor confirmation.",
+        notes: "Seed order waiting for provider confirmation.",
         assignmentStatus: "pending_confirmation",
         internalNote: "Admin giao đơn test 001 cho Alpha.",
-        vendorNote: "",
-        vendorReference: "",
+        providerNote: "",
+        providerReference: "",
         items: [
           { offering: offeringA, quantity: 1, unitPrice: Number(offeringA.base_price ?? 0) || 990000 },
         ],
         events: [
-          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 001."],
+          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công provider cho đơn test 001."],
         ],
       },
       {
         orderNumber: "PL-SEED-PORTAL-002",
         customer: customerOne,
-        vendor: vendorAlpha,
-        vendorPortalSlug: "xuong-in-alpha",
+        provider: providerAlpha,
+        providerPortalSlug: "xuong-in-alpha",
         customerName: "Nguyen Lan",
         customerEmail: "customer.one@pinklove.local",
         customerPhone: "0900000011",
         orderStatus: "processing",
         paymentStatus: "paid",
         fulfillmentStatus: "processing",
-        notes: "Seed order đang được vendor xử lý.",
+        notes: "Seed order đang được provider xử lý.",
         assignmentStatus: "in_progress",
         internalNote: "Đơn in gấp cần cập nhật tiến độ theo ngày.",
-        vendorNote: "Da chot file in va dang tien hanh san xuat.",
-        vendorReference: "ALPHA-002",
+        providerNote: "Da chot file in va dang tien hanh san xuat.",
+        providerReference: "ALPHA-002",
         acceptedAt: "2026-04-10T08:00:00.000Z",
         items: [
           { offering: offeringA, quantity: 1, unitPrice: Number(offeringA.base_price ?? 0) || 990000 },
           { offering: offeringB, quantity: 1, unitPrice: Number(offeringB.base_price ?? 0) || 1290000 },
         ],
         events: [
-          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 002."],
-          ["vendor", vendorAlpha.id, "status_changed", "Vendor đã cập nhật trạng thái sang accepted."],
-          ["vendor", vendorAlpha.id, "status_changed", "Vendor đã cập nhật trạng thái sang in_progress."],
-          ["vendor", vendorAlpha.id, "note_added", "Vendor note: Da chot file in va dang tien hanh san xuat."],
+          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công provider cho đơn test 002."],
+          ["provider", providerAlpha.id, "status_changed", "Provider đã cập nhật trạng thái sang accepted."],
+          ["provider", providerAlpha.id, "status_changed", "Provider đã cập nhật trạng thái sang in_progress."],
+          ["provider", providerAlpha.id, "note_added", "Provider note: Da chot file in va dang tien hanh san xuat."],
         ],
       },
       {
         orderNumber: "PL-SEED-PORTAL-003",
         customer: customerTwo,
-        vendor: vendorBeta,
-        vendorPortalSlug: "xuong-in-beta",
+        provider: providerBeta,
+        providerPortalSlug: "xuong-in-beta",
         customerName: "Tran Minh",
         customerEmail: "customer.two@pinklove.local",
         customerPhone: "0900000012",
@@ -400,24 +400,24 @@ async function main() {
         notes: "Seed order chờ admin review trước khi bàn giao.",
         assignmentStatus: "ready_for_review",
         internalNote: "Can admin review mau in lan cuoi.",
-        vendorNote: "Da in xong mau, cho admin duyet.",
-        vendorReference: "BETA-003",
+        providerNote: "Da in xong mau, cho admin duyet.",
+        providerReference: "BETA-003",
         acceptedAt: "2026-04-09T09:30:00.000Z",
         items: [
           { offering: offeringC, quantity: 2, unitPrice: Number(offeringC.base_price ?? 0) || 500000 },
         ],
         events: [
-          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 003."],
-          ["vendor", vendorBeta.id, "status_changed", "Vendor đã cập nhật trạng thái sang accepted."],
-          ["vendor", vendorBeta.id, "status_changed", "Vendor đã cập nhật trạng thái sang ready_for_review."],
-          ["vendor", vendorBeta.id, "note_added", "Vendor note: Da in xong mau, cho admin duyet."],
+          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công provider cho đơn test 003."],
+          ["provider", providerBeta.id, "status_changed", "Provider đã cập nhật trạng thái sang accepted."],
+          ["provider", providerBeta.id, "status_changed", "Provider đã cập nhật trạng thái sang ready_for_review."],
+          ["provider", providerBeta.id, "note_added", "Provider note: Da in xong mau, cho admin duyet."],
         ],
       },
       {
         orderNumber: "PL-SEED-PORTAL-004",
         customer: customerTwo,
-        vendor: vendorBeta,
-        vendorPortalSlug: "xuong-in-beta",
+        provider: providerBeta,
+        providerPortalSlug: "xuong-in-beta",
         customerName: "Tran Minh",
         customerEmail: "customer.two@pinklove.local",
         customerPhone: "0900000012",
@@ -427,18 +427,18 @@ async function main() {
         notes: "Seed order đã hoàn tất để test thống kê completed.",
         assignmentStatus: "completed",
         internalNote: "Don da giao hoan tat.",
-        vendorNote: "Da giao hang thanh cong.",
-        vendorReference: "BETA-004",
+        providerNote: "Da giao hang thanh cong.",
+        providerReference: "BETA-004",
         acceptedAt: "2026-04-08T10:00:00.000Z",
         completedAt: "2026-04-11T16:30:00.000Z",
         items: [
           { offering: offeringB, quantity: 1, unitPrice: Number(offeringB.base_price ?? 0) || 1290000 },
         ],
         events: [
-          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công vendor cho đơn test 004."],
-          ["vendor", vendorBeta.id, "status_changed", "Vendor đã cập nhật trạng thái sang in_progress."],
-          ["vendor", vendorBeta.id, "status_changed", "Vendor đã cập nhật trạng thái sang completed."],
-          ["vendor", vendorBeta.id, "note_added", "Vendor note: Da giao hang thanh cong."],
+          ["admin", admin.id, "assignment_created", "Admin đã tạo phân công provider cho đơn test 004."],
+          ["provider", providerBeta.id, "status_changed", "Provider đã cập nhật trạng thái sang in_progress."],
+          ["provider", providerBeta.id, "status_changed", "Provider đã cập nhật trạng thái sang completed."],
+          ["provider", providerBeta.id, "note_added", "Provider note: Da giao hang thanh cong."],
         ],
       },
     ];
@@ -466,11 +466,11 @@ async function main() {
 
       const assignment = await createAssignment(client, {
         orderId: order.id,
-        vendorUserId: scenario.vendor.id,
+        providerId: scenario.provider.id,
         status: scenario.assignmentStatus,
         internalNote: scenario.internalNote,
-        vendorNote: scenario.vendorNote,
-        vendorReference: scenario.vendorReference,
+        providerNote: scenario.providerNote,
+        providerReference: scenario.providerReference,
         acceptedAt: scenario.acceptedAt,
         completedAt: scenario.completedAt,
       });
@@ -482,9 +482,9 @@ async function main() {
       seededOrders.push({
         orderNumber: scenario.orderNumber,
         assignmentId: assignment.id,
-        vendorUsername: scenario.vendor.username,
+        providerUsername: scenario.provider.username,
         orderDetailLink: formatLink(`/partner/orders/${assignment.id}`),
-        portalLink: formatLink(`/partner/${scenario.vendorPortalSlug}`),
+        portalLink: formatLink(`/partner/${scenario.providerPortalSlug}`),
       });
     }
 
@@ -498,14 +498,14 @@ async function main() {
             username: admin.username,
             loginLink: formatLink("/admin/login"),
           },
-          vendors: [
+          providers: [
             {
-              username: vendorAlpha.username,
+              username: providerAlpha.username,
               portalSlug: "xuong-in-alpha",
               portalLink: formatLink("/partner/xuong-in-alpha"),
             },
             {
-              username: vendorBeta.username,
+              username: providerBeta.username,
               portalSlug: "xuong-in-beta",
               portalLink: formatLink("/partner/xuong-in-beta"),
             },

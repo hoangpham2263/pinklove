@@ -30,7 +30,7 @@ Current database has 121 public tables:
 | Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `offering_bundles`, `offering_bundle_items`, `offering_search_documents`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
-| Vendors | `vendor_order_assignments`, `vendor_order_events`, `vendor_offering_submissions`, `vendor_offering_submission_events`, `offering_vendor_suppliers`, `vendor_offering_supplier_requests`, `vendor_applications` |
+| Providers | `provider_order_assignments`, `provider_order_events`, `provider_offering_submissions`, `provider_offering_submission_events`, `offering_provider_suppliers`, `provider_offering_supplier_requests`, `provider_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 | Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
@@ -58,7 +58,7 @@ Offering types are data-driven through `offering_types`:
 
 - `offerings.offering_type` stores the type key.
 - `offering_types.key` defines available type keys, labels, fulfillment behavior,
-  and inventory/vendor flags.
+  and inventory/provider flags.
 - Relational `offering_type_fields` rows are the source of truth for admin field
   definitions.
 - `offering_types.field_schema` has been removed from the clean runtime schema.
@@ -66,8 +66,10 @@ Offering types are data-driven through `offering_types`:
 - `offerings.config` is guarded as lightweight UI/metadata storage only. The
   database boundary rejects `inventory`, `pricing_rules`, `permissions`,
   `analytics`, `booking_logic`, `relational_data`, `siteDefaults`,
-  `generalOffering`, and `vendorSupply`.
-- Physical inventory, cost, vendor ownership, and vendor supply flags live in
+  `generalOffering` and legacy config supply key.
+- `offerings.config` also has a soft size guard: `pg_column_size(config) <=
+  32768`, so it cannot become a dumping ground.
+- Physical inventory, cost, provider ownership, and provider supply flags live in
   `physical_offerings`, not in `offerings.config`.
 - A new type such as `video_invitation` or `creator_service` can be created from
   `/admin/offerings/types` without adding a new table or hardcoded union.
@@ -114,7 +116,7 @@ invalidation event names.
 
 Current runtime seed data:
 
-| Type key | Label | Status | Fulfillment | Template key | Inventory | Vendor supply | System | Fields |
+| Type key | Label | Status | Fulfillment | Template key | Inventory | Provider supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
 | `addon` | Addon | active | digital | `addon` | no | no | yes | 0 |
 | `creator_service` | Creator Service | active | service | `creator_service` | no | yes | yes | 0 |
@@ -135,11 +137,14 @@ Current runtime offering data:
 ## Final Cleanup Runtime Contracts
 
 - ID columns are text-only. User references, menu references, affiliate
-  references, chat references, vendor fulfillment references, and
+  references, chat references, provider fulfillment references, and
   `app_settings.id` have all been migrated away from `bigint`/`integer` IDs.
 - Provider types are controlled by `provider_types`; current seeded values are
-  `vendor`, `creator`, `studio`, `planner`, `photographer`, `makeup`,
+  `supplier`, `creator`, `studio`, `planner`, `photographer`, `makeup`,
   `florist`, and `videographer`.
+- Marketplace/service ownership resolves through `providers.id`. Offering
+  subtype tables use `provider_id` and `provider_type`; user IDs stay limited to
+  authentication, identity, and root ownership.
 - Template rendering strategy is controlled by `template_engines`; current
   seeded values are `coded`, `builder`, `hybrid`, `motion`, `video`, and
   `ai_generated`.
@@ -147,10 +152,16 @@ Current runtime offering data:
   seeded values are `draft`, `pending_review`, `published`, `archived`, and
   `disabled`.
 - Media link constraints are backed by `media_target_types` and `media_roles`.
-  The runtime accepts targets such as `offering`, `provider`, `wedding_site`,
+  The runtime accepts targets such as `offering`, `supplier`, `wedding_site`,
   `gallery`, `booking`, `organization`, and `template`.
 - `offering_search_documents.search_vector` is a generated PostgreSQL
   `tsvector` with a GIN index for full-text search.
+- Search sync event names are registered in `domain_event_types`:
+  `offering.search.sync`, `template.search.sync`, and `provider.search.sync`.
+- Template ranking columns are available as `trend_score`, `conversion_score`,
+  and `quality_score`.
+- Bundles support pricing rules through `pricing_strategy`, `discount_type`, and
+  `discount_value`.
 - `field_change_logs` stores auditable field changes across modules.
 - `seo_redirects`, `seo_metadata`, and `seo_indexing_rules` hold SEO domain
   state outside generic JSON settings.
@@ -159,7 +170,7 @@ Current runtime offering data:
 - `domain_event_types` declares canonical event names and marks cache
   invalidation events such as `offering.updated`, `template.updated`,
   `provider.updated`, and `site.published`.
-- Vendor-prefixed fulfillment tables remain intentionally as the physical
+- Provider-prefixed fulfillment tables remain intentionally as the physical
   fulfillment domain. Provider-facing marketplace identity lives in
   `providers` and `provider_*` tables.
 
@@ -169,7 +180,7 @@ Current runtime offering data:
 erDiagram
   users ||--o{ user_sessions : owns
   users ||--o{ user_profiles : has
-  users ||--o{ offerings : vendor_owns
+  users ||--o{ offerings : provider_owns
   users ||--o{ offerings : owns
   users ||--o{ wedding_sites : creates
   users ||--o{ commerce_orders : places
@@ -196,7 +207,7 @@ erDiagram
   commerce_orders ||--o{ commerce_order_items : contains
   commerce_orders ||--o{ commerce_payments : paid_by
   commerce_orders ||--o{ commerce_entitlements : grants
-  commerce_orders ||--o| vendor_order_assignments : assigned_to
+  commerce_orders ||--o| provider_order_assignments : assigned_to
 
   navigation_menus ||--o{ navigation_menu_items : contains
   blog_categories ||--o{ blog_posts : contains
@@ -227,7 +238,7 @@ erDiagram
     text fulfillment_type
     text template_key
     boolean supports_inventory
-    boolean supports_vendor_supply
+    boolean supports_provider_supply
     boolean is_system
   }
 
@@ -273,7 +284,7 @@ erDiagram
     boolean track_inventory
     int stock_quantity
     numeric cost_price
-    boolean allow_vendor_supply
+    boolean allow_provider_supply
   }
 
   service_offerings {
@@ -285,7 +296,8 @@ erDiagram
 
   creator_service_offerings {
     text offering_id PK, FK
-    text creator_user_id FK
+    text provider_id FK
+    text provider_type
     text service_kind
     int delivery_days
   }
@@ -527,7 +539,7 @@ erDiagram
   user_profiles {
     text user_id PK, FK
     text display_name
-    text vendor_portal_slug
+    text provider_portal_slug
   }
 
   user_shipping_profiles {
@@ -620,7 +632,7 @@ erDiagram
     text fulfillment_type
     text template_key
     boolean supports_inventory
-    boolean supports_vendor_supply
+    boolean supports_provider_supply
     boolean is_system
   }
 
@@ -661,10 +673,11 @@ erDiagram
   physical_offerings {
     text offering_id PK, FK
     text fulfillment_type
-    text owner_vendor_user_id FK
+    text provider_id FK
+    text provider_type
     int stock_quantity
     numeric cost_price
-    boolean allow_vendor_supply
+    boolean allow_provider_supply
   }
 
   wedding_sites {
@@ -711,7 +724,7 @@ erDiagram
   users ||--o{ shopping_cart_items : owns
   users ||--o{ content_comments : writes
   users ||--o{ content_comments : approves
-  users ||--o{ physical_offerings : owns_vendor_offering
+  users ||--o{ physical_offerings : owns_provider_offering
 
   offering_categories ||--o{ offerings : categorizes
   offering_types ||--o{ offerings : defines
@@ -726,7 +739,7 @@ erDiagram
   blog_categories ||--o{ blog_posts : contains
 ```
 
-## Commerce, Affiliate, And Vendor Flow
+## Commerce, Affiliate, And Provider Flow
 
 ```mermaid
 erDiagram
@@ -813,50 +826,50 @@ erDiagram
     text status
   }
 
-  vendor_order_assignments {
+  provider_order_assignments {
     text id PK
     text order_id FK
-    text vendor_user_id FK
+    text provider_id FK
     text status
   }
 
-  vendor_order_events {
+  provider_order_events {
     text id PK
     text assignment_id FK
     text actor_user_id FK
     text event_type
   }
 
-  vendor_offering_submissions {
+  provider_offering_submissions {
     text id PK
-    text vendor_user_id FK
+    text provider_id FK
     text linked_offering_id FK
     text category_id FK
     text review_status
   }
 
-  vendor_offering_submission_events {
+  provider_offering_submission_events {
     text id PK
     text submission_id FK
     text actor_user_id FK
     text event_type
   }
 
-  offering_vendor_suppliers {
+  offering_provider_suppliers {
     text id PK
     text offering_id FK
-    text vendor_user_id FK
+    text provider_id FK
     text status
   }
 
-  vendor_offering_supplier_requests {
+  provider_offering_supplier_requests {
     text id PK
     text offering_id FK
-    text vendor_user_id FK
+    text provider_id FK
     text review_status
   }
 
-  vendor_applications {
+  provider_applications {
     text id PK
     text email
     text review_status
@@ -865,10 +878,10 @@ erDiagram
   users ||--o| affiliate_accounts : can_have
   users ||--o{ commerce_orders : places
   users ||--o{ commerce_entitlements : receives
-  users ||--o{ vendor_order_assignments : fulfills
-  users ||--o{ vendor_offering_submissions : submits
-  users ||--o{ offering_vendor_suppliers : supplies
-  users ||--o{ vendor_offering_supplier_requests : requests
+  users ||--o{ provider_order_assignments : fulfills
+  users ||--o{ provider_offering_submissions : submits
+  users ||--o{ offering_provider_suppliers : supplies
+  users ||--o{ provider_offering_supplier_requests : requests
 
   affiliate_accounts ||--o{ affiliate_clicks : tracks
   affiliate_accounts ||--o{ affiliate_conversions : earns
@@ -879,12 +892,12 @@ erDiagram
   commerce_orders ||--o{ commerce_payment_logs : logs
   commerce_orders ||--o| commerce_shipments : ships
   commerce_orders ||--o{ commerce_entitlements : grants
-  commerce_orders ||--o| vendor_order_assignments : assigned_to
+  commerce_orders ||--o| provider_order_assignments : assigned_to
 
   commerce_order_items ||--o{ commerce_entitlements : grants
   commerce_payments ||--o{ commerce_payment_logs : logs
-  vendor_order_assignments ||--o{ vendor_order_events : records
-  vendor_offering_submissions ||--o{ vendor_offering_submission_events : records
+  provider_order_assignments ||--o{ provider_order_events : records
+  provider_offering_submissions ||--o{ provider_offering_submission_events : records
 ```
 
 ## Chat And Notifications
@@ -1024,8 +1037,8 @@ archived without breaking existing catalog rows.
 | `commerce_shipments.order_id` | `commerce_orders.id` | CASCADE |
 | `content_comments.approved_by` | `users.id` | SET NULL |
 | `content_comments.author_user_id` | `users.id` | SET NULL |
-| `physical_offerings.owner_vendor_user_id` | `users.id` | SET NULL |
 | `physical_offerings.offering_id` | `offerings.id` | CASCADE |
+| `physical_offerings.provider_id` | `providers.id` | SET NULL |
 | `navigation_menu_items.menu_id` | `navigation_menus.id` | CASCADE |
 | `notification_target_roles.notification_id` | `notifications.id` | CASCADE |
 | `notification_target_users.notification_id` | `notifications.id` | CASCADE |
@@ -1033,9 +1046,9 @@ archived without breaking existing catalog rows.
 | `notification_user_states.notification_id` | `notifications.id` | CASCADE |
 | `notification_user_states.user_id` | `users.id` | CASCADE |
 | `notifications.created_by_user_id` | `users.id` | SET NULL |
-| `offering_vendor_suppliers.approved_by` | `users.id` | SET NULL |
-| `offering_vendor_suppliers.offering_id` | `offerings.id` | CASCADE |
-| `offering_vendor_suppliers.vendor_user_id` | `users.id` | CASCADE |
+| `offering_provider_suppliers.approved_by` | `users.id` | SET NULL |
+| `offering_provider_suppliers.offering_id` | `offerings.id` | CASCADE |
+| `offering_provider_suppliers.provider_id` | `users.id` | CASCADE |
 | `offerings.category_id` | `offering_categories.id` | SET NULL |
 | `shopping_cart_items.offering_id` | `offerings.id` | CASCADE |
 | `shopping_cart_items.user_id` | `users.id` | CASCADE |
@@ -1046,19 +1059,19 @@ archived without breaking existing catalog rows.
 | `user_settings.user_id` | `users.id` | CASCADE |
 | `user_shipping_profiles.user_id` | `users.id` | CASCADE |
 | `users.account_status_updated_by` | `users.id` | SET NULL |
-| `vendor_order_assignments.order_id` | `commerce_orders.id` | CASCADE |
-| `vendor_order_assignments.vendor_user_id` | `users.id` | CASCADE |
-| `vendor_order_events.actor_user_id` | `users.id` | SET NULL |
-| `vendor_order_events.assignment_id` | `vendor_order_assignments.id` | CASCADE |
-| `vendor_offering_submission_events.actor_user_id` | `users.id` | SET NULL |
-| `vendor_offering_submission_events.submission_id` | `vendor_offering_submissions.id` | CASCADE |
-| `vendor_offering_submissions.category_id` | `offering_categories.id` | SET NULL |
-| `vendor_offering_submissions.linked_offering_id` | `offerings.id` | SET NULL |
-| `vendor_offering_submissions.reviewed_by` | `users.id` | SET NULL |
-| `vendor_offering_submissions.vendor_user_id` | `users.id` | CASCADE |
-| `vendor_offering_supplier_requests.offering_id` | `offerings.id` | CASCADE |
-| `vendor_offering_supplier_requests.reviewed_by` | `users.id` | SET NULL |
-| `vendor_offering_supplier_requests.vendor_user_id` | `users.id` | CASCADE |
+| `provider_order_assignments.order_id` | `commerce_orders.id` | CASCADE |
+| `provider_order_assignments.provider_id` | `users.id` | CASCADE |
+| `provider_order_events.actor_user_id` | `users.id` | SET NULL |
+| `provider_order_events.assignment_id` | `provider_order_assignments.id` | CASCADE |
+| `provider_offering_submission_events.actor_user_id` | `users.id` | SET NULL |
+| `provider_offering_submission_events.submission_id` | `provider_offering_submissions.id` | CASCADE |
+| `provider_offering_submissions.category_id` | `offering_categories.id` | SET NULL |
+| `provider_offering_submissions.linked_offering_id` | `offerings.id` | SET NULL |
+| `provider_offering_submissions.reviewed_by` | `users.id` | SET NULL |
+| `provider_offering_submissions.provider_id` | `users.id` | CASCADE |
+| `provider_offering_supplier_requests.offering_id` | `offerings.id` | CASCADE |
+| `provider_offering_supplier_requests.reviewed_by` | `users.id` | SET NULL |
+| `provider_offering_supplier_requests.provider_id` | `users.id` | CASCADE |
 | `wedding_sites.offering_id` | `offerings.id` | SET NULL |
 | `wedding_sites.user_id` | `users.id` | CASCADE |
 
@@ -1075,7 +1088,7 @@ docker compose exec db psql -U app -d app -P pager=off -c \
   "select tc.table_name, kcu.column_name, ccu.table_name as foreign_table_name, ccu.column_name as foreign_column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name=kcu.constraint_name and tc.table_schema=kcu.table_schema join information_schema.constraint_column_usage ccu on ccu.constraint_name=tc.constraint_name and ccu.table_schema=tc.table_schema join information_schema.referential_constraints rc on rc.constraint_name=tc.constraint_name and rc.constraint_schema=tc.table_schema where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public' order by tc.table_name,kcu.column_name;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
-  "select ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_vendor_supply,ot.is_system,count(otf.id) as fields from offering_types ot left join offering_type_fields otf on otf.offering_type_id=ot.id group by ot.id,ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_vendor_supply,ot.is_system order by ot.is_system desc, ot.key;"
+  "select ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system,count(otf.id) as fields from offering_types ot left join offering_type_fields otf on otf.offering_type_id=ot.id group by ot.id,ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system order by ot.is_system desc, ot.key;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
   "select offering_type,count(*) from offerings group by offering_type order by offering_type;"

@@ -10,7 +10,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TYPES)) return "Offering Types";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TEMPLATES)) return "Offering Templates";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_BUILDER)) return "Offering Builder";
-  if (pathname.startsWith(ROUTES.ADMIN.VENDOR_OFFERINGS)) return "Vendor Offering Review";
+  if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_OFFERINGS)) return "Provider Offering Review";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_CATEGORIES)) return "Offering Categories";
   if (pathname === ROUTES.ADMIN.OFFERINGS) return "Create Offering";
   if (pathname === ROUTES.ADMIN.OFFERING_MANAGE) return "Offering";
@@ -22,7 +22,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.USERS)) return "Users";
   if (pathname.startsWith(ROUTES.ADMIN.CUSTOMERS)) return "Khách hàng";
   if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_USERS)) return "Đối tác / CTV";
-  if (pathname.startsWith(ROUTES.ADMIN.VENDORS)) return "Nhà cung cấp";
+  if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_ACCOUNTS)) return "Nhà cung cấp";
   if (pathname.startsWith(ROUTES.ADMIN.INTERNAL_ACCOUNTS)) return "Tài khoản nội bộ";
   if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_APPLICATIONS)) return "Hồ sơ Guest Affiliate";
   if (pathname.startsWith(ROUTES.ADMIN.AFFILIATE_ACCOUNTS)) return "Duyệt Customer Affiliate";

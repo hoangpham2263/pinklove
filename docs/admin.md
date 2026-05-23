@@ -12,7 +12,7 @@ This file covers the admin area and admin-controlled workflows.
 
 - Only the `ADMIN` role may access the admin area.
 - The admin shell lives under `src/app/admin/(protected)`.
-- Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR` for stored roles; `GUEST` is the public non-authenticated actor only.
+- Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER` for stored roles; `GUEST` is the public non-authenticated actor only.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin offering flows operate on catalog entries in `offerings`.
@@ -43,9 +43,9 @@ This file covers the admin area and admin-controlled workflows.
 - Page-level SEO editor may override per-page permalink/breadcrumb data, but shared defaults and toggles live in admin config.
 - Admin blog management now includes dynamic CRUD for `Blog Posts` and `Blog Categories`.
 - Admin offering categories now use a dedicated `offering_categories` data model and offerings can be assigned to a category from admin offering forms.
-- Actor accounts now have dedicated management screens for `CUSTOMER`, `AFFILIATE`, and `VENDOR`, in addition to the full account list.
-- `Admin > Nhà cung cấp` can expose a dedicated detail page per vendor account so operations can review that vendor's assigned orders in one place.
-- Vendor management may also expose a dedicated public entry link per vendor account that routes into the shared partner portal after login.
+- Actor accounts now have dedicated management screens for `CUSTOMER`, `AFFILIATE`, and `PROVIDER`, in addition to the full account list.
+- `Admin > Nhà cung cấp` can expose a dedicated detail page per provider account so operations can review that provider's assigned orders in one place.
+- Provider management may also expose a dedicated public entry link per provider account that routes into the shared partner portal after login.
 - Admin order state updates should use client-side mutation panels for operational screens when partial realtime refresh is available, instead of relying on native form redirects.
 - Admin-facing status displays may keep stored enum values in English internally, but visible management labels should be shown in Vietnamese for clarity.
 - Admin UI mutations and fetches should go through `src/lib/api-client.admin.ts`.
@@ -59,7 +59,7 @@ This file covers the admin area and admin-controlled workflows.
 - blog categories
 - customer management
 - affiliate actor management
-- vendor management
+- provider management
 - ecommerce operations
   - orders
   - payments

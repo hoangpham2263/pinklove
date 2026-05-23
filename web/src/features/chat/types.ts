@@ -8,7 +8,7 @@ export type ChatSupportRequestCategory =
   | "order_support"
   | "billing"
   | "affiliate_support"
-  | "vendor_support"
+  | "provider_support"
   | "other";
 export type ChatConversationPriority = "low" | "normal" | "high" | "urgent";
 export type ChatMessageVisibility = "all" | "internal";

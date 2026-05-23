@@ -110,7 +110,7 @@ async function main() {
       ["offering_statuses", 5],
       ["media_target_types", 7],
       ["media_roles", 8],
-      ["domain_event_types", 8],
+      ["domain_event_types", 11],
     ];
     for (const [tableName, minimumCount] of seedExpectations) {
       const count = Number(await scalar(client, `SELECT COUNT(*) FROM ${tableName}`));
@@ -143,8 +143,7 @@ async function main() {
           'booking_logic',
           'relational_data',
           'siteDefaults',
-          'generalOffering',
-          'vendorSupply'
+          'generalOffering'
         ]
         `
       )
@@ -164,6 +163,41 @@ async function main() {
     );
     for (const status of ["draft", "pending_review", "published", "archived", "disabled"]) {
       assert(offeringStatusConstraint.includes(status), `offerings_status_check is missing ${status}`);
+    }
+
+    const providerColumns = await client.query(`
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name IN ('physical_offerings', 'creator_service_offerings')
+        AND column_name IN ('provider_id', 'provider_type')
+    `);
+    const providerColumnSet = new Set(providerColumns.rows.map((row) => `${row.table_name}.${row.column_name}`));
+    for (const key of [
+      "physical_offerings.provider_id",
+      "physical_offerings.provider_type",
+      "creator_service_offerings.provider_id",
+      "creator_service_offerings.provider_type",
+    ]) {
+      assert(providerColumnSet.has(key), `${key} is required`);
+    }
+
+    const configSizeConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'offerings_config_size_check'
+          AND conrelid = 'offerings'::regclass
+        `
+      ) ?? ""
+    );
+    assert(configSizeConstraint.includes("pg_column_size"), "offerings_config_size_check is missing");
+
+    for (const eventName of ["offering.search.sync", "template.search.sync", "provider.search.sync"]) {
+      const eventCount = Number(await scalar(client, "SELECT COUNT(*) FROM domain_event_types WHERE key = $1", [eventName]));
+      assert(eventCount === 1, `${eventName} is missing from domain_event_types`);
     }
 
     console.log("Schema audit passed.");

@@ -83,7 +83,7 @@ This file is the repo-wide source of truth.
 - Use role-based client API modules for browser/UI code:
   - `src/lib/api-client.admin.ts`
   - `src/lib/api-client.customer.ts`
-  - `src/lib/api-client.vendor.ts`
+  - `src/lib/api-client.provider.ts`
   - `src/lib/api-client.public.ts`
 - Client components should import API methods from the matching role file directly.
 - Do not add new feature-local UI wrappers like `src/features/*/api/client.ts`.
@@ -131,13 +131,19 @@ This file is the repo-wide source of truth.
 - The runtime strips and rejects business-domain keys in `offerings.config`,
   including `inventory`, `pricing_rules`, `permissions`, `analytics`,
   `booking_logic`, `relational_data`, `siteDefaults`, `generalOffering`, and
-  `vendorSupply`.
+  legacy config supply key.
+- `offerings.config` must stay small. Runtime enforces
+  `pg_column_size(config) <= 32768`; move growing workflows into relational
+  tables before they approach that limit.
+- Marketplace ownership must use `provider_id`. Do not add new
+  `provider_id`, `provider_id`, or service ownership columns that
+  point directly at `users`.
 - Run `npm run audit:schema` after DB architecture changes. The audit must pass
   before considering ID, offering config, search index, SEO table, or enum-like
   config cleanup complete.
 - `digital_template` offerings represent online templates, motion/video templates,
   and builder starters.
-- `physical_product` offerings represent regular shop/vendor/API products such
+- `physical_product` offerings represent regular shop/provider/API products such
   as paper invitations and add-ons.
 - Coded/builder behavior belongs to `template_engine`, not `offering_type`.
 - Guest catalog pages should use the configured offering type scope first, then category/price/sort filters.

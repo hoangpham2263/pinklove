@@ -16,7 +16,7 @@ export default async function AdminUserCreatePage({ searchParams }: AdminUserCre
   const adminCount = await countAdmins();
   const customerCount = users.filter((user) => user.role === USER_ROLES.CUSTOMER).length;
   const affiliateCount = users.filter((user) => user.role === USER_ROLES.AFFILIATE).length;
-  const vendorCount = users.filter((user) => user.role === USER_ROLES.VENDOR).length;
+  const providerCount = users.filter((user) => user.role === USER_ROLES.PROVIDER).length;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -28,7 +28,7 @@ export default async function AdminUserCreatePage({ searchParams }: AdminUserCre
         <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} icon={UserPlus} />
-        <AdminOverviewCard title="Affiliate + Vendor" value={affiliateCount + vendorCount} description={`Affiliate marketing: ${affiliateCount} • Vendor cung ứng: ${vendorCount}`} icon={BadgePercent} />
+        <AdminOverviewCard title="Affiliate + Provider" value={affiliateCount + providerCount} description={`Affiliate marketing: ${affiliateCount} • Provider cung ứng: ${providerCount}`} icon={BadgePercent} />
       </AdminOverviewGrid>
 
       <Card className="rounded-lg">

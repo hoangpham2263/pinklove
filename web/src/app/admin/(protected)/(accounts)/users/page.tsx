@@ -19,7 +19,7 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
   const adminCount = await countAdmins();
   const customerCount = users.filter((user) => user.role === USER_ROLES.CUSTOMER).length;
   const affiliateCount = users.filter((user) => user.role === USER_ROLES.AFFILIATE).length;
-  const vendorCount = users.filter((user) => user.role === USER_ROLES.VENDOR).length;
+  const providerCount = users.filter((user) => user.role === USER_ROLES.PROVIDER).length;
   await searchParams;
 
   return (
@@ -28,13 +28,13 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
         <AdminOverviewCard title="Tổng người dùng" value={users.length} icon={Users} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.ADMIN)} value={adminCount} icon={ShieldCheck} />
         <AdminOverviewCard title={getRoleLabel(USER_ROLES.CUSTOMER)} value={customerCount} description="Quản lý riêng tại trang actor." icon={UserPlus} />
-        <AdminOverviewCard title="Affiliate + Vendor" value={affiliateCount + vendorCount} description={`Affiliate marketing: ${affiliateCount} • Vendor cung ứng: ${vendorCount}`} icon={BadgePercent} />
+        <AdminOverviewCard title="Affiliate + Provider" value={affiliateCount + providerCount} description={`Affiliate marketing: ${affiliateCount} • Provider cung ứng: ${providerCount}`} icon={BadgePercent} />
       </AdminOverviewGrid>
 
       <div className="grid gap-4 md:grid-cols-4">
         <AdminLinkButton href={ROUTES.ADMIN.CUSTOMERS}>Mở danh sách khách hàng</AdminLinkButton>
         <AdminLinkButton href={ROUTES.ADMIN.AFFILIATE_USERS}>Mở danh sách đối tác / CTV</AdminLinkButton>
-        <AdminLinkButton href={ROUTES.ADMIN.VENDORS}>Mở danh sách nhà cung cấp</AdminLinkButton>
+        <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNTS}>Mở danh sách nhà cung cấp</AdminLinkButton>
         <Dialog>
           <AdminDialogCreateTrigger>
             Tạo người dùng

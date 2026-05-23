@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getCurrentUserFromRequest, getUserShippingProfile, isVendorRole, setUserShippingProfile } from "@/lib/auth";
+import { getCurrentUserFromRequest, getUserShippingProfile, isProviderRole, setUserShippingProfile } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return new NextResponse(null, { status: 303, headers: { Location: ROUTES.PARTNER.LOGIN } });
   }
 
-  if (!isVendorRole(user.role)) {
+  if (!isProviderRole(user.role)) {
     if (wantsJson) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

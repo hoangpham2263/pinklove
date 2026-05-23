@@ -25,15 +25,22 @@ import {
 } from "@/features/offerings/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import type { AccountUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
+
+type ProviderOption = {
+  id: string;
+  display_name?: string;
+  displayName?: string;
+  fullName?: string;
+  username?: string;
+};
 
 type OfferingEditorFormProps = {
   offering: Offering;
   offeringTypeDefinition: OfferingTypeDefinition | null;
   categories: OfferingCategory[];
-  vendors: AccountUser[];
+  providers: ProviderOption[];
   returnTo?: string;
 };
 
@@ -41,7 +48,7 @@ export function OfferingEditorForm({
   offering,
   offeringTypeDefinition,
   categories,
-  vendors,
+  providers,
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: OfferingEditorFormProps) {
   const router = useRouter();
@@ -54,10 +61,10 @@ export function OfferingEditorForm({
   const [lowStockThreshold, setLowStockThreshold] = useState(offering.lowStockThreshold);
   const [allowBackorder, setAllowBackorder] = useState(offering.allowBackorder);
   const [costPrice, setCostPrice] = useState(offering.costPrice);
-  const [vendorSku, setVendorSku] = useState(offering.vendorSku);
-  const [ownerType, setOwnerType] = useState<"internal" | "vendor">(offering.ownerType);
-  const [ownerVendorUserId, setOwnerVendorUserId] = useState(offering.ownerVendorUserId || "");
-  const [allowVendorSupply, setAllowVendorSupply] = useState(offering.allowVendorSupply);
+  const [providerSku, setProviderSku] = useState(offering.providerSku);
+  const [ownerType, setOwnerType] = useState<"internal" | "provider">(offering.ownerType);
+  const [ownerProviderId, setOwnerProviderId] = useState(offering.ownerProviderId || "");
+  const [allowProviderSupply, setAllowProviderSupply] = useState(offering.allowProviderSupply);
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
@@ -318,19 +325,19 @@ export function OfferingEditorForm({
             {isGeneralOffering ? (
               <>
                 <div className="space-y-2 md:col-span-2">
-                  <label className="font-medium">Vendor supplier requests</label>
+                  <label className="font-medium">Provider supplier requests</label>
                   <label className="flex items-start gap-3 rounded-md border bg-card p-3">
                     <input
                       type="checkbox"
-                      name="allowVendorSupply"
-                      checked={allowVendorSupply}
-                      onChange={(e) => setAllowVendorSupply(e.target.checked)}
+                      name="allowProviderSupply"
+                      checked={allowProviderSupply}
+                      onChange={(e) => setAllowProviderSupply(e.target.checked)}
                       className="mt-1 rounded border-input"
                     />
                     <span className="space-y-1">
-                      <span className="block font-medium">Cho phép vendor xin cung cấp sản phẩm này</span>
+                      <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
                       <span className="block text-sm text-muted-foreground">
-                        Chỉ bật cho mẫu/sản phẩm đã sẵn sàng review supplier. Vendor sẽ thấy mục này trong portal.
+                        Chỉ bật cho mẫu/sản phẩm đã sẵn sàng review supplier. Provider sẽ thấy mục này trong portal.
                       </span>
                     </span>
                   </label>
@@ -341,26 +348,26 @@ export function OfferingEditorForm({
                   <select
                     name="ownerType"
                     value={ownerType}
-                    onChange={(e) => setOwnerType(e.target.value === "vendor" ? "vendor" : "internal")}
+                    onChange={(e) => setOwnerType(e.target.value === "provider" ? "provider" : "internal")}
                     className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="internal">Sản phẩm của tôi / nội bộ</option>
-                    <option value="vendor">Sản phẩm của đối tác</option>
+                    <option value="provider">Sản phẩm của provider</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="font-medium">Đối tác</label>
+                  <label className="font-medium">Provider</label>
                   <select
-                    name="ownerVendorUserId"
-                    value={ownerVendorUserId}
-                    onChange={(e) => setOwnerVendorUserId(e.target.value)}
-                    disabled={ownerType !== "vendor"}
+                    name="ownerProviderId"
+                    value={ownerProviderId}
+                    onChange={(e) => setOwnerProviderId(e.target.value)}
+                    disabled={ownerType !== "provider"}
                     className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
                   >
-                    <option value="">Chọn đối tác</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>
-                        {vendor.displayName || vendor.fullName || vendor.username}
+                    <option value="">Chọn provider</option>
+                    {providers.map((provider) => (
+                      <option key={provider.id} value={provider.id}>
+                        {provider.displayName || provider.display_name || provider.fullName || provider.username}
                       </option>
                     ))}
                   </select>
@@ -462,12 +469,12 @@ export function OfferingEditorForm({
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="font-medium">Vendor SKU</label>
+                    <label className="font-medium">Provider SKU</label>
                     <Input
-                      name="vendorSku"
-                      value={vendorSku}
-                      onChange={(e) => setVendorSku(e.target.value)}
-                      placeholder="Mã nội bộ phía vendor"
+                      name="providerSku"
+                      value={providerSku}
+                      onChange={(e) => setProviderSku(e.target.value)}
+                      placeholder="Mã nội bộ phía provider"
                     />
                   </div>
                 </div>
@@ -477,7 +484,7 @@ export function OfferingEditorForm({
                 <input type="hidden" name="stockQuantity" value="0" />
                 <input type="hidden" name="lowStockThreshold" value="0" />
                 <input type="hidden" name="costPrice" value="0" />
-                <input type="hidden" name="vendorSku" value="" />
+                <input type="hidden" name="providerSku" value="" />
               </>
             )}
           </div>

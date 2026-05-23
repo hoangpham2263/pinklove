@@ -106,9 +106,9 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
         cell: ({ row }) => (row.original.supportsInventory ? "Yes" : "No"),
       },
       {
-        accessorKey: "supportsVendorSupply",
+        accessorKey: "supportsProviderSupply",
         header: "Provider",
-        cell: ({ row }) => (row.original.supportsVendorSupply ? "Yes" : "No"),
+        cell: ({ row }) => (row.original.supportsProviderSupply ? "Yes" : "No"),
       },
       {
         accessorKey: "status",
@@ -282,7 +282,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               <PreviewField label="Fields" value={previewType.fieldSchema.length} />
               <PreviewField label="Template key" value={previewType.templateKey} />
               <PreviewField label="Inventory" value={previewType.supportsInventory ? "Yes" : "No"} />
-              <PreviewField label="Provider supply" value={previewType.supportsVendorSupply ? "Yes" : "No"} />
+              <PreviewField label="Provider supply" value={previewType.supportsProviderSupply ? "Yes" : "No"} />
             </div>
             <div className="rounded-md border p-3 text-sm text-muted-foreground">
               {previewType.description || "Không có mô tả."}
@@ -459,7 +459,7 @@ function OfferingTypeForm({
             <input type="checkbox" name="supportsInventory" defaultChecked={offeringType?.supportsInventory ?? false} /> Có tồn kho
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="supportsVendorSupply" defaultChecked={offeringType?.supportsVendorSupply ?? false} /> Cho provider supply
+            <input type="checkbox" name="supportsProviderSupply" defaultChecked={offeringType?.supportsProviderSupply ?? false} /> Cho provider supply
           </label>
         </div>
 

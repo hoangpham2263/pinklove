@@ -453,7 +453,7 @@ export async function renderGeneralOfferingPage(offering: Offering) {
         metaRows={[
           ["Tình trạng", getStockLabel(offering)],
           ["Bàn giao", getFulfillmentLabel(offering.fulfillmentType)],
-          ["Nguồn hàng", offering.ownerType === "vendor" ? "Đối tác" : "Nội bộ"],
+          ["Nguồn hàng", offering.ownerType === "provider" ? "Đối tác" : "Nội bộ"],
         ]}
         actions={
           <>

@@ -1,6 +1,6 @@
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { ROUTES } from "@/lib/routes";
-import { createVendorApplication } from "@/features/vendor-applications/server/service";
+import { createProviderApplication } from "@/features/provider-applications/server/service";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
 
   try {
-    await createVendorApplication({
+    await createProviderApplication({
       companyName: String(formData.get("companyName") ?? ""),
       contactName: String(formData.get("contactName") ?? ""),
       phone: String(formData.get("phone") ?? ""),

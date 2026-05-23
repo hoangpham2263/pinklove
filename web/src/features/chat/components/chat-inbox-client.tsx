@@ -88,8 +88,8 @@ const SUPPORT_REQUEST_OPTIONS: Array<{
     description: "Theo dõi hoa hồng, link giới thiệu, mã affiliate hoặc hồ sơ CTV.",
   },
   {
-    value: "vendor_support",
-    label: "Hỗ trợ vendor",
+    value: "provider_support",
+    label: "Hỗ trợ provider",
     description: "Trao đổi vận hành, đơn được giao, tiến độ xử lý hoặc thông tin nhà cung cấp.",
   },
   {
@@ -147,8 +147,8 @@ function getConversationLabel(conversation: ChatConversationSummary) {
         return "Thanh toán";
       case "affiliate_support":
         return "Affiliate";
-      case "vendor_support":
-        return "Vendor";
+      case "provider_support":
+        return "Provider";
       case "other":
         return "Khác";
       case "general":
@@ -427,7 +427,7 @@ function getConversationDisplayTitle(conversation: ChatConversationSummary, curr
 
 function getDefaultSupportRequestCategory(role: UserRole): ChatSupportRequestCategory {
   if (role === USER_ROLES.AFFILIATE) return "affiliate_support";
-  if (role === USER_ROLES.VENDOR) return "vendor_support";
+  if (role === USER_ROLES.PROVIDER) return "provider_support";
   return "general";
 }
 

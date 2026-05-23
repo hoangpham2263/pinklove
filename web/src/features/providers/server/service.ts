@@ -2,8 +2,24 @@ import "server-only";
 
 import { query } from "@/lib/database";
 
-export type ProviderType = "vendor" | "creator" | "studio" | "planner" | "makeup" | "photographer" | "florist";
+export type ProviderType = "supplier" | "creator" | "studio" | "planner" | "makeup" | "photographer" | "florist" | "videographer";
 export type ProviderStatus = "draft" | "published" | "archived";
+
+export type ProviderRecord = {
+  id: string;
+  user_id: string | null;
+  organization_id: string | null;
+  slug: string;
+  display_name: string;
+  provider_type: ProviderType;
+  status: ProviderStatus;
+  metadata: Record<string, unknown>;
+  business_name?: string;
+  contact_email?: string;
+  phone?: string;
+  bio?: string;
+  description?: string;
+};
 
 export type ProviderInput = {
   userId?: string;
@@ -46,7 +62,7 @@ export async function saveProvider(input: ProviderInput) {
       input.organizationId ?? null,
       input.slug,
       input.displayName,
-      input.providerType ?? "vendor",
+      input.providerType ?? "supplier",
       input.status ?? "draft",
       input.metadata ?? {},
     ]
@@ -87,7 +103,7 @@ export async function saveProvider(input: ProviderInput) {
 }
 
 export async function listProviders() {
-  const result = await query(
+  const result = await query<ProviderRecord>(
     `
       SELECT
         provider.*,
@@ -105,12 +121,12 @@ export async function listProviders() {
   return result.rows;
 }
 
-export async function listProvidersByUserIds(userIds: string[]) {
+export async function listProvidersByUserIds(userIds: string[]): Promise<Map<string, ProviderRecord>> {
   if (userIds.length === 0) {
-    return new Map<string, Record<string, unknown>>();
+    return new Map<string, ProviderRecord>();
   }
 
-  const result = await query<Record<string, unknown> & { user_id: string }>(
+  const result = await query<ProviderRecord & { user_id: string }>(
     `
       SELECT
         provider.*,
@@ -127,7 +143,7 @@ export async function listProvidersByUserIds(userIds: string[]) {
     [userIds]
   );
 
-  const providersByUserId = new Map<string, Record<string, unknown>>();
+  const providersByUserId = new Map<string, ProviderRecord>();
   for (const provider of result.rows) {
     if (!providersByUserId.has(provider.user_id)) {
       providersByUserId.set(provider.user_id, provider);
@@ -137,7 +153,12 @@ export async function listProvidersByUserIds(userIds: string[]) {
   return providersByUserId;
 }
 
-export async function syncVendorAccountProvider(input: {
+export async function getProviderByUserId(userId: string) {
+  const providers = await listProvidersByUserIds([userId]);
+  return providers.get(userId) ?? null;
+}
+
+export async function syncProviderAccountProvider(input: {
   userId: string;
   slug: string;
   displayName: string;
@@ -148,7 +169,7 @@ export async function syncVendorAccountProvider(input: {
     userId: input.userId,
     slug: input.slug,
     displayName: input.displayName,
-    providerType: "vendor",
+    providerType: "supplier",
     status: input.status ?? "published",
     profile: input.profile,
   });

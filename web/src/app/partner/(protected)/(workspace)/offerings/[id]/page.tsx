@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
-import { VendorOfferingSubmissionForm } from "@/features/vendor-offering-submissions/components/vendor-offering-submission-form";
-import { getVendorOfferingSubmissionDetailForVendor } from "@/features/vendor-offering-submissions/server/service";
+import { getProviderByUserId } from "@/features/providers/server/service";
+import { ProviderOfferingSubmissionForm } from "@/features/provider-offering-submissions/components/provider-offering-submission-form";
+import { getProviderOfferingSubmissionDetailForProvider } from "@/features/provider-offering-submissions/server/service";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -16,12 +17,13 @@ function formatDateTime(value: string) {
 }
 
 export default async function PartnerOfferingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const providerUser = await requireProvider(ROUTES.PARTNER.LOGIN);
   const { id } = await params;
-  const [categories, offerings, detail] = await Promise.all([
+  const [categories, offerings, detail, provider] = await Promise.all([
     listAllOfferingCategories(),
     listAllOfferings(),
-    getVendorOfferingSubmissionDetailForVendor(vendor.id, id),
+    getProviderOfferingSubmissionDetailForProvider(providerUser.id, id),
+    getProviderByUserId(providerUser.id),
   ]);
 
   if (!detail) {
@@ -29,13 +31,13 @@ export default async function PartnerOfferingDetailPage({ params }: { params: Pr
   }
 
   const liveOfferings = offerings
-    .filter((offering) => offering.offeringType === "physical_product" && offering.ownerType === "vendor" && offering.ownerVendorUserId === vendor.id)
+    .filter((offering) => offering.offeringType === "physical_product" && offering.ownerType === "provider" && offering.ownerProviderId === provider?.id)
     .map((offering) => ({ id: offering.id, name: offering.name, slug: offering.slug }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-5">
-        <VendorOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />
+        <ProviderOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />
 
         <Card>
           <CardHeader className="border-b">

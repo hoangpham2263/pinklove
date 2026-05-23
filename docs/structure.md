@@ -71,9 +71,9 @@ web/
             users/create/page.tsx
             users/[id]/page.tsx
             internal-accounts/page.tsx
-            vendors/page.tsx
-            vendors/create/page.tsx
-            vendors/[id]/page.tsx
+            provider-accounts/page.tsx
+            provider-accounts/create/page.tsx
+            provider-accounts/[id]/page.tsx
           (system)/
             global-fields/page.tsx
             media/page.tsx
@@ -106,7 +106,7 @@ web/
             settings/page.tsx
           (growth)/
             affiliate/page.tsx
-            vendor/page.tsx
+            provider/page.tsx
       partner/
         page.tsx
         [slug]/page.tsx
@@ -129,7 +129,7 @@ web/
         sitemap-blog-posts.xml/route.ts
       api/
         admin/
-          orders/vendor-assignment/route.ts
+          orders/provider-assignment/route.ts
           global-fields/update/route.ts
           affiliates/update/route.ts
           auth/login/route.ts
@@ -211,7 +211,7 @@ web/
       api-client.admin.ts
       api-client.customer.ts
       api-client.public.ts
-      api-client.vendor.ts
+      api-client.provider.ts
       auth.ts
       action-response.ts
       client-mutation.ts
@@ -246,7 +246,7 @@ web/
   - `src/lib/api.ts` is the low-level HTTP layer.
   - `src/lib/api-client.admin.ts` owns admin-facing UI API methods.
   - `src/lib/api-client.customer.ts` owns customer-facing UI API methods.
-  - `src/lib/api-client.vendor.ts` owns vendor/partner-facing UI API methods.
+  - `src/lib/api-client.provider.ts` owns provider/partner-facing UI API methods.
   - `src/lib/api-client.public.ts` owns public/guest UI API methods.
 - Client components should call role APIs directly instead of importing feature-local API client wrappers.
 - Database access is raw SQL through `src/lib/database.ts`.
@@ -297,17 +297,17 @@ web/
 ## Partner Area
 
 - The partner shell lives under `src/app/partner`.
-- `src/app/partner/[slug]/page.tsx` is the canonical vendor portal route:
+- `src/app/partner/[slug]/page.tsx` is the canonical provider portal route:
   - signed out: landing + login
-  - signed in as that vendor: assigned-order working surface
+  - signed in as that provider: assigned-order working surface
 - `src/app/partner/(protected)/(workspace)/orders/[id]/page.tsx` serves the public URL `/partner/orders/[id]` for per-assignment collaboration detail.
-- `src/app/partner/dashboard/page.tsx` and `src/app/partner/orders/page.tsx` are legacy redirect-only aliases back to the canonical vendor portal route.
+- `src/app/partner/dashboard/page.tsx` and `src/app/partner/orders/page.tsx` are legacy redirect-only aliases back to the canonical provider portal route.
 - Protected partner workspace routes share the same sidebar/top-header shell pattern as admin and customer through `src/app/partner/(protected)/(workspace)/layout.tsx`.
 
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, vendors, offerings, ecommerce operations, SEO, blog management, and config.
+- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, providers, offerings, ecommerce operations, SEO, blog management, and config.
 - Admin offering management works at the catalog level, including dynamic
   offering type definitions. `/admin/offerings` is the main management surface,
   while route children such as `/admin/offerings/list`,

@@ -3,7 +3,7 @@ import {
   generateManagedPageMetadata,
   loadManagedPageForRoute,
 } from "@/features/pages/server/managed-page-renderer";
-import { VendorApplicationSection } from "@/features/vendor-applications/components/vendor-application-section";
+import { ProviderApplicationSection } from "@/features/provider-applications/components/provider-application-section";
 import { ROUTES } from "@/lib/routes";
 
 type PartnerApplyPageProps = {
@@ -24,5 +24,5 @@ export default async function PartnerApplyPage({ searchParams }: PartnerApplyPag
   const submitted = getSingleParam(query.submitted) === "1";
   const error = getSingleParam(query.error);
 
-  return <VendorApplicationSection page={page} submitted={submitted} error={error} />;
+  return <ProviderApplicationSection page={page} submitted={submitted} error={error} />;
 }

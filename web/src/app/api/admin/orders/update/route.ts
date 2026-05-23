@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { adminUpdateOrderState } from "@/features/ecommerce/server/service";
-import { recordAdminOrderUpdateForVendor } from "@/features/vendor-orders/server/service";
+import { recordAdminOrderUpdateForProvider } from "@/features/provider-orders/server/service";
 import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/ecommerce/types";
 import { ROUTES } from "@/lib/routes";
 
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     notes,
   });
 
-  await recordAdminOrderUpdateForVendor({
+  await recordAdminOrderUpdateForProvider({
     orderId,
     actorUserId: admin.id,
     status,

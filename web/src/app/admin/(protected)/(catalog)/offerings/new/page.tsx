@@ -1,11 +1,11 @@
 import { Package } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
-import { listAccountsByRole, requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { listAllOfferingCategories, listOfferingTypes } from "@/features/offerings/server/service";
 import { QuickCreateOfferingForm } from "@/features/offerings/admin/quick-create-offering-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
-import { USER_ROLES } from "@/lib/roles";
+import { listProviders } from "@/features/providers/server/service";
 import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingCreatePageProps = {
@@ -28,9 +28,9 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
     redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
-  const [categories, vendors, offeringTypes] = await Promise.all([
+  const [categories, providers, offeringTypes] = await Promise.all([
     listAllOfferingCategories(),
-    listAccountsByRole(USER_ROLES.VENDOR),
+    listProviders(),
     listOfferingTypes(),
   ]);
 
@@ -48,13 +48,13 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
         <AdminOverviewCard title="Sản phẩm" icon={Package}>
           <div className="space-y-1 text-sm text-muted-foreground">
             <p>Nhóm này không dùng template invitation source.</p>
-            <p>Đối tác khả dụng: {vendors.length}</p>
+            <p>Provider khả dụng: {providers.length}</p>
           </div>
         </AdminOverviewCard>
       </AdminOverviewGrid>
       <QuickCreateOfferingForm
         categories={categories}
-        vendors={vendors}
+        providers={providers}
         offeringTypes={offeringTypes}
         initialOfferingType={requestedType && requestedType !== SYSTEM_TEMPLATE_ENGINES.BUILDER ? requestedType : SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}
         returnTo={returnTo}

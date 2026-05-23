@@ -4,50 +4,50 @@ import { ShieldCheck, Store, PackageCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PartnerLoginForm } from "@/features/auth/components/login-forms";
-import { ensureVendorPortalSlug, getCurrentUser, getVendorPortalAccountBySlug, isVendorRole } from "@/lib/auth";
+import { ensureProviderPortalSlug, getCurrentUser, getProviderPortalAccountBySlug, isProviderRole } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
-type PartnerVendorEntryPageProps = {
+type PartnerProviderEntryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export default async function PartnerVendorEntryPage({ params }: PartnerVendorEntryPageProps) {
+export default async function PartnerProviderEntryPage({ params }: PartnerProviderEntryPageProps) {
   const { slug } = await params;
-  const vendor = await getVendorPortalAccountBySlug(slug);
+  const provider = await getProviderPortalAccountBySlug(slug);
 
-  if (!vendor) {
+  if (!provider) {
     notFound();
   }
 
-  const vendorSlug = vendor.vendorPortalSlug || (await ensureVendorPortalSlug(vendor.id));
-  if (!vendorSlug) {
+  const providerSlug = provider.providerPortalSlug || (await ensureProviderPortalSlug(provider.id));
+  if (!providerSlug) {
     notFound();
   }
 
-  if (vendorSlug !== slug) {
-    redirect(ROUTES.PARTNER.PORTAL(vendorSlug));
+  if (providerSlug !== slug) {
+    redirect(ROUTES.PARTNER.PORTAL(providerSlug));
   }
 
   const currentUser = await getCurrentUser();
   if (currentUser) {
-    if (!isVendorRole(currentUser.role)) {
+    if (!isProviderRole(currentUser.role)) {
       redirect(ROUTES.CUSTOMER.DASHBOARD);
     }
 
-    if (currentUser.id !== vendor.id) {
-      const currentVendorSlug = await ensureVendorPortalSlug(currentUser.id);
-      if (currentVendorSlug) {
-        redirect(ROUTES.PARTNER.PORTAL(currentVendorSlug));
+    if (currentUser.id !== provider.id) {
+      const currentProviderSlug = await ensureProviderPortalSlug(currentUser.id);
+      if (currentProviderSlug) {
+        redirect(ROUTES.PARTNER.PORTAL(currentProviderSlug));
       }
     }
   }
 
-  const vendorName = vendor.displayName || vendor.fullName || vendor.username;
+  const providerName = provider.displayName || provider.fullName || provider.username;
   const settings = await getSystemSettings();
   const partnerTitle = "Đối tác của " + settings.branding.siteName;
 
-  if (currentUser?.id === vendor.id) {
+  if (currentUser?.id === provider.id) {
     redirect(ROUTES.PARTNER.DASHBOARD);
   }
 
@@ -62,7 +62,7 @@ export default async function PartnerVendorEntryPage({ params }: PartnerVendorEn
 
           <div className="space-y-4">
             <h1 className="text-4xl font-semibold tracking-tight text-zinc-950 md:text-6xl">
-              {vendorName}
+              {providerName}
             </h1>
             <p className="text-base leading-7 text-zinc-600 md:text-lg">
               {partnerTitle} Tài khoản đối tác không vào trang quản trị nội bộ,
@@ -123,10 +123,10 @@ export default async function PartnerVendorEntryPage({ params }: PartnerVendorEn
         <div className="flex items-center justify-center">
           <div className="w-full space-y-4">
             <PartnerLoginForm
-              title={vendorName}
+              title={providerName}
               description="Đăng nhập để mở workspace đơn hàng riêng của đối tác này."
-              returnTo={ROUTES.PARTNER.PORTAL(vendorSlug)}
-              portalSlug={vendorSlug}
+              returnTo={ROUTES.PARTNER.PORTAL(providerSlug)}
+              portalSlug={providerSlug}
               embedded
             />
             <Card className="border-dashed border-zinc-300 bg-white/95">
@@ -135,7 +135,7 @@ export default async function PartnerVendorEntryPage({ params }: PartnerVendorEn
                   Sau khi đăng nhập, đối tác sẽ đi thẳng vào danh sách đơn được giao thay vì khu quản trị nội bộ.
                 </p>
                 <Button variant="outline" className="w-full" disabled>
-                  Portal riêng: {ROUTES.PARTNER.PORTAL(vendorSlug)}
+                  Portal riêng: {ROUTES.PARTNER.PORTAL(providerSlug)}
                 </Button>
               </CardContent>
             </Card>

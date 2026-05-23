@@ -73,12 +73,12 @@ seed/bootstrap data, docs, and verification commands are updated together.
 - [x] Replace duplicated provider concepts with a unified provider system.
   - Add `providers`, `provider_profiles`, `provider_services`,
     `provider_reviews`, and `provider_regions`.
-  - Remove clean-schema `vendors` and `creator_profiles` tables.
-  - Support provider types through `provider_types`: `vendor`, `creator`,
+  - Remove clean-schema `providers` and `creator_profiles` tables.
+  - Support provider types through `provider_types`: `supplier`, `creator`,
     `studio`, `planner`, `makeup`, `photographer`, `florist`, and
     `videographer`.
 - [x] Make booking assignments polymorphic.
-  - Replace `vendor_id` and `creator_profile_id` booking columns with
+  - Replace `provider_id` and `creator_profile_id` booking columns with
     `provider_type` and `provider_id`.
 - [x] Add package/bundle architecture.
   - Add `offering_bundles` and `offering_bundle_items`.
@@ -92,19 +92,26 @@ seed/bootstrap data, docs, and verification commands are updated together.
   - Required columns: `offering_id`, `search_text`, `filter_json`,
     `embedding`.
   - Add generated `search_vector` for PostgreSQL full-text search.
+  - Add search sync event types: `offering.search.sync`,
+    `template.search.sync`, and `provider.search.sync`.
   - Use it as the optimized query/search layer for dynamic offering fields.
 - [x] Add automated schema regression audit.
   - `npm run audit:schema` checks text-only IDs, required architecture tables,
     seed/config rows, `search_vector`, offering status constraint, and forbidden
     `offerings.config` keys.
 - [x] Enforce the `offerings.config` boundary across offering admin, import,
-  seed, and vendor submission paths.
+  seed, and provider submission paths.
   - Allowed: UI config, lightweight metadata, flexible display configuration.
   - Not allowed: inventory, pricing rules, booking logic, permissions,
-    analytics, relationships, site defaults, general offering state, or vendor
+    analytics, relationships, site defaults, general offering state, or provider
     supply state.
   - Enforce the same rule with a database check constraint and service-layer
     sanitization.
+  - Add soft size guard: `pg_column_size(config) <= 32768`.
+- [x] Finalize marketplace ownership on providers.
+  - `physical_offerings` uses `provider_id` and `provider_type`.
+  - `creator_service_offerings` uses `provider_id` and `provider_type`.
+  - `provider_id` and `provider_id` are removed from clean runtime.
 - [x] Add organization support.
   - Add `organizations`, `organization_members`, and `organization_roles`.
   - Use organizations for studios, agencies, wedding teams, and multi-user
@@ -131,6 +138,10 @@ seed/bootstrap data, docs, and verification commands are updated together.
 - [x] Add template attribute discovery.
   - Add `template_attributes` and `template_attribute_values`.
   - Support `style`, `theme`, `mood`, `culture`, `season`, and `color`.
+- [x] Add weighted template ranking support.
+  - `trend_score`
+  - `conversion_score`
+  - `quality_score`
 - [x] Add analytics event tables.
   - Add `analytics_events`, `analytics_sessions`, and `analytics_page_views`.
   - Use them for template views, shares, conversion, and SEO performance.
@@ -323,7 +334,7 @@ marking the phase complete:
 
 ## Phase 8: Universal Provider System
 
-- [x] Replace separate provider mindsets such as `vendors`, `creator_profiles`,
+- [x] Replace separate provider mindsets such as `providers`, `creator_profiles`,
   and future `studios` with:
   - `providers`
   - `provider_profiles`
@@ -331,7 +342,7 @@ marking the phase complete:
   - `provider_reviews`
   - `provider_regions`
 - [x] Support `provider_type` values:
-  - `vendor`
+  - `supplier`
   - `creator`
   - `studio`
   - `planner`
@@ -341,7 +352,7 @@ marking the phase complete:
   - `videographer`
 - [x] Add `provider_types` as the config table for supported provider types.
 - [x] Refactor booking assignments from:
-  - `vendor_id`
+  - `provider_id`
   - `creator_profile_id`
 - [x] To:
   - `provider_type`
@@ -351,6 +362,10 @@ marking the phase complete:
 
 - [x] Add `offering_bundles`.
 - [x] Add `offering_bundle_items`.
+- [x] Add bundle pricing rules:
+  - `pricing_strategy`
+  - `discount_type`
+  - `discount_value`
 - [x] Support wedding packages that combine:
   - online invitation
   - paper invitation
@@ -367,7 +382,7 @@ marking the phase complete:
 - [x] Add `organizations`.
 - [x] Add `organization_members`.
 - [x] Add `organization_roles`.
-- [x] Support studios, teams, vendors, and creator groups.
+- [x] Support studios, teams, providers, and creator groups.
 
 ## Phase 11: Media System
 
@@ -377,7 +392,7 @@ marking the phase complete:
   - `offering`
   - `wedding_site`
   - `gallery`
-  - `provider`
+  - `supplier`
   - `booking`
   - `organization`
   - `template`
@@ -414,8 +429,8 @@ marking the phase complete:
   - Current choice: nanoid-compatible 24 character IDs from `app_random_id()`.
 - [x] Remove mixed `bigint` and `text` IDs.
 - [x] Convert remaining user/menu/settings references:
-  - `creator_service_offerings.creator_user_id`
-  - affiliate, chat, content, vendor fulfillment, and supplier user references
+  - `creator_service_offerings.provider_id`
+  - affiliate, chat, content, provider fulfillment, and supplier user references
   - `navigation_menu_items.menu_id`
   - `app_settings.id`
 - [x] Update foreign keys and app type assumptions together.

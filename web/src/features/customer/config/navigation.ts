@@ -91,11 +91,11 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
   },
   {
     type: "group",
-    label: "Vendor",
+    label: "Provider",
     iconName: "store",
     defaultOpen: false,
     children: [
-      { label: "Nhà cung cấp", href: ROUTES.CUSTOMER.VENDOR, iconName: "store" },
+      { label: "Nhà cung cấp", href: ROUTES.CUSTOMER.PROVIDER, iconName: "store" },
     ],
   },
 ];

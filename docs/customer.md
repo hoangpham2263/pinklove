@@ -13,10 +13,10 @@ This file covers the normal customer area and customer-owned site flows.
 ## Rules
 
 - The session cookie name is `pinklove_session`.
-- Stored roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR`.
+- Stored roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER`.
 - Public visitors are treated as the `GUEST` actor in code/docs, but are not stored in the `users` table.
 - The first registered account becomes `ADMIN`.
-- Logged-in non-admin users (`CUSTOMER`, `AFFILIATE`, `VENDOR`) should be redirected away from customer auth pages back to the customer dashboard.
+- Logged-in non-admin users (`CUSTOMER`, `AFFILIATE`, `PROVIDER`) should be redirected away from customer auth pages back to the customer dashboard.
 - Admins may access the normal customer area for management and preview workflows.
 - Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
 - Invitation ownership now comes from ecommerce entitlements for paid offerings before customer create flows can instantiate new sites.
@@ -42,5 +42,5 @@ This file covers the normal customer area and customer-owned site flows.
 - `src/app/customer/(protected)/(account)/profile/page.tsx`
 - `src/app/customer/(protected)/(account)/settings/page.tsx`
 - `src/app/customer/(protected)/(growth)/affiliate/page.tsx`
-- `src/app/customer/(protected)/(growth)/vendor/page.tsx`
+- `src/app/customer/(protected)/(growth)/provider/page.tsx`
 - `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`

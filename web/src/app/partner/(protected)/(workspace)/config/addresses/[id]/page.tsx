@@ -6,7 +6,7 @@ import { AddressDetails } from "@/components/common/address-editor-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserAddressById } from "@/features/account/server/address-service";
-import { requireVendor } from "@/lib/auth";
+import { requireProvider } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { ROUTES } from "@/lib/routes";
 
@@ -17,10 +17,10 @@ export default async function PartnerAddressDetailPage({
   params: Promise<{ id: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const vendor = await requireVendor(ROUTES.PARTNER.LOGIN);
+  const provider = await requireProvider(ROUTES.PARTNER.LOGIN);
   const { id } = await params;
   const query = (await searchParams) ?? {};
-  const address = await getUserAddressById(vendor.id, id);
+  const address = await getUserAddressById(provider.id, id);
 
   if (!address) {
     notFound();
@@ -33,7 +33,7 @@ export default async function PartnerAddressDetailPage({
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <CardTitle>Chi tiết địa chỉ vendor</CardTitle>
+          <CardTitle>Chi tiết địa chỉ provider</CardTitle>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
             <Button
