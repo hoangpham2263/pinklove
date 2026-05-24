@@ -104,7 +104,7 @@ export function ProviderApplicationSection({
               </div>
             ) : null}
 
-            <form action={ROUTES.API.APPLICATIONS.PARTNER} method="POST" className="space-y-4">
+            <form action={ROUTES.API.APPLICATIONS.PROVIDER} method="POST" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-900">Tên doanh nghiệp / xưởng in</label>

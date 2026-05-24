@@ -48,16 +48,18 @@ export async function POST(request: Request) {
   const price = Number(formData.get("price") ?? "0");
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
   const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsProviderSupply = offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsSupplyDetails = supportsInventory || supportsProviderSupply;
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
   const lowStockThreshold = supportsInventory ? Math.max(0, Number(formData.get("lowStockThreshold") ?? "0")) : 0;
   const allowBackorder = supportsInventory && formData.get("allowBackorder") === "on";
-  const costPrice = supportsInventory ? Math.max(0, Number(formData.get("costPrice") ?? "0")) : 0;
-  const providerSku = supportsInventory ? String(formData.get("providerSku") ?? "").trim() : "";
+  const costPrice = supportsSupplyDetails ? Math.max(0, Number(formData.get("costPrice") ?? "0")) : 0;
+  const providerSku = supportsSupplyDetails ? String(formData.get("providerSku") ?? "").trim() : "";
   const siteDefaultsRaw = String(formData.get("siteDefaults") ?? "{}");
   const ownerType = String(formData.get("ownerType") ?? "internal") === "provider" ? "provider" : "internal";
   const ownerProviderId = String(formData.get("ownerProviderId") ?? "").trim();
-  const allowProviderSupply = (offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) && formData.get("allowProviderSupply") === "on";
+  const allowProviderSupply = supportsProviderSupply && formData.get("allowProviderSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const editorBaseLocation =
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER

@@ -182,21 +182,19 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
   );
 }
 
-type PartnerLoginFormProps = {
+type ProviderLoginFormProps = {
   title?: string;
   description?: string;
   returnTo?: string;
-  portalSlug?: string;
   embedded?: boolean;
 };
 
-export function PartnerLoginForm({
-  title = "Partner Portal",
+export function ProviderLoginForm({
+  title = "Provider Portal",
   description = "Đăng nhập bằng tài khoản provider để quản lý các đơn được phân công.",
   returnTo,
-  portalSlug,
   embedded = false,
-}: PartnerLoginFormProps = {}) {
+}: ProviderLoginFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -213,9 +211,8 @@ export function PartnerLoginForm({
           <CardTitle>Provider Login</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <NativeForm action={ROUTES.API.PARTNER.AUTH.LOGIN} method="POST" className="space-y-3">
+          <NativeForm action={ROUTES.API.PROVIDER.AUTH.LOGIN} method="POST" className="space-y-3">
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
-            {portalSlug ? <input type="hidden" name="portalSlug" value={portalSlug} /> : null}
             <Input name="username" placeholder="Tên đăng nhập provider" autoComplete="username" />
             <div className="flex items-center gap-2">
               <Input
@@ -229,7 +226,7 @@ export function PartnerLoginForm({
               </Button>
             </div>
             <Button type="submit" className="w-full">
-              Vào partner portal
+              Vào provider portal
             </Button>
           </NativeForm>
           {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}

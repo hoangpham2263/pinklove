@@ -37,6 +37,11 @@ Use this file for project-wide rules around field schema, field editors, and ric
   `min`, `max`, `regex`, `required`, `unique`, and `allowed_values`; the same
   rules are enforced in admin inputs where possible and in server-side
   create/update save paths.
+- Dynamic fields are only for UI metadata, presentation, discovery, and
+  optional structured fields.
+- Never use dynamic fields for payments, permissions, inventory, critical
+  business workflows, analytics, or booking core logic. Those domains must stay
+  relational-first.
 - Conditional rendering should be data-driven through `visibility_conditions`
   and `dependency_conditions` so forms can hide, show, or require fields based
   on other field values. The current renderer supports `equals`, `not_equals`,

@@ -117,6 +117,28 @@ async function main() {
       assert(count >= minimumCount, `${tableName} seed count is ${count}; expected at least ${minimumCount}`);
     }
 
+    const systemOfferingTypes = await client.query(`
+      SELECT key
+      FROM offering_types
+      WHERE is_system = TRUE
+      ORDER BY key
+    `);
+    const expectedSystemOfferingTypes = [
+      "bridal_makeup",
+      "digital_template",
+      "physical_product",
+      "wedding_decoration",
+      "wedding_gift",
+      "wedding_photo",
+      "wedding_planner",
+      "wedding_video",
+    ];
+    const actualSystemOfferingTypes = systemOfferingTypes.rows.map((row) => row.key);
+    assert(
+      JSON.stringify(actualSystemOfferingTypes) === JSON.stringify(expectedSystemOfferingTypes),
+      `System offering types must be ${expectedSystemOfferingTypes.join(", ")}; found ${actualSystemOfferingTypes.join(", ")}`
+    );
+
     const searchVectorType = await scalar(
       client,
       `
@@ -181,6 +203,66 @@ async function main() {
     ]) {
       assert(providerColumnSet.has(key), `${key} is required`);
     }
+
+    const providerOwnerColumns = await client.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'providers'
+        AND column_name IN ('user_id', 'owner_user_id')
+    `);
+    const providerOwnerColumnSet = new Set(providerOwnerColumns.rows.map((row) => row.column_name));
+    assert(providerOwnerColumnSet.has("owner_user_id"), "providers.owner_user_id is required");
+    assert(!providerOwnerColumnSet.has("user_id"), "providers.user_id must be removed; use providers.owner_user_id");
+
+    const workflowProviderUserTables = [
+      "provider_order_assignments",
+      "provider_offering_submissions",
+      "provider_offering_supplier_requests",
+      "offering_provider_suppliers",
+    ];
+    const workflowProviderColumns = await client.query(
+      `
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = ANY($1)
+        AND column_name IN ('provider_id', 'provider_user_id')
+      `,
+      [workflowProviderUserTables]
+    );
+    const workflowProviderColumnSet = new Set(
+      workflowProviderColumns.rows.map((row) => `${row.table_name}.${row.column_name}`)
+    );
+    for (const tableName of workflowProviderUserTables) {
+      assert(workflowProviderColumnSet.has(`${tableName}.provider_user_id`), `${tableName}.provider_user_id is required`);
+      assert(!workflowProviderColumnSet.has(`${tableName}.provider_id`), `${tableName}.provider_id must be removed`);
+    }
+
+    const ambiguousProviderIdFks = await client.query(`
+      SELECT
+        tc.table_name,
+        kcu.column_name,
+        ccu.table_name AS foreign_table_name,
+        ccu.column_name AS foreign_column_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.key_column_usage kcu
+        ON tc.constraint_name = kcu.constraint_name
+       AND tc.table_schema = kcu.table_schema
+      JOIN information_schema.constraint_column_usage ccu
+        ON ccu.constraint_name = tc.constraint_name
+       AND ccu.table_schema = tc.table_schema
+      WHERE tc.table_schema = 'public'
+        AND tc.constraint_type = 'FOREIGN KEY'
+        AND kcu.column_name = 'provider_id'
+        AND NOT (ccu.table_name = 'providers' AND ccu.column_name = 'id')
+    `);
+    assert(
+      ambiguousProviderIdFks.rowCount === 0,
+      `provider_id may only reference providers.id: ${ambiguousProviderIdFks.rows
+        .map((row) => `${row.table_name}.${row.column_name}->${row.foreign_table_name}.${row.foreign_column_name}`)
+        .join(", ")}`
+    );
 
     const configSizeConstraint = String(
       await scalar(

@@ -9,7 +9,7 @@ invitation CRUD or invitation builder system.
 Target architecture:
 
 ```txt
-Headless Dynamic Wedding Commerce Platform
+Headless Modular Wedding Commerce Platform
 ```
 
 Core product support:
@@ -111,11 +111,18 @@ seed/bootstrap data, docs, and verification commands are updated together.
 - [x] Finalize marketplace ownership on providers.
   - `physical_offerings` uses `provider_id` and `provider_type`.
   - `creator_service_offerings` uses `provider_id` and `provider_type`.
-  - `provider_id` and `provider_id` are removed from clean runtime.
+  - `provider_id` is reserved for `providers.id`.
+  - Account-bound workflow uses `provider_user_id`.
+  - `providers.owner_user_id` replaces the old ambiguous provider owner column.
 - [x] Add organization support.
   - Add `organizations`, `organization_members`, and `organization_roles`.
   - Use organizations for studios, agencies, wedding teams, and multi-user
     providers.
+- [x] Remove final transitional physical subtype storage.
+  - Migrate `physical_product_offerings` into `physical_offerings`.
+  - Drop `physical_product_offerings`.
+  - Remove `physical_offerings.owner_type`; derive provider ownership from
+    `provider_id`.
 
 ### Medium
 
@@ -132,6 +139,11 @@ seed/bootstrap data, docs, and verification commands are updated together.
     `payment.completed`, `rsvp.updated`.
   - Add `domain_event_types` so cache invalidation event names are canonical.
   - Use events for notifications, automation, analytics, and realtime sync.
+- [x] Document event consumer strategy.
+  - Emitters are owning domain services.
+  - Consumers must be idempotent and tolerate retry.
+  - Cache, search, analytics, notifications, realtime, and AI processing consume
+    domain events through explicit contracts.
 - [x] Move SEO redirect runtime storage to `seo_redirects`.
   - Keep legacy `app_settings.seo_redirects` as read-only fallback/backfill
     source.
@@ -156,7 +168,7 @@ marking the phase complete:
 - [x] Bootstrap a fresh local DB and verify `web/src/lib/database.ts` creates the
   final tables without legacy-only dependencies.
 - [x] Run seed scripts that touch the changed area, such as
-  `npm run seed:offerings`, `npm run seed:website`, and partner seed scripts
+  `npm run seed:offerings`, `npm run seed:website`, and provider seed scripts
   when provider/booking tables change.
 - [x] Check admin create/edit flows for offerings, offering types, providers,
   bookings, media, and wedding sites touched by the phase.
@@ -181,14 +193,18 @@ marking the phase complete:
   - `experience_offerings`
   - `subscription_offerings`
 - [x] Normalize runtime type keys to business-domain names only.
-- [x] Seed final type keys:
+- [x] Seed fixed digital type and provider/dropshipping catalog type keys:
   - `digital_template`
   - `physical_product`
-  - `service`
-  - `creator_service`
-  - `experience`
-  - `subscription`
-  - `addon`
+  - `wedding_video`
+  - `wedding_photo`
+  - `bridal_makeup`
+  - `wedding_decoration`
+  - `wedding_planner`
+  - `wedding_gift`
+- [x] Keep `/admin/offerings/templates` and `/admin/offerings/builder` fixed to
+  `digital_template`; use `/admin/offerings/list` for all non-digital-template
+  provider/catalog types.
 
 ## Phase 2: Template Engine Abstraction
 
@@ -464,6 +480,23 @@ marking the phase complete:
   - CQRS everywhere
   - websocket infrastructure
   - microservices
+
+## Final Operating Rules
+
+- [x] Keep PinkLove as a modular monolith on PostgreSQL and DB-driven realtime.
+- [x] Do not introduce microservices, Kafka, RabbitMQ, CQRS everywhere, or
+  distributed event buses until a concrete operational bottleneck exists.
+- [x] Freeze core transactional domains as relational-first: commerce, payments,
+  bookings, inventory, notifications, analytics, permissions, and identity.
+- [x] Keep content domains hybrid: `wedding_site_sections.content`, builder
+  blocks, and template runtime content can use JSONB.
+- [x] Keep dynamic fields limited to UI metadata, presentation, discovery, and
+  optional structured fields.
+- [x] Keep template engine separate from business logic, pricing, inventory,
+  permissions, and fulfillment.
+- [x] Shift future moat work toward SEO, template quality, landing pages,
+  builder UX, provider onboarding, conversion optimization, analytics, and the
+  content ecosystem.
 
 ## Phase 15: Analytics And Regions
 

@@ -53,10 +53,10 @@ export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType"
   if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
     return getBuilderOfferingPath(offering);
   }
-  if (offering.offeringType === "physical_product") {
-    return getGeneralOfferingPath(offering);
+  if (offering.offeringType === "digital_template") {
+    return getTemplateOfferingPath(offering);
   }
-  return getTemplateOfferingPath(offering);
+  return getGeneralOfferingPath(offering);
 }
 
 export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string) {

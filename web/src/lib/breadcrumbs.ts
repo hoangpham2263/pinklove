@@ -18,7 +18,7 @@ type BreadcrumbSpec = {
 const SHELL_ROOT_LABELS: Record<string, string> = {
   admin: "Admin",
   customer: "Tài khoản",
-  partner: "Đối tác",
+  provider: "Provider",
 };
 
 const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
@@ -54,8 +54,8 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: "/admin/offerings/[slug]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm", href: ROUTES.ADMIN.OFFERING_LIST }, { label: getRouteParamBreadcrumbLabel(params.slug) }] },
   { pattern: ROUTES.ADMIN.OFFERING_CATEGORIES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Categories" }] },
   { pattern: ROUTES.ADMIN.OFFERING_CATEGORY("[slug]"), items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Categories", href: ROUTES.ADMIN.OFFERING_CATEGORIES }, { label: getRouteParamBreadcrumbLabel(params.slug) }] },
-  { pattern: ROUTES.ADMIN.PROVIDER_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Provider Offering Review" }] },
-  { pattern: "/admin/provider-offerings/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Provider Offering Review", href: ROUTES.ADMIN.PROVIDER_OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: ROUTES.ADMIN.PROVIDER_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Provider Submissions" }] },
+  { pattern: "/admin/providers/offerings/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Provider Submissions", href: ROUTES.ADMIN.PROVIDER_OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
 
   { pattern: ROUTES.ADMIN.ORDERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders" }] },
   { pattern: "/admin/orders/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders", href: ROUTES.ADMIN.ORDERS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
@@ -73,7 +73,7 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.INTERNAL_ACCOUNTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Tài khoản nội bộ" }] },
   { pattern: ROUTES.ADMIN.PROVIDER_ACCOUNTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp" }] },
   { pattern: ROUTES.ADMIN.PROVIDER_ACCOUNTS_CREATE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS }, { label: "Tạo nhà cung cấp" }] },
-  { pattern: "/admin/provider-accounts/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: "/admin/providers/accounts/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Nhà cung cấp", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
 
   { pattern: ROUTES.ADMIN.CONFIG, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration" }] },
   { pattern: ROUTES.ADMIN.CONFIG_BRANDING, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Configuration", href: ROUTES.ADMIN.CONFIG }, { label: "Branding" }] },
@@ -117,20 +117,21 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.CUSTOMER.PROVIDER, items: [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Không gian nhà cung cấp" }] },
   { pattern: "/customer/design/[id]", items: ({ params }) => [{ label: "Tài khoản", href: ROUTES.CUSTOMER.DASHBOARD }, { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
 
-  { pattern: ROUTES.PARTNER.CONFIG, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs" }] },
-  { pattern: ROUTES.PARTNER.CONFIG_ACCOUNT, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Tài khoản" }] },
-  { pattern: ROUTES.PARTNER.CONFIG_ADDRESSES, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ" }] },
-  { pattern: ROUTES.PARTNER.CONFIG_ADDRESS_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: "Thêm địa chỉ" }] },
-  { pattern: "/partner/config/addresses/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
-  { pattern: "/partner/config/addresses/[id]/edit", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Configs", href: ROUTES.PARTNER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PARTNER.CONFIG_ADDRESSES }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
-  { pattern: ROUTES.PARTNER.DASHBOARD, items: [{ label: "Đối tác" }, { label: "Dashboard" }] },
-  { pattern: ROUTES.PARTNER.ORDERS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Đơn được giao" }] },
-  { pattern: ROUTES.PARTNER.OFFERINGS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Sản phẩm provider" }] },
-  { pattern: ROUTES.PARTNER.OFFERING_NEW, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Sản phẩm provider", href: ROUTES.PARTNER.OFFERINGS }, { label: "Tạo hồ sơ" }] },
-  { pattern: "/partner/offerings/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Sản phẩm provider", href: ROUTES.PARTNER.OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
-  { pattern: "/partner/orders/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Đơn được giao", href: ROUTES.PARTNER.ORDERS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
-  { pattern: ROUTES.PARTNER.AVAILABLE_TEMPLATES, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Mẫu có sẵn" }] },
-  { pattern: ROUTES.PARTNER.SUPPLY_REQUESTS, items: [{ label: "Đối tác", href: ROUTES.PARTNER.DASHBOARD }, { label: "Yêu cầu cung ứng" }] },
+  { pattern: ROUTES.PROVIDER.CONFIG, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs" }] },
+  { pattern: ROUTES.PROVIDER.CONFIG_ACCOUNT, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs", href: ROUTES.PROVIDER.CONFIG }, { label: "Tài khoản" }] },
+  { pattern: ROUTES.PROVIDER.CONFIG_ADDRESSES, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs", href: ROUTES.PROVIDER.CONFIG }, { label: "Địa chỉ" }] },
+  { pattern: ROUTES.PROVIDER.CONFIG_ADDRESS_NEW, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs", href: ROUTES.PROVIDER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PROVIDER.CONFIG_ADDRESSES }, { label: "Thêm địa chỉ" }] },
+  { pattern: ROUTES.PROVIDER.MESSAGES, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Tin nhắn" }] },
+  { pattern: "/provider/config/addresses/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs", href: ROUTES.PROVIDER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PROVIDER.CONFIG_ADDRESSES }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: "/provider/config/addresses/[id]/edit", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Configs", href: ROUTES.PROVIDER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PROVIDER.CONFIG_ADDRESSES }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: ROUTES.PROVIDER.DASHBOARD, items: [{ label: "Đối tác" }, { label: "Dashboard" }] },
+  { pattern: ROUTES.PROVIDER.ORDERS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Đơn được giao" }] },
+  { pattern: ROUTES.PROVIDER.OFFERINGS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Sản phẩm provider" }] },
+  { pattern: ROUTES.PROVIDER.OFFERING_NEW, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Sản phẩm provider", href: ROUTES.PROVIDER.OFFERINGS }, { label: "Tạo hồ sơ" }] },
+  { pattern: "/provider/offerings/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Sản phẩm provider", href: ROUTES.PROVIDER.OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: "/provider/orders/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Đơn được giao", href: ROUTES.PROVIDER.ORDERS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: ROUTES.PROVIDER.AVAILABLE_TEMPLATES, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Mẫu có sẵn" }] },
+  { pattern: ROUTES.PROVIDER.SUPPLY_REQUESTS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu cung ứng" }] },
 ];
 
 function normalizePathname(pathname: string) {
@@ -241,8 +242,8 @@ function getShellRootItem(pathname: string): BreadcrumbItem | null {
     return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.CUSTOMER.DASHBOARD };
   }
 
-  if (rootSegment === "partner") {
-    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.PARTNER.DASHBOARD };
+  if (rootSegment === "provider") {
+    return { label: SHELL_ROOT_LABELS[rootSegment], href: ROUTES.PROVIDER.DASHBOARD };
   }
 
   return null;

@@ -457,7 +457,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                     />
                     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                       {offerings.map((offering) => (
-                        offering.offeringType !== "physical_product" ? (
+                        offering.offeringType === "digital_template" ? (
                           <LoopOnlineInvitationCard key={offering.id} offering={offering} />
                         ) : (
                           <LoopOfferingCard key={offering.id} offering={offering} />
@@ -484,7 +484,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const priceFilter = getPriceFilter(filters.priceKey);
       const [paperOfferings, categories] = await Promise.all([
         listPublishedOfferingsFiltered({
-          offeringTypes: ["physical_product"],
+          offeringTypes: ["physical_product", "wedding_video", "wedding_photo", "bridal_makeup", "wedding_decoration", "wedding_planner", "wedding_gift"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
@@ -500,17 +500,17 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
             <section className="rounded-[32px] border border-stone-200 bg-white px-6 py-10 shadow-[0_20px_70px_rgba(15,23,42,0.06)] sm:px-8 lg:px-12 lg:py-14">
               <PageHero
                 page={page}
-                fallbackTitle="Thiệp giấy"
-                fallbackExcerpt="Các sản phẩm thiệp giấy, quà tặng và dịch vụ in ấn có thể mua trực tiếp qua catalog."
+                fallbackTitle="Sản phẩm & dịch vụ cưới"
+                fallbackExcerpt="Thiệp giấy, quà cưới và dịch vụ từ provider có thể mua hoặc kết nối cung ứng qua catalog."
               />
             </section>
 
             <section className="space-y-6">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.3em] text-orange-600">Paper catalog</p>
-                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Sản phẩm thiệp giấy</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-orange-600">Wedding catalog</p>
+                <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2xl:text-4xl">Sản phẩm & dịch vụ cưới</h2>
                 <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-                  Nhóm này chỉ hiển thị sản phẩm thường, không tạo thiệp online từ template.
+                  Nhóm này hiển thị catalog không phải thiệp online: thiệp giấy, quà cưới và dịch vụ provider.
                 </p>
               </div>
 

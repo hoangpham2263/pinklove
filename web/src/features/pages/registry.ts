@@ -437,8 +437,8 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
     ],
   },
-  "partners/apply": {
-    slug: "partners/apply",
+  "providers/apply": {
+    slug: "providers/apply",
     name: "Nhà cung cấp",
     label: "Trang nhà cung cấp",
     fields: [],

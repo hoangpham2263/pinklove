@@ -57,14 +57,14 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
       },
       {
         type: "section",
-        label: "Partners Column",
-        description: "Danh sách link cột Đối tác.",
+        label: "Providers Column",
+        description: "Danh sách link cột Provider.",
         fields: [
           {
-            name: "footerPartnerLinks",
+            name: "footerProviderLinks",
             type: "repeater",
-            label: "Footer Partner Links",
-            addLabel: "Thêm link đối tác",
+            label: "Footer Provider Links",
+            addLabel: "Thêm link provider",
             fields: [
               { name: "label", label: "Tên link", type: "text", width: 4 },
               { name: "url", label: "Liên kết", type: "text", width: 8 },

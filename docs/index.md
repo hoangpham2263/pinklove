@@ -6,7 +6,7 @@ Use this file as the entrypoint for project documentation.
 
 - `docs/index.md` is the navigation map and ownership map for project documentation.
 - Put project-wide high-level rules here only.
-- Put feature-specific or system-specific rules in dedicated docs such as `fields.md`, `schema.md`, `realtime.md`, `admin.md`, `ecommerce.md`, `guest.md`, `customer.md`, and `partner.md`.
+- Put feature-specific or system-specific rules in dedicated docs such as `fields.md`, `schema.md`, `realtime.md`, `admin.md`, `ecommerce.md`, `guest.md`, `customer.md`, and `provider.md`.
 
 ## Project Snapshot
 
@@ -20,15 +20,16 @@ Use this file as the entrypoint for project documentation.
 1. [CONVENTIONS](./CONVENTIONS.md)
 2. [structure](./structure.md)
 3. [architecture todo](./architecture-todo.md)
-4. [schema](./schema.md)
-5. [fields](./fields.md)
-6. [realtime](./realtime.md)
+4. [platform](./platform.md)
+5. [schema](./schema.md)
+6. [fields](./fields.md)
+7. [realtime](./realtime.md)
 7. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
    - [ecommerce](./ecommerce.md)
-   - [partner](./partner.md)
+   - [provider](./provider.md)
 
 ## Doc Ownership
 
@@ -40,6 +41,9 @@ Use this file as the entrypoint for project documentation.
   Folder structure, route groups, architecture layout, and implemented feature map.
 - `docs/architecture-todo.md`
   Final refactor roadmap for the headless dynamic wedding commerce platform.
+- `docs/platform.md`
+  Internal modular monolith boundaries, provider strategy, event consumers,
+  cache tags, search pipeline, dynamic field limits, and template contracts.
 - `docs/schema.md`
   Database tables, storage shape, and persistence compatibility notes.
 - `docs/fields.md`
@@ -54,8 +58,8 @@ Use this file as the entrypoint for project documentation.
   Admin-only workflows, admin screen ownership, and admin config/control conventions.
 - `docs/ecommerce.md`
   Checkout, payment method settings, gateway integration workflow, and order/payment state rules.
-- `docs/partner.md`
-  Partner/provider portal ownership, assignment flow, provider order collaboration, and dedicated partner route rules.
+- `docs/provider.md`
+  Provider portal ownership, assignment flow, provider order collaboration, and dedicated provider route rules.
 
 ## Shared Standards
 
@@ -68,6 +72,10 @@ Use this file as the entrypoint for project documentation.
 - Use `web/src/lib/page-paths.ts` as the source of truth for managed-page public paths.
 - Use `web/src/lib/public-paths.ts` as the source of truth for blog, offering, builder, and invitation public paths.
 - Use explicit route handlers for `robots.txt` and `sitemap*.xml` when SEO output needs plain-text or XML control.
+- Keep PinkLove as a modular monolith. Do not introduce microservices, Kafka,
+  RabbitMQ, broad CQRS, or distributed event buses without a concrete bottleneck.
+- Respect module ownership from `docs/platform.md`; cross-module mutations go
+  through owning services, public APIs, or domain events.
 - Use the standard admin/customer/editor 12-column layout language for protected screens.
 - Show human-facing order and provider status labels in Vietnamese on management screens when that improves operational clarity.
 
@@ -85,7 +93,7 @@ Use this file as the entrypoint for project documentation.
   - customer area: `customer.md`
   - admin area: `admin.md`
   - checkout/payment/order workflow: `ecommerce.md`
-  - partner area: `partner.md`
+  - provider area: `provider.md`
 - If code and docs conflict, update docs in the same task.
 - Keep new files in `docs/` lowercase. The existing repo-wide rules file remains `docs/CONVENTIONS.md` for compatibility with workspace tooling.
 

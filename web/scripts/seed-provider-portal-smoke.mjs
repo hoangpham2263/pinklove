@@ -84,7 +84,7 @@ async function main() {
         `Provider Smoke ${runId}`,
         "0900000001",
         providerSlug,
-        "Seeded provider for partner portal smoke flow.",
+        "Seeded provider for provider portal smoke flow.",
       ]
     );
 
@@ -210,7 +210,7 @@ async function main() {
     const assignment = await fetchRow(
       client,
       `
-        INSERT INTO provider_order_assignments (order_id, provider_id, status, internal_note, provider_note, provider_reference)
+        INSERT INTO provider_order_assignments (order_id, provider_user_id, status, internal_note, provider_note, provider_reference)
         VALUES ($1, $2, 'pending_confirmation', $3, '', '')
         RETURNING id
       `,
@@ -232,7 +232,7 @@ async function main() {
         username: providerUsername,
         password: PASSWORD,
         portalSlug: providerSlug,
-        portalLink: `/partner/${providerSlug}`,
+        portalLink: `/provider`,
       },
       customer: {
         username: customerUsername,

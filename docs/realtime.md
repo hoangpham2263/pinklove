@@ -6,7 +6,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 
 - Shared realtime infrastructure lives in `web/src/features/realtime/*`.
 - Feature-specific realtime adapters should stay in the owning feature, for example `web/src/features/provider-orders/realtime.ts`.
-- Use this file for cross-area realtime rules. Keep provider workflow specifics in `docs/partner.md`.
+- Use this file for cross-area realtime rules. Keep provider workflow specifics in `docs/provider.md`.
 
 ## Current Architecture
 
@@ -26,6 +26,9 @@ Use this file for project-wide rules around realtime transport, event contracts,
   `site.published`.
 - Search/indexing sync event names are also registered:
   `offering.search.sync`, `template.search.sync`, and `provider.search.sync`.
+- Standard cache tags are `offering:{id}`, `provider:{id}`, `template:{id}`,
+  and `wedding_site:{id}`. Cache invalidation events should resolve to these
+  tags before falling back to broad route refresh.
 
 ## Core Rules
 
@@ -48,6 +51,13 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Business mutations should write a durable `domain_events` row near the state
   change, then emit the lightweight realtime signal when a realtime resource is
   attached to that workflow.
+- Event emitters are the owning domain services. Consumers include cache
+  invalidation, search indexing, notifications, analytics, AI processing, and
+  realtime adapters.
+- Event consumers must be idempotent by event id and aggregate version or by a
+  stable payload idempotency key. Consumers must tolerate duplicate delivery.
+- Retry transient consumer failures with backoff. Permanent validation failures
+  should be recorded and skipped instead of blocking unrelated consumers.
 - Emit `ready` on initial connect so the client can establish a baseline state.
 - Emit `*.changed` when the version changes.
 - Emit `*.deleted` only when the resource is no longer available to the authorized caller and the client must tear down the current view.
@@ -67,7 +77,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
 - Admin order detail currently follows this model for both:
   - provider assignment panel
   - order state panel
-- Partner order detail and partner portal should also stay on this same `SSE signal -> fetch JSON -> patch local state` contract.
+- Provider order detail and provider portal should also stay on this same `SSE signal -> fetch JSON -> patch local state` contract.
 
 ## Toast Rules
 
@@ -93,7 +103,7 @@ Use this file for project-wide rules around realtime transport, event contracts,
   - user notification inbox summary
 - Additional JSON resource examples now in use:
   - admin order state detail
-  - partner provider assignment detail
+  - provider assignment detail
 - Prefer resource-level channels such as `assignment` or `provider portal` over page-level channels.
 
 ## Scaling Path

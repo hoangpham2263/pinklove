@@ -41,7 +41,7 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
-import { ProviderPortalCopyButton } from "@/features/admin/components/provider-accounts/provider-portal-copy-button";
+import { ProviderPortalCopyButton } from "@/features/admin/components/provider-account-management/provider-portal-copy-button";
 
 interface UserManagementProps {
   initialUsers: AccountUser[];
@@ -190,11 +190,11 @@ export function UserManagement({
                 <div className="flex flex-wrap items-center gap-2">
                   <ProviderPortalCopyButton
                     label="Xem thông tin"
-                    path={ROUTES.PARTNER.PORTAL(providerPortalSlug)}
+                    path={ROUTES.PROVIDER.ROOT}
                     username={user.username}
                     password="12313"
                   />
-                  <AdminLinkButton href={ROUTES.PARTNER.PORTAL(providerPortalSlug)}>Portal Link</AdminLinkButton>
+                  <AdminLinkButton href={ROUTES.PROVIDER.ROOT}>Portal Link</AdminLinkButton>
                   <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNT(user.id)}>Quản lý đơn riêng</AdminLinkButton>
                 </div>
               );

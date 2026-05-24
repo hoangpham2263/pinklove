@@ -22,7 +22,7 @@ import { getProviderAssignmentStatusLabel } from "@/lib/status-labels";
 type ProviderAssignmentRow = {
   id: string;
   order_id: string;
-  provider_id: string;
+  provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
   status: ProviderAssignmentStatus;
@@ -83,7 +83,7 @@ function mapAssignmentRow(row: ProviderAssignmentRow): ProviderOrderAssignment {
   return {
     id: row.id,
     orderId: row.order_id,
-    providerId: row.provider_id,
+    providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
     status: row.status,
@@ -124,7 +124,7 @@ async function getAssignmentRowById(assignmentId: string): Promise<ProviderAssig
       SELECT
         a.id,
         a.order_id,
-        a.provider_id,
+        a.provider_user_id,
         u.username AS provider_username,
         COALESCE(NULLIF(BTRIM(p.display_name), ''), NULLIF(BTRIM(p.full_name), '')) AS provider_display_name,
         a.status,
@@ -137,7 +137,7 @@ async function getAssignmentRowById(assignmentId: string): Promise<ProviderAssig
         a.created_at,
         a.updated_at
       FROM provider_order_assignments a
-      JOIN users u ON u.id = a.provider_id
+      JOIN users u ON u.id = a.provider_user_id
       LEFT JOIN user_profiles p ON p.user_id = u.id
       WHERE a.id = $1
       LIMIT 1
@@ -155,7 +155,7 @@ export async function listProviderOrderSummariesForProvider(providerId: string):
         SELECT
           a.id,
           a.order_id,
-          a.provider_id,
+          a.provider_user_id,
           u.username AS provider_username,
           COALESCE(NULLIF(BTRIM(p.display_name), ''), NULLIF(BTRIM(p.full_name), '')) AS provider_display_name,
           a.status,
@@ -168,9 +168,9 @@ export async function listProviderOrderSummariesForProvider(providerId: string):
           a.created_at,
           a.updated_at
         FROM provider_order_assignments a
-        JOIN users u ON u.id = a.provider_id
+        JOIN users u ON u.id = a.provider_user_id
         LEFT JOIN user_profiles p ON p.user_id = u.id
-        WHERE a.provider_id = $1
+        WHERE a.provider_user_id = $1
         ORDER BY a.updated_at DESC
       `,
       [providerId]
@@ -245,7 +245,7 @@ export async function listProviderOrderSummariesForProvider(providerId: string):
 
 export async function getProviderOrderDetailForProvider(providerId: string, assignmentId: string): Promise<ProviderOrderDetail | null> {
   const assignment = await getAssignmentRowById(assignmentId);
-  if (!assignment || assignment.provider_id !== providerId) {
+  if (!assignment || assignment.provider_user_id !== providerId) {
     return null;
   }
 
@@ -336,7 +336,7 @@ export async function countProviderAssignmentsForProvider(providerId: string): P
         COUNT(*) FILTER (WHERE status = 'ready_for_review')::text AS review,
         COUNT(*) FILTER (WHERE status = 'completed')::text AS completed
       FROM provider_order_assignments
-      WHERE provider_id = $1
+      WHERE provider_user_id = $1
     `,
     [providerId]
   );
@@ -366,9 +366,9 @@ export async function upsertProviderAssignment(input: UpsertProviderAssignmentIn
       throw new ProviderAssignmentError("INVALID_PROVIDER", "Selected account is not a provider.");
     }
 
-    const existing = await execute<{ id: string; provider_id: string }>(
+    const existing = await execute<{ id: string; provider_user_id: string }>(
       `
-        SELECT id, provider_id
+        SELECT id, provider_user_id
         FROM provider_order_assignments
         WHERE order_id = $1
         LIMIT 1
@@ -378,18 +378,18 @@ export async function upsertProviderAssignment(input: UpsertProviderAssignmentIn
 
     if (existing.rows[0]) {
       const assignmentId = existing.rows[0].id;
-      const previousProviderUserId = existing.rows[0].provider_id;
-      const reassigned = existing.rows[0].provider_id !== input.providerId;
+      const previousProviderUserId = existing.rows[0].provider_user_id;
+      const reassigned = existing.rows[0].provider_user_id !== input.providerId;
 
       await execute(
         `
           UPDATE provider_order_assignments
           SET
-            provider_id = $2,
+            provider_user_id = $2,
             internal_note = $3,
-            status = CASE WHEN provider_id <> $2 THEN 'pending_confirmation' ELSE status END,
-            accepted_at = CASE WHEN provider_id <> $2 THEN NULL ELSE accepted_at END,
-            completed_at = CASE WHEN provider_id <> $2 THEN NULL ELSE completed_at END,
+            status = CASE WHEN provider_user_id <> $2 THEN 'pending_confirmation' ELSE status END,
+            accepted_at = CASE WHEN provider_user_id <> $2 THEN NULL ELSE accepted_at END,
+            completed_at = CASE WHEN provider_user_id <> $2 THEN NULL ELSE completed_at END,
             updated_at = NOW()
           WHERE id = $1
         `,
@@ -420,7 +420,7 @@ export async function upsertProviderAssignment(input: UpsertProviderAssignmentIn
 
     const inserted = await execute<{ id: string }>(
       `
-        INSERT INTO provider_order_assignments (order_id, provider_id, internal_note)
+        INSERT INTO provider_order_assignments (order_id, provider_user_id, internal_note)
         VALUES ($1, $2, $3)
         RETURNING id
       `,
@@ -455,7 +455,7 @@ export async function updateProviderAssignmentByProvider(input: UpdateProviderAs
       `
         SELECT id, status, provider_note, provider_reference
         FROM provider_order_assignments
-        WHERE id = $1 AND provider_id = $2
+        WHERE id = $1 AND provider_user_id = $2
         LIMIT 1
       `,
       [input.assignmentId, input.providerId]
@@ -563,9 +563,9 @@ export async function recordAdminOrderUpdateForProvider(input: RecordAdminOrderU
       ]
     );
 
-    const providerResult = await execute<{ provider_id: string }>(
+    const providerResult = await execute<{ provider_user_id: string }>(
       `
-        SELECT provider_id
+        SELECT provider_user_id
         FROM provider_order_assignments
         WHERE id = $1
         LIMIT 1
@@ -573,7 +573,7 @@ export async function recordAdminOrderUpdateForProvider(input: RecordAdminOrderU
       [assignmentId]
     );
 
-    const providerId = providerResult.rows[0]?.provider_id;
+    const providerId = providerResult.rows[0]?.provider_user_id;
     await notifyRealtime(execute, REALTIME_TOPIC_PROVIDER_ASSIGNMENT, assignmentId);
     if (providerId) {
       await notifyRealtime(execute, REALTIME_TOPIC_PROVIDER_PORTAL, providerId);

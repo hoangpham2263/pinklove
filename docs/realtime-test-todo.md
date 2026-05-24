@@ -20,7 +20,7 @@ Mục tiêu: xác nhận luồng realtime giữa `admin` và `supplier` đã ho�
 ## 2. Chuẩn bị môi trường
 
 - [ ] Seed dữ liệu demo:
-  - `cd web && npm run seed:partner`
+  - `cd web && npm run seed:provider`
 - [ ] Chuẩn bị ít nhất 3 session trình duyệt:
   - Session A: admin
   - Session B: provider Alpha
@@ -43,15 +43,15 @@ Mục tiêu: xác nhận luồng realtime giữa `admin` và `supplier` đã ho�
 - Admin order detail:
   - `/admin/orders/[orderId]`
 - Provider portal:
-  - `/partner/[slug]`
+  - `/provider`
 - Provider order detail:
-  - `/partner/orders/[assignmentId]`
+  - `/provider/orders/[assignmentId]`
 - SSE admin:
   - `/api/admin/realtime/assignments/[assignmentId]`
 - SSE provider:
-  - `/api/partner/realtime/assignments/[assignmentId]`
+  - `/api/provider/realtime/assignments/[assignmentId]`
 - SSE portal provider:
-  - `/api/partner/realtime/portal`
+  - `/api/provider/realtime/portal`
 
 Quan sát UI bắt buộc:
 
@@ -65,7 +65,7 @@ Quan sát UI bắt buộc:
   - Kỳ vọng: block realtime hiển thị `connecting` rồi sang `live`.
 - [ ] Mở cùng assignment ở màn provider order detail.
   - Kỳ vọng: block realtime hiển thị `connecting` rồi sang `live`.
-- [ ] Mở portal provider `/partner/[slug]` khi provider đã đăng nhập.
+- [ ] Mở portal provider `/provider` khi provider đã đăng nhập.
   - Kỳ vọng: portal hiển thị `Realtime: live` kể cả khi provider chưa có assignment nào.
 - [ ] Kiểm tra tab `Network`.
   - Kỳ vọng: request SSE giữ kết nối mở, không bị đóng ngay.
@@ -75,7 +75,7 @@ Quan sát UI bắt buộc:
 ### 5.1 Cập nhật internal note
 
 - [ ] Admin mở `/admin/orders/[id]` của đơn đã assign cho provider Alpha.
-- [ ] Provider Alpha mở `/partner/orders/[assignmentId]` tương ứng.
+- [ ] Provider Alpha mở `/provider/orders/[assignmentId]` tương ứng.
 - [ ] Từ admin, cập nhật `internal note` rồi bấm lưu.
   - Kỳ vọng: admin không lỗi submit.
   - Kỳ vọng: provider detail tự refresh trong khoảng 1-3 giây.
@@ -106,7 +106,7 @@ Quan sát UI bắt buộc:
 
 ### 6.1 Đổi trạng thái accepted
 
-- [ ] Provider mở `/partner/orders/[assignmentId]`.
+- [ ] Provider mở `/provider/orders/[assignmentId]`.
 - [ ] Đổi trạng thái từ `pending_confirmation` sang `accepted`, rồi lưu.
   - Kỳ vọng: admin order detail tự refresh trong khoảng 1-3 giây.
   - Kỳ vọng: admin thấy `status = accepted`.
@@ -141,7 +141,7 @@ Quan sát UI bắt buộc:
 
 ## 7. Portal Provider List Refresh
 
-- [ ] Provider Alpha đăng nhập vào `/partner/[slug]`.
+- [ ] Provider Alpha đăng nhập vào `/provider`.
 - [ ] Giữ portal này mở.
 - [ ] Từ admin, cập nhật một assignment bất kỳ của provider Alpha.
   - Kỳ vọng: portal provider tự refresh.
@@ -155,12 +155,12 @@ Quan sát UI bắt buộc:
 
 - [ ] Gọi `/api/admin/realtime/assignments/[id]` khi chưa đăng nhập.
   - Kỳ vọng: `401 unauthorized`.
-- [ ] Gọi `/api/partner/realtime/assignments/[id]` khi chưa đăng nhập.
+- [ ] Gọi `/api/provider/realtime/assignments/[id]` khi chưa đăng nhập.
   - Kỳ vọng: `401 unauthorized`.
 - [ ] Dùng provider Alpha gọi SSE của assignment thuộc provider Beta.
   - Kỳ vọng: `404 not_found`.
-- [ ] Dùng user không phải provider mở `/partner/[slug]`.
-  - Kỳ vọng: bị redirect khỏi partner workspace.
+- [ ] Dùng user không phải provider mở `/provider`.
+  - Kỳ vọng: bị redirect khỏi provider workspace.
 - [ ] Dùng provider Beta truy cập slug của provider Alpha.
   - Kỳ vọng: bị redirect về portal slug của chính Beta.
 

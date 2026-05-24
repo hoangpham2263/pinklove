@@ -7,7 +7,7 @@ export type ProviderStatus = "draft" | "published" | "archived";
 
 export type ProviderRecord = {
   id: string;
-  user_id: string | null;
+  owner_user_id: string | null;
   organization_id: string | null;
   slug: string;
   display_name: string;
@@ -43,12 +43,12 @@ export async function saveProvider(input: ProviderInput) {
   const result = await query<{ id: string }>(
     `
       INSERT INTO providers (
-        user_id, organization_id, slug, display_name, provider_type, status, metadata
+        owner_user_id, organization_id, slug, display_name, provider_type, status, metadata
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
-        user_id = EXCLUDED.user_id,
+        owner_user_id = EXCLUDED.owner_user_id,
         organization_id = EXCLUDED.organization_id,
         display_name = EXCLUDED.display_name,
         provider_type = EXCLUDED.provider_type,
@@ -126,7 +126,7 @@ export async function listProvidersByUserIds(userIds: string[]): Promise<Map<str
     return new Map<string, ProviderRecord>();
   }
 
-  const result = await query<ProviderRecord & { user_id: string }>(
+  const result = await query<ProviderRecord & { owner_user_id: string }>(
     `
       SELECT
         provider.*,
@@ -137,7 +137,7 @@ export async function listProvidersByUserIds(userIds: string[]): Promise<Map<str
         profile.description
       FROM providers provider
       LEFT JOIN provider_profiles profile ON profile.provider_id = provider.id
-      WHERE provider.user_id = ANY($1::text[])
+      WHERE provider.owner_user_id = ANY($1::text[])
       ORDER BY provider.updated_at DESC
     `,
     [userIds]
@@ -145,8 +145,8 @@ export async function listProvidersByUserIds(userIds: string[]): Promise<Map<str
 
   const providersByUserId = new Map<string, ProviderRecord>();
   for (const provider of result.rows) {
-    if (!providersByUserId.has(provider.user_id)) {
-      providersByUserId.set(provider.user_id, provider);
+    if (!providersByUserId.has(provider.owner_user_id)) {
+      providersByUserId.set(provider.owner_user_id, provider);
     }
   }
 

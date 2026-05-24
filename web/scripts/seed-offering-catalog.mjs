@@ -81,7 +81,13 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
     );
   }
 
-  if (offering.offeringType === "physical_product") {
+  const shouldStorePhysicalDetails =
+    offering.offeringType !== "digital_template" &&
+    (offering.fulfillmentType === "physical" ||
+      offering.trackInventory ||
+      offering.allowProviderSupply);
+
+  if (shouldStorePhysicalDetails) {
     await client.query(
       `
         INSERT INTO physical_offerings (
@@ -94,11 +100,10 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
           cost_price,
           provider_sku,
           allow_provider_supply,
-          owner_type,
           provider_type,
           provider_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL, NULL)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, NULL, NULL)
       `,
       [
         offeringId,
@@ -109,7 +114,6 @@ async function syncOfferingTypeDetails(client, offeringId, offering) {
         offering.allowBackorder ?? false,
         offering.costPrice ?? 0,
         offering.providerSku ?? "",
-        offering.ownerType === "provider" ? "provider" : "internal",
       ]
     );
   }

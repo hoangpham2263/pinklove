@@ -1,8 +1,54 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { Client } from "pg";
 
 const PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "12313";
 const BASE_URL = process.env.SEED_BASE_URL ?? "";
+const SKIP_USERS = process.argv.includes("--no-users");
+const rootDir = path.resolve(process.cwd(), "..");
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile(path.join(rootDir, ".env"));
+loadEnvFile(path.join(rootDir, ".env.local"));
+loadEnvFile(path.join(process.cwd(), ".env.local"));
+
+function getDatabaseUrl() {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+
+  const user = process.env.POSTGRES_USER || "app";
+  const password = process.env.POSTGRES_PASSWORD || "change-me";
+  const db = process.env.POSTGRES_DB || "app";
+  const port = process.env.POSTGRES_PORT || "5433";
+
+  return `postgresql://${user}:${password}@localhost:${port}/${db}`;
+}
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -462,7 +508,7 @@ async function createProviderAssignment(client, input) {
     `
       INSERT INTO provider_order_assignments (
         order_id,
-        provider_id,
+        provider_user_id,
         status,
         internal_note,
         provider_note,
@@ -503,11 +549,7 @@ function sumItems(items) {
 }
 
 async function main() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required");
-  }
-
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
+  const client = new Client({ connectionString: getDatabaseUrl() });
   await client.connect();
 
   try {
@@ -556,6 +598,32 @@ async function main() {
       { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
     ]);
 
+    if (SKIP_USERS) {
+      await client.query("COMMIT");
+      console.log(
+        JSON.stringify(
+          {
+            seeded: ["managed_pages", "navigation_menus", "navigation_menu_items"],
+            skipped: ["users", "user_profiles", "affiliate_accounts", "orders", "provider_assignments"],
+            website: {
+              home: withBaseUrl("/"),
+              templates: withBaseUrl("/mau-thiep"),
+              builder: withBaseUrl("/tu-tao-thiep"),
+              blog: withBaseUrl("/blog"),
+              contact: withBaseUrl("/lien-he"),
+            },
+            notes: [
+              "No users were created or updated.",
+              "Create your own admin/customer/provider accounts from the app when needed.",
+            ],
+          },
+          null,
+          2
+        )
+      );
+      return;
+    }
+
     const providerAlpha = await upsertUser(client, {
       username: "provider_alpha",
       role: "PROVIDER",
@@ -563,7 +631,7 @@ async function main() {
       fullName: "Xuong In Alpha",
       phone: "0900000001",
       providerPortalSlug: "xuong-in-alpha",
-      bio: "Provider Alpha seeded for partner portal demo.",
+      bio: "Provider Alpha seeded for provider portal demo.",
     });
 
     const providerBeta = await upsertUser(client, {
@@ -573,7 +641,7 @@ async function main() {
       fullName: "Xuong In Beta",
       phone: "0900000002",
       providerPortalSlug: "xuong-in-beta",
-      bio: "Provider Beta seeded for partner portal demo.",
+      bio: "Provider Beta seeded for provider portal demo.",
     });
 
     const customerOne = await upsertUser(client, {
@@ -597,8 +665,8 @@ async function main() {
     const affiliateRose = await upsertUser(client, {
       username: "affiliate_rose",
       role: "AFFILIATE",
-      displayName: "Rose Partner",
-      fullName: "Rose Partner",
+      displayName: "Rose Provider",
+      fullName: "Rose Provider",
       phone: "0900000021",
       bio: "Active affiliate seeded for tracking demo.",
     });
@@ -606,8 +674,8 @@ async function main() {
     const affiliateNova = await upsertUser(client, {
       username: "affiliate_nova",
       role: "AFFILIATE",
-      displayName: "Nova Partner",
-      fullName: "Nova Partner",
+      displayName: "Nova Provider",
+      fullName: "Nova Provider",
       phone: "0900000022",
       bio: "Pending affiliate seeded for admin review demo.",
     });
@@ -789,8 +857,8 @@ async function main() {
         orderNumber: scenario.orderNumber,
         assignmentId: assignment.id,
         provider: scenario.provider.username,
-        orderDetailLink: withBaseUrl(`/partner/orders/${assignment.id}`),
-        portalLink: withBaseUrl(`/partner/${scenario.providerPortalSlug}`),
+        orderDetailLink: withBaseUrl(`/provider/orders/${assignment.id}`),
+        portalLink: withBaseUrl(`/provider`),
       });
     }
 
@@ -810,11 +878,11 @@ async function main() {
           providers: [
             {
               username: providerAlpha.username,
-              portalLink: withBaseUrl("/partner/xuong-in-alpha"),
+              portalLink: withBaseUrl("/provider"),
             },
             {
               username: providerBeta.username,
-              portalLink: withBaseUrl("/partner/xuong-in-beta"),
+              portalLink: withBaseUrl("/provider"),
             },
           ],
           customers: [

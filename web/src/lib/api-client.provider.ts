@@ -17,23 +17,23 @@ async function submitForm(action: string, formData: FormData): Promise<MutationR
 }
 
 async function updateShippingProfile(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.SHIPPING_PROFILE, formData);
+  return submitForm(ROUTES.API.PROVIDER.SHIPPING_PROFILE, formData);
 }
 
 async function updateProviderAssignment(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.ORDERS.UPDATE, formData);
+  return submitForm(ROUTES.API.PROVIDER.ORDERS.UPDATE, formData);
 }
 
 async function saveOfferingSubmission(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUBMISSIONS, formData);
+  return submitForm(ROUTES.API.PROVIDER.OFFERINGS.SUBMISSIONS, formData);
 }
 
 async function submitOfferingSubmission(submissionId: string, formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUBMIT(submissionId), formData);
+  return submitForm(ROUTES.API.PROVIDER.OFFERINGS.SUBMIT(submissionId), formData);
 }
 
 async function createSupplyRequest(formData: FormData) {
-  return submitForm(ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS, formData);
+  return submitForm(ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS, formData);
 }
 
 async function fetchProviderOrderDetail(url: string) {
@@ -83,9 +83,9 @@ export const providerApi = {
 };
 
 export const providerApiActions = {
-  updateShippingProfile: ROUTES.API.PARTNER.SHIPPING_PROFILE,
-  updateProviderAssignment: ROUTES.API.PARTNER.ORDERS.UPDATE,
-  saveOfferingSubmission: ROUTES.API.PARTNER.OFFERINGS.SUBMISSIONS,
-  submitOfferingSubmission: ROUTES.API.PARTNER.OFFERINGS.SUBMIT,
-  createSupplyRequest: ROUTES.API.PARTNER.OFFERINGS.SUPPLY_REQUESTS,
+  updateShippingProfile: ROUTES.API.PROVIDER.SHIPPING_PROFILE,
+  updateProviderAssignment: ROUTES.API.PROVIDER.ORDERS.UPDATE,
+  saveOfferingSubmission: ROUTES.API.PROVIDER.OFFERINGS.SUBMISSIONS,
+  submitOfferingSubmission: ROUTES.API.PROVIDER.OFFERINGS.SUBMIT,
+  createSupplyRequest: ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS,
 } as const;

@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
 import { AdminOfferingsPageView } from "@/features/offerings/admin/admin-offerings-page";
-import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
 import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingsManagePageProps = {
@@ -14,9 +13,9 @@ export default async function AdminOfferingsManagePage({ searchParams }: AdminOf
   return (
     <AdminOfferingsPageView
       query={query}
-      fixedOfferingType={SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}
-      title="Quản lý sản phẩm"
-      description=""
+      catalogOnly
+      title="Sản phẩm & dịch vụ"
+      description="Quản lý các type do provider hoặc đối tác cung ứng: thiệp giấy, video cưới, makeup, trang trí, planner và các dịch vụ mở rộng."
       returnTo={ROUTES.ADMIN.OFFERING_MANAGE}
     />
   );

@@ -13,8 +13,8 @@ export type BreadcrumbSettings = {
   adminSeparator: string;
   customerEnabled: boolean;
   customerSeparator: string;
-  partnerEnabled: boolean;
-  partnerSeparator: string;
+  providerEnabled: boolean;
+  providerSeparator: string;
 };
 
 export type SitemapSettings = {
@@ -205,8 +205,8 @@ const DEFAULT_SETTINGS: SystemSettings = {
     adminSeparator: "/",
     customerEnabled: true,
     customerSeparator: "/",
-    partnerEnabled: true,
-    partnerSeparator: "/",
+    providerEnabled: true,
+    providerSeparator: "/",
   },
   sitemap: {
     enabled: true,
@@ -380,8 +380,13 @@ function parseBreadcrumbSettings(value: Record<string, unknown> | null | undefin
     adminSeparator: String(merged.adminSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.adminSeparator),
     customerEnabled: merged.customerEnabled === undefined ? DEFAULT_SETTINGS.breadcrumb.customerEnabled : Boolean(merged.customerEnabled),
     customerSeparator: String(merged.customerSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.customerSeparator),
-    partnerEnabled: merged.partnerEnabled === undefined ? DEFAULT_SETTINGS.breadcrumb.partnerEnabled : Boolean(merged.partnerEnabled),
-    partnerSeparator: String(merged.partnerSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.partnerSeparator),
+    providerEnabled:
+      merged.providerEnabled === undefined
+        ? DEFAULT_SETTINGS.breadcrumb.providerEnabled
+        : Boolean(merged.providerEnabled),
+    providerSeparator: String(
+      merged.providerSeparator || merged.separator || DEFAULT_SETTINGS.breadcrumb.providerSeparator
+    ),
   };
 }
 

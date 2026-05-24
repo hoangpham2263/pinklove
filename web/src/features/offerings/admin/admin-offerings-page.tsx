@@ -16,6 +16,7 @@ type AdminOfferingsPageViewProps = {
   query: Record<string, string | string[] | undefined>;
   fixedOfferingType?: OfferingType;
   fixedTemplateEngine?: OfferingTemplateEngine;
+  catalogOnly?: boolean;
   title: string;
   description: string;
   returnTo: string;
@@ -29,6 +30,7 @@ export async function AdminOfferingsPageView({
   query,
   fixedOfferingType,
   fixedTemplateEngine,
+  catalogOnly = false,
   title,
   description,
   returnTo,
@@ -37,6 +39,9 @@ export async function AdminOfferingsPageView({
   const search = getQueryValue(query.q) ?? "";
   const status = (getQueryValue(query.status) ?? "") as "" | Offering["status"];
   const filteredOfferings = offerings.filter((offering) => {
+    if (catalogOnly && offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
+      return false;
+    }
     if (!fixedOfferingType) {
       return true;
     }
@@ -48,6 +53,7 @@ export async function AdminOfferingsPageView({
   const publishedCount = filteredOfferings.filter((offering) => offering.status === "published").length;
   const draftCount = filteredOfferings.length - publishedCount;
   const canCreateOffering =
+    catalogOnly ||
     fixedOfferingType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT ||
     (fixedOfferingType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && fixedTemplateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER);
   const createHref =

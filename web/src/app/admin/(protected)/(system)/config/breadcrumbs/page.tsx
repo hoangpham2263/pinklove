@@ -23,7 +23,7 @@ export default async function AdminBreadcrumbSettingsPage() {
         <AdminOverviewCard title="Managed Pages" value={settings.breadcrumb.enabled ? "On" : "Off"} icon={CheckCircle2} />
         <AdminOverviewCard title="Admin Layout" value={settings.breadcrumb.adminEnabled ? "On" : "Off"} icon={Eye} />
         <AdminOverviewCard title="Customer Layout" value={settings.breadcrumb.customerEnabled ? "On" : "Off"} icon={Code2} />
-        <AdminOverviewCard title="Partner Layout" value={settings.breadcrumb.partnerEnabled ? "On" : "Off"} icon={Home} />
+        <AdminOverviewCard title="Provider Layout" value={settings.breadcrumb.providerEnabled ? "On" : "Off"} icon={Home} />
       </AdminOverviewGrid>
 
       <div className="grid grid-cols-12 gap-4">
@@ -144,28 +144,28 @@ export default async function AdminBreadcrumbSettingsPage() {
 
           <Card className="rounded-lg">
             <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-              <CardTitle className="text-sm font-medium">Partner Layout</CardTitle>
+              <CardTitle className="text-sm font-medium">Provider Layout</CardTitle>
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <SettingsDataTableForm
                 section="breadcrumb"
-                title="Partner Layout"
-                saveMessage="Đã lưu cài đặt partner breadcrumb."
+                title="Provider Layout"
+                saveMessage="Đã lưu cài đặt provider breadcrumb."
                 rows={[
                   {
-                    id: "partnerEnabled",
-                    label: "Partner Breadcrumbs",
-                    description: "Bật breadcrumb trong partner layout.",
+                    id: "providerEnabled",
+                    label: "Provider Breadcrumbs",
+                    description: "Bật breadcrumb trong provider layout.",
                     type: "boolean",
-                    value: settings.breadcrumb.partnerEnabled,
+                    value: settings.breadcrumb.providerEnabled,
                   },
                   {
-                    id: "partnerSeparator",
-                    label: "Partner Separator",
-                    description: "Separator riêng cho partner layout.",
+                    id: "providerSeparator",
+                    label: "Provider Separator",
+                    description: "Separator riêng cho provider layout.",
                     type: "select",
-                    value: settings.breadcrumb.partnerSeparator,
+                    value: settings.breadcrumb.providerSeparator,
                     options: BREADCRUMB_SEPARATOR_OPTIONS,
                   },
                 ]}
@@ -215,12 +215,12 @@ export default async function AdminBreadcrumbSettingsPage() {
               </div>
 
               <div className="rounded-xl border border-dashed bg-muted/30 p-4">
-                <p className="mb-2 text-sm font-medium">Partner Layout</p>
+                <p className="mb-2 text-sm font-medium">Provider Layout</p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span>Partner</span>
-                  <span>{settings.breadcrumb.partnerSeparator}</span>
+                  <span>Provider</span>
+                  <span>{settings.breadcrumb.providerSeparator}</span>
                   <span>Configs</span>
-                  <span>{settings.breadcrumb.partnerSeparator}</span>
+                  <span>{settings.breadcrumb.providerSeparator}</span>
                   <span>Offerings</span>
                 </div>
               </div>

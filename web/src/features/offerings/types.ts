@@ -8,11 +8,12 @@ export type OfferingTemplateMode = "fixed" | "editable" | "hybrid";
 export const SYSTEM_OFFERING_TYPES = {
   DIGITAL_TEMPLATE: "digital_template",
   PHYSICAL_PRODUCT: "physical_product",
-  SERVICE: "service",
-  CREATOR_SERVICE: "creator_service",
-  EXPERIENCE: "experience",
-  SUBSCRIPTION: "subscription",
-  ADDON: "addon",
+  WEDDING_VIDEO: "wedding_video",
+  WEDDING_PHOTO: "wedding_photo",
+  BRIDAL_MAKEUP: "bridal_makeup",
+  WEDDING_DECORATION: "wedding_decoration",
+  WEDDING_PLANNER: "wedding_planner",
+  WEDDING_GIFT: "wedding_gift",
 } as const;
 
 export const SYSTEM_TEMPLATE_ENGINES = {
@@ -200,25 +201,27 @@ export function isBuilderOfferingType(offeringType: OfferingType) {
 }
 
 export function isGeneralOfferingType(offeringType: OfferingType) {
-  return offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  return offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
 }
 
 export function getOfferingTypeLabel(offeringType: OfferingType) {
   switch (offeringType) {
     case SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE:
-      return "Mẫu digital";
+      return "Thiệp cưới online";
     case SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT:
-      return "Sản phẩm vật lý";
-    case SYSTEM_OFFERING_TYPES.SERVICE:
-      return "Dịch vụ";
-    case SYSTEM_OFFERING_TYPES.CREATOR_SERVICE:
-      return "Creator service";
-    case SYSTEM_OFFERING_TYPES.EXPERIENCE:
-      return "Experience";
-    case SYSTEM_OFFERING_TYPES.SUBSCRIPTION:
-      return "Subscription";
-    case SYSTEM_OFFERING_TYPES.ADDON:
-      return "Addon";
+      return "Thiệp giấy";
+    case SYSTEM_OFFERING_TYPES.WEDDING_VIDEO:
+      return "Làm video cưới";
+    case SYSTEM_OFFERING_TYPES.WEDDING_PHOTO:
+      return "Chụp ảnh cưới";
+    case SYSTEM_OFFERING_TYPES.BRIDAL_MAKEUP:
+      return "Makeup cô dâu";
+    case SYSTEM_OFFERING_TYPES.WEDDING_DECORATION:
+      return "Trang trí tiệc cưới";
+    case SYSTEM_OFFERING_TYPES.WEDDING_PLANNER:
+      return "Wedding planner";
+    case SYSTEM_OFFERING_TYPES.WEDDING_GIFT:
+      return "Quà cưới";
     default:
       return offeringType;
   }

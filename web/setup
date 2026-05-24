@@ -26,7 +26,8 @@ require_docker() {
 run_up() {
   require_docker
   stop_prod_if_running
-  docker compose "${COMPOSE_DEV[@]}" up -d --remove-orphans db
+  docker compose "${COMPOSE_DEV[@]}" up -d --remove-orphans db pgadmin
+  wait_for_service db
   print_dev_url
 }
 
@@ -36,22 +37,60 @@ run_down() {
 }
 
 stop_prod_if_running() {
-  if docker compose "${COMPOSE_PROD[@]}" ps --status running --services | grep -q .; then
-    echo "Stopping production stack so local dev can use the app port..."
-    docker compose "${COMPOSE_PROD[@]}" down --remove-orphans
+  if docker compose "${COMPOSE_PROD[@]}" ps --status running --services | grep -q '^web$'; then
+    echo "Stopping production web container so local dev can use the app port..."
+    docker compose "${COMPOSE_PROD[@]}" stop web
+    docker compose "${COMPOSE_PROD[@]}" rm -f web
   fi
 }
 
 run_logs() {
   require_docker
-  echo "Watching database logs"
-  docker compose "${COMPOSE_DEV[@]}" logs -f db
+  echo "Watching database and pgAdmin logs"
+  docker compose "${COMPOSE_DEV[@]}" logs -f db pgadmin
+}
+
+wait_for_service() {
+  local service="$1"
+  local container_id
+  local health
+
+  container_id="$(docker compose "${COMPOSE_DEV[@]}" ps -q "$service")"
+  if [ -z "$container_id" ]; then
+    echo "Service $service did not start."
+    exit 1
+  fi
+
+  echo "Waiting for $service to become healthy..."
+  for _ in $(seq 1 30); do
+    health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_id")"
+    if [ "$health" = "healthy" ] || [ "$health" = "running" ]; then
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "Service $service is not healthy yet. Check logs with: ${SETUP_ENTRY} logs"
+  exit 1
 }
 
 print_dev_url() {
   POSTGRES_PORT_VALUE="$(grep -E '^POSTGRES_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
   POSTGRES_PORT_VALUE="${POSTGRES_PORT_VALUE:-5433}"
+  PGADMIN_PORT_VALUE="$(grep -E '^PGADMIN_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  PGADMIN_PORT_VALUE="${PGADMIN_PORT_VALUE:-5050}"
+  PGADMIN_EMAIL_VALUE="$(grep -E '^PGADMIN_DEFAULT_EMAIL=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  PGADMIN_EMAIL_VALUE="${PGADMIN_EMAIL_VALUE:-admin@pinklove.local}"
+  PGADMIN_PASSWORD_VALUE="$(grep -E '^PGADMIN_DEFAULT_PASSWORD=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  PGADMIN_PASSWORD_VALUE="${PGADMIN_PASSWORD_VALUE:-admin}"
+  POSTGRES_DB_VALUE="$(grep -E '^POSTGRES_DB=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  POSTGRES_DB_VALUE="${POSTGRES_DB_VALUE:-app}"
+  POSTGRES_USER_VALUE="$(grep -E '^POSTGRES_USER=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+  POSTGRES_USER_VALUE="${POSTGRES_USER_VALUE:-app}"
   echo "Database is running at localhost:${POSTGRES_PORT_VALUE}"
+  echo "pgAdmin URL: http://localhost:${PGADMIN_PORT_VALUE}"
+  echo "pgAdmin login: ${PGADMIN_EMAIL_VALUE} / ${PGADMIN_PASSWORD_VALUE}"
+  echo "pgAdmin connection: host=db port=5432 database=${POSTGRES_DB_VALUE} user=${POSTGRES_USER_VALUE}"
   echo "Start the app with: cd web && npm run dev"
   echo "App URL: http://localhost:3000"
 }
@@ -61,9 +100,9 @@ show_help() {
 Usage: ${SETUP_ENTRY} [command]
 
 Commands:
-  up         Start PostgreSQL
-  down       Stop PostgreSQL
-  logs       Stream database logs
+  up         Start PostgreSQL and pgAdmin
+  down       Stop PostgreSQL and pgAdmin
+  logs       Stream database and pgAdmin logs
   help       Show this help
 EOF
 }

@@ -38,7 +38,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
     description: `${
       offering.offeringType === "digital_template" && offering.templateEngine === "builder"
         ? "Builder"
-        : offering.offeringType === "physical_product"
+        : offering.offeringType !== "digital_template"
           ? "Sản phẩm"
           : "Template"
     } • ${offering.status}`,

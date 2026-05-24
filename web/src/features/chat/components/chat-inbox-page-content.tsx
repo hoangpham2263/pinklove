@@ -6,7 +6,7 @@ import {
   listChatAssignableAccounts,
   listChatConversationsForViewer,
 } from "@/features/chat/server/service";
-import { isAdminRole, type UserRole } from "@/lib/roles";
+import { isAdminRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { getSystemSettings } from "@/lib/system-settings";
 
 type ChatInboxPageContentProps = {
@@ -35,8 +35,8 @@ export async function ChatInboxPageContent({
     try {
       await createSupportRequestConversation({
         requesterUserId: currentUser.id,
-        category: "general",
-        title: "Hỗ trợ chung",
+        category: currentUser.role === USER_ROLES.PROVIDER ? "provider_support" : "general",
+        title: currentUser.role === USER_ROLES.PROVIDER ? "Hỗ trợ provider" : "Hỗ trợ chung",
       });
       conversations = await listChatConversationsForViewer(currentUser.id, context);
     } catch {

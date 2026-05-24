@@ -1045,6 +1045,8 @@ export async function updateChatTypingState(input: {
         [input.conversationId, input.actorUserId]
       );
     }
+
+    await notifyConversationParticipants(execute, input.conversationId);
   });
 }
 
@@ -1155,6 +1157,8 @@ export async function sendChatMessage(input: {
       `,
       [input.conversationId, input.actorUserId]
     );
+
+    await notifyConversationParticipants(execute, input.conversationId);
   });
 }
 

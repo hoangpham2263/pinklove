@@ -50,7 +50,7 @@ async function getProviderAssignmentRealtimeStateRow(assignmentId: string, provi
         ) AS last_event_created_at
       FROM provider_order_assignments a
       WHERE a.id = $1
-      ${providerId ? "AND a.provider_id = $2" : ""}
+      ${providerId ? "AND a.provider_user_id = $2" : ""}
       LIMIT 1
     `,
     providerId ? [assignmentId, providerId] : [assignmentId]
@@ -105,7 +105,7 @@ export async function getProviderPortalRealtimeState(providerId: string): Promis
         COUNT(DISTINCT a.id)::text AS assignment_count
       FROM provider_order_assignments a
       LEFT JOIN provider_order_events e ON e.assignment_id = a.id
-      WHERE a.provider_id = $1
+      WHERE a.provider_user_id = $1
     `,
     [providerId]
   );

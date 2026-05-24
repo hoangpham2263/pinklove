@@ -394,7 +394,7 @@ export async function requireAppUser(redirectTo: string = ROUTES.AUTH.LOGIN): Pr
 
 }
 
-export async function requireProvider(redirectTo: string = ROUTES.PARTNER.LOGIN): Promise<AuthUser> {
+export async function requireProvider(redirectTo: string = ROUTES.PROVIDER.LOGIN): Promise<AuthUser> {
   const user = await requireUser(redirectTo);
 
   if (!isProviderRole(user.role)) {
@@ -954,8 +954,7 @@ export async function adminSetProviderAccountStatus(
    SELECT offering_id
    FROM physical_offerings
    INNER JOIN providers ON providers.id = physical_offerings.provider_id
-   WHERE physical_offerings.owner_type = 'provider'
-     AND providers.user_id = $1
+   WHERE providers.owner_user_id = $1
  )
 `,
    [targetUserId]
@@ -976,7 +975,7 @@ export async function adminSetProviderAccountStatus(
      reviewed_at = NOW(),
      reviewed_by = $3,
      updated_at = NOW()
- WHERE provider_id = $1
+ WHERE provider_user_id = $1
    AND review_status <> 'archived'
 `,
    [targetUserId, archiveMessage, actorId]

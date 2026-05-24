@@ -151,7 +151,7 @@ function sanitizeAffiliateCode(input: string): string {
 }
 
 async function generateUniqueAffiliateCode(base: string): Promise<string> {
-  const root = sanitizeAffiliateCode(base) || "partner";
+  const root = sanitizeAffiliateCode(base) || "affiliate";
 
   for (let index = 0; index < 1000; index += 1) {
     const candidate = index === 0 ? root : `${root}-${index}`;

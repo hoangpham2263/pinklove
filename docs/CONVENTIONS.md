@@ -135,9 +135,14 @@ This file is the repo-wide source of truth.
 - `offerings.config` must stay small. Runtime enforces
   `pg_column_size(config) <= 32768`; move growing workflows into relational
   tables before they approach that limit.
-- Marketplace ownership must use `provider_id`. Do not add new
-  `provider_id`, `provider_id`, or service ownership columns that
-  point directly at `users`.
+- Marketplace ownership must use `providers.id`. Do not add new marketplace,
+  discovery, booking, profile, pricing, or service ownership columns that point
+  directly at `users`.
+- Provider account workflow tables may point at `users.id` only when the actor
+  is an authenticated provider account in an operational moderation or
+  fulfillment flow. Those columns must be named `provider_user_id`; reserve
+  `provider_id` for `providers.id`. Provider entities use `owner_user_id` for
+  their auth/account owner.
 - Run `npm run audit:schema` after DB architecture changes. The audit must pass
   before considering ID, offering config, search index, SEO table, or enum-like
   config cleanup complete.

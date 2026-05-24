@@ -33,6 +33,11 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
     listProviders(),
     listOfferingTypes(),
   ]);
+  const catalogOfferingTypes = offeringTypes.filter((type) => type.key !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE);
+  const initialOfferingType =
+    requestedType && requestedType !== SYSTEM_TEMPLATE_ENGINES.BUILDER && catalogOfferingTypes.some((type) => type.key === requestedType)
+      ? requestedType
+      : catalogOfferingTypes[0]?.key ?? SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -55,8 +60,8 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
       <QuickCreateOfferingForm
         categories={categories}
         providers={providers}
-        offeringTypes={offeringTypes}
-        initialOfferingType={requestedType && requestedType !== SYSTEM_TEMPLATE_ENGINES.BUILDER ? requestedType : SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}
+        offeringTypes={catalogOfferingTypes}
+        initialOfferingType={initialOfferingType}
         returnTo={returnTo}
       />
     </section>

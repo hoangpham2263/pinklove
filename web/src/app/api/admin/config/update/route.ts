@@ -57,9 +57,9 @@ export async function POST(request: Request) {
       if (formData.has("customerSeparator")) {
         breadcrumbInput.customerSeparator = String(formData.get("customerSeparator") ?? "").trim() || "/";
       }
-      if (formData.has("partnerEnabled")) breadcrumbInput.partnerEnabled = isChecked(formData, "partnerEnabled");
-      if (formData.has("partnerSeparator")) {
-        breadcrumbInput.partnerSeparator = String(formData.get("partnerSeparator") ?? "").trim() || "/";
+      if (formData.has("providerEnabled")) breadcrumbInput.providerEnabled = isChecked(formData, "providerEnabled");
+      if (formData.has("providerSeparator")) {
+        breadcrumbInput.providerSeparator = String(formData.get("providerSeparator") ?? "").trim() || "/";
       }
 
       await updateBreadcrumbSettings(breadcrumbInput);

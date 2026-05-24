@@ -24,13 +24,14 @@ export function QuickCreateUserForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setIsSubmitting(true);
 
     try {
-      const result = await adminApi.createUser(new FormData(event.currentTarget));
+      const result = await adminApi.createUser(new FormData(form));
       toast.success(result.message ?? "Đã tạo tài khoản mới.");
       finishMutation(router, result, { redirect: false });
-      event.currentTarget.reset();
+      form.reset();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể tạo tài khoản.");
     } finally {

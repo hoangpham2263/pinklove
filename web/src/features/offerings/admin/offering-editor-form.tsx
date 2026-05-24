@@ -73,7 +73,7 @@ export function OfferingEditorForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const isGeneralOffering = offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const isGeneralOffering = offering.offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const isBuilder = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER;
   const isCodedTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED;
   const canDeleteOffering = !isCodedTemplate;

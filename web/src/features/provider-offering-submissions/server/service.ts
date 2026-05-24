@@ -25,7 +25,7 @@ import { ROUTES } from "@/lib/routes";
 
 type SubmissionRow = {
   id: string;
-  provider_id: string;
+  provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
   linked_offering_id: string | null;
@@ -74,7 +74,7 @@ type SupplierRow = {
   offering_name: string;
   offering_slug: string;
   offering_thumbnail_url: string | null;
-  provider_id: string;
+  provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
   status: OfferingProviderSupplierStatus;
@@ -97,7 +97,7 @@ type SupplierRequestRow = {
   offering_name: string;
   offering_slug: string;
   offering_thumbnail_url: string | null;
-  provider_id: string;
+  provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
   review_status: ProviderOfferingSupplierRequestStatus;
@@ -197,7 +197,7 @@ type UpdateOfferingProviderSupplierStatusInput = {
 const SUBMISSION_SELECT = `
   SELECT
     s.id,
-    s.provider_id,
+    s.provider_user_id,
     provider.username AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     s.linked_offering_id,
@@ -228,7 +228,7 @@ const SUBMISSION_SELECT = `
     s.created_at::text,
     s.updated_at::text
   FROM provider_offering_submissions s
-  JOIN users provider ON provider.id = s.provider_id
+  JOIN users provider ON provider.id = s.provider_user_id
   LEFT JOIN user_profiles provider_profile ON provider_profile.user_id = provider.id
   LEFT JOIN offerings linked ON linked.id = s.linked_offering_id
   LEFT JOIN offering_categories category ON category.id = s.category_id
@@ -242,7 +242,7 @@ const SUPPLIER_SELECT = `
     offering.name AS offering_name,
     offering.slug AS offering_slug,
     offering.thumbnail_url AS offering_thumbnail_url,
-    supplier.provider_id,
+    supplier.provider_user_id,
     provider.username AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     supplier.status,
@@ -259,7 +259,7 @@ const SUPPLIER_SELECT = `
     supplier.updated_at::text
   FROM offering_provider_suppliers supplier
   JOIN offerings offering ON offering.id = supplier.offering_id
-  JOIN users provider ON provider.id = supplier.provider_id
+  JOIN users provider ON provider.id = supplier.provider_user_id
   LEFT JOIN user_profiles provider_profile ON provider_profile.user_id = provider.id
 `;
 
@@ -270,7 +270,7 @@ const SUPPLIER_REQUEST_SELECT = `
     offering.name AS offering_name,
     offering.slug AS offering_slug,
     offering.thumbnail_url AS offering_thumbnail_url,
-    request.provider_id,
+    request.provider_user_id,
     provider.username AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     request.review_status,
@@ -291,7 +291,7 @@ const SUPPLIER_REQUEST_SELECT = `
     request.updated_at::text
   FROM provider_offering_supplier_requests request
   JOIN offerings offering ON offering.id = request.offering_id
-  JOIN users provider ON provider.id = request.provider_id
+  JOIN users provider ON provider.id = request.provider_user_id
   LEFT JOIN user_profiles provider_profile ON provider_profile.user_id = provider.id
 `;
 
@@ -306,7 +306,7 @@ function toInteger(value: string | null | undefined) {
 function mapSubmissionRow(row: SubmissionRow): ProviderOfferingSubmission {
   return {
     id: row.id,
-    providerId: row.provider_id,
+    providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
     linkedOfferingId: row.linked_offering_id ?? undefined,
@@ -346,7 +346,7 @@ function mapSupplierRow(row: SupplierRow): OfferingProviderSupplier {
     offeringName: row.offering_name,
     offeringSlug: row.offering_slug,
     offeringThumbnailUrl: row.offering_thumbnail_url ?? "",
-    providerId: row.provider_id,
+    providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
     status: row.status,
@@ -371,7 +371,7 @@ function mapSupplierRequestRow(row: SupplierRequestRow): ProviderOfferingSupplie
     offeringName: row.offering_name,
     offeringSlug: row.offering_slug,
     offeringThumbnailUrl: row.offering_thumbnail_url ?? "",
-    providerId: row.provider_id,
+    providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
     reviewStatus: row.review_status,
@@ -486,7 +486,7 @@ async function upsertOfferingProviderSupplier(
     `
       INSERT INTO offering_provider_suppliers (
         offering_id,
-        provider_id,
+        provider_user_id,
         status,
         source,
         purchase_cost,
@@ -499,7 +499,7 @@ async function upsertOfferingProviderSupplier(
         approved_at
       )
       VALUES ($1, $2, 'active', $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-      ON CONFLICT (offering_id, provider_id) DO UPDATE
+      ON CONFLICT (offering_id, provider_user_id) DO UPDATE
       SET
         status = 'active',
         source = EXCLUDED.source,
@@ -535,7 +535,7 @@ async function assertLinkedOfferingOwnership(providerId: string, linkedOfferingI
 
   const offering = await getOfferingById(linkedOfferingId);
   const provider = await getProviderByUserId(providerId);
-  if (!offering || offering.offeringType !== "physical_product" || offering.ownerType !== "provider" || offering.ownerProviderId !== provider?.id) {
+  if (!offering || offering.offeringType === "digital_template" || offering.ownerType !== "provider" || offering.ownerProviderId !== provider?.id) {
     throw new Error("LINKED_OFFERING_NOT_ALLOWED");
   }
 
@@ -546,7 +546,7 @@ export async function listProviderOfferingSubmissionsForProvider(providerId: str
   const result = await query<SubmissionRow>(
     `
       ${SUBMISSION_SELECT}
-      WHERE s.provider_id = $1
+      WHERE s.provider_user_id = $1
       ORDER BY s.updated_at DESC
     `,
     [providerId]
@@ -593,19 +593,19 @@ export async function listAvailableOfferingsForProviderSupply(providerId: string
       INNER JOIN physical_offerings physical ON physical.offering_id = offering.id
       LEFT JOIN offering_provider_suppliers supplier
         ON supplier.offering_id = offering.id
-       AND supplier.provider_id = $1
+       AND supplier.provider_user_id = $1
        AND supplier.status <> 'revoked'
       LEFT JOIN LATERAL (
         SELECT review_status
         FROM provider_offering_supplier_requests request
         WHERE request.offering_id = offering.id
-          AND request.provider_id = $1
+          AND request.provider_user_id = $1
           AND request.review_status IN ('submitted', 'under_review', 'changes_requested')
         ORDER BY request.updated_at DESC
         LIMIT 1
       ) request ON TRUE
       WHERE offering.status = 'published'
-        AND offering.offering_type = 'physical_product'
+        AND offering.offering_type <> 'digital_template'
         AND physical.allow_provider_supply = TRUE
       ORDER BY offering.updated_at DESC
     `,
@@ -629,7 +629,7 @@ export async function listSupplierRequestsForProvider(providerId: string): Promi
   const result = await query<SupplierRequestRow>(
     `
       ${SUPPLIER_REQUEST_SELECT}
-      WHERE request.provider_id = $1
+      WHERE request.provider_user_id = $1
       ORDER BY request.updated_at DESC
     `,
     [providerId]
@@ -647,14 +647,14 @@ export async function listApprovedSupplierOptionsForOfferings(offeringIds: strin
   const result = await query<{ id: string; label: string }>(
     `
       SELECT
-        supplier.provider_id AS id,
+        supplier.provider_user_id AS id,
         COALESCE(NULLIF(BTRIM(profile.display_name), ''), NULLIF(BTRIM(profile.full_name), ''), provider.username) AS label
       FROM offering_provider_suppliers supplier
-      JOIN users provider ON provider.id = supplier.provider_id
+      JOIN users provider ON provider.id = supplier.provider_user_id
       LEFT JOIN user_profiles profile ON profile.user_id = provider.id
       WHERE supplier.offering_id = ANY($1::text[])
         AND supplier.status = 'active'
-      GROUP BY supplier.provider_id, label
+      GROUP BY supplier.provider_user_id, label
       HAVING COUNT(DISTINCT supplier.offering_id) = $2
       ORDER BY label ASC
     `,
@@ -705,7 +705,7 @@ export async function listSupplierRequestsForAdmin(): Promise<ProviderOfferingSu
 export async function createSupplierRequest(input: CreateSupplierRequestInput): Promise<string> {
   const offering = await getOfferingById(input.offeringId);
 
-  if (!offering || offering.status !== "published" || offering.offeringType !== "physical_product" || !offering.allowProviderSupply) {
+  if (!offering || offering.status !== "published" || offering.offeringType === "digital_template" || !offering.allowProviderSupply) {
     throw new Error("OFFERING_NOT_AVAILABLE");
   }
 
@@ -714,7 +714,7 @@ export async function createSupplierRequest(input: CreateSupplierRequestInput): 
       SELECT id
       FROM offering_provider_suppliers
       WHERE offering_id = $1
-        AND provider_id = $2
+        AND provider_user_id = $2
         AND status IN ('active', 'paused', 'suspended')
       LIMIT 1
     `,
@@ -729,7 +729,7 @@ export async function createSupplierRequest(input: CreateSupplierRequestInput): 
       SELECT id, review_status
       FROM provider_offering_supplier_requests
       WHERE offering_id = $1
-        AND provider_id = $2
+        AND provider_user_id = $2
         AND review_status IN ('submitted', 'under_review', 'changes_requested')
       LIMIT 1
     `,
@@ -791,7 +791,7 @@ export async function createSupplierRequest(input: CreateSupplierRequestInput): 
     `
       INSERT INTO provider_offering_supplier_requests (
         offering_id,
-        provider_id,
+        provider_user_id,
         review_status,
         purchase_cost,
         provider_sku,
@@ -868,7 +868,7 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
   if (input.nextStatus === "approved") {
     await upsertOfferingProviderSupplier(query, {
       offeringId: request.offering_id,
-      providerId: request.provider_id,
+      providerId: request.provider_user_id,
       actorUserId: input.actorUserId,
       source: "supplier_request",
       purchaseCost: toNumber(request.purchase_cost),
@@ -891,9 +891,9 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
           : input.nextStatus === "rejected"
             ? "Admin đã từ chối supplier request."
             : "Admin đã cập nhật supplier request.",
-    linkUrl: ROUTES.PARTNER.SUPPLY_REQUESTS,
+    linkUrl: ROUTES.PROVIDER.SUPPLY_REQUESTS,
     audienceType: "users",
-    userIds: [request.provider_id],
+    userIds: [request.provider_user_id],
   });
 }
 
@@ -939,9 +939,9 @@ export async function updateOfferingProviderSupplierStatus(input: UpdateOffering
           : input.nextStatus === "suspended"
             ? "Admin đã suspend quyền cung cấp mẫu."
             : "Admin đã thu hồi quyền cung cấp mẫu.",
-    linkUrl: ROUTES.PARTNER.SUPPLY_REQUESTS,
+    linkUrl: ROUTES.PROVIDER.SUPPLY_REQUESTS,
     audienceType: "users",
-    userIds: [supplier.provider_id],
+    userIds: [supplier.provider_user_id],
   });
 }
 
@@ -950,7 +950,7 @@ export async function getProviderOfferingSubmissionDetailForProvider(
   submissionId: string
 ): Promise<ProviderOfferingSubmissionDetail | null> {
   const row = await getSubmissionRowById(submissionId);
-  if (!row || row.provider_id !== providerId) {
+  if (!row || row.provider_user_id !== providerId) {
     return null;
   }
 
@@ -996,10 +996,10 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
       const existing = await execute<{
         id: string;
         review_status: ProviderOfferingReviewStatus;
-        provider_id: string;
+        provider_user_id: string;
       }>(
         `
-          SELECT id, review_status, provider_id
+          SELECT id, review_status, provider_user_id
           FROM provider_offering_submissions
           WHERE id = $1
           LIMIT 1
@@ -1008,7 +1008,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
       );
 
       const row = existing.rows[0];
-      if (!row || row.provider_id !== input.providerId) {
+      if (!row || row.provider_user_id !== input.providerId) {
         throw new Error("SUBMISSION_NOT_FOUND");
       }
 
@@ -1072,7 +1072,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
     const inserted = await execute<{ id: string }>(
       `
         INSERT INTO provider_offering_submissions (
-          provider_id,
+          provider_user_id,
           linked_offering_id,
           category_id,
           submission_type,
@@ -1132,11 +1132,11 @@ export async function submitProviderOfferingSubmission(providerId: string, submi
     const result = await execute<{
       id: string;
       review_status: ProviderOfferingReviewStatus;
-      provider_id: string;
+      provider_user_id: string;
       name: string;
     }>(
       `
-        SELECT id, review_status, provider_id, name
+        SELECT id, review_status, provider_user_id, name
         FROM provider_offering_submissions
         WHERE id = $1
         LIMIT 1
@@ -1145,7 +1145,7 @@ export async function submitProviderOfferingSubmission(providerId: string, submi
     );
 
     const row = result.rows[0];
-    if (!row || row.provider_id !== providerId) {
+    if (!row || row.provider_user_id !== providerId) {
       throw new Error("SUBMISSION_NOT_FOUND");
     }
 
@@ -1191,10 +1191,10 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
     const result = await execute<{
       id: string;
       review_status: ProviderOfferingReviewStatus;
-      provider_id: string;
+      provider_user_id: string;
     }>(
       `
-        SELECT id, review_status, provider_id
+        SELECT id, review_status, provider_user_id
         FROM provider_offering_submissions
         WHERE id = $1
         LIMIT 1
@@ -1206,7 +1206,7 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
     if (!row) {
       throw new Error("SUBMISSION_NOT_FOUND");
     }
-    providerId = row.provider_id;
+    providerId = row.provider_user_id;
 
     if (row.review_status === "approved") {
       throw new Error("SUBMISSION_FINALIZED");
@@ -1267,7 +1267,7 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
             : input.nextStatus === "rejected"
               ? "Admin đã từ chối hồ sơ sản phẩm của bạn."
               : "Admin đã lưu trữ hồ sơ sản phẩm của bạn.",
-      linkUrl: ROUTES.PARTNER.OFFERING(input.submissionId),
+      linkUrl: ROUTES.PROVIDER.OFFERING(input.submissionId),
       audienceType: "users",
       userIds: [providerId],
     });
@@ -1279,7 +1279,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   const offeringOwnership = input.offeringOwnership ?? "platform";
   const result = await query<{
     id: string;
-    provider_id: string;
+    provider_user_id: string;
     linked_offering_id: string | null;
     category_id: string | null;
     submission_type: ProviderOfferingSubmissionType;
@@ -1300,7 +1300,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
     `
       SELECT
         id,
-        provider_id,
+        provider_user_id,
         linked_offering_id,
         category_id,
         submission_type,
@@ -1334,7 +1334,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   }
 
   let linkedOfferingId = submission.linked_offering_id;
-  const provider = await getProviderByUserId(submission.provider_id);
+  const provider = await getProviderByUserId(submission.provider_user_id);
   if (submission.submission_type === "create") {
     const ownerType = offeringOwnership === "provider_originated" ? "provider" : "internal";
     const created = await createOffering({
@@ -1427,7 +1427,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   if (linkedOfferingId && assignProviderSupplier && submission.submission_type !== "discontinue") {
     await upsertOfferingProviderSupplier(query, {
       offeringId: linkedOfferingId,
-      providerId: submission.provider_id,
+      providerId: submission.provider_user_id,
       actorUserId: input.actorUserId,
       source: "proposal",
       purchaseCost: toNumber(submission.purchase_cost),
@@ -1455,9 +1455,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
       submission.submission_type === "discontinue"
         ? "Admin đã duyệt yêu cầu ngừng bán sản phẩm của bạn."
         : "Admin đã duyệt hồ sơ sản phẩm và áp dụng vào catalog.",
-    linkUrl: ROUTES.PARTNER.OFFERING(input.submissionId),
+    linkUrl: ROUTES.PROVIDER.OFFERING(input.submissionId),
     audienceType: "users",
-    userIds: [submission.provider_id],
+    userIds: [submission.provider_user_id],
   });
 
   return linkedOfferingId ?? "";

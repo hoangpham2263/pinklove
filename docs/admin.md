@@ -45,7 +45,7 @@ This file covers the admin area and admin-controlled workflows.
 - Admin offering categories now use a dedicated `offering_categories` data model and offerings can be assigned to a category from admin offering forms.
 - Actor accounts now have dedicated management screens for `CUSTOMER`, `AFFILIATE`, and `PROVIDER`, in addition to the full account list.
 - `Admin > Nhà cung cấp` can expose a dedicated detail page per provider account so operations can review that provider's assigned orders in one place.
-- Provider management may also expose a dedicated public entry link per provider account that routes into the shared partner portal after login.
+- Provider management may also expose a dedicated public entry link per provider account that routes into the shared provider portal after login.
 - Admin order state updates should use client-side mutation panels for operational screens when partial realtime refresh is available, instead of relying on native form redirects.
 - Admin-facing status displays may keep stored enum values in English internally, but visible management labels should be shown in Vietnamese for clarity.
 - Admin UI mutations and fetches should go through `src/lib/api-client.admin.ts`.

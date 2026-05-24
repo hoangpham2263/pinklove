@@ -86,6 +86,34 @@ type OfferingTypeRow = {
   updated_at: string;
 };
 
+function shouldStorePhysicalOfferingDetails({
+  offeringType,
+  fulfillmentType,
+  supportsInventory,
+  supportsProviderSupply,
+  trackInventory,
+  allowProviderSupply,
+}: {
+  offeringType: OfferingType;
+  fulfillmentType?: OfferingFulfillmentType;
+  supportsInventory?: boolean;
+  supportsProviderSupply?: boolean;
+  trackInventory?: boolean;
+  allowProviderSupply?: boolean;
+}) {
+  if (offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
+    return false;
+  }
+
+  return (
+    fulfillmentType === "physical" ||
+    Boolean(supportsInventory) ||
+    Boolean(supportsProviderSupply) ||
+    Boolean(trackInventory) ||
+    Boolean(allowProviderSupply)
+  );
+}
+
 type OfferingTypeFieldRow = {
   id: string;
   offering_type_id: string;
@@ -462,7 +490,6 @@ type OfferingRow = {
   physical_cost_price: string | null;
   physical_provider_sku: string | null;
   physical_allow_provider_supply: boolean | null;
-  physical_owner_type: OfferingOwnerType | null;
   physical_provider_id: string | null;
   physical_provider_type: string | null;
   config: Record<string, unknown> | null;
@@ -508,7 +535,7 @@ function mapOfferingCategoryRow(row: OfferingCategoryRow): OfferingCategory {
 function mapOfferingRow(row: OfferingRow): Offering {
   const { generalOffering: _generalOffering, ...baseConfig } = row.config ?? {};
   void _generalOffering;
-  const ownerType = row.physical_owner_type === "provider" ? "provider" : "internal";
+  const ownerType = row.physical_provider_id ? "provider" : "internal";
   const ownerProviderId = ownerType === "provider" ? row.physical_provider_id ?? undefined : undefined;
   const ownerProviderType = ownerType === "provider" ? row.physical_provider_type ?? undefined : undefined;
   const templateKey = row.digital_template_key ?? row.template_key;
@@ -595,7 +622,6 @@ const OFFERING_SELECT = `
     physical.cost_price::text AS physical_cost_price,
     physical.provider_sku AS physical_provider_sku,
     physical.allow_provider_supply AS physical_allow_provider_supply,
-    physical.owner_type AS physical_owner_type,
     physical.provider_id AS physical_provider_id,
     physical.provider_type AS physical_provider_type,
     offerings.config,
@@ -1107,9 +1133,9 @@ export async function getOfferingById(id: string): Promise<Offering | null> {
 
 export async function getPublishedOfferingBySlugAndType(
   slug: string,
-  offeringType: OfferingType
+  offeringType: OfferingType | OfferingType[]
 ): Promise<Offering | null> {
-  const normalizedFilter = normalizeOfferingTypeFilter([offeringType]);
+  const normalizedFilter = normalizeOfferingTypeFilter(Array.isArray(offeringType) ? offeringType : [offeringType]);
   const result = await withOfferingCatalogRetry(() =>
     query<OfferingRow>(
       `
@@ -1185,6 +1211,15 @@ export async function listPublishedOfferingsByIds(ids: string[]): Promise<Offeri
 export async function createOffering(input: OfferingInput): Promise<Offering> {
   const safeConfig = sanitizeOfferingConfig(input.config);
   const ownerProvider = await resolveProviderOwner(input);
+  const offeringTypeDefinition = await getOfferingTypeByKey(input.offeringType);
+  const shouldStorePhysicalDetails = shouldStorePhysicalOfferingDetails({
+    offeringType: input.offeringType,
+    fulfillmentType: input.fulfillmentType,
+    supportsInventory: offeringTypeDefinition?.supportsInventory,
+    supportsProviderSupply: offeringTypeDefinition?.supportsProviderSupply,
+    trackInventory: input.trackInventory,
+    allowProviderSupply: input.allowProviderSupply,
+  });
   const templateEngine = input.templateEngine ?? (input.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? SYSTEM_TEMPLATE_ENGINES.CODED : undefined);
   const templateMode = input.templateMode ?? (
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
@@ -1261,7 +1296,7 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
         );
       }
 
-      if (input.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
+      if (shouldStorePhysicalDetails) {
         const ownerType = input.ownerType === "provider" ? "provider" : "internal";
         const ownerProviderId = ownerType === "provider" ? ownerProvider.providerId : null;
         const ownerProviderType = ownerType === "provider" ? ownerProvider.providerType ?? "provider" : null;
@@ -1280,7 +1315,6 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
               cost_price,
               provider_sku,
               allow_provider_supply,
-              owner_type,
               provider_type,
               provider_id
             )
@@ -1296,7 +1330,6 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
             costPrice,
             providerSku,
             input.allowProviderSupply ?? false,
-            ownerType,
             ownerProviderType,
             ownerProviderId,
           ]
@@ -1331,6 +1364,15 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
   const nextOfferingType = input.offeringType ?? existing.offeringType;
   const nextTemplateEngine = input.templateEngine ?? existing.templateEngine;
   const nextTemplateMode = input.templateMode ?? existing.templateMode;
+  const offeringTypeDefinition = await getOfferingTypeByKey(nextOfferingType);
+  const shouldStorePhysicalDetails = shouldStorePhysicalOfferingDetails({
+    offeringType: nextOfferingType,
+    fulfillmentType: input.fulfillmentType ?? existing.fulfillmentType,
+    supportsInventory: offeringTypeDefinition?.supportsInventory,
+    supportsProviderSupply: offeringTypeDefinition?.supportsProviderSupply,
+    trackInventory: input.trackInventory ?? existing.trackInventory,
+    allowProviderSupply: input.allowProviderSupply ?? existing.allowProviderSupply,
+  });
   if (nextOfferingType !== existing.offeringType) {
     throw new Error("OFFERING_TYPE_LOCKED");
   }
@@ -1429,7 +1471,7 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
         );
       }
 
-      if (nextOfferingType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
+      if (shouldStorePhysicalDetails) {
         const ownerType = input.ownerType ?? existing.ownerType;
         const ownerProviderId = ownerType === "provider" ? ownerProvider.providerId : null;
         const ownerProviderType = ownerType === "provider" ? ownerProvider.providerType ?? "provider" : null;
@@ -1448,7 +1490,6 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
               cost_price,
               provider_sku,
               allow_provider_supply,
-              owner_type,
               provider_type,
               provider_id
             )
@@ -1464,7 +1505,6 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             costPrice,
             providerSku,
             input.allowProviderSupply ?? existing.allowProviderSupply,
-            ownerType,
             ownerProviderType,
             ownerProviderId,
           ]

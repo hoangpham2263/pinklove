@@ -108,7 +108,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {results.offerings.map((offering) => (
-              offering.offeringType !== "physical_product" ? (
+              offering.offeringType === "digital_template" ? (
                 <LoopOnlineInvitationCard
                   key={offering.id}
                   offering={offering}

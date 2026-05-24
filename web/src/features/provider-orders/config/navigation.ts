@@ -2,6 +2,7 @@ import { ROUTES } from "@/lib/routes";
 
 export type ProviderNavIconName =
   | "layout-dashboard"
+  | "messages-square"
   | "map-pin"
   | "package-check"
   | "package-plus"
@@ -32,15 +33,22 @@ export type ProviderNavGroupEntry = {
 
 export type ProviderNavEntry = ProviderNavGroupEntry | ProviderNavLinkEntry;
 
-const partnerOrderPrefix = ROUTES.PARTNER.ORDER("").slice(0, -1);
-const partnerOfferingPrefix = ROUTES.PARTNER.OFFERING("").slice(0, -1);
+const providerOrderPrefix = ROUTES.PROVIDER.ORDER("").slice(0, -1);
+const providerOfferingPrefix = ROUTES.PROVIDER.OFFERING("").slice(0, -1);
 
 export const PROVIDER_NAV_PRIMARY_ITEMS: ProviderNavLinkEntry[] = [
   {
     type: "link",
     label: "Dashboard",
-    href: ROUTES.PARTNER.DASHBOARD,
+    href: ROUTES.PROVIDER.DASHBOARD,
     iconName: "layout-dashboard",
+    exact: true,
+  },
+  {
+    type: "link",
+    label: "Tin nhắn",
+    href: ROUTES.PROVIDER.MESSAGES,
+    iconName: "messages-square",
     exact: true,
   },
 ];
@@ -54,33 +62,33 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
     children: [
       {
         label: "Đơn được giao",
-        href: ROUTES.PARTNER.ORDERS,
+        href: ROUTES.PROVIDER.ORDERS,
         iconName: "package-search",
-        matchPrefixes: [ROUTES.PARTNER.ORDERS, partnerOrderPrefix],
+        matchPrefixes: [ROUTES.PROVIDER.ORDERS, providerOrderPrefix],
       },
       {
         label: "Sản phẩm",
-        href: ROUTES.PARTNER.OFFERINGS,
+        href: ROUTES.PROVIDER.OFFERINGS,
         iconName: "package-plus",
-        matchPrefixes: [ROUTES.PARTNER.OFFERINGS, partnerOfferingPrefix],
+        matchPrefixes: [ROUTES.PROVIDER.OFFERINGS, providerOfferingPrefix],
       },
       {
         label: "Tạo sản phẩm",
-        href: ROUTES.PARTNER.OFFERING_NEW,
+        href: ROUTES.PROVIDER.OFFERING_NEW,
         iconName: "package-plus",
         exact: true,
       },
       {
         label: "Mẫu có sẵn",
-        href: ROUTES.PARTNER.AVAILABLE_TEMPLATES,
+        href: ROUTES.PROVIDER.AVAILABLE_TEMPLATES,
         iconName: "package-check",
-        matchPrefixes: [ROUTES.PARTNER.AVAILABLE_TEMPLATES],
+        matchPrefixes: [ROUTES.PROVIDER.AVAILABLE_TEMPLATES],
       },
       {
         label: "Yêu cầu cung ứng",
-        href: ROUTES.PARTNER.SUPPLY_REQUESTS,
+        href: ROUTES.PROVIDER.SUPPLY_REQUESTS,
         iconName: "package-check",
-        matchPrefixes: [ROUTES.PARTNER.SUPPLY_REQUESTS],
+        matchPrefixes: [ROUTES.PROVIDER.SUPPLY_REQUESTS],
       },
     ],
   },
@@ -92,19 +100,19 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
     children: [
       {
         label: "Tài khoản provider",
-        href: ROUTES.PARTNER.CONFIG_ACCOUNT,
+        href: ROUTES.PROVIDER.CONFIG_ACCOUNT,
         iconName: "user",
-        matchPrefixes: [ROUTES.PARTNER.CONFIG_ACCOUNT],
+        matchPrefixes: [ROUTES.PROVIDER.CONFIG_ACCOUNT],
       },
       {
         label: "Sổ địa chỉ",
-        href: ROUTES.PARTNER.CONFIG_ADDRESSES,
+        href: ROUTES.PROVIDER.CONFIG_ADDRESSES,
         iconName: "map-pin",
-        matchPrefixes: [ROUTES.PARTNER.CONFIG_ADDRESSES],
+        matchPrefixes: [ROUTES.PROVIDER.CONFIG_ADDRESSES],
       },
       {
         label: "Thêm địa chỉ",
-        href: ROUTES.PARTNER.CONFIG_ADDRESS_NEW,
+        href: ROUTES.PROVIDER.CONFIG_ADDRESS_NEW,
         iconName: "map-pin",
         exact: true,
       },
@@ -116,7 +124,7 @@ export const PROVIDER_NAV_SECONDARY_ITEMS: ProviderNavLinkEntry[] = [
   {
     type: "link",
     label: "Cấu hình",
-    href: ROUTES.PARTNER.CONFIG,
+    href: ROUTES.PROVIDER.CONFIG,
     iconName: "settings",
     exact: true,
   },

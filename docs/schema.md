@@ -20,7 +20,7 @@ generator. The latest DB audit returned zero `bigint`/`integer` ID columns.
 
 ## Table Count
 
-Current database has 121 public tables:
+Current database has 120 public tables after final physical offering cleanup:
 
 | Area | Tables |
 | --- | --- |
@@ -34,7 +34,7 @@ Current database has 121 public tables:
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 | Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
-| Wedding experience | `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
+| Wedding experience | `wedding_sites`, `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
 | Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments`, `provider_types` |
 | Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments`, `booking_calendars`, `provider_availability`, `provider_time_slots` |
 | Digital access | `digital_access_grants`, `subscription_access`, `feature_access` |
@@ -76,28 +76,36 @@ Offering types are data-driven through `offering_types`:
 - Add a dedicated subtype table only when a domain needs strongly queried,
   relational columns at scale.
 
-Runtime now uses business-domain offering tables. Implementation-based subtype
-tables have been removed. Coded/builder behavior is stored as rendering strategy
-through `template_engine` and `template_mode`, not as product type.
+Runtime now uses business-domain offering tables for active catalog modeling.
+The transitional `physical_product_offerings` table has been migrated into
+`physical_offerings` and removed. Coded/builder behavior is stored as rendering
+strategy through `template_engine` and `template_mode`, not as product type.
 
 Current domain tables:
 
 - `digital_template_offerings`
 - `physical_offerings`
+- `wedding_site_offerings`
 - `service_offerings`
 - `creator_service_offerings`
 - `experience_offerings`
 - `subscription_offerings`
 
-Current offering type keys:
+Current system offering type keys:
 
 - `digital_template`
 - `physical_product`
-- `service`
-- `creator_service`
-- `experience`
-- `subscription`
-- `addon`
+- `wedding_video`
+- `wedding_photo`
+- `bridal_makeup`
+- `wedding_decoration`
+- `wedding_planner`
+- `wedding_gift`
+
+`digital_template` is reserved for the two fixed invitation flows:
+`template_engine = coded` and `template_engine = builder`. All other seeded
+types belong to `/admin/offerings/list` and can be connected to providers or
+third-party suppliers.
 
 Field definitions are relational `offering_type_fields` rows grouped by
 `offering_type_field_groups`. Admin offering create/edit forms read these rows
@@ -118,13 +126,14 @@ Current runtime seed data:
 
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Provider supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
-| `addon` | Addon | active | digital | `addon` | no | no | yes | 0 |
-| `creator_service` | Creator Service | active | service | `creator_service` | no | yes | yes | 0 |
-| `digital_template` | Digital Template | active | digital | `digital_template` | no | no | yes | 0 |
-| `experience` | Experience | active | service | `experience` | no | yes | yes | 0 |
-| `physical_product` | Physical Product | active | physical | `physical_product` | yes | yes | yes | 0 |
-| `service` | Service | active | service | `service` | no | yes | yes | 0 |
-| `subscription` | Subscription | active | digital | `subscription` | no | no | yes | 0 |
+| `bridal_makeup` | Makeup cô dâu | active | service | `bridal_makeup` | no | yes | yes | 0 |
+| `digital_template` | Thiệp cưới online | active | digital | `digital_template` | no | no | yes | 0 |
+| `physical_product` | Thiệp giấy | active | physical | `physical_product` | yes | yes | yes | 0 |
+| `wedding_decoration` | Trang trí tiệc cưới | active | service | `wedding_decoration` | no | yes | yes | 0 |
+| `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
+| `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
+| `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
+| `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
 
 Current runtime offering data:
 
@@ -142,9 +151,10 @@ Current runtime offering data:
 - Provider types are controlled by `provider_types`; current seeded values are
   `supplier`, `creator`, `studio`, `planner`, `photographer`, `makeup`,
   `florist`, and `videographer`.
-- Marketplace/service ownership resolves through `providers.id`. Offering
-  subtype tables use `provider_id` and `provider_type`; user IDs stay limited to
-  authentication, identity, and root ownership.
+- Marketplace and provider ecosystem ownership resolves through `providers.id`.
+  Current offering subtype tables that model provider ownership use
+  `provider_id` plus `provider_type` against `providers.id`; account-bound
+  fulfillment workflow tables use `provider_user_id` against `users.id`.
 - Template rendering strategy is controlled by `template_engines`; current
   seeded values are `coded`, `builder`, `hybrid`, `motion`, `video`, and
   `ai_generated`.
@@ -171,8 +181,41 @@ Current runtime offering data:
   invalidation events such as `offering.updated`, `template.updated`,
   `provider.updated`, and `site.published`.
 - Provider-prefixed fulfillment tables remain intentionally as the physical
-  fulfillment domain. Provider-facing marketplace identity lives in
-  `providers` and `provider_*` tables.
+  fulfillment domain and use `provider_user_id` where the app workflow is
+  account-based. Provider-facing marketplace identity lives in `providers` and
+  the provider ecosystem tables.
+
+## Final Architecture Rules
+
+Provider account workflow and provider marketplace identity are intentionally
+separate. Use `providers.id` for marketplace identity, discovery, services,
+profiles, booking, pricing, reviews, and public provider ecosystem data. Use
+`users.id` only through explicitly named `provider_user_id` fields for
+authentication, admin moderation, supplier account workflow, and operational
+fulfillment screens where the actor is a provider user account. `provider_id`
+is reserved for `providers.id`; `providers.owner_user_id` stores the auth owner
+of a provider entity.
+
+`physical_offerings` is the only physical subtype table. It stores inventory,
+cost, provider SKU, provider supply flags, and optional `provider_id` /
+`provider_type`. The removed `owner_type` semantics are now derived from
+whether `provider_id` is present.
+
+Template key ownership is strict:
+
+- `offering_types.template_key` is the system preset key for a type.
+- `offerings.template_key` is the actual runtime selected template for the
+  sellable offering.
+- Subtype `template_key` columns are allowed only when rendering/runtime needs a
+  subtype-local template identity.
+
+`template_engine` controls rendering, runtime, and editor behavior only. It does
+not control business logic, commerce behavior, pricing, permissions, inventory,
+or fulfillment.
+
+Dynamic fields are limited to UI metadata, presentation, discovery, and optional
+structured fields. Payments, permissions, inventory, critical business
+workflows, analytics, and booking core logic must stay relational-first.
 
 ## Overview
 
@@ -180,8 +223,6 @@ Current runtime offering data:
 erDiagram
   users ||--o{ user_sessions : owns
   users ||--o{ user_profiles : has
-  users ||--o{ offerings : provider_owns
-  users ||--o{ offerings : owns
   users ||--o{ wedding_sites : creates
   users ||--o{ commerce_orders : places
   users ||--o| affiliate_accounts : can_have
@@ -237,6 +278,8 @@ erDiagram
     text status
     text fulfillment_type
     text template_key
+    text template_engine
+    text template_mode
     boolean supports_inventory
     boolean supports_provider_supply
     boolean is_system
@@ -269,6 +312,7 @@ erDiagram
     text offering_id PK, FK
     text template_key
     text template_engine
+    text template_mode
     jsonb site_defaults
   }
 
@@ -280,11 +324,16 @@ erDiagram
 
   physical_offerings {
     text offering_id PK, FK
-    text sku
+    text fulfillment_type
     boolean track_inventory
     int stock_quantity
+    int low_stock_threshold
+    boolean allow_backorder
     numeric cost_price
+    text provider_sku
     boolean allow_provider_supply
+    text provider_type
+    text provider_id FK
   }
 
   service_offerings {
@@ -319,6 +368,13 @@ erDiagram
     text url
   }
 
+  providers {
+    text id PK
+    text slug UK
+    text display_name
+    text provider_type
+  }
+
   media_asset_links {
     text id PK
     text media_asset_id FK
@@ -328,7 +384,7 @@ erDiagram
     int sort_order
   }
 
-  users ||--o{ creator_service_offerings : provides
+  providers ||--o{ creator_service_offerings : provides
   offering_types ||--o{ offerings : defines
   offering_types ||--o{ offering_type_field_groups : field_groups
   offering_types ||--o{ offering_type_fields : fields
@@ -631,6 +687,8 @@ erDiagram
     text status
     text fulfillment_type
     text template_key
+    text template_engine
+    text template_mode
     boolean supports_inventory
     boolean supports_provider_supply
     boolean is_system
@@ -673,11 +731,22 @@ erDiagram
   physical_offerings {
     text offering_id PK, FK
     text fulfillment_type
-    text provider_id FK
-    text provider_type
+    boolean track_inventory
     int stock_quantity
+    int low_stock_threshold
+    boolean allow_backorder
     numeric cost_price
+    text provider_sku
     boolean allow_provider_supply
+    text provider_type
+    text provider_id FK
+  }
+
+  providers {
+    text id PK
+    text slug UK
+    text display_name
+    text provider_type
   }
 
   wedding_sites {
@@ -724,7 +793,7 @@ erDiagram
   users ||--o{ shopping_cart_items : owns
   users ||--o{ content_comments : writes
   users ||--o{ content_comments : approves
-  users ||--o{ physical_offerings : owns_provider_offering
+  providers ||--o{ physical_offerings : owns_provider_offering
 
   offering_categories ||--o{ offerings : categorizes
   offering_types ||--o{ offerings : defines
@@ -829,7 +898,7 @@ erDiagram
   provider_order_assignments {
     text id PK
     text order_id FK
-    text provider_id FK
+    text provider_user_id FK
     text status
   }
 
@@ -842,7 +911,7 @@ erDiagram
 
   provider_offering_submissions {
     text id PK
-    text provider_id FK
+    text provider_user_id FK
     text linked_offering_id FK
     text category_id FK
     text review_status
@@ -858,14 +927,14 @@ erDiagram
   offering_provider_suppliers {
     text id PK
     text offering_id FK
-    text provider_id FK
+    text provider_user_id FK
     text status
   }
 
   provider_offering_supplier_requests {
     text id PK
     text offering_id FK
-    text provider_id FK
+    text provider_user_id FK
     text review_status
   }
 
@@ -995,20 +1064,34 @@ erDiagram
   notifications ||--o{ notification_user_states : has
 ```
 
-## Legacy Foreign Key List
+## Runtime Foreign Key List
 
-This list covers the operational tables with database-level foreign keys.
+This list covers all runtime database-level foreign keys.
 `offering_types.key` is intentionally referenced by application logic rather
 than a hard FK so type definitions can be managed as configuration data and
 archived without breaking existing catalog rows.
 
 | From | To | On delete |
 | --- | --- | --- |
+| `activity_actors.activity_id` | `activities.id` | CASCADE |
+| `activity_targets.activity_id` | `activities.id` | CASCADE |
 | `affiliate_accounts.approved_by` | `users.id` | SET NULL |
 | `affiliate_accounts.user_id` | `users.id` | CASCADE |
 | `affiliate_clicks.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
 | `affiliate_conversions.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
+| `analytics_events.page_view_id` | `analytics_page_views.id` | SET NULL |
+| `analytics_events.session_id` | `analytics_sessions.id` | SET NULL |
+| `analytics_page_views.session_id` | `analytics_sessions.id` | SET NULL |
+| `analytics_sessions.user_id` | `users.id` | SET NULL |
 | `blog_posts.category_id` | `blog_categories.id` | CASCADE |
+| `booking_calendars.provider_id` | `providers.id` | CASCADE |
+| `booking_items.booking_id` | `bookings.id` | CASCADE |
+| `booking_items.offering_id` | `offerings.id` | SET NULL |
+| `booking_items.provider_id` | `providers.id` | SET NULL |
+| `booking_payments.booking_id` | `bookings.id` | CASCADE |
+| `booking_status_logs.actor_user_id` | `users.id` | SET NULL |
+| `booking_status_logs.booking_id` | `bookings.id` | CASCADE |
+| `bookings.user_id` | `users.id` | SET NULL |
 | `chat_conversation_participants.conversation_id` | `chat_conversations.id` | CASCADE |
 | `chat_conversation_participants.user_id` | `users.id` | CASCADE |
 | `chat_conversation_user_states.conversation_id` | `chat_conversations.id` | CASCADE |
@@ -1037,6 +1120,15 @@ archived without breaking existing catalog rows.
 | `commerce_shipments.order_id` | `commerce_orders.id` | CASCADE |
 | `content_comments.approved_by` | `users.id` | SET NULL |
 | `content_comments.author_user_id` | `users.id` | SET NULL |
+| `creator_service_offerings.offering_id` | `offerings.id` | CASCADE |
+| `creator_service_offerings.provider_id` | `providers.id` | SET NULL |
+| `digital_access_grants.offering_id` | `offerings.id` | CASCADE |
+| `digital_access_grants.user_id` | `users.id` | CASCADE |
+| `digital_template_offerings.offering_id` | `offerings.id` | CASCADE |
+| `experience_offerings.offering_id` | `offerings.id` | CASCADE |
+| `feature_access.user_id` | `users.id` | CASCADE |
+| `field_change_logs.actor_id` | `users.id` | SET NULL |
+| `media_asset_links.media_asset_id` | `media_assets.id` | CASCADE |
 | `physical_offerings.offering_id` | `offerings.id` | CASCADE |
 | `physical_offerings.provider_id` | `providers.id` | SET NULL |
 | `navigation_menu_items.menu_id` | `navigation_menus.id` | CASCADE |
@@ -1046,12 +1138,57 @@ archived without breaking existing catalog rows.
 | `notification_user_states.notification_id` | `notifications.id` | CASCADE |
 | `notification_user_states.user_id` | `users.id` | CASCADE |
 | `notifications.created_by_user_id` | `users.id` | SET NULL |
+| `offering_bundle_items.bundle_id` | `offering_bundles.id` | CASCADE |
+| `offering_bundle_items.offering_id` | `offerings.id` | CASCADE |
 | `offering_provider_suppliers.approved_by` | `users.id` | SET NULL |
 | `offering_provider_suppliers.offering_id` | `offerings.id` | CASCADE |
-| `offering_provider_suppliers.provider_id` | `users.id` | CASCADE |
+| `offering_provider_suppliers.provider_user_id` | `users.id` | CASCADE |
+| `offering_search_documents.offering_id` | `offerings.id` | CASCADE |
+| `offering_type_field_groups.offering_type_id` | `offering_types.id` | CASCADE |
+| `offering_type_fields.group_id` | `offering_type_field_groups.id` | SET NULL |
+| `offering_type_fields.offering_type_id` | `offering_types.id` | CASCADE |
 | `offerings.category_id` | `offering_categories.id` | SET NULL |
+| `organization_members.organization_id` | `organizations.id` | CASCADE |
+| `organization_members.role_id` | `organization_roles.id` | SET NULL |
+| `organization_members.user_id` | `users.id` | CASCADE |
+| `organization_roles.organization_id` | `organizations.id` | CASCADE |
+| `provider_availability.calendar_id` | `booking_calendars.id` | CASCADE |
+| `provider_availability.provider_id` | `providers.id` | CASCADE |
+| `provider_fulfillments.offering_id` | `offerings.id` | SET NULL |
+| `provider_fulfillments.provider_id` | `providers.id` | CASCADE |
+| `provider_pricing.offering_id` | `offerings.id` | CASCADE |
+| `provider_pricing.provider_id` | `providers.id` | CASCADE |
+| `provider_profiles.provider_id` | `providers.id` | CASCADE |
+| `provider_regions.provider_id` | `providers.id` | CASCADE |
+| `provider_regions.region_id` | `regions.id` | CASCADE |
+| `provider_reviews.provider_id` | `providers.id` | CASCADE |
+| `provider_reviews.user_id` | `users.id` | SET NULL |
+| `provider_services.offering_id` | `offerings.id` | SET NULL |
+| `provider_services.provider_id` | `providers.id` | CASCADE |
+| `provider_time_slots.calendar_id` | `booking_calendars.id` | CASCADE |
+| `provider_time_slots.offering_id` | `offerings.id` | SET NULL |
+| `provider_time_slots.provider_id` | `providers.id` | CASCADE |
+| `providers.organization_id` | `organizations.id` | SET NULL |
+| `providers.owner_user_id` | `users.id` | SET NULL |
+| `regions.parent_id` | `regions.id` | SET NULL |
+| `service_offerings.offering_id` | `offerings.id` | CASCADE |
+| `service_regions.offering_id` | `offerings.id` | CASCADE |
+| `service_regions.region_id` | `regions.id` | CASCADE |
+| `shipping_regions.region_id` | `regions.id` | CASCADE |
 | `shopping_cart_items.offering_id` | `offerings.id` | CASCADE |
 | `shopping_cart_items.user_id` | `users.id` | CASCADE |
+| `subscription_access.offering_id` | `offerings.id` | SET NULL |
+| `subscription_access.user_id` | `users.id` | CASCADE |
+| `subscription_offerings.offering_id` | `offerings.id` | CASCADE |
+| `tag_relations.tag_id` | `tags.id` | CASCADE |
+| `template_analytics.offering_id` | `offerings.id` | CASCADE |
+| `template_attribute_values.attribute_id` | `template_attributes.id` | CASCADE |
+| `template_attribute_values.offering_id` | `offerings.id` | CASCADE |
+| `template_categories.parent_id` | `template_categories.id` | SET NULL |
+| `template_conversions.offering_id` | `offerings.id` | CASCADE |
+| `template_shares.offering_id` | `offerings.id` | CASCADE |
+| `template_variants.offering_id` | `offerings.id` | CASCADE |
+| `template_views.offering_id` | `offerings.id` | CASCADE |
 | `user_addresses.user_id` | `users.id` | CASCADE |
 | `user_oauth_accounts.user_id` | `users.id` | CASCADE |
 | `user_profiles.user_id` | `users.id` | CASCADE |
@@ -1060,7 +1197,7 @@ archived without breaking existing catalog rows.
 | `user_shipping_profiles.user_id` | `users.id` | CASCADE |
 | `users.account_status_updated_by` | `users.id` | SET NULL |
 | `provider_order_assignments.order_id` | `commerce_orders.id` | CASCADE |
-| `provider_order_assignments.provider_id` | `users.id` | CASCADE |
+| `provider_order_assignments.provider_user_id` | `users.id` | CASCADE |
 | `provider_order_events.actor_user_id` | `users.id` | SET NULL |
 | `provider_order_events.assignment_id` | `provider_order_assignments.id` | CASCADE |
 | `provider_offering_submission_events.actor_user_id` | `users.id` | SET NULL |
@@ -1068,10 +1205,19 @@ archived without breaking existing catalog rows.
 | `provider_offering_submissions.category_id` | `offering_categories.id` | SET NULL |
 | `provider_offering_submissions.linked_offering_id` | `offerings.id` | SET NULL |
 | `provider_offering_submissions.reviewed_by` | `users.id` | SET NULL |
-| `provider_offering_submissions.provider_id` | `users.id` | CASCADE |
+| `provider_offering_submissions.provider_user_id` | `users.id` | CASCADE |
 | `provider_offering_supplier_requests.offering_id` | `offerings.id` | CASCADE |
 | `provider_offering_supplier_requests.reviewed_by` | `users.id` | SET NULL |
-| `provider_offering_supplier_requests.provider_id` | `users.id` | CASCADE |
+| `provider_offering_supplier_requests.provider_user_id` | `users.id` | CASCADE |
+| `wedding_site_events.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_galleries.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_guests.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_offerings.offering_id` | `offerings.id` | CASCADE |
+| `wedding_site_pages.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_rsvps.guest_id` | `wedding_site_guests.id` | SET NULL |
+| `wedding_site_rsvps.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_sections.page_id` | `wedding_site_pages.id` | CASCADE |
+| `wedding_site_sections.wedding_site_id` | `wedding_sites.id` | CASCADE |
 | `wedding_sites.offering_id` | `offerings.id` | SET NULL |
 | `wedding_sites.user_id` | `users.id` | CASCADE |
 

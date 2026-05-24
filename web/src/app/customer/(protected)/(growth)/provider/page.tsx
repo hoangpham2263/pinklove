@@ -2,14 +2,13 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ensureProviderPortalSlug, getUserProfile, requireAppUser } from "@/lib/auth";
+import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { isProviderRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 export default async function CustomerProviderPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const profile = await getUserProfile(user.id);
-  const providerPortalSlug = isProviderRole(user.role) ? await ensureProviderPortalSlug(user.id) : null;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -62,14 +61,14 @@ export default async function CustomerProviderPage() {
             <CardTitle>Truy cập nhanh</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {providerPortalSlug ? (
-              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.PORTAL(providerPortalSlug)}>Mở portal riêng của đối tác</Link>} />
+            {isProviderRole(user.role) ? (
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.ROOT}>Mở portal provider</Link>} />
             ) : null}
             {isProviderRole(user.role) ? (
-              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.OFFERINGS}>Quản lý hồ sơ sản phẩm provider</Link>} />
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.OFFERINGS}>Quản lý hồ sơ sản phẩm provider</Link>} />
             ) : null}
             {isProviderRole(user.role) ? (
-              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PARTNER.ORDERS}>Mở danh sách đơn provider</Link>} />
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.ORDERS}>Mở danh sách đơn provider</Link>} />
             ) : null}
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.CONFIG_PROFILE}>Cập nhật hồ sơ nhà cung cấp</Link>} />
             <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.CUSTOMER.CONFIG}>Mở configs tài khoản</Link>} />
@@ -83,7 +82,7 @@ export default async function CustomerProviderPage() {
           <CardTitle>Flow hiện tại</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>Provider tự tạo hoặc cập nhật hồ sơ sản phẩm ở khu partner.</p>
+          <p>Provider tự tạo hoặc cập nhật hồ sơ sản phẩm ở khu provider.</p>
           <p>Admin review theo dạng table, nhập giá bán thực tế rồi mới duyệt vào catalog live.</p>
           <p>Mọi cập nhật review sẽ đi về thông báo để provider xử lý tiếp mà không cần đụng trực tiếp vào sản phẩm đang bán.</p>
         </CardContent>

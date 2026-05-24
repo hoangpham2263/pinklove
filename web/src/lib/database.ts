@@ -1207,13 +1207,14 @@ async function ensureOfferingTablesMigration() {
       is_system
     )
     VALUES
-      ('digital_template', 'Digital Template', 'Mẫu digital, thiệp online, motion, video hoặc builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE),
-      ('physical_product', 'Physical Product', 'Sản phẩm vật lý như thiệp giấy, quà tặng hoặc addon hữu hình.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE),
-      ('service', 'Service', 'Dịch vụ cưới có thể booking hoặc tư vấn.', 'active', 'service', 'service', '', '', FALSE, TRUE, TRUE),
-      ('creator_service', 'Creator Service', 'Dịch vụ từ creator trong hệ sinh thái cưới.', 'active', 'service', 'creator_service', '', '', FALSE, TRUE, TRUE),
-      ('experience', 'Experience', 'Trải nghiệm cưới hoặc gói sự kiện.', 'active', 'service', 'experience', '', '', FALSE, TRUE, TRUE),
-      ('subscription', 'Subscription', 'Gói đăng ký hoặc quyền truy cập định kỳ.', 'active', 'digital', 'subscription', '', '', FALSE, FALSE, TRUE),
-      ('addon', 'Addon', 'Tiện ích hoặc dịch vụ bổ sung.', 'active', 'digital', 'addon', '', '', FALSE, FALSE, TRUE)
+      ('digital_template', 'Thiệp cưới online', 'Mẫu thiệp cưới online, website cưới, motion hoặc template builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE),
+      ('physical_product', 'Thiệp giấy', 'Thiệp cưới in ấn, bộ thiệp giấy, phụ kiện giấy và sản phẩm hữu hình liên quan.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE),
+      ('wedding_video', 'Làm video cưới', 'Dịch vụ dựng video cưới, video save-the-date, video trình chiếu tiệc cưới hoặc clip kỷ niệm.', 'active', 'service', 'wedding_video', '', '', FALSE, TRUE, TRUE),
+      ('wedding_photo', 'Chụp ảnh cưới', 'Dịch vụ chụp ảnh cưới, phóng sự cưới, chụp pre-wedding hoặc chụp ngày cưới.', 'active', 'service', 'wedding_photo', '', '', FALSE, TRUE, TRUE),
+      ('bridal_makeup', 'Makeup cô dâu', 'Dịch vụ trang điểm cô dâu, makeup tiệc cưới, thử makeup hoặc làm tóc cô dâu.', 'active', 'service', 'bridal_makeup', '', '', FALSE, TRUE, TRUE),
+      ('wedding_decoration', 'Trang trí tiệc cưới', 'Dịch vụ trang trí gia tiên, backdrop, bàn gallery, hoa cưới và không gian tiệc.', 'active', 'service', 'wedding_decoration', '', '', FALSE, TRUE, TRUE),
+      ('wedding_planner', 'Wedding planner', 'Dịch vụ lập kế hoạch, điều phối, tư vấn timeline và quản lý ngày cưới.', 'active', 'service', 'wedding_planner', '', '', FALSE, TRUE, TRUE),
+      ('wedding_gift', 'Quà cưới', 'Quà tặng, hộp quà, phụ kiện cưới và sản phẩm hữu hình có thể cung ứng bởi đối tác.', 'active', 'physical', 'wedding_gift', '', '', TRUE, TRUE, TRUE)
     ON CONFLICT (key) DO UPDATE
     SET
       label = EXCLUDED.label,
@@ -1226,6 +1227,29 @@ async function ensureOfferingTablesMigration() {
       supports_provider_supply = EXCLUDED.supports_provider_supply,
       is_system = TRUE,
       updated_at = NOW();
+  `);
+
+  await pool.query(`
+    WITH deprecated_system_types AS (
+      SELECT id
+      FROM offering_types
+      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
+    )
+    DELETE FROM offering_type_fields
+    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
+  `);
+  await pool.query(`
+    WITH deprecated_system_types AS (
+      SELECT id
+      FROM offering_types
+      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
+    )
+    DELETE FROM offering_type_field_groups
+    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
+  `);
+  await pool.query(`
+    DELETE FROM offering_types
+    WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon');
   `);
 
   await pool.query(`
@@ -1375,13 +1399,11 @@ async function ensureOfferingTablesMigration() {
       cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
       provider_sku TEXT NOT NULL DEFAULT '',
       allow_provider_supply BOOLEAN NOT NULL DEFAULT FALSE,
-      owner_type TEXT NOT NULL DEFAULT 'internal',
       provider_type TEXT,
       provider_id TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       CONSTRAINT physical_offerings_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service')),
-      CONSTRAINT physical_offerings_owner_type_check CHECK (owner_type IN ('internal', 'provider')),
       CONSTRAINT physical_offerings_cost_price_check CHECK (cost_price >= 0),
       CONSTRAINT physical_offerings_stock_quantity_check CHECK (stock_quantity >= 0 OR allow_backorder = TRUE),
       CONSTRAINT physical_offerings_low_stock_threshold_check CHECK (low_stock_threshold >= 0)
@@ -1398,10 +1420,7 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`ALTER TABLE physical_offerings DROP CONSTRAINT IF EXISTS physical_offerings_owner_type_check;`);
-  await pool.query(`
-    ALTER TABLE physical_offerings
-    ADD CONSTRAINT physical_offerings_owner_type_check CHECK (owner_type IN ('internal', 'provider'));
-  `);
+  await pool.query(`ALTER TABLE physical_offerings DROP COLUMN IF EXISTS owner_type;`);
 
   await pool.query(`
     INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
@@ -1436,7 +1455,6 @@ async function ensureOfferingTablesMigration() {
       cost_price,
       provider_sku,
       allow_provider_supply,
-      owner_type,
       provider_type,
       provider_id
     )
@@ -1450,11 +1468,14 @@ async function ensureOfferingTablesMigration() {
       0,
       '',
       FALSE,
-      'internal',
       NULL,
       NULL
     FROM offerings
-    WHERE offerings.offering_type = 'physical_product'
+    WHERE offerings.offering_type <> 'digital_template'
+      AND (
+        offerings.fulfillment_type = 'physical'
+        OR offerings.track_inventory = TRUE
+      )
     ON CONFLICT (offering_id) DO UPDATE
     SET
       fulfillment_type = EXCLUDED.fulfillment_type,
@@ -1463,7 +1484,6 @@ async function ensureOfferingTablesMigration() {
       low_stock_threshold = EXCLUDED.low_stock_threshold,
       allow_backorder = EXCLUDED.allow_backorder,
       allow_provider_supply = EXCLUDED.allow_provider_supply,
-      owner_type = EXCLUDED.owner_type,
       provider_type = EXCLUDED.provider_type,
       provider_id = EXCLUDED.provider_id,
       updated_at = NOW();
@@ -1483,14 +1503,14 @@ async function ensureOfferingTablesMigration() {
     WHERE offering_id IN (
       SELECT id
       FROM offerings
-      WHERE offering_type <> 'physical_product'
+      WHERE offering_type = 'digital_template'
     );
   `);
 
   await pool.query(`
     UPDATE offerings
     SET config = config - 'inventory' - 'pricing_rules' - 'permissions' - 'analytics' - 'booking_logic' - 'relational_data' - 'siteDefaults' - 'generalOffering'
-    WHERE offering_type = 'physical_product'
+    WHERE offering_type <> 'digital_template'
       AND config ?| ARRAY['inventory', 'pricing_rules', 'permissions', 'analytics', 'booking_logic', 'relational_data', 'siteDefaults', 'generalOffering'];
   `);
 
@@ -1907,20 +1927,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS physical_product_offerings (
-      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
-      sku TEXT NOT NULL DEFAULT '',
-      track_inventory BOOLEAN NOT NULL DEFAULT FALSE,
-      stock_quantity INT NOT NULL DEFAULT 0,
-      low_stock_threshold INT NOT NULL DEFAULT 0,
-      allow_backorder BOOLEAN NOT NULL DEFAULT FALSE,
-      cost_price NUMERIC(12,2) NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS service_offerings (
       offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       service_kind TEXT NOT NULL DEFAULT 'general',
@@ -2168,7 +2174,7 @@ async function ensureCoreDatabaseRefactorMigration() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS providers (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      owner_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       organization_id TEXT REFERENCES organizations(id) ON DELETE SET NULL,
       slug TEXT NOT NULL UNIQUE,
       display_name TEXT NOT NULL,
@@ -2181,6 +2187,46 @@ async function ensureCoreDatabaseRefactorMigration() {
     );
   `);
 
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'providers' AND column_name = 'user_id'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'providers' AND column_name = 'owner_user_id'
+      ) THEN
+        ALTER TABLE providers RENAME COLUMN user_id TO owner_user_id;
+      ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'providers' AND column_name = 'user_id'
+      ) AND EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'providers' AND column_name = 'owner_user_id'
+      ) THEN
+        UPDATE providers SET owner_user_id = COALESCE(owner_user_id, user_id);
+        ALTER TABLE providers DROP COLUMN user_id;
+      END IF;
+    END $$;
+  `);
+  await pool.query(`ALTER TABLE providers DROP CONSTRAINT IF EXISTS providers_user_id_fkey;`);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'providers'::regclass
+          AND conname = 'providers_owner_user_id_fkey'
+      ) THEN
+        ALTER TABLE providers
+        ADD CONSTRAINT providers_owner_user_id_fkey
+        FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+        NOT VALID;
+      END IF;
+    END $$;
+  `);
+
   await pool.query(`ALTER TABLE providers DROP CONSTRAINT IF EXISTS providers_type_check;`);
   await pool.query(`ALTER TABLE providers ALTER COLUMN provider_type SET DEFAULT 'supplier';`);
   await pool.query(`
@@ -2190,7 +2236,7 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    INSERT INTO providers (user_id, slug, display_name, provider_type, status)
+    INSERT INTO providers (owner_user_id, slug, display_name, provider_type, status)
     SELECT
       users.id,
       COALESCE(NULLIF(user_profiles.provider_portal_slug, ''), 'provider-' || users.id::text),
@@ -2201,7 +2247,7 @@ async function ensureCoreDatabaseRefactorMigration() {
     LEFT JOIN user_profiles ON user_profiles.user_id = users.id
     WHERE users.role = 'PROVIDER'
     ON CONFLICT (slug) DO UPDATE
-    SET user_id = EXCLUDED.user_id,
+    SET owner_user_id = EXCLUDED.owner_user_id,
         display_name = EXCLUDED.display_name,
         provider_type = EXCLUDED.provider_type,
         updated_at = NOW();
@@ -2827,13 +2873,13 @@ async function ensureFinalArchitectureCleanupMigration() {
     ["chat_conversations", "requester_user_id", "SET NULL", false],
     ["content_comments", "author_user_id", "SET NULL", false],
     ["content_comments", "approved_by", "SET NULL", false],
-    ["provider_order_assignments", "provider_id", "CASCADE", true],
+    ["provider_order_assignments", "provider_user_id", "CASCADE", true],
     ["provider_order_events", "actor_user_id", "SET NULL", false],
-    ["provider_offering_submissions", "provider_id", "CASCADE", true],
+    ["provider_offering_submissions", "provider_user_id", "CASCADE", true],
     ["provider_offering_submission_events", "actor_user_id", "SET NULL", false],
-    ["offering_provider_suppliers", "provider_id", "CASCADE", true],
+    ["offering_provider_suppliers", "provider_user_id", "CASCADE", true],
     ["offering_provider_suppliers", "approved_by", "SET NULL", false],
-    ["provider_offering_supplier_requests", "provider_id", "CASCADE", true],
+    ["provider_offering_supplier_requests", "provider_user_id", "CASCADE", true],
     ["provider_offering_supplier_requests", "reviewed_by", "SET NULL", false],
   ] as const;
 
@@ -3063,10 +3109,58 @@ async function ensureFinalArchitectureCleanupMigration() {
   `);
 
   await pool.query(`
+    INSERT INTO physical_offerings (
+      offering_id,
+      fulfillment_type,
+      track_inventory,
+      stock_quantity,
+      low_stock_threshold,
+      allow_backorder,
+      cost_price,
+      provider_sku,
+      allow_provider_supply,
+      provider_type,
+      provider_id
+    )
+    SELECT
+      physical_product_offerings.offering_id,
+      COALESCE(NULLIF(offerings.fulfillment_type, ''), 'physical'),
+      physical_product_offerings.track_inventory,
+      physical_product_offerings.stock_quantity,
+      physical_product_offerings.low_stock_threshold,
+      physical_product_offerings.allow_backorder,
+      physical_product_offerings.cost_price,
+      physical_product_offerings.sku,
+      FALSE,
+      NULL,
+      NULL
+    FROM physical_product_offerings
+    INNER JOIN offerings ON offerings.id = physical_product_offerings.offering_id
+    ON CONFLICT (offering_id) DO UPDATE
+    SET
+      fulfillment_type = EXCLUDED.fulfillment_type,
+      track_inventory = EXCLUDED.track_inventory,
+      stock_quantity = EXCLUDED.stock_quantity,
+      low_stock_threshold = EXCLUDED.low_stock_threshold,
+      allow_backorder = EXCLUDED.allow_backorder,
+      cost_price = EXCLUDED.cost_price,
+      provider_sku = EXCLUDED.provider_sku,
+      updated_at = NOW();
+  `).catch((error) => {
+    if (error instanceof Error && /physical_product_offerings/.test(error.message)) {
+      return;
+    }
+    throw error;
+  });
+
+  await pool.query(`
     ALTER TABLE physical_offerings
     ADD COLUMN IF NOT EXISTS provider_type TEXT,
     ADD COLUMN IF NOT EXISTS provider_id TEXT;
   `);
+  await pool.query(`ALTER TABLE physical_offerings DROP CONSTRAINT IF EXISTS physical_offerings_owner_type_check;`);
+  await pool.query(`ALTER TABLE physical_offerings DROP COLUMN IF EXISTS owner_type;`);
+  await pool.query(`DROP TABLE IF EXISTS physical_product_offerings;`);
   await pool.query(`CREATE INDEX IF NOT EXISTS physical_offerings_provider_id_idx ON physical_offerings(provider_id);`);
   await pool.query(`
     DO $$
@@ -3231,7 +3325,7 @@ async function ensureProviderOrdersMigration() {
     CREATE TABLE IF NOT EXISTS provider_order_assignments (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       order_id TEXT NOT NULL UNIQUE REFERENCES commerce_orders(id) ON DELETE CASCADE,
-      provider_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       status TEXT NOT NULL DEFAULT 'pending_confirmation',
       internal_note TEXT NOT NULL DEFAULT '',
       provider_note TEXT NOT NULL DEFAULT '',
@@ -3248,8 +3342,32 @@ async function ensureProviderOrdersMigration() {
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS provider_order_assignments_provider_id_idx
-    ON provider_order_assignments(provider_id, status, updated_at DESC);
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_order_assignments' AND column_name = 'provider_id'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_order_assignments' AND column_name = 'provider_user_id'
+      ) THEN
+        ALTER TABLE provider_order_assignments RENAME COLUMN provider_id TO provider_user_id;
+      ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_order_assignments' AND column_name = 'provider_id'
+      ) AND EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_order_assignments' AND column_name = 'provider_user_id'
+      ) THEN
+        UPDATE provider_order_assignments SET provider_user_id = COALESCE(provider_user_id, provider_id);
+        ALTER TABLE provider_order_assignments DROP COLUMN provider_id;
+      END IF;
+    END $$;
+  `);
+  await pool.query(`DROP INDEX IF EXISTS provider_order_assignments_provider_id_idx;`);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS provider_order_assignments_provider_user_id_idx
+    ON provider_order_assignments(provider_user_id, status, updated_at DESC);
   `);
 
   await pool.query(`
@@ -3284,7 +3402,7 @@ async function ensureProviderOfferingSubmissionsMigration() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS provider_offering_submissions (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      provider_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       linked_offering_id ${offeringIdType} REFERENCES offerings(id) ON DELETE SET NULL,
       category_id ${categoryIdType} REFERENCES offering_categories(id) ON DELETE SET NULL,
       submission_type TEXT NOT NULL DEFAULT 'create',
@@ -3327,8 +3445,32 @@ async function ensureProviderOfferingSubmissionsMigration() {
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS provider_offering_submissions_provider_id_idx
-    ON provider_offering_submissions(provider_id, review_status, updated_at DESC);
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_submissions' AND column_name = 'provider_id'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_submissions' AND column_name = 'provider_user_id'
+      ) THEN
+        ALTER TABLE provider_offering_submissions RENAME COLUMN provider_id TO provider_user_id;
+      ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_submissions' AND column_name = 'provider_id'
+      ) AND EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_submissions' AND column_name = 'provider_user_id'
+      ) THEN
+        UPDATE provider_offering_submissions SET provider_user_id = COALESCE(provider_user_id, provider_id);
+        ALTER TABLE provider_offering_submissions DROP COLUMN provider_id;
+      END IF;
+    END $$;
+  `);
+  await pool.query(`DROP INDEX IF EXISTS provider_offering_submissions_provider_id_idx;`);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS provider_offering_submissions_provider_user_id_idx
+    ON provider_offering_submissions(provider_user_id, review_status, updated_at DESC);
   `);
 
   await pool.query(`
@@ -3362,7 +3504,7 @@ async function ensureProviderOfferingSubmissionsMigration() {
     CREATE TABLE IF NOT EXISTS offering_provider_suppliers (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      provider_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       status TEXT NOT NULL DEFAULT 'active',
       source TEXT NOT NULL DEFAULT 'admin',
       purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
@@ -3380,13 +3522,43 @@ async function ensureProviderOfferingSubmissionsMigration() {
       CONSTRAINT offering_provider_suppliers_purchase_cost_check CHECK (purchase_cost >= 0),
       CONSTRAINT offering_provider_suppliers_lead_time_days_check CHECK (lead_time_days >= 0),
       CONSTRAINT offering_provider_suppliers_monthly_capacity_check CHECK (monthly_capacity >= 0),
-      CONSTRAINT offering_provider_suppliers_offering_provider_unique UNIQUE (offering_id, provider_id)
+      CONSTRAINT offering_provider_suppliers_offering_provider_user_unique UNIQUE (offering_id, provider_user_id)
     );
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS offering_provider_suppliers_provider_id_idx
-    ON offering_provider_suppliers(provider_id, status, updated_at DESC);
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'offering_provider_suppliers' AND column_name = 'provider_id'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'offering_provider_suppliers' AND column_name = 'provider_user_id'
+      ) THEN
+        ALTER TABLE offering_provider_suppliers RENAME COLUMN provider_id TO provider_user_id;
+      ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'offering_provider_suppliers' AND column_name = 'provider_id'
+      ) AND EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'offering_provider_suppliers' AND column_name = 'provider_user_id'
+      ) THEN
+        UPDATE offering_provider_suppliers SET provider_user_id = COALESCE(provider_user_id, provider_id);
+        ALTER TABLE offering_provider_suppliers DROP COLUMN provider_id;
+      END IF;
+    END $$;
+  `);
+  await pool.query(`ALTER TABLE offering_provider_suppliers DROP CONSTRAINT IF EXISTS offering_provider_suppliers_offering_provider_unique;`);
+  await pool.query(`ALTER TABLE offering_provider_suppliers DROP CONSTRAINT IF EXISTS offering_provider_suppliers_offering_provider_user_unique;`);
+  await pool.query(`
+    ALTER TABLE offering_provider_suppliers
+    ADD CONSTRAINT offering_provider_suppliers_offering_provider_user_unique UNIQUE (offering_id, provider_user_id);
+  `);
+  await pool.query(`DROP INDEX IF EXISTS offering_provider_suppliers_provider_id_idx;`);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS offering_provider_suppliers_provider_user_id_idx
+    ON offering_provider_suppliers(provider_user_id, status, updated_at DESC);
   `);
 
   await pool.query(`
@@ -3398,7 +3570,7 @@ async function ensureProviderOfferingSubmissionsMigration() {
     CREATE TABLE IF NOT EXISTS provider_offering_supplier_requests (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       offering_id ${offeringIdType} NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      provider_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider_user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       review_status TEXT NOT NULL DEFAULT 'submitted',
       purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
       provider_sku TEXT NOT NULL DEFAULT '',
@@ -3423,18 +3595,43 @@ async function ensureProviderOfferingSubmissionsMigration() {
   `);
 
   await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_supplier_requests' AND column_name = 'provider_id'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_supplier_requests' AND column_name = 'provider_user_id'
+      ) THEN
+        ALTER TABLE provider_offering_supplier_requests RENAME COLUMN provider_id TO provider_user_id;
+      ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_supplier_requests' AND column_name = 'provider_id'
+      ) AND EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'provider_offering_supplier_requests' AND column_name = 'provider_user_id'
+      ) THEN
+        UPDATE provider_offering_supplier_requests SET provider_user_id = COALESCE(provider_user_id, provider_id);
+        ALTER TABLE provider_offering_supplier_requests DROP COLUMN provider_id;
+      END IF;
+    END $$;
+  `);
+  await pool.query(`
     DROP INDEX IF EXISTS provider_offering_supplier_requests_open_uidx;
   `);
+  await pool.query(`DROP INDEX IF EXISTS provider_offering_supplier_requests_active_uidx;`);
 
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS provider_offering_supplier_requests_active_uidx
-    ON provider_offering_supplier_requests(offering_id, provider_id)
+    ON provider_offering_supplier_requests(offering_id, provider_user_id)
     WHERE review_status IN ('submitted', 'under_review', 'changes_requested');
   `);
 
+  await pool.query(`DROP INDEX IF EXISTS provider_offering_supplier_requests_provider_id_idx;`);
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS provider_offering_supplier_requests_provider_id_idx
-    ON provider_offering_supplier_requests(provider_id, review_status, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS provider_offering_supplier_requests_provider_user_id_idx
+    ON provider_offering_supplier_requests(provider_user_id, review_status, updated_at DESC);
   `);
 
   await pool.query(`
@@ -4192,7 +4389,12 @@ async function ensureOfferingSeed() {
       );
     }
 
-    if (offeringType === "physical_product") {
+    if (
+      offeringType !== "digital_template" &&
+      (offering.fulfillmentType === "physical" ||
+        Boolean(offering.trackInventory) ||
+        ("allowProviderSupply" in offering && Boolean(offering.allowProviderSupply)))
+    ) {
       await pool.query(
         `
             INSERT INTO physical_offerings (
@@ -4205,11 +4407,10 @@ async function ensureOfferingSeed() {
               cost_price,
               provider_sku,
               allow_provider_supply,
-              owner_type,
               provider_type,
               provider_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9, NULL, NULL)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, NULL, NULL)
           `,
         [
           offeringId,
@@ -4220,7 +4421,6 @@ async function ensureOfferingSeed() {
           offering.allowBackorder ?? false,
           0,
           "",
-          "internal",
         ]
       );
     }
@@ -4336,7 +4536,7 @@ async function ensureManagedPagesSeed() {
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
-    const defaultStatus = slug === "partners/apply" || slug === "affiliates" || slug === "thiep-giay" ? "published" : "draft";
+    const defaultStatus = slug === "providers/apply" || slug === "affiliates" || slug === "thiep-giay" ? "published" : "draft";
     await pool.query(
       `
       INSERT INTO managed_pages (slug, name, title, status, custom_fields)

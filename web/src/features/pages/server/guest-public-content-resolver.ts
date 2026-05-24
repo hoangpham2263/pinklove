@@ -95,7 +95,15 @@ export async function resolveGuestPublicContent(
     return { type: "builder-offering", offering: builderOffering };
   }
 
-  const generalOffering = await getPublishedOfferingBySlugAndType(slug, "physical_product");
+  const generalOffering = await getPublishedOfferingBySlugAndType(slug, [
+    "physical_product",
+    "wedding_video",
+    "wedding_photo",
+    "bridal_makeup",
+    "wedding_decoration",
+    "wedding_planner",
+    "wedding_gift",
+  ]);
   if (generalOffering && getGeneralOfferingPath(generalOffering) === pathname) {
     return { type: "general-offering", offering: generalOffering };
   }
