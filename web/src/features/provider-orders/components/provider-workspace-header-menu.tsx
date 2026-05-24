@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
 import {
   PROVIDER_NAV_AUXILIARY_ITEMS,
@@ -113,31 +116,25 @@ function MenuGroup({
   const pathname = usePathname();
   const GroupIcon = iconMap[group.iconName];
   const hasActiveItem = group.children.some((item) => isActivePath(pathname, item));
-  const [open, setOpen] = useState(group.defaultOpen || hasActiveItem);
 
   return (
-    <div>
-      <button
-        type="button"
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
+    <Collapsible defaultOpen={group.defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
         <div className="flex items-center gap-3">
           <GroupIcon className="h-4 w-4" />
           <span>{group.label}</span>
         </div>
-        <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-      </button>
+        <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+      </CollapsibleTrigger>
 
-      {open ? (
+      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none data-[state=open]:animate-none data-[state=closed]:h-0 data-[state=open]:h-[var(--radix-collapsible-content-height)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-[height,opacity] duration-200 ease-out">
         <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-2.5">
           {group.children.map((item) => (
             <MenuChildItem key={item.href} item={item} onNavigate={onNavigate} />
           ))}
         </div>
-      ) : null}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -146,74 +143,54 @@ export function ProviderWorkspaceHeaderMenu() {
   const closeMenu = () => setOpen(false);
 
   return (
-    <>
-      <button
+    <Sheet open={open} onOpenChange={setOpen}>
+      <Button
         type="button"
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted md:hidden"
+        variant="ghost"
+        size="icon"
+        className="rounded-full md:hidden"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
       >
         <MenuIcon className="h-4 w-4" />
-      </button>
+      </Button>
 
-      {open ? (
-        <div className="fixed inset-0 z-[80] md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/50"
-            aria-label="Đóng menu"
-            onClick={closeMenu}
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(22rem,calc(100vw-2rem))] flex-col rounded-r-2xl border-r bg-background shadow-xl">
-            <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-              <p className="text-base font-semibold">Menu</p>
-              <button
-                type="button"
-                className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
-                aria-label="Đóng menu"
-                onClick={closeMenu}
-              >
-                <span aria-hidden="true" className="text-xl leading-none">×</span>
-              </button>
-            </div>
+      <SheetContent side="left" className="w-[min(22rem,calc(100vw-2rem))] rounded-r-2xl p-0 md:hidden">
+        <SheetHeader className="border-b px-4 py-4">
+          <SheetTitle className="text-base">Menu</SheetTitle>
+        </SheetHeader>
 
-            <div className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3">
-              <div className="flex flex-col gap-2">
-                {PROVIDER_NAV_PRIMARY_ITEMS.map((item) => (
-                  <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
-                ))}
+        <div className="admin-sidebar-scroll flex max-h-[calc(100vh-5rem)] flex-col gap-2 overflow-y-auto px-3 py-3">
+          {PROVIDER_NAV_PRIMARY_ITEMS.map((item) => (
+            <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
+          ))}
 
-                <div className="my-1 border-t" />
+          <div className="my-1 border-t" />
 
-                {PROVIDER_NAV_GROUPS.map((entry) => (
-                  <MenuGroup key={entry.label} group={entry} onNavigate={closeMenu} />
-                ))}
+          {PROVIDER_NAV_GROUPS.map((entry) => (
+            <MenuGroup key={entry.label} group={entry} onNavigate={closeMenu} />
+          ))}
 
-                <div className="my-1 border-t" />
+          <div className="my-1 border-t" />
 
-                {PROVIDER_NAV_SECONDARY_ITEMS.map((item) => (
-                  <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
-                ))}
+          {PROVIDER_NAV_SECONDARY_ITEMS.map((item) => (
+            <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
+          ))}
 
-                <div className="my-1 border-t" />
+          <div className="my-1 border-t" />
 
-                {PROVIDER_NAV_AUXILIARY_ITEMS.map((item) => (
-                  <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
-                ))}
+          {PROVIDER_NAV_AUXILIARY_ITEMS.map((item) => (
+            <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
+          ))}
 
-                <div className="my-1 border-t" />
-
-                <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
-                  <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted">
-                    <LogOut className="h-4 w-4" />
-                    <span>Đăng xuất</span>
-                  </button>
-                </form>
-              </div>
-            </div>
-          </aside>
+          <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+            <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted">
+              <LogOut className="h-4 w-4" />
+              <span>Đăng xuất</span>
+            </button>
+          </form>
         </div>
-      ) : null}
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   ChevronRight,
   ExternalLink,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
 import type { ProviderNavChild, ProviderNavIconName } from "@/features/provider-orders/config/navigation";
 
@@ -60,23 +60,17 @@ export function ProviderWorkspaceSidebarGroup({
   const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
   const hasActiveItem = items.some((item) => isActivePath(pathname, item));
-  const [open, setOpen] = useState(defaultOpen || hasActiveItem);
 
   return (
-    <div>
-      <button
-        type="button"
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-      >
+    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted">
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
           <span>{label}</span>
         </div>
-        <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-      </button>
-      {open ? (
+        <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none data-[state=open]:animate-none data-[state=closed]:h-0 data-[state=open]:h-[var(--radix-collapsible-content-height)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-[height,opacity] duration-200 ease-out">
         <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-2.5">
           {items.map((item) => (
             <ProviderWorkspaceNavLink
@@ -92,7 +86,7 @@ export function ProviderWorkspaceSidebarGroup({
             </ProviderWorkspaceNavLink>
           ))}
         </div>
-      ) : null}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
