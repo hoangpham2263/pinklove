@@ -9,7 +9,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const admin = await requireAdmin();
   const { id } = await params;
   const formData = await request.formData();
-  const adminSellPrice = Math.max(0, Number(formData.get("adminSellPrice") ?? "0"));
+  const adminSellPrice = Number(formData.get("adminSellPrice") ?? "0");
   const reviewNote = String(formData.get("reviewNote") ?? "");
   const offeringOwnership =
     String(formData.get("offeringOwnership") ?? "platform") === "provider_originated"
@@ -17,11 +17,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       : "platform";
   const assignProviderSupplier = formData.get("assignProviderSupplier") !== "off";
 
-  if (!Number.isFinite(adminSellPrice)) {
+  if (!Number.isFinite(adminSellPrice) || adminSellPrice <= 0) {
     return respondError(request, {
       error: "invalid_price",
-      message: "Giá bán admin không hợp lệ.",
-      location: ROUTES.ADMIN.PROVIDER_OFFERING(id),
+      message: "Giá bán admin phải lớn hơn 0.",
+      location: `${ROUTES.ADMIN.PROVIDER_OFFERING(id)}?error=invalid_price`,
     });
   }
 
@@ -36,14 +36,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     });
 
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.PROVIDER_OFFERING(id),
-      message: "Đã duyệt và áp dụng sản phẩm vào catalog.",
+      location: `${ROUTES.ADMIN.PROVIDER_OFFERING(id)}?updated=1`,
+      message: "Đã áp dụng hồ sơ sản phẩm vào catalog.",
     });
   } catch (error) {
+    const errorCode = error instanceof Error ? error.message : "approve_failed";
+
     return respondError(request, {
-      error: error instanceof Error ? error.message : "approve_failed",
+      error: errorCode,
       message: "Không thể duyệt hồ sơ sản phẩm.",
-      location: ROUTES.ADMIN.PROVIDER_OFFERING(id),
+      location: `${ROUTES.ADMIN.PROVIDER_OFFERING(id)}?error=${encodeURIComponent(errorCode)}`,
     });
   }
 }

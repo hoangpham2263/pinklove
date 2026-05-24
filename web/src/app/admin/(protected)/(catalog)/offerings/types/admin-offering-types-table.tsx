@@ -59,6 +59,19 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
+  switch (value) {
+    case "digital":
+      return "Sản phẩm online - Nhận qua link/file";
+    case "physical":
+      return "Sản phẩm vật lý - Có sản xuất/giao hàng";
+    case "service":
+      return "Dịch vụ - Có người thực hiện/đặt lịch";
+    default:
+      return value;
+  }
+}
+
 export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -93,6 +106,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
             Fulfillment
           </AdminTableSortButton>
         ),
+        cell: ({ row }) => getFulfillmentTypeLabel(row.original.fulfillmentType),
         filterFn: (row, columnId, filterValue) => !filterValue || row.getValue<string>(columnId) === filterValue,
       },
       {
@@ -212,9 +226,9 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               onChange={(value) => table.getColumn("fulfillmentType")?.setFilterValue(value)}
               options={[
                 { value: "", label: "Tất cả fulfillment" },
-                { value: "digital", label: "Digital" },
-                { value: "physical", label: "Physical" },
-                { value: "service", label: "Service" },
+                { value: "digital", label: "Sản phẩm online - Nhận qua link/file" },
+                { value: "physical", label: "Sản phẩm vật lý - Có sản xuất/giao hàng" },
+                { value: "service", label: "Dịch vụ - Có người thực hiện/đặt lịch" },
               ]}
             />
             <AdminTableClearButton
@@ -277,7 +291,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               <DialogDescription>{previewType.key}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 md:grid-cols-3">
-              <PreviewField label="Fulfillment" value={previewType.fulfillmentType} />
+              <PreviewField label="Fulfillment" value={getFulfillmentTypeLabel(previewType.fulfillmentType)} />
               <PreviewField label="Status" value={previewType.status} />
               <PreviewField label="Fields" value={previewType.fieldSchema.length} />
               <PreviewField label="Template key" value={previewType.templateKey} />
@@ -431,7 +445,7 @@ function OfferingTypeForm({
               className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             >
               {(["digital", "physical", "service"] satisfies OfferingFulfillmentType[]).map((value) => (
-                <option key={value} value={value}>{value}</option>
+                <option key={value} value={value}>{getFulfillmentTypeLabel(value)}</option>
               ))}
             </select>
           </div>

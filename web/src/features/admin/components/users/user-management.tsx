@@ -192,7 +192,6 @@ export function UserManagement({
                     label="Xem thông tin"
                     path={ROUTES.PROVIDER.ROOT}
                     username={user.username}
-                    password="12313"
                   />
                   <AdminLinkButton href={ROUTES.PROVIDER.ROOT}>Portal Link</AdminLinkButton>
                   <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNT(user.id)}>Quản lý đơn riêng</AdminLinkButton>

@@ -37,10 +37,12 @@ export function ProviderOfferingSubmissionForm({
   const [name, setName] = useState(submission?.name ?? "");
   const [slugCandidate, setSlugCandidate] = useState(submission?.slugCandidate ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(submission?.thumbnailUrl ?? "");
+  const [submissionType, setSubmissionType] = useState<ProviderOfferingSubmissionType>(submission?.submissionType ?? "create");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canEdit = !submission || ["draft", "changes_requested"].includes(submission.reviewStatus);
   const canSubmit = Boolean(submission && ["draft", "changes_requested"].includes(submission.reviewStatus));
+  const requiresLinkedOffering = submissionType !== "create";
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,8 +90,9 @@ export function ProviderOfferingSubmissionForm({
               <label className="text-sm font-medium text-zinc-950">Loại yêu cầu</label>
               <select
                 name="submissionType"
-                defaultValue={submission?.submissionType ?? "create"}
+                value={submissionType}
                 disabled={!canEdit}
+                onChange={(event) => setSubmissionType(event.target.value as ProviderOfferingSubmissionType)}
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
               >
                 {(["create", "update", "discontinue"] as ProviderOfferingSubmissionType[]).map((item) => (
@@ -100,22 +103,32 @@ export function ProviderOfferingSubmissionForm({
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-950">Sản phẩm live liên kết</label>
-              <select
-                name="linkedOfferingId"
-                defaultValue={submission?.linkedOfferingId ?? ""}
-                disabled={!canEdit}
-                className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
-              >
-                <option value="">Không liên kết</option>
-                {liveOfferings.map((offering) => (
-                  <option key={offering.id} value={offering.id}>
-                    {offering.name} /{offering.slug}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {requiresLinkedOffering ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-950">Sản phẩm đang liên kết</label>
+                <select
+                  name="linkedOfferingId"
+                  defaultValue={submission?.linkedOfferingId ?? ""}
+                  disabled={!canEdit}
+                  required
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
+                >
+                  <option value="">Chọn sản phẩm cần cập nhật/ngừng bán</option>
+                  {liveOfferings.map((offering) => (
+                    <option key={offering.id} value={offering.id}>
+                      {offering.name} /{offering.slug}
+                    </option>
+                  ))}
+                </select>
+                {liveOfferings.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Chưa có sản phẩm live thuộc provider này. Hãy tạo mới và chờ admin duyệt trước.
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <input type="hidden" name="linkedOfferingId" value="" />
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -172,9 +185,9 @@ export function ProviderOfferingSubmissionForm({
                 disabled={!canEdit}
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
               >
-                <option value="digital">Digital</option>
-                <option value="physical">Vật lý / vận chuyển</option>
-                <option value="service">Dịch vụ</option>
+                <option value="digital">Sản phẩm online - Nhận qua link/file</option>
+                <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
               </select>
             </div>
           </div>

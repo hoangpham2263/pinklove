@@ -57,12 +57,14 @@ function formatDateTime(value: string) {
 
 function getFulfillmentTypeLabel(fulfillmentType: Offering["fulfillmentType"]) {
   switch (fulfillmentType) {
+    case "digital":
+      return "Sản phẩm online - Nhận qua link/file";
     case "physical":
-      return "Sản phẩm vật lý";
+      return "Sản phẩm vật lý - Có sản xuất/giao hàng";
     case "service":
-      return "Dịch vụ";
+      return "Dịch vụ - Có người thực hiện/đặt lịch";
     default:
-      return "Digital";
+      return fulfillmentType;
   }
 }
 

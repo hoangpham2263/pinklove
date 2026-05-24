@@ -13,6 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const formData = await request.formData();
   const nextStatus = String(formData.get("nextStatus") ?? "").trim() as OfferingProviderSupplierStatus;
+  const adminSellPrice = Number(formData.get("adminSellPrice") ?? "0");
   const reviewNote = String(formData.get("reviewNote") ?? "");
 
   if (!ALLOWED_STATUSES.has(nextStatus)) {
@@ -28,6 +29,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       supplierId: id,
       actorUserId: admin.id,
       nextStatus,
+      adminSellPrice,
       reviewNote,
     });
 

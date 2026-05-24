@@ -1,4 +1,1 @@
-Cannot read properties of null (reading 'reset')
-Thông tin gửi đối tác sai password
-Hình thức bàn giao đang có Digital - Vật lý / Vận Chuyển - Dịch vụ (cần xem lại)
-Approved suppliers - thêm chỗ phải nhập giá bán mới được bán tránh lưu nhầm
+fix size input mobile

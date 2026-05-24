@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 type ProviderPortalCopyButtonProps = {
   path: string;
   username: string;
-  password: string;
   label?: string;
   className?: string;
 };
@@ -19,11 +18,10 @@ type ProviderPortalCopyButtonProps = {
 export function ProviderPortalCopyButton({
   path,
   username,
-  password,
   label = "Thông tin đối tác",
   className,
 }: ProviderPortalCopyButtonProps) {
-  const [copiedField, setCopiedField] = useState<"portal" | "username" | "password" | "all" | null>(null);
+  const [copiedField, setCopiedField] = useState<"portal" | "username" | "all" | null>(null);
 
   const portalUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -33,9 +31,9 @@ export function ProviderPortalCopyButton({
     return path.startsWith("/") ? `${window.location.origin}${path}` : path;
   }, [path]);
 
-  const allText = `Portal: ${portalUrl}\nUsername: ${username}\nPassword: ${password}`;
+  const allText = `Portal: ${portalUrl}\nUsername: ${username}`;
 
-  async function handleCopy(value: string, field: "portal" | "username" | "password" | "all", message: string) {
+  async function handleCopy(value: string, field: "portal" | "username" | "all", message: string) {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
     toast(message);
@@ -53,7 +51,7 @@ export function ProviderPortalCopyButton({
           <DialogHeader>
             <DialogTitle>Thông tin gửi đối tác</DialogTitle>
             <DialogDescription>
-              Xem nhanh và copy link portal, username và mật khẩu để gửi cho đối tác.
+              Copy link portal và username để gửi cho đối tác. Mật khẩu không thể xem lại sau khi đã hash; nếu cần gửi mật khẩu mới, hãy đặt lại trong màn hình sửa tài khoản.
             </DialogDescription>
           </DialogHeader>
 
@@ -84,17 +82,8 @@ export function ProviderPortalCopyButton({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Mật khẩu</p>
-              <div className="flex items-center gap-2">
-                <Input value={password} readOnly />
-                <AdminIconButton
-                  aria-label="Copy mật khẩu"
-                  onClick={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}
-                >
-                  {copiedField === "password" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </AdminIconButton>
-              </div>
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Không hiển thị mật khẩu cũ để tránh gửi sai. Hãy reset mật khẩu nếu đối tác cần thông tin đăng nhập mới.
             </div>
           </div>
 

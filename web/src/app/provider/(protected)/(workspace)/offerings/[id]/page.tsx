@@ -3,10 +3,9 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
-import { getProviderByUserId } from "@/features/providers/server/service";
+import { listAllOfferingCategories } from "@/features/offerings/server/service";
 import { ProviderOfferingSubmissionForm } from "@/features/provider-offering-submissions/components/provider-offering-submission-form";
-import { getProviderOfferingSubmissionDetailForProvider } from "@/features/provider-offering-submissions/server/service";
+import { getProviderOfferingSubmissionDetailForProvider, listLiveOfferingsForProviderSubmissions } from "@/features/provider-offering-submissions/server/service";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -19,20 +18,15 @@ function formatDateTime(value: string) {
 export default async function ProviderOfferingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const providerUser = await requireProvider(ROUTES.PROVIDER.LOGIN);
   const { id } = await params;
-  const [categories, offerings, detail, provider] = await Promise.all([
+  const [categories, liveOfferings, detail] = await Promise.all([
     listAllOfferingCategories(),
-    listAllOfferings(),
+    listLiveOfferingsForProviderSubmissions(providerUser.id),
     getProviderOfferingSubmissionDetailForProvider(providerUser.id, id),
-    getProviderByUserId(providerUser.id),
   ]);
 
   if (!detail) {
     notFound();
   }
-
-  const liveOfferings = offerings
-    .filter((offering) => offering.offeringType !== "digital_template" && offering.ownerType === "provider" && offering.ownerProviderId === provider?.id)
-    .map((offering) => ({ id: offering.id, name: offering.name, slug: offering.slug }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

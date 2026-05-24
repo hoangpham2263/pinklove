@@ -2,7 +2,9 @@ import "server-only";
 
 import type { OfferingFulfillmentType } from "@/features/offerings/types";
 import { createAdminNotification } from "@/features/notifications/server/service";
-import { createOffering, getOfferingById, updateOffering } from "@/features/offerings/server/service";
+import { getOfferingById } from "@/features/offerings/server/service";
+import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
+import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import type {
   ProviderOfferingReviewStatus,
@@ -74,6 +76,7 @@ type SupplierRow = {
   offering_name: string;
   offering_slug: string;
   offering_thumbnail_url: string | null;
+  offering_price: string;
   provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
@@ -97,6 +100,7 @@ type SupplierRequestRow = {
   offering_name: string;
   offering_slug: string;
   offering_thumbnail_url: string | null;
+  offering_price: string;
   provider_user_id: string;
   provider_username: string;
   provider_display_name: string | null;
@@ -184,6 +188,7 @@ type ReviewSupplierRequestInput = {
   requestId: string;
   actorUserId: string;
   nextStatus: Exclude<ProviderOfferingSupplierRequestStatus, "submitted" | "approved"> | "approved";
+  adminSellPrice?: number;
   reviewNote?: string;
 };
 
@@ -191,6 +196,7 @@ type UpdateOfferingProviderSupplierStatusInput = {
   supplierId: string;
   actorUserId: string;
   nextStatus: OfferingProviderSupplierStatus;
+  adminSellPrice?: number;
   reviewNote?: string;
 };
 
@@ -242,6 +248,7 @@ const SUPPLIER_SELECT = `
     offering.name AS offering_name,
     offering.slug AS offering_slug,
     offering.thumbnail_url AS offering_thumbnail_url,
+    offering.price::text AS offering_price,
     supplier.provider_user_id,
     provider.username AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
@@ -270,6 +277,7 @@ const SUPPLIER_REQUEST_SELECT = `
     offering.name AS offering_name,
     offering.slug AS offering_slug,
     offering.thumbnail_url AS offering_thumbnail_url,
+    offering.price::text AS offering_price,
     request.provider_user_id,
     provider.username AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
@@ -301,6 +309,14 @@ function toNumber(value: string | null | undefined) {
 
 function toInteger(value: string | null | undefined) {
   return Math.max(0, Math.trunc(Number(value ?? "0")));
+}
+
+function normalizeAdminSellPrice(value: number | undefined) {
+  if (!Number.isFinite(value) || value === undefined || value <= 0) {
+    throw new Error("SELL_PRICE_REQUIRED");
+  }
+
+  return value;
 }
 
 function mapSubmissionRow(row: SubmissionRow): ProviderOfferingSubmission {
@@ -346,6 +362,7 @@ function mapSupplierRow(row: SupplierRow): OfferingProviderSupplier {
     offeringName: row.offering_name,
     offeringSlug: row.offering_slug,
     offeringThumbnailUrl: row.offering_thumbnail_url ?? "",
+    offeringPrice: toNumber(row.offering_price),
     providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
@@ -371,6 +388,7 @@ function mapSupplierRequestRow(row: SupplierRequestRow): ProviderOfferingSupplie
     offeringName: row.offering_name,
     offeringSlug: row.offering_slug,
     offeringThumbnailUrl: row.offering_thumbnail_url ?? "",
+    offeringPrice: toNumber(row.offering_price),
     providerId: row.provider_user_id,
     providerUsername: row.provider_username,
     providerDisplayName: row.provider_display_name ?? row.provider_username,
@@ -625,6 +643,39 @@ export async function listAvailableOfferingsForProviderSupply(providerId: string
   }));
 }
 
+export async function listLiveOfferingsForProviderSubmissions(providerUserId: string): Promise<Array<{ id: string; name: string; slug: string }>> {
+  const provider = await getProviderByUserId(providerUserId);
+  const result = await query<{ id: string; name: string; slug: string }>(
+    `
+      SELECT DISTINCT
+        offering.id,
+        offering.name,
+        offering.slug
+      FROM offerings offering
+      LEFT JOIN offering_provider_suppliers supplier
+        ON supplier.offering_id = offering.id
+       AND supplier.provider_user_id = $1
+       AND supplier.status IN ('active', 'paused', 'suspended')
+      LEFT JOIN physical_offerings physical
+        ON physical.offering_id = offering.id
+      WHERE offering.status = 'published'
+        AND offering.offering_type <> 'digital_template'
+        AND (
+          supplier.id IS NOT NULL
+          OR ($2::text IS NOT NULL AND physical.provider_id::text = $2::text)
+        )
+      ORDER BY offering.name ASC
+    `,
+    [providerUserId, provider?.id ?? null]
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+  }));
+}
+
 export async function listSupplierRequestsForProvider(providerId: string): Promise<ProviderOfferingSupplierRequest[]> {
   const result = await query<SupplierRequestRow>(
     `
@@ -851,6 +902,7 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
   }
 
   const reviewNote = (input.reviewNote ?? "").trim();
+  const adminSellPrice = input.nextStatus === "approved" ? normalizeAdminSellPrice(input.adminSellPrice) : undefined;
   await query(
     `
       UPDATE provider_offering_supplier_requests
@@ -866,6 +918,15 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
   );
 
   if (input.nextStatus === "approved") {
+    await query(
+      `
+        UPDATE offerings
+        SET price = $2, updated_at = NOW()
+        WHERE id = $1
+      `,
+      [request.offering_id, adminSellPrice]
+    );
+
     await upsertOfferingProviderSupplier(query, {
       offeringId: request.offering_id,
       providerId: request.provider_user_id,
@@ -911,6 +972,7 @@ export async function updateOfferingProviderSupplierStatus(input: UpdateOffering
     throw new Error("SUPPLIER_NOT_FOUND");
   }
 
+  const adminSellPrice = input.nextStatus === "active" ? normalizeAdminSellPrice(input.adminSellPrice) : undefined;
   const reviewNote = (input.reviewNote ?? "").trim();
   const qualityNote = reviewNote
     ? [supplier.quality_note, `Status ${input.nextStatus}: ${reviewNote}`].filter(Boolean).join("\n\n")
@@ -927,6 +989,17 @@ export async function updateOfferingProviderSupplierStatus(input: UpdateOffering
     `,
     [input.supplierId, input.nextStatus, qualityNote]
   );
+
+  if (input.nextStatus === "active") {
+    await query(
+      `
+        UPDATE offerings
+        SET price = $2, updated_at = NOW()
+        WHERE id = $1
+      `,
+      [supplier.offering_id, adminSellPrice]
+    );
+  }
 
   await createAdminNotification({
     actorUserId: input.actorUserId,
@@ -1277,6 +1350,7 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
 export async function approveProviderOfferingSubmission(input: ApproveProviderOfferingSubmissionInput): Promise<string> {
   const assignProviderSupplier = input.assignProviderSupplier !== false;
   const offeringOwnership = input.offeringOwnership ?? "platform";
+  const adminSellPrice = normalizeAdminSellPrice(input.adminSellPrice);
   const result = await query<{
     id: string;
     provider_user_id: string;
@@ -1329,132 +1403,358 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
     throw new Error("SUBMISSION_NOT_FOUND");
   }
 
-  if (!["submitted", "under_review", "changes_requested"].includes(submission.review_status)) {
+  if (!["submitted", "under_review", "changes_requested", "approved"].includes(submission.review_status)) {
     throw new Error("SUBMISSION_NOT_APPROVABLE");
   }
 
-  let linkedOfferingId = submission.linked_offering_id;
   const provider = await getProviderByUserId(submission.provider_user_id);
-  if (submission.submission_type === "create") {
-    const ownerType = offeringOwnership === "provider_originated" ? "provider" : "internal";
-    const created = await createOffering({
-      slug: submission.slug_candidate,
-      categoryId: submission.category_id ?? undefined,
-      name: submission.name,
-      excerpt: submission.excerpt,
-      description: submission.description,
-      status: "draft",
-      offeringType: "physical_product",
-      templateKey: "physical_product",
-      thumbnailUrl: submission.thumbnail_url || undefined,
-      price: input.adminSellPrice,
-      fulfillmentType: submission.fulfillment_type,
-      trackInventory: true,
-      stockQuantity: toNumber(submission.proposed_stock_quantity),
-      lowStockThreshold: toNumber(submission.low_stock_threshold),
-      allowBackorder: submission.allow_backorder,
-      costPrice: toNumber(submission.purchase_cost),
-      providerSku: submission.provider_sku,
-      ownerType,
-      ownerProviderId: offeringOwnership === "provider_originated" ? provider?.id : undefined,
-      ownerProviderType: offeringOwnership === "provider_originated" ? String(provider?.provider_type ?? "provider") : undefined,
-      config: {},
-    });
-
-    linkedOfferingId = created.id;
-  } else if (submission.submission_type === "update") {
-    if (!submission.linked_offering_id) {
-      throw new Error("LINKED_OFFERING_REQUIRED");
-    }
-
-    const offering = await getOfferingById(submission.linked_offering_id);
-    if (!offering) {
-      throw new Error("LINKED_OFFERING_NOT_FOUND");
-    }
-
-    await updateOffering(offering.slug, {
-      categoryId: submission.category_id ?? undefined,
-      name: submission.name,
-      slug: submission.slug_candidate,
-      excerpt: submission.excerpt,
-      description: submission.description,
-      thumbnailUrl: submission.thumbnail_url || undefined,
-      price: input.adminSellPrice,
-      fulfillmentType: submission.fulfillment_type,
-      trackInventory: true,
-      stockQuantity: toNumber(submission.proposed_stock_quantity),
-      lowStockThreshold: toNumber(submission.low_stock_threshold),
-      allowBackorder: submission.allow_backorder,
-      costPrice: toNumber(submission.purchase_cost),
-      providerSku: submission.provider_sku,
-      ownerType: "provider",
-      ownerProviderId: provider?.id,
-      ownerProviderType: String(provider?.provider_type ?? "provider"),
-      config: offering.config,
-    });
-  } else {
-    if (!submission.linked_offering_id) {
-      throw new Error("LINKED_OFFERING_REQUIRED");
-    }
-
-    const offering = await getOfferingById(submission.linked_offering_id);
-    if (!offering) {
-      throw new Error("LINKED_OFFERING_NOT_FOUND");
-    }
-
-    await updateOffering(offering.slug, {
-      status: "draft",
-    });
+  if (offeringOwnership === "provider_originated" && !provider?.id) {
+    throw new Error("PROVIDER_ENTITY_REQUIRED");
   }
 
   const reviewNote = (input.reviewNote ?? "").trim();
-  await query(
-    `
-      UPDATE provider_offering_submissions
-      SET
-        linked_offering_id = COALESCE($2, linked_offering_id),
-        review_status = 'approved',
-        admin_sell_price = $3,
-        review_note = $4,
-        reviewed_by = $5,
-        reviewed_at = NOW(),
-        updated_at = NOW()
-      WHERE id = $1
-    `,
-    [input.submissionId, linkedOfferingId, input.adminSellPrice, reviewNote, input.actorUserId]
-  );
+  const ownerProviderId = offeringOwnership === "provider_originated" ? provider?.id ?? null : null;
+  const ownerProviderType = offeringOwnership === "provider_originated" ? String(provider?.provider_type ?? "provider") : null;
+  let catalogEventName: "offering.created" | "offering.updated" = "offering.updated";
 
-  if (linkedOfferingId && assignProviderSupplier && submission.submission_type !== "discontinue") {
-    await upsertOfferingProviderSupplier(query, {
-      offeringId: linkedOfferingId,
-      providerId: submission.provider_user_id,
+  const linkedOfferingId = await withTransaction(async (execute) => {
+    let nextLinkedOfferingId = submission.linked_offering_id;
+
+    if (submission.submission_type === "create") {
+      const existing = await execute<{ id: string; offering_type: string }>(
+        `
+          SELECT id, offering_type
+          FROM offerings
+          WHERE ($1::text IS NOT NULL AND id::text = $1::text)
+             OR slug = $2
+          ORDER BY CASE WHEN id::text = $1::text THEN 0 ELSE 1 END
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [submission.linked_offering_id, submission.slug_candidate]
+      );
+      const existingOffering = existing.rows[0];
+
+      if (existingOffering && existingOffering.offering_type !== "physical_product") {
+        throw new Error("OFFERING_SLUG_IN_USE");
+      }
+
+      if (existingOffering) {
+        const updated = await execute<{ id: string }>(
+          `
+            UPDATE offerings
+            SET
+              slug = $2,
+              category_id = $3,
+              name = $4,
+              status = 'published',
+              excerpt = NULLIF($5, ''),
+              description = NULLIF($6, ''),
+              thumbnail_url = NULLIF($7, ''),
+              price = $8,
+              fulfillment_type = $9,
+              track_inventory = TRUE,
+              stock_quantity = $10,
+              low_stock_threshold = $11,
+              allow_backorder = $12,
+              updated_at = NOW()
+            WHERE id = $1
+            RETURNING id
+          `,
+          [
+            existingOffering.id,
+            submission.slug_candidate,
+            submission.category_id,
+            submission.name,
+            submission.excerpt,
+            submission.description,
+            submission.thumbnail_url,
+            adminSellPrice,
+            submission.fulfillment_type,
+            toInteger(submission.proposed_stock_quantity),
+            toInteger(submission.low_stock_threshold),
+            submission.allow_backorder,
+          ]
+        );
+        nextLinkedOfferingId = updated.rows[0]?.id ?? existingOffering.id;
+        catalogEventName = "offering.updated";
+      } else {
+        const created = await execute<{ id: string }>(
+          `
+            INSERT INTO offerings (
+              slug,
+              category_id,
+              name,
+              excerpt,
+              description,
+              status,
+              offering_type,
+              template_key,
+              template_engine,
+              template_mode,
+              thumbnail_url,
+              price,
+              fulfillment_type,
+              track_inventory,
+              stock_quantity,
+              low_stock_threshold,
+              allow_backorder,
+              config
+            )
+            VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), 'published', 'physical_product', 'physical_product', '', '', NULLIF($6, ''), $7, $8, TRUE, $9, $10, $11, '{}'::jsonb)
+            RETURNING id
+          `,
+          [
+            submission.slug_candidate,
+            submission.category_id,
+            submission.name,
+            submission.excerpt,
+            submission.description,
+            submission.thumbnail_url,
+            adminSellPrice,
+            submission.fulfillment_type,
+            toInteger(submission.proposed_stock_quantity),
+            toInteger(submission.low_stock_threshold),
+            submission.allow_backorder,
+          ]
+        );
+        nextLinkedOfferingId = created.rows[0]?.id ?? null;
+        catalogEventName = "offering.created";
+      }
+
+      if (!nextLinkedOfferingId) {
+        throw new Error("OFFERING_APPLY_FAILED");
+      }
+
+      await execute(
+        `
+          INSERT INTO physical_offerings (
+            offering_id,
+            fulfillment_type,
+            track_inventory,
+            stock_quantity,
+            low_stock_threshold,
+            allow_backorder,
+            cost_price,
+            provider_sku,
+            allow_provider_supply,
+            provider_type,
+            provider_id
+          )
+          VALUES ($1, $2, TRUE, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (offering_id) DO UPDATE
+          SET
+            fulfillment_type = EXCLUDED.fulfillment_type,
+            track_inventory = EXCLUDED.track_inventory,
+            stock_quantity = EXCLUDED.stock_quantity,
+            low_stock_threshold = EXCLUDED.low_stock_threshold,
+            allow_backorder = EXCLUDED.allow_backorder,
+            cost_price = EXCLUDED.cost_price,
+            provider_sku = EXCLUDED.provider_sku,
+            allow_provider_supply = EXCLUDED.allow_provider_supply,
+            provider_type = EXCLUDED.provider_type,
+            provider_id = EXCLUDED.provider_id
+        `,
+        [
+          nextLinkedOfferingId,
+          submission.fulfillment_type,
+          toInteger(submission.proposed_stock_quantity),
+          toInteger(submission.low_stock_threshold),
+          submission.allow_backorder,
+          toNumber(submission.purchase_cost),
+          submission.provider_sku,
+          assignProviderSupplier,
+          ownerProviderType,
+          ownerProviderId,
+        ]
+      );
+    } else if (submission.submission_type === "update") {
+      if (!nextLinkedOfferingId) {
+        throw new Error("LINKED_OFFERING_REQUIRED");
+      }
+
+      const updated = await execute<{ id: string }>(
+        `
+          UPDATE offerings
+          SET
+            slug = $2,
+            category_id = $3,
+            name = $4,
+            status = 'published',
+            excerpt = NULLIF($5, ''),
+            description = NULLIF($6, ''),
+            thumbnail_url = NULLIF($7, ''),
+            price = $8,
+            fulfillment_type = $9,
+            track_inventory = TRUE,
+            stock_quantity = $10,
+            low_stock_threshold = $11,
+            allow_backorder = $12,
+            updated_at = NOW()
+          WHERE id = $1
+          RETURNING id
+        `,
+        [
+          nextLinkedOfferingId,
+          submission.slug_candidate,
+          submission.category_id,
+          submission.name,
+          submission.excerpt,
+          submission.description,
+          submission.thumbnail_url,
+          adminSellPrice,
+          submission.fulfillment_type,
+          toInteger(submission.proposed_stock_quantity),
+          toInteger(submission.low_stock_threshold),
+          submission.allow_backorder,
+        ]
+      );
+
+      if (!updated.rows[0]) {
+        throw new Error("LINKED_OFFERING_NOT_FOUND");
+      }
+
+      await execute(
+        `
+          INSERT INTO physical_offerings (
+            offering_id,
+            fulfillment_type,
+            track_inventory,
+            stock_quantity,
+            low_stock_threshold,
+            allow_backorder,
+            cost_price,
+            provider_sku,
+            allow_provider_supply,
+            provider_type,
+            provider_id
+          )
+          VALUES ($1, $2, TRUE, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (offering_id) DO UPDATE
+          SET
+            fulfillment_type = EXCLUDED.fulfillment_type,
+            track_inventory = EXCLUDED.track_inventory,
+            stock_quantity = EXCLUDED.stock_quantity,
+            low_stock_threshold = EXCLUDED.low_stock_threshold,
+            allow_backorder = EXCLUDED.allow_backorder,
+            cost_price = EXCLUDED.cost_price,
+            provider_sku = EXCLUDED.provider_sku,
+            allow_provider_supply = EXCLUDED.allow_provider_supply,
+            provider_type = EXCLUDED.provider_type,
+            provider_id = EXCLUDED.provider_id
+        `,
+        [
+          nextLinkedOfferingId,
+          submission.fulfillment_type,
+          toInteger(submission.proposed_stock_quantity),
+          toInteger(submission.low_stock_threshold),
+          submission.allow_backorder,
+          toNumber(submission.purchase_cost),
+          submission.provider_sku,
+          assignProviderSupplier,
+          provider?.provider_type ? String(provider.provider_type) : null,
+          provider?.id ?? null,
+        ]
+      );
+    } else {
+      if (!nextLinkedOfferingId) {
+        throw new Error("LINKED_OFFERING_REQUIRED");
+      }
+
+      const updated = await execute<{ id: string }>(
+        `
+          UPDATE offerings
+          SET status = 'draft', updated_at = NOW()
+          WHERE id = $1
+          RETURNING id
+        `,
+        [nextLinkedOfferingId]
+      );
+
+      if (!updated.rows[0]) {
+        throw new Error("LINKED_OFFERING_NOT_FOUND");
+      }
+    }
+
+    await execute(
+      `
+        UPDATE provider_offering_submissions
+        SET
+          linked_offering_id = $2,
+          review_status = 'approved',
+          admin_sell_price = $3,
+          review_note = $4,
+          reviewed_by = $5,
+          reviewed_at = NOW(),
+          updated_at = NOW()
+        WHERE id = $1
+      `,
+      [input.submissionId, nextLinkedOfferingId, adminSellPrice, reviewNote, input.actorUserId]
+    );
+
+    if (nextLinkedOfferingId && assignProviderSupplier && submission.submission_type !== "discontinue") {
+      await upsertOfferingProviderSupplier(execute, {
+        offeringId: nextLinkedOfferingId,
+        providerId: submission.provider_user_id,
+        actorUserId: input.actorUserId,
+        source: "proposal",
+        purchaseCost: toNumber(submission.purchase_cost),
+        providerSku: submission.provider_sku,
+        monthlyCapacity: toInteger(submission.proposed_stock_quantity),
+        qualityNote: submission.provider_note,
+      });
+    }
+
+    await appendSubmissionEvent(execute, {
+      submissionId: input.submissionId,
       actorUserId: input.actorUserId,
-      source: "proposal",
-      purchaseCost: toNumber(submission.purchase_cost),
-      providerSku: submission.provider_sku,
-      monthlyCapacity: toInteger(submission.proposed_stock_quantity),
-      qualityNote: submission.provider_note,
+      actorType: "admin",
+      eventType: "approved",
+      message:
+        submission.review_status === "approved"
+          ? "Admin đã cập nhật lại hồ sơ sản phẩm và áp dụng vào catalog."
+          : submission.submission_type === "discontinue"
+          ? "Admin đã duyệt ngừng bán sản phẩm."
+          : "Admin đã duyệt hồ sơ sản phẩm và áp dụng vào catalog.",
+    });
+
+    return nextLinkedOfferingId;
+  });
+
+  const linkedOffering = linkedOfferingId ? await getOfferingById(linkedOfferingId) : null;
+  if (linkedOffering) {
+    await upsertOfferingSearchDocument(linkedOffering);
+    await recordDomainEvent({
+      eventName: catalogEventName,
+      aggregateType: "offering",
+      aggregateId: linkedOffering.id,
+      actorType: "admin",
+      actorId: input.actorUserId,
+      payload: { slug: linkedOffering.slug, offeringType: linkedOffering.offeringType },
     });
   }
 
-  await appendSubmissionEvent(query, {
-    submissionId: input.submissionId,
-    actorUserId: input.actorUserId,
-    actorType: "admin",
-    eventType: "approved",
-    message:
-      submission.submission_type === "discontinue"
-        ? "Admin đã duyệt ngừng bán sản phẩm."
-        : "Admin đã duyệt hồ sơ sản phẩm và áp dụng vào catalog.",
-  });
+  const notificationTitle =
+    submission.submission_type === "discontinue"
+      ? "Yêu cầu ngừng bán đã được duyệt"
+      : submission.review_status === "approved"
+        ? "Catalog sản phẩm đã được cập nhật"
+        : submission.submission_type === "update"
+          ? "Cập nhật sản phẩm provider đã được duyệt"
+          : "Sản phẩm provider đã được duyệt và mở bán";
+  const notificationBody =
+    submission.submission_type === "discontinue"
+      ? `Admin đã duyệt ngừng bán "${submission.name}".`
+      : submission.review_status === "approved"
+        ? `Admin đã cập nhật "${submission.name}" trong catalog với giá bán ${adminSellPrice}.`
+        : submission.submission_type === "update"
+          ? `Admin đã duyệt cập nhật "${submission.name}" và áp dụng vào catalog.`
+          : `Admin đã duyệt "${submission.name}" và đưa sản phẩm lên catalog.`;
 
   await createAdminNotification({
     actorUserId: input.actorUserId,
-    title: "Sản phẩm provider đã được duyệt",
-    body:
-      submission.submission_type === "discontinue"
-        ? "Admin đã duyệt yêu cầu ngừng bán sản phẩm của bạn."
-        : "Admin đã duyệt hồ sơ sản phẩm và áp dụng vào catalog.",
+    title: notificationTitle,
+    body: notificationBody,
     linkUrl: ROUTES.PROVIDER.OFFERING(input.submissionId),
     audienceType: "users",
     userIds: [submission.provider_user_id],

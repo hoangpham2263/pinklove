@@ -79,6 +79,7 @@ export type OfferingProviderSupplier = {
   offeringName: string;
   offeringSlug: string;
   offeringThumbnailUrl: string;
+  offeringPrice: number;
   providerId: string;
   providerUsername: string;
   providerDisplayName: string;
@@ -110,6 +111,7 @@ export type ProviderOfferingSupplierRequest = {
   offeringName: string;
   offeringSlug: string;
   offeringThumbnailUrl: string;
+  offeringPrice: number;
   providerId: string;
   providerUsername: string;
   providerDisplayName: string;

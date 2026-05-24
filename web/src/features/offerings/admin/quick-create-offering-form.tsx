@@ -257,9 +257,9 @@ export function QuickCreateOfferingForm({
                 onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
-                <option value="digital">Digital</option>
-                <option value="physical">Cần vận chuyển</option>
-                <option value="service">Dịch vụ</option>
+                <option value="digital">Sản phẩm online - Nhận qua link/file</option>
+                <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
               </select>
             </div>
 

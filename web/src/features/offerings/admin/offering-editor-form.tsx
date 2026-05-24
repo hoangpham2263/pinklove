@@ -44,6 +44,19 @@ type OfferingEditorFormProps = {
   returnTo?: string;
 };
 
+function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
+  switch (value) {
+    case "digital":
+      return "Sản phẩm online - Nhận qua link/file";
+    case "physical":
+      return "Sản phẩm vật lý - Có sản xuất/giao hàng";
+    case "service":
+      return "Dịch vụ - Có người thực hiện/đặt lịch";
+    default:
+      return value;
+  }
+}
+
 export function OfferingEditorForm({
   offering,
   offeringTypeDefinition,
@@ -384,15 +397,15 @@ export function OfferingEditorForm({
                   onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
                   className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 >
-                  <option value="digital">Digital</option>
-                  <option value="physical">Cần vận chuyển</option>
-                  <option value="service">Dịch vụ</option>
+                  <option value="digital">Sản phẩm online - Nhận qua link/file</option>
+                  <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                  <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
                 </select>
               ) : (
                 <>
                   <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
                   <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                    {offering.fulfillmentType}
+                    {getFulfillmentTypeLabel(offering.fulfillmentType)}
                   </div>
                 </>
               )}

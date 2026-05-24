@@ -65,11 +65,11 @@ function formatDetailValue(value: unknown) {
 function getFulfillmentLabel(value: Offering["fulfillmentType"]) {
   switch (value) {
     case "digital":
-      return "Bàn giao số";
+      return "Sản phẩm online - Nhận qua link/file";
     case "physical":
-      return "Giao hàng vật lý";
+      return "Sản phẩm vật lý - Có sản xuất/giao hàng";
     case "service":
-      return "Dịch vụ";
+      return "Dịch vụ - Có người thực hiện/đặt lịch";
     default:
       return value;
   }

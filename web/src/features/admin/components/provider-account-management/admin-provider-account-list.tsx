@@ -168,7 +168,7 @@ function PortalCopyRow({
 }
 
 function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow }) {
-  const [copiedField, setCopiedField] = useState<"portal" | "username" | "password" | "all" | null>(null);
+  const [copiedField, setCopiedField] = useState<"portal" | "username" | "all" | null>(null);
 
   if (!provider.providerPortalSlug) {
     return (
@@ -179,10 +179,9 @@ function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow
   }
 
   const portalUrl = getPortalUrl(ROUTES.PROVIDER.ROOT);
-  const password = "12313";
-  const allText = `Portal: ${portalUrl}\nUsername: ${provider.username}\nPassword: ${password}`;
+  const allText = `Portal: ${portalUrl}\nUsername: ${provider.username}`;
 
-  async function handleCopy(value: string, field: "portal" | "username" | "password" | "all", message: string) {
+  async function handleCopy(value: string, field: "portal" | "username" | "all", message: string) {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
     toast(message);
@@ -204,12 +203,9 @@ function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow
           copied={copiedField === "username"}
           onCopy={() => handleCopy(provider.username, "username", "Đã copy username đối tác.")}
         />
-        <PortalCopyRow
-          label="Password"
-          value={password}
-          copied={copiedField === "password"}
-          onCopy={() => handleCopy(password, "password", "Đã copy mật khẩu đối tác.")}
-        />
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Không hiển thị mật khẩu cũ. Reset mật khẩu trong màn hình sửa tài khoản nếu cần gửi password mới.
+        </p>
 
         <div className="flex justify-end">
           <AdminSubmitButton

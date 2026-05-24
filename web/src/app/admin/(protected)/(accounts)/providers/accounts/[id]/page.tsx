@@ -94,7 +94,6 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
                 label="Xem thông tin"
                 path={ROUTES.PROVIDER.ROOT}
                 username={provider.username}
-                password="12313"
               />
               <AdminLinkButton href={ROUTES.PROVIDER.ROOT}>Portal Link</AdminLinkButton>
             </>
@@ -127,7 +126,6 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
                     label="Xem và copy thông tin"
                     path={ROUTES.PROVIDER.ROOT}
                     username={provider.username}
-                    password="12313"
                   />
                   <AdminLinkButton href={`${ROUTES.ADMIN.PROVIDER_OFFERINGS}?providerId=${encodeURIComponent(provider.id)}`}>Review sản phẩm provider</AdminLinkButton>
                 </div>

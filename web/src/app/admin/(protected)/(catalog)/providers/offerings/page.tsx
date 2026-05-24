@@ -56,6 +56,7 @@ export default async function AdminProviderSubmissionsPage() {
                     <TableHead className="font-medium">Provider</TableHead>
                     <TableHead className="font-medium">Mẫu</TableHead>
                     <TableHead className="text-right font-medium">Giá nhập</TableHead>
+                    <TableHead className="text-right font-medium">Giá bán</TableHead>
                     <TableHead className="text-right font-medium">Lead time</TableHead>
                     <TableHead className="text-right font-medium">Năng lực</TableHead>
                     <TableHead className="font-medium">Trạng thái</TableHead>
@@ -79,6 +80,7 @@ export default async function AdminProviderSubmissionsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">{request.purchaseCost}</TableCell>
+                      <TableCell className="text-right">{request.offeringPrice}</TableCell>
                       <TableCell className="text-right">{request.leadTimeDays} ngày</TableCell>
                       <TableCell className="text-right">{request.monthlyCapacity}/tháng</TableCell>
                       <TableCell>{request.reviewStatus}</TableCell>
@@ -88,6 +90,14 @@ export default async function AdminProviderSubmissionsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SUPPLIER_REQUEST_REVIEW(request.id)} method="POST" className="ml-auto grid w-full gap-2 md:w-[220px]">
+                          <input
+                            name="adminSellPrice"
+                            type="number"
+                            min="0"
+                            defaultValue={request.offeringPrice > 0 ? String(request.offeringPrice) : ""}
+                            className="h-9 w-full rounded-md border bg-white px-3 text-sm"
+                            placeholder="Giá bán"
+                          />
                           <textarea name="reviewNote" className="min-h-16 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Review note" />
                           <AdminTableActions>
                             <AdminTableActionButton action="edit" label="Review request" type="submit" name="nextStatus" value="under_review" />
@@ -124,6 +134,7 @@ export default async function AdminProviderSubmissionsPage() {
                     <TableHead className="font-medium">Mẫu</TableHead>
                     <TableHead className="font-medium">Nguồn</TableHead>
                     <TableHead className="text-right font-medium">Giá nhập</TableHead>
+                    <TableHead className="text-right font-medium">Giá bán</TableHead>
                     <TableHead className="text-right font-medium">Lead time</TableHead>
                     <TableHead className="text-right font-medium">Năng lực</TableHead>
                     <TableHead className="font-medium">Trạng thái</TableHead>
@@ -147,11 +158,20 @@ export default async function AdminProviderSubmissionsPage() {
                       </TableCell>
                       <TableCell>{supplier.source}</TableCell>
                       <TableCell className="text-right">{supplier.purchaseCost}</TableCell>
+                      <TableCell className="text-right">{supplier.offeringPrice}</TableCell>
                       <TableCell className="text-right">{supplier.leadTimeDays} ngày</TableCell>
                       <TableCell className="text-right">{supplier.monthlyCapacity}/tháng</TableCell>
                       <TableCell>{supplier.status}</TableCell>
                       <TableCell className="text-right">
                         <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SUPPLIER_STATUS(supplier.id)} method="POST" className="ml-auto grid w-full gap-2 md:w-[260px]">
+                          <input
+                            name="adminSellPrice"
+                            type="number"
+                            min="0"
+                            defaultValue={supplier.offeringPrice > 0 ? String(supplier.offeringPrice) : ""}
+                            className="h-9 w-full rounded-md border bg-white px-3 text-sm"
+                            placeholder="Giá bán"
+                          />
                           <textarea name="reviewNote" className="min-h-14 w-full rounded-md border bg-white px-3 py-2 text-sm" placeholder="Lifecycle note" />
                           <AdminTableActions>
                             {supplier.status !== "active" ? (
