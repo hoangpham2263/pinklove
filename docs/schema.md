@@ -27,7 +27,7 @@ Current database has 120 public tables after final physical offering cleanup:
 | Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
 | CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `media_asset_links`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `offering_bundles`, `offering_bundle_items`, `offering_search_documents`, `shopping_cart_items` |
+| Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `offering_bundles`, `offering_bundle_items`, `offering_relationships`, `offering_search_documents`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
 | Providers | `provider_order_assignments`, `provider_order_events`, `provider_offering_submissions`, `provider_offering_submission_events`, `offering_provider_suppliers`, `provider_offering_supplier_requests`, `provider_applications` |
@@ -1140,6 +1140,8 @@ archived without breaking existing catalog rows.
 | `notifications.created_by_user_id` | `users.id` | SET NULL |
 | `offering_bundle_items.bundle_id` | `offering_bundles.id` | CASCADE |
 | `offering_bundle_items.offering_id` | `offerings.id` | CASCADE |
+| `offering_relationships.source_offering_id` | `offerings.id` | CASCADE |
+| `offering_relationships.target_offering_id` | `offerings.id` | CASCADE |
 | `offering_provider_suppliers.approved_by` | `users.id` | SET NULL |
 | `offering_provider_suppliers.offering_id` | `offerings.id` | CASCADE |
 | `offering_provider_suppliers.provider_user_id` | `users.id` | CASCADE |

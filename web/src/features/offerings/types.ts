@@ -186,6 +186,8 @@ export type Offering = {
   config: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  crossSells?: Pick<Offering, "id" | "name" | "thumbnailUrl" | "price" | "slug">[];
+  upsells?: Pick<Offering, "id" | "name" | "thumbnailUrl" | "price" | "slug">[];
 };
 
 export function isOfferingInStock(offering: Pick<Offering, "trackInventory" | "stockQuantity" | "allowBackorder">) {

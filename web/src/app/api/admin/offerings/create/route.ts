@@ -114,6 +114,12 @@ export async function POST(request: Request) {
   const builderDocumentRaw = String(formData.get("builderDocument") ?? "").trim();
   let builderDocument: unknown = null;
 
+  const crossSellsRaw = formData.getAll("crossSells");
+  const crossSells = crossSellsRaw.map((v) => String(v)).filter(Boolean);
+
+  const upsellsRaw = formData.getAll("upsells");
+  const upsells = upsellsRaw.map((v) => String(v)).filter(Boolean);
+
   if (templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER && builderDocumentRaw) {
     try {
       builderDocument = ensureBuilderDocument(JSON.parse(builderDocumentRaw));
@@ -161,6 +167,8 @@ export async function POST(request: Request) {
             }
           : {}),
       },
+      crossSells,
+      upsells,
     });
 
     const nextLocation =

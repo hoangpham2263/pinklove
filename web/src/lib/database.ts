@@ -2558,6 +2558,35 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS offering_relationships (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      source_offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      target_offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
+      relationship_type TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT offering_relationships_type_check CHECK (relationship_type IN ('cross_sell', 'upsell', 'related')),
+      CONSTRAINT offering_relationships_not_self_check CHECK (source_offering_id <> target_offering_id),
+      CONSTRAINT offering_relationships_unique UNIQUE (source_offering_id, target_offering_id, relationship_type)
+    );
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS offering_relationships_source_idx ON offering_relationships(source_offering_id, relationship_type, sort_order);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS offering_relationships_target_idx ON offering_relationships(target_offering_id, relationship_type);`);
+  await pool.query(`DELETE FROM offering_relationships WHERE source_offering_id = target_offering_id;`);
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'offering_relationships_not_self_check'
+      ) THEN
+        ALTER TABLE offering_relationships
+          ADD CONSTRAINT offering_relationships_not_self_check CHECK (source_offering_id <> target_offering_id);
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS offering_search_documents (
       offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
       search_text TEXT NOT NULL DEFAULT '',

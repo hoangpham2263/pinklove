@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { DynamicOfferingFields } from "@/features/offerings/admin/dynamic-offering-fields";
+import { OfferingSearchSelect } from "@/features/offerings/admin/offering-search-select";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
@@ -42,6 +43,7 @@ type OfferingEditorFormProps = {
   offeringTypeDefinition: OfferingTypeDefinition | null;
   categories: OfferingCategory[];
   providers: ProviderOption[];
+  allOfferings?: Offering[];
   returnTo?: string;
 };
 
@@ -63,6 +65,7 @@ export function OfferingEditorForm({
   offeringTypeDefinition,
   categories,
   providers,
+  allOfferings = [],
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: OfferingEditorFormProps) {
   const router = useRouter();
@@ -275,7 +278,7 @@ export function OfferingEditorForm({
       {offering.templateEngine ? <input type="hidden" name="templateEngine" value={offering.templateEngine} /> : null}
       <input type="hidden" name="templateKey" value={offering.templateKey} />
 
-      <Card className="min-w-0 rounded-lg lg:col-span-9">
+      <Card className="min-w-0 overflow-visible rounded-lg lg:col-span-9">
         <CardHeader>
           <CardTitle>{isGeneralOffering ? "Thông tin sản phẩm" : "Thông tin mẫu chuẩn"}</CardTitle>
         </CardHeader>
@@ -515,6 +518,25 @@ export function OfferingEditorForm({
               name="description"
               defaultValue={offering.description}
               className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+            />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2 pt-4 border-t">
+            <OfferingSearchSelect
+              name="crossSells"
+              options={allOfferings}
+              defaultValue={offering.crossSells?.map((o) => o.id) ?? []}
+              label="Sản phẩm bán chéo (Cross-sell)"
+              description="Hiển thị ở trang giỏ hàng hoặc chi tiết sản phẩm."
+              excludeId={offering.id}
+            />
+            <OfferingSearchSelect
+              name="upsells"
+              options={allOfferings}
+              defaultValue={offering.upsells?.map((o) => o.id) ?? []}
+              label="Sản phẩm bán kèm (Upsell)"
+              description="Sản phẩm cao cấp hơn hoặc nâng cấp, thay thế cho sản phẩm hiện tại."
+              excludeId={offering.id}
             />
           </div>
 

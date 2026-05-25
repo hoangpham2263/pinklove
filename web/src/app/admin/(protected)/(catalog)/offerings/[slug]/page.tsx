@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
+import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { listProviders } from "@/features/providers/server/service";
@@ -18,10 +18,11 @@ export default async function AdminOfferingEditorPage({
   await requireAdmin();
   const { slug } = await params;
   const query = (await searchParams) ?? {};
-  const [offering, categories, providers] = await Promise.all([
+  const [offering, categories, providers, allOfferings] = await Promise.all([
     getOfferingBySlug(slug),
     listAllOfferingCategories(),
     listProviders(),
+    listAllOfferings(),
   ]);
 
   if (!offering) {
@@ -52,6 +53,7 @@ export default async function AdminOfferingEditorPage({
         offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
         categories={categories}
         providers={providers}
+        allOfferings={allOfferings}
         returnTo={returnTo}
       />
     </section>

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories } from "@/features/offerings/server/service";
+import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { listProviders } from "@/features/providers/server/service";
@@ -18,10 +18,11 @@ export default async function AdminOfferingTemplateEditorPage({
   await requireAdmin();
   const { slug } = await params;
   const query = (await searchParams) ?? {};
-  const [offering, categories, providers] = await Promise.all([
+  const [offering, categories, providers, allOfferings] = await Promise.all([
     getOfferingBySlug(slug),
     listAllOfferingCategories(),
     listProviders(),
+    listAllOfferings(),
   ]);
 
   if (!offering) {
@@ -30,19 +31,15 @@ export default async function AdminOfferingTemplateEditorPage({
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_TEMPLATES;
 
-  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
-    redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_BUILDER)}`);
-  }
-
-  if (offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) {
-    redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_MANAGE)}`);
+  if (offering.offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE || offering.templateEngine !== SYSTEM_TEMPLATE_ENGINES.CODED) {
+    redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">Edit Offering Template: {offering.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Coded Template: {offering.name}</h1>
         </div>
       </div>
       <OfferingEditorForm
@@ -50,6 +47,7 @@ export default async function AdminOfferingTemplateEditorPage({
         offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
         categories={categories}
         providers={providers}
+        allOfferings={allOfferings}
         returnTo={returnTo}
       />
     </section>

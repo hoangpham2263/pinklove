@@ -16,7 +16,7 @@ import {
   type OfferingTypeField,
   type OfferingTypeFieldGroup,
 } from "@/features/offerings/types";
-import { ensureOfferingCatalogReady, query, withTransaction } from "@/lib/database";
+import { ensureOfferingCatalogReady, query, withTransaction, type DbExecutor } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
@@ -46,6 +46,8 @@ type OfferingInput = {
   ownerProviderId?: string;
   ownerProviderType?: string;
   config?: Record<string, unknown>;
+  crossSells?: string[];
+  upsells?: string[];
 };
 
 type OfferingCategoryInput = {
@@ -54,6 +56,8 @@ type OfferingCategoryInput = {
   description?: string;
   status?: "draft" | "published";
 };
+
+type OfferingRelationshipType = "cross_sell" | "upsell";
 
 type OfferingTypeInput = {
   key: string;
@@ -493,6 +497,8 @@ type OfferingRow = {
   physical_provider_id: string | null;
   physical_provider_type: string | null;
   config: Record<string, unknown> | null;
+  cross_sells_json: string | null;
+  upsells_json: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -585,7 +591,39 @@ function mapOfferingRow(row: OfferingRow): Offering {
     config,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    crossSells: row.cross_sells_json ? (typeof row.cross_sells_json === "string" ? JSON.parse(row.cross_sells_json) : row.cross_sells_json) : undefined,
+    upsells: row.upsells_json ? (typeof row.upsells_json === "string" ? JSON.parse(row.upsells_json) : row.upsells_json) : undefined,
   };
+}
+
+function normalizeRelationshipIds(ids: string[] | undefined, sourceOfferingId: string) {
+  return Array.from(new Set((ids ?? []).map((id) => id.trim()).filter((id) => id && id !== sourceOfferingId)));
+}
+
+async function replaceOfferingRelationships(
+  execute: DbExecutor,
+  sourceOfferingId: string,
+  relationshipType: OfferingRelationshipType,
+  targetOfferingIds: string[] | undefined,
+) {
+  const normalizedIds = normalizeRelationshipIds(targetOfferingIds, sourceOfferingId);
+
+  await execute(
+    "DELETE FROM offering_relationships WHERE source_offering_id = $1 AND relationship_type = $2",
+    [sourceOfferingId, relationshipType],
+  );
+
+  for (const [index, targetOfferingId] of normalizedIds.entries()) {
+    await execute(
+      `
+        INSERT INTO offering_relationships (source_offering_id, target_offering_id, relationship_type, sort_order)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (source_offering_id, target_offering_id, relationship_type)
+        DO UPDATE SET sort_order = EXCLUDED.sort_order, updated_at = NOW()
+      `,
+      [sourceOfferingId, targetOfferingId, relationshipType, index],
+    );
+  }
 }
 
 const OFFERING_SELECT = `
@@ -625,6 +663,36 @@ const OFFERING_SELECT = `
     physical.provider_id AS physical_provider_id,
     physical.provider_type AS physical_provider_type,
     offerings.config,
+    (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'id', r.target_offering_id,
+          'slug', rel_o.slug,
+          'name', rel_o.name,
+          'thumbnailUrl', rel_o.thumbnail_url,
+          'price', rel_o.price
+        )
+        ORDER BY r.sort_order ASC
+      )
+      FROM offering_relationships r
+      JOIN offerings rel_o ON rel_o.id = r.target_offering_id
+      WHERE r.source_offering_id = offerings.id AND r.relationship_type = 'cross_sell'
+    ) AS cross_sells_json,
+    (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'id', r.target_offering_id,
+          'slug', rel_o.slug,
+          'name', rel_o.name,
+          'thumbnailUrl', rel_o.thumbnail_url,
+          'price', rel_o.price
+        )
+        ORDER BY r.sort_order ASC
+      )
+      FROM offering_relationships r
+      JOIN offerings rel_o ON rel_o.id = r.target_offering_id
+      WHERE r.source_offering_id = offerings.id AND r.relationship_type = 'upsell'
+    ) AS upsells_json,
     offerings.created_at,
     offerings.updated_at
   FROM offerings
@@ -1335,6 +1403,9 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
           ]
         );
       }
+
+      await replaceOfferingRelationships(execute, offeringId, "cross_sell", input.crossSells);
+      await replaceOfferingRelationships(execute, offeringId, "upsell", input.upsells);
     })
   );
 
@@ -1509,6 +1580,16 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             ownerProviderId,
           ]
         );
+      }
+
+      if (input.crossSells !== undefined || input.upsells !== undefined) {
+        if (input.crossSells !== undefined) {
+          await replaceOfferingRelationships(execute, offeringId, "cross_sell", input.crossSells);
+        }
+
+        if (input.upsells !== undefined) {
+          await replaceOfferingRelationships(execute, offeringId, "upsell", input.upsells);
+        }
       }
 
       return updated.rows[0];
