@@ -29,6 +29,7 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
+import { useConfirm } from "@/components/common/confirm-provider";
 
 type ProviderOption = {
   id: string;
@@ -103,6 +104,7 @@ export function OfferingEditorForm({
   const isBuilder = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER;
   const isCodedTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED;
   const canDeleteOffering = !isCodedTemplate;
+  const confirm = useConfirm();
   const templateFields = useMemo(
     () => (isGeneralOffering || isBuilder ? [] : getInvitationTemplateFields(offering.templateKey)),
     [isGeneralOffering, isBuilder, offering.templateKey]
@@ -128,7 +130,15 @@ export function OfferingEditorForm({
   }
 
   async function handleDelete() {
-    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${offering.name}?`)) {
+    const isConfirmed = await confirm({
+      title: "Xóa sản phẩm",
+      description: `Bạn có chắc chắn muốn xóa sản phẩm: ${offering.name}? Hành động này không thể hoàn tác.`,
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      variant: "destructive",
+    });
+
+    if (!isConfirmed) {
       return;
     }
 

@@ -41,6 +41,8 @@ import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { formatVnd } from "@/lib/currency";
+import { useConfirm } from "@/components/common/confirm-provider";
+import { getOfferingPath } from "@/lib/public-paths";
 import {
   OFFERING_STATUSES,
   SYSTEM_OFFERING_TYPES,
@@ -50,7 +52,6 @@ import {
   type Offering,
   type OfferingType,
 } from "@/features/offerings/types";
-import { getOfferingPath } from "@/lib/public-paths";
 
 function formatDateTime(value: string) {
   return new Date(value).toISOString().slice(0, 16).replace("T", " ");
@@ -113,6 +114,7 @@ export function AdminOfferingList({
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: AdminOfferingListProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const showsAllOfferingTypes = offeringType === "";
   const canBulkDelete = offeringType !== "" && offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -238,7 +240,14 @@ export function AdminOfferingList({
                   className="inline-block"
                   onSubmit={async (event) => {
                     event.preventDefault();
-                    if (!confirm(`Bạn có chắc chắn muốn xóa sản phẩm: ${offering.name}?`)) {
+                    const isConfirmed = await confirm({
+                      title: "Xóa sản phẩm",
+                      description: `Bạn có chắc chắn muốn xóa sản phẩm: ${offering.name}?`,
+                      confirmText: "Xóa",
+                      cancelText: "Hủy",
+                      variant: "destructive",
+                    });
+                    if (!isConfirmed) {
                       return;
                     }
 
@@ -354,8 +363,15 @@ export function AdminOfferingList({
 
               event.preventDefault();
 
-              if (bulkAction === "delete" && !confirm(`Xóa ${selectedCount} sản phẩm đã chọn?`)) {
-                return;
+              if (bulkAction === "delete") {
+                const isConfirmed = await confirm({
+                  title: "Xóa sản phẩm",
+                  description: `Xóa ${selectedCount} sản phẩm đã chọn?`,
+                  confirmText: "Xóa",
+                  cancelText: "Hủy",
+                  variant: "destructive",
+                });
+                if (!isConfirmed) return;
               }
 
               try {
