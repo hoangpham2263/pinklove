@@ -1,5 +1,8 @@
 import type {
+  OfferingProviderSupplierSource,
+  OfferingProviderSupplierStatus,
   ProviderOfferingReviewStatus,
+  ProviderOfferingSupplierRequestStatus,
   ProviderOfferingSubmissionType,
 } from "@/features/provider-offering-submissions/types";
 
@@ -23,7 +26,7 @@ export function getProviderOfferingReviewStatusLabel(value: ProviderOfferingRevi
     case "submitted":
       return "Đã gửi duyệt";
     case "under_review":
-      return "Đang review";
+      return "Đang duyệt";
     case "changes_requested":
       return "Cần chỉnh sửa";
     case "approved":
@@ -32,6 +35,51 @@ export function getProviderOfferingReviewStatusLabel(value: ProviderOfferingRevi
       return "Từ chối";
     case "archived":
       return "Lưu trữ";
+    default:
+      return value;
+  }
+}
+
+export function getProviderOfferingSupplierRequestStatusLabel(value: ProviderOfferingSupplierRequestStatus) {
+  switch (value) {
+    case "submitted":
+      return "Đã gửi duyệt";
+    case "under_review":
+      return "Đang duyệt";
+    case "changes_requested":
+      return "Cần bổ sung";
+    case "approved":
+      return "Đã duyệt";
+    case "rejected":
+      return "Từ chối";
+    default:
+      return value;
+  }
+}
+
+export function getOfferingProviderSupplierStatusLabel(value: OfferingProviderSupplierStatus) {
+  switch (value) {
+    case "active":
+      return "Đang cung cấp";
+    case "paused":
+      return "Tạm dừng";
+    case "suspended":
+      return "Bị hạn chế";
+    case "revoked":
+      return "Đã thu hồi";
+    default:
+      return value;
+  }
+}
+
+export function getOfferingProviderSupplierSourceLabel(value: OfferingProviderSupplierSource) {
+  switch (value) {
+    case "admin":
+      return "Admin gán";
+    case "proposal":
+      return "Từ hồ sơ sản phẩm";
+    case "supplier_request":
+      return "Từ yêu cầu cung cấp";
     default:
       return value;
   }

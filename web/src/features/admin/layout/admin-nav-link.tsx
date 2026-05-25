@@ -8,6 +8,9 @@ import { isRouteActive } from "@/lib/navigation";
 type AdminNavLinkProps = {
   href: string;
   exact?: boolean;
+  matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;
@@ -17,7 +20,10 @@ type AdminNavLinkProps = {
 
 export function AdminNavLink({
   href,
-  exact = true,
+  exact = false,
+  matchPrefixes,
+  excludePaths,
+  excludePrefixes,
   className,
   activeClassName = "bg-muted",
   inactiveClassName = "hover:bg-muted",
@@ -25,7 +31,7 @@ export function AdminNavLink({
   children,
 }: AdminNavLinkProps) {
   const pathname = usePathname();
-  const active = isRouteActive(pathname, href, exact);
+  const active = isRouteActive(pathname, href, { exact, matchPrefixes, excludePaths, excludePrefixes });
 
   return (
     <Link

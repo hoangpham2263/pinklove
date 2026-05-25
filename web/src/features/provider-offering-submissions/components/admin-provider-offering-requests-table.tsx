@@ -6,7 +6,6 @@ import {
   type ColumnDef,
   type ColumnFiltersState,
   type SortingState,
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
@@ -15,12 +14,13 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
-import { getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
+import { AdminTableView } from "@/features/admin/components/admin-table-view";
+import { getProviderOfferingReviewStatusLabel, getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
 import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
 import type { ProviderOfferingReviewStatus, ProviderOfferingSubmission } from "@/features/provider-offering-submissions/types";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 
 type ProviderOption = {
@@ -28,7 +28,7 @@ type ProviderOption = {
   name: string;
 };
 
-type AdminProviderSubmissionsTableProps = {
+type AdminProviderOfferingRequestsTableProps = {
   submissions: ProviderOfferingSubmission[];
   providers: ProviderOption[];
 };
@@ -53,7 +53,14 @@ const REVIEW_STATUSES: ProviderOfferingReviewStatus[] = [
   "archived",
 ];
 
-export function AdminProviderSubmissionsTable({ submissions, providers }: AdminProviderSubmissionsTableProps) {
+function getCellClassName(columnId: string) {
+  return columnId === "providerId" ? "hidden" : undefined;
+}
+
+export function AdminProviderOfferingRequestsTable({
+  submissions,
+  providers,
+}: AdminProviderOfferingRequestsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -68,7 +75,7 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
         accessorKey: "providerDisplayName",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Provider</AdminTableSortButton>
+            Nhà cung cấp</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
@@ -97,7 +104,7 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
             <p>{row.original.name}</p>
             <p className="text-xs text-muted-foreground">/{row.original.slugCandidate}</p>
             {row.original.linkedOfferingName ? (
-              <p className="text-xs text-muted-foreground">Live: {row.original.linkedOfferingName}</p>
+              <p className="text-xs text-muted-foreground">Đang liên kết: {row.original.linkedOfferingName}</p>
             ) : null}
           </div>
         ),
@@ -118,12 +125,12 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
               Giá nhập</AdminTableSortButton>
           </div>
         ),
-        cell: ({ row }) => <div className="text-right">{row.original.purchaseCost}</div>,
+        cell: ({ row }) => <div className="text-right">{formatVnd(row.original.purchaseCost)}</div>,
       },
       {
         accessorKey: "adminSellPrice",
         header: () => <div className="text-right">Giá bán admin</div>,
-        cell: ({ row }) => <div className="text-right">{row.original.adminSellPrice ?? "-"}</div>,
+        cell: ({ row }) => <div className="text-right">{row.original.adminSellPrice ? formatVnd(row.original.adminSellPrice) : "-"}</div>,
       },
       {
         accessorKey: "proposedStockQuantity",
@@ -161,7 +168,7 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
           return (
             <AdminTableActions>
               <AdminTableActionButton action="view" label="Xem hồ sơ" onClick={() => setPreviewSubmissionId(submission.id)} />
-              <AdminTableActionButton action="edit" label="Review" href={ROUTES.ADMIN.PROVIDER_OFFERING(submission.id)} />
+              <AdminTableActionButton action="edit" label="Duyệt yêu cầu" href={ROUTES.ADMIN.PROVIDER_OFFERING(submission.id)} />
             </AdminTableActions>
           );
         },
@@ -213,14 +220,14 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
   return (
     <div className="space-y-4">
       <AdminTableToolbar>
-        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo provider, sản phẩm, slug..." />
+        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo nhà cung cấp, sản phẩm, slug..." />
         <AdminTableSelect
           value={statusFilterValue}
           label="Lọc trạng thái"
           onChange={(value) => table.getColumn("reviewStatus")?.setFilterValue(value)}
           options={[
             { value: "", label: "Tất cả trạng thái" },
-            ...REVIEW_STATUSES.map((status) => ({ value: status, label: status })),
+            ...REVIEW_STATUSES.map((status) => ({ value: status, label: getProviderOfferingReviewStatusLabel(status) })),
           ]}
         />
         <AdminTableSelect
@@ -228,7 +235,7 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
           label="Lọc provider"
           onChange={(value) => table.getColumn("providerId")?.setFilterValue(value)}
           options={[
-            { value: "", label: "Tất cả provider" },
+            { value: "", label: "Tất cả nhà cung cấp" },
             ...providers.map((provider) => ({ value: provider.id, label: provider.name })),
           ]}
         />
@@ -242,53 +249,25 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
         />
       </AdminTableToolbar>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className={header.column.id === "providerId" ? "hidden font-medium" : "font-medium"}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={cell.column.id === "providerId" ? "hidden" : undefined}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length - 1} className="h-24 text-center">
-                  Không có hồ sơ nào khớp với bộ lọc hiện tại.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <AdminTableView
+        table={table}
+        columnCount={columns.length - 1}
+        emptyMessage="Không có hồ sơ nào khớp với bộ lọc hiện tại."
+        getCellClassName={getCellClassName}
+      />
 
       <Dialog open={Boolean(previewSubmission)} onOpenChange={(open) => !open && setPreviewSubmissionId(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           {previewSubmission ? (
             <div className="space-y-6">
               <DialogHeader>
-                <DialogTitle>Chi tiết hồ sơ provider</DialogTitle>
-                <DialogDescription>Xem nhanh thông tin proposal trước khi vào màn review.</DialogDescription>
+                <DialogTitle>Chi tiết yêu cầu sản phẩm</DialogTitle>
+                <DialogDescription>Xem nhanh thông tin trước khi vào màn duyệt.</DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
-                  <p className="text-sm">Provider</p>
+                  <p className="text-sm">Nhà cung cấp</p>
                   <p className="text-sm text-muted-foreground">{previewSubmission.providerDisplayName}</p>
                 </div>
                 <div className="space-y-1">
@@ -305,11 +284,11 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Giá nhập</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.purchaseCost}</p>
+                  <p className="text-sm text-muted-foreground">{formatVnd(previewSubmission.purchaseCost)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Giá bán admin</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.adminSellPrice ?? "-"}</p>
+                  <p className="text-sm text-muted-foreground">{previewSubmission.adminSellPrice ? formatVnd(previewSubmission.adminSellPrice) : "-"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Tồn kho</p>
@@ -326,7 +305,7 @@ export function AdminProviderSubmissionsTable({ submissions, providers }: AdminP
                 <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewSubmission.excerpt || "-"}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm">Ghi chú provider</p>
+                <p className="text-sm">Ghi chú nhà cung cấp</p>
                 <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewSubmission.providerNote || "-"}</p>
               </div>
             </div>

@@ -103,7 +103,15 @@ export default async function AdminLayout({
               const Icon = standaloneIconMap[item.iconName];
 
               return (
-                <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
+                <AdminNavLink
+                  key={item.href}
+                  href={item.href}
+                  exact={item.exact}
+                  matchPrefixes={item.matchPrefixes}
+                  excludePaths={item.excludePaths}
+                  excludePrefixes={item.excludePrefixes}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
                 </AdminNavLink>
@@ -124,7 +132,15 @@ export default async function AdminLayout({
               const Icon = standaloneIconMap[item.iconName];
 
               return (
-                <AdminNavLink key={item.href} href={item.href} className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors">
+                <AdminNavLink
+                  key={item.href}
+                  href={item.href}
+                  exact={item.exact}
+                  matchPrefixes={item.matchPrefixes}
+                  excludePaths={item.excludePaths}
+                  excludePrefixes={item.excludePrefixes}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
                 </AdminNavLink>

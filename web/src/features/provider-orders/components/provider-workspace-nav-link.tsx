@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { isRouteActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 type ProviderWorkspaceNavLinkProps = {
   href: string;
   exact?: boolean;
   matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;
@@ -16,26 +19,12 @@ type ProviderWorkspaceNavLinkProps = {
   children: React.ReactNode;
 };
 
-function isActivePath(pathname: string, href: string, exact: boolean, matchPrefixes?: string[]) {
-  if (!pathname) {
-    return false;
-  }
-
-  if (matchPrefixes?.some((prefix) => pathname.startsWith(prefix))) {
-    return true;
-  }
-
-  if (exact) {
-    return pathname === href;
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function ProviderWorkspaceNavLink({
   href,
   exact = false,
   matchPrefixes,
+  excludePaths,
+  excludePrefixes,
   className,
   activeClassName = "bg-zinc-950 text-white",
   inactiveClassName = "text-zinc-700 hover:bg-zinc-100",
@@ -43,7 +32,7 @@ export function ProviderWorkspaceNavLink({
   children,
 }: ProviderWorkspaceNavLinkProps) {
   const pathname = usePathname();
-  const active = isActivePath(pathname, href, exact, matchPrefixes);
+  const active = isRouteActive(pathname, href, { exact, matchPrefixes, excludePaths, excludePrefixes });
 
   return (
     <Link

@@ -24,7 +24,7 @@ export function AddressBookManager({
   createHref,
   getViewHref,
   getEditHref,
-  title = "Sổ địa chỉ",
+  title = "Địa chỉ",
   description = "Quản lý địa chỉ nhận hàng dùng lại trong checkout và các luồng cần giao nhận.",
   className,
 }: AddressBookManagerProps) {

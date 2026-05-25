@@ -32,6 +32,10 @@ export type AdminNavChild = {
   label: string;
   href: string;
   iconName: AdminNavIconName;
+  exact?: boolean;
+  matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
 };
 
 export type AdminNavGroup = {
@@ -45,7 +49,13 @@ export type AdminStandaloneNavItem = {
   label: string;
   href: string;
   iconName: AdminNavIconName | "layout-dashboard" | "external-link" | "message-circle";
+  exact?: boolean;
+  matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
 };
+
+const adminOfferingDetailPrefix = ROUTES.ADMIN.OFFERING("").slice(0, -1);
 
 export const ADMIN_NAV_PRIMARY_ITEMS: AdminStandaloneNavItem[] = [
   { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD, iconName: "layout-dashboard" },
@@ -71,8 +81,23 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "package",
     defaultOpen: false,
     children: [
-      { label: "Overview", href: ROUTES.ADMIN.OFFERING_LIST, iconName: "package" },
-      { label: "Offering", href: ROUTES.ADMIN.OFFERING_MANAGE, iconName: "package" },
+      { label: "Overview", href: ROUTES.ADMIN.OFFERING_LIST, iconName: "package", exact: true },
+      {
+        label: "Offering",
+        href: ROUTES.ADMIN.OFFERING_MANAGE,
+        iconName: "package",
+        matchPrefixes: [ROUTES.ADMIN.OFFERING_MANAGE, adminOfferingDetailPrefix],
+        excludePaths: [ROUTES.ADMIN.OFFERING_LIST],
+        excludePrefixes: [
+          ROUTES.ADMIN.OFFERING_TEMPLATES,
+          ROUTES.ADMIN.OFFERING_BUILDER,
+          ROUTES.ADMIN.OFFERING_TYPES,
+          ROUTES.ADMIN.OFFERING_CATEGORIES,
+          ROUTES.ADMIN.OFFERING_BUNDLES,
+          ROUTES.ADMIN.OFFERING_SEARCH_DOCUMENTS,
+          ROUTES.ADMIN.TEMPLATE_ATTRIBUTES,
+        ],
+      },
       { label: "Offering Types", href: ROUTES.ADMIN.OFFERING_TYPES, iconName: "list-tree" },
       { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES, iconName: "file-code-2" },
       { label: "Offering Builder", href: ROUTES.ADMIN.OFFERING_BUILDER, iconName: "blocks" },
@@ -94,14 +119,14 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
   {
-    label: "Providers",
+    label: "Nhà cung cấp",
     iconName: "store",
     defaultOpen: false,
     children: [
-      { label: "Provider Accounts", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS, iconName: "store" },
-      { label: "Providers", href: ROUTES.ADMIN.PROVIDERS, iconName: "briefcase-business" },
-      { label: "Availability", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock" },
-      { label: "Provider Offering Review", href: ROUTES.ADMIN.PROVIDER_OFFERINGS, iconName: "package" },
+      { label: "Tài khoản provider", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS, iconName: "store" },
+      { label: "Hồ sơ provider", href: ROUTES.ADMIN.PROVIDERS, iconName: "briefcase-business" },
+      { label: "Lịch khả dụng", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock" },
+      { label: "Duyệt yêu cầu sản phẩm", href: ROUTES.ADMIN.PROVIDER_OFFERINGS, iconName: "package" },
     ],
   },
   {

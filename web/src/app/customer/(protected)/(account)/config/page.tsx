@@ -27,7 +27,7 @@ const CONFIG_SECTIONS = [
     icon: "globe" as const,
     items: [
       {
-        title: "Sổ địa chỉ",
+        title: "Địa chỉ",
         description: "Quản lý địa chỉ dùng chung cho checkout và các luồng giao nhận.",
         href: ROUTES.CUSTOMER.CONFIG_ADDRESSES,
       },
@@ -46,7 +46,7 @@ export default async function CustomerConfigPage() {
       <CustomerOverviewGrid>
         <CustomerOverviewCard title="Tổng mục cấu hình" value={totalItems} icon={ListChecks} />
         <CustomerOverviewCard title="Hồ sơ" value={displayName} description="Thông tin tài khoản cá nhân" icon={UserCircle2} />
-        <CustomerOverviewCard title="Sổ địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
+        <CustomerOverviewCard title="Địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
         <CustomerOverviewCard title="Affiliate" value="User" description="Khu vực tăng trưởng tài khoản" icon={BadgePercent} />
       </CustomerOverviewGrid>
 

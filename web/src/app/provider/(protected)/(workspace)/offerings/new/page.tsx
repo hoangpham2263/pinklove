@@ -14,6 +14,12 @@ export default async function ProviderOfferingCreatePage() {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-5">
+        <div className="rounded-md border bg-background p-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Tạo yêu cầu sản phẩm</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            Dùng hồ sơ này để đề xuất sản phẩm mới, yêu cầu cập nhật sản phẩm đang liên kết hoặc gửi yêu cầu ngừng bán.
+          </p>
+        </div>
         <ProviderOfferingSubmissionForm categories={categories} liveOfferings={liveOfferings} />
       </div>
     </section>

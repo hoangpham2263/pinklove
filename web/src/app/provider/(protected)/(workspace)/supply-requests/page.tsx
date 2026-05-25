@@ -2,8 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getProviderOfferingSupplierRequestStatusLabel } from "@/features/provider-offering-submissions/labels";
 import { listSupplierRequestsForProvider } from "@/features/provider-offering-submissions/server/service";
 import { requireProvider } from "@/lib/auth";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 
 function formatDate(value: string) {
@@ -18,8 +20,8 @@ export default async function ProviderSupplyRequestsPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-md border bg-background p-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Supply Requests</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Theo dõi các mẫu bạn đã xin cung cấp và phản hồi review từ admin.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Yêu cầu cung cấp của tôi</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Theo dõi các mẫu bạn đã xin cung cấp và phản hồi duyệt từ admin.</p>
         </div>
         <Button render={<Link href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem mẫu có sẵn</Link>} />
       </div>
@@ -30,7 +32,7 @@ export default async function ProviderSupplyRequestsPage() {
         </CardHeader>
         <CardContent className="pt-4">
           {requests.length === 0 ? (
-            <div className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">Bạn chưa gửi supplier request nào.</div>
+            <div className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">Bạn chưa gửi yêu cầu cung cấp nào.</div>
           ) : (
             <div className="rounded-md border">
               <table className="w-full table-auto text-sm">
@@ -38,10 +40,10 @@ export default async function ProviderSupplyRequestsPage() {
                   <tr className="border-b">
                     <th className="w-[42%] px-4 py-3 font-medium">Mẫu</th>
                     <th className="hidden w-[14%] px-4 py-3 font-medium md:table-cell">Giá nhập</th>
-                    <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Lead time</th>
+                    <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Thời gian xử lý</th>
                     <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Năng lực</th>
                     <th className="w-[22%] px-4 py-3 font-medium">Trạng thái</th>
-                    <th className="hidden w-[18%] px-4 py-3 font-medium xl:table-cell">Review note</th>
+                    <th className="hidden w-[18%] px-4 py-3 font-medium xl:table-cell">Ghi chú duyệt</th>
                     <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Cập nhật</th>
                   </tr>
                 </thead>
@@ -51,11 +53,11 @@ export default async function ProviderSupplyRequestsPage() {
                       <td className="min-w-0 px-4 py-3">
                         <p className="truncate font-medium">{request.offeringName}</p>
                       </td>
-                      <td className="hidden px-4 py-3 md:table-cell">{request.purchaseCost}</td>
+                      <td className="hidden px-4 py-3 md:table-cell">{formatVnd(request.purchaseCost)}</td>
                       <td className="hidden px-4 py-3 lg:table-cell">{request.leadTimeDays} ngày</td>
                       <td className="hidden px-4 py-3 xl:table-cell">{request.monthlyCapacity}/tháng</td>
                       <td className="px-4 py-3">
-                        <p className="truncate">{request.reviewStatus}</p>
+                        <p className="truncate">{getProviderOfferingSupplierRequestStatusLabel(request.reviewStatus)}</p>
                       </td>
                       <td className="hidden min-w-0 px-4 py-3 xl:table-cell">
                         <p className="truncate">{request.reviewNote || "-"}</p>

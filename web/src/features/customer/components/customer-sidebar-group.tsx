@@ -67,12 +67,13 @@ export function CustomerSidebarGroup({
 }: CustomerSidebarGroupProps) {
   const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
-  const hasActiveItem = items.some((item) => isRouteActive(pathname, item.href, true));
+  const hasActiveItem = items.some((item) => isRouteActive(pathname, item.href));
+  const activeItemKey = items.find((item) => isRouteActive(pathname, item.href))?.href ?? "inactive";
 
   return (
-    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+    <Collapsible key={activeItemKey} defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
       <CollapsibleTrigger
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted"
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted data-[state=open]:bg-muted"
       >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />

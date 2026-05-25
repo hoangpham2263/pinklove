@@ -13,6 +13,7 @@ import {
   listAffiliateConversionsForUser,
 } from "@/features/affiliate/server/service";
 import { requireAppUser } from "@/lib/auth";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 import { getSiteUrlFromHeaderValues } from "@/lib/seo";
 
@@ -172,7 +173,7 @@ export default async function CustomerAffiliatePage({ searchParams }: CustomerAf
                 {conversions.map((conversion) => (
                   <div key={conversion.id} className="rounded-md border p-3">
                     <p className="font-medium">Đơn tham chiếu: {conversion.externalOrderRef || "N/A"}</p>
-                    <p className="text-sm">Commission: {conversion.commissionAmount}</p>
+                    <p className="text-sm">Commission: {formatVnd(conversion.commissionAmount)}</p>
                     <p className="text-xs text-muted-foreground">{getConversionStatusLabel(conversion.status)} • {new Date(conversion.createdAt).toLocaleString("vi-VN")}</p>
                   </div>
                 ))}

@@ -6,6 +6,7 @@ import { getOfferingById } from "@/features/offerings/server/service";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { getProviderByUserId } from "@/features/providers/server/service";
+import { formatVnd } from "@/lib/currency";
 import type {
   ProviderOfferingReviewStatus,
   OfferingProviderSupplier,
@@ -1746,7 +1747,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
     submission.submission_type === "discontinue"
       ? `Admin đã duyệt ngừng bán "${submission.name}".`
       : submission.review_status === "approved"
-        ? `Admin đã cập nhật "${submission.name}" trong catalog với giá bán ${adminSellPrice}.`
+        ? `Admin đã cập nhật "${submission.name}" trong catalog với giá bán ${formatVnd(adminSellPrice)}.`
         : submission.submission_type === "update"
           ? `Admin đã duyệt cập nhật "${submission.name}" và áp dụng vào catalog.`
           : `Admin đã duyệt "${submission.name}" và đưa sản phẩm lên catalog.`;

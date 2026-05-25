@@ -1,4 +1,5 @@
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { CurrencyInput } from "@/components/common/currency-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ROUTES } from "@/lib/routes";
 import type { ShippingAccountSettings } from "@/lib/system-settings";
@@ -88,20 +89,16 @@ export function ShippingConnectionEditorForm({ connection }: ShippingConnectionE
           </div>
           <div className="space-y-2">
             <label className="font-medium">Phí vận chuyển cố định</label>
-            <input
+            <CurrencyInput
               name="flatShippingFee"
-              type="number"
-              min="0"
               defaultValue={connection?.flatShippingFee ?? 30000}
               className="h-10 w-full rounded-md border bg-white px-3"
             />
           </div>
           <div className="space-y-2">
             <label className="font-medium">Ngưỡng miễn phí ship</label>
-            <input
+            <CurrencyInput
               name="freeShippingThreshold"
-              type="number"
-              min="0"
               defaultValue={connection?.freeShippingThreshold ?? 1500000}
               className="h-10 w-full rounded-md border bg-white px-3"
             />

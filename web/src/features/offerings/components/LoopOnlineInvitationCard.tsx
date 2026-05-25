@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
 import type { Offering } from "@/features/offerings/types";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
+import { formatVnd } from "@/lib/currency";
 import { getOfferingPath } from "@/lib/public-paths";
 import { cn } from "@/lib/utils";
 
@@ -20,10 +21,6 @@ type LoopOnlineInvitationCardProps = {
 
 function formatMetricValue(value?: number) {
   return typeof value === "number" ? value.toLocaleString("vi-VN") : "--";
-}
-
-function formatPrice(value: number) {
-  return `${value.toLocaleString("vi-VN")}đ`;
 }
 
 type OfferingCardImageProps = {
@@ -155,7 +152,7 @@ export function LoopOnlineInvitationCard({
                 {offering.name}
               </h3>
               <p className="text-base font-medium text-white/90">
-                {formatPrice(offering.price)}
+                {formatVnd(offering.price)}
               </p>
             </div>
           </div>

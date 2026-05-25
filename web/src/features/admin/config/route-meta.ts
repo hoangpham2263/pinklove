@@ -10,7 +10,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TYPES)) return "Offering Types";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TEMPLATES)) return "Offering Templates";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_BUILDER)) return "Offering Builder";
-  if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_OFFERINGS)) return "Provider Offering Review";
+  if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_OFFERINGS)) return "Duyệt yêu cầu sản phẩm provider";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_CATEGORIES)) return "Offering Categories";
   if (pathname === ROUTES.ADMIN.OFFERINGS) return "Create Offering";
   if (pathname === ROUTES.ADMIN.OFFERING_MANAGE) return "Offering";

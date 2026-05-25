@@ -32,6 +32,7 @@ import {
   type ProviderNavIconName,
   type ProviderNavLinkEntry,
 } from "@/features/provider-orders/config/navigation";
+import { isRouteActive } from "@/lib/navigation";
 import { ROUTES } from "@/lib/routes";
 
 const iconMap = {
@@ -48,15 +49,12 @@ const iconMap = {
 } satisfies Record<ProviderNavIconName, React.ComponentType<{ className?: string }>>;
 
 function isActivePath(pathname: string, item: ProviderNavChild) {
-  if (item.matchPrefixes?.some((prefix) => pathname.startsWith(prefix))) {
-    return true;
-  }
-
-  if (item.exact) {
-    return pathname === item.href;
-  }
-
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  return isRouteActive(pathname, item.href, {
+    exact: item.exact,
+    matchPrefixes: item.matchPrefixes,
+    excludePaths: item.excludePaths,
+    excludePrefixes: item.excludePrefixes,
+  });
 }
 
 function StandaloneItem({
@@ -73,6 +71,8 @@ function StandaloneItem({
       href={item.href}
       exact={item.exact}
       matchPrefixes={item.matchPrefixes}
+      excludePaths={item.excludePaths}
+      excludePrefixes={item.excludePrefixes}
       className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
       activeClassName="bg-muted"
       inactiveClassName="hover:bg-muted"
@@ -96,6 +96,8 @@ function MenuChildItem({
       href={item.href}
       exact={item.exact}
       matchPrefixes={item.matchPrefixes}
+      excludePaths={item.excludePaths}
+      excludePrefixes={item.excludePrefixes}
       className="flex items-center rounded-lg px-3 py-2.5 transition-colors"
       activeClassName="bg-muted"
       inactiveClassName="hover:bg-muted"
@@ -116,10 +118,11 @@ function MenuGroup({
   const pathname = usePathname();
   const GroupIcon = iconMap[group.iconName];
   const hasActiveItem = group.children.some((item) => isActivePath(pathname, item));
+  const activeItemKey = group.children.find((item) => isActivePath(pathname, item))?.href ?? "inactive";
 
   return (
-    <Collapsible defaultOpen={group.defaultOpen || hasActiveItem} className="group/collapsible">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
+    <Collapsible key={activeItemKey} defaultOpen={group.defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted data-[state=open]:bg-muted">
         <div className="flex items-center gap-3">
           <GroupIcon className="h-4 w-4" />
           <span>{group.label}</span>

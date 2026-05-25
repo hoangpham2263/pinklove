@@ -1,1 +1,2 @@
 fix size input mobile
+làm mối quan hệ cho các sản phẩm bán chéo, và sản phẩm bán kèm

@@ -40,6 +40,7 @@ import { AdminTableThumbnail } from "@/features/admin/components/admin-table-thu
 import { ROUTES } from "@/lib/routes";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
+import { formatVnd } from "@/lib/currency";
 import {
   OFFERING_STATUSES,
   SYSTEM_OFFERING_TYPES,
@@ -205,7 +206,7 @@ export function AdminOfferingList({
               Giá</AdminTableSortButton>
           </div>
         ),
-        cell: ({ row }) => <div className="text-right">{row.original.price}</div>,
+        cell: ({ row }) => <div className="text-right">{formatVnd(row.original.price)}</div>,
       },
       {
         id: "actions",
@@ -463,8 +464,8 @@ export function AdminOfferingList({
 
               <PreviewSection title="Giá, kho và nguồn hàng">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <PreviewField label="Giá bán" value={previewOffering.price} />
-                  <PreviewField label="Giá nhập" value={previewOffering.costPrice} />
+                  <PreviewField label="Giá bán" value={formatVnd(previewOffering.price)} />
+                  <PreviewField label="Giá nhập" value={formatVnd(previewOffering.costPrice)} />
                   <PreviewField label="Fulfillment" value={getFulfillmentTypeLabel(previewOffering.fulfillmentType)} />
                   <PreviewField
                     label="Kho"

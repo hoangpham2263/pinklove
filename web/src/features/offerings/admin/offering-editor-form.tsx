@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CurrencyInput } from "@/components/common/currency-input";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -198,7 +199,7 @@ export function OfferingEditorForm({
 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Giá</label>
-                  <Input name="price" type="number" min="0" step="1000" defaultValue={String(offering.price)} />
+                  <CurrencyInput name="price" defaultValue={offering.price} />
                 </div>
 
                 <div className="space-y-1">
@@ -472,13 +473,10 @@ export function OfferingEditorForm({
                 <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="font-medium">Giá nhập</label>
-                    <Input
+                    <CurrencyInput
                       name="costPrice"
-                      type="number"
-                      min="0"
-                      step="1000"
                       value={costPrice}
-                      onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value || "0")))}
+                      onValueChange={setCostPrice}
                     />
                   </div>
                   <div className="space-y-2">
@@ -559,7 +557,7 @@ export function OfferingEditorForm({
 
             <div className="space-y-2">
               <label className="font-medium">Giá</label>
-              <Input name="price" type="number" min="0" step="1000" defaultValue={String(offering.price)} />
+              <CurrencyInput name="price" defaultValue={offering.price} />
             </div>
 
             <AdminSubmitButton className="w-full rounded-md" disabled={isSaving}>

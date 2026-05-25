@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 
+import { CurrencyInput } from "@/components/common/currency-input";
 import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 import { getProviderOfferingSubmissionDetailForAdmin } from "@/features/provider-offering-submissions/server/service";
 import { getProviderOfferingReviewStatusLabel, getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
@@ -33,7 +35,7 @@ export default async function AdminProviderOfferingDetailPage({
   }
 
   const canApply = ["submitted", "under_review", "changes_requested", "approved"].includes(detail.reviewStatus);
-  const applyLabel = detail.reviewStatus === "approved" ? "Cập nhật lại catalog" : "Duyệt và apply vào catalog";
+  const applyLabel = detail.reviewStatus === "approved" ? "Cập nhật lại catalog" : "Duyệt và áp dụng vào catalog";
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -68,16 +70,16 @@ export default async function AdminProviderOfferingDetailPage({
               <CardTitle>Thông tin submission</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 pt-4 text-sm md:grid-cols-2">
-              <div><p className="text-muted-foreground">Provider</p><p>{detail.providerDisplayName} ({detail.providerUsername})</p></div>
+              <div><p className="text-muted-foreground">Nhà cung cấp</p><p>{detail.providerDisplayName} ({detail.providerUsername})</p></div>
               <div><p className="text-muted-foreground">Slug đề xuất</p><p>/{detail.slugCandidate}</p></div>
               <div><p className="text-muted-foreground">Category</p><p>{detail.categoryName || "Chưa chọn"}</p></div>
               <div><p className="text-muted-foreground">Sản phẩm live</p><p>{detail.linkedOfferingName || "Chưa liên kết"}</p></div>
-              <div><p className="text-muted-foreground">Giá nhập</p><p>{detail.purchaseCost}</p></div>
-              <div><p className="text-muted-foreground">Giá bán admin</p><p>{detail.adminSellPrice ?? "Chưa nhập"}</p></div>
+              <div><p className="text-muted-foreground">Giá nhập</p><p>{formatVnd(detail.purchaseCost)}</p></div>
+              <div><p className="text-muted-foreground">Giá bán admin</p><p>{detail.adminSellPrice ? formatVnd(detail.adminSellPrice) : "Chưa nhập"}</p></div>
               <div><p className="text-muted-foreground">Số lượng</p><p>{detail.proposedStockQuantity}</p></div>
               <div><p className="text-muted-foreground">SKU provider</p><p>{detail.providerSku || "Chưa có"}</p></div>
-              <div><p className="text-muted-foreground">Submitted</p><p>{formatDateTime(detail.submittedAt)}</p></div>
-              <div><p className="text-muted-foreground">Reviewed</p><p>{formatDateTime(detail.reviewedAt)}</p></div>
+              <div><p className="text-muted-foreground">Ngày gửi duyệt</p><p>{formatDateTime(detail.submittedAt)}</p></div>
+              <div><p className="text-muted-foreground">Ngày duyệt</p><p>{formatDateTime(detail.reviewedAt)}</p></div>
             </CardContent>
           </Card>
 
@@ -95,11 +97,11 @@ export default async function AdminProviderOfferingDetailPage({
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.description || "Chưa có"}</p>
               </div>
               <div>
-                <p>Ghi chú provider</p>
+                <p>Ghi chú nhà cung cấp</p>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.providerNote || "Chưa có"}</p>
               </div>
               <div>
-                <p>Review note admin</p>
+                <p>Ghi chú duyệt của admin</p>
                 <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{detail.reviewNote || "Chưa có"}</p>
               </div>
             </CardContent>
@@ -126,12 +128,12 @@ export default async function AdminProviderOfferingDetailPage({
         <div className="space-y-5">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Review nhanh</CardTitle>
+              <CardTitle>Thao tác duyệt</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="under_review" />
-                <AdminOutlineButton type="submit" className="w-full">Đánh dấu đang review</AdminOutlineButton>
+                <AdminOutlineButton type="submit" className="w-full">Đánh dấu đang duyệt</AdminOutlineButton>
               </form>
 
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
@@ -156,14 +158,12 @@ export default async function AdminProviderOfferingDetailPage({
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.APPROVE(detail.id)} method="POST" className="space-y-3">
                 <div className="space-y-2">
                   <label className="text-sm">Giá bán admin</label>
-                  <input
+                  <CurrencyInput
                     name="adminSellPrice"
-                    type="number"
-                    min="0"
                     defaultValue={detail.adminSellPrice ? String(detail.adminSellPrice) : ""}
                     required
                     disabled={!canApply}
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
+                    className="rounded-md bg-background px-3 text-sm disabled:opacity-60"
                   />
                 </div>
                 <div className="space-y-2">
@@ -184,8 +184,8 @@ export default async function AdminProviderOfferingDetailPage({
                       disabled={!canApply}
                       className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
                     >
-                      <option value="platform">Platform-owned, có thể mở cho nhiều provider</option>
-                      <option value="provider_originated">Provider-originated, gán provider đề xuất làm nguồn ban đầu</option>
+                      <option value="platform">Thuộc platform, có thể mở cho nhiều provider</option>
+                      <option value="provider_originated">Thuộc provider đề xuất, gán làm nguồn ban đầu</option>
                     </select>
                   </div>
                 ) : null}
@@ -198,7 +198,7 @@ export default async function AdminProviderOfferingDetailPage({
                       disabled={!canApply}
                       className="mt-1"
                     />
-                    <span>Gán provider này làm supplier đã duyệt cho sản phẩm sau khi approve.</span>
+                    <span>Gán provider này làm nhà cung cấp đã duyệt cho sản phẩm sau khi áp dụng.</span>
                   </label>
                 ) : null}
                 <AdminSubmitButton className="w-full" disabled={!canApply}>

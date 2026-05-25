@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CurrencyInput } from "@/components/common/currency-input";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
@@ -126,7 +127,7 @@ export function OfferingBuilderCreateForm({
 
               <div className="space-y-1">
                 <label htmlFor="price" className="text-sm font-medium">Giá</label>
-                <Input id="price" name="price" type="number" min="0" step="1000" defaultValue="0" />
+                <CurrencyInput id="price" name="price" defaultValue="0" />
               </div>
 
               <div className="space-y-1">

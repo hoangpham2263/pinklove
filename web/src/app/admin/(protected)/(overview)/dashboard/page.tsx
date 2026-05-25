@@ -18,6 +18,7 @@ import {
 import { AdminActionLinkTile } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
+import { formatCompactVnd, formatVnd } from "@/lib/currency";
 import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
 
@@ -57,27 +58,6 @@ type RecentOrderRow = {
 
 function asNumber(value: string | undefined) {
   return Number(value ?? "0");
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatCompactCurrency(value: number) {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`;
-  }
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
-  }
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
-  }
-  return value.toLocaleString("vi-VN");
 }
 
 function formatDayLabel(value: string) {
@@ -243,8 +223,8 @@ export default async function AdminDashboardPage() {
   const kpis = [
     {
       title: "Doanh thu 30 ngày",
-      value: formatCompactCurrency(paidRevenue30d),
-      detail: formatCurrency(paidRevenue30d),
+      value: formatCompactVnd(paidRevenue30d),
+      detail: formatVnd(paidRevenue30d),
       icon: CreditCard,
       href: ROUTES.ADMIN.PAYMENTS,
     },
@@ -410,7 +390,7 @@ export default async function AdminDashboardPage() {
                   <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
                     {formatStatus(order.payment_status)}
                   </span>
-                  <span className="font-semibold">{formatCurrency(asNumber(order.total_amount))}</span>
+                  <span className="font-semibold">{formatVnd(order.total_amount)}</span>
                 </div>
               </div>
             ))

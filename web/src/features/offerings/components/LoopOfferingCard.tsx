@@ -6,6 +6,7 @@ import { Eye, Heart } from "lucide-react";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
 import type { Offering } from "@/features/offerings/types";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
+import { formatVnd } from "@/lib/currency";
 import { getOfferingPath } from "@/lib/public-paths";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +20,6 @@ type LoopOfferingCardProps = {
 
 function formatMetricValue(value?: number) {
   return typeof value === "number" ? value.toLocaleString("vi-VN") : "--";
-}
-
-function formatPrice(value: number) {
-  return `${value.toLocaleString("vi-VN")}đ`;
 }
 
 type OfferingCardImageProps = {
@@ -93,7 +90,7 @@ export function LoopOfferingCard({
             </p>
           ) : null}
           <p className="mt-auto text-base font-semibold text-rose-600 lg:text-lg">
-            {formatPrice(offering.price)}
+            {formatVnd(offering.price)}
           </p>
           {hasMetrics ? (
             <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-stone-500">

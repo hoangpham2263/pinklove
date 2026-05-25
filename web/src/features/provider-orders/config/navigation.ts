@@ -19,6 +19,8 @@ export type ProviderNavLinkEntry = {
   iconName: ProviderNavIconName;
   exact?: boolean;
   matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
 };
 
 export type ProviderNavChild = Omit<ProviderNavLinkEntry, "type">;
@@ -39,7 +41,7 @@ const providerOfferingPrefix = ROUTES.PROVIDER.OFFERING("").slice(0, -1);
 export const PROVIDER_NAV_PRIMARY_ITEMS: ProviderNavLinkEntry[] = [
   {
     type: "link",
-    label: "Dashboard",
+    label: "Tổng quan",
     href: ROUTES.PROVIDER.DASHBOARD,
     iconName: "layout-dashboard",
     exact: true,
@@ -67,25 +69,26 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.ORDERS, providerOrderPrefix],
       },
       {
-        label: "Sản phẩm",
+        label: "Yêu cầu sản phẩm",
         href: ROUTES.PROVIDER.OFFERINGS,
         iconName: "package-plus",
         matchPrefixes: [ROUTES.PROVIDER.OFFERINGS, providerOfferingPrefix],
+        excludePaths: [ROUTES.PROVIDER.OFFERING_NEW],
       },
       {
-        label: "Tạo sản phẩm",
+        label: "Tạo yêu cầu",
         href: ROUTES.PROVIDER.OFFERING_NEW,
         iconName: "package-plus",
         exact: true,
       },
       {
-        label: "Mẫu có sẵn",
+        label: "Mẫu có thể cung cấp",
         href: ROUTES.PROVIDER.AVAILABLE_TEMPLATES,
         iconName: "package-check",
         matchPrefixes: [ROUTES.PROVIDER.AVAILABLE_TEMPLATES],
       },
       {
-        label: "Yêu cầu cung ứng",
+        label: "Yêu cầu cung cấp",
         href: ROUTES.PROVIDER.SUPPLY_REQUESTS,
         iconName: "package-check",
         matchPrefixes: [ROUTES.PROVIDER.SUPPLY_REQUESTS],
@@ -105,10 +108,11 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.CONFIG_ACCOUNT],
       },
       {
-        label: "Sổ địa chỉ",
+        label: "Địa chỉ",
         href: ROUTES.PROVIDER.CONFIG_ADDRESSES,
         iconName: "map-pin",
         matchPrefixes: [ROUTES.PROVIDER.CONFIG_ADDRESSES],
+        excludePaths: [ROUTES.PROVIDER.CONFIG_ADDRESS_NEW],
       },
       {
         label: "Thêm địa chỉ",

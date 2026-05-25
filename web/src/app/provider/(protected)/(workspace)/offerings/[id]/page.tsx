@@ -31,6 +31,12 @@ export default async function ProviderOfferingDetailPage({ params }: { params: P
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-5">
+        <div className="rounded-md border bg-background p-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Yêu cầu sản phẩm</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            Theo dõi và chỉnh sửa hồ sơ trước khi gửi duyệt hoặc khi admin yêu cầu bổ sung.
+          </p>
+        </div>
         <ProviderOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />
 
         <Card>

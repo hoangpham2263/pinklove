@@ -92,6 +92,10 @@ function MenuChildItem({
   return (
     <AdminNavLink
       href={item.href}
+      exact={item.exact}
+      matchPrefixes={item.matchPrefixes}
+      excludePaths={item.excludePaths}
+      excludePrefixes={item.excludePrefixes}
       className="flex items-center rounded-lg px-3 py-2.5 transition-colors"
       onClick={onNavigate}
     >
@@ -109,11 +113,27 @@ function MenuGroup({
 }) {
   const pathname = usePathname();
   const GroupIcon = adminMobileIconMap[group.iconName];
-  const hasActiveItem = group.children.some((item) => isRouteActive(pathname, item.href, true));
+  const hasActiveItem = group.children.some((item) =>
+    isRouteActive(pathname, item.href, {
+      exact: item.exact,
+      matchPrefixes: item.matchPrefixes,
+      excludePaths: item.excludePaths,
+      excludePrefixes: item.excludePrefixes,
+    }),
+  );
+  const activeItemKey =
+    group.children.find((item) =>
+      isRouteActive(pathname, item.href, {
+        exact: item.exact,
+        matchPrefixes: item.matchPrefixes,
+        excludePaths: item.excludePaths,
+        excludePrefixes: item.excludePrefixes,
+      }),
+    )?.href ?? "inactive";
 
   return (
-    <Collapsible defaultOpen={group.defaultOpen || hasActiveItem} className="group/collapsible">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
+    <Collapsible key={activeItemKey} defaultOpen={group.defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted data-[state=open]:bg-muted">
         <div className="flex items-center gap-3">
           <GroupIcon className="h-4 w-4" />
           <span>{group.label}</span>
@@ -157,6 +177,10 @@ function StandaloneItem({
   return (
     <AdminNavLink
       href={item.href}
+      exact={item.exact}
+      matchPrefixes={item.matchPrefixes}
+      excludePaths={item.excludePaths}
+      excludePrefixes={item.excludePrefixes}
       className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
       onClick={onNavigate}
     >

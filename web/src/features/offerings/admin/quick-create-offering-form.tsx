@@ -3,6 +3,7 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CurrencyInput } from "@/components/common/currency-input";
 import { NativeForm } from "@/components/common/native-form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -324,14 +325,11 @@ export function QuickCreateOfferingForm({
             <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="costPrice" className="font-medium">Giá nhập</label>
-                <Input
+                <CurrencyInput
                   id="costPrice"
                   name="costPrice"
-                  type="number"
-                  min="0"
-                  step="1000"
                   value={costPrice}
-                  onChange={(e) => setCostPrice(Math.max(0, Number(e.target.value || "0")))}
+                  onValueChange={setCostPrice}
                 />
               </div>
               <div className="space-y-2">

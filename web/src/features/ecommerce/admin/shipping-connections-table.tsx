@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar } from "@/features/admin/components/admin-table-controls";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 import type { ShippingAccountSettings } from "@/lib/system-settings";
 import { useState } from "react";
@@ -92,8 +93,8 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                     <TableCell className="text-muted-foreground">{connection.code}</TableCell>
                     <TableCell>{connection.provider || "-"}</TableCell>
                     <TableCell>{connection.shopId || "-"}</TableCell>
-                    <TableCell>{connection.flatShippingFee.toLocaleString("vi-VN")} đ</TableCell>
-                    <TableCell>{connection.freeShippingThreshold.toLocaleString("vi-VN")} đ</TableCell>
+                    <TableCell>{formatVnd(connection.flatShippingFee)}</TableCell>
+                    <TableCell>{formatVnd(connection.freeShippingThreshold)}</TableCell>
                     <TableCell>
                       <form
                         id={`shipping-toggle-${connection.code}`}
@@ -175,11 +176,11 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Phí ship</p>
-                  <p className="text-sm text-muted-foreground">{previewConnection.flatShippingFee.toLocaleString("vi-VN")} đ</p>
+                  <p className="text-sm text-muted-foreground">{formatVnd(previewConnection.flatShippingFee)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Miễn phí từ</p>
-                  <p className="text-sm text-muted-foreground">{previewConnection.freeShippingThreshold.toLocaleString("vi-VN")} đ</p>
+                  <p className="text-sm text-muted-foreground">{formatVnd(previewConnection.freeShippingThreshold)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Trạng thái</p>

@@ -2,20 +2,10 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProviderTableActionButton, ProviderTableActions } from "@/features/provider-orders/components/provider-table-actions";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
+import { ProviderOfferingRequestsTable } from "@/features/provider-offering-submissions/components/provider-offering-requests-table";
 import { listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
-import { getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
-import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(value));
-}
 
 export default async function ProviderOfferingsPage() {
   const provider = await requireProvider(ROUTES.PROVIDER.LOGIN);
@@ -26,17 +16,17 @@ export default async function ProviderOfferingsPage() {
       <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4 rounded-md border bg-background p-6">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Sản phẩm provider</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Yêu cầu sản phẩm</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Provider tự nhập thông tin sản phẩm, giá nhập và số lượng. Admin chỉ duyệt, phản hồi và nhập giá bán thực tế.
+              Quản lý các yêu cầu tạo mới, cập nhật hoặc ngừng bán sản phẩm. Admin duyệt, phản hồi và nhập giá bán thực tế.
             </p>
           </div>
-          <Button render={<Link href={ROUTES.PROVIDER.OFFERING_NEW}>Tạo hồ sơ mới</Link>} />
+          <Button render={<Link href={ROUTES.PROVIDER.OFFERING_NEW}>Tạo yêu cầu mới</Link>} />
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Tổng hồ sơ</CardTitle></CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base">Tổng yêu cầu</CardTitle></CardHeader>
             <CardContent><p className="text-3xl font-semibold">{submissions.length}</p></CardContent>
           </Card>
           <Card>
@@ -51,50 +41,15 @@ export default async function ProviderOfferingsPage() {
 
         <Card>
           <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold">Danh sách hồ sơ sản phẩm</CardTitle>
+            <CardTitle className="text-base font-semibold">Danh sách yêu cầu sản phẩm</CardTitle>
           </CardHeader>
           <CardContent className="pt-5">
             {submissions.length === 0 ? (
               <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-                Chưa có hồ sơ sản phẩm nào. Hãy tạo hồ sơ đầu tiên để gửi admin duyệt.
+                Chưa có yêu cầu sản phẩm nào. Hãy tạo yêu cầu đầu tiên để gửi admin duyệt.
               </div>
             ) : (
-              <div className="rounded-md border">
-                <table className="w-full table-auto text-sm">
-                  <thead className="text-left text-muted-foreground">
-                    <tr className="border-b">
-                      <th className="w-[40%] px-4 py-3 font-medium">Sản phẩm</th>
-                      <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Loại</th>
-                      <th className="hidden w-[12%] px-4 py-3 font-medium xl:table-cell">Giá nhập</th>
-                      <th className="hidden w-[12%] px-4 py-3 font-medium xl:table-cell">Số lượng</th>
-                      <th className="hidden w-[16%] px-4 py-3 font-medium md:table-cell">Trạng thái</th>
-                      <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Cập nhật</th>
-                      <th className="w-[72px] px-4 py-3 text-right font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {submissions.map((submission) => (
-                      <tr key={submission.id} className="border-b align-top last:border-b-0">
-                        <td className="min-w-0 px-4 py-4">
-                          <p className="truncate font-medium">{submission.name}</p>
-                        </td>
-                        <td className="hidden px-4 py-4 text-muted-foreground lg:table-cell">{getProviderOfferingSubmissionTypeLabel(submission.submissionType)}</td>
-                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.purchaseCost}</td>
-                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{submission.proposedStockQuantity}</td>
-                        <td className="hidden px-4 py-4 md:table-cell">
-                          <ProviderOfferingStatusBadge status={submission.reviewStatus} />
-                        </td>
-                        <td className="hidden px-4 py-4 text-muted-foreground xl:table-cell">{formatDateTime(submission.updatedAt)}</td>
-                        <td className="px-4 py-4 text-right">
-                          <ProviderTableActions>
-                            <ProviderTableActionButton action="view" label="Mở hồ sơ" href={ROUTES.PROVIDER.OFFERING(submission.id)} />
-                          </ProviderTableActions>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ProviderOfferingRequestsTable submissions={submissions} />
             )}
           </CardContent>
         </Card>

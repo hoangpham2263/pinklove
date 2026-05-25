@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ProviderOutlineButton, ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { CurrencyInput } from "@/components/common/currency-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { providerApi } from "@/lib/api-client.provider";
 import { finishMutation } from "@/lib/client-mutation";
+import { formatVnd } from "@/lib/currency";
 import { slugify } from "@/lib/utils";
 import type { OfferingCategory } from "@/features/offerings/types";
 import type { ProviderOfferingSubmissionDetail, ProviderOfferingSubmissionType } from "@/features/provider-offering-submissions/types";
@@ -82,7 +84,7 @@ export function ProviderOfferingSubmissionForm({
 
       <Card className="border-zinc-200/80 bg-white/92">
         <CardHeader className="border-b">
-          <CardTitle className="text-base font-semibold text-zinc-950">Thông tin sản phẩm provider</CardTitle>
+          <CardTitle className="text-base font-semibold text-zinc-950">Thông tin hồ sơ sản phẩm</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
           <div className="grid gap-4 md:grid-cols-2">
@@ -195,7 +197,7 @@ export function ProviderOfferingSubmissionForm({
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-950">Giá nhập</label>
-              <Input name="purchaseCost" type="number" min="0" step="1000" defaultValue={String(submission?.purchaseCost ?? 0)} disabled={!canEdit} />
+              <CurrencyInput name="purchaseCost" defaultValue={submission?.purchaseCost ?? 0} disabled={!canEdit} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-950">Số lượng</label>
@@ -260,17 +262,17 @@ export function ProviderOfferingSubmissionForm({
               <>
                 <ProviderOfferingStatusBadge status={submission.reviewStatus} />
                 <div className="space-y-2 text-sm text-zinc-600">
-                  <p>Giá bán admin: {submission.adminSellPrice ?? "Chưa nhập"}</p>
-                  <p>Review note: {submission.reviewNote || "Chưa có"}</p>
+                  <p>Giá bán admin: {submission.adminSellPrice ? formatVnd(submission.adminSellPrice) : "Chưa nhập"}</p>
+                  <p>Ghi chú duyệt: {submission.reviewNote || "Chưa có"}</p>
                 </div>
               </>
             ) : (
-              <p className="text-sm text-zinc-600">Tạo nháp mới cho provider, sau đó gửi admin duyệt.</p>
+              <p className="text-sm text-zinc-600">Tạo hồ sơ nháp, chọn loại yêu cầu rồi gửi admin duyệt.</p>
             )}
 
             {canEdit ? (
               <ProviderSubmitButton className="w-full" disabled={isSaving}>
-                {isSaving ? "Đang lưu..." : submission ? "Lưu hồ sơ" : "Tạo nháp"}
+                {isSaving ? "Đang lưu..." : submission ? "Lưu hồ sơ" : "Tạo hồ sơ nháp"}
               </ProviderSubmitButton>
             ) : null}
 

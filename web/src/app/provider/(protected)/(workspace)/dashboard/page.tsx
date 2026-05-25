@@ -1,23 +1,107 @@
-import Link from "next/link";
-import { PackageCheck, PackagePlus, UserRound } from "lucide-react";
+import { CircleDollarSign, PackageCheck, PackagePlus, ShoppingBag, UserRound } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProviderActionLinkTile, ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
+import { ProviderRevenueLineChart } from "@/features/provider-orders/components/provider-revenue-line-chart";
 import { countProviderAssignmentsForProvider, listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
 import { getUserProfile, requireProvider } from "@/lib/auth";
+import { formatCompactVnd, formatVnd } from "@/lib/currency";
+import { query } from "@/lib/database";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
+type ProviderRevenueSummaryRow = {
+  paid_revenue_30d: string;
+  paid_orders_30d: string;
+  pending_orders_30d: string;
+};
+
+type ProviderRevenueChartRow = {
+  day: string;
+  revenue: string;
+  orders: string;
+};
+
+function asNumber(value: string | undefined) {
+  return Number(value ?? "0");
+}
+
+function formatDayLabel(value: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
+
 export default async function ProviderDashboardPage() {
   const provider = await requireProvider(ROUTES.PROVIDER.LOGIN);
-  const [profile, stats, assignments, settings] = await Promise.all([
+  const [profile, stats, assignments, settings, revenueSummaryResult, revenueChartResult] = await Promise.all([
     getUserProfile(provider.id),
     countProviderAssignmentsForProvider(provider.id),
     listProviderOrderSummariesForProvider(provider.id),
     getSystemSettings(),
+    query<ProviderRevenueSummaryRow>(
+      `
+        SELECT
+          COALESCE(SUM(o.total_amount) FILTER (
+            WHERE o.payment_status = 'paid'
+              AND COALESCE(o.paid_at, o.created_at) >= NOW() - INTERVAL '30 days'
+          ), 0)::text AS paid_revenue_30d,
+          COUNT(o.id) FILTER (
+            WHERE o.payment_status = 'paid'
+              AND COALESCE(o.paid_at, o.created_at) >= NOW() - INTERVAL '30 days'
+          )::text AS paid_orders_30d,
+          COUNT(o.id) FILTER (
+            WHERE o.payment_status IN ('unpaid', 'pending')
+              AND o.created_at >= NOW() - INTERVAL '30 days'
+          )::text AS pending_orders_30d
+        FROM provider_order_assignments assignment
+        JOIN commerce_orders o ON o.id = assignment.order_id
+        WHERE assignment.provider_user_id = $1
+      `,
+      [provider.id],
+    ),
+    query<ProviderRevenueChartRow>(
+      `
+        WITH days AS (
+          SELECT generate_series(
+            date_trunc('day', NOW() - INTERVAL '6 days'),
+            date_trunc('day', NOW()),
+            INTERVAL '1 day'
+          )::date AS day
+        )
+        SELECT
+          to_char(days.day, 'YYYY-MM-DD') AS day,
+          COALESCE(SUM(o.total_amount), 0)::text AS revenue,
+          COUNT(o.id)::text AS orders
+        FROM days
+        LEFT JOIN provider_order_assignments assignment
+          ON assignment.provider_user_id = $1
+        LEFT JOIN commerce_orders o
+          ON o.id = assignment.order_id
+         AND date_trunc('day', COALESCE(o.paid_at, o.created_at))::date = days.day
+         AND o.payment_status = 'paid'
+        GROUP BY days.day
+        ORDER BY days.day ASC
+      `,
+      [provider.id],
+    ),
   ]);
   const providerName = profile.displayName || profile.fullName || provider.username;
   const portalHref = ROUTES.PROVIDER.ROOT;
+  const revenueSummary = revenueSummaryResult.rows[0];
+  const paidRevenue30d = asNumber(revenueSummary?.paid_revenue_30d);
+  const paidOrders30d = asNumber(revenueSummary?.paid_orders_30d);
+  const pendingOrders30d = asNumber(revenueSummary?.pending_orders_30d);
+  const chartData = revenueChartResult.rows.map((item) => ({
+    ...item,
+    label: formatDayLabel(item.day),
+    revenueValue: asNumber(item.revenue),
+    orderCount: asNumber(item.orders),
+  }));
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -28,27 +112,25 @@ export default async function ProviderDashboardPage() {
             Workspace của {providerName} trong {settings.branding.siteName}. Giao diện dùng cùng layout quản trị để provider theo dõi đơn, sản phẩm và cấu hình tài khoản.
           </p>
         </div>
-        <Button variant="outline" render={<Link href={portalHref}>Mở portal công khai</Link>} />
+        <ProviderLinkButton href={portalHref}>Mở portal công khai</ProviderLinkButton>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Tổng đơn</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.total}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Đang xử lý</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.active}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Chờ review</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.review}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Hoàn tất</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.completed}</p></CardContent>
-        </Card>
-      </div>
+      <ProviderOverviewGrid className="xl:grid-cols-4">
+        <ProviderOverviewCard title="Doanh thu liên quan 30 ngày" value={formatCompactVnd(paidRevenue30d)} description={formatVnd(paidRevenue30d)} icon={CircleDollarSign} />
+        <ProviderOverviewCard title="Đơn đã thanh toán" value={paidOrders30d.toLocaleString("vi-VN")} description={`${pendingOrders30d.toLocaleString("vi-VN")} đơn chờ 30 ngày`} icon={ShoppingBag} />
+        <ProviderOverviewCard title="Đang xử lý" value={stats.active} description={`${stats.total} tổng đơn được giao`} icon={PackageCheck} />
+        <ProviderOverviewCard title="Hoàn tất" value={stats.completed} description={`${stats.review} đơn chờ review`} icon={PackageCheck} />
+      </ProviderOverviewGrid>
+
+      <Card className="flex min-h-[380px] flex-col rounded-lg">
+        <CardHeader className="pb-3">
+          <CardDescription>7 ngày gần nhất</CardDescription>
+          <CardTitle>Biểu đồ doanh thu liên quan</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 pt-0">
+          <ProviderRevenueLineChart data={chartData} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
@@ -66,7 +148,7 @@ export default async function ProviderDashboardPage() {
               </div>
             ))}
             {assignments.length === 0 ? <p className="text-sm text-muted-foreground">Chưa có đơn được giao.</p> : null}
-            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PROVIDER.ORDERS}>Mở tất cả đơn</Link>} />
+            <ProviderActionLinkTile href={ROUTES.PROVIDER.ORDERS} label="Mở tất cả đơn" showArrow />
           </CardContent>
         </Card>
 
@@ -78,8 +160,8 @@ export default async function ProviderDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Provider có thể tạo hồ sơ sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
-            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PROVIDER.OFFERINGS}>Mở sản phẩm</Link>} />
+            <p>Provider có thể tạo yêu cầu sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
+            <ProviderActionLinkTile href={ROUTES.PROVIDER.OFFERINGS} label="Mở yêu cầu sản phẩm" showArrow />
           </CardContent>
         </Card>
 
@@ -92,7 +174,7 @@ export default async function ProviderDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Cập nhật thông tin cửa hàng, địa chỉ và hồ sơ giao nhận của provider.</p>
-            <Button variant="outline" className="w-full" render={<Link href={ROUTES.PROVIDER.CONFIG_ACCOUNT}>Mở tài khoản</Link>} />
+            <ProviderActionLinkTile href={ROUTES.PROVIDER.CONFIG_ACCOUNT} label="Mở tài khoản" showArrow />
           </CardContent>
         </Card>
       </div>

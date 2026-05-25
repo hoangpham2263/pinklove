@@ -87,7 +87,7 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
         </div>
         <div className="flex gap-3">
           <AdminLinkButton href={`${ROUTES.ADMIN.USERS}/${provider.id}?returnTo=${encodeURIComponent(ROUTES.ADMIN.PROVIDER_ACCOUNTS)}`}>Sửa tài khoản</AdminLinkButton>
-          <AdminLinkButton href={`${ROUTES.ADMIN.PROVIDER_OFFERINGS}?providerId=${encodeURIComponent(provider.id)}`}>Hồ sơ sản phẩm chờ duyệt</AdminLinkButton>
+          <AdminLinkButton href={`${ROUTES.ADMIN.PROVIDER_OFFERINGS}?providerId=${encodeURIComponent(provider.id)}`}>Yêu cầu sản phẩm chờ duyệt</AdminLinkButton>
           {providerPortalSlug ? (
             <>
               <ProviderPortalCopyButton

@@ -75,7 +75,7 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
     defaultOpen: false,
     children: [
       { label: "Hồ sơ", href: ROUTES.CUSTOMER.CONFIG_PROFILE, iconName: "user" },
-      { label: "Sổ địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES, iconName: "map-pin" },
+      { label: "Địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES, iconName: "map-pin" },
       { label: "Thêm địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESS_NEW, iconName: "map-pin" },
     ],
   },

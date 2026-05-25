@@ -17,6 +17,7 @@ import {
 import { type AffiliateConversion, type AffiliateConversionStatus } from "@/features/affiliate/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
+import { formatVnd } from "@/lib/currency";
 
 type AdminAffiliateConversionsTableProps = {
   conversions: AffiliateConversion[];
@@ -27,10 +28,6 @@ function formatDateTime(value?: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toISOString().slice(0, 16).replace("T", " ");
-}
-
-function formatAmount(value: number) {
-  return new Intl.NumberFormat("vi-VN").format(value);
 }
 
 export function AdminAffiliateConversionsTable({ conversions }: AdminAffiliateConversionsTableProps) {
@@ -77,8 +74,8 @@ export function AdminAffiliateConversionsTable({ conversions }: AdminAffiliateCo
                       </div>
                     </TableCell>
                     <TableCell>{conversion.externalOrderRef ?? "-"}</TableCell>
-                    <TableCell>{formatAmount(conversion.orderValue)}</TableCell>
-                    <TableCell>{formatAmount(conversion.commissionAmount)}</TableCell>
+                    <TableCell>{formatVnd(conversion.orderValue)}</TableCell>
+                    <TableCell>{formatVnd(conversion.commissionAmount)}</TableCell>
                     <TableCell>
                       <select
                         value={draftStatus}

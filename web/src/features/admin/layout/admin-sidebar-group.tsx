@@ -66,6 +66,10 @@ type AdminSidebarChild = {
   label: string;
   href: string;
   iconName: AdminSidebarIconName;
+  exact?: boolean;
+  matchPrefixes?: string[];
+  excludePaths?: string[];
+  excludePrefixes?: string[];
 };
 
 type AdminSidebarGroupProps = {
@@ -112,12 +116,28 @@ export function AdminSidebarGroup({
 }: AdminSidebarGroupProps) {
   const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
-  const hasActiveItem = items.some((item) => isRouteActive(pathname, item.href, true));
+  const hasActiveItem = items.some((item) =>
+    isRouteActive(pathname, item.href, {
+      exact: item.exact,
+      matchPrefixes: item.matchPrefixes,
+      excludePaths: item.excludePaths,
+      excludePrefixes: item.excludePrefixes,
+    }),
+  );
+  const activeItemKey =
+    items.find((item) =>
+      isRouteActive(pathname, item.href, {
+        exact: item.exact,
+        matchPrefixes: item.matchPrefixes,
+        excludePaths: item.excludePaths,
+        excludePrefixes: item.excludePrefixes,
+      }),
+    )?.href ?? "inactive";
 
   return (
-    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+    <Collapsible key={activeItemKey} defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
       <CollapsibleTrigger
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted"
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted data-[state=open]:bg-muted"
       >
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
@@ -131,6 +151,10 @@ export function AdminSidebarGroup({
             <AdminNavLink
               key={`${item.href}:${item.label}:${index}`}
               href={item.href}
+              exact={item.exact}
+              matchPrefixes={item.matchPrefixes}
+              excludePaths={item.excludePaths}
+              excludePrefixes={item.excludePrefixes}
               className="flex items-center rounded-md px-3 py-2 transition-colors hover:bg-muted"
             >
               <span>{item.label}</span>

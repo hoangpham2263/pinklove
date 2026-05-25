@@ -1,5 +1,4 @@
 "use client";
-
 import {
   ChevronRight,
   ExternalLink,
@@ -18,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
 import type { ProviderNavChild, ProviderNavIconName } from "@/features/provider-orders/config/navigation";
+import { isRouteActive } from "@/lib/navigation";
 
 type ProviderWorkspaceSidebarGroupProps = {
   label: string;
@@ -40,15 +40,12 @@ const iconMap = {
 } satisfies Record<ProviderNavIconName, React.ComponentType<{ className?: string }>>;
 
 function isActivePath(pathname: string, item: ProviderNavChild) {
-  if (item.matchPrefixes?.some((prefix) => pathname.startsWith(prefix))) {
-    return true;
-  }
-
-  if (item.exact) {
-    return pathname === item.href;
-  }
-
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  return isRouteActive(pathname, item.href, {
+    exact: item.exact,
+    matchPrefixes: item.matchPrefixes,
+    excludePaths: item.excludePaths,
+    excludePrefixes: item.excludePrefixes,
+  });
 }
 
 export function ProviderWorkspaceSidebarGroup({
@@ -60,10 +57,11 @@ export function ProviderWorkspaceSidebarGroup({
   const pathname = usePathname();
   const GroupIcon = iconMap[iconName];
   const hasActiveItem = items.some((item) => isActivePath(pathname, item));
+  const activeItemKey = items.find((item) => isActivePath(pathname, item))?.href ?? "inactive";
 
   return (
-    <Collapsible defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted">
+    <Collapsible key={activeItemKey} defaultOpen={defaultOpen || hasActiveItem} className="group/collapsible">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted data-[state=open]:bg-muted">
         <div className="flex items-center gap-3">
           <GroupIcon className="h-5 w-5" />
           <span>{label}</span>
@@ -78,6 +76,8 @@ export function ProviderWorkspaceSidebarGroup({
               href={item.href}
               exact={item.exact}
               matchPrefixes={item.matchPrefixes}
+              excludePaths={item.excludePaths}
+              excludePrefixes={item.excludePrefixes}
               className="flex items-center rounded-md px-3 py-2 transition-colors"
               activeClassName="bg-muted"
               inactiveClassName="hover:bg-muted"

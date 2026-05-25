@@ -21,15 +21,9 @@ import {
   getGeneralOfferingPath,
   getTemplateOfferingPath,
 } from "@/lib/public-paths";
+import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
 
 const detailLabels: Record<string, string> = {
   brideName: "Tên cô dâu",
@@ -172,7 +166,7 @@ function OfferingDetailLayout({
 
             <div className="mt-5 bg-stone-50 px-4 py-4">
               <p className="text-sm text-stone-500">Giá</p>
-              <p className="mt-1 text-3xl font-semibold text-orange-600 md:text-4xl">{formatCurrency(offering.price)}</p>
+              <p className="mt-1 text-3xl font-semibold text-orange-600 md:text-4xl">{formatVnd(offering.price)}</p>
             </div>
 
             <div className="mt-5 divide-y divide-stone-100 text-sm">

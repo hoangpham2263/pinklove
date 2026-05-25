@@ -68,6 +68,8 @@ export default async function ProviderWorkspaceLayout({
                   href={item.href}
                   exact={item.exact}
                   matchPrefixes={item.matchPrefixes}
+                  excludePaths={item.excludePaths}
+                  excludePrefixes={item.excludePrefixes}
                   className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
                   activeClassName="bg-muted"
                   inactiveClassName="hover:bg-muted"
@@ -96,6 +98,8 @@ export default async function ProviderWorkspaceLayout({
                   href={item.href}
                   exact={item.exact}
                   matchPrefixes={item.matchPrefixes}
+                  excludePaths={item.excludePaths}
+                  excludePrefixes={item.excludePrefixes}
                   className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
                   activeClassName="bg-muted"
                   inactiveClassName="hover:bg-muted"

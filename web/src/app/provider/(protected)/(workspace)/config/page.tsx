@@ -20,7 +20,7 @@ const CONFIG_SECTIONS = [
     icon: "globe" as const,
     items: [
       {
-        title: "Sổ địa chỉ",
+        title: "Địa chỉ",
         description: "Quản lý địa chỉ dùng chung cho giao nhận, lấy hàng và hoàn hàng.",
         href: ROUTES.PROVIDER.CONFIG_ADDRESSES,
       },
