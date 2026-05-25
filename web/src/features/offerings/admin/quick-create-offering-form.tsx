@@ -281,7 +281,7 @@ export function QuickCreateOfferingForm({
               </label>
             </div>
 
-            <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
+            <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="stockQuantity" className="font-medium">Tồn kho hiện tại</label>
                 <Input

@@ -9,6 +9,7 @@ import {
   type OfferingTypeField,
   type OfferingTypeFieldType,
 } from "@/features/offerings/types";
+import { slugify } from "@/lib/utils";
 
 type FieldRow = {
   id: string;
@@ -87,24 +88,32 @@ export function OfferingTypeFieldsBuilder({
             </div>
 
             <div className="grid gap-3">
-              <Input
-                name="fieldKey"
-                value={row.key}
-                placeholder="field_key"
-                pattern="[a-z][a-z0-9_]*"
-                onChange={(event) => updateRow(row.id, { key: event.target.value })}
-              />
-              <Input
-                name="fieldLabel"
-                value={row.label}
-                placeholder="Tên field"
-                onChange={(event) => updateRow(row.id, { label: event.target.value })}
-              />
-              <div className="grid gap-3 sm:grid-cols-[1fr_92px]">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  name="fieldLabel"
+                  value={row.label}
+                  placeholder="Tên field"
+                  onChange={(event) => {
+                    const nextLabel = event.target.value;
+                    updateRow(row.id, {
+                      label: nextLabel,
+                      key: slugify(nextLabel).replace(/-/g, '_')
+                    });
+                  }}
+                />
+                <Input
+                  name="fieldKey"
+                  value={row.key}
+                  placeholder="field_key"
+                  pattern="[a-z][a-z0-9_]*"
+                  onChange={(event) => updateRow(row.id, { key: event.target.value })}
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <select
                   name="fieldType"
                   value={row.type}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  className="h-10 w-full rounded-md border bg-background pl-3 pr-8 py-2 text-sm outline-none"
                   onChange={(event) => updateRow(row.id, { type: event.target.value as OfferingTypeFieldType })}
                 >
                   {OFFERING_TYPE_FIELD_TYPES.map((type) => (
@@ -116,11 +125,11 @@ export function OfferingTypeFieldsBuilder({
                 <select
                   name="fieldRequired"
                   value={row.required}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  className="h-10 w-full rounded-md border bg-background pl-3 pr-8 py-2 text-sm outline-none"
                   onChange={(event) => updateRow(row.id, { required: event.target.value as "yes" | "no" })}
                 >
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
+                  <option value="no">Không bắt buộc</option>
+                  <option value="yes">Bắt buộc</option>
                 </select>
               </div>
               {row.type === "select" || row.type === "multiselect" ? (

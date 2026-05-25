@@ -246,21 +246,52 @@ export function DynamicOfferingFields({ offeringType, values, onChange }: Dynami
           return null;
         }
 
+        // Chunking fields into rows (max 2 per row, unless full-width)
+        const rows: OfferingTypeField[][] = [];
+        let currentRow: OfferingTypeField[] = [];
+
+        fields.forEach((field) => {
+          const isFullWidth = ["textarea", "richtext", "json", "repeater", "blocks", "gallery"].includes(field.type);
+
+          if (isFullWidth) {
+            if (currentRow.length > 0) {
+              rows.push(currentRow);
+              currentRow = [];
+            }
+            rows.push([field]);
+          } else {
+            currentRow.push(field);
+            if (currentRow.length === 2) {
+              rows.push(currentRow);
+              currentRow = [];
+            }
+          }
+        });
+
+        if (currentRow.length > 0) {
+          rows.push(currentRow);
+        }
+
         return (
-          <section key={group.id ?? group.key} className="space-y-4 rounded-md border p-4">
-            <h3 className="font-medium">{group.label}</h3>
-            <div className="grid gap-4 md:grid-cols-2">
-              {fields.map((field) => (
-                <div
-                  key={field.key}
-                  className={field.type === "textarea" || field.type === "richtext" || field.type === "json" || field.type === "repeater" || field.type === "blocks" || field.type === "gallery"
-                    ? "space-y-2 md:col-span-2"
-                    : "space-y-2"}
-                >
-                  <label htmlFor={`field-${field.key}`} className="font-medium">
-                    {field.label}
-                  </label>
-                  {renderField(field, values, onChange)}
+          <section key={group.id ?? group.key} className="space-y-5 rounded-md border p-4">
+            <h3 className="font-semibold text-lg border-b pb-2">{group.label}</h3>
+            <div className="space-y-5">
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="grid gap-5 grid-cols-1">
+                  {row.map((field) => {
+                    const isFullWidth = ["textarea", "richtext", "json", "repeater", "blocks", "gallery"].includes(field.type);
+                    return (
+                      <div
+                        key={field.key}
+                        className={isFullWidth ? "space-y-2 md:col-span-2" : "space-y-2"}
+                      >
+                        <label htmlFor={`field-${field.key}`} className="font-medium text-sm">
+                          {field.label}
+                        </label>
+                        {renderField(field, values, onChange)}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
