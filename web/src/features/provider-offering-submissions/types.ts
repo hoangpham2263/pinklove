@@ -144,3 +144,14 @@ export type AvailableProviderSupplyOffering = {
   supplierStatus?: OfferingProviderSupplierStatus;
   requestStatus?: ProviderOfferingSupplierRequestStatus;
 };
+
+export type AdminProviderSupplySourcingOffering = {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  fulfillmentType: OfferingFulfillmentType;
+  allowProviderSupply: boolean;
+  openRequestCount: number;
+  approvedSupplierCount: number;
+};

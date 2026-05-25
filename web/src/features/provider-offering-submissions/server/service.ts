@@ -21,6 +21,7 @@ import type {
   ProviderOfferingSubmissionType,
   ProviderOfferingSupplierRequest,
   ProviderOfferingSupplierRequestStatus,
+  AdminProviderSupplySourcingOffering,
 } from "@/features/provider-offering-submissions/types";
 import { query, withTransaction, type DbExecutor } from "@/lib/database";
 import { USER_ROLES } from "@/lib/roles";
@@ -167,7 +168,6 @@ type ApproveProviderOfferingSubmissionInput = {
   actorUserId: string;
   adminSellPrice: number;
   reviewNote?: string;
-  offeringOwnership?: "platform" | "provider_originated";
   assignProviderSupplier?: boolean;
 };
 
@@ -644,6 +644,107 @@ export async function listAvailableOfferingsForProviderSupply(providerId: string
   }));
 }
 
+export async function listProviderSupplySourcingOfferingsForAdmin(): Promise<AdminProviderSupplySourcingOffering[]> {
+  const result = await query<{
+    id: string;
+    name: string;
+    slug: string;
+    price: string;
+    fulfillment_type: OfferingFulfillmentType;
+    allow_provider_supply: boolean | null;
+    open_request_count: string;
+    approved_supplier_count: string;
+  }>(
+    `
+      SELECT
+        offering.id,
+        offering.name,
+        offering.slug,
+        offering.price::text,
+        offering.fulfillment_type,
+        physical.allow_provider_supply,
+        COUNT(DISTINCT request.id) FILTER (
+          WHERE request.review_status IN ('submitted', 'under_review', 'changes_requested')
+        )::text AS open_request_count,
+        COUNT(DISTINCT supplier.id) FILTER (
+          WHERE supplier.status = 'active'
+        )::text AS approved_supplier_count
+      FROM offerings offering
+      LEFT JOIN physical_offerings physical ON physical.offering_id = offering.id
+      LEFT JOIN provider_offering_supplier_requests request ON request.offering_id = offering.id
+      LEFT JOIN offering_provider_suppliers supplier ON supplier.offering_id = offering.id
+      WHERE offering.status = 'published'
+        AND offering.offering_type <> 'digital_template'
+      GROUP BY offering.id, physical.allow_provider_supply
+      ORDER BY
+        COALESCE(physical.allow_provider_supply, FALSE) DESC,
+        offering.updated_at DESC,
+        offering.name ASC
+    `
+  );
+
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    price: toNumber(row.price),
+    fulfillmentType: row.fulfillment_type,
+    allowProviderSupply: Boolean(row.allow_provider_supply),
+    openRequestCount: toInteger(row.open_request_count),
+    approvedSupplierCount: toInteger(row.approved_supplier_count),
+  }));
+}
+
+export async function announceProviderSupplySourcing(input: {
+  offeringId: string;
+  actorUserId: string;
+  note?: string;
+}): Promise<void> {
+  const offeringResult = await query<{
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+    offering_type: string;
+    fulfillment_type: OfferingFulfillmentType;
+  }>(
+    `
+      SELECT id, name, slug, status, offering_type, fulfillment_type
+      FROM offerings
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [input.offeringId]
+  );
+  const offering = offeringResult.rows[0];
+  if (!offering || offering.status !== "published" || offering.offering_type === "digital_template") {
+    throw new Error("OFFERING_NOT_AVAILABLE");
+  }
+
+  await query(
+    `
+      INSERT INTO physical_offerings (offering_id, fulfillment_type, allow_provider_supply)
+      VALUES ($1, $2, TRUE)
+      ON CONFLICT (offering_id) DO UPDATE
+      SET
+        fulfillment_type = EXCLUDED.fulfillment_type,
+        allow_provider_supply = TRUE,
+        updated_at = NOW()
+    `,
+    [offering.id, offering.fulfillment_type]
+  );
+
+  const note = (input.note ?? "").trim();
+  await createAdminNotification({
+    actorUserId: input.actorUserId,
+    title: "Có sản phẩm cần tìm nguồn hàng",
+    body: note ? `${offering.name}: ${note}` : `${offering.name} đang cần provider gửi báo giá, năng lực và thông tin cung cấp.`,
+    linkUrl: ROUTES.PROVIDER.AVAILABLE_TEMPLATES,
+    audienceType: "role",
+    roles: [USER_ROLES.PROVIDER],
+  });
+}
+
 export async function listLiveOfferingsForProviderSubmissions(providerUserId: string): Promise<Array<{ id: string; name: string; slug: string }>> {
   const provider = await getProviderByUserId(providerUserId);
   const result = await query<{ id: string; name: string; slug: string }>(
@@ -940,6 +1041,36 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
       serviceArea: request.service_area,
       qualityNote: [request.material_note, request.quality_note, request.provider_note].filter(Boolean).join("\n\n"),
     });
+
+    await query(
+      `
+        UPDATE offering_provider_suppliers
+        SET
+          status = 'revoked',
+          quality_note = COALESCE(NULLIF(quality_note, ''), 'Admin đã chọn provider khác làm nguồn hàng chính.'),
+          updated_at = NOW()
+        WHERE offering_id = $1
+          AND provider_user_id <> $2
+          AND status IN ('active', 'paused', 'suspended')
+      `,
+      [request.offering_id, request.provider_user_id]
+    );
+
+    await query(
+      `
+        UPDATE provider_offering_supplier_requests
+        SET
+          review_status = 'rejected',
+          review_note = COALESCE(NULLIF(review_note, ''), 'Admin đã chọn provider khác cho sản phẩm này.'),
+          reviewed_by = $3,
+          reviewed_at = NOW(),
+          updated_at = NOW()
+        WHERE offering_id = $1
+          AND id <> $2
+          AND review_status IN ('submitted', 'under_review', 'changes_requested')
+      `,
+      [request.offering_id, input.requestId, input.actorUserId]
+    );
   }
 
   await createAdminNotification({
@@ -1350,7 +1481,6 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
 
 export async function approveProviderOfferingSubmission(input: ApproveProviderOfferingSubmissionInput): Promise<string> {
   const assignProviderSupplier = input.assignProviderSupplier !== false;
-  const offeringOwnership = input.offeringOwnership ?? "platform";
   const adminSellPrice = normalizeAdminSellPrice(input.adminSellPrice);
   const result = await query<{
     id: string;
@@ -1409,13 +1539,13 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   }
 
   const provider = await getProviderByUserId(submission.provider_user_id);
-  if (offeringOwnership === "provider_originated" && !provider?.id) {
+  if (submission.submission_type !== "discontinue" && !provider?.id) {
     throw new Error("PROVIDER_ENTITY_REQUIRED");
   }
 
   const reviewNote = (input.reviewNote ?? "").trim();
-  const ownerProviderId = offeringOwnership === "provider_originated" ? provider?.id ?? null : null;
-  const ownerProviderType = offeringOwnership === "provider_originated" ? String(provider?.provider_type ?? "provider") : null;
+  const ownerProviderId = provider?.id ?? null;
+  const ownerProviderType = provider?.provider_type ? String(provider.provider_type) : null;
   let catalogEventName: "offering.created" | "offering.updated" = "offering.updated";
 
   const linkedOfferingId = await withTransaction(async (execute) => {
@@ -1653,8 +1783,8 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
           toNumber(submission.purchase_cost),
           submission.provider_sku,
           assignProviderSupplier,
-          provider?.provider_type ? String(provider.provider_type) : null,
-          provider?.id ?? null,
+          ownerProviderType,
+          ownerProviderId,
         ]
       );
     } else {

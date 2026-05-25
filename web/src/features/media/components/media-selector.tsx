@@ -6,12 +6,12 @@ import { CheckCircle2, FileText, Image as ImageIcon, Search, Upload, X } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { adminApi } from "@/lib/api-client.admin";
 import type { MediaAsset } from "../types";
 
@@ -168,11 +168,11 @@ export function MediaSelector(props: MediaSelectorProps) {
 
   return (
     <div className="space-y-2">
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <div className="flex flex-col gap-2">
           {compact ? (
             <div className="flex items-center gap-2">
-              <SheetTrigger
+              <DialogTrigger
                 render={
                   <button type="button" className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm outline-none transition-colors hover:bg-muted/50">
                     {multiple ? (
@@ -180,13 +180,13 @@ export function MediaSelector(props: MediaSelectorProps) {
                         <>
                           <MediaThumb url={selectedValues[0]} size="sm" />
                           <span className="min-w-0 flex-1 truncate">
-                            {selectedValues.length} image{selectedValues.length > 1 ? "s" : ""} selected
+                            Đã chọn {selectedValues.length} file
                           </span>
                         </>
                       ) : (
                         <>
                           <ImageIcon className="h-4 w-4 shrink-0" />
-                          <span>Select gallery</span>
+                          <span>Chọn media</span>
                         </>
                       )
                     ) : selectedValue ? (
@@ -197,7 +197,7 @@ export function MediaSelector(props: MediaSelectorProps) {
                     ) : (
                       <>
                         <ImageIcon className="h-4 w-4 shrink-0" />
-                        <span>Upload</span>
+                        <span>Chọn media</span>
                       </>
                     )}
                   </button>
@@ -235,9 +235,9 @@ export function MediaSelector(props: MediaSelectorProps) {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <SheetTrigger render={<Button type="button" variant="secondary">Manage gallery</Button>} />
+                  <DialogTrigger render={<Button type="button" variant="secondary">Quản lý gallery</Button>} />
                   <Button type="button" variant="destructive" onClick={() => updateSelection([])}>
-                    Clear
+                    Xóa
                   </Button>
                 </div>
               </div>
@@ -246,21 +246,21 @@ export function MediaSelector(props: MediaSelectorProps) {
                 <MediaPreview url={selectedValue} />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
                   <div className="flex gap-2">
-                    <SheetTrigger render={<Button type="button" variant="secondary" size="sm">Upload</Button>} />
+                    <DialogTrigger render={<Button type="button" variant="secondary" size="sm">Đổi media</Button>} />
                     <Button type="button" variant="destructive" size="sm" onClick={() => updateSelection([])}>
-                      Remove
+                      Xóa
                     </Button>
                   </div>
                 </div>
               </div>
             )
           ) : (
-            <SheetTrigger
+            <DialogTrigger
               render={
                 <button type="button" className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-primary/50 hover:bg-muted/50">
                   <ImageIcon className="h-8 w-8 text-muted-foreground" />
                   <span className="font-medium text-muted-foreground">
-                    {multiple ? "Select gallery" : "Upload"}
+                    {multiple ? "Chọn gallery" : "Chọn media"}
                   </span>
                 </button>
               }
@@ -275,24 +275,23 @@ export function MediaSelector(props: MediaSelectorProps) {
             : null}
         </div>
 
-        <SheetContent side="right" className="flex h-full flex-col sm:max-w-2xl">
-          <SheetHeader className="border-b pb-4">
-            <div className="flex items-center justify-between gap-3">
-              <SheetTitle>{multiple ? "Media Gallery" : "Media Library"}</SheetTitle>
-              {multiple ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedValues.length} selected
-                  </span>
-                  <Button type="button" size="sm" onClick={() => setIsOpen(false)}>
-                    Done
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          </SheetHeader>
+        <DialogContent className="flex h-[min(46rem,calc(100vh-2rem))] w-[min(58rem,calc(100vw-2rem))] max-w-none grid-rows-none flex-col gap-0 overflow-hidden p-0">
+          <div className="shrink-0 border-b p-6 pb-4">
+            <DialogHeader>
+              <div className="flex items-center justify-between gap-3">
+                <DialogTitle>{multiple ? "Chọn gallery" : "Chọn media"}</DialogTitle>
+                {multiple ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      Đã chọn {selectedValues.length}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </DialogHeader>
+          </div>
 
-          <div className="flex-1 space-y-6 overflow-y-auto py-6">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
             <div
               {...getRootProps()}
               className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
@@ -308,13 +307,13 @@ export function MediaSelector(props: MediaSelectorProps) {
                 )}
                 <p className="font-medium">
                   {uploading
-                    ? "Uploading..."
-                    : "Click or drag to upload new files"}
+                    ? "Đang upload..."
+                    : "Bấm hoặc kéo file vào đây để upload"}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {multiple
-                    ? "Supports all file types, including SVG"
-                    : "You can upload multiple files here, then choose one for this field."}
+                    ? "Có thể upload nhiều file rồi chọn cho gallery."
+                    : "Có thể upload nhiều file rồi chọn một file cho trường này."}
                 </p>
               </div>
             </div>
@@ -323,7 +322,7 @@ export function MediaSelector(props: MediaSelectorProps) {
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search images..."
+                  placeholder="Tìm media..."
                   className="pl-9"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -335,48 +334,61 @@ export function MediaSelector(props: MediaSelectorProps) {
                   <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4">
-                  {filteredItems.map((item) => {
-                    const isSelected = selectedValues.includes(item.url);
+                filteredItems.length === 0 ? (
+                  <div className="flex min-h-72 items-center justify-center rounded-md border border-dashed text-center text-sm text-muted-foreground">
+                    Không tìm thấy media phù hợp.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {filteredItems.map((item) => {
+                      const isSelected = selectedValues.includes(item.url);
 
-                    return (
-                      <button
-                        type="button"
-                        key={item.id}
-                        className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-gray-200 text-left transition-all hover:ring-1 hover:ring-primary ${
-                          isSelected ? "ring-1 ring-primary" : ""
-                        }`}
-                        onClick={() => selectMediaItem(item.url, isSelected)}
-                      >
-                        {item.mimeType.startsWith("image/") ? (
-                          <img
-                            src={item.url}
-                            alt={item.originalName}
-                            className="h-full w-full object-contain transition-transform group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-3 text-center">
-                            <FileText className="h-8 w-8 text-muted-foreground" />
-                            <p className="line-clamp-3 text-[10px] text-muted-foreground">{item.originalName}</p>
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          className={`group relative aspect-square cursor-pointer overflow-hidden rounded-md border bg-gray-200 text-left transition-all hover:ring-1 hover:ring-primary ${
+                            isSelected ? "ring-1 ring-primary" : ""
+                          }`}
+                          onClick={() => selectMediaItem(item.url, isSelected)}
+                        >
+                          {item.mimeType.startsWith("image/") ? (
+                            <img
+                              src={item.url}
+                              alt={item.originalName}
+                              className="h-full w-full object-contain transition-transform group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-3 text-center">
+                              <FileText className="h-8 w-8 text-muted-foreground" />
+                              <p className="line-clamp-3 text-[10px] text-muted-foreground">{item.originalName}</p>
+                            </div>
+                          )}
+                          {isSelected ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                              <CheckCircle2 className="h-8 w-8 fill-white text-primary" />
+                            </div>
+                          ) : null}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1 px-2 opacity-0 transition-opacity group-hover:opacity-100">
+                            <p className="truncate text-[10px] text-white">{item.originalName}</p>
                           </div>
-                        )}
-                        {isSelected ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                            <CheckCircle2 className="h-8 w-8 fill-white text-primary" />
-                          </div>
-                        ) : null}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1 px-2 opacity-0 transition-opacity group-hover:opacity-100">
-                          <p className="truncate text-[10px] text-white">{item.originalName}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )
               )}
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+
+          <div className="flex shrink-0 items-center justify-between border-t bg-muted/20 p-4">
+            <span className="text-sm text-muted-foreground">
+              Đã chọn {selectedValues.length} media
+            </span>
+            <Button type="button" onClick={() => setIsOpen(false)}>Xong</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

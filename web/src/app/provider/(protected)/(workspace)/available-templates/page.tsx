@@ -16,9 +16,9 @@ export default async function ProviderAvailableTemplatesPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-md border bg-background p-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mẫu có thể cung cấp</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Sản phẩm cần tìm nguồn hàng</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Chọn mẫu có sẵn trong catalog và gửi yêu cầu cung cấp. Admin sẽ kiểm tra giá nhập, năng lực sản xuất và chất lượng mẫu trước khi mở bán.
+            Chọn sản phẩm admin đang cần tìm nguồn hàng và gửi báo giá, năng lực sản xuất, chất lượng để admin so sánh trước khi duyệt.
           </p>
         </div>
         <Button variant="outline" render={<Link href={ROUTES.PROVIDER.SUPPLY_REQUESTS}>Yêu cầu cung cấp của tôi</Link>} />
@@ -45,7 +45,7 @@ export default async function ProviderAvailableTemplatesPage() {
                   ) : offering.requestStatus ? (
                     <p>Trạng thái yêu cầu: {getProviderOfferingSupplierRequestStatusLabel(offering.requestStatus)}</p>
                   ) : (
-                    <p>Mẫu này đang có thể xin cung cấp.</p>
+                    <p>Sản phẩm này đang cần provider gửi thông tin cung cấp.</p>
                   )}
                 </div>
 

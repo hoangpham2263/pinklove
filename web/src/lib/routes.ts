@@ -309,6 +309,7 @@ export const ROUTES = {
         DETAIL: (id: string) => `/api/admin/providers/offerings/${id}`,
         REVIEW: (id: string) => `/api/admin/providers/offerings/${id}/review`,
         APPROVE: (id: string) => `/api/admin/providers/offerings/${id}/approve`,
+        SOURCING_ANNOUNCE: "/api/admin/providers/offerings/sourcing/announce",
         SUPPLIER_REQUEST_REVIEW: (id: string) => `/api/admin/providers/offerings/supplier-requests/${id}/review`,
         SUPPLIER_STATUS: (id: string) => `/api/admin/providers/offerings/suppliers/${id}/status`,
       },

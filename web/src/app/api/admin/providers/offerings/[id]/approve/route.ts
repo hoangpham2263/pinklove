@@ -11,10 +11,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const formData = await request.formData();
   const adminSellPrice = Number(formData.get("adminSellPrice") ?? "0");
   const reviewNote = String(formData.get("reviewNote") ?? "");
-  const offeringOwnership =
-    String(formData.get("offeringOwnership") ?? "platform") === "provider_originated"
-      ? "provider_originated"
-      : "platform";
   const assignProviderSupplier = formData.get("assignProviderSupplier") !== "off";
 
   if (!Number.isFinite(adminSellPrice) || adminSellPrice <= 0) {
@@ -31,7 +27,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       actorUserId: admin.id,
       adminSellPrice,
       reviewNote,
-      offeringOwnership,
       assignProviderSupplier,
     });
 

@@ -160,10 +160,17 @@ This file is the repo-wide source of truth.
 
 - Media API: `src/app/api/media/route.ts`
 - Reusable picker: `src/features/media/components/media-selector.tsx`
+- Media picker UI uses the shared fixed-size dialog picker pattern, not a route-local Sheet or custom inline search panel.
 - Files are stored under `public/uploads/YYYY/MM`.
 - Metadata is stored in PostgreSQL table `media_assets`; do not add file-backed JSON storage for media records.
 - The upload API currently accepts any browser `File` up to `20MB`; add explicit server-side MIME validation in `src/features/media/server/media-store.ts` before documenting a restricted allowlist.
 - Media listing uses paginated DB queries. Keep admin/library callers on `GET /api/media?page=...&limit=...` instead of loading every asset.
+
+## Search Selects
+
+- Reusable search-select UI should render selected values in the form and open a fixed-size dialog for search, scroll, and selection.
+- Do not add new inline two-column search selectors or route-local Sheet selectors for product/media selection.
+- Existing product search-select surfaces are `src/features/offerings/admin/offering-search-select.tsx` and `type: "offering-select"` inside `src/components/common/fields-editor.tsx`.
 
 ## Styling
 

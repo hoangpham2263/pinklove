@@ -175,18 +175,12 @@ export default async function AdminProviderOfferingDetailPage({
                     className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60"
                   />
                 </div>
-                {detail.submissionType === "create" ? (
-                  <div className="space-y-2">
-                    <label className="text-sm">Quyền sở hữu catalog</label>
-                    <select
-                      name="offeringOwnership"
-                      defaultValue="platform"
-                      disabled={!canApply}
-                      className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
-                    >
-                      <option value="platform">Thuộc platform, có thể mở cho nhiều provider</option>
-                      <option value="provider_originated">Thuộc provider đề xuất, gán làm nguồn ban đầu</option>
-                    </select>
+                {detail.submissionType !== "discontinue" ? (
+                  <div className="rounded-md border bg-muted/30 p-3 text-sm">
+                    <p className="font-medium">Nguồn hàng / chủ sở hữu</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Khi áp dụng, catalog tự gán provider gửi hồ sơ này làm nguồn hàng/chủ sở hữu ban đầu.
+                    </p>
                   </div>
                 ) : null}
                 {detail.submissionType !== "discontinue" ? (

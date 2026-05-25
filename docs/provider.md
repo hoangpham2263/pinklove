@@ -44,6 +44,21 @@ Use this file for the dedicated provider portal.
 - Provider receives realtime account notifications from the provider portal header bell without switching to another page.
 - Internal links from admin or customer bridge pages should prefer the canonical provider portal link, not the legacy aliases.
 
+## Provider Offering Approval
+
+- Provider product submissions remain account workflow records and store the actor as `provider_user_id`.
+- When admin approves a provider `create` or `update` submission into the catalog, the runtime must resolve `provider_user_id` to the provider ecosystem entity in `providers.id`.
+- Approved provider catalog rows must write that entity into `physical_offerings.provider_id` and `physical_offerings.provider_type`; admin should not choose platform/provider ownership manually in this workflow.
+- `offering_provider_suppliers.provider_user_id` still records the account-bound supplier workflow, but marketplace/catalog ownership remains `providers.id`.
+
+## Source Finding Flow
+
+- Admin can announce that a published non-template offering needs sourcing. This sets `physical_offerings.allow_provider_supply = true` and sends a provider-role notification.
+- Providers respond from `/provider/available-templates` by submitting cost, SKU, lead time, capacity, service area, sample image, material note, quality note, and provider note.
+- Admin compares all rows in `provider_offering_supplier_requests` before approving exactly one provider as the active source for that offering.
+- Approving one supplier request rejects other open requests for the same offering and revokes older active/paused/suspended suppliers for that offering.
+- Approval of a supplier request should update the sell price only when admin intentionally enters a valid admin sell price.
+
 ## Realtime Direction
 
 - Use the event log first.

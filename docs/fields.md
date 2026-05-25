@@ -52,6 +52,8 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Use the shared `FieldsEditor` component for page fields, global fields, offering fields, and other custom-field editors.
 - Media fields should use `type: "media"`, and gallery-style fields should set `multiple: true` so the shared selector stores arrays instead of newline-delimited URLs.
 - Shared Media Library upload UI should accept multiple files even for single-value media fields; only the stored selection count should differ.
+- Search-select fields must use the shared fixed-size dialog picker pattern: selected items render in the form, searching and choosing happen inside a scrollable dialog, and the dialog footer shows the selected count plus a confirm/close action.
+- `type: "offering-select"` fields in `FieldsEditor`, offering relationship pickers, and the Media Library picker should stay visually aligned with that dialog picker pattern.
 - Top-level field groups render as tabs by default.
 - Within the active tab, `section` and `repeater` content render as normal bordered blocks without nested accordion behavior.
 - Admin field UI should stay on default project component styling and only customize structural layout where needed.

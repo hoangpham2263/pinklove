@@ -4,10 +4,17 @@ import { Fragment, useMemo, useState } from "react";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Minus, Plus } from "lucide-react";
+import { GripVertical, Plus, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { TiptapRichTextEditor } from "@/components/common/tiptap-rich-text-editor";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import type { FieldSchema } from "@/features/pages/schema";
@@ -650,6 +657,7 @@ function OfferingSelectField({
   options: FieldsEditorOfferingOption[];
 }) {
   const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const selectedValues = normalizeStringArray(value);
 
   const availableOptions = useMemo(() => {
@@ -671,19 +679,11 @@ function OfferingSelectField({
 
   const selectedOptions = useMemo(() => {
     const optionMap = new Map(options.map((option) => [option.value, option] as const));
-    const query = search.trim().toLowerCase();
 
     return selectedValues
       .map((item) => optionMap.get(item))
-      .filter((item): item is FieldsEditorOfferingOption => Boolean(item))
-      .filter((option) => {
-        if (!query) {
-          return true;
-        }
-
-        return `${option.label} ${option.description ?? ""}`.toLowerCase().includes(query);
-      });
-  }, [options, search, selectedValues]);
+      .filter((item): item is FieldsEditorOfferingOption => Boolean(item));
+  }, [options, selectedValues]);
 
   function addOffering(offeringValue: string) {
     if (!onChange) {
@@ -709,87 +709,101 @@ function OfferingSelectField({
   }
 
   return (
-    <div className="space-y-3 rounded-lg border bg-background p-3">
-      <div className="space-y-2">
-        <p className="text-sm font-medium leading-5">Tìm sản phẩm</p>
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Tìm sản phẩm..."
-          className="w-full"
-        />
-      </div>
-
-      <div className="grid grid-cols-12 gap-3">
-        <div className="col-span-12 space-y-2 lg:col-span-6">
-          <div className="grid min-h-8 content-start gap-2">
-            <p className="text-sm font-medium leading-5">Danh sách sản phẩm</p>
-          </div>
-        <div className="admin-sidebar-scroll h-64 overflow-y-auto rounded-md border">
-          {availableOptions.length ? (
-            availableOptions.map((option) => (
+    <div className="space-y-3">
+      <div className="rounded-md border bg-card p-3">
+        {selectedOptions.length === 0 ? (
+          <p className="mb-3 text-sm text-muted-foreground">Chưa chọn sản phẩm nào.</p>
+        ) : (
+          <div className="mb-3 flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
+            {selectedOptions.map((option) => (
               <div
                 key={option.value}
-                className="flex items-start justify-between gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-muted/60"
+                className="flex items-center justify-between gap-2 rounded-md border bg-secondary/30 px-3 py-2 text-sm transition-colors hover:bg-secondary/50"
               >
-                <span className="space-y-0.5">
-                  <span className="block text-sm font-medium">{option.label}</span>
+                <span className="min-w-0 space-y-0.5">
+                  <span className="block truncate font-medium">{option.label}</span>
                   {option.description ? (
-                    <span className="block text-xs text-muted-foreground">{option.description}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{option.description}</span>
                   ) : null}
                 </span>
                 <Button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 min-w-8 cursor-pointer px-2"
-                  onClick={() => addOffering(option.value)}
-                  aria-label={`Thêm ${option.label}`}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeOffering(option.value)}
+                  aria-label={`Bỏ ${option.label}`}
                 >
-                  <Plus className="size-4" />
+                  <X className="size-4" />
                 </Button>
               </div>
-            ))
-          ) : (
-            <div className="p-3 text-sm text-muted-foreground">Không có sản phẩm phù hợp.</div>
-          )}
-        </div>
-        </div>
+            ))}
+          </div>
+        )}
 
-        <div className="col-span-12 space-y-2 lg:col-span-6">
-          <div className="grid min-h-8 content-start gap-2">
-            <p className="text-sm font-medium leading-5">Đã chọn</p>
-          </div>
-          <div className="admin-sidebar-scroll h-64 overflow-y-auto rounded-md border">
-            {selectedOptions.length ? (
-              selectedOptions.map((option) => (
-                <div
-                  key={option.value}
-                  className="flex items-start justify-between gap-3 border-b px-3 py-2 last:border-b-0 hover:bg-muted/60"
-                >
-                  <span className="space-y-0.5">
-                    <span className="block text-sm font-medium">{option.label}</span>
-                    {option.description ? (
-                      <span className="block text-xs text-muted-foreground">{option.description}</span>
-                    ) : null}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 min-w-8 cursor-pointer px-2"
-                    onClick={() => removeOffering(option.value)}
-                    aria-label={`Bỏ ${option.label}`}
-                  >
-                    <Minus className="size-4" />
-                  </Button>
-                </div>
-              ))
-            ) : (
-              <div className="p-3 text-sm text-muted-foreground">Chưa chọn sản phẩm nào.</div>
-            )}
-          </div>
-        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger
+            render={
+              <Button type="button" variant="outline" className="w-full border-dashed" onClick={() => setSearch("")}>
+                <Plus className="mr-2 size-4" />
+                Thêm sản phẩm
+              </Button>
+            }
+          />
+          <DialogContent className="flex h-[min(42rem,calc(100vh-2rem))] w-[min(44rem,calc(100vw-2rem))] max-w-none grid-rows-none flex-col gap-0 overflow-hidden p-0">
+            <div className="shrink-0 p-6 pb-4">
+              <DialogHeader>
+                <DialogTitle>Chọn sản phẩm</DialogTitle>
+              </DialogHeader>
+              <div className="relative mt-4">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Tìm sản phẩm..."
+                  className="pl-9"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+              <div className="flex flex-col gap-2">
+                {availableOptions.length === 0 ? (
+                  <div className="flex h-full min-h-72 items-center justify-center rounded-md border border-dashed text-center text-sm text-muted-foreground">
+                    Không tìm thấy sản phẩm phù hợp.
+                  </div>
+                ) : (
+                  availableOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className="flex min-h-16 cursor-pointer items-center justify-between gap-3 rounded-md border bg-card p-3 text-left transition-colors hover:bg-accent/50"
+                      onClick={() => addOffering(option.value)}
+                    >
+                      <span className="flex min-w-0 flex-col gap-1">
+                        <span className="truncate font-medium">{option.label}</span>
+                        {option.description ? (
+                          <span className="truncate text-xs text-muted-foreground">{option.description}</span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium">
+                        Chọn
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center justify-between border-t bg-muted/20 p-4">
+              <span className="text-sm text-muted-foreground">
+                Đã chọn {selectedValues.length} sản phẩm
+              </span>
+              <Button type="button" onClick={() => setIsOpen(false)}>Xong</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

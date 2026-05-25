@@ -3,6 +3,7 @@ import { CheckCircle2, ClipboardList, Clock3, Truck } from "lucide-react";
 import { CurrencyInput } from "@/components/common/currency-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminProviderOfferingRequestsTable } from "@/features/provider-offering-submissions/components/admin-provider-offering-requests-table";
@@ -15,6 +16,7 @@ import {
   listOfferingProviderSuppliersForAdmin,
   listSupplierRequestsForAdmin,
   listProviderOfferingSubmissionsForAdmin,
+  listProviderSupplySourcingOfferingsForAdmin,
 } from "@/features/provider-offering-submissions/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { formatVnd } from "@/lib/currency";
@@ -23,10 +25,11 @@ import { ROUTES } from "@/lib/routes";
 export default async function AdminProviderOfferingRequestsPage() {
   await requireAdmin();
 
-  const [submissions, supplierRequests, suppliers] = await Promise.all([
+  const [submissions, supplierRequests, suppliers, sourcingOfferings] = await Promise.all([
     listProviderOfferingSubmissionsForAdmin(),
     listSupplierRequestsForAdmin(),
     listOfferingProviderSuppliersForAdmin(),
+    listProviderSupplySourcingOfferingsForAdmin(),
   ]);
   const uniqueProviders = Array.from(
     new Map(submissions.map((item) => [item.providerId, { id: item.providerId, name: item.providerDisplayName }])).values()
@@ -48,12 +51,74 @@ export default async function AdminProviderOfferingRequestsPage() {
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle>Yêu cầu cung cấp mẫu</CardTitle>
+          <CardTitle>Tìm nguồn hàng từ provider</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 pt-4 lg:grid-cols-[minmax(0,420px)_1fr]">
+          <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SOURCING_ANNOUNCE} method="POST" className="space-y-3 rounded-md border bg-muted/20 p-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sản phẩm cần tìm nguồn</label>
+              <select name="offeringId" required className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+                <option value="">Chọn sản phẩm</option>
+                {sourcingOfferings.map((offering) => (
+                  <option key={offering.id} value={offering.id}>
+                    {offering.name} • {formatVnd(offering.price)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Yêu cầu cần kiểm tra</label>
+              <textarea
+                name="note"
+                className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="Nhập yêu cầu về giá nhập, chất liệu, năng lực/tháng, khu vực, thời gian xử lý..."
+              />
+            </div>
+            <AdminSubmitButton type="submit" className="w-full">
+              Thông báo provider
+            </AdminSubmitButton>
+          </form>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-medium">Sản phẩm</TableHead>
+                  <TableHead className="text-right font-medium">Giá bán</TableHead>
+                  <TableHead className="text-right font-medium">Đang chờ</TableHead>
+                  <TableHead className="text-right font-medium">Đã duyệt</TableHead>
+                  <TableHead className="font-medium">Trạng thái tìm nguồn</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sourcingOfferings.slice(0, 12).map((offering) => (
+                  <TableRow key={offering.id}>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p>{offering.name}</p>
+                        <p className="text-xs text-muted-foreground">/{offering.slug}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">{formatVnd(offering.price)}</TableCell>
+                    <TableCell className="text-right">{offering.openRequestCount}</TableCell>
+                    <TableCell className="text-right">{offering.approvedSupplierCount}</TableCell>
+                    <TableCell>{offering.allowProviderSupply ? "Đang mở cho provider" : "Chưa mở"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Provider đăng ký nhận nguồn hàng</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           {supplierRequests.length === 0 ? (
             <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              Chưa có provider nào xin cung cấp mẫu có sẵn.
+              Chưa có provider nào gửi thông tin nhận nguồn hàng.
             </div>
           ) : (
             <div className="rounded-md border">
