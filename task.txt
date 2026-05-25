@@ -1,5 +1,2 @@
 fix size input mobile
-Nguồn hàng / chủ sở hữu -> chưa add đúng provider (tôi muốn nó tự động)
-admin hiện chưa có kiểu thông báo có sản phẩm cần tim nguồn hàng sẽ thông báo cho các provider ai muốn nhận sẽ lên danh sách rồi tôi sẽ approve cho 1 người, tôi cần kiểm tra trước ai đáp ứng đủ nhu cầu nên cần check nhiều bên.
-cấu trúc lại edit sản phẩm: tôi muốn thông tin riêng, phàn các giá trị riêng kiểu như wordpress, thì phần giá, kho ,... sẽ quản lý theo dạng menubox sẽ nhìn gọn hơn. (sản phẩm vật lý) - handle cho trường hợp vì nhiều type sản phẩm khác nhau nên 1 tab riêng để cho nó cũng hay. làm sao nhìn gọn clear rõ ràng nhất
-
+Offering Types làm CRUD giống Offering product

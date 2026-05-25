@@ -291,7 +291,7 @@ export function OfferingEditorForm({
           <CardHeader className="border-b gap-0 pb-0">
             <CardTitle>{isGeneralOffering ? "Thông tin sản phẩm" : "Thông tin mẫu chuẩn"}</CardTitle>
           </CardHeader>
-                              <CardContent className="space-y-5">
+          <CardContent className="space-y-5 pt-5">
                                 <div className="grid gap-5 md:grid-cols-2">
                                   <div className="space-y-2">
                                     <label className="font-medium text-sm">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
@@ -590,7 +590,7 @@ export function OfferingEditorForm({
             <CardHeader className="border-b gap-0 pb-0">
               <CardTitle>Thông số: {offeringTypeDefinition.label}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-8 pt-5">
               <div className="grid gap-5 grid-cols-1">
                 <DynamicOfferingFields
                   offeringType={offeringTypeDefinition}
@@ -635,7 +635,7 @@ export function OfferingEditorForm({
 
             {canDeleteOffering ? (
               <div className="border-t pt-4">
-                <AdminDeleteButton className="mt-4 w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
+                <AdminDeleteButton className="w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
                   {isDeleting ? "Đang xóa..." : "Xóa sản phẩm"}
                 </AdminDeleteButton>
               </div>
