@@ -4,8 +4,8 @@ import { Pencil } from "lucide-react";
 
 import { AddressDetails } from "@/components/common/address-editor-form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserAddressById } from "@/features/account/server/address-service";
+import { ProviderPage, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { ROUTES } from "@/lib/routes";
@@ -30,10 +30,10 @@ export default async function ProviderAddressDetailPage({
   const encodedReturnTo = encodeURIComponent(returnTo);
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <Card>
-        <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <CardTitle>Chi tiết địa chỉ provider</CardTitle>
+    <ProviderPage>
+      <ProviderSectionCard
+        title="Chi tiết địa chỉ provider"
+        actions={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
             <Button
@@ -46,11 +46,10 @@ export default async function ProviderAddressDetailPage({
               }
             />
           </div>
-        </CardHeader>
-        <CardContent>
-          <AddressDetails address={address} />
-        </CardContent>
-      </Card>
-    </section>
+        }
+      >
+        <AddressDetails address={address} />
+      </ProviderSectionCard>
+    </ProviderPage>
   );
 }

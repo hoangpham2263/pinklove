@@ -3,6 +3,7 @@ import { CircleDollarSign, PackageCheck, PackagePlus, ShoppingBag, UserRound } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProviderActionLinkTile, ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
+import { ProviderEmptyState, ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { ProviderRevenueLineChart } from "@/features/provider-orders/components/provider-revenue-line-chart";
 import { countProviderAssignmentsForProvider, listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
 import { getUserProfile, requireProvider } from "@/lib/auth";
@@ -104,16 +105,12 @@ export default async function ProviderDashboardPage() {
   }));
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-4 rounded-md border bg-background p-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard provider</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Workspace của {providerName} trong {settings.branding.siteName}. Giao diện dùng cùng layout quản trị để provider theo dõi đơn, sản phẩm và cấu hình tài khoản.
-          </p>
-        </div>
-        <ProviderLinkButton href={portalHref}>Mở portal công khai</ProviderLinkButton>
-      </div>
+    <ProviderPage>
+      <ProviderPageHeader
+        title="Dashboard provider"
+        description={`Workspace của ${providerName} trong ${settings.branding.siteName}. Theo dõi đơn, sản phẩm, doanh thu liên quan và cấu hình tài khoản.`}
+        actions={<ProviderLinkButton href={portalHref}>Mở portal công khai</ProviderLinkButton>}
+      />
 
       <ProviderOverviewGrid className="xl:grid-cols-4">
         <ProviderOverviewCard title="Doanh thu liên quan 30 ngày" value={formatCompactVnd(paidRevenue30d)} description={formatVnd(paidRevenue30d)} icon={CircleDollarSign} />
@@ -147,7 +144,7 @@ export default async function ProviderDashboardPage() {
                 <p className="mt-1 text-muted-foreground">{entry.order.customerName}</p>
               </div>
             ))}
-            {assignments.length === 0 ? <p className="text-sm text-muted-foreground">Chưa có đơn được giao.</p> : null}
+            {assignments.length === 0 ? <ProviderEmptyState className="p-4">Chưa có đơn được giao.</ProviderEmptyState> : null}
             <ProviderActionLinkTile href={ROUTES.PROVIDER.ORDERS} label="Mở tất cả đơn" showArrow />
           </CardContent>
         </Card>
@@ -178,6 +175,6 @@ export default async function ProviderDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </section>
+    </ProviderPage>
   );
 }

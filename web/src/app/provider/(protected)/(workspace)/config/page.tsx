@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProviderConfigSectionsHub } from "@/features/provider-orders/components/provider-config-sections-hub";
+import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
+import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
@@ -33,52 +34,20 @@ export default async function ProviderConfigPage() {
   const totalItems = CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0);
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Configuration</h1>
-          <p className="text-muted-foreground">Trung tâm cấu hình tài khoản, vận hành và địa chỉ của provider.</p>
-        </div>
-      </div>
+    <ProviderPage>
+      <ProviderPageHeader
+        title="Cấu hình"
+        description="Trung tâm cấu hình tài khoản, vận hành và địa chỉ của provider."
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Total Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{totalItems}</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Provider Account</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">Ready</p>
-            <p className="text-muted-foreground">Quản lý trong Configs</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Address Book</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">On</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Scope</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">Provider</p>
-            <p className="text-muted-foreground">Không gian đối tác</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ProviderOverviewGrid>
+        <ProviderOverviewCard title="Mục cấu hình" value={totalItems} description="Các khu vực đang bật" />
+        <ProviderOverviewCard title="Tài khoản provider" value="Sẵn sàng" description="Thông tin cửa hàng và vận hành" />
+        <ProviderOverviewCard title="Địa chỉ" value="Đang dùng" description="Giao nhận, lấy hàng, hoàn hàng" />
+        <ProviderOverviewCard title="Phạm vi" value="Provider" description="Không gian đối tác" />
+      </ProviderOverviewGrid>
 
       <ProviderConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
-    </section>
+    </ProviderPage>
   );
 }

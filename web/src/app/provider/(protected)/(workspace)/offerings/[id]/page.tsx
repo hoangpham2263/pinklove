@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { listAllOfferingCategories } from "@/features/offerings/server/service";
+import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { ProviderOfferingSubmissionForm } from "@/features/provider-offering-submissions/components/provider-offering-submission-form";
 import { getProviderOfferingSubmissionDetailForProvider, listLiveOfferingsForProviderSubmissions } from "@/features/provider-offering-submissions/server/service";
 
@@ -29,36 +30,32 @@ export default async function ProviderOfferingDetailPage({ params }: { params: P
   }
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="space-y-5">
-        <div className="rounded-md border bg-background p-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Yêu cầu sản phẩm</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Theo dõi và chỉnh sửa hồ sơ trước khi gửi duyệt hoặc khi admin yêu cầu bổ sung.
-          </p>
-        </div>
-        <ProviderOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />
+    <ProviderPage>
+      <ProviderPageHeader
+        title="Yêu cầu sản phẩm"
+        description="Theo dõi và chỉnh sửa hồ sơ trước khi gửi duyệt hoặc khi admin yêu cầu bổ sung."
+      />
+      <ProviderOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />
 
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold">Lịch sử review</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-5">
-            {detail.events.map((event) => (
-              <div key={event.id} className="rounded-md border p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium">{event.message}</p>
-                  <p className="text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p>
-                </div>
-                <p className="mt-1 text-muted-foreground">
-                  {event.actorType}
-                  {event.actorUsername ? ` • ${event.actorUsername}` : ""}
-                </p>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle className="text-base font-semibold">Lịch sử review</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-5">
+          {detail.events.map((event) => (
+            <div key={event.id} className="rounded-md border p-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-medium">{event.message}</p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    </section>
+              <p className="mt-1 text-muted-foreground">
+                {event.actorType}
+                {event.actorUsername ? ` • ${event.actorUsername}` : ""}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </ProviderPage>
   );
 }

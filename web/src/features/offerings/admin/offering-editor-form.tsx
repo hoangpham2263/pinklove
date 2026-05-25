@@ -47,6 +47,14 @@ type OfferingEditorFormProps = {
   returnTo?: string;
 };
 
+type ProductEditorTab = "commerce" | "source" | "relations";
+
+const PRODUCT_EDITOR_TABS: Array<{ key: ProductEditorTab; label: string; description: string }> = [
+  { key: "commerce", label: "Giá & kho", description: "Giá bán, giá nhập, tồn kho" },
+  { key: "source", label: "Nguồn hàng", description: "Provider, supplier request" },
+  { key: "relations", label: "Liên kết", description: "Bán chéo và bán kèm" },
+];
+
 function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
   switch (value) {
     case "digital":
@@ -82,6 +90,7 @@ export function OfferingEditorForm({
   const [ownerType, setOwnerType] = useState<"internal" | "provider">(offering.ownerType);
   const [ownerProviderId, setOwnerProviderId] = useState(offering.ownerProviderId || "");
   const [allowProviderSupply, setAllowProviderSupply] = useState(offering.allowProviderSupply);
+  const [activeProductTab, setActiveProductTab] = useState<ProductEditorTab>("commerce");
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
   );
@@ -279,266 +288,357 @@ export function OfferingEditorForm({
       <input type="hidden" name="templateKey" value={offering.templateKey} />
 
       <Card className="min-w-0 overflow-visible rounded-lg lg:col-span-9">
-        <CardHeader>
-          <CardTitle>{isGeneralOffering ? "Thông tin sản phẩm" : "Thông tin mẫu chuẩn"}</CardTitle>
+        <CardHeader className="border-b">
+          <CardTitle>{isGeneralOffering ? "Chi tiết sản phẩm" : "Thông tin mẫu chuẩn"}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
-              <Input
-                name="name"
-                value={name}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setName(next);
-                  setSlug(slugify(next));
-                }}
-              />
-            </div>
-
-            {offeringTypeDefinition ? (
-              <DynamicOfferingFields
-                offeringType={offeringTypeDefinition}
-                values={customFields}
-                onChange={setCustomFields}
-              />
-            ) : null}
-            <div className="space-y-2">
-              <label className="font-medium">Slug</label>
-              <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">Danh mục</label>
-              <select
-                name="categoryId"
-                defaultValue={offering.categoryId ?? ""}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-              >
-                <option value="">Không chọn danh mục</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {!isGeneralOffering ? (
-              <div className="space-y-2">
-                <label className="font-medium">Template source</label>
-                <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                  {offering.templateKey}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Source của mẫu chuẩn đã bị khóa. Chỉ chỉnh nội dung, dữ liệu mặc định và trạng thái hiển thị.
-                </p>
+        <CardContent className="space-y-5 pt-5">
+          <section className="space-y-5">
+            <div className="rounded-md border bg-background">
+              <div className="border-b px-4 py-3">
+                <h3 className="font-semibold">Thông tin riêng</h3>
+                <p className="text-sm text-muted-foreground">Các trường nhận diện và nội dung hiển thị của sản phẩm.</p>
               </div>
-            ) : null}
-
-            {isGeneralOffering ? (
-              <>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="font-medium">Provider supplier requests</label>
-                  <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                    <input
-                      type="checkbox"
-                      name="allowProviderSupply"
-                      checked={allowProviderSupply}
-                      onChange={(e) => setAllowProviderSupply(e.target.checked)}
-                      className="mt-1 rounded border-input"
-                    />
-                    <span className="space-y-1">
-                      <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
-                      <span className="block text-sm text-muted-foreground">
-                        Chỉ bật cho mẫu/sản phẩm đã sẵn sàng review supplier. Provider sẽ thấy mục này trong portal.
-                      </span>
-                    </span>
-                  </label>
+              <div className="grid gap-4 p-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="font-medium">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
+                  <Input
+                    name="name"
+                    value={name}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setName(next);
+                      setSlug(slugify(next));
+                    }}
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="font-medium">Nguồn hàng / chủ sở hữu</label>
+                  <label className="font-medium">Slug</label>
+                  <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-medium">Danh mục</label>
                   <select
-                    name="ownerType"
-                    value={ownerType}
-                    onChange={(e) => setOwnerType(e.target.value === "provider" ? "provider" : "internal")}
+                    name="categoryId"
+                    defaultValue={offering.categoryId ?? ""}
                     className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
-                    <option value="internal">Sản phẩm của tôi / nội bộ</option>
-                    <option value="provider">Sản phẩm của provider</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="font-medium">Provider</label>
-                  <select
-                    name="ownerProviderId"
-                    value={ownerProviderId}
-                    onChange={(e) => setOwnerProviderId(e.target.value)}
-                    disabled={ownerType !== "provider"}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
-                  >
-                    <option value="">Chọn provider</option>
-                    {providers.map((provider) => (
-                      <option key={provider.id} value={provider.id}>
-                        {provider.displayName || provider.display_name || provider.fullName || provider.username}
+                    <option value="">Không chọn danh mục</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
                       </option>
                     ))}
                   </select>
                 </div>
-              </>
-            ) : null}
 
-            <div className="space-y-2">
-              <label className="font-medium">Hình thức bàn giao</label>
-              {isGeneralOffering ? (
-                <select
-                  name="fulfillmentType"
-                  value={fulfillmentType}
-                  onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                >
-                  <option value="digital">Sản phẩm online - Nhận qua link/file</option>
-                  <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
-                  <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
-                </select>
-              ) : (
-                <>
-                  <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
-                  <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                    {getFulfillmentTypeLabel(offering.fulfillmentType)}
+                <div className="space-y-2">
+                  <label className="font-medium">Hình thức bàn giao</label>
+                  {isGeneralOffering ? (
+                    <select
+                      name="fulfillmentType"
+                      value={fulfillmentType}
+                      onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
+                      className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                    >
+                      <option value="digital">Sản phẩm online - Nhận qua link/file</option>
+                      <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                      <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
+                    </select>
+                  ) : (
+                    <>
+                      <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
+                      <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                        {getFulfillmentTypeLabel(offering.fulfillmentType)}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {!isGeneralOffering ? (
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="font-medium">Template source</label>
+                    <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                      {offering.templateKey}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Source của mẫu chuẩn đã bị khóa. Chỉ chỉnh nội dung, dữ liệu mặc định và trạng thái hiển thị.
+                    </p>
                   </div>
-                </>
-              )}
+                ) : null}
+              </div>
             </div>
 
-            {isGeneralOffering ? (
-              <>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="font-medium">Theo dõi tồn kho</label>
-                  <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                    <input
-                      type="checkbox"
-                      name="trackInventory"
-                      checked={trackInventory}
-                      onChange={(e) => setTrackInventory(e.target.checked)}
-                      className="mt-1 rounded border-input"
-                    />
-                    <span className="space-y-1">
-                      <span className="block font-medium">Bật quản lý kho cho sản phẩm này</span>
-                      <span className="block text-sm text-muted-foreground">Khi bật, checkout sẽ kiểm tra số lượng tồn và trừ kho sau khi tạo đơn.</span>
-                    </span>
-                  </label>
+            {offeringTypeDefinition ? (
+              <div className="rounded-md border bg-background">
+                <div className="border-b px-4 py-3">
+                  <h3 className="font-semibold">Giá trị riêng theo loại sản phẩm</h3>
+                  <p className="text-sm text-muted-foreground">Field động của type: {offeringTypeDefinition.label}.</p>
+                </div>
+                <div className="grid gap-4 p-4 md:grid-cols-2">
+                  <DynamicOfferingFields
+                    offeringType={offeringTypeDefinition}
+                    values={customFields}
+                    onChange={setCustomFields}
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="rounded-md border bg-background">
+              <div className="border-b px-4 py-3">
+                <h3 className="font-semibold">Nội dung mô tả</h3>
+              </div>
+              <div className="space-y-4 p-4">
+                <div className="space-y-2">
+                  <label className="font-medium">Mô tả ngắn</label>
+                  <textarea
+                    name="excerpt"
+                    defaultValue={offering.excerpt}
+                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  />
                 </div>
 
-                <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <label className="font-medium">Tồn kho hiện tại</label>
-                    <Input
-                      name="stockQuantity"
-                      type="number"
-                      min={allowBackorder ? undefined : 0}
-                      value={stockQuantity}
-                      disabled={!trackInventory}
-                      onChange={(e) => setStockQuantity(Number(e.target.value || "0"))}
-                    />
+                <div className="space-y-2">
+                  <label className="font-medium">Mô tả chi tiết</label>
+                  <textarea
+                    name="description"
+                    defaultValue={offering.description}
+                    className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {isGeneralOffering ? (
+            <>
+              <div className="overflow-hidden rounded-md border bg-background">
+                <div className="border-b px-4 py-3">
+                  <h3 className="font-semibold">Cấu hình bán hàng</h3>
+                  <p className="text-sm text-muted-foreground">Các metabox vận hành riêng cho sản phẩm này.</p>
+                </div>
+                <div className="grid min-h-[28rem] lg:grid-cols-[220px_minmax(0,1fr)]">
+                  <div className="border-b bg-muted/20 p-3 lg:border-r lg:border-b-0">
+                    <div className="grid gap-1">
+                      {PRODUCT_EDITOR_TABS.map((tab) => {
+                        const active = activeProductTab === tab.key;
+                        return (
+                          <button
+                            key={tab.key}
+                            type="button"
+                            className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                              active
+                                ? "border-primary/20 bg-background shadow-sm"
+                                : "border-transparent hover:border-border hover:bg-background/70"
+                            }`}
+                            onClick={() => setActiveProductTab(tab.key)}
+                          >
+                            <span className="block font-medium">{tab.label}</span>
+                            <span className="block text-xs text-muted-foreground">{tab.description}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Ngưỡng cảnh báo thấp</label>
-                    <Input
-                      name="lowStockThreshold"
-                      type="number"
-                      min="0"
-                      value={lowStockThreshold}
-                      disabled={!trackInventory}
-                      onChange={(e) => setLowStockThreshold(Math.max(0, Number(e.target.value || "0")))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Cho phép backorder</label>
-                    <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                      <input
-                        type="checkbox"
-                        name="allowBackorder"
-                        checked={allowBackorder}
-                        disabled={!trackInventory}
-                        onChange={(e) => setAllowBackorder(e.target.checked)}
-                        className="mt-1 rounded border-input"
-                      />
-                      <span className="block text-sm text-muted-foreground">Cho phép đơn đi tiếp kể cả khi tồn kho không đủ.</span>
-                    </label>
+
+                  <div className="min-w-0 p-4">
+                    <section className={activeProductTab !== "commerce" ? "hidden" : "space-y-5"}>
+                      <div className="rounded-md border bg-background">
+                        <div className="border-b px-4 py-3">
+                          <h3 className="font-semibold">Giá</h3>
+                          <p className="text-sm text-muted-foreground">Giá bán và giá nhập phục vụ tính biên lợi nhuận.</p>
+                        </div>
+                        <div className="grid gap-4 p-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <label className="font-medium">Giá bán</label>
+                            <CurrencyInput name="price" defaultValue={offering.price} />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="font-medium">Giá nhập</label>
+                            <CurrencyInput
+                              name="costPrice"
+                              value={costPrice}
+                              onValueChange={setCostPrice}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border bg-background">
+                        <div className="border-b px-4 py-3">
+                          <h3 className="font-semibold">Kho</h3>
+                          <p className="text-sm text-muted-foreground">Dùng cho sản phẩm vật lý hoặc sản phẩm có giới hạn số lượng.</p>
+                        </div>
+                        <div className="space-y-4 p-4">
+                          <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                            <input
+                              type="checkbox"
+                              name="trackInventory"
+                              checked={trackInventory}
+                              onChange={(e) => setTrackInventory(e.target.checked)}
+                              className="mt-1 rounded border-input"
+                            />
+                            <span className="space-y-1">
+                              <span className="block font-medium">Bật quản lý kho cho sản phẩm này</span>
+                              <span className="block text-sm text-muted-foreground">Khi bật, checkout sẽ kiểm tra số lượng tồn và trừ kho sau khi tạo đơn.</span>
+                            </span>
+                          </label>
+
+                          <div className="grid gap-4 md:grid-cols-3">
+                            <div className="space-y-2">
+                              <label className="font-medium">Tồn kho hiện tại</label>
+                              <Input
+                                name="stockQuantity"
+                                type="number"
+                                min={allowBackorder ? undefined : 0}
+                                value={stockQuantity}
+                                disabled={!trackInventory}
+                                onChange={(e) => setStockQuantity(Number(e.target.value || "0"))}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="font-medium">Ngưỡng cảnh báo thấp</label>
+                              <Input
+                                name="lowStockThreshold"
+                                type="number"
+                                min="0"
+                                value={lowStockThreshold}
+                                disabled={!trackInventory}
+                                onChange={(e) => setLowStockThreshold(Math.max(0, Number(e.target.value || "0")))}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="font-medium">Cho phép backorder</label>
+                              <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                                <input
+                                  type="checkbox"
+                                  name="allowBackorder"
+                                  checked={allowBackorder}
+                                  disabled={!trackInventory}
+                                  onChange={(e) => setAllowBackorder(e.target.checked)}
+                                  className="mt-1 rounded border-input"
+                                />
+                                <span className="block text-sm text-muted-foreground">Cho phép đơn đi tiếp kể cả khi tồn kho không đủ.</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className={activeProductTab !== "source" ? "hidden" : "space-y-5"}>
+                      <div className="rounded-md border bg-background">
+                        <div className="border-b px-4 py-3">
+                          <h3 className="font-semibold">Chủ sở hữu nguồn hàng</h3>
+                          <p className="text-sm text-muted-foreground">Gán nguồn nội bộ hoặc provider ecosystem entity.</p>
+                        </div>
+                        <div className="grid gap-4 p-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <label className="font-medium">Nguồn hàng / chủ sở hữu</label>
+                            <select
+                              name="ownerType"
+                              value={ownerType}
+                              onChange={(e) => setOwnerType(e.target.value === "provider" ? "provider" : "internal")}
+                              className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                            >
+                              <option value="internal">Sản phẩm của tôi / nội bộ</option>
+                              <option value="provider">Sản phẩm của provider</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="font-medium">Provider</label>
+                            <select
+                              name="ownerProviderId"
+                              value={ownerProviderId}
+                              onChange={(e) => setOwnerProviderId(e.target.value)}
+                              disabled={ownerType !== "provider"}
+                              className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
+                            >
+                              <option value="">Chọn provider</option>
+                              {providers.map((provider) => (
+                                <option key={provider.id} value={provider.id}>
+                                  {provider.displayName || provider.display_name || provider.fullName || provider.username}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <label className="font-medium">Provider SKU</label>
+                            <Input
+                              name="providerSku"
+                              value={providerSku}
+                              onChange={(e) => setProviderSku(e.target.value)}
+                              placeholder="Mã nội bộ phía provider"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border bg-background">
+                        <div className="border-b px-4 py-3">
+                          <h3 className="font-semibold">Tìm provider cung cấp</h3>
+                          <p className="text-sm text-muted-foreground">Mở sản phẩm cho provider gửi báo giá và năng lực cung cấp.</p>
+                        </div>
+                        <div className="p-4">
+                          <label className="flex items-start gap-3 rounded-md border bg-card p-3">
+                            <input
+                              type="checkbox"
+                              name="allowProviderSupply"
+                              checked={allowProviderSupply}
+                              onChange={(e) => setAllowProviderSupply(e.target.checked)}
+                              className="mt-1 rounded border-input"
+                            />
+                            <span className="space-y-1">
+                              <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
+                              <span className="block text-sm text-muted-foreground">
+                                Chỉ bật cho sản phẩm đã sẵn sàng review supplier. Provider sẽ thấy mục này trong portal.
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className={activeProductTab !== "relations" ? "hidden" : "space-y-5"}>
+                      <div className="rounded-md border bg-background">
+                        <div className="border-b px-4 py-3">
+                          <h3 className="font-semibold">Quan hệ bán hàng</h3>
+                          <p className="text-sm text-muted-foreground">Sản phẩm bán chéo và sản phẩm bán kèm.</p>
+                        </div>
+                        <div className="grid gap-4 p-4 lg:grid-cols-2">
+                          <OfferingSearchSelect
+                            name="crossSells"
+                            options={allOfferings}
+                            defaultValue={offering.crossSells?.map((o) => o.id) ?? []}
+                            label="Sản phẩm bán chéo (Cross-sell)"
+                            description="Hiển thị ở trang giỏ hàng hoặc chi tiết sản phẩm."
+                            excludeId={offering.id}
+                          />
+                          <OfferingSearchSelect
+                            name="upsells"
+                            options={allOfferings}
+                            defaultValue={offering.upsells?.map((o) => o.id) ?? []}
+                            label="Sản phẩm bán kèm (Upsell)"
+                            description="Sản phẩm cao cấp hơn hoặc nâng cấp, thay thế cho sản phẩm hiện tại."
+                            excludeId={offering.id}
+                          />
+                        </div>
+                      </div>
+                    </section>
                   </div>
                 </div>
-
-                <div className="grid gap-4 md:col-span-2 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="font-medium">Giá nhập</label>
-                    <CurrencyInput
-                      name="costPrice"
-                      value={costPrice}
-                      onValueChange={setCostPrice}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="font-medium">Provider SKU</label>
-                    <Input
-                      name="providerSku"
-                      value={providerSku}
-                      onChange={(e) => setProviderSku(e.target.value)}
-                      placeholder="Mã nội bộ phía provider"
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <input type="hidden" name="stockQuantity" value="0" />
-                <input type="hidden" name="lowStockThreshold" value="0" />
-                <input type="hidden" name="costPrice" value="0" />
-                <input type="hidden" name="providerSku" value="" />
-              </>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="font-medium">Mô tả ngắn</label>
-            <textarea
-              name="excerpt"
-              defaultValue={offering.excerpt}
-              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="font-medium">Mô tả chi tiết</label>
-            <textarea
-              name="description"
-              defaultValue={offering.description}
-              className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-            />
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2 pt-4 border-t">
-            <OfferingSearchSelect
-              name="crossSells"
-              options={allOfferings}
-              defaultValue={offering.crossSells?.map((o) => o.id) ?? []}
-              label="Sản phẩm bán chéo (Cross-sell)"
-              description="Hiển thị ở trang giỏ hàng hoặc chi tiết sản phẩm."
-              excludeId={offering.id}
-            />
-            <OfferingSearchSelect
-              name="upsells"
-              options={allOfferings}
-              defaultValue={offering.upsells?.map((o) => o.id) ?? []}
-              label="Sản phẩm bán kèm (Upsell)"
-              description="Sản phẩm cao cấp hơn hoặc nâng cấp, thay thế cho sản phẩm hiện tại."
-              excludeId={offering.id}
-            />
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <input type="hidden" name="stockQuantity" value="0" />
+              <input type="hidden" name="lowStockThreshold" value="0" />
+              <input type="hidden" name="costPrice" value="0" />
+              <input type="hidden" name="providerSku" value="" />
+            </>
+          )}
 
           {templateFields.length > 0 ? (
             <div className="space-y-3 border-t pt-4">
@@ -577,10 +677,12 @@ export function OfferingEditorForm({
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="font-medium">Giá</label>
-              <CurrencyInput name="price" defaultValue={offering.price} />
-            </div>
+            {!isGeneralOffering ? (
+              <div className="space-y-2">
+                <label className="font-medium">Giá</label>
+                <CurrencyInput name="price" defaultValue={offering.price} />
+              </div>
+            ) : null}
 
             <AdminSubmitButton className="w-full rounded-md" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu sản phẩm"}

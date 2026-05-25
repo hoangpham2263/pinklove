@@ -1,6 +1,7 @@
 import { PageToast } from "@/components/common/page-toast";
 import { AddressBookManager } from "@/components/common/address-book-manager";
 import { listUserAddresses } from "@/features/account/server/address-service";
+import { ProviderPage } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
@@ -14,7 +15,7 @@ export default async function ProviderConfigAddressesPage({
   const addresses = await listUserAddresses(provider.id);
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+    <ProviderPage>
       {query.addressesSaved ? (
         <PageToast message="Đã cập nhật cấu hình địa chỉ provider." variant="success" cleanupKeys={["addressesSaved"]} />
       ) : null}
@@ -30,6 +31,6 @@ export default async function ProviderConfigAddressesPage({
         title="Địa chỉ provider"
         description="Danh sách địa chỉ dùng chung cho giao nhận, lấy hàng, hoàn hàng và các luồng cần địa chỉ của provider."
       />
-    </section>
+    </ProviderPage>
   );
 }
