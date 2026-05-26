@@ -5,7 +5,7 @@ import { createAdminNotification } from "@/features/notifications/server/service
 import { getOfferingById } from "@/features/offerings/server/service";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
-import { getProviderByUserId } from "@/features/providers/server/service";
+import { getProviderByUserId, upsertProviderServiceForOffering } from "@/features/providers/server/service";
 import { formatVnd } from "@/lib/currency";
 import type {
   ProviderOfferingReviewStatus,
@@ -1833,6 +1833,23 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
         providerSku: submission.provider_sku,
         monthlyCapacity: toInteger(submission.proposed_stock_quantity),
         qualityNote: submission.provider_note,
+      });
+    }
+
+    if (nextLinkedOfferingId && ownerProviderId && submission.submission_type !== "discontinue") {
+      await upsertProviderServiceForOffering({
+        providerId: ownerProviderId,
+        offeringId: nextLinkedOfferingId,
+        title: submission.name,
+        fulfillmentType: submission.fulfillment_type,
+        status: "active",
+        basePrice: adminSellPrice,
+        metadata: {
+          source: "provider_offering_submission",
+          submission_id: input.submissionId,
+          provider_type: ownerProviderType,
+        },
+        execute,
       });
     }
 

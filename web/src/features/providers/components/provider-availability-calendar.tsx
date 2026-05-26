@@ -12,11 +12,18 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { ProviderAvailabilityRule } from "@/features/providers/server/availability";
+import {
+  getProviderAvailabilityKindEventColors,
+  getProviderAvailabilityKindLabel,
+  PROVIDER_AVAILABILITY_KIND_OPTIONS,
+  type ProviderAvailabilityKind,
+} from "@/features/providers/config/availability";
+import type { ProviderAvailabilityRule, ProviderSchedulableService } from "@/features/providers/server/availability";
 import { providerApi } from "@/lib/api-client.provider";
 
 type ProviderAvailabilityCalendarProps = {
   rules: ProviderAvailabilityRule[];
+  services: ProviderSchedulableService[];
 };
 
 const STATUS_LABELS: Record<ProviderAvailabilityRule["status"], string> = {
@@ -29,21 +36,11 @@ function formatTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-function getEventColors(status: ProviderAvailabilityRule["status"]) {
-  if (status === "blocked") {
-    return { backgroundColor: "#fee2e2", borderColor: "#ef4444", textColor: "#991b1b" };
-  }
-
-  if (status === "unavailable") {
-    return { backgroundColor: "#f1f5f9", borderColor: "#94a3b8", textColor: "#475569" };
-  }
-
-  return { backgroundColor: "#dcfce7", borderColor: "#22c55e", textColor: "#166534" };
-}
-
 function buildFormData(input: {
   intent: "save" | "update" | "delete";
   ruleId?: string;
+  serviceScope?: string;
+  availabilityKind?: ProviderAvailabilityKind;
   dayOfWeek?: number;
   startsAt?: string;
   endsAt?: string;
@@ -54,6 +51,14 @@ function buildFormData(input: {
   formData.set("intent", input.intent);
 
   if (input.ruleId) formData.set("ruleId", input.ruleId);
+  if (input.serviceScope) {
+    if (input.serviceScope.startsWith("ps:")) {
+      formData.set("providerServiceId", input.serviceScope.slice(3));
+    } else if (input.serviceScope.startsWith("off:")) {
+      formData.set("offeringId", input.serviceScope.slice(4));
+    }
+  }
+  if (input.availabilityKind) formData.set("availabilityKind", input.availabilityKind);
   if (input.dayOfWeek !== undefined) formData.set("dayOfWeek", String(input.dayOfWeek));
   if (input.startsAt) formData.set("startsAt", input.startsAt);
   if (input.endsAt) formData.set("endsAt", input.endsAt);
@@ -63,10 +68,22 @@ function buildFormData(input: {
   return formData;
 }
 
-export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCalendarProps) {
+function getServiceScopeValue(rule: ProviderAvailabilityRule) {
+  if (rule.providerServiceId) return `ps:${rule.providerServiceId}`;
+  if (rule.offeringId) return `off:${rule.offeringId}`;
+  return "";
+}
+
+function getServiceLabel(rule: ProviderAvailabilityRule) {
+  return rule.serviceTitle || rule.offeringName || "Không gắn dịch vụ";
+}
+
+export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvailabilityCalendarProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [editingRule, setEditingRule] = useState<ProviderAvailabilityRule | null>(null);
+  const [draftServiceScope, setDraftServiceScope] = useState("");
+  const [draftAvailabilityKind, setDraftAvailabilityKind] = useState<ProviderAvailabilityKind>("general");
 
   const events = useMemo<EventInput[]>(
     () =>
@@ -74,7 +91,7 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
         .filter((rule) => rule.dayOfWeek !== null && rule.startsAt && rule.endsAt)
         .map((rule) => ({
           id: rule.id,
-          title: `${STATUS_LABELS[rule.status]} • ${rule.capacity}`,
+          title: `${getProviderAvailabilityKindLabel(rule.availabilityKind)} • ${getServiceLabel(rule)} • ${STATUS_LABELS[rule.status]} • ${rule.capacity}`,
           daysOfWeek: [String(rule.dayOfWeek)],
           startTime: rule.startsAt ?? undefined,
           endTime: rule.endsAt ?? undefined,
@@ -83,8 +100,9 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
           extendedProps: {
             capacity: rule.capacity,
             status: rule.status,
+            availabilityKind: rule.availabilityKind,
           },
-          ...getEventColors(rule.status),
+          ...getProviderAvailabilityKindEventColors(rule.availabilityKind),
         })),
     [rules]
   );
@@ -116,6 +134,8 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
     await submitAvailability(
       buildFormData({
         intent: "save",
+        serviceScope: draftServiceScope,
+        availabilityKind: draftAvailabilityKind,
         dayOfWeek: selection.start.getDay(),
         startsAt,
         endsAt,
@@ -131,6 +151,7 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
     const endsAt = event.end ? formatTime(event.end) : "";
     const status = event.extendedProps.status as ProviderAvailabilityRule["status"] | undefined;
     const capacity = Number(event.extendedProps.capacity ?? 1);
+    const currentRule = rules.find((item) => item.id === event.id);
 
     if (!event.start || !event.end || startsAt >= endsAt || !status) {
       info.revert();
@@ -142,6 +163,8 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
       buildFormData({
         intent: "update",
         ruleId: event.id,
+        serviceScope: currentRule ? getServiceScopeValue(currentRule) : "",
+        availabilityKind: currentRule?.availabilityKind ?? "general",
         dayOfWeek: event.start.getDay(),
         startsAt,
         endsAt,
@@ -170,6 +193,8 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
       buildFormData({
         intent: "update",
         ruleId: editingRule.id,
+        serviceScope: String(values.get("serviceScope") ?? getServiceScopeValue(editingRule)),
+        availabilityKind: String(values.get("availabilityKind") ?? editingRule.availabilityKind) as ProviderAvailabilityKind,
         dayOfWeek: Number(values.get("dayOfWeek") ?? editingRule.dayOfWeek ?? 0),
         startsAt: String(values.get("startsAt") ?? editingRule.startsAt ?? ""),
         endsAt: String(values.get("endsAt") ?? editingRule.endsAt ?? ""),
@@ -199,12 +224,42 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
   }
 
   return (
-    <div className="provider-availability-calendar relative min-h-[640px]">
+    <div className="provider-availability-calendar relative min-h-[640px] space-y-3">
       {saving ? (
         <div className="absolute right-3 top-3 z-10 rounded-md border bg-background px-3 py-1.5 text-xs font-medium shadow-sm">
           Đang lưu...
         </div>
       ) : null}
+      <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/20 p-3">
+        <select
+          value={draftServiceScope}
+          onChange={(event) => setDraftServiceScope(event.target.value)}
+          aria-label="Dịch vụ áp dụng khi kéo thả"
+          className="h-9 w-full rounded-md border bg-background px-3 text-sm md:w-72"
+        >
+          <option value="">{services.length === 0 ? "Chưa có dịch vụ được gán" : "Không gắn dịch vụ"}</option>
+          {services.map((service) => {
+            const value = service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+            return (
+              <option key={value} value={value}>
+                {service.title || service.offeringName}
+              </option>
+            );
+          })}
+        </select>
+        <select
+          value={draftAvailabilityKind}
+          onChange={(event) => setDraftAvailabilityKind(event.target.value as ProviderAvailabilityKind)}
+          aria-label="Mục đích lịch khi kéo thả"
+          className="h-9 w-full rounded-md border bg-background px-3 text-sm md:w-56"
+        >
+          {PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <FullCalendar
         plugins={[timeGridPlugin, interactionPlugin]}
         locales={[viLocale]}
@@ -245,11 +300,37 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Sửa khung lịch</DialogTitle>
-            <DialogDescription>Chỉnh thông tin khung lịch hoặc xóa nếu không còn nhận lịch.</DialogDescription>
+            <DialogDescription>
+              {editingRule ? `${getProviderAvailabilityKindLabel(editingRule.availabilityKind)} - ${getServiceLabel(editingRule)}` : "Chỉnh thông tin khung lịch hoặc xóa nếu không còn nhận lịch."}
+            </DialogDescription>
           </DialogHeader>
 
           {editingRule ? (
             <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Dịch vụ áp dụng</label>
+                <select name="serviceScope" defaultValue={getServiceScopeValue(editingRule)} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+                  <option value="">{services.length === 0 ? "Chưa có dịch vụ được gán" : "Không gắn dịch vụ"}</option>
+                  {services.map((service) => {
+                    const value = service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+                    return (
+                      <option key={value} value={value}>
+                        {service.title || service.offeringName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Mục đích lịch</label>
+                <select name="availabilityKind" defaultValue={editingRule.availabilityKind} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+                  {PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày trong tuần</label>
                 <select name="dayOfWeek" required defaultValue={editingRule.dayOfWeek ?? undefined} className="h-10 w-full rounded-md border bg-background px-3 text-sm">

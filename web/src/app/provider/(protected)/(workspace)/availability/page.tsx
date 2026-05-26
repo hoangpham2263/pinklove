@@ -2,7 +2,7 @@ import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { ProviderAvailabilityCalendar } from "@/features/providers/components/provider-availability-calendar";
 import { ProviderAvailabilityManager, ProviderAvailabilityRulesList } from "@/features/providers/components/provider-availability-manager";
-import { listProviderAvailabilityRules } from "@/features/providers/server/availability";
+import { listProviderAvailabilityRules, listProviderSchedulableServices } from "@/features/providers/server/availability";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -33,6 +33,7 @@ export default async function ProviderAvailabilityPage() {
   const providerUser = await requireProvider(ROUTES.PROVIDER.LOGIN);
   const provider = await getProviderByUserId(providerUser.id);
   const rules = provider ? await listProviderAvailabilityRules(provider.id) : [];
+  const services = provider ? await listProviderSchedulableServices(provider.id) : [];
   const activeRules = rules.filter((rule) => rule.status === "available").length;
 
   return (
@@ -46,8 +47,8 @@ export default async function ProviderAvailabilityPage() {
       <ProviderOverviewGrid>
         <ProviderOverviewCard title="Khung lịch" value={rules.length} />
         <ProviderOverviewCard title="Đang nhận" value={activeRules} />
+        <ProviderOverviewCard title="Dịch vụ có thể lên lịch" value={services.length} />
         <ProviderOverviewCard title="Loại provider" value={provider ? getProviderTypeLabel(provider.provider_type) : "-"} />
-        <ProviderOverviewCard title="Quản lý" value="Tự động" description="Admin chỉ xem khi cần kiểm tra" />
       </ProviderOverviewGrid>
 
       {!provider ? (
@@ -56,14 +57,14 @@ export default async function ProviderAvailabilityPage() {
         <div className="space-y-5">
           <ProviderSectionCard
             title="Calendar kéo thả"
-            description="Quét vùng giờ để tạo nhanh. Kéo để đổi ngày/giờ, kéo mép trên/dưới để đổi thời lượng, click vào event để xóa."
-            actions={<ProviderAvailabilityManager />}
+            description="Chọn dịch vụ và mục đích rồi quét vùng giờ để tạo lịch. Nếu chưa gắn dịch vụ, khung giờ vẫn được lưu riêng theo mục đích."
+            actions={<ProviderAvailabilityManager services={services} />}
             contentClassName="pt-4"
           >
-            <ProviderAvailabilityCalendar rules={rules} />
+            <ProviderAvailabilityCalendar rules={rules} services={services} />
           </ProviderSectionCard>
 
-          <ProviderAvailabilityRulesList rules={rules} />
+          <ProviderAvailabilityRulesList rules={rules} services={services} />
         </div>
       )}
     </ProviderPage>

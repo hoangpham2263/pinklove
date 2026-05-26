@@ -425,7 +425,6 @@
 }
 
 .provider-availability-calendar .fc {
-  --fc-border-color: hsl(var(--border));
   --fc-page-bg-color: hsl(var(--background));
   --fc-neutral-bg-color: hsl(var(--muted) / 0.45);
   --fc-today-bg-color: hsl(var(--muted) / 0.55);
@@ -462,15 +461,6 @@
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
   box-shadow: none;
-}
-
-.provider-availability-calendar .fc .fc-timegrid-slots td.fc-timegrid-slot {
-  border-top-color: hsl(var(--border) / 0.18);
-}
-
-.provider-availability-calendar .fc .fc-timegrid-slots td.fc-timegrid-slot-minor {
-  border-top-color: hsl(var(--border) / 0.08);
-  border-top-style: dotted;
 }
 
 .provider-availability-calendar .fc .fc-timegrid-col {

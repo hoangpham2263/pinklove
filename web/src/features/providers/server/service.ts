@@ -1,6 +1,6 @@
 import "server-only";
 
-import { query } from "@/lib/database";
+import { query, type DbExecutor } from "@/lib/database";
 
 export type ProviderType = "supplier" | "creator" | "studio" | "planner" | "makeup" | "photographer" | "florist" | "videographer";
 export type ProviderStatus = "draft" | "published" | "archived";
@@ -38,6 +38,75 @@ export type ProviderInput = {
     metadata?: Record<string, unknown>;
   };
 };
+
+export async function upsertProviderServiceForOffering(input: {
+  providerId: string;
+  offeringId: string;
+  title: string;
+  fulfillmentType?: string;
+  status?: "draft" | "active" | "paused" | "archived";
+  basePrice?: number;
+  metadata?: Record<string, unknown>;
+  execute?: DbExecutor;
+}) {
+  const execute = input.execute ?? query;
+  const metadata = {
+    fulfillment_type: input.fulfillmentType ?? "service",
+    ...(input.metadata ?? {}),
+  };
+
+  const result = await execute<{ id: string }>(
+    `
+      WITH updated AS (
+        UPDATE provider_services
+        SET
+          title = $3,
+          status = $4,
+          base_price = $5,
+          metadata = provider_services.metadata || $6::jsonb,
+          updated_at = NOW()
+        WHERE provider_id = $1 AND offering_id = $2
+        RETURNING id
+      ),
+      inserted AS (
+        INSERT INTO provider_services (
+          provider_id, offering_id, title, status, base_price, metadata
+        )
+        SELECT $1, $2, $3, $4, $5, $6::jsonb
+        WHERE NOT EXISTS (SELECT 1 FROM updated)
+        RETURNING id
+      )
+      SELECT id FROM updated
+      UNION ALL
+      SELECT id FROM inserted
+      LIMIT 1
+    `,
+    [
+      input.providerId,
+      input.offeringId,
+      input.title,
+      input.status ?? "active",
+      input.basePrice ?? 0,
+      JSON.stringify(metadata),
+    ]
+  );
+
+  await execute(
+    `
+      INSERT INTO provider_fulfillments (
+        provider_id, offering_id, fulfillment_type, capacity, metadata
+      )
+      SELECT $1, $2, $3, 0, '{}'::jsonb
+      WHERE NOT EXISTS (
+        SELECT 1 FROM provider_fulfillments
+        WHERE provider_id = $1 AND offering_id = $2
+      )
+    `,
+    [input.providerId, input.offeringId, input.fulfillmentType ?? "service"]
+  );
+
+  return result.rows[0]?.id ?? "";
+}
 
 export async function saveProvider(input: ProviderInput) {
   const result = await query<{ id: string }>(

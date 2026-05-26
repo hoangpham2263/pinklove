@@ -222,10 +222,20 @@ Availability is split intentionally:
 - `booking_calendars` is the provider-owned calendar container and can be
   distinguished by `key`, `label`, `timezone`, and `config`.
 - `provider_availability` stores recurring weekly rules declared by providers.
-- `provider_time_slots` stores concrete dated slots for booking workflows.
+  Serviceable rules should link to `offering_id` or `provider_service_id` and
+  classify the operational purpose with `availability_kind` (`general`,
+  `consultation`, `on_site_service`, `provider_site_service`, `handoff`,
+  `production`).
+- `provider_time_slots` stores concrete dated slots for booking workflows and
+  should carry `availability_id`, `provider_service_id`, `offering_id`, and
+  `availability_kind` when generated from declared availability.
 - Calendar provider category is derived from `providers.provider_type`; do not
   add a separate calendar type for provider categories unless a new booking
   domain requires a relationally queried classification.
+- `offerings.fulfillment_type` is handoff/commerce behavior (`digital`,
+  `physical`, `service`), not enough to identify what a calendar slot is for.
+  Use `availability_kind` plus service/offering linkage for makeup-at-location,
+  studio service, consultation, handoff, and production scheduling.
 
 ## Overview
 

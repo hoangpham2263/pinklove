@@ -2448,11 +2448,17 @@ async function ensureCoreDatabaseRefactorMigration() {
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       calendar_id TEXT REFERENCES booking_calendars(id) ON DELETE CASCADE,
+      provider_service_id TEXT REFERENCES provider_services(id) ON DELETE SET NULL,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      availability_kind TEXT NOT NULL DEFAULT 'general',
       day_of_week INT,
       starts_at TIME,
       ends_at TIME,
       valid_from DATE,
       valid_until DATE,
+      duration_minutes INT NOT NULL DEFAULT 0,
+      buffer_before_minutes INT NOT NULL DEFAULT 0,
+      buffer_after_minutes INT NOT NULL DEFAULT 0,
       capacity INT NOT NULL DEFAULT 1,
       status TEXT NOT NULL DEFAULT 'available',
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -2464,11 +2470,50 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
+    ALTER TABLE provider_availability
+    ADD COLUMN IF NOT EXISTS provider_service_id TEXT,
+    ADD COLUMN IF NOT EXISTS offering_id TEXT,
+    ADD COLUMN IF NOT EXISTS availability_kind TEXT NOT NULL DEFAULT 'general',
+    ADD COLUMN IF NOT EXISTS duration_minutes INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS buffer_before_minutes INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS buffer_after_minutes INT NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'provider_availability'::regclass
+          AND conname = 'provider_availability_provider_service_id_fkey'
+      ) THEN
+        ALTER TABLE provider_availability
+        ADD CONSTRAINT provider_availability_provider_service_id_fkey
+        FOREIGN KEY (provider_service_id) REFERENCES provider_services(id) ON DELETE SET NULL;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'provider_availability'::regclass
+          AND conname = 'provider_availability_offering_id_fkey'
+      ) THEN
+        ALTER TABLE provider_availability
+        ADD CONSTRAINT provider_availability_offering_id_fkey
+        FOREIGN KEY (offering_id) REFERENCES offerings(id) ON DELETE SET NULL;
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS provider_availability_lookup_idx ON provider_availability(provider_id, offering_id, day_of_week, starts_at, status);`);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS provider_time_slots (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
       calendar_id TEXT REFERENCES booking_calendars(id) ON DELETE CASCADE,
+      availability_id TEXT REFERENCES provider_availability(id) ON DELETE SET NULL,
+      provider_service_id TEXT REFERENCES provider_services(id) ON DELETE SET NULL,
       offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      availability_kind TEXT NOT NULL DEFAULT 'general',
       starts_at TIMESTAMPTZ NOT NULL,
       ends_at TIMESTAMPTZ NOT NULL,
       capacity INT NOT NULL DEFAULT 1,
@@ -2481,7 +2526,64 @@ async function ensureCoreDatabaseRefactorMigration() {
     );
   `);
 
+  await pool.query(`
+    ALTER TABLE provider_time_slots
+    ADD COLUMN IF NOT EXISTS availability_id TEXT,
+    ADD COLUMN IF NOT EXISTS provider_service_id TEXT,
+    ADD COLUMN IF NOT EXISTS availability_kind TEXT NOT NULL DEFAULT 'general';
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'provider_time_slots'::regclass
+          AND conname = 'provider_time_slots_availability_id_fkey'
+      ) THEN
+        ALTER TABLE provider_time_slots
+        ADD CONSTRAINT provider_time_slots_availability_id_fkey
+        FOREIGN KEY (availability_id) REFERENCES provider_availability(id) ON DELETE SET NULL;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'provider_time_slots'::regclass
+          AND conname = 'provider_time_slots_provider_service_id_fkey'
+      ) THEN
+        ALTER TABLE provider_time_slots
+        ADD CONSTRAINT provider_time_slots_provider_service_id_fkey
+        FOREIGN KEY (provider_service_id) REFERENCES provider_services(id) ON DELETE SET NULL;
+      END IF;
+    END $$;
+  `);
+
   await pool.query(`CREATE INDEX IF NOT EXISTS provider_time_slots_lookup_idx ON provider_time_slots(provider_id, starts_at, status);`);
+
+  await pool.query(`
+    INSERT INTO provider_services (
+      provider_id, offering_id, title, status, base_price, metadata
+    )
+    SELECT
+      physical.provider_id,
+      offering.id,
+      offering.name,
+      CASE WHEN offering.status IN ('archived', 'disabled') THEN 'paused' ELSE 'active' END,
+      offering.price,
+      jsonb_build_object(
+        'source', 'physical_offering_backfill',
+        'fulfillment_type', COALESCE(physical.fulfillment_type, offering.fulfillment_type),
+        'provider_type', physical.provider_type
+      )
+    FROM physical_offerings physical
+    INNER JOIN offerings offering ON offering.id = physical.offering_id
+    WHERE physical.provider_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM provider_services service
+        WHERE service.provider_id = physical.provider_id
+          AND service.offering_id = offering.id
+      );
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS digital_access_grants (

@@ -20,6 +20,7 @@ import { ensureOfferingCatalogReady, query, withTransaction, type DbExecutor } f
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
+import { upsertProviderServiceForOffering } from "@/features/providers/server/service";
 
 type OfferingInput = {
   slug: string;
@@ -1402,6 +1403,19 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
             ownerProviderId,
           ]
         );
+
+        if (ownerProviderId) {
+          await upsertProviderServiceForOffering({
+            providerId: ownerProviderId,
+            offeringId,
+            title: input.name,
+            fulfillmentType: input.fulfillmentType ?? "digital",
+            status: input.status === "archived" || input.status === "disabled" ? "paused" : "active",
+            basePrice: input.price ?? 0,
+            metadata: { source: "admin_offering_editor", provider_type: ownerProviderType },
+            execute,
+          });
+        }
       }
 
       await replaceOfferingRelationships(execute, offeringId, "cross_sell", input.crossSells);
@@ -1580,6 +1594,19 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
             ownerProviderId,
           ]
         );
+
+        if (ownerProviderId) {
+          await upsertProviderServiceForOffering({
+            providerId: ownerProviderId,
+            offeringId,
+            title: input.name ?? existing.name,
+            fulfillmentType: input.fulfillmentType ?? existing.fulfillmentType,
+            status: input.status === "archived" || input.status === "disabled" ? "paused" : "active",
+            basePrice: input.price ?? existing.price,
+            metadata: { source: "admin_offering_editor", provider_type: ownerProviderType },
+            execute,
+          });
+        }
       }
 
       if (input.crossSells !== undefined || input.upsells !== undefined) {
