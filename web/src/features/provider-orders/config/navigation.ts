@@ -74,13 +74,6 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         href: ROUTES.PROVIDER.OFFERINGS,
         iconName: "package-plus",
         matchPrefixes: [ROUTES.PROVIDER.OFFERINGS, providerOfferingPrefix],
-        excludePaths: [ROUTES.PROVIDER.OFFERING_NEW],
-      },
-      {
-        label: "Tạo yêu cầu",
-        href: ROUTES.PROVIDER.OFFERING_NEW,
-        iconName: "package-plus",
-        exact: true,
       },
       {
         label: "Lịch khả dụng",

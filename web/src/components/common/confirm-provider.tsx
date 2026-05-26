@@ -67,12 +67,17 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             ) : null}
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>
+            <AlertDialogCancel
+              onClick={handleClose}
+              variant="ghost"
+              className="border-transparent focus-visible:border-transparent focus-visible:ring-0"
+            >
               {options.cancelText ?? "Hủy"}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
               variant={options.variant === "destructive" ? "destructive" : "default"}
+              className="border-transparent focus-visible:border-transparent focus-visible:ring-0"
             >
               {options.confirmText ?? "Đồng ý"}
             </AlertDialogAction>

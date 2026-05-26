@@ -423,3 +423,80 @@
   animation: hero-invitation-marquee 38s linear infinite reverse;
   will-change: transform;
 }
+
+.provider-availability-calendar .fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: hsl(var(--background));
+  --fc-neutral-bg-color: hsl(var(--muted) / 0.45);
+  --fc-today-bg-color: hsl(var(--muted) / 0.55);
+  --fc-small-font-size: 0.78rem;
+  color: hsl(var(--foreground));
+}
+
+.provider-availability-calendar .fc .fc-toolbar {
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.provider-availability-calendar .fc .fc-toolbar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.provider-availability-calendar .fc .fc-button {
+  border-radius: 0.375rem;
+  border-color: hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  box-shadow: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.4rem 0.65rem;
+}
+
+.provider-availability-calendar .fc .fc-button:hover,
+.provider-availability-calendar .fc .fc-button:focus {
+  border-color: hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  box-shadow: none;
+}
+
+.provider-availability-calendar .fc .fc-timegrid-slots td.fc-timegrid-slot {
+  border-top-color: hsl(var(--border) / 0.18);
+}
+
+.provider-availability-calendar .fc .fc-timegrid-slots td.fc-timegrid-slot-minor {
+  border-top-color: hsl(var(--border) / 0.08);
+  border-top-style: dotted;
+}
+
+.provider-availability-calendar .fc .fc-timegrid-col {
+  background: hsl(var(--background));
+}
+
+.provider-availability-calendar .fc .fc-col-header-cell-cushion,
+.provider-availability-calendar .fc .fc-timegrid-slot-label-cushion {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.provider-availability-calendar .fc .fc-event {
+  border-radius: 0.375rem;
+  cursor: grab;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  padding: 0.125rem 0.25rem;
+}
+
+.provider-availability-calendar .fc .fc-event:active {
+  cursor: grabbing;
+}
+
+.provider-availability-calendar .fc .fc-highlight {
+  background: hsl(var(--primary) / 0.12);
+}
