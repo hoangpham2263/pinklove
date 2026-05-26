@@ -119,7 +119,7 @@ export default async function AdminEmailSettingsPage() {
                   id: "smtpPassword",
                   label: "SMTP Password",
                   description: "Mật khẩu hoặc app password SMTP. Hiện lưu trong cấu hình hệ thống.",
-                  type: "text",
+                  type: "password",
                   value: email.smtpPassword,
                 },
                 {

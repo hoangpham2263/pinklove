@@ -44,7 +44,7 @@ export type TableSortButtonTemplateProps = {
 };
 
 const controlClassName =
-  "h-9 rounded-lg border border-input bg-white px-3 text-sm outline-none transition-colors";
+  "h-9 rounded-lg border border-input bg-white px-3 text-sm transition-colors";
 
 export function TableToolbarTemplate({ children, contentClassName }: TableToolbarTemplateProps) {
   return (

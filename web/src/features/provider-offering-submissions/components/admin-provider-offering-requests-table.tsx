@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import { AdminTableView } from "@/features/admin/components/admin-table-view";
@@ -64,10 +63,6 @@ export function AdminProviderOfferingRequestsTable({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [previewSubmissionId, setPreviewSubmissionId] = useState<string | null>(null);
-  const previewSubmission = previewSubmissionId
-    ? submissions.find((submission) => submission.id === previewSubmissionId) ?? null
-    : null;
 
   const columns = useMemo<ColumnDef<ProviderOfferingSubmission>[]>(
     () => [
@@ -79,7 +74,7 @@ export function AdminProviderOfferingRequestsTable({
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
-            <p>{row.original.providerDisplayName}</p>
+            <p className="font-medium">{row.original.providerDisplayName}</p>
             <p className="text-xs text-muted-foreground">{row.original.providerUsername}</p>
           </div>
         ),
@@ -101,11 +96,11 @@ export function AdminProviderOfferingRequestsTable({
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
-            <p>{row.original.name}</p>
-            <p className="text-xs text-muted-foreground">/{row.original.slugCandidate}</p>
-            {row.original.linkedOfferingName ? (
-              <p className="text-xs text-muted-foreground">Đang liên kết: {row.original.linkedOfferingName}</p>
-            ) : null}
+            <p className="font-medium">{row.original.name}</p>
+            <p className="text-xs text-muted-foreground">
+              /{row.original.slugCandidate}
+              {row.original.linkedOfferingName ? ` • ${row.original.linkedOfferingName}` : ""}
+            </p>
           </div>
         ),
       },
@@ -126,16 +121,6 @@ export function AdminProviderOfferingRequestsTable({
           </div>
         ),
         cell: ({ row }) => <div className="text-right">{formatVnd(row.original.purchaseCost)}</div>,
-      },
-      {
-        accessorKey: "adminSellPrice",
-        header: () => <div className="text-right">Giá bán admin</div>,
-        cell: ({ row }) => <div className="text-right">{row.original.adminSellPrice ? formatVnd(row.original.adminSellPrice) : "-"}</div>,
-      },
-      {
-        accessorKey: "proposedStockQuantity",
-        header: () => <div className="text-right">Tồn kho</div>,
-        cell: ({ row }) => <div className="text-right">{row.original.proposedStockQuantity}</div>,
       },
       {
         accessorKey: "reviewStatus",
@@ -167,8 +152,7 @@ export function AdminProviderOfferingRequestsTable({
 
           return (
             <AdminTableActions>
-              <AdminTableActionButton action="view" label="Xem hồ sơ" onClick={() => setPreviewSubmissionId(submission.id)} />
-              <AdminTableActionButton action="edit" label="Duyệt yêu cầu" href={ROUTES.ADMIN.PROVIDER_OFFERING(submission.id)} />
+              <AdminTableActionButton action="edit" label="Duyệt" href={ROUTES.ADMIN.PROVIDER_OFFERING(submission.id)} />
             </AdminTableActions>
           );
         },
@@ -255,63 +239,6 @@ export function AdminProviderOfferingRequestsTable({
         emptyMessage="Không có hồ sơ nào khớp với bộ lọc hiện tại."
         getCellClassName={getCellClassName}
       />
-
-      <Dialog open={Boolean(previewSubmission)} onOpenChange={(open) => !open && setPreviewSubmissionId(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          {previewSubmission ? (
-            <div className="space-y-6">
-              <DialogHeader>
-                <DialogTitle>Chi tiết yêu cầu sản phẩm</DialogTitle>
-                <DialogDescription>Xem nhanh thông tin trước khi vào màn duyệt.</DialogDescription>
-              </DialogHeader>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm">Nhà cung cấp</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.providerDisplayName}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Sản phẩm</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.name}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Slug đề xuất</p>
-                  <p className="text-sm text-muted-foreground">/{previewSubmission.slugCandidate}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Loại yêu cầu</p>
-                  <p className="text-sm text-muted-foreground">{getProviderOfferingSubmissionTypeLabel(previewSubmission.submissionType)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Giá nhập</p>
-                  <p className="text-sm text-muted-foreground">{formatVnd(previewSubmission.purchaseCost)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Giá bán admin</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.adminSellPrice ? formatVnd(previewSubmission.adminSellPrice) : "-"}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Tồn kho</p>
-                  <p className="text-sm text-muted-foreground">{previewSubmission.proposedStockQuantity}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm">Cập nhật</p>
-                  <p className="text-sm text-muted-foreground">{formatDate(previewSubmission.updatedAt)}</p>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm">Mô tả ngắn</p>
-                <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewSubmission.excerpt || "-"}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm">Ghi chú nhà cung cấp</p>
-                <p className="rounded-md border p-3 text-sm text-muted-foreground">{previewSubmission.providerNote || "-"}</p>
-              </div>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

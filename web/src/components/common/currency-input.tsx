@@ -81,7 +81,7 @@ export function CurrencyInput({
         placeholder={placeholder}
         onChange={(event) => updateValue(event.target.value)}
         className={cn(
-          "h-10 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 transition-colors outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50",
+          "h-10 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 transition-colors placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50",
           className
         )}
       />

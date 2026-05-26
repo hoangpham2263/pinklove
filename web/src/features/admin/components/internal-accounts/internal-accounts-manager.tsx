@@ -6,6 +6,7 @@ import { ExternalLink, KeyRound, Link2, Shapes } from "lucide-react";
 import { toast } from "sonner";
 
 import { NativeForm } from "@/components/common/native-form";
+import { PasswordInput } from "@/components/common/password-input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -184,11 +185,13 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                     value={createDraft.loginUsername}
                     onChange={(event) => setCreateDraft((current) => ({ ...current, loginUsername: event.target.value }))}
                   />
-                  <Input
+                  <PasswordInput
                     name="loginPassword"
-                    placeholder="Mật khẩu"
+                    placeholder="Nhập mật khẩu hoặc tạo tự động"
                     value={createDraft.loginPassword}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginPassword: event.target.value }))}
+                    autoComplete="new-password"
+                    allowGenerate
+                    onValueChange={(value) => setCreateDraft((current) => ({ ...current, loginPassword: value }))}
                   />
                   <Input
                     name="loginUrl"
@@ -295,11 +298,13 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
                   </TableCell>
                   <TableCell className="min-w-36">
                     {isEditing ? (
-                      <Input
+                      <PasswordInput
                         name="loginPassword"
                         value={currentDraft.loginPassword}
-                        onChange={(event) =>
-                          setEditDraft((current) => ({ ...current, loginPassword: event.target.value }))
+                        autoComplete="new-password"
+                        allowGenerate
+                        onValueChange={(value) =>
+                          setEditDraft((current) => ({ ...current, loginPassword: value }))
                         }
                       />
                     ) : account.loginPassword ? (

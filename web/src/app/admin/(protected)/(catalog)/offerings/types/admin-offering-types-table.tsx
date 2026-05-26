@@ -1,8 +1,6 @@
 "use client";
 
-import { type FormEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -13,11 +11,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
 
-import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AdminCancelButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import {
@@ -42,10 +36,7 @@ import {
   type OfferingFulfillmentType,
   type OfferingTypeDefinition,
 } from "@/features/offerings/types";
-import { adminApi, adminApiActions } from "@/lib/api-client.admin";
-import { finishMutation } from "@/lib/client-mutation";
 import { ROUTES } from "@/lib/routes";
-import { OfferingTypeFieldsBuilder } from "./offering-type-fields-builder";
 
 type AdminOfferingTypesTableProps = {
   offeringTypes: OfferingTypeDefinition[];
@@ -77,11 +68,8 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [previewTypeId, setPreviewTypeId] = useState<string | null>(null);
-  const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
 
   const previewType = offeringTypes.find((type) => type.id === previewTypeId) ?? null;
-  const editingType = offeringTypes.find((type) => type.id === editingTypeId) ?? null;
 
   const columns = useMemo<ColumnDef<OfferingTypeDefinition>[]>(
     () => [
@@ -156,7 +144,11 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
           return (
             <AdminTableActions>
               <AdminTableActionButton action="view" label="Xem type" onClick={() => setPreviewTypeId(type.id)} />
-              <AdminTableActionButton action="edit" label="Sửa type" onClick={() => setEditingTypeId(type.id)} />
+              <AdminTableActionButton
+                action="edit"
+                label="Sửa type"
+                href={`${ROUTES.ADMIN.OFFERING_TYPE(type.key)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TYPES)}`}
+              />
               <AdminTableActionButton
                 action="external"
                 label="Tạo offering"
@@ -202,6 +194,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
   const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
   const fulfillmentFilterValue = (table.getColumn("fulfillmentType")?.getFilterValue() as string | undefined) ?? "";
   const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0 || fulfillmentFilterValue.length > 0;
+  const listReturnTo = encodeURIComponent(ROUTES.ADMIN.OFFERING_TYPES);
 
   return (
     <>
@@ -241,10 +234,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
             />
           </AdminTableToolbar>
 
-          <Button type="button" onClick={() => setIsCreating(true)}>
-            <Plus className="mr-2 size-4" />
-            Tạo type
-          </Button>
+          <AdminCreateLinkButton href={`${ROUTES.ADMIN.OFFERING_TYPE_NEW}?returnTo=${listReturnTo}`}>Tạo type</AdminCreateLinkButton>
         </div>
 
         <div className="rounded-md border">
@@ -332,29 +322,8 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               </Table>
             </div>
             <div className="flex justify-end">
-              <AdminOutlineButton
-                onClick={() => {
-                  setPreviewTypeId(null);
-                  setEditingTypeId(previewType.id);
-                }}
-              >
-                Chỉnh sửa
-              </AdminOutlineButton>
+              <AdminLinkButton href={`${ROUTES.ADMIN.OFFERING_TYPE(previewType.key)}?returnTo=${listReturnTo}`}>Chỉnh sửa</AdminLinkButton>
             </div>
-          </DialogContent>
-        ) : null}
-      </Dialog>
-
-      <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <OfferingTypeForm onClose={() => setIsCreating(false)} />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={Boolean(editingType)} onOpenChange={(open) => !open && setEditingTypeId(null)}>
-        {editingType ? (
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-            <OfferingTypeForm offeringType={editingType} onClose={() => setEditingTypeId(null)} />
           </DialogContent>
         ) : null}
       </Dialog>
@@ -368,122 +337,5 @@ function PreviewField({ label, value }: { label: string; value: React.ReactNode 
       <p className="text-xs uppercase text-muted-foreground">{label}</p>
       <div className="min-h-9 rounded-md bg-muted/40 px-3 py-2 text-sm">{value || "—"}</div>
     </div>
-  );
-}
-
-function OfferingTypeForm({
-  offeringType,
-  onClose,
-}: {
-  offeringType?: OfferingTypeDefinition;
-  onClose: () => void;
-}) {
-  const router = useRouter();
-  const [isSaving, setIsSaving] = useState(false);
-  const isEditing = Boolean(offeringType);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSaving(true);
-
-    try {
-      const result = await adminApi.saveOfferingType(new FormData(event.currentTarget));
-      toast.success(result.message ?? "Đã lưu offering type.");
-      finishMutation(router, result, { redirect: false, refresh: true });
-      onClose();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể lưu offering type.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  return (
-    <>
-      <DialogHeader>
-        <DialogTitle>{isEditing ? "Chỉnh offering type" : "Tạo offering type"}</DialogTitle>
-        <DialogDescription>Quản lý type và field definitions bằng table, form chỉ dùng cho thao tác create/edit nhanh.</DialogDescription>
-      </DialogHeader>
-
-      <NativeForm action={adminApiActions.saveOfferingType} method="POST" className="space-y-5" onSubmit={handleSubmit}>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="type-key" className="text-sm font-medium">Key</label>
-            <Input
-              id="type-key"
-              name="key"
-              defaultValue={offeringType?.key ?? ""}
-              placeholder="video_invitation"
-              required
-              pattern="[a-z][a-z0-9_]*"
-              readOnly={offeringType?.isSystem}
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="type-label" className="text-sm font-medium">Tên hiển thị</label>
-            <Input id="type-label" name="label" defaultValue={offeringType?.label ?? ""} placeholder="Video cưới" required />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="type-description" className="text-sm font-medium">Mô tả</label>
-          <textarea
-            id="type-description"
-            name="description"
-            defaultValue={offeringType?.description ?? ""}
-            className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <label htmlFor="type-fulfillment" className="text-sm font-medium">Fulfillment</label>
-            <select
-              id="type-fulfillment"
-              name="fulfillmentType"
-              defaultValue={offeringType?.fulfillmentType ?? "digital"}
-              className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-            >
-              {(["digital", "physical", "service"] satisfies OfferingFulfillmentType[]).map((value) => (
-                <option key={value} value={value}>{getFulfillmentTypeLabel(value)}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="type-status" className="text-sm font-medium">Trạng thái</label>
-            <select
-              id="type-status"
-              name="status"
-              defaultValue={offeringType?.status ?? "active"}
-              className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-            >
-              <option value="active">active</option>
-              <option value="draft">draft</option>
-              <option value="archived">archived</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="type-template-key" className="text-sm font-medium">Template key</label>
-            <Input id="type-template-key" name="templateKey" defaultValue={offeringType?.templateKey ?? ""} placeholder="video_invitation" />
-          </div>
-        </div>
-
-        <div className="grid gap-2 md:grid-cols-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="supportsInventory" defaultChecked={offeringType?.supportsInventory ?? false} /> Có tồn kho
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="supportsProviderSupply" defaultChecked={offeringType?.supportsProviderSupply ?? false} /> Cho provider supply
-          </label>
-        </div>
-
-        <OfferingTypeFieldsBuilder initialFields={offeringType?.fieldSchema} />
-
-        <div className="flex justify-end gap-3">
-          <AdminCancelButton type="button" onClick={onClose}>Hủy</AdminCancelButton>
-          <AdminSubmitButton disabled={isSaving}>{isSaving ? "Đang lưu..." : "Lưu type"}</AdminSubmitButton>
-        </div>
-      </NativeForm>
-    </>
   );
 }

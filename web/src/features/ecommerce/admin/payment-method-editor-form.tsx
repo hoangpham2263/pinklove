@@ -4,6 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
+import { PasswordInput } from "@/components/common/password-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -243,9 +244,8 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
                 </div>
                 <div className="space-y-2">
                   <label>Secret key</label>
-                  <Input
+                  <PasswordInput
                     name="pay2sSecretKey"
-                    type="password"
                     defaultValue={method?.pay2sSecretKey ??""}
                     placeholder="Secret key sandbox"
                   />
@@ -308,10 +308,10 @@ export function PaymentMethodEditorForm({ method, initialCategory ="manual" }: P
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <label>Hash Secret</label>
-                  <Input
+                  <PasswordInput
                     name="vnpayHashSecret"
-                    type="password"
                     defaultValue={method?.vnpayHashSecret ??""}
+                    placeholder="Hash secret"
                   />
                 </div>
               </div>

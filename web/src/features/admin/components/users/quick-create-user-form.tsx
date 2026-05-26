@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
+import { PasswordInput } from "@/components/common/password-input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
@@ -48,7 +49,7 @@ export function QuickCreateUserForm({
       </div>
       <div className="space-y-2">
         <label>Mật khẩu</label>
-        <Input name="password" type="password" required />
+        <PasswordInput name="password" placeholder="Nhập mật khẩu hoặc tạo tự động" autoComplete="new-password" allowGenerate required />
       </div>
       <div className="space-y-2">
         <label>Vai trò</label>

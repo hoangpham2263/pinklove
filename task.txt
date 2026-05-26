@@ -1,2 +1,3 @@
 fix size input mobile
-Offering Types làm CRUD giống Offering product
+gửi mail 
+http://localhost:3000/admin/providers/offerings - phần tìm nguồn hàng chưa hợp lý giao diện

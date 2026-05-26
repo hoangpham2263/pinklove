@@ -103,6 +103,7 @@ export function RoleCreateLinkButtonTemplate({ href, target, children, className
     <Button
       size="lg"
       className={className}
+      nativeButton={false}
       render={
         <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
           <Plus className="h-4 w-4" />
@@ -159,6 +160,7 @@ export function RoleLinkButtonTemplate({ href, target, children, className }: Ro
     <Button
       variant="outline"
       className={className}
+      nativeButton={false}
       render={
         <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
           {children}
@@ -180,6 +182,7 @@ export function RoleFilterLinkButtonTemplate({
       variant={active ? "default" : "outline"}
       size="lg"
       className={className}
+      nativeButton={false}
       render={
         <Link href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
           {children}

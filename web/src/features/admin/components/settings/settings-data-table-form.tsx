@@ -15,6 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { NativeForm } from "@/components/common/native-form";
+import { PasswordInput } from "@/components/common/password-input";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -42,7 +43,7 @@ type SettingsRow = {
   id: string;
   label: string;
   description: string;
-  type: "boolean" | "text" | "textarea" | "select" | "media";
+  type: "boolean" | "text" | "password" | "textarea" | "select" | "media";
   value: boolean | string;
   options?: Array<{
     label: string;
@@ -186,6 +187,22 @@ export function SettingsDataTableForm({
                     prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
                   );
                 }}
+              />
+            );
+          }
+
+          if (item.type === "password") {
+            return (
+              <PasswordInput
+                name={item.id}
+                value={String(item.value)}
+                autoComplete="new-password"
+                onValueChange={(next) => {
+                  setRows((prev) =>
+                    prev.map((entry) => (entry.id === item.id ? { ...entry, value: next } : entry))
+                  );
+                }}
+                className="h-9 bg-background"
               />
             );
           }

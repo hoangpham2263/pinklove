@@ -1,3 +1,4 @@
+import { PasswordInput } from "@/components/common/password-input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
@@ -52,11 +53,10 @@ export default async function AdminThirdPartyConfigPage() {
               </div>
               <div className="space-y-2">
                 <label className="font-medium">Client Secret</label>
-                <input
+                <PasswordInput
                   name="googleClientSecret"
-                  type="password"
                   defaultValue={google.clientSecret}
-                  className="h-10 w-full rounded-md border bg-background px-3"
+                  placeholder="Google OAuth client secret"
                 />
               </div>
               <div className="space-y-2 md:col-span-2">

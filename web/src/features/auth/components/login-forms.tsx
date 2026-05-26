@@ -1,11 +1,11 @@
 "use client";
 
 import { NativeForm } from "@/components/common/native-form";
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
+import { PasswordInput } from "@/components/common/password-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,6 @@ function getErrorMessage(error: string | null): string | null {
 export function AdminLoginForm() {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center p-6 md:p-10">
@@ -65,21 +64,7 @@ export function AdminLoginForm() {
               className="space-y-3"
             >
               <Input name="username" placeholder="Tên đăng nhập" autoComplete="username" />
-              <div className="flex items-center gap-2">
-                <Input
-                  name="password"
-                  type={showLoginPassword ? "text" : "password"}
-                  placeholder="Mật khẩu"
-                  autoComplete="current-password"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowLoginPassword((prev) => !prev)}
-                >
-                  {showLoginPassword ? "Hide" : "Show"}
-                </Button>
-              </div>
+              <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
               <Button type="submit" className="w-full" variant="default">
                 Login to Dashboard
               </Button>
@@ -101,7 +86,6 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
   const returnTo = searchParams.get("returnTo");
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   return (
     <Section>
@@ -125,21 +109,7 @@ export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}
                 >
                   {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
                   <Input name="username" placeholder="Tên đăng nhập" autoComplete="username" />
-                  <div className="flex items-center gap-2">
-                    <Input
-                      name="password"
-                      type={showLoginPassword ? "text" : "password"}
-                      placeholder="Mật khẩu"
-                      autoComplete="current-password"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowLoginPassword((prev) => !prev)}
-                    >
-                      {showLoginPassword ? "Hide" : "Show"}
-                    </Button>
-                  </div>
+                  <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
                   <Button type="submit" className="w-full">
                     Login
                   </Button>
@@ -197,7 +167,6 @@ export function ProviderLoginForm({
 }: ProviderLoginFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const loginCard = (
     <div className={embedded ? "w-full space-y-5" : "mx-auto w-full max-w-md space-y-5"}>
@@ -214,17 +183,7 @@ export function ProviderLoginForm({
           <NativeForm action={ROUTES.API.PROVIDER.AUTH.LOGIN} method="POST" className="space-y-3">
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             <Input name="username" placeholder="Tên đăng nhập provider" autoComplete="username" />
-            <div className="flex items-center gap-2">
-              <Input
-                name="password"
-                type={showLoginPassword ? "text" : "password"}
-                placeholder="Mật khẩu"
-                autoComplete="current-password"
-              />
-              <Button type="button" variant="outline" onClick={() => setShowLoginPassword((prev) => !prev)}>
-                {showLoginPassword ? "Hide" : "Show"}
-              </Button>
-            </div>
+            <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
             <Button type="submit" className="w-full">
               Vào provider portal
             </Button>
@@ -269,7 +228,6 @@ export function ProviderLoginForm({
 export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
-  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   return (
     <Section>
@@ -294,21 +252,12 @@ export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps =
                   className="space-y-3"
                 >
                   <Input name="username" placeholder="Tên đăng nhập mới" autoComplete="username" />
-                  <div className="flex items-center gap-2">
-                    <Input
-                      name="password"
-                      type={showRegisterPassword ? "text" : "password"}
-                      placeholder={`Mật khẩu (tối thiểu ${MIN_PASSWORD_LENGTH} ký tự)`}
-                      autoComplete="new-password"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowRegisterPassword((prev) => !prev)}
-                    >
-                      {showRegisterPassword ? "Hide" : "Show"}
-                    </Button>
-                  </div>
+                  <PasswordInput
+                    name="password"
+                    placeholder={`Mật khẩu tối thiểu ${MIN_PASSWORD_LENGTH} ký tự`}
+                    autoComplete="new-password"
+                    allowGenerate
+                  />
                   <Button type="submit" className="w-full">Đăng ký tài khoản</Button>
                 </NativeForm>
                 {error ? <p className="text-destructive text-sm text-center">{error}</p> : null}

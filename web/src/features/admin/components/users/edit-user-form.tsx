@@ -4,6 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
+import { PasswordInput } from "@/components/common/password-input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormPro
 
             <div className="space-y-2">
               <label>Mật khẩu mới (để trống nếu không đổi)</label>
-              <Input name="password" type="password" placeholder="" />
+              <PasswordInput name="password" placeholder="Nhập mật khẩu mới hoặc tạo tự động" autoComplete="new-password" allowGenerate />
             </div>
           </CardContent>
         </Card>

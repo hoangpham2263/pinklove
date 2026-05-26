@@ -106,6 +106,7 @@ export async function POST(request: Request) {
   const supportsInventory = formData.get("supportsInventory") === "on";
   const supportsProviderSupply = formData.get("supportsProviderSupply") === "on";
   const fieldSchemaRaw = String(formData.get("fieldSchema") ?? "");
+  const returnTo = getSafeAdminReturnTo(String(formData.get("returnTo") ?? ""));
 
   let fieldSchema: OfferingTypeField[];
   try {
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "invalid_field_definitions",
       message: "Field definitions phải hợp lệ.",
-      location: `${ROUTES.ADMIN.OFFERING_TYPES}?error=invalid_field_definitions`,
+      location: withQuery(returnTo, "error", "invalid_field_definitions"),
     });
   }
 
@@ -132,14 +133,23 @@ export async function POST(request: Request) {
     });
 
     return respondSuccess(request, {
-      location: `${ROUTES.ADMIN.OFFERING_TYPES}?saved=${encodeURIComponent(key)}`,
+      location: withQuery(returnTo, "saved", key),
       message: "Đã lưu loại offering.",
     });
   } catch (error) {
     return respondError(request, {
       error: error instanceof Error ? error.message : "save_failed",
       message: "Không thể lưu loại offering.",
-      location: `${ROUTES.ADMIN.OFFERING_TYPES}?error=save_failed`,
+      location: withQuery(returnTo, "error", "save_failed"),
     });
   }
+}
+
+function getSafeAdminReturnTo(value: string) {
+  return value.startsWith("/admin/") ? value : ROUTES.ADMIN.OFFERING_TYPES;
+}
+
+function withQuery(path: string, key: string, value: string) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}${key}=${encodeURIComponent(value)}`;
 }

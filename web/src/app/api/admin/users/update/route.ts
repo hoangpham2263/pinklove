@@ -1,4 +1,4 @@
-import { adminUpdateAccount, getCurrentUserFromRequest, isAdminRole, setUserProfile } from"@/lib/auth";
+import { adminSetProviderAccountStatus, adminUpdateAccount, getCurrentUserFromRequest, getUserAccount, isAdminRole, setUserProfile, type AccountStatus } from"@/lib/auth";
 import { parseUserRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
  const displayName = String(formData.get("displayName") ??"").trim();
  const phone = String(formData.get("phone") ??"").trim();
  const bio = String(formData.get("bio") ??"").trim();
+ const nextStatusInput = String(formData.get("nextStatus") ?? "").trim();
+ const statusReason = String(formData.get("reason") ?? "").trim();
  
  const userId = userIdRaw.trim();
  if (!userId) {
@@ -49,6 +51,13 @@ export async function POST(request: Request) {
   phone,
   bio
  });
+
+ if (isAccountStatus(nextStatusInput)) {
+  const existing = await getUserAccount(userId);
+  if (existing && (existing.accountStatus !== nextStatusInput || (existing.accountStatusReason ?? "") !== statusReason)) {
+   await adminSetProviderAccountStatus(actor.id, userId, nextStatusInput, statusReason);
+  }
+ }
  
  return respondSuccess(request, { message: "Đã cập nhật tài khoản.", location: returnLocation });
 } catch (error) {
@@ -64,4 +73,8 @@ export async function POST(request: Request) {
  }
  return respondError(request, { error: "update_failed", message: "Không thể cập nhật người dùng.", location: `${returnLocation}?error=update_failed` });
 }
+}
+
+function isAccountStatus(value: string): value is AccountStatus {
+ return value === "active" || value === "blocked" || value === "banned" || value === "deleted";
 }
