@@ -14,6 +14,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
+import { getProviderServiceKindLabel } from "@/features/provider-offering-submissions/config/service-kinds";
 import {
   getProviderOfferingReviewStatusLabel,
   getProviderOfferingSubmissionTypeLabel,
@@ -73,6 +74,19 @@ function getCellClassName(columnId: string) {
   }
 }
 
+function getFulfillmentLabel(value: ProviderOfferingSubmission["fulfillmentType"]) {
+  switch (value) {
+    case "service":
+      return "Dịch vụ";
+    case "physical":
+      return "Sản phẩm vật lý";
+    case "digital":
+      return "Sản phẩm online";
+    default:
+      return value;
+  }
+}
+
 export function ProviderOfferingRequestsTable({ submissions }: ProviderOfferingRequestsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -90,6 +104,10 @@ export function ProviderOfferingRequestsTable({ submissions }: ProviderOfferingR
         cell: ({ row }) => (
           <div className="min-w-0 space-y-1">
             <p className="truncate font-medium">{row.original.name}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {getFulfillmentLabel(row.original.fulfillmentType)}
+              {row.original.fulfillmentType === "service" ? ` • ${getProviderServiceKindLabel(row.original.serviceKind)}` : ""}
+            </p>
             {row.original.linkedOfferingName ? (
               <p className="truncate text-xs text-muted-foreground">Đang liên kết: {row.original.linkedOfferingName}</p>
             ) : null}
@@ -186,6 +204,8 @@ export function ProviderOfferingRequestsTable({ submissions }: ProviderOfferingR
         submission.linkedOfferingName,
         submission.categoryName,
         submission.providerSku,
+        submission.fulfillmentType,
+        submission.serviceKind,
         submission.submissionType,
         submission.reviewStatus,
       ]

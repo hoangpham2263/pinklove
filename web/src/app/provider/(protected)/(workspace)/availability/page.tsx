@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { ProviderAvailabilityCalendar } from "@/features/providers/components/provider-availability-calendar";
@@ -55,14 +58,26 @@ export default async function ProviderAvailabilityPage() {
         <ProviderEmptyState>Chưa có hồ sơ provider để cấu hình lịch.</ProviderEmptyState>
       ) : (
         <div className="space-y-5">
-          <ProviderSectionCard
-            title="Calendar kéo thả"
-            description="Chọn dịch vụ và mục đích rồi quét vùng giờ để tạo lịch. Nếu chưa gắn dịch vụ, khung giờ vẫn được lưu riêng theo mục đích."
-            actions={<ProviderAvailabilityManager services={services} />}
-            contentClassName="pt-4"
-          >
-            <ProviderAvailabilityCalendar rules={rules} services={services} />
-          </ProviderSectionCard>
+          {services.length === 0 ? (
+            <ProviderSectionCard
+              title="Cần yêu cầu nhận dịch vụ"
+              description="Provider cần có dịch vụ được admin duyệt/gán trước khi khai báo lịch. Sau khi có dịch vụ, lịch sẽ được tạo theo từng dịch vụ cụ thể."
+              actions={<Button render={<Link href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</Link>} />}
+            >
+              <ProviderEmptyState>
+                Chưa có dịch vụ nào có thể lên lịch. Hãy gửi yêu cầu nhận dịch vụ để admin kiểm tra, duyệt và cấp dịch vụ cho provider.
+              </ProviderEmptyState>
+            </ProviderSectionCard>
+          ) : (
+            <ProviderSectionCard
+              title="Calendar kéo thả"
+              description="Chọn dịch vụ và mục đích rồi quét vùng giờ để tạo lịch. Mỗi khung lịch phải gắn với một dịch vụ đã được duyệt/gán."
+              actions={<ProviderAvailabilityManager services={services} />}
+              contentClassName="pt-4"
+            >
+              <ProviderAvailabilityCalendar rules={rules} services={services} />
+            </ProviderSectionCard>
+          )}
 
           <ProviderAvailabilityRulesList rules={rules} services={services} />
         </div>

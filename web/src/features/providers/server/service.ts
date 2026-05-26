@@ -44,6 +44,9 @@ export async function upsertProviderServiceForOffering(input: {
   offeringId: string;
   title: string;
   fulfillmentType?: string;
+  serviceKind?: string;
+  durationMinutes?: number;
+  serviceArea?: string;
   status?: "draft" | "active" | "paused" | "archived";
   basePrice?: number;
   metadata?: Record<string, unknown>;
@@ -52,6 +55,10 @@ export async function upsertProviderServiceForOffering(input: {
   const execute = input.execute ?? query;
   const metadata = {
     fulfillment_type: input.fulfillmentType ?? "service",
+    service_kind: input.serviceKind ?? "general",
+    service_location_mode: input.serviceKind ?? input.fulfillmentType ?? "service",
+    duration_minutes: Math.max(0, input.durationMinutes ?? 0),
+    service_area: input.serviceArea ?? "",
     ...(input.metadata ?? {}),
   };
 

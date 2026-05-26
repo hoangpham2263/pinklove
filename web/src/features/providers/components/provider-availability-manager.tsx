@@ -12,6 +12,7 @@ import { ProviderEmptyState, ProviderSectionCard } from "@/features/provider-ord
 import {
   getProviderAvailabilityKindClassName,
   getProviderAvailabilityKindLabel,
+  providerAvailabilityKindRequiresService,
   PROVIDER_AVAILABILITY_KIND_OPTIONS,
   type ProviderAvailabilityKind,
 } from "@/features/providers/config/availability";
@@ -100,12 +101,34 @@ function getServiceScopeValue(rule: ProviderAvailabilityRule) {
   return "";
 }
 
-function ProviderServiceSelect({ services, defaultValue }: { services: ProviderSchedulableService[]; defaultValue?: string }) {
+function getServiceOptionValue(service: ProviderSchedulableService) {
+  return service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+}
+
+function ProviderServiceSelect({
+  services,
+  defaultValue,
+  value,
+  onChange,
+}: {
+  services: ProviderSchedulableService[];
+  defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+}) {
   return (
-    <select name="serviceScope" defaultValue={defaultValue ?? ""} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-      <option value="">{services.length === 0 ? "Chưa có dịch vụ được gán" : "Không gắn dịch vụ"}</option>
+    <select
+      name="serviceScope"
+      defaultValue={value === undefined ? defaultValue ?? "" : undefined}
+      value={value}
+      onChange={(event) => onChange?.(event.target.value)}
+      className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+    >
+      <option value="" disabled>
+        {services.length === 0 ? "Chưa có dịch vụ được gán" : "Chọn dịch vụ áp dụng"}
+      </option>
       {services.map((service) => {
-        const value = service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+        const value = getServiceOptionValue(service);
         return (
           <option key={value} value={value}>
             {service.title || service.offeringName}
@@ -116,12 +139,29 @@ function ProviderServiceSelect({ services, defaultValue }: { services: ProviderS
   );
 }
 
-function AvailabilityKindSelect({ defaultValue }: { defaultValue?: ProviderAvailabilityKind }) {
+function AvailabilityKindSelect({
+  defaultValue,
+  hasServiceScope,
+  value,
+  onChange,
+}: {
+  defaultValue?: ProviderAvailabilityKind;
+  hasServiceScope?: boolean;
+  value?: ProviderAvailabilityKind;
+  onChange?: (value: ProviderAvailabilityKind) => void;
+}) {
   return (
-    <select name="availabilityKind" defaultValue={defaultValue ?? "general"} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+    <select
+      name="availabilityKind"
+      defaultValue={value === undefined ? defaultValue ?? "general" : undefined}
+      value={value}
+      onChange={(event) => onChange?.(event.target.value as ProviderAvailabilityKind)}
+      className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+    >
       {PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => (
-        <option key={option.value} value={option.value}>
+        <option key={option.value} value={option.value} disabled={!hasServiceScope && providerAvailabilityKindRequiresService(option.value)}>
           {option.label}
+          {!hasServiceScope && providerAvailabilityKindRequiresService(option.value) ? " - cần gắn dịch vụ" : ""}
         </option>
       ))}
     </select>
@@ -132,6 +172,8 @@ export function ProviderAvailabilityManager({ services }: Pick<ProviderAvailabil
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [createServiceScope, setCreateServiceScope] = useState(services[0] ? getServiceOptionValue(services[0]) : "");
+  const [createAvailabilityKind, setCreateAvailabilityKind] = useState<ProviderAvailabilityKind>("general");
 
   async function submitAvailability(formData: FormData) {
     setSaving(true);
@@ -149,6 +191,8 @@ export function ProviderAvailabilityManager({ services }: Pick<ProviderAvailabil
   }
 
   function openCreateDialog() {
+    setCreateServiceScope(services[0] ? getServiceOptionValue(services[0]) : "");
+    setCreateAvailabilityKind("general");
     setOpen(true);
   }
 
@@ -194,11 +238,24 @@ export function ProviderAvailabilityManager({ services }: Pick<ProviderAvailabil
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Dịch vụ áp dụng</label>
-              <ProviderServiceSelect services={services} />
+              <ProviderServiceSelect
+                services={services}
+                value={createServiceScope}
+                onChange={(nextServiceScope) => {
+                  setCreateServiceScope(nextServiceScope);
+                  if (!nextServiceScope && providerAvailabilityKindRequiresService(createAvailabilityKind)) {
+                    setCreateAvailabilityKind("general");
+                  }
+                }}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Mục đích lịch</label>
-              <AvailabilityKindSelect />
+              <AvailabilityKindSelect
+                value={createAvailabilityKind}
+                onChange={setCreateAvailabilityKind}
+                hasServiceScope={Boolean(createServiceScope)}
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Ngày trong tuần</label>
@@ -335,7 +392,7 @@ export function ProviderAvailabilityRulesList({ rules, services }: ProviderAvail
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Mục đích lịch</label>
-                <AvailabilityKindSelect defaultValue={editingRule.availabilityKind} />
+                <AvailabilityKindSelect defaultValue={editingRule.availabilityKind} hasServiceScope={Boolean(getServiceScopeValue(editingRule)) || services.length > 0} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày trong tuần</label>

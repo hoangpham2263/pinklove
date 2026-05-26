@@ -39,6 +39,9 @@ export type ProviderOfferingSubmission = {
   description: string;
   thumbnailUrl: string;
   fulfillmentType: OfferingFulfillmentType;
+  serviceKind: string;
+  durationMinutes: number;
+  serviceArea: string;
   purchaseCost: number;
   proposedStockQuantity: number;
   lowStockThreshold: number;

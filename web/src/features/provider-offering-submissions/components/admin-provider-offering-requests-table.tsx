@@ -18,6 +18,7 @@ import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableTo
 import { AdminTableView } from "@/features/admin/components/admin-table-view";
 import { getProviderOfferingReviewStatusLabel, getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
 import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
+import { getProviderServiceKindLabel } from "@/features/provider-offering-submissions/config/service-kinds";
 import type { ProviderOfferingReviewStatus, ProviderOfferingSubmission } from "@/features/provider-offering-submissions/types";
 import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
@@ -54,6 +55,19 @@ const REVIEW_STATUSES: ProviderOfferingReviewStatus[] = [
 
 function getCellClassName(columnId: string) {
   return columnId === "providerId" ? "hidden" : undefined;
+}
+
+function getFulfillmentLabel(value: ProviderOfferingSubmission["fulfillmentType"]) {
+  switch (value) {
+    case "service":
+      return "Dịch vụ";
+    case "physical":
+      return "Sản phẩm vật lý";
+    case "digital":
+      return "Sản phẩm online";
+    default:
+      return value;
+  }
 }
 
 export function AdminProviderOfferingRequestsTable({
@@ -97,6 +111,10 @@ export function AdminProviderOfferingRequestsTable({
         cell: ({ row }) => (
           <div className="space-y-1">
             <p className="font-medium">{row.original.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {getFulfillmentLabel(row.original.fulfillmentType)}
+              {row.original.fulfillmentType === "service" ? ` • ${getProviderServiceKindLabel(row.original.serviceKind)}` : ""}
+            </p>
             <p className="text-xs text-muted-foreground">
               /{row.original.slugCandidate}
               {row.original.linkedOfferingName ? ` • ${row.original.linkedOfferingName}` : ""}
@@ -184,6 +202,8 @@ export function AdminProviderOfferingRequestsTable({
         submission.slugCandidate,
         submission.linkedOfferingName,
         submission.categoryName,
+        submission.fulfillmentType,
+        submission.serviceKind,
         submission.reviewStatus,
         submission.submissionType,
         submission.providerSku,

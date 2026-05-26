@@ -4,6 +4,7 @@ import { respondError, respondSuccess } from "@/lib/action-response";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { saveProviderOfferingSubmission, listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
+import { PROVIDER_SERVICE_KIND_VALUES } from "@/features/provider-offering-submissions/config/service-kinds";
 import type { OfferingFulfillmentType } from "@/features/offerings/types";
 import type { ProviderOfferingSubmissionType } from "@/features/provider-offering-submissions/types";
 
@@ -27,7 +28,11 @@ export async function POST(request: Request) {
   const excerpt = String(formData.get("excerpt") ?? "");
   const description = String(formData.get("description") ?? "");
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
-  const fulfillmentType = String(formData.get("fulfillmentType") ?? "physical").trim() as OfferingFulfillmentType;
+  const fulfillmentType = String(formData.get("fulfillmentType") ?? "service").trim() as OfferingFulfillmentType;
+  const rawServiceKind = String(formData.get("serviceKind") ?? "other").trim();
+  const serviceKind = PROVIDER_SERVICE_KIND_VALUES.includes(rawServiceKind) ? rawServiceKind : "other";
+  const durationMinutes = Math.max(0, Number(formData.get("durationMinutes") ?? "0"));
+  const serviceArea = String(formData.get("serviceArea") ?? "").trim();
   const purchaseCost = Math.max(0, Number(formData.get("purchaseCost") ?? "0"));
   const proposedStockQuantity = Math.max(0, Number(formData.get("proposedStockQuantity") ?? "0"));
   const lowStockThreshold = Math.max(0, Number(formData.get("lowStockThreshold") ?? "0"));
@@ -56,6 +61,9 @@ export async function POST(request: Request) {
       description,
       thumbnailUrl,
       fulfillmentType,
+      serviceKind,
+      durationMinutes,
+      serviceArea,
       purchaseCost,
       proposedStockQuantity,
       lowStockThreshold,
@@ -66,7 +74,7 @@ export async function POST(request: Request) {
 
     return respondSuccess(request, {
       location: ROUTES.PROVIDER.OFFERING(id),
-      message: "Đã lưu hồ sơ sản phẩm.",
+      message: "Đã lưu hồ sơ dịch vụ/sản phẩm.",
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : "unknown_error";
@@ -77,7 +85,7 @@ export async function POST(request: Request) {
           ? "Hãy chọn sản phẩm live cần cập nhật hoặc ngừng bán."
           : code === "SUBMISSION_LOCKED"
             ? "Hồ sơ này đang khóa, không thể sửa lúc này."
-            : "Không thể lưu hồ sơ sản phẩm.";
+            : "Không thể lưu hồ sơ dịch vụ/sản phẩm.";
 
     return respondError(request, {
       error: code,

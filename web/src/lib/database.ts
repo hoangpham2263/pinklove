@@ -3544,6 +3544,9 @@ async function ensureProviderOfferingSubmissionsMigration() {
       description TEXT NOT NULL DEFAULT '',
       thumbnail_url TEXT NOT NULL DEFAULT '',
       fulfillment_type TEXT NOT NULL DEFAULT 'physical',
+      service_kind TEXT NOT NULL DEFAULT 'general',
+      duration_minutes INT NOT NULL DEFAULT 0,
+      service_area TEXT NOT NULL DEFAULT '',
       purchase_cost NUMERIC(12,2) NOT NULL DEFAULT 0,
       proposed_stock_quantity INT NOT NULL DEFAULT 0,
       low_stock_threshold INT NOT NULL DEFAULT 0,
@@ -3573,6 +3576,13 @@ async function ensureProviderOfferingSubmissionsMigration() {
       CONSTRAINT provider_offering_submissions_low_stock_threshold_check
       CHECK (low_stock_threshold >= 0)
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE provider_offering_submissions
+    ADD COLUMN IF NOT EXISTS service_kind TEXT NOT NULL DEFAULT 'general',
+    ADD COLUMN IF NOT EXISTS duration_minutes INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS service_area TEXT NOT NULL DEFAULT '';
   `);
 
   await pool.query(`

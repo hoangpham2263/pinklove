@@ -6,6 +6,7 @@ import { getOfferingById } from "@/features/offerings/server/service";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { getProviderByUserId, upsertProviderServiceForOffering } from "@/features/providers/server/service";
+import { PROVIDER_SERVICE_KIND_VALUES } from "@/features/provider-offering-submissions/config/service-kinds";
 import { formatVnd } from "@/lib/currency";
 import type {
   ProviderOfferingReviewStatus,
@@ -45,6 +46,9 @@ type SubmissionRow = {
   description: string;
   thumbnail_url: string;
   fulfillment_type: OfferingFulfillmentType;
+  service_kind: string;
+  duration_minutes: string;
+  service_area: string;
   purchase_cost: string;
   proposed_stock_quantity: string;
   low_stock_threshold: string;
@@ -148,6 +152,9 @@ type SaveProviderOfferingSubmissionInput = {
   description?: string;
   thumbnailUrl?: string;
   fulfillmentType: OfferingFulfillmentType;
+  serviceKind?: string;
+  durationMinutes?: number;
+  serviceArea?: string;
   purchaseCost: number;
   proposedStockQuantity: number;
   lowStockThreshold: number;
@@ -220,6 +227,9 @@ const SUBMISSION_SELECT = `
     s.description,
     s.thumbnail_url,
     s.fulfillment_type,
+    s.service_kind,
+    s.duration_minutes::text,
+    s.service_area,
     s.purchase_cost::text,
     s.proposed_stock_quantity::text,
     s.low_stock_threshold::text,
@@ -339,6 +349,9 @@ function mapSubmissionRow(row: SubmissionRow): ProviderOfferingSubmission {
     description: row.description,
     thumbnailUrl: row.thumbnail_url,
     fulfillmentType: row.fulfillment_type,
+    serviceKind: row.service_kind,
+    durationMinutes: toInteger(row.duration_minutes),
+    serviceArea: row.service_area,
     purchaseCost: toNumber(row.purchase_cost),
     proposedStockQuantity: toNumber(row.proposed_stock_quantity),
     lowStockThreshold: toNumber(row.low_stock_threshold),
@@ -1185,6 +1198,11 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
   const excerpt = (input.excerpt ?? "").trim();
   const description = (input.description ?? "").trim();
   const thumbnailUrl = (input.thumbnailUrl ?? "").trim();
+  const serviceKind = input.fulfillmentType === "service" && PROVIDER_SERVICE_KIND_VALUES.includes(input.serviceKind ?? "")
+    ? input.serviceKind ?? "other"
+    : "general";
+  const durationMinutes = input.fulfillmentType === "service" ? Math.max(0, Math.trunc(input.durationMinutes ?? 0)) : 0;
+  const serviceArea = input.fulfillmentType === "service" ? (input.serviceArea ?? "").trim() : "";
   const providerSku = (input.providerSku ?? "").trim();
   const providerNote = (input.providerNote ?? "").trim();
 
@@ -1234,12 +1252,15 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
             description = $8,
             thumbnail_url = $9,
             fulfillment_type = $10,
-            purchase_cost = $11,
-            proposed_stock_quantity = $12,
-            low_stock_threshold = $13,
-            allow_backorder = $14,
-            provider_sku = $15,
-            provider_note = $16,
+            service_kind = $11,
+            duration_minutes = $12,
+            service_area = $13,
+            purchase_cost = $14,
+            proposed_stock_quantity = $15,
+            low_stock_threshold = $16,
+            allow_backorder = $17,
+            provider_sku = $18,
+            provider_note = $19,
             updated_at = NOW()
           WHERE id = $1
         `,
@@ -1254,6 +1275,9 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
           description,
           thumbnailUrl,
           input.fulfillmentType,
+          serviceKind,
+          durationMinutes,
+          serviceArea,
           input.purchaseCost,
           input.proposedStockQuantity,
           input.lowStockThreshold,
@@ -1288,6 +1312,9 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
           description,
           thumbnail_url,
           fulfillment_type,
+          service_kind,
+          duration_minutes,
+          service_area,
           purchase_cost,
           proposed_stock_quantity,
           low_stock_threshold,
@@ -1295,7 +1322,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
           provider_sku,
           provider_note
         )
-        VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        VALUES ($1, $2, $3, $4, 'draft', $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING id
       `,
       [
@@ -1309,6 +1336,9 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
         description,
         thumbnailUrl,
         input.fulfillmentType,
+        serviceKind,
+        durationMinutes,
+        serviceArea,
         input.purchaseCost,
         input.proposedStockQuantity,
         input.lowStockThreshold,
@@ -1495,6 +1525,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
     description: string;
     thumbnail_url: string;
     fulfillment_type: OfferingFulfillmentType;
+    service_kind: string;
+    duration_minutes: string;
+    service_area: string;
     purchase_cost: string;
     proposed_stock_quantity: string;
     low_stock_threshold: string;
@@ -1516,6 +1549,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
         description,
         thumbnail_url,
         fulfillment_type,
+        service_kind,
+        duration_minutes::text,
+        service_area,
         purchase_cost::text,
         proposed_stock_quantity::text,
         low_stock_threshold::text,
@@ -1566,7 +1602,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
       );
       const existingOffering = existing.rows[0];
 
-      if (existingOffering && existingOffering.offering_type !== "physical_product") {
+      if (existingOffering && !["physical_product", "service"].includes(existingOffering.offering_type)) {
         throw new Error("OFFERING_SLUG_IN_USE");
       }
 
@@ -1584,6 +1620,16 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
               thumbnail_url = NULLIF($7, ''),
               price = $8,
               fulfillment_type = $9,
+              offering_type = CASE WHEN $9 = 'service' THEN 'service' ELSE offering_type END,
+              template_key = CASE WHEN $9 = 'service' THEN 'service' ELSE template_key END,
+              config = CASE
+                WHEN $9 = 'service' THEN config || jsonb_build_object(
+                  'service_kind', $13::text,
+                  'duration_minutes', $14::int,
+                  'service_area', $15::text
+                )
+                ELSE config
+              END,
               track_inventory = TRUE,
               stock_quantity = $10,
               low_stock_threshold = $11,
@@ -1605,6 +1651,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             toInteger(submission.proposed_stock_quantity),
             toInteger(submission.low_stock_threshold),
             submission.allow_backorder,
+            submission.service_kind,
+            toInteger(submission.duration_minutes),
+            submission.service_area,
           ]
         );
         nextLinkedOfferingId = updated.rows[0]?.id ?? existingOffering.id;
@@ -1632,7 +1681,20 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
               allow_backorder,
               config
             )
-            VALUES ($1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), 'published', 'physical_product', 'physical_product', '', '', NULLIF($6, ''), $7, $8, TRUE, $9, $10, $11, '{}'::jsonb)
+            VALUES (
+              $1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), 'published',
+              CASE WHEN $8 = 'service' THEN 'service' ELSE 'physical_product' END,
+              CASE WHEN $8 = 'service' THEN 'service' ELSE 'physical_product' END,
+              '', '', NULLIF($6, ''), $7, $8, TRUE, $9, $10, $11,
+              CASE
+                WHEN $8 = 'service' THEN jsonb_build_object(
+                  'service_kind', $12::text,
+                  'duration_minutes', $13::int,
+                  'service_area', $14::text
+                )
+                ELSE '{}'::jsonb
+              END
+            )
             RETURNING id
           `,
           [
@@ -1647,6 +1709,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             toInteger(submission.proposed_stock_quantity),
             toInteger(submission.low_stock_threshold),
             submission.allow_backorder,
+            submission.service_kind,
+            toInteger(submission.duration_minutes),
+            submission.service_area,
           ]
         );
         nextLinkedOfferingId = created.rows[0]?.id ?? null;
@@ -1717,6 +1782,16 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             thumbnail_url = NULLIF($7, ''),
             price = $8,
             fulfillment_type = $9,
+            offering_type = CASE WHEN $9 = 'service' THEN 'service' ELSE offering_type END,
+            template_key = CASE WHEN $9 = 'service' THEN 'service' ELSE template_key END,
+            config = CASE
+              WHEN $9 = 'service' THEN config || jsonb_build_object(
+                'service_kind', $13::text,
+                'duration_minutes', $14::int,
+                'service_area', $15::text
+              )
+              ELSE config
+            END,
             track_inventory = TRUE,
             stock_quantity = $10,
             low_stock_threshold = $11,
@@ -1738,6 +1813,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
           toInteger(submission.proposed_stock_quantity),
           toInteger(submission.low_stock_threshold),
           submission.allow_backorder,
+          submission.service_kind,
+          toInteger(submission.duration_minutes),
+          submission.service_area,
         ]
       );
 
@@ -1807,6 +1885,33 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
       }
     }
 
+    if (nextLinkedOfferingId && submission.submission_type !== "discontinue") {
+      if (submission.fulfillment_type === "service") {
+        await execute(
+          `
+            INSERT INTO service_offerings (
+              offering_id, service_kind, duration_minutes, requires_consultation, service_area
+            )
+            VALUES ($1, $2, $3, TRUE, $4)
+            ON CONFLICT (offering_id) DO UPDATE
+            SET
+              service_kind = EXCLUDED.service_kind,
+              duration_minutes = EXCLUDED.duration_minutes,
+              service_area = EXCLUDED.service_area,
+              updated_at = NOW()
+          `,
+          [
+            nextLinkedOfferingId,
+            submission.service_kind || "other",
+            toInteger(submission.duration_minutes),
+            submission.service_area,
+          ]
+        );
+      } else {
+        await execute("DELETE FROM service_offerings WHERE offering_id = $1", [nextLinkedOfferingId]);
+      }
+    }
+
     await execute(
       `
         UPDATE provider_offering_submissions
@@ -1842,6 +1947,9 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
         offeringId: nextLinkedOfferingId,
         title: submission.name,
         fulfillmentType: submission.fulfillment_type,
+        serviceKind: submission.service_kind,
+        durationMinutes: toInteger(submission.duration_minutes),
+        serviceArea: submission.service_area,
         status: "active",
         basePrice: adminSellPrice,
         metadata: {

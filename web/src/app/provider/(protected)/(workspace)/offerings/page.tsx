@@ -15,9 +15,9 @@ export default async function ProviderOfferingsPage() {
   return (
     <ProviderPage>
       <ProviderPageHeader
-        title="Yêu cầu sản phẩm"
-        description="Quản lý các yêu cầu tạo mới, cập nhật hoặc ngừng bán sản phẩm. Admin duyệt, phản hồi và nhập giá bán thực tế."
-        actions={<Button render={<Link href={ROUTES.PROVIDER.OFFERING_NEW}>Tạo yêu cầu mới</Link>} />}
+        title="Yêu cầu dịch vụ/sản phẩm"
+        description="Provider gửi yêu cầu nhận dịch vụ hoặc sản phẩm để admin kiểm tra, duyệt và cấp quyền lên lịch/bán."
+        actions={<Button render={<Link href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</Link>} />}
       />
 
       <ProviderOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
@@ -32,9 +32,9 @@ export default async function ProviderOfferingsPage() {
         />
       </ProviderOverviewGrid>
 
-      <ProviderSectionCard title="Danh sách yêu cầu sản phẩm">
+      <ProviderSectionCard title="Danh sách yêu cầu dịch vụ/sản phẩm">
         {submissions.length === 0 ? (
-          <ProviderEmptyState>Chưa có yêu cầu sản phẩm nào. Hãy tạo yêu cầu đầu tiên để gửi admin duyệt.</ProviderEmptyState>
+          <ProviderEmptyState>Chưa có yêu cầu nào. Hãy gửi yêu cầu nhận dịch vụ/sản phẩm đầu tiên để admin duyệt.</ProviderEmptyState>
         ) : (
           <ProviderOfferingRequestsTable submissions={submissions} />
         )}

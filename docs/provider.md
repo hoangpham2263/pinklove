@@ -47,8 +47,15 @@ Use this file for the dedicated provider portal.
 ## Provider Offering Approval
 
 - Provider product submissions remain account workflow records and store the actor as `provider_user_id`.
+- Provider service/product submissions are the required entry point before provider scheduling. A provider cannot create availability for a service until admin has approved/given that provider a service.
+- Service submissions must capture service detail up front:
+  - `fulfillment_type = service`
+  - `service_kind` (`makeup`, `photography`, `videography`, `decoration`, `planning`, `venue`, `consultation`, `handoff`, `other`)
+  - `duration_minutes`
+  - `service_area`
 - When admin approves a provider `create` or `update` submission into the catalog, the runtime must resolve `provider_user_id` to the provider ecosystem entity in `providers.id`.
 - Approved provider catalog rows must write that entity into `physical_offerings.provider_id` and `physical_offerings.provider_type`; admin should not choose platform/provider ownership manually in this workflow.
+- Approved service submissions must also upsert `service_offerings` and active `provider_services` so provider availability can select the exact service.
 - `offering_provider_suppliers.provider_user_id` still records the account-bound supplier workflow, but marketplace/catalog ownership remains `providers.id`.
 
 ## Source Finding Flow
@@ -64,7 +71,7 @@ Use this file for the dedicated provider portal.
 - Provider availability belongs to the service booking domain, not to offering type configuration.
 - `providers.provider_type` is the provider category (`supplier`, `studio`, `makeup`, `photographer`, etc.). Do not add a separate calendar type just to represent provider categories.
 - `booking_calendars` is the provider-owned calendar container. Use `key`, `label`, `timezone`, and `config` when a provider later needs multiple calendars such as default, team, studio room, or seasonal calendars.
-- `provider_availability` stores recurring weekly availability rules. A rule may be provider-wide, but serviceable workflows should scope it to `offering_id` or `provider_service_id`:
+- `provider_availability` stores recurring weekly availability rules. Provider-facing rules must scope to an approved service through `provider_service_id`/`offering_id`; do not use provider-wide availability as a substitute for service approval:
   - `provider_service_id`
   - `offering_id`
   - `availability_kind` (`general`, `consultation`, `on_site_service`, `provider_site_service`, `handoff`, `production`)
@@ -78,6 +85,8 @@ Use this file for the dedicated provider portal.
   - `status` (`available`, `unavailable`, `blocked`)
 - `provider_time_slots` is reserved for concrete dated slots used by booking/reservation workflows. It should carry `availability_id`, `provider_service_id`, `offering_id`, and `availability_kind` when generated from a weekly rule. Do not use it as the source of truth for provider-declared weekly rules.
 - `fulfillment_type` (`digital`, `physical`, `service`) describes handoff/commerce behavior only. It must not be used as the only calendar classifier. Use `availability_kind` plus `offering_id`/`provider_service_id` to distinguish makeup at customer site, studio work, consultation, production, and handoff windows.
+- `/provider/availability` must show a service request CTA instead of calendar controls when the provider has no approved `service` offering.
+- The schedulable service list must include only active provider services whose offering has `fulfillment_type = service`.
 - Provider UI mutations for availability should use `providerApi.updateAvailability()` from `src/lib/api-client.provider.ts`.
 - The provider calendar UI should create a rule only when the user selects/drags a time range. It must include the selected service scope and availability purpose. Clicking an existing rule opens edit actions; it should not delete immediately.
 - Admin availability screens may inspect declared availability and concrete time slots, but provider-facing schedule management should remain in `/provider/availability`.

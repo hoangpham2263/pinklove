@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import {
   getProviderAvailabilityKindEventColors,
   getProviderAvailabilityKindLabel,
+  providerAvailabilityKindRequiresService,
   PROVIDER_AVAILABILITY_KIND_OPTIONS,
   type ProviderAvailabilityKind,
 } from "@/features/providers/config/availability";
@@ -74,6 +75,10 @@ function getServiceScopeValue(rule: ProviderAvailabilityRule) {
   return "";
 }
 
+function getServiceOptionValue(service: ProviderSchedulableService) {
+  return service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+}
+
 function getServiceLabel(rule: ProviderAvailabilityRule) {
   return rule.serviceTitle || rule.offeringName || "Không gắn dịch vụ";
 }
@@ -82,7 +87,7 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [editingRule, setEditingRule] = useState<ProviderAvailabilityRule | null>(null);
-  const [draftServiceScope, setDraftServiceScope] = useState("");
+  const [draftServiceScope, setDraftServiceScope] = useState(services[0] ? getServiceOptionValue(services[0]) : "");
   const [draftAvailabilityKind, setDraftAvailabilityKind] = useState<ProviderAvailabilityKind>("general");
 
   const events = useMemo<EventInput[]>(
@@ -125,6 +130,11 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
   async function handleSelect(selection: DateSelectArg) {
     const startsAt = formatTime(selection.start);
     const endsAt = formatTime(selection.end);
+
+    if (!draftServiceScope) {
+      toast.error("Vui lòng yêu cầu hoặc chọn dịch vụ trước khi khai báo lịch.");
+      return;
+    }
 
     if (startsAt >= endsAt) {
       toast.error("Khung giờ không hợp lệ.");
@@ -233,13 +243,21 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
       <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/20 p-3">
         <select
           value={draftServiceScope}
-          onChange={(event) => setDraftServiceScope(event.target.value)}
+          onChange={(event) => {
+            const nextServiceScope = event.target.value;
+            setDraftServiceScope(nextServiceScope);
+            if (!nextServiceScope && providerAvailabilityKindRequiresService(draftAvailabilityKind)) {
+              setDraftAvailabilityKind("general");
+            }
+          }}
           aria-label="Dịch vụ áp dụng khi kéo thả"
           className="h-9 w-full rounded-md border bg-background px-3 text-sm md:w-72"
         >
-          <option value="">{services.length === 0 ? "Chưa có dịch vụ được gán" : "Không gắn dịch vụ"}</option>
+          <option value="" disabled>
+            {services.length === 0 ? "Chưa có dịch vụ được gán" : "Chọn dịch vụ áp dụng"}
+          </option>
           {services.map((service) => {
-            const value = service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+            const value = getServiceOptionValue(service);
             return (
               <option key={value} value={value}>
                 {service.title || service.offeringName}
@@ -254,8 +272,9 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
           className="h-9 w-full rounded-md border bg-background px-3 text-sm md:w-56"
         >
           {PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} disabled={!draftServiceScope && providerAvailabilityKindRequiresService(option.value)}>
               {option.label}
+              {!draftServiceScope && providerAvailabilityKindRequiresService(option.value) ? " - cần gắn dịch vụ" : ""}
             </option>
           ))}
         </select>
@@ -310,9 +329,11 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
               <div className="space-y-2">
                 <label className="text-sm font-medium">Dịch vụ áp dụng</label>
                 <select name="serviceScope" defaultValue={getServiceScopeValue(editingRule)} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                  <option value="">{services.length === 0 ? "Chưa có dịch vụ được gán" : "Không gắn dịch vụ"}</option>
+                  <option value="" disabled>
+                    {services.length === 0 ? "Chưa có dịch vụ được gán" : "Chọn dịch vụ áp dụng"}
+                  </option>
                   {services.map((service) => {
-                    const value = service.providerServiceId ? `ps:${service.providerServiceId}` : `off:${service.offeringId}`;
+                    const value = getServiceOptionValue(service);
                     return (
                       <option key={value} value={value}>
                         {service.title || service.offeringName}
@@ -325,8 +346,9 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
                 <label className="text-sm font-medium">Mục đích lịch</label>
                 <select name="availabilityKind" defaultValue={editingRule.availabilityKind} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
                   {PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} disabled={!getServiceScopeValue(editingRule) && providerAvailabilityKindRequiresService(option.value)}>
                       {option.label}
+                      {!getServiceScopeValue(editingRule) && providerAvailabilityKindRequiresService(option.value) ? " - cần gắn dịch vụ" : ""}
                     </option>
                   ))}
                 </select>

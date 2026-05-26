@@ -5,7 +5,10 @@ import {
   saveProviderAvailability,
   updateProviderAvailabilityRule,
 } from "@/features/providers/server/availability";
-import { PROVIDER_AVAILABILITY_KIND_VALUES, type ProviderAvailabilityKind } from "@/features/providers/config/availability";
+import {
+  PROVIDER_AVAILABILITY_KIND_VALUES,
+  type ProviderAvailabilityKind,
+} from "@/features/providers/config/availability";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { requireProvider } from "@/lib/auth";
@@ -69,6 +72,14 @@ export async function POST(request: Request) {
   const offeringId = String(formData.get("offeringId") ?? "").trim();
   const rawAvailabilityKind = String(formData.get("availabilityKind") ?? "general").trim() as ProviderAvailabilityKind;
   const availabilityKind = AVAILABILITY_KINDS.has(rawAvailabilityKind) ? rawAvailabilityKind : "general";
+
+  if (!providerServiceId && !offeringId) {
+    return respondError(request, {
+      error: "service_required",
+      message: "Vui lòng yêu cầu hoặc chọn dịch vụ trước khi khai báo lịch.",
+      location: ROUTES.PROVIDER.AVAILABILITY,
+    });
+  }
 
   if (!Number.isInteger(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6 || !startsAt || !endsAt || startsAt >= endsAt) {
     return respondError(request, {

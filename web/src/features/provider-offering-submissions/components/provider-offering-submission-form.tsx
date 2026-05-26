@@ -13,10 +13,11 @@ import { providerApi } from "@/lib/api-client.provider";
 import { finishMutation } from "@/lib/client-mutation";
 import { formatVnd } from "@/lib/currency";
 import { slugify } from "@/lib/utils";
-import type { OfferingCategory } from "@/features/offerings/types";
+import type { OfferingCategory, OfferingFulfillmentType } from "@/features/offerings/types";
 import type { ProviderOfferingSubmissionDetail, ProviderOfferingSubmissionType } from "@/features/provider-offering-submissions/types";
 import { getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
 import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
+import { PROVIDER_SERVICE_KIND_OPTIONS } from "@/features/provider-offering-submissions/config/service-kinds";
 
 type LiveOfferingOption = {
   id: string;
@@ -28,18 +29,21 @@ type ProviderOfferingSubmissionFormProps = {
   submission?: ProviderOfferingSubmissionDetail | null;
   categories: OfferingCategory[];
   liveOfferings: LiveOfferingOption[];
+  defaultFulfillmentType?: OfferingFulfillmentType;
 };
 
 export function ProviderOfferingSubmissionForm({
   submission,
   categories,
   liveOfferings,
+  defaultFulfillmentType = "service",
 }: ProviderOfferingSubmissionFormProps) {
   const router = useRouter();
   const [name, setName] = useState(submission?.name ?? "");
   const [slugCandidate, setSlugCandidate] = useState(submission?.slugCandidate ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(submission?.thumbnailUrl ?? "");
   const [submissionType, setSubmissionType] = useState<ProviderOfferingSubmissionType>(submission?.submissionType ?? "create");
+  const [fulfillmentType, setFulfillmentType] = useState<OfferingFulfillmentType>(submission?.fulfillmentType ?? defaultFulfillmentType);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const canEdit = !submission || ["draft", "changes_requested"].includes(submission.reviewStatus);
@@ -52,10 +56,10 @@ export function ProviderOfferingSubmissionForm({
 
     try {
       const result = await providerApi.saveOfferingSubmission(new FormData(event.currentTarget));
-      toast.success(result.message ?? "Đã lưu hồ sơ sản phẩm.");
+      toast.success(result.message ?? "Đã lưu hồ sơ dịch vụ/sản phẩm.");
       finishMutation(router, result, { redirect: "push", refresh: false });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể lưu hồ sơ sản phẩm.");
+      toast.error(error instanceof Error ? error.message : "Không thể lưu hồ sơ dịch vụ/sản phẩm.");
     } finally {
       setIsSaving(false);
     }
@@ -84,7 +88,7 @@ export function ProviderOfferingSubmissionForm({
 
       <Card className="border-zinc-200/80 bg-white/92">
         <CardHeader className="border-b">
-          <CardTitle className="text-base font-semibold text-zinc-950">Thông tin hồ sơ sản phẩm</CardTitle>
+          <CardTitle className="text-base font-semibold text-zinc-950">Thông tin dịch vụ/sản phẩm</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
           <div className="grid gap-4 md:grid-cols-2">
@@ -115,7 +119,7 @@ export function ProviderOfferingSubmissionForm({
                   required
                   className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
                 >
-                  <option value="">Chọn sản phẩm cần cập nhật/ngừng bán</option>
+                  <option value="">Chọn dịch vụ/sản phẩm cần cập nhật/ngừng bán</option>
                   {liveOfferings.map((offering) => (
                     <option key={offering.id} value={offering.id}>
                       {offering.name} /{offering.slug}
@@ -124,7 +128,7 @@ export function ProviderOfferingSubmissionForm({
                 </select>
                 {liveOfferings.length === 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    Chưa có sản phẩm live thuộc provider này. Hãy tạo mới và chờ admin duyệt trước.
+                    Chưa có dịch vụ/sản phẩm live thuộc provider này. Hãy tạo mới và chờ admin duyệt trước.
                   </p>
                 ) : null}
               </div>
@@ -135,7 +139,7 @@ export function ProviderOfferingSubmissionForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-950">Tên sản phẩm</label>
+              <label className="text-sm font-medium text-zinc-950">Tên dịch vụ/sản phẩm</label>
               <Input
                 name="name"
                 value={name}
@@ -180,19 +184,61 @@ export function ProviderOfferingSubmissionForm({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-950">Hình thức bàn giao</label>
+              <label className="text-sm font-medium text-zinc-950">Loại dịch vụ/sản phẩm</label>
               <select
                 name="fulfillmentType"
-                defaultValue={submission?.fulfillmentType ?? "physical"}
+                value={fulfillmentType}
                 disabled={!canEdit}
+                onChange={(event) => setFulfillmentType(event.target.value as OfferingFulfillmentType)}
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
               >
-                <option value="digital">Sản phẩm online - Nhận qua link/file</option>
-                <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
                 <option value="service">Dịch vụ - Có người thực hiện/đặt lịch</option>
+                <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                <option value="digital">Sản phẩm online - Nhận qua link/file</option>
               </select>
             </div>
           </div>
+
+          {fulfillmentType === "service" ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-950">Loại dịch vụ</label>
+                <select
+                  name="serviceKind"
+                  defaultValue={submission?.serviceKind ?? "other"}
+                  disabled={!canEdit}
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm disabled:opacity-60"
+                >
+                  {PROVIDER_SERVICE_KIND_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-950">Thời lượng mặc định</label>
+                <Input
+                  name="durationMinutes"
+                  type="number"
+                  min="0"
+                  step="15"
+                  defaultValue={String(submission?.durationMinutes ?? 0)}
+                  disabled={!canEdit}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-950">Khu vực phục vụ</label>
+                <Input name="serviceArea" defaultValue={submission?.serviceArea ?? ""} disabled={!canEdit} />
+              </div>
+            </div>
+          ) : (
+            <>
+              <input type="hidden" name="serviceKind" value="general" />
+              <input type="hidden" name="durationMinutes" value="0" />
+              <input type="hidden" name="serviceArea" value="" />
+            </>
+          )}
 
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
@@ -267,7 +313,7 @@ export function ProviderOfferingSubmissionForm({
                 </div>
               </>
             ) : (
-              <p className="text-sm text-zinc-600">Tạo hồ sơ nháp, chọn loại yêu cầu rồi gửi admin duyệt.</p>
+              <p className="text-sm text-zinc-600">Tạo hồ sơ nháp, chọn loại dịch vụ/sản phẩm rồi gửi admin duyệt.</p>
             )}
 
             {canEdit ? (

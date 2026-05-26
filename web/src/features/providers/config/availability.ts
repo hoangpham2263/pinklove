@@ -7,8 +7,8 @@ export type ProviderAvailabilityKind =
   | "production";
 
 export const PROVIDER_AVAILABILITY_KIND_OPTIONS: Array<{ value: ProviderAvailabilityKind; label: string }> = [
-  { value: "general", label: "Khung giờ chung" },
-  { value: "consultation", label: "Tư vấn" },
+  { value: "general", label: "Thời gian làm việc" },
+  { value: "consultation", label: "Tư vấn ban đầu" },
   { value: "on_site_service", label: "Làm tại địa điểm khách" },
   { value: "provider_site_service", label: "Làm tại studio/cửa hàng" },
   { value: "handoff", label: "Bàn giao/nhận hàng" },
@@ -17,8 +17,19 @@ export const PROVIDER_AVAILABILITY_KIND_OPTIONS: Array<{ value: ProviderAvailabi
 
 export const PROVIDER_AVAILABILITY_KIND_VALUES = PROVIDER_AVAILABILITY_KIND_OPTIONS.map((option) => option.value);
 
+export const PROVIDER_SERVICE_SCOPED_AVAILABILITY_KIND_VALUES: ProviderAvailabilityKind[] = [
+  "on_site_service",
+  "provider_site_service",
+  "handoff",
+  "production",
+];
+
+export function providerAvailabilityKindRequiresService(value: string | null | undefined) {
+  return PROVIDER_SERVICE_SCOPED_AVAILABILITY_KIND_VALUES.includes(value as ProviderAvailabilityKind);
+}
+
 export function getProviderAvailabilityKindLabel(value: string | null | undefined) {
-  return PROVIDER_AVAILABILITY_KIND_OPTIONS.find((option) => option.value === value)?.label ?? "Khung giờ chung";
+  return PROVIDER_AVAILABILITY_KIND_OPTIONS.find((option) => option.value === value)?.label ?? "Thời gian làm việc";
 }
 
 export function getProviderAvailabilityKindClassName(value: string | null | undefined) {

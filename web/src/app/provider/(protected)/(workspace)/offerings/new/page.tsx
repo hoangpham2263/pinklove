@@ -5,8 +5,10 @@ import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/com
 import { ProviderOfferingSubmissionForm } from "@/features/provider-offering-submissions/components/provider-offering-submission-form";
 import { listLiveOfferingsForProviderSubmissions } from "@/features/provider-offering-submissions/server/service";
 
-export default async function ProviderOfferingCreatePage() {
+export default async function ProviderOfferingCreatePage({ searchParams }: { searchParams?: Promise<{ intent?: string }> }) {
   const providerUser = await requireProvider(ROUTES.PROVIDER.LOGIN);
+  const params = searchParams ? await searchParams : {};
+  const defaultFulfillmentType = params.intent === "product" ? "physical" : "service";
   const [categories, liveOfferings] = await Promise.all([
     listAllOfferingCategories(),
     listLiveOfferingsForProviderSubmissions(providerUser.id),
@@ -15,10 +17,10 @@ export default async function ProviderOfferingCreatePage() {
   return (
     <ProviderPage>
       <ProviderPageHeader
-        title="Tạo yêu cầu sản phẩm"
-        description="Dùng hồ sơ này để đề xuất sản phẩm mới, yêu cầu cập nhật sản phẩm đang liên kết hoặc gửi yêu cầu ngừng bán."
+        title="Yêu cầu nhận dịch vụ/sản phẩm"
+        description="Dùng hồ sơ này để chọn loại dịch vụ/sản phẩm, mô tả năng lực cung cấp và gửi admin duyệt trước khi khai báo lịch hoặc bán."
       />
-      <ProviderOfferingSubmissionForm categories={categories} liveOfferings={liveOfferings} />
+      <ProviderOfferingSubmissionForm categories={categories} liveOfferings={liveOfferings} defaultFulfillmentType={defaultFulfillmentType} />
     </ProviderPage>
   );
 }

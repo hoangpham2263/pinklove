@@ -32,7 +32,7 @@ export default async function ProviderOfferingDetailPage({ params }: { params: P
   return (
     <ProviderPage>
       <ProviderPageHeader
-        title="Yêu cầu sản phẩm"
+        title="Yêu cầu dịch vụ/sản phẩm"
         description="Theo dõi và chỉnh sửa hồ sơ trước khi gửi duyệt hoặc khi admin yêu cầu bổ sung."
       />
       <ProviderOfferingSubmissionForm submission={detail} categories={categories} liveOfferings={liveOfferings} />

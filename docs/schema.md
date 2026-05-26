@@ -222,7 +222,7 @@ Availability is split intentionally:
 - `booking_calendars` is the provider-owned calendar container and can be
   distinguished by `key`, `label`, `timezone`, and `config`.
 - `provider_availability` stores recurring weekly rules declared by providers.
-  Serviceable rules should link to `offering_id` or `provider_service_id` and
+  Provider-facing rules must link to an approved service via `offering_id` or `provider_service_id` and
   classify the operational purpose with `availability_kind` (`general`,
   `consultation`, `on_site_service`, `provider_site_service`, `handoff`,
   `production`).
@@ -236,6 +236,10 @@ Availability is split intentionally:
   `physical`, `service`), not enough to identify what a calendar slot is for.
   Use `availability_kind` plus service/offering linkage for makeup-at-location,
   studio service, consultation, handoff, and production scheduling.
+- Provider service requests store `service_kind`, `duration_minutes`, and
+  `service_area` on `provider_offering_submissions`. When a service request is
+  approved, these values are applied into `service_offerings` and
+  `provider_services.metadata`.
 
 ## Overview
 
@@ -511,6 +515,7 @@ erDiagram
     text id PK
     text provider_id FK
     text offering_id FK
+    jsonb metadata
   }
 
   bookings {
@@ -934,6 +939,10 @@ erDiagram
     text provider_user_id FK
     text linked_offering_id FK
     text category_id FK
+    text fulfillment_type
+    text service_kind
+    int duration_minutes
+    text service_area
     text review_status
   }
 

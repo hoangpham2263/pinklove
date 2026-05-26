@@ -340,7 +340,8 @@ export async function listProviderSchedulableServices(providerId: string): Promi
         INNER JOIN offerings offering ON offering.id = service.offering_id
         LEFT JOIN service_offerings service_offering ON service_offering.offering_id = offering.id
         WHERE service.provider_id = $1
-          AND service.status <> 'archived'
+          AND service.status = 'active'
+          AND offering.fulfillment_type = 'service'
 
         UNION ALL
 
@@ -357,6 +358,8 @@ export async function listProviderSchedulableServices(providerId: string): Promi
         INNER JOIN offerings offering ON offering.id = physical.offering_id
         LEFT JOIN service_offerings service_offering ON service_offering.offering_id = offering.id
         WHERE physical.provider_id = $1
+          AND COALESCE(physical.fulfillment_type, offering.fulfillment_type) = 'service'
+          AND offering.status = 'published'
       )
       SELECT DISTINCT ON (offering_id)
         provider_service_id,
@@ -392,7 +395,7 @@ export async function getProviderAvailabilityServiceScope(input: {
 }): Promise<{ providerServiceId: string | null; offeringId: string | null; durationMinutes: number } | null> {
   const services = await listProviderSchedulableServices(input.providerId);
   if (!input.providerServiceId && !input.offeringId) {
-    return { providerServiceId: null, offeringId: null, durationMinutes: 0 };
+    return null;
   }
 
   const service = services.find((item) =>
