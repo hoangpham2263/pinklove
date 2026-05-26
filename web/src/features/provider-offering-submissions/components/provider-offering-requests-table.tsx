@@ -98,7 +98,7 @@ export function ProviderOfferingRequestsTable({ submissions }: ProviderOfferingR
         accessorKey: "name",
         header: ({ column }) => (
           <ProviderTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Sản phẩm
+            Dịch vụ/sản phẩm
           </ProviderTableSortButton>
         ),
         cell: ({ row }) => (

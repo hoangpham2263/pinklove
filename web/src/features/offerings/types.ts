@@ -13,6 +13,7 @@ export const SYSTEM_OFFERING_TYPES = {
   BRIDAL_MAKEUP: "bridal_makeup",
   WEDDING_DECORATION: "wedding_decoration",
   WEDDING_PLANNER: "wedding_planner",
+  WEDDING_SERVICE: "wedding_service",
   WEDDING_GIFT: "wedding_gift",
 } as const;
 
@@ -222,6 +223,8 @@ export function getOfferingTypeLabel(offeringType: OfferingType) {
       return "Trang trí tiệc cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_PLANNER:
       return "Wedding planner";
+    case SYSTEM_OFFERING_TYPES.WEDDING_SERVICE:
+      return "Dịch vụ cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_GIFT:
       return "Quà cưới";
     default:

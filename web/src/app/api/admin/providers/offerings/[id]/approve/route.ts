@@ -32,14 +32,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     return respondSuccess(request, {
       location: `${ROUTES.ADMIN.PROVIDER_OFFERING(id)}?updated=1`,
-      message: "Đã áp dụng hồ sơ sản phẩm vào catalog.",
+      message: "Đã áp dụng hồ sơ dịch vụ/sản phẩm vào catalog.",
     });
   } catch (error) {
     const errorCode = error instanceof Error ? error.message : "approve_failed";
 
     return respondError(request, {
       error: errorCode,
-      message: "Không thể duyệt hồ sơ sản phẩm.",
+      message: "Không thể duyệt hồ sơ dịch vụ/sản phẩm.",
       location: `${ROUTES.ADMIN.PROVIDER_OFFERING(id)}?error=${encodeURIComponent(errorCode)}`,
     });
   }

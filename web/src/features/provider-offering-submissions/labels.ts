@@ -77,7 +77,7 @@ export function getOfferingProviderSupplierSourceLabel(value: OfferingProviderSu
     case "admin":
       return "Admin gán";
     case "proposal":
-      return "Từ hồ sơ sản phẩm";
+      return "Từ hồ sơ dịch vụ/sản phẩm";
     case "supplier_request":
       return "Từ yêu cầu cung cấp";
     default:

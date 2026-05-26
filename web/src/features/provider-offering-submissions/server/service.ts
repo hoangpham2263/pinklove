@@ -6,7 +6,7 @@ import { getOfferingById } from "@/features/offerings/server/service";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
 import { getProviderByUserId, upsertProviderServiceForOffering } from "@/features/providers/server/service";
-import { PROVIDER_SERVICE_KIND_VALUES } from "@/features/provider-offering-submissions/config/service-kinds";
+import { getProviderServiceOfferingTypeKey, PROVIDER_SERVICE_KIND_VALUES } from "@/features/provider-offering-submissions/config/service-kinds";
 import { formatVnd } from "@/lib/currency";
 import type {
   ProviderOfferingReviewStatus,
@@ -1292,7 +1292,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
         actorUserId: input.providerId,
         actorType: "provider",
         eventType: "updated",
-        message: "Provider đã cập nhật hồ sơ sản phẩm chờ duyệt.",
+        message: "Provider đã cập nhật hồ sơ dịch vụ/sản phẩm chờ duyệt.",
       });
 
       return input.submissionId;
@@ -1354,7 +1354,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
       actorUserId: input.providerId,
       actorType: "provider",
       eventType: "created",
-      message: "Provider đã tạo bản nháp sản phẩm.",
+      message: "Provider đã tạo bản nháp dịch vụ/sản phẩm.",
     });
 
     return submissionId;
@@ -1406,14 +1406,14 @@ export async function submitProviderOfferingSubmission(providerId: string, submi
       actorUserId: providerId,
       actorType: "provider",
       eventType: "submitted",
-      message: `Provider đã gửi duyệt sản phẩm "${row.name}".`,
+      message: `Provider đã gửi duyệt dịch vụ/sản phẩm "${row.name}".`,
     });
   });
 
   await createAdminNotification({
     actorUserId: providerId,
-    title: "Provider gửi sản phẩm chờ duyệt",
-    body: `${submittedName || "Một sản phẩm"} vừa được provider gửi lên để admin review.`,
+    title: "Provider gửi dịch vụ/sản phẩm chờ duyệt",
+    body: `${submittedName || "Một hồ sơ"} vừa được provider gửi lên để admin review.`,
     linkUrl: ROUTES.ADMIN.PROVIDER_OFFERINGS,
     audienceType: "role",
     roles: [USER_ROLES.ADMIN],
@@ -1465,19 +1465,19 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
     const eventMap: Record<ReviewProviderOfferingSubmissionInput["nextStatus"], { eventType: ProviderOfferingSubmissionEventType; message: string }> = {
       under_review: {
         eventType: "review_started",
-        message: "Admin đã nhận xử lý hồ sơ sản phẩm.",
+        message: "Admin đã nhận xử lý hồ sơ dịch vụ/sản phẩm.",
       },
       changes_requested: {
         eventType: "changes_requested",
-        message: reviewNote ? `Admin yêu cầu chỉnh sửa: ${reviewNote}` : "Admin yêu cầu provider chỉnh sửa hồ sơ sản phẩm.",
+        message: reviewNote ? `Admin yêu cầu chỉnh sửa: ${reviewNote}` : "Admin yêu cầu provider chỉnh sửa hồ sơ dịch vụ/sản phẩm.",
       },
       rejected: {
         eventType: "rejected",
-        message: reviewNote ? `Admin từ chối hồ sơ: ${reviewNote}` : "Admin đã từ chối hồ sơ sản phẩm.",
+        message: reviewNote ? `Admin từ chối hồ sơ: ${reviewNote}` : "Admin đã từ chối hồ sơ dịch vụ/sản phẩm.",
       },
       archived: {
         eventType: "archived",
-        message: "Admin đã lưu trữ hồ sơ sản phẩm.",
+        message: "Admin đã lưu trữ hồ sơ dịch vụ/sản phẩm.",
       },
     };
 
@@ -1493,15 +1493,15 @@ export async function reviewProviderOfferingSubmission(input: ReviewProviderOffe
   if (providerId) {
     await createAdminNotification({
       actorUserId: input.actorUserId,
-      title: "Admin đã cập nhật review sản phẩm",
+      title: "Admin đã cập nhật review dịch vụ/sản phẩm",
       body:
         input.nextStatus === "changes_requested"
-          ? "Admin yêu cầu bạn chỉnh sửa hồ sơ sản phẩm."
+          ? "Admin yêu cầu bạn chỉnh sửa hồ sơ dịch vụ/sản phẩm."
           : input.nextStatus === "under_review"
-            ? "Admin đã bắt đầu review hồ sơ sản phẩm của bạn."
+            ? "Admin đã bắt đầu review hồ sơ dịch vụ/sản phẩm của bạn."
             : input.nextStatus === "rejected"
-              ? "Admin đã từ chối hồ sơ sản phẩm của bạn."
-              : "Admin đã lưu trữ hồ sơ sản phẩm của bạn.",
+              ? "Admin đã từ chối hồ sơ dịch vụ/sản phẩm của bạn."
+              : "Admin đã lưu trữ hồ sơ dịch vụ/sản phẩm của bạn.",
       linkUrl: ROUTES.PROVIDER.OFFERING(input.submissionId),
       audienceType: "users",
       userIds: [providerId],
@@ -1582,6 +1582,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   const reviewNote = (input.reviewNote ?? "").trim();
   const ownerProviderId = provider?.id ?? null;
   const ownerProviderType = provider?.provider_type ? String(provider.provider_type) : null;
+  const serviceOfferingType = submission.fulfillment_type === "service" ? getProviderServiceOfferingTypeKey(submission.service_kind) : "physical_product";
   let catalogEventName: "offering.created" | "offering.updated" = "offering.updated";
 
   const linkedOfferingId = await withTransaction(async (execute) => {
@@ -1602,8 +1603,12 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
       );
       const existingOffering = existing.rows[0];
 
-      if (existingOffering && !["physical_product", "service"].includes(existingOffering.offering_type)) {
-        throw new Error("OFFERING_SLUG_IN_USE");
+      if (existingOffering) {
+        const expectedOfferingType = submission.fulfillment_type === "service" ? serviceOfferingType : "physical_product";
+        const isLinkedOffering = Boolean(submission.linked_offering_id) && existingOffering.id === submission.linked_offering_id;
+        if (!isLinkedOffering || existingOffering.offering_type !== expectedOfferingType) {
+          throw new Error("OFFERING_SLUG_IN_USE");
+        }
       }
 
       if (existingOffering) {
@@ -1620,8 +1625,8 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
               thumbnail_url = NULLIF($7, ''),
               price = $8,
               fulfillment_type = $9,
-              offering_type = CASE WHEN $9 = 'service' THEN 'service' ELSE offering_type END,
-              template_key = CASE WHEN $9 = 'service' THEN 'service' ELSE template_key END,
+              offering_type = CASE WHEN $9 = 'service' THEN $16 ELSE offering_type END,
+              template_key = CASE WHEN $9 = 'service' THEN $16 ELSE template_key END,
               config = CASE
                 WHEN $9 = 'service' THEN config || jsonb_build_object(
                   'service_kind', $13::text,
@@ -1654,6 +1659,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             submission.service_kind,
             toInteger(submission.duration_minutes),
             submission.service_area,
+            serviceOfferingType,
           ]
         );
         nextLinkedOfferingId = updated.rows[0]?.id ?? existingOffering.id;
@@ -1683,8 +1689,8 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             )
             VALUES (
               $1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), 'published',
-              CASE WHEN $8 = 'service' THEN 'service' ELSE 'physical_product' END,
-              CASE WHEN $8 = 'service' THEN 'service' ELSE 'physical_product' END,
+              CASE WHEN $8 = 'service' THEN $15 ELSE 'physical_product' END,
+              CASE WHEN $8 = 'service' THEN $15 ELSE 'physical_product' END,
               '', '', NULLIF($6, ''), $7, $8, TRUE, $9, $10, $11,
               CASE
                 WHEN $8 = 'service' THEN jsonb_build_object(
@@ -1712,6 +1718,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             submission.service_kind,
             toInteger(submission.duration_minutes),
             submission.service_area,
+            serviceOfferingType,
           ]
         );
         nextLinkedOfferingId = created.rows[0]?.id ?? null;
@@ -1782,8 +1789,8 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
             thumbnail_url = NULLIF($7, ''),
             price = $8,
             fulfillment_type = $9,
-            offering_type = CASE WHEN $9 = 'service' THEN 'service' ELSE offering_type END,
-            template_key = CASE WHEN $9 = 'service' THEN 'service' ELSE template_key END,
+            offering_type = CASE WHEN $9 = 'service' THEN $16 ELSE offering_type END,
+            template_key = CASE WHEN $9 = 'service' THEN $16 ELSE template_key END,
             config = CASE
               WHEN $9 = 'service' THEN config || jsonb_build_object(
                 'service_kind', $13::text,
@@ -1816,6 +1823,7 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
           submission.service_kind,
           toInteger(submission.duration_minutes),
           submission.service_area,
+          serviceOfferingType,
         ]
       );
 
@@ -1968,10 +1976,10 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
       eventType: "approved",
       message:
         submission.review_status === "approved"
-          ? "Admin đã cập nhật lại hồ sơ sản phẩm và áp dụng vào catalog."
+          ? "Admin đã cập nhật lại hồ sơ dịch vụ/sản phẩm và áp dụng vào catalog."
           : submission.submission_type === "discontinue"
-          ? "Admin đã duyệt ngừng bán sản phẩm."
-          : "Admin đã duyệt hồ sơ sản phẩm và áp dụng vào catalog.",
+          ? "Admin đã duyệt ngừng bán dịch vụ/sản phẩm."
+          : "Admin đã duyệt hồ sơ dịch vụ/sản phẩm và áp dụng vào catalog.",
     });
 
     return nextLinkedOfferingId;
@@ -1993,19 +2001,19 @@ export async function approveProviderOfferingSubmission(input: ApproveProviderOf
   const notificationTitle =
     submission.submission_type === "discontinue"
       ? "Yêu cầu ngừng bán đã được duyệt"
-      : submission.review_status === "approved"
-        ? "Catalog sản phẩm đã được cập nhật"
+    : submission.review_status === "approved"
+        ? "Catalog dịch vụ/sản phẩm đã được cập nhật"
         : submission.submission_type === "update"
-          ? "Cập nhật sản phẩm provider đã được duyệt"
-          : "Sản phẩm provider đã được duyệt và mở bán";
+          ? "Cập nhật dịch vụ/sản phẩm provider đã được duyệt"
+          : "Dịch vụ/sản phẩm provider đã được duyệt và mở bán";
   const notificationBody =
     submission.submission_type === "discontinue"
-      ? `Admin đã duyệt ngừng bán "${submission.name}".`
+        ? `Admin đã duyệt ngừng bán "${submission.name}".`
       : submission.review_status === "approved"
         ? `Admin đã cập nhật "${submission.name}" trong catalog với giá bán ${formatVnd(adminSellPrice)}.`
         : submission.submission_type === "update"
           ? `Admin đã duyệt cập nhật "${submission.name}" và áp dụng vào catalog.`
-          : `Admin đã duyệt "${submission.name}" và đưa sản phẩm lên catalog.`;
+          : `Admin đã duyệt "${submission.name}" và đưa lên catalog.`;
 
   await createAdminNotification({
     actorUserId: input.actorUserId,

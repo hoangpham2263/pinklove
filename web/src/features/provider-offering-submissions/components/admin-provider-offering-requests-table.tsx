@@ -106,7 +106,7 @@ export function AdminProviderOfferingRequestsTable({
         accessorKey: "name",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Sản phẩm</AdminTableSortButton>
+            Dịch vụ/sản phẩm</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="space-y-1">

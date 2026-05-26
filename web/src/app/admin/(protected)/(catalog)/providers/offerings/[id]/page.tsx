@@ -9,6 +9,7 @@ import { ROUTES } from "@/lib/routes";
 import { getProviderOfferingSubmissionDetailForAdmin } from "@/features/provider-offering-submissions/server/service";
 import { getProviderOfferingReviewStatusLabel, getProviderOfferingSubmissionTypeLabel } from "@/features/provider-offering-submissions/labels";
 import { ProviderOfferingStatusBadge } from "@/features/provider-offering-submissions/components/provider-offering-status-badge";
+import { getProviderServiceKindLabel } from "@/features/provider-offering-submissions/config/service-kinds";
 
 function formatDateTime(value?: string) {
   if (!value) return "—";
@@ -16,6 +17,19 @@ function formatDateTime(value?: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function getFulfillmentLabel(value: string) {
+  switch (value) {
+    case "service":
+      return "Dịch vụ";
+    case "physical":
+      return "Sản phẩm vật lý";
+    case "digital":
+      return "Sản phẩm online";
+    default:
+      return value;
+  }
 }
 
 export default async function AdminProviderOfferingDetailPage({
@@ -73,7 +87,15 @@ export default async function AdminProviderOfferingDetailPage({
               <div><p className="text-muted-foreground">Nhà cung cấp</p><p>{detail.providerDisplayName} ({detail.providerUsername})</p></div>
               <div><p className="text-muted-foreground">Slug đề xuất</p><p>/{detail.slugCandidate}</p></div>
               <div><p className="text-muted-foreground">Category</p><p>{detail.categoryName || "Chưa chọn"}</p></div>
-              <div><p className="text-muted-foreground">Sản phẩm live</p><p>{detail.linkedOfferingName || "Chưa liên kết"}</p></div>
+              <div><p className="text-muted-foreground">Dịch vụ/sản phẩm live</p><p>{detail.linkedOfferingName || "Chưa liên kết"}</p></div>
+              <div><p className="text-muted-foreground">Loại hồ sơ</p><p>{getFulfillmentLabel(detail.fulfillmentType)}</p></div>
+              {detail.fulfillmentType === "service" ? (
+                <>
+                  <div><p className="text-muted-foreground">Loại dịch vụ</p><p>{getProviderServiceKindLabel(detail.serviceKind)}</p></div>
+                  <div><p className="text-muted-foreground">Thời lượng mặc định</p><p>{detail.durationMinutes > 0 ? `${detail.durationMinutes} phút` : "Chưa khai báo"}</p></div>
+                  <div><p className="text-muted-foreground">Khu vực phục vụ</p><p>{detail.serviceArea || "Chưa khai báo"}</p></div>
+                </>
+              ) : null}
               <div><p className="text-muted-foreground">Giá nhập</p><p>{formatVnd(detail.purchaseCost)}</p></div>
               <div><p className="text-muted-foreground">Giá bán admin</p><p>{detail.adminSellPrice ? formatVnd(detail.adminSellPrice) : "Chưa nhập"}</p></div>
               <div><p className="text-muted-foreground">Số lượng</p><p>{detail.proposedStockQuantity}</p></div>

@@ -1214,6 +1214,7 @@ async function ensureOfferingTablesMigration() {
       ('bridal_makeup', 'Makeup cô dâu', 'Dịch vụ trang điểm cô dâu, makeup tiệc cưới, thử makeup hoặc làm tóc cô dâu.', 'active', 'service', 'bridal_makeup', '', '', FALSE, TRUE, TRUE),
       ('wedding_decoration', 'Trang trí tiệc cưới', 'Dịch vụ trang trí gia tiên, backdrop, bàn gallery, hoa cưới và không gian tiệc.', 'active', 'service', 'wedding_decoration', '', '', FALSE, TRUE, TRUE),
       ('wedding_planner', 'Wedding planner', 'Dịch vụ lập kế hoạch, điều phối, tư vấn timeline và quản lý ngày cưới.', 'active', 'service', 'wedding_planner', '', '', FALSE, TRUE, TRUE),
+      ('wedding_service', 'Dịch vụ cưới', 'Dịch vụ cưới khác cần provider thực hiện, tư vấn, bàn giao hoặc điều phối theo lịch.', 'active', 'service', 'wedding_service', '', '', FALSE, TRUE, TRUE),
       ('wedding_gift', 'Quà cưới', 'Quà tặng, hộp quà, phụ kiện cưới và sản phẩm hữu hình có thể cung ứng bởi đối tác.', 'active', 'physical', 'wedding_gift', '', '', TRUE, TRUE, TRUE)
     ON CONFLICT (key) DO UPDATE
     SET

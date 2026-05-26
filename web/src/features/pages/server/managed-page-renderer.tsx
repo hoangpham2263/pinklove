@@ -484,7 +484,7 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
       const priceFilter = getPriceFilter(filters.priceKey);
       const [paperOfferings, categories] = await Promise.all([
         listPublishedOfferingsFiltered({
-          offeringTypes: ["physical_product", "wedding_video", "wedding_photo", "bridal_makeup", "wedding_decoration", "wedding_planner", "wedding_gift"],
+          offeringTypes: ["physical_product", "wedding_video", "wedding_photo", "bridal_makeup", "wedding_decoration", "wedding_planner", "wedding_service", "wedding_gift"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,

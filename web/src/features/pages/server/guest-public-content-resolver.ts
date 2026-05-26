@@ -102,6 +102,7 @@ export async function resolveGuestPublicContent(
     "bridal_makeup",
     "wedding_decoration",
     "wedding_planner",
+    "wedding_service",
     "wedding_gift",
   ]);
   if (generalOffering && getGeneralOfferingPath(generalOffering) === pathname) {

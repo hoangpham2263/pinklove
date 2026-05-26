@@ -15,3 +15,24 @@ export const PROVIDER_SERVICE_KIND_VALUES = PROVIDER_SERVICE_KIND_OPTIONS.map((o
 export function getProviderServiceKindLabel(value: string | null | undefined) {
   return PROVIDER_SERVICE_KIND_OPTIONS.find((option) => option.value === value)?.label ?? "Dịch vụ khác";
 }
+
+export function getProviderServiceOfferingTypeKey(value: string | null | undefined) {
+  switch (value) {
+    case "makeup":
+      return "bridal_makeup";
+    case "photography":
+      return "wedding_photo";
+    case "videography":
+      return "wedding_video";
+    case "decoration":
+      return "wedding_decoration";
+    case "planning":
+      return "wedding_planner";
+    case "venue":
+    case "consultation":
+    case "handoff":
+    case "other":
+    default:
+      return "wedding_service";
+  }
+}

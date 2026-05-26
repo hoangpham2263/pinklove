@@ -111,7 +111,7 @@ export function ProviderOfferingSubmissionForm({
 
             {requiresLinkedOffering ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-950">Sản phẩm đang liên kết</label>
+                <label className="text-sm font-medium text-zinc-950">Dịch vụ/sản phẩm đang liên kết</label>
                 <select
                   name="linkedOfferingId"
                   defaultValue={submission?.linkedOfferingId ?? ""}

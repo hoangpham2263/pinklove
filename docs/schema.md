@@ -100,6 +100,7 @@ Current system offering type keys:
 - `bridal_makeup`
 - `wedding_decoration`
 - `wedding_planner`
+- `wedding_service`
 - `wedding_gift`
 
 `digital_template` is reserved for the two fixed invitation flows:
@@ -133,6 +134,7 @@ Current runtime seed data:
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
 | `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
+| `wedding_service` | Dịch vụ cưới | active | service | `wedding_service` | no | yes | yes | 0 |
 | `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
 
 Current runtime offering data:
