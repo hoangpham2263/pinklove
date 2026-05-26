@@ -1,4 +1,4 @@
-import { deleteProviderAvailabilityRule, ensureBookingCalendar, saveProviderAvailability } from "@/features/providers/server/availability";
+import { deleteProviderAvailabilityRule, ensureBookingCalendar, saveProviderAvailability, updateProviderAvailabilityRule } from "@/features/providers/server/availability";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { requireProvider } from "@/lib/auth";
@@ -42,6 +42,32 @@ export async function POST(request: Request) {
       error: "invalid_availability",
       message: "Khung giờ không hợp lệ.",
       location: ROUTES.PROVIDER.AVAILABILITY,
+    });
+  }
+
+  if (intent === "update") {
+    const ruleId = String(formData.get("ruleId") ?? "").trim();
+    if (!ruleId) {
+      return respondError(request, {
+        error: "invalid_rule_id",
+        message: "Không tìm thấy khung lịch để cập nhật.",
+        location: ROUTES.PROVIDER.AVAILABILITY,
+      });
+    }
+
+    await updateProviderAvailabilityRule({
+      providerId: provider.id,
+      ruleId,
+      dayOfWeek,
+      startsAt,
+      endsAt,
+      capacity,
+      status,
+    });
+
+    return respondSuccess(request, {
+      location: ROUTES.PROVIDER.AVAILABILITY,
+      message: "Đã cập nhật lịch khả dụng.",
     });
   }
 

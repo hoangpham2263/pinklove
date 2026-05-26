@@ -121,12 +121,6 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.CONFIG_ADDRESSES],
         excludePaths: [ROUTES.PROVIDER.CONFIG_ADDRESS_NEW],
       },
-      {
-        label: "Thêm địa chỉ",
-        href: ROUTES.PROVIDER.CONFIG_ADDRESS_NEW,
-        iconName: "map-pin",
-        exact: true,
-      },
     ],
   },
 ];

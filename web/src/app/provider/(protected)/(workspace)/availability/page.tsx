@@ -57,11 +57,14 @@ function getProviderTypeLabel(value: string) {
   }
 }
 
-export default async function ProviderAvailabilityPage() {
+export default async function ProviderAvailabilityPage({ searchParams }: { searchParams?: Promise<{ editRuleId?: string }> }) {
   const providerUser = await requireProvider(ROUTES.PROVIDER.LOGIN);
   const provider = await getProviderByUserId(providerUser.id);
   const rules = provider ? await listProviderAvailabilityRules(provider.id) : [];
   const activeRules = rules.filter((rule) => rule.status === "available").length;
+  
+  const query = searchParams ? await searchParams : {};
+  const editingRule = rules.find((rule) => rule.id === query.editRuleId) || null;
 
   return (
     <ProviderPage>
@@ -82,11 +85,13 @@ export default async function ProviderAvailabilityPage() {
         <ProviderEmptyState>Chưa có hồ sơ provider để cấu hình lịch.</ProviderEmptyState>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
-          <ProviderSectionCard title="Thêm khung lịch" description="Nhập lịch lặp theo tuần. Có thể thêm nhiều khung cho cùng một ngày.">
+          <ProviderSectionCard title={editingRule ? "Sửa khung lịch" : "Thêm khung lịch"} description="Nhập lịch lặp theo tuần. Có thể thêm nhiều khung cho cùng một ngày.">
             <NativeForm action={ROUTES.API.PROVIDER.AVAILABILITY} method="POST" className="space-y-4">
+              <input type="hidden" name="intent" value={editingRule ? "update" : "save"} />
+              {editingRule ? <input type="hidden" name="ruleId" value={editingRule.id} /> : null}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày trong tuần</label>
-                <select name="dayOfWeek" required className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+                <select name="dayOfWeek" required defaultValue={editingRule?.dayOfWeek ?? undefined} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
                   {DAY_OPTIONS.map((day) => (
                     <option key={day.value} value={day.value}>
                       {day.label}
@@ -97,30 +102,37 @@ export default async function ProviderAvailabilityPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Bắt đầu</label>
-                  <input name="startsAt" type="time" required className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+                  <input name="startsAt" type="time" required defaultValue={editingRule?.startsAt?.slice(0, 5)} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Kết thúc</label>
-                  <input name="endsAt" type="time" required className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+                  <input name="endsAt" type="time" required defaultValue={editingRule?.endsAt?.slice(0, 5)} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Sức chứa</label>
-                  <input name="capacity" type="number" min="1" defaultValue="1" className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
+                  <input name="capacity" type="number" min="1" defaultValue={editingRule?.capacity ?? "1"} className="h-10 w-full rounded-md border bg-background px-3 text-sm" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trạng thái</label>
-                  <select name="status" className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+                  <select name="status" defaultValue={editingRule?.status ?? "available"} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
                     <option value="available">Nhận lịch</option>
                     <option value="unavailable">Không nhận</option>
                     <option value="blocked">Khóa lịch</option>
                   </select>
                 </div>
               </div>
-              <ProviderSubmitButton type="submit" className="w-full">
-                Lưu khung lịch
-              </ProviderSubmitButton>
+              <div className="flex items-center gap-3">
+                <ProviderSubmitButton type="submit" className={editingRule ? "flex-1" : "w-full"}>
+                  {editingRule ? "Cập nhật khung lịch" : "Lưu khung lịch"}
+                </ProviderSubmitButton>
+                {editingRule ? (
+                  <a href={ROUTES.PROVIDER.AVAILABILITY} className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 text-sm font-medium hover:bg-muted">
+                    Hủy
+                  </a>
+                ) : null}
+              </div>
             </NativeForm>
           </ProviderSectionCard>
 
@@ -140,11 +152,16 @@ export default async function ProviderAvailabilityPage() {
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground">{getStatusLabel(rule.status)}</p>
-                    <NativeForm action={ROUTES.API.PROVIDER.AVAILABILITY} method="POST" className="flex justify-start md:justify-end">
-                      <input type="hidden" name="intent" value="delete" />
-                      <input type="hidden" name="ruleId" value={rule.id} />
-                      <ProviderDeleteButton type="submit">Xóa</ProviderDeleteButton>
-                    </NativeForm>
+                    <div className="flex justify-start md:justify-end gap-2">
+                      <a href={`${ROUTES.PROVIDER.AVAILABILITY}?editRuleId=${rule.id}`} className="inline-flex h-9 items-center justify-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                        Sửa
+                      </a>
+                      <NativeForm action={ROUTES.API.PROVIDER.AVAILABILITY} method="POST">
+                        <input type="hidden" name="intent" value="delete" />
+                        <input type="hidden" name="ruleId" value={rule.id} />
+                        <ProviderDeleteButton type="submit">Xóa</ProviderDeleteButton>
+                      </NativeForm>
+                    </div>
                   </div>
                 ))}
               </div>

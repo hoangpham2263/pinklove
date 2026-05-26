@@ -127,6 +127,42 @@ export async function listProviderAvailabilityRules(providerId: string): Promise
   }));
 }
 
+export async function updateProviderAvailabilityRule(input: {
+  providerId: string;
+  ruleId: string;
+  dayOfWeek?: number;
+  startsAt?: string;
+  endsAt?: string;
+  capacity?: number;
+  status?: "available" | "unavailable" | "blocked";
+  metadata?: Record<string, unknown>;
+}) {
+  await query(
+    `
+      UPDATE provider_availability
+      SET
+        day_of_week = COALESCE($3, day_of_week),
+        starts_at = COALESCE(NULLIF($4, '')::time, starts_at),
+        ends_at = COALESCE(NULLIF($5, '')::time, ends_at),
+        capacity = COALESCE($6, capacity),
+        status = COALESCE($7, status),
+        metadata = COALESCE($8::jsonb, metadata),
+        updated_at = NOW()
+      WHERE id = $1 AND provider_id = $2
+    `,
+    [
+      input.ruleId,
+      input.providerId,
+      input.dayOfWeek ?? null,
+      input.startsAt ?? "",
+      input.endsAt ?? "",
+      input.capacity !== undefined ? Math.max(1, input.capacity) : null,
+      input.status ?? null,
+      input.metadata ? JSON.stringify(input.metadata) : null,
+    ]
+  );
+}
+
 export async function deleteProviderAvailabilityRule(providerId: string, ruleId: string) {
   await query(
     `

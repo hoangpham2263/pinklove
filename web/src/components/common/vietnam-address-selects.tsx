@@ -1,11 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  getDistrictsByProvinceCode,
-  getProvinces,
-  getWardsByDistrictCode,
-} from "@do-kevin/pc-vn";
+import { level1s } from "dvhcvn";
 
 type VietnamAddressSelectsProps = {
   city?: string;
@@ -13,9 +9,9 @@ type VietnamAddressSelectsProps = {
   ward?: string;
 };
 
-type Province = ReturnType<typeof getProvinces>[number];
-type District = ReturnType<typeof getDistrictsByProvinceCode>[number];
-type Ward = ReturnType<typeof getWardsByDistrictCode>[number];
+type Province = typeof level1s[number];
+type District = NonNullable<Province["children"]>[number];
+type Ward = NonNullable<District["children"]>[number];
 
 function normalize(value: string | undefined) {
   return (value ?? "").trim().toLowerCase();
@@ -33,40 +29,42 @@ function getWardLabel(ward: Ward) {
   return ward.name;
 }
 
-function findProvinceCode(provinces: Province[], city?: string) {
+function findProvinceId(provinces: readonly Province[], city?: string) {
   const keyword = normalize(city);
   if (!keyword) return "";
-  return provinces.find((province) => normalize(province.name) === keyword)?.code ?? "";
+  return provinces.find((province) => normalize(province.name) === keyword)?.id ?? "";
 }
 
-function findDistrictCode(districts: District[], district?: string) {
+function findDistrictId(districts: readonly District[], district?: string) {
   const keyword = normalize(district);
   if (!keyword) return "";
-  return districts.find((item) => normalize(item.name) === keyword || normalize(item.full_name) === keyword)?.code ?? "";
+  return districts.find((item) => normalize(item.name) === keyword)?.id ?? "";
 }
 
-function findWardCode(wards: Ward[], ward?: string) {
+function findWardId(wards: readonly Ward[], ward?: string) {
   const keyword = normalize(ward);
   if (!keyword) return "";
-  return wards.find((item) => normalize(item.name) === keyword || normalize(item.full_name) === keyword)?.code ?? "";
+  return wards.find((item) => normalize(item.name) === keyword)?.id ?? "";
 }
 
 const selectClassName = "h-10 w-full rounded-md border bg-background px-3 text-sm";
 
 export function VietnamAddressSelects({ city, district, ward }: VietnamAddressSelectsProps) {
-  const provinces = useMemo(() => getProvinces(), []);
-  const initialProvinceCode = useMemo(() => findProvinceCode(provinces, city), [city, provinces]);
-  const [provinceCode, setProvinceCode] = useState(initialProvinceCode);
-  const districts = useMemo(() => (provinceCode ? getDistrictsByProvinceCode(provinceCode) : []), [provinceCode]);
-  const initialDistrictCode = useMemo(() => findDistrictCode(districts, district), [district, districts]);
-  const [districtCode, setDistrictCode] = useState(initialDistrictCode);
-  const wards = useMemo(() => (districtCode ? getWardsByDistrictCode(districtCode) : []), [districtCode]);
-  const initialWardCode = useMemo(() => findWardCode(wards, ward), [ward, wards]);
-  const [wardCode, setWardCode] = useState(initialWardCode);
+  const provinces = level1s;
+  const initialProvinceId = useMemo(() => findProvinceId(provinces, city), [city, provinces]);
+  const [provinceId, setProvinceId] = useState(initialProvinceId);
+  const selectedProvince = useMemo(() => provinces.find((province) => province.id === provinceId), [provinces, provinceId]);
+  const districts = useMemo(() => selectedProvince?.children ?? [], [selectedProvince]);
+  
+  const initialDistrictId = useMemo(() => findDistrictId(districts, district), [district, districts]);
+  const [districtId, setDistrictId] = useState(initialDistrictId);
+  const selectedDistrict = useMemo(() => districts.find((item) => item.id === districtId), [districts, districtId]);
+  const wards = useMemo(() => selectedDistrict?.children ?? [], [selectedDistrict]);
+  
+  const initialWardId = useMemo(() => findWardId(wards, ward), [ward, wards]);
+  const [wardId, setWardId] = useState(initialWardId);
+  const selectedWard = useMemo(() => wards.find((item) => item.id === wardId), [wards, wardId]);
 
-  const selectedProvince = provinces.find((province) => province.code === provinceCode);
-  const selectedDistrict = districts.find((item) => item.code === districtCode);
-  const selectedWard = wards.find((item) => item.code === wardCode);
   const cityValue = selectedProvince ? getProvinceLabel(selectedProvince) : city ?? "";
   const districtValue = selectedDistrict ? getDistrictLabel(selectedDistrict) : district ?? "";
   const wardValue = selectedWard ? getWardLabel(selectedWard) : ward ?? "";
@@ -81,18 +79,18 @@ export function VietnamAddressSelects({ city, district, ward }: VietnamAddressSe
         <label className="font-medium">Tỉnh / thành phố</label>
         <select
           required
-          value={provinceCode}
+          value={provinceId}
           className={selectClassName}
           onChange={(event) => {
-            setProvinceCode(event.target.value);
-            setDistrictCode("");
-            setWardCode("");
+            setProvinceId(event.target.value);
+            setDistrictId("");
+            setWardId("");
           }}
         >
           <option value="">Chọn tỉnh / thành phố</option>
-          {city && !initialProvinceCode ? <option value="">{city}</option> : null}
+          {city && !initialProvinceId ? <option value="">{city}</option> : null}
           {provinces.map((province) => (
-            <option key={province.code} value={province.code}>
+            <option key={province.id} value={province.id}>
               {getProvinceLabel(province)}
             </option>
           ))}
@@ -103,18 +101,18 @@ export function VietnamAddressSelects({ city, district, ward }: VietnamAddressSe
         <label className="font-medium">Quận / huyện</label>
         <select
           required
-          value={districtCode}
+          value={districtId}
           className={selectClassName}
-          disabled={!provinceCode}
+          disabled={!provinceId}
           onChange={(event) => {
-            setDistrictCode(event.target.value);
-            setWardCode("");
+            setDistrictId(event.target.value);
+            setWardId("");
           }}
         >
           <option value="">Chọn quận / huyện</option>
-          {district && !initialDistrictCode ? <option value="">{district}</option> : null}
+          {district && !initialDistrictId ? <option value="">{district}</option> : null}
           {districts.map((item) => (
-            <option key={item.code} value={item.code}>
+            <option key={item.id} value={item.id}>
               {getDistrictLabel(item)}
             </option>
           ))}
@@ -123,11 +121,11 @@ export function VietnamAddressSelects({ city, district, ward }: VietnamAddressSe
 
       <div className="space-y-2">
         <label className="font-medium">Phường / xã</label>
-        <select value={wardCode} className={selectClassName} disabled={!districtCode} onChange={(event) => setWardCode(event.target.value)}>
+        <select value={wardId} className={selectClassName} disabled={!districtId} onChange={(event) => setWardId(event.target.value)}>
           <option value="">Chọn phường / xã</option>
-          {ward && !initialWardCode ? <option value="">{ward}</option> : null}
+          {ward && !initialWardId ? <option value="">{ward}</option> : null}
           {wards.map((item) => (
-            <option key={item.code} value={item.code}>
+            <option key={item.id} value={item.id}>
               {getWardLabel(item)}
             </option>
           ))}

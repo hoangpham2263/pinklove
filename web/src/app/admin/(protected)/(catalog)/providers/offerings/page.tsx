@@ -26,7 +26,7 @@ export default async function AdminProviderOfferingRequestsPage() {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Provider Submissions</h1>
+        <h1 className="text-2xl font-semibold">Sản phẩm gửi duyệt</h1>
         <p className="text-sm text-muted-foreground">
           Duyệt hồ sơ sản phẩm provider gửi lên. Nghiệp vụ nguồn hàng/supplier nằm ở trang Sourcing riêng.
         </p>
