@@ -72,6 +72,17 @@ export function CustomerOrderDetail({ order, ecommerceSettings }: CustomerOrderD
         </Card>
       ) : null}
 
+      {order.metadata.requestVatInvoice ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Hóa đơn VAT</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Đơn hàng này đã ghi nhận yêu cầu xuất hóa đơn VAT. Đội ngũ sẽ liên hệ để xác nhận thông tin xuất hóa đơn.
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Sản phẩm trong đơn</CardTitle>

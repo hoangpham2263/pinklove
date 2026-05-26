@@ -4288,6 +4288,8 @@ async function ensureNotificationTablesMigration() {
   );
  `);
 
+ await pool.query(`ALTER TABLE notification_user_states ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ`);
+
  await pool.query(`
   CREATE INDEX IF NOT EXISTS notification_user_states_user_unread_idx
   ON notification_user_states(user_id, read_at, updated_at DESC);

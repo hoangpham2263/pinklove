@@ -77,6 +77,7 @@ export type EcommerceSettings = {
   enabled: boolean;
   allowBankTransfer: boolean;
   allowCod: boolean;
+  enableVatInvoiceRequest: boolean;
   supportShipping: boolean;
   flatShippingFee: number;
   freeShippingThreshold: number;
@@ -251,6 +252,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
     enabled: true,
     allowBankTransfer: true,
     allowCod: true,
+    enableVatInvoiceRequest: false,
     supportShipping: true,
     flatShippingFee: 30000,
     freeShippingThreshold: 1500000,
@@ -634,6 +636,7 @@ function parseEcommerceSettings(value: Record<string, unknown> | null | undefine
     enabled: Boolean(merged.enabled),
     allowBankTransfer: Boolean(merged.allowBankTransfer),
     allowCod: Boolean(merged.allowCod),
+    enableVatInvoiceRequest: Boolean(merged.enableVatInvoiceRequest),
     supportShipping: Boolean(merged.supportShipping),
     flatShippingFee: Number(merged.flatShippingFee ?? DEFAULT_SETTINGS.ecommerce.flatShippingFee),
     freeShippingThreshold: Number(merged.freeShippingThreshold ?? DEFAULT_SETTINGS.ecommerce.freeShippingThreshold),

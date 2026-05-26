@@ -70,6 +70,7 @@ type OrderRow = {
   shipping_postal_code: string;
   shipping_country: string;
   notes: string;
+  metadata: Record<string, unknown> | null;
   affiliate_user_id: string | null;
   affiliate_code: string | null;
   paid_at: string | null;
@@ -178,6 +179,9 @@ function mapOrderRow(row: OrderRow): Omit<EcommerceOrder, "items" | "payments" |
     shippingPostalCode: row.shipping_postal_code,
     shippingCountry: row.shipping_country,
     notes: row.notes,
+    metadata: {
+      requestVatInvoice: row.metadata?.requestVatInvoice === true,
+    },
     affiliateUserId: row.affiliate_user_id ?? undefined,
     affiliateCode: row.affiliate_code ?? undefined,
     paidAt: row.paid_at ?? undefined,
@@ -493,6 +497,7 @@ export async function createOrderFromCart(input: {
   paymentProvider?: string;
   paymentType?: EcommercePaymentMethodSettings["type"];
   notes?: string;
+  requestVatInvoice?: boolean;
   affiliateCode?: string;
   shippingName?: string;
   shippingPhone?: string;
@@ -601,13 +606,14 @@ export async function createOrderFromCart(input: {
           shipping_postal_code,
           shipping_country,
           notes,
+          metadata,
           affiliate_user_id,
           affiliate_code,
           paid_at
         )
         VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, $11, $12,
-          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
+          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23::jsonb, $24, $25,
           ${autoApprove ? "NOW()" : "NULL"}
         )
         RETURNING *
@@ -635,6 +641,9 @@ export async function createOrderFromCart(input: {
         shippingPostalCode,
         shippingCountry,
         input.notes?.trim() ?? "",
+        JSON.stringify({
+          requestVatInvoice: settings.ecommerce.enableVatInvoiceRequest && input.requestVatInvoice === true,
+        }),
         validAffiliateAccount?.userId ?? null,
         validAffiliateAccount?.code ?? null,
       ]

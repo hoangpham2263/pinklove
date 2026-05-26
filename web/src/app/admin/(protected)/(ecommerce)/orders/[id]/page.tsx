@@ -78,6 +78,12 @@ export default async function AdminOrderDetailPage({
             {order.notes ? (
               <p className="max-w-3xl text-sm text-muted-foreground">{order.notes}</p>
             ) : null}
+
+            {order.metadata.requestVatInvoice ? (
+              <p className="inline-flex w-fit rounded-md border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                Khách yêu cầu xuất hóa đơn VAT
+              </p>
+            ) : null}
           </div>
 
           <div className="grid gap-4 text-sm lg:w-[320px] lg:max-w-full">

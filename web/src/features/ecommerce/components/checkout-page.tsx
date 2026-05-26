@@ -168,8 +168,19 @@ export function CheckoutPageView({
             <CardHeader>
               <CardTitle>Ghi chú</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <textarea name="notes" className="min-h-24 w-full rounded-md border bg-background px-3 py-2" />
+              {settings.ecommerce.enableVatInvoiceRequest ? (
+                <label className="flex items-start gap-3 rounded-md border p-4">
+                  <input type="checkbox" name="requestVatInvoice" className="mt-1" />
+                  <span className="space-y-1">
+                    <span className="block font-medium">Yêu cầu xuất hóa đơn VAT</span>
+                    <span className="block text-sm text-muted-foreground">
+                      Đội ngũ sẽ liên hệ để xác nhận thông tin xuất hóa đơn sau khi tạo đơn.
+                    </span>
+                  </span>
+                </label>
+              ) : null}
             </CardContent>
           </Card>
         </form>

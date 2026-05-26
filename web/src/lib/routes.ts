@@ -385,6 +385,7 @@ export const ROUTES = {
       INDEX: "/api/notifications",
       PUBLIC: "/api/notifications/public",
       READ: "/api/notifications/read",
+      DISMISS: "/api/notifications/dismiss",
       REALTIME: "/api/notifications/realtime",
     },
   },

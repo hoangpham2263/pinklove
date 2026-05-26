@@ -21,6 +21,7 @@ type NotificationRow = {
   audience_type: NotificationAudienceType;
   created_at: string;
   read_at: string | null;
+  dismissed_at?: string | null;
 };
 
 type AdminNotificationRow = {
@@ -208,6 +209,7 @@ export async function listNotificationsForUser(userId: string, role: UserRole, l
       LEFT JOIN notification_user_states s
         ON s.notification_id = n.id AND s.user_id = $1
       WHERE n.status = 'sent'
+        AND s.dismissed_at IS NULL
         AND (
           n.audience_type = 'all'
           OR EXISTS (
@@ -263,6 +265,8 @@ export async function getNotificationSummaryForUser(userId: string, role: UserRo
       WITH visible_notifications AS (
         SELECT n.id, n.created_at
         FROM notifications n
+        LEFT JOIN notification_user_states s
+          ON s.notification_id = n.id AND s.user_id = $1
         WHERE n.status = 'sent'
           AND (
             n.audience_type = 'all'
@@ -277,6 +281,7 @@ export async function getNotificationSummaryForUser(userId: string, role: UserRo
               WHERE u.notification_id = n.id AND u.user_id = $1
             )
           )
+          AND s.dismissed_at IS NULL
       )
       SELECT
         COUNT(*) FILTER (WHERE s.read_at IS NULL)::text AS unread_count,
@@ -317,6 +322,39 @@ export async function getNotificationSummaryForUser(userId: string, role: UserRo
     latestCreatedAt: [row?.latest_created_at ?? "", row?.latest_state_updated_at ?? ""].join("|"),
     nextScheduledAt: nextScheduledResult.rows[0]?.next_scheduled_at ?? "",
   };
+}
+
+export async function dismissNotificationForUser(userId: string, notificationId: string) {
+  await withTransaction(async (execute) => {
+    await execute(
+      `
+        INSERT INTO notification_user_states (notification_id, user_id, read_at, dismissed_at, updated_at)
+        VALUES ($1, $2, NOW(), NOW(), NOW())
+        ON CONFLICT (notification_id, user_id)
+        DO UPDATE SET dismissed_at = NOW(), read_at = COALESCE(notification_user_states.read_at, NOW()), updated_at = NOW()
+      `,
+      [notificationId, userId]
+    );
+    await notifyUsers(execute, [userId]);
+  });
+}
+
+export async function dismissAllNotificationsForUser(userId: string, role: UserRole) {
+  const notifications = await listNotificationsForUser(userId, role, 500);
+  await withTransaction(async (execute) => {
+    for (const item of notifications) {
+      await execute(
+        `
+          INSERT INTO notification_user_states (notification_id, user_id, read_at, dismissed_at, updated_at)
+          VALUES ($1, $2, NOW(), NOW(), NOW())
+          ON CONFLICT (notification_id, user_id)
+          DO UPDATE SET dismissed_at = NOW(), read_at = COALESCE(notification_user_states.read_at, NOW()), updated_at = NOW()
+        `,
+        [item.id, userId]
+      );
+    }
+    await notifyUsers(execute, [userId]);
+  });
 }
 
 export async function markNotificationRead(userId: string, notificationId: string) {

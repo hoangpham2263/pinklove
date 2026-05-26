@@ -136,6 +136,9 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
           <div className="space-y-1">
             <p>{row.original.orderNumber}</p>
             <p className="text-xs text-muted-foreground">{row.original.customerName}</p>
+            {row.original.metadata.requestVatInvoice ? (
+              <Badge variant="outline" className="w-fit">VAT</Badge>
+            ) : null}
           </div>
         ),
       },
@@ -229,6 +232,7 @@ export function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
         order.status,
         order.paymentStatus,
         order.fulfillmentStatus,
+        order.metadata.requestVatInvoice ? "vat hóa đơn hoa don invoice" : "",
         order.items.map((item) => item.offeringName).join(" "),
       ]
         .filter(Boolean)

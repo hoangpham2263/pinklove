@@ -70,6 +70,30 @@ async function markNotificationRead(notificationId?: string) {
   }
 }
 
+async function dismissNotification(notificationId: string) {
+  const response = await apiFetch(ROUTES.API.NOTIFICATIONS.DISMISS, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notificationId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("NOTIFICATION_DISMISS_FAILED");
+  }
+}
+
+async function dismissAllNotifications() {
+  const response = await apiFetch(ROUTES.API.NOTIFICATIONS.DISMISS, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ all: true }),
+  });
+
+  if (!response.ok) {
+    throw new Error("NOTIFICATIONS_DISMISS_FAILED");
+  }
+}
+
 async function fetchChatConversations() {
   const response = await apiFetch(ROUTES.API.CHAT.CONVERSATIONS, {
     cache: "no-store",
@@ -185,6 +209,8 @@ export const customerApi = {
   updateWishlist,
   fetchNotifications,
   markNotificationRead,
+  dismissNotification,
+  dismissAllNotifications,
   fetchChatConversations,
   fetchChatConversation,
   sendChatTyping,

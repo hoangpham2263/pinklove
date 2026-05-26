@@ -141,7 +141,16 @@ export function ProviderPortalPanel({
             <ArrowUpDown className="h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => <span className="block truncate font-medium text-zinc-950">{row.original.order.orderNumber}</span>,
+        cell: ({ row }) => (
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="block truncate font-medium text-zinc-950">{row.original.order.orderNumber}</span>
+            {row.original.order.metadata.requestVatInvoice ? (
+              <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                VAT
+              </span>
+            ) : null}
+          </div>
+        ),
       },
       {
         accessorKey: "order.customerName",
@@ -251,6 +260,7 @@ export function ProviderPortalPanel({
         row.original.order.customerName,
         row.original.order.customerEmail,
         row.original.order.customerPhone,
+        row.original.order.metadata.requestVatInvoice ? "vat hóa đơn hoa don invoice" : "",
         row.original.lastEvent?.message,
         row.original.assignment.providerReference,
         ...row.original.items.map((item) => item.offeringName),
@@ -385,7 +395,14 @@ export function ProviderPortalPanel({
           {previewEntry ? (
             <div className="space-y-6">
               <DialogHeader>
-                <DialogTitle>{previewEntry.order.orderNumber}</DialogTitle>
+                <DialogTitle className="flex flex-wrap items-center gap-2">
+                  <span>{previewEntry.order.orderNumber}</span>
+                  {previewEntry.order.metadata.requestVatInvoice ? (
+                    <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      VAT
+                    </span>
+                  ) : null}
+                </DialogTitle>
               </DialogHeader>
 
               <div className="grid gap-3 md:grid-cols-2">
@@ -418,6 +435,13 @@ export function ProviderPortalPanel({
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Cập nhật mới nhất</p>
                 <p className="mt-1">{previewEntry.lastEvent?.message ? formatProviderEventMessage(previewEntry.lastEvent.message) : "Chưa có cập nhật mới."}</p>
               </div>
+
+              {previewEntry.order.metadata.requestVatInvoice ? (
+                <div className="rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-primary">Hóa đơn VAT</p>
+                  <p className="mt-1 font-medium text-primary">Khách yêu cầu xuất hóa đơn VAT.</p>
+                </div>
+              ) : null}
 
               <div className="flex justify-end">
                 <ProviderTableActionButton action="external" label="Mở chi tiết" href={ROUTES.PROVIDER.ORDER(previewEntry.assignment.id)} />

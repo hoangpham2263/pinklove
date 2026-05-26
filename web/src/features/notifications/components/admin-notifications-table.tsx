@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -147,6 +147,11 @@ export function AdminNotificationsTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [bulkAction, setBulkAction] = useState("");
   const [previewNotificationId, setPreviewNotificationId] = useState<string | null>(null);
+  const [tableNotifications, setTableNotifications] = useState(notifications);
+
+  useEffect(() => {
+    setTableNotifications(notifications);
+  }, [notifications]);
 
   const columns = useMemo<ColumnDef<AdminNotification>[]>(
     () => [
@@ -258,6 +263,13 @@ export function AdminNotificationsTable({
 
                   try {
                     const result = await adminApi.deleteNotification(new FormData(event.currentTarget));
+                    setTableNotifications((current) => current.filter((item) => item.id !== notification.id));
+                    setPreviewNotificationId((current) => (current === notification.id ? null : current));
+                    setRowSelection((current) => {
+                      const next = { ...current };
+                      delete next[notification.id];
+                      return next;
+                    });
                     toast.success(result.message ?? "Đã xóa thông báo.");
                     finishMutation(router, result, { redirect: false });
                   } catch (error) {
@@ -278,7 +290,7 @@ export function AdminNotificationsTable({
   );
 
   const table = useReactTable({
-    data: notifications,
+    data: tableNotifications,
     columns,
     state: {
       sorting,
@@ -322,7 +334,7 @@ export function AdminNotificationsTable({
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const previewNotification = previewNotificationId
-    ? notifications.find((notification) => notification.id === previewNotificationId) ?? null
+    ? tableNotifications.find((notification) => notification.id === previewNotificationId) ?? null
     : null;
 
   return (
@@ -398,7 +410,17 @@ export function AdminNotificationsTable({
                 formData.append("bulkAction", bulkAction);
 
                 try {
+                  const selectedIds = selectedRows.map((row) => row.original.id);
                   const result = await adminApi.bulkUpdateNotifications(formData);
+                  if (bulkAction === "delete") {
+                    const selectedIdSet = new Set(selectedIds);
+                    setTableNotifications((current) => current.filter((item) => !selectedIdSet.has(item.id)));
+                    setPreviewNotificationId((current) => (current && selectedIdSet.has(current) ? null : current));
+                  } else if (bulkAction === "sent" || bulkAction === "draft" || bulkAction === "archived") {
+                    setTableNotifications((current) =>
+                      current.map((item) => (selectedIds.includes(item.id) ? { ...item, status: bulkAction } : item))
+                    );
+                  }
                   toast.success(result.message ?? "Đã áp dụng tác vụ hàng loạt.");
                   finishMutation(router, result, { redirect: false });
                   setRowSelection({});

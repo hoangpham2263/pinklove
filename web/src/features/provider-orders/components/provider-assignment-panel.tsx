@@ -184,6 +184,13 @@ export function ProviderAssignmentPanel({
                 <p className="mt-1">{detail.order.notes}</p>
               </div>
             ) : null}
+
+            {detail.order.metadata.requestVatInvoice ? (
+              <div className="rounded-md border border-primary/30 bg-primary/10 p-3">
+                <p className="text-xs uppercase tracking-wide text-primary">Hóa đơn VAT</p>
+                <p className="mt-1 font-medium text-primary">Khách yêu cầu xuất hóa đơn VAT.</p>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 

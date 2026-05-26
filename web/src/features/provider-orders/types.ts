@@ -54,6 +54,7 @@ export type ProviderOrderSummary = {
     | "totalAmount"
     | "currency"
     | "notes"
+    | "metadata"
     | "createdAt"
     | "updatedAt"
   >;

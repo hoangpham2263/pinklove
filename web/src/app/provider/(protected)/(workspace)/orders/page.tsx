@@ -54,7 +54,14 @@ export default async function ProviderOrdersPage() {
           assignments.map((entry) => (
             <div key={entry.assignment.id} className="grid gap-3 rounded-md border p-4 lg:grid-cols-[minmax(0,1fr)_220px_190px] lg:items-center">
               <div className="space-y-1">
-                <p className="font-medium">{entry.order.orderNumber}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium">{entry.order.orderNumber}</p>
+                  {entry.order.metadata.requestVatInvoice ? (
+                    <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      VAT
+                    </span>
+                  ) : null}
+                </div>
                 <p className="text-sm text-muted-foreground">
                   {entry.order.customerName} • {entry.items.map((item) => `${item.offeringName} x${item.quantity}`).join(", ")}
                 </p>

@@ -43,7 +43,14 @@ export default async function CustomerOrdersPage() {
             <Card key={order.id}>
               <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
-                  <p className="font-semibold">{order.orderNumber}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{order.orderNumber}</p>
+                    {order.metadata.requestVatInvoice ? (
+                      <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        VAT
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-1 truncate text-sm text-muted-foreground">
                     {order.items.map((item) => item.offeringName).join(", ")}
                   </p>

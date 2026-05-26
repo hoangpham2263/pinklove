@@ -82,6 +82,10 @@ export type EcommerceEntitlement = {
   updatedAt: string;
 };
 
+export type EcommerceOrderMetadata = {
+  requestVatInvoice?: boolean;
+};
+
 export type EcommerceOrder = {
   id: string;
   orderNumber: string;
@@ -107,6 +111,7 @@ export type EcommerceOrder = {
   shippingPostalCode: string;
   shippingCountry: string;
   notes: string;
+  metadata: EcommerceOrderMetadata;
   affiliateUserId?: string;
   affiliateCode?: string;
   paidAt?: string;

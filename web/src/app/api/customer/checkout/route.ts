@@ -108,6 +108,7 @@ export async function POST(request: Request) {
       paymentProvider: selectedPaymentMethod.provider,
       paymentType: selectedPaymentMethod.type,
       notes: String(formData.get("notes") ?? ""),
+      requestVatInvoice: settings.ecommerce.enableVatInvoiceRequest && formData.get("requestVatInvoice") === "on",
       affiliateCode: decodeURIComponent(getCookieValue(request, AFFILIATE_REF_COOKIE_NAME)),
       shippingName: savedAddress?.recipientName,
       shippingPhone: savedAddress?.phone,

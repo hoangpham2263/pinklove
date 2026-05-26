@@ -226,6 +226,7 @@ export async function listProviderOrderSummariesForProvider(providerId: string):
           totalAmount: order.totalAmount,
           currency: order.currency,
           notes: order.notes,
+          metadata: order.metadata,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         },

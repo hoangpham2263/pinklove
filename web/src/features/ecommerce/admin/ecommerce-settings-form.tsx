@@ -1,4 +1,4 @@
-import { PackageCheck, ShoppingCart, Truck } from "lucide-react";
+import { FileText, PackageCheck, ShoppingCart, Truck } from "lucide-react";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +12,10 @@ type EcommerceSettingsFormProps = {
 export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) {
   return (
     <>
-      <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
+      <AdminOverviewGrid className="md:grid-cols-4 lg:grid-cols-4">
         <AdminOverviewCard title="Checkout" value={settings.ecommerce.enabled ? "On" : "Off"} icon={ShoppingCart} />
         <AdminOverviewCard title="Shipping" value={settings.ecommerce.supportShipping ? "On" : "Off"} icon={Truck} />
+        <AdminOverviewCard title="VAT Invoice" value={settings.ecommerce.enableVatInvoiceRequest ? "On" : "Off"} icon={FileText} />
         <AdminOverviewCard title="Shipping" value={settings.ecommerce.shippingAccounts.filter((account) => account.enabled).length} icon={PackageCheck} />
       </AdminOverviewGrid>
 
@@ -65,7 +66,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
 
         <Card className="rounded-lg">
           <CardHeader>
-            <CardTitle>Vận chuyển</CardTitle>
+            <CardTitle>Checkout</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
@@ -79,6 +80,24 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
                     type="checkbox"
                     name="supportShipping"
                     defaultChecked={settings.ecommerce.supportShipping}
+                    className="peer sr-only"
+                  />
+                  <span className="absolute inset-0 rounded-full bg-muted transition peer-checked:bg-primary" />
+                  <span className="absolute left-1 size-4 rounded-full bg-background shadow-sm transition peer-checked:translate-x-5" />
+                </span>
+              </label>
+            </div>
+            <div className="space-y-2">
+              <label className="font-medium">Yêu cầu hóa đơn VAT</label>
+              <label className="flex h-10 w-full items-center justify-between rounded-md border bg-white px-3">
+                <span className="text-sm text-muted-foreground">
+                  {settings.ecommerce.enableVatInvoiceRequest ? "Đang bật" : "Đang tắt"}
+                </span>
+                <span className="relative inline-flex h-6 w-11 shrink-0 items-center">
+                  <input
+                    type="checkbox"
+                    name="enableVatInvoiceRequest"
+                    defaultChecked={settings.ecommerce.enableVatInvoiceRequest}
                     className="peer sr-only"
                   />
                   <span className="absolute inset-0 rounded-full bg-muted transition peer-checked:bg-primary" />

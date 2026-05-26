@@ -140,7 +140,14 @@ export default async function ProviderDashboardPage() {
           <CardContent className="space-y-3">
             {assignments.slice(0, 5).map((entry) => (
               <div key={entry.assignment.id} className="rounded-md border p-3 text-sm">
-                <p className="font-medium">{entry.order.orderNumber}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium">{entry.order.orderNumber}</p>
+                  {entry.order.metadata.requestVatInvoice ? (
+                    <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      VAT
+                    </span>
+                  ) : null}
+                </div>
                 <p className="mt-1 text-muted-foreground">{entry.order.customerName}</p>
               </div>
             ))}
