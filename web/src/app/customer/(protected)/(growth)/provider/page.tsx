@@ -15,7 +15,7 @@ export default async function CustomerProviderPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Không gian nhà cung cấp</h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Trang này dùng cho actor `PROVIDER` để đi nhanh vào khu vận hành riêng. Provider hiện đã có portal đơn hàng, khu nhập hồ sơ sản phẩm và thông báo review từ admin, nên màn này chỉ giữ vai trò bridge điều hướng.
+          Trang này dùng cho actor `PROVIDER` để đi nhanh vào khu vận hành riêng. Provider hiện đã có portal đơn hàng, khu nhập hồ sơ dịch vụ/sản phẩm và thông báo review từ admin, nên màn này chỉ giữ vai trò bridge điều hướng.
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export default async function CustomerProviderPage() {
               <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.ROOT}>Mở portal provider</Link>} />
             ) : null}
             {isProviderRole(user.role) ? (
-              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.OFFERINGS}>Quản lý hồ sơ sản phẩm provider</Link>} />
+              <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.OFFERINGS}>Quản lý hồ sơ dịch vụ/sản phẩm provider</Link>} />
             ) : null}
             {isProviderRole(user.role) ? (
               <Button className="w-full justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.ORDERS}>Mở danh sách đơn provider</Link>} />
@@ -82,9 +82,9 @@ export default async function CustomerProviderPage() {
           <CardTitle>Flow hiện tại</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>Provider tự tạo hoặc cập nhật hồ sơ sản phẩm ở khu provider.</p>
+          <p>Provider tự tạo hoặc cập nhật hồ sơ dịch vụ/sản phẩm ở khu provider.</p>
           <p>Admin review theo dạng table, nhập giá bán thực tế rồi mới duyệt vào catalog live.</p>
-          <p>Mọi cập nhật review sẽ đi về thông báo để provider xử lý tiếp mà không cần đụng trực tiếp vào sản phẩm đang bán.</p>
+          <p>Mọi cập nhật review sẽ đi về thông báo để provider xử lý tiếp mà không cần đụng trực tiếp vào dịch vụ/sản phẩm đang bán.</p>
         </CardContent>
       </Card>
     </section>

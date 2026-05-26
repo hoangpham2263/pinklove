@@ -25,7 +25,7 @@ export default async function AdminProviderAccountsCreatePage({ searchParams }: 
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Tạo xưởng in / nhà cung cấp</h1>
         <p className="text-sm text-muted-foreground">
-          Tạo tài khoản provider để đối tác có thể đăng nhập portal, nhận đơn và gửi yêu cầu cung cấp sản phẩm.
+          Tạo tài khoản provider để đối tác có thể đăng nhập portal, nhận đơn và gửi yêu cầu cung cấp dịch vụ/sản phẩm.
         </p>
       </div>
 

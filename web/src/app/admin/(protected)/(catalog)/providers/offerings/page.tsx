@@ -28,7 +28,7 @@ export default async function AdminProviderOfferingRequestsPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Dịch vụ/sản phẩm gửi duyệt</h1>
         <p className="text-sm text-muted-foreground">
-          Duyệt hồ sơ dịch vụ/sản phẩm provider gửi lên. Nghiệp vụ nguồn hàng/supplier nằm ở trang Sourcing riêng.
+          Duyệt hồ sơ dịch vụ/sản phẩm provider gửi lên. Nghiệp vụ cung ứng/supplier nằm ở trang Sourcing riêng.
         </p>
       </div>
 

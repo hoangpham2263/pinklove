@@ -65,11 +65,11 @@ export default async function AdminProviderAccountsPage({ searchParams }: AdminP
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quản lý nhà cung cấp</h1>
           <p className="text-sm text-muted-foreground">
-            Theo dõi provider, portal đăng nhập, hồ sơ sản phẩm và các đơn đã phân công trong một màn hình.
+            Theo dõi provider, portal đăng nhập, hồ sơ dịch vụ/sản phẩm và các đơn đã phân công trong một màn hình.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_OFFERINGS}>Review sản phẩm provider</AdminLinkButton>
+          <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_OFFERINGS}>Review dịch vụ/sản phẩm provider</AdminLinkButton>
           <AdminCreateLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNTS_CREATE}>Tạo nhà cung cấp</AdminCreateLinkButton>
         </div>
       </div>

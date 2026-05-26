@@ -60,7 +60,7 @@ export function SupplierRequestActions({ request }: { request: ProviderOfferingS
           </DialogHeader>
           <InfoGrid>
             <InfoField label="Nhà cung cấp" value={`${request.providerDisplayName} (${request.providerUsername})`} />
-            <InfoField label="Sản phẩm" value={request.offeringName} />
+            <InfoField label="Dịch vụ/sản phẩm" value={request.offeringName} />
             <InfoField label="Giá nhập" value={formatVnd(request.purchaseCost)} />
             <InfoField label="Giá bán hiện tại" value={formatVnd(request.offeringPrice)} />
             <InfoField label="Thời gian xử lý" value={`${request.leadTimeDays} ngày`} />
@@ -131,7 +131,7 @@ export function SupplierStatusActions({ supplier }: { supplier: OfferingProvider
           </DialogHeader>
           <InfoGrid>
             <InfoField label="Nhà cung cấp" value={`${supplier.providerDisplayName} (${supplier.providerUsername})`} />
-            <InfoField label="Sản phẩm" value={supplier.offeringName} />
+            <InfoField label="Dịch vụ/sản phẩm" value={supplier.offeringName} />
             <InfoField label="Nguồn" value={getOfferingProviderSupplierSourceLabel(supplier.source)} />
             <InfoField label="Trạng thái" value={getOfferingProviderSupplierStatusLabel(supplier.status)} />
             <InfoField label="Giá nhập" value={formatVnd(supplier.purchaseCost)} />

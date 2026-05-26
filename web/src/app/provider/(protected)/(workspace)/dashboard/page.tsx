@@ -108,7 +108,7 @@ export default async function ProviderDashboardPage() {
     <ProviderPage>
       <ProviderPageHeader
         title="Dashboard provider"
-        description={`Workspace của ${providerName} trong ${settings.branding.siteName}. Theo dõi đơn, sản phẩm, doanh thu liên quan và cấu hình tài khoản.`}
+        description={`Workspace của ${providerName} trong ${settings.branding.siteName}. Theo dõi đơn, dịch vụ/sản phẩm, doanh thu liên quan và cấu hình tài khoản.`}
         actions={<ProviderLinkButton href={portalHref}>Mở portal công khai</ProviderLinkButton>}
       />
 
@@ -153,12 +153,12 @@ export default async function ProviderDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <PackagePlus className="h-4 w-4" />
-              Sản phẩm
+              Dịch vụ/sản phẩm
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Provider có thể tạo yêu cầu sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
-            <ProviderActionLinkTile href={ROUTES.PROVIDER.OFFERINGS} label="Mở yêu cầu sản phẩm" showArrow />
+            <p>Provider có thể tạo yêu cầu dịch vụ/sản phẩm, chỉnh sửa và gửi admin duyệt.</p>
+            <ProviderActionLinkTile href={ROUTES.PROVIDER.OFFERINGS} label="Mở yêu cầu dịch vụ/sản phẩm" showArrow />
           </CardContent>
         </Card>
 

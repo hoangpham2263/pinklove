@@ -3544,7 +3544,7 @@ async function ensureProviderOfferingSubmissionsMigration() {
       excerpt TEXT NOT NULL DEFAULT '',
       description TEXT NOT NULL DEFAULT '',
       thumbnail_url TEXT NOT NULL DEFAULT '',
-      fulfillment_type TEXT NOT NULL DEFAULT 'physical',
+      fulfillment_type TEXT NOT NULL DEFAULT 'service',
       service_kind TEXT NOT NULL DEFAULT 'general',
       duration_minutes INT NOT NULL DEFAULT 0,
       service_area TEXT NOT NULL DEFAULT '',
@@ -3584,6 +3584,11 @@ async function ensureProviderOfferingSubmissionsMigration() {
     ADD COLUMN IF NOT EXISTS service_kind TEXT NOT NULL DEFAULT 'general',
     ADD COLUMN IF NOT EXISTS duration_minutes INT NOT NULL DEFAULT 0,
     ADD COLUMN IF NOT EXISTS service_area TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
+    ALTER TABLE provider_offering_submissions
+    ALTER COLUMN fulfillment_type SET DEFAULT 'service';
   `);
 
   await pool.query(`

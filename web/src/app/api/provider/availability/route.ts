@@ -17,6 +17,13 @@ import { ROUTES } from "@/lib/routes";
 export const runtime = "nodejs";
 
 const AVAILABILITY_KINDS = new Set<ProviderAvailabilityKind>(PROVIDER_AVAILABILITY_KIND_VALUES);
+const AVAILABILITY_STATUSES = new Set(["available", "unavailable", "blocked"]);
+
+function parsePositiveInteger(value: FormDataEntryValue | null, fallback: number) {
+  const numberValue = Number(value ?? fallback);
+  if (!Number.isFinite(numberValue)) return fallback;
+  return Math.max(1, Math.trunc(numberValue));
+}
 
 export async function POST(request: Request) {
   const providerUser = await requireProvider(ROUTES.PROVIDER.LOGIN);
@@ -66,8 +73,9 @@ export async function POST(request: Request) {
   const dayOfWeek = Number(formData.get("dayOfWeek") ?? "0");
   const startsAt = String(formData.get("startsAt") ?? "").trim();
   const endsAt = String(formData.get("endsAt") ?? "").trim();
-  const capacity = Math.max(1, Number(formData.get("capacity") ?? "1"));
-  const status = String(formData.get("status") ?? "available") as "available" | "unavailable" | "blocked";
+  const capacity = parsePositiveInteger(formData.get("capacity"), 1);
+  const rawStatus = String(formData.get("status") ?? "available");
+  const status = (AVAILABILITY_STATUSES.has(rawStatus) ? rawStatus : "available") as "available" | "unavailable" | "blocked";
   const providerServiceId = String(formData.get("providerServiceId") ?? "").trim();
   const offeringId = String(formData.get("offeringId") ?? "").trim();
   const rawAvailabilityKind = String(formData.get("availabilityKind") ?? "general").trim() as ProviderAvailabilityKind;

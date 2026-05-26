@@ -199,9 +199,9 @@ export default async function AdminProviderOfferingDetailPage({
                 </div>
                 {detail.submissionType !== "discontinue" ? (
                   <div className="rounded-md border bg-muted/30 p-3 text-sm">
-                    <p className="font-medium">Nguồn hàng / chủ sở hữu</p>
+                    <p className="font-medium">Cung ứng / chủ sở hữu</p>
                     <p className="mt-1 text-muted-foreground">
-                      Khi áp dụng, catalog tự gán provider gửi hồ sơ này làm nguồn hàng/chủ sở hữu ban đầu.
+                      Khi áp dụng, catalog tự gán provider gửi hồ sơ này làm nguồn cung ứng/chủ sở hữu ban đầu.
                     </p>
                   </div>
                 ) : null}
@@ -214,7 +214,7 @@ export default async function AdminProviderOfferingDetailPage({
                       disabled={!canApply}
                       className="mt-1"
                     />
-                    <span>Gán provider này làm nhà cung cấp đã duyệt cho sản phẩm sau khi áp dụng.</span>
+                    <span>Gán provider này làm nhà cung cấp đã duyệt cho dịch vụ/sản phẩm sau khi áp dụng.</span>
                   </label>
                 ) : null}
                 <AdminSubmitButton className="w-full" disabled={!canApply}>

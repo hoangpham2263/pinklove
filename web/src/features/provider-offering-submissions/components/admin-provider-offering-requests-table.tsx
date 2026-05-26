@@ -224,7 +224,7 @@ export function AdminProviderOfferingRequestsTable({
   return (
     <div className="space-y-4">
       <AdminTableToolbar>
-        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo nhà cung cấp, sản phẩm, slug..." />
+        <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo nhà cung cấp, dịch vụ/sản phẩm, slug..." />
         <AdminTableSelect
           value={statusFilterValue}
           label="Lọc trạng thái"

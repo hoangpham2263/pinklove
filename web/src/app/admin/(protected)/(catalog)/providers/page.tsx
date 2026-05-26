@@ -42,7 +42,7 @@ export default async function AdminProvidersPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Providers</h1>
         <p className="text-sm text-muted-foreground">
-          Tổng quan nhà cung cấp, lịch khả dụng, submission sản phẩm và vận hành nguồn hàng.
+          Tổng quan nhà cung cấp, lịch khả dụng, submission dịch vụ/sản phẩm và vận hành cung ứng.
         </p>
       </div>
 
@@ -76,17 +76,17 @@ export default async function AdminProvidersPage() {
           icon={CalendarClock}
         />
         <AdminOverviewCard
-          title="Product submissions"
-          description="Duyệt hồ sơ sản phẩm provider gửi lên trước khi áp dụng vào catalog."
+          title="Service/product submissions"
+          description="Duyệt hồ sơ dịch vụ/sản phẩm provider gửi lên trước khi áp dụng vào catalog."
           href={ROUTES.ADMIN.PROVIDER_OFFERINGS}
           hrefLabel="Duyệt submissions"
           icon={ClipboardList}
         />
         <AdminOverviewCard
           title="Sourcing & suppliers"
-          description="Tìm nguồn hàng, duyệt provider cung ứng và quản lý vòng đời supplier."
+          description="Mở offering cho provider đăng ký cung ứng và quản lý vòng đời supplier."
           href={ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}
-          hrefLabel="Vận hành nguồn hàng"
+          hrefLabel="Vận hành cung ứng"
           icon={Truck}
         />
       </AdminOverviewGrid>

@@ -223,7 +223,7 @@ export function QuickCreateOfferingForm({
                 ))}
               </select>
               <p className="text-sm text-muted-foreground">
-                Nhóm này không dùng template invitation source. Chỉ chọn đối tác khi nguồn hàng thuộc bên cung ứng.
+                Nhóm này không dùng template invitation source. Chỉ chọn đối tác khi nguồn cung ứng thuộc bên provider.
               </p>
             </div>
 
@@ -239,7 +239,7 @@ export function QuickCreateOfferingForm({
                   className="mt-1 rounded border-input"
                 />
                 <span className="space-y-1">
-                  <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
+                  <span className="block font-medium">Cho phép provider xin cung cấp dịch vụ/sản phẩm này</span>
                   <span className="block text-sm text-muted-foreground">
                     Bật khi bạn muốn provider thấy mẫu này trong portal và gửi hồ sơ xin cung cấp.
                   </span>

@@ -478,7 +478,7 @@ export function AdminOfferingList({
                 </div>
               </PreviewSection>
 
-              <PreviewSection title="Giá, kho và nguồn hàng">
+              <PreviewSection title="Giá, kho và cung ứng">
                 <div className="grid gap-3 md:grid-cols-2">
                   <PreviewField label="Giá bán" value={formatVnd(previewOffering.price)} />
                   <PreviewField label="Giá nhập" value={formatVnd(previewOffering.costPrice)} />

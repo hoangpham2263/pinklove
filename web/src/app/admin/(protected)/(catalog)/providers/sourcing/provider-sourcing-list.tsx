@@ -151,19 +151,19 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
     <div className="space-y-8">
       {mode === "all" || mode === "offerings" ? <section className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <SectionHeader title="Sản phẩm cần tìm nguồn" description="Các offering đang bật cho provider đăng ký cung ứng." />
+          <SectionHeader title="Dịch vụ/sản phẩm cần provider" description="Các offering đang bật cho provider đăng ký cung ứng." />
           <Dialog>
             <AdminDialogPrimaryTrigger>Thông báo provider</AdminDialogPrimaryTrigger>
             <DialogContent className="max-w-xl">
               <DialogHeader>
-                <DialogTitle>Thông báo provider nhận nguồn hàng</DialogTitle>
-                <DialogDescription>Gửi yêu cầu kiểm tra giá nhập, năng lực và điều kiện cung ứng cho một sản phẩm.</DialogDescription>
+                <DialogTitle>Thông báo provider nhận cung ứng</DialogTitle>
+                <DialogDescription>Gửi yêu cầu kiểm tra giá nhập, năng lực và điều kiện cung ứng cho một dịch vụ/sản phẩm.</DialogDescription>
               </DialogHeader>
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SOURCING_ANNOUNCE} method="POST" className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Sản phẩm cần tìm nguồn</label>
+                  <label className="text-sm font-medium">Dịch vụ/sản phẩm cần provider</label>
                   <select name="offeringId" required className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    <option value="">Chọn sản phẩm</option>
+                    <option value="">Chọn dịch vụ/sản phẩm</option>
                     {sourcingOfferings.map((offering) => (
                       <option key={offering.id} value={offering.id}>
                         {offering.name} - {formatVnd(offering.price)}
@@ -210,7 +210,7 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-medium">Sản phẩm</TableHead>
+                <TableHead className="font-medium">Dịch vụ/sản phẩm</TableHead>
                 <TableHead className="text-right font-medium">Giá bán</TableHead>
                 <TableHead className="text-right font-medium">Đang chờ</TableHead>
                 <TableHead className="text-right font-medium">Đã duyệt</TableHead>
@@ -236,7 +236,7 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    Không có sản phẩm phù hợp với bộ lọc hiện tại.
+                    Không có dịch vụ/sản phẩm phù hợp với bộ lọc hiện tại.
                   </TableCell>
                 </TableRow>
               )}
@@ -246,9 +246,9 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
       </section> : null}
 
       {mode === "all" || mode === "requests" ? <section className="space-y-4">
-        <SectionHeader title="Provider đăng ký nhận nguồn hàng" />
+        <SectionHeader title="Provider đăng ký cung ứng" />
         <AdminTableToolbar>
-          <AdminTableSearch value={requestSearch} onChange={setRequestSearch} placeholder="Tìm provider, sản phẩm, SKU, ghi chú..." />
+          <AdminTableSearch value={requestSearch} onChange={setRequestSearch} placeholder="Tìm provider, dịch vụ/sản phẩm, SKU, ghi chú..." />
           <AdminTableSelect value={requestStatus} label="Lọc trạng thái yêu cầu" onChange={setRequestStatus} options={REQUEST_STATUS_OPTIONS} />
           <AdminTableClearButton
             visible={hasRequestFilters}
@@ -319,7 +319,7 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
       {mode === "all" || mode === "suppliers" ? <section className="space-y-4">
         <SectionHeader title="Supplier đã duyệt" />
         <AdminTableToolbar>
-          <AdminTableSearch value={supplierSearch} onChange={setSupplierSearch} placeholder="Tìm provider, sản phẩm, SKU, khu vực..." />
+          <AdminTableSearch value={supplierSearch} onChange={setSupplierSearch} placeholder="Tìm provider, dịch vụ/sản phẩm, SKU, khu vực..." />
           <AdminTableSelect value={supplierStatus} label="Lọc trạng thái supplier" onChange={setSupplierStatus} options={SUPPLIER_STATUS_OPTIONS} />
           <AdminTableSelect value={supplierSource} label="Lọc nguồn supplier" onChange={setSupplierSource} options={SUPPLIER_SOURCE_OPTIONS} />
           <AdminTableClearButton

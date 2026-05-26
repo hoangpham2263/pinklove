@@ -87,7 +87,7 @@ export async function POST(request: Request) {
   }
 
   if (ownerType === "provider" && !ownerProviderId) {
-    return respondError(request, { error: "missing_provider", message: "Hãy chọn provider sở hữu nguồn hàng cho sản phẩm này.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_provider` });
+    return respondError(request, { error: "missing_provider", message: "Hãy chọn provider sở hữu nguồn cung ứng cho dịch vụ/sản phẩm này.", location: `${createLocation}${createLocation.includes("?") ? "&" : "?"}error=missing_provider` });
   }
 
   const resolvedTemplateKey =

@@ -224,7 +224,7 @@ export function ProviderOfferingRequestsTable({ submissions }: ProviderOfferingR
   return (
     <div className="space-y-4">
       <ProviderTableToolbar>
-        <ProviderTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo sản phẩm, slug, SKU..." />
+        <ProviderTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo dịch vụ/sản phẩm, slug, SKU..." />
         <ProviderTableSelect
           value={statusFilterValue}
           label="Lọc trạng thái"

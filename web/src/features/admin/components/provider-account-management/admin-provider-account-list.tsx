@@ -551,7 +551,7 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
                   <PreviewField label="Đang xử lý" value={previewProvider.assignmentActive} />
                   <PreviewField label="Chờ review" value={previewProvider.assignmentReview} />
                   <PreviewField label="Hoàn tất" value={previewProvider.assignmentCompleted} />
-                  <PreviewField label="Yêu cầu sản phẩm" value={previewProvider.submittedOfferings} />
+                  <PreviewField label="Yêu cầu dịch vụ/sản phẩm" value={previewProvider.submittedOfferings} />
                   <PreviewField label="Cần xử lý" value={previewProvider.pendingOfferings} />
                 </div>
               </PreviewSection>

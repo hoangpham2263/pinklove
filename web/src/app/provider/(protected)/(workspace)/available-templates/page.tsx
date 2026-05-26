@@ -16,13 +16,13 @@ export default async function ProviderAvailableTemplatesPage() {
   return (
     <ProviderPage>
       <ProviderPageHeader
-        title="Sản phẩm cần tìm nguồn hàng"
-        description="Chọn sản phẩm admin đang cần tìm nguồn hàng và gửi báo giá, năng lực sản xuất, chất lượng để admin so sánh trước khi duyệt."
+        title="Dịch vụ/sản phẩm cần provider"
+        description="Chọn dịch vụ/sản phẩm admin đang cần provider và gửi báo giá, năng lực cung ứng, chất lượng để admin so sánh trước khi duyệt."
         actions={<Button variant="outline" render={<Link href={ROUTES.PROVIDER.SUPPLY_REQUESTS}>Yêu cầu cung cấp của tôi</Link>} />}
       />
 
       {offerings.length === 0 ? (
-        <ProviderEmptyState>Hiện chưa có sản phẩm nào đang mở tìm nguồn hàng.</ProviderEmptyState>
+        <ProviderEmptyState>Hiện chưa có dịch vụ/sản phẩm nào đang mở cho provider.</ProviderEmptyState>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -46,7 +46,7 @@ export default async function ProviderAvailableTemplatesPage() {
                   ) : offering.requestStatus ? (
                     <p>Trạng thái yêu cầu: {getProviderOfferingSupplierRequestStatusLabel(offering.requestStatus)}</p>
                   ) : (
-                    <p>Sản phẩm này đang cần provider gửi thông tin cung cấp.</p>
+                    <p>Dịch vụ/sản phẩm này đang cần provider gửi thông tin cung cấp.</p>
                   )}
                 </div>
 

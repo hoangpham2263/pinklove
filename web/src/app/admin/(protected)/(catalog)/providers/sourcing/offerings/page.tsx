@@ -14,12 +14,12 @@ export default async function AdminProviderSourcingOfferingsPage() {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Sản phẩm cần tìm nguồn</h1>
+        <h1 className="text-2xl font-semibold">Dịch vụ/sản phẩm cần provider</h1>
         <p className="text-sm text-muted-foreground">Quản lý các offering đang mở cho provider đăng ký cung ứng.</p>
       </div>
 
       <AdminOverviewGrid className="md:grid-cols-2 lg:grid-cols-2">
-        <AdminOverviewCard title="Tổng sản phẩm" value={sourcingOfferings.length} icon={Send} />
+        <AdminOverviewCard title="Tổng offering" value={sourcingOfferings.length} icon={Send} />
         <AdminOverviewCard title="Đang mở nguồn" value={openSourcingCount} icon={Send} />
       </AdminOverviewGrid>
 

@@ -20,8 +20,8 @@ export default async function ProviderSupplyRequestsPage() {
     <ProviderPage>
       <ProviderPageHeader
         title="Yêu cầu cung cấp của tôi"
-        description="Theo dõi các sản phẩm bạn đã xin cung cấp và phản hồi duyệt từ admin."
-        actions={<Button render={<Link href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem sản phẩm cần nguồn hàng</Link>} />}
+        description="Theo dõi các dịch vụ/sản phẩm bạn đã xin cung cấp và phản hồi duyệt từ admin."
+        actions={<Button render={<Link href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem dịch vụ/sản phẩm cần provider</Link>} />}
       />
 
       <ProviderSectionCard title="Danh sách yêu cầu">
@@ -32,7 +32,7 @@ export default async function ProviderSupplyRequestsPage() {
             <table className="w-full table-auto text-sm">
               <thead className="text-left text-muted-foreground">
                 <tr className="border-b">
-                  <th className="w-[42%] px-4 py-3 font-medium">Sản phẩm</th>
+                  <th className="w-[42%] px-4 py-3 font-medium">Dịch vụ/sản phẩm</th>
                   <th className="hidden w-[14%] px-4 py-3 font-medium md:table-cell">Giá nhập</th>
                   <th className="hidden w-[14%] px-4 py-3 font-medium lg:table-cell">Thời gian xử lý</th>
                   <th className="hidden w-[14%] px-4 py-3 font-medium xl:table-cell">Năng lực</th>

@@ -131,6 +131,7 @@ async function main() {
       "wedding_gift",
       "wedding_photo",
       "wedding_planner",
+      "wedding_service",
       "wedding_video",
     ];
     const actualSystemOfferingTypes = systemOfferingTypes.rows.map((row) => row.key);

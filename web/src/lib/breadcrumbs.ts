@@ -61,7 +61,7 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.PROVIDER_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Submissions" }] },
   { pattern: "/admin/providers/offerings/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Submissions", href: ROUTES.ADMIN.PROVIDER_OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
   { pattern: ROUTES.ADMIN.PROVIDER_SOURCING, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Sourcing" }] },
-  { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Sản phẩm cần nguồn" }] },
+  { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Dịch vụ/sản phẩm cần provider" }] },
   { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_REQUESTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Yêu cầu supplier" }] },
   { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Supplier đã duyệt" }] },
 
@@ -134,11 +134,11 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: "/provider/config/addresses/[id]/edit", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Cấu hình", href: ROUTES.PROVIDER.CONFIG }, { label: "Địa chỉ", href: ROUTES.PROVIDER.CONFIG_ADDRESSES }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
   { pattern: ROUTES.PROVIDER.DASHBOARD, items: [{ label: "Đối tác" }, { label: "Dashboard" }] },
   { pattern: ROUTES.PROVIDER.ORDERS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Đơn được giao" }] },
-  { pattern: ROUTES.PROVIDER.OFFERINGS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu sản phẩm" }] },
-  { pattern: ROUTES.PROVIDER.OFFERING_NEW, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu sản phẩm", href: ROUTES.PROVIDER.OFFERINGS }, { label: "Tạo yêu cầu" }] },
-  { pattern: "/provider/offerings/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu sản phẩm", href: ROUTES.PROVIDER.OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
+  { pattern: ROUTES.PROVIDER.OFFERINGS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu dịch vụ/sản phẩm" }] },
+  { pattern: ROUTES.PROVIDER.OFFERING_NEW, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu dịch vụ/sản phẩm", href: ROUTES.PROVIDER.OFFERINGS }, { label: "Tạo yêu cầu" }] },
+  { pattern: "/provider/offerings/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu dịch vụ/sản phẩm", href: ROUTES.PROVIDER.OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
   { pattern: "/provider/orders/[id]", items: ({ params }) => [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Đơn được giao", href: ROUTES.PROVIDER.ORDERS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
-  { pattern: ROUTES.PROVIDER.AVAILABLE_TEMPLATES, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Sản phẩm cần nguồn hàng" }] },
+  { pattern: ROUTES.PROVIDER.AVAILABLE_TEMPLATES, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Dịch vụ/sản phẩm cần provider" }] },
   { pattern: ROUTES.PROVIDER.SUPPLY_REQUESTS, items: [{ label: "Đối tác", href: ROUTES.PROVIDER.DASHBOARD }, { label: "Yêu cầu cung ứng" }] },
 ];
 

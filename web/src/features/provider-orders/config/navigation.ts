@@ -70,7 +70,7 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.ORDERS, providerOrderPrefix],
       },
       {
-        label: "Yêu cầu sản phẩm",
+        label: "Yêu cầu dịch vụ/sản phẩm",
         href: ROUTES.PROVIDER.OFFERINGS,
         iconName: "package-plus",
         matchPrefixes: [ROUTES.PROVIDER.OFFERINGS, providerOfferingPrefix],

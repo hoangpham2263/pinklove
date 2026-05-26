@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (!offeringId) {
     return respondError(request, {
       error: "missing_offering",
-      message: "Thiếu sản phẩm cần tìm nguồn hàng.",
+      message: "Thiếu dịch vụ/sản phẩm cần provider.",
       location: `${ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}?error=missing_offering`,
     });
   }
@@ -28,14 +28,14 @@ export async function POST(request: Request) {
 
     return respondSuccess(request, {
       location: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS,
-      message: "Đã thông báo tìm nguồn hàng cho provider.",
+      message: "Đã thông báo offering cần cung ứng cho provider.",
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : "announce_failed";
 
     return respondError(request, {
       error: code,
-      message: "Không thể thông báo tìm nguồn hàng.",
+      message: "Không thể thông báo offering cần cung ứng.",
       location: `${ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}?error=${encodeURIComponent(code)}`,
     });
   }

@@ -750,7 +750,7 @@ export async function announceProviderSupplySourcing(input: {
   const note = (input.note ?? "").trim();
   await createAdminNotification({
     actorUserId: input.actorUserId,
-    title: "Có sản phẩm cần tìm nguồn hàng",
+    title: "Có dịch vụ/sản phẩm cần provider",
     body: note ? `${offering.name}: ${note}` : `${offering.name} đang cần provider gửi báo giá, năng lực và thông tin cung cấp.`,
     linkUrl: ROUTES.PROVIDER.AVAILABLE_TEMPLATES,
     audienceType: "role",
@@ -1060,7 +1060,7 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
         UPDATE offering_provider_suppliers
         SET
           status = 'revoked',
-          quality_note = COALESCE(NULLIF(quality_note, ''), 'Admin đã chọn provider khác làm nguồn hàng chính.'),
+          quality_note = COALESCE(NULLIF(quality_note, ''), 'Admin đã chọn provider khác làm nguồn cung ứng chính.'),
           updated_at = NOW()
         WHERE offering_id = $1
           AND provider_user_id <> $2
@@ -1074,7 +1074,7 @@ export async function reviewSupplierRequest(input: ReviewSupplierRequestInput): 
         UPDATE provider_offering_supplier_requests
         SET
           review_status = 'rejected',
-          review_note = COALESCE(NULLIF(review_note, ''), 'Admin đã chọn provider khác cho sản phẩm này.'),
+          review_note = COALESCE(NULLIF(review_note, ''), 'Admin đã chọn provider khác cho dịch vụ/sản phẩm này.'),
           reviewed_by = $3,
           reviewed_at = NOW(),
           updated_at = NOW()
@@ -1191,7 +1191,8 @@ export async function getProviderOfferingSubmissionDetailForAdmin(submissionId: 
 }
 
 export async function saveProviderOfferingSubmission(input: SaveProviderOfferingSubmissionInput): Promise<string> {
-  await assertLinkedOfferingOwnership(input.providerId, input.linkedOfferingId);
+  const linkedOfferingId = input.submissionType === "create" ? undefined : input.linkedOfferingId;
+  await assertLinkedOfferingOwnership(input.providerId, linkedOfferingId);
 
   const name = input.name.trim();
   const slugCandidate = input.slugCandidate.trim();
@@ -1210,7 +1211,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
     throw new Error("INVALID_SUBMISSION");
   }
 
-  if (input.submissionType !== "create" && !input.linkedOfferingId) {
+  if (input.submissionType !== "create" && !linkedOfferingId) {
     throw new Error("LINKED_OFFERING_REQUIRED");
   }
 
@@ -1266,7 +1267,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
         `,
         [
           input.submissionId,
-          input.linkedOfferingId ?? null,
+          linkedOfferingId ?? null,
           input.categoryId ?? null,
           input.submissionType,
           name,
@@ -1327,7 +1328,7 @@ export async function saveProviderOfferingSubmission(input: SaveProviderOffering
       `,
       [
         input.providerId,
-        input.linkedOfferingId ?? null,
+        linkedOfferingId ?? null,
         input.categoryId ?? null,
         input.submissionType,
         name,

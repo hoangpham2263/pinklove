@@ -88,8 +88,8 @@ export default async function AdminOfferingsPage() {
           icon={FileText}
         />
         <AdminOverviewCard
-          title="Sản phẩm gửi duyệt"
-          description="Duyệt sản phẩm provider gửi lên trước khi áp dụng vào catalog."
+          title="Dịch vụ/sản phẩm gửi duyệt"
+          description="Duyệt dịch vụ/sản phẩm provider gửi lên trước khi áp dụng vào catalog."
           href={ROUTES.ADMIN.PROVIDER_OFFERINGS}
           hrefLabel="Duyệt submissions"
           icon={Truck}

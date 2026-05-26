@@ -13,14 +13,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     await submitProviderOfferingSubmission(provider.id, id);
     return respondSuccess(request, {
       location: ROUTES.PROVIDER.OFFERING(id),
-      message: "Đã gửi duyệt sản phẩm.",
+      message: "Đã gửi duyệt dịch vụ/sản phẩm.",
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : "unknown_error";
     const message =
       code === "SUBMISSION_LOCKED"
         ? "Hồ sơ này không thể gửi duyệt ở trạng thái hiện tại."
-        : "Không thể gửi duyệt sản phẩm.";
+        : "Không thể gửi duyệt dịch vụ/sản phẩm.";
 
     return respondError(request, {
       error: code,

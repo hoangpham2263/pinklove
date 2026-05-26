@@ -134,7 +134,7 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
                     className="w-full rounded-md"
                     href={`${ROUTES.ADMIN.PROVIDER_OFFERINGS}?providerId=${encodeURIComponent(provider.id)}`}
                   >
-                    Yêu cầu sản phẩm
+                    Yêu cầu dịch vụ/sản phẩm
                   </AdminLinkButton>
                 </div>
               </CardContent>

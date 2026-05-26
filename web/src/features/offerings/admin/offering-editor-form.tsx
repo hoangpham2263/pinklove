@@ -558,7 +558,7 @@ export function OfferingEditorForm({
                           className="mt-1 rounded border-input"
                         />
                         <span className="space-y-1">
-                          <span className="block font-medium">Cho phép provider xin cung cấp sản phẩm này</span>
+                          <span className="block font-medium">Cho phép provider xin cung cấp dịch vụ/sản phẩm này</span>
                         </span>
                       </label>
                     </div>
