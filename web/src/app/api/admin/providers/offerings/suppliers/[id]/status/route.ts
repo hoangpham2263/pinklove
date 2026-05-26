@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return respondError(request, {
       error: "invalid_status",
       message: "Trạng thái supplier không hợp lệ.",
-      location: ROUTES.ADMIN.PROVIDER_SOURCING,
+      location: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS,
     });
   }
 
@@ -34,14 +34,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     });
 
     return respondSuccess(request, {
-      location: ROUTES.ADMIN.PROVIDER_SOURCING,
+      location: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS,
       message: "Đã cập nhật trạng thái supplier.",
     });
   } catch (error) {
     return respondError(request, {
       error: error instanceof Error ? error.message : "supplier_status_failed",
       message: "Không thể cập nhật trạng thái supplier.",
-      location: ROUTES.ADMIN.PROVIDER_SOURCING,
+      location: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS,
     });
   }
 }

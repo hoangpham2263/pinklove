@@ -1,12 +1,13 @@
 import { CalendarClock } from "lucide-react";
 
-import { AdminDatabasePage } from "@/features/admin/components/admin-database-page";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin } from "@/lib/auth";
 import { query } from "@/lib/database";
+import { ProviderAvailabilityTable, type ProviderAvailabilityRow } from "./provider-availability-table";
 
 export default async function AdminProviderAvailabilityPage() {
   await requireAdmin();
-  const result = await query<Record<string, unknown>>(`
+  const result = await query<ProviderAvailabilityRow>(`
     SELECT
       slot.id,
       provider.display_name AS provider,
@@ -24,21 +25,17 @@ export default async function AdminProviderAvailabilityPage() {
   `);
 
   return (
-    <AdminDatabasePage
-      title="Provider Availability"
-      description="Calendar/time-slot layer cho provider booking."
-      rows={result.rows}
-      icon={CalendarClock}
-      metricLabel="Time slots"
-      columns={[
-        { key: "provider", label: "Provider" },
-        { key: "calendar", label: "Calendar" },
-        { key: "starts_at", label: "Starts" },
-        { key: "ends_at", label: "Ends" },
-        { key: "capacity", label: "Capacity" },
-        { key: "booked_count", label: "Booked" },
-        { key: "status", label: "Status" },
-      ]}
-    />
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Lịch provider</h1>
+        <p className="text-sm text-muted-foreground">Trang chỉ để admin xem/kiểm tra time slot. Provider tự khai báo lịch trong portal.</p>
+      </div>
+
+      <AdminOverviewGrid className="md:grid-cols-1 lg:grid-cols-1">
+        <AdminOverviewCard title="Time slots" value={result.rows.length} icon={CalendarClock} />
+      </AdminOverviewGrid>
+
+      <ProviderAvailabilityTable rows={result.rows} />
+    </section>
   );
 }

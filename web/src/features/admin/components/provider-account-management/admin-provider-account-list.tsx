@@ -90,6 +90,40 @@ function getAccountStatusBadgeVariant(status: AccountStatus): "default" | "secon
   }
 }
 
+function getProviderTypeLabel(value: string) {
+  switch (value) {
+    case "creator":
+      return "Creator";
+    case "studio":
+      return "Studio";
+    case "planner":
+      return "Planner";
+    case "makeup":
+      return "Makeup";
+    case "photographer":
+      return "Photographer";
+    case "florist":
+      return "Florist";
+    case "videographer":
+      return "Videographer";
+    case "supplier":
+    default:
+      return "Supplier";
+  }
+}
+
+function getProviderStatusLabel(value: string) {
+  switch (value) {
+    case "published":
+      return "Published";
+    case "archived":
+      return "Archived";
+    case "draft":
+    default:
+      return "Draft";
+  }
+}
+
 function PreviewSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3 rounded-md border p-4">
@@ -242,10 +276,31 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
           const provider = row.original;
 
           return (
-            <p className="truncate font-medium">{getProviderName(provider)}</p>
+            <div className="space-y-1">
+              <p className="truncate font-medium">{getProviderName(provider)}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {getProviderTypeLabel(provider.providerType)} / {getProviderStatusLabel(provider.providerStatus)}
+              </p>
+            </div>
           );
         },
         sortingFn: (rowA, rowB) => getProviderName(rowA.original).localeCompare(getProviderName(rowB.original)),
+      },
+      {
+        accessorKey: "providerType",
+        header: "Loại provider",
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
+      },
+      {
+        accessorKey: "providerStatus",
+        header: "Trạng thái hồ sơ",
+        filterFn: (row, columnId, filterValue) => {
+          if (!filterValue) return true;
+          return row.getValue<string>(columnId) === filterValue;
+        },
       },
       {
         accessorKey: "assignmentTotal",
@@ -325,6 +380,10 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
       sorting,
       columnFilters,
       globalFilter,
+      columnVisibility: {
+        providerType: false,
+        providerStatus: false,
+      },
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -340,6 +399,10 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
         provider.displayName,
         provider.phone,
         provider.providerPortalSlug,
+        provider.providerType,
+        getProviderTypeLabel(provider.providerType),
+        provider.providerStatus,
+        getProviderStatusLabel(provider.providerStatus),
         provider.accountStatus,
         getAccountStatusLabel(provider.accountStatus),
         provider.accountStatusReason,
@@ -354,41 +417,76 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
   });
 
   const statusFilterValue = (table.getColumn("accountStatus")?.getFilterValue() as string | undefined) ?? "";
-  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0;
+  const providerTypeFilterValue = (table.getColumn("providerType")?.getFilterValue() as string | undefined) ?? "";
+  const providerStatusFilterValue = (table.getColumn("providerStatus")?.getFilterValue() as string | undefined) ?? "";
+  const hasFilters =
+    globalFilter.trim().length > 0 ||
+    statusFilterValue.length > 0 ||
+    providerTypeFilterValue.length > 0 ||
+    providerStatusFilterValue.length > 0;
   const previewProvider = previewProviderId ? providerAccounts.find((provider) => provider.id === previewProviderId) ?? null : null;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <AdminTableToolbar>
-          <AdminTableSearch
-            value={globalFilter}
-            onChange={setGlobalFilter}
-            placeholder="Tìm theo provider, username, portal..."
-          />
-          <AdminTableSelect
-            value={statusFilterValue}
-            label="Lọc trạng thái"
-            onChange={(value) => table.getColumn("accountStatus")?.setFilterValue(value)}
-            options={[
-              { value: "", label: "Tất cả trạng thái" },
-              { value: "active", label: "Đang hoạt động" },
-              { value: "blocked", label: "Đang block" },
-              { value: "banned", label: "Đã ban" },
-              { value: "deleted", label: "Đã xóa mềm" },
-            ]}
-          />
-          <AdminTableClearButton
-            visible={hasFilters}
-            onClick={() => {
-              setGlobalFilter("");
-              table.getColumn("accountStatus")?.setFilterValue("");
-            }}
-          />
-        </AdminTableToolbar>
-      </div>
+      <h2 className="text-xl font-semibold tracking-tight">Danh sách provider</h2>
 
-      <div className="rounded-md border">
+      <AdminTableToolbar>
+        <AdminTableSearch
+          value={globalFilter}
+          onChange={setGlobalFilter}
+          placeholder="Tìm provider, username, portal, loại..."
+        />
+        <AdminTableSelect
+          value={statusFilterValue}
+          label="Lọc trạng thái tài khoản"
+          onChange={(value) => table.getColumn("accountStatus")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả tài khoản" },
+            { value: "active", label: "Đang hoạt động" },
+            { value: "blocked", label: "Đang block" },
+            { value: "banned", label: "Đã ban" },
+            { value: "deleted", label: "Đã xóa mềm" },
+          ]}
+        />
+        <AdminTableSelect
+          value={providerTypeFilterValue}
+          label="Lọc loại provider"
+          onChange={(value) => table.getColumn("providerType")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả loại" },
+            { value: "supplier", label: getProviderTypeLabel("supplier") },
+            { value: "creator", label: getProviderTypeLabel("creator") },
+            { value: "studio", label: getProviderTypeLabel("studio") },
+            { value: "planner", label: getProviderTypeLabel("planner") },
+            { value: "makeup", label: getProviderTypeLabel("makeup") },
+            { value: "photographer", label: getProviderTypeLabel("photographer") },
+            { value: "florist", label: getProviderTypeLabel("florist") },
+            { value: "videographer", label: getProviderTypeLabel("videographer") },
+          ]}
+        />
+        <AdminTableSelect
+          value={providerStatusFilterValue}
+          label="Lọc trạng thái hồ sơ"
+          onChange={(value) => table.getColumn("providerStatus")?.setFilterValue(value)}
+          options={[
+            { value: "", label: "Tất cả hồ sơ" },
+            { value: "draft", label: getProviderStatusLabel("draft") },
+            { value: "published", label: getProviderStatusLabel("published") },
+            { value: "archived", label: getProviderStatusLabel("archived") },
+          ]}
+        />
+        <AdminTableClearButton
+          visible={hasFilters}
+          onClick={() => {
+            setGlobalFilter("");
+            table.getColumn("accountStatus")?.setFilterValue("");
+            table.getColumn("providerType")?.setFilterValue("");
+            table.getColumn("providerStatus")?.setFilterValue("");
+          }}
+        />
+      </AdminTableToolbar>
+
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -414,7 +512,7 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
                   Không có provider phù hợp với bộ lọc hiện tại.
                 </TableCell>
               </TableRow>

@@ -14,6 +14,11 @@ const CONFIG_SECTIONS = [
         description: "Thông tin cửa hàng, email vận hành và dữ liệu định danh của provider.",
         href: ROUTES.PROVIDER.CONFIG_ACCOUNT,
       },
+      {
+        title: "Lịch khả dụng",
+        description: "Khai báo khung giờ nhận lịch để website tự kiểm tra provider còn trống.",
+        href: ROUTES.PROVIDER.AVAILABILITY,
+      },
     ],
   },
   {

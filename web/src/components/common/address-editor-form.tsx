@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
+import { VietnamAddressSelects } from "@/components/common/vietnam-address-selects";
 
 type AddressEditorFormProps = {
   actionUrl: string;
@@ -26,18 +27,7 @@ function AddressFields({ address }: { address?: UserAddress }) {
         <label className="font-medium">Số điện thoại</label>
         <input name="phone" defaultValue={address?.phone ?? ""} required className="h-10 w-full rounded-md border bg-background px-3" />
       </div>
-      <div className="space-y-2">
-        <label className="font-medium">Tỉnh / thành phố</label>
-        <input name="city" defaultValue={address?.city ?? ""} required className="h-10 w-full rounded-md border bg-background px-3" />
-      </div>
-      <div className="space-y-2">
-        <label className="font-medium">Quận / huyện</label>
-        <input name="district" defaultValue={address?.district ?? ""} required className="h-10 w-full rounded-md border bg-background px-3" />
-      </div>
-      <div className="space-y-2">
-        <label className="font-medium">Phường / xã</label>
-        <input name="ward" defaultValue={address?.ward ?? ""} className="h-10 w-full rounded-md border bg-background px-3" />
-      </div>
+      <VietnamAddressSelects city={address?.city} district={address?.district} ward={address?.ward} />
       <div className="space-y-2 md:col-span-2">
         <label className="font-medium">Địa chỉ chi tiết</label>
         <input name="line1" defaultValue={address?.line1 ?? ""} required placeholder="Số nhà, đường, tòa nhà..." className="h-10 w-full rounded-md border bg-background px-3" />

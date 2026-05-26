@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: "missing_offering",
       message: "Thiếu sản phẩm cần tìm nguồn hàng.",
-      location: `${ROUTES.ADMIN.PROVIDER_OFFERINGS}?error=missing_offering`,
+      location: `${ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}?error=missing_offering`,
     });
   }
 
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     });
 
     return respondSuccess(request, {
-      location: `${ROUTES.ADMIN.PROVIDER_OFFERINGS}?sourcing=1`,
+      location: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS,
       message: "Đã thông báo tìm nguồn hàng cho provider.",
     });
   } catch (error) {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       error: code,
       message: "Không thể thông báo tìm nguồn hàng.",
-      location: `${ROUTES.ADMIN.PROVIDER_OFFERINGS}?error=${encodeURIComponent(code)}`,
+      location: `${ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}?error=${encodeURIComponent(code)}`,
     });
   }
 }

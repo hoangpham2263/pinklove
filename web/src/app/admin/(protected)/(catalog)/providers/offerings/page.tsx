@@ -1,6 +1,5 @@
 import { CheckCircle2, ClipboardList, Clock3, Truck } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminProviderOfferingRequestsTable } from "@/features/provider-offering-submissions/components/admin-provider-offering-requests-table";
 import {
@@ -40,14 +39,10 @@ export default async function AdminProviderOfferingRequestsPage() {
         <AdminOverviewCard title="Đã duyệt / Supplier" value={`${approvedCount} / ${suppliers.length}`} icon={CheckCircle2} />
       </AdminOverviewGrid>
 
-      <Card className="min-w-0 overflow-visible rounded-lg gap-0">
-        <CardHeader className="border-b gap-0 pb-0">
-          <CardTitle>Danh sách submissions</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-5">
-          <AdminProviderOfferingRequestsTable submissions={submissions} providers={uniqueProviders} />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">Danh sách submissions</h2>
+        <AdminProviderOfferingRequestsTable submissions={submissions} providers={uniqueProviders} />
+      </div>
     </section>
   );
 }

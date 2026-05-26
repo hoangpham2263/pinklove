@@ -61,6 +61,9 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.PROVIDER_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Submissions" }] },
   { pattern: "/admin/providers/offerings/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Submissions", href: ROUTES.ADMIN.PROVIDER_OFFERINGS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },
   { pattern: ROUTES.ADMIN.PROVIDER_SOURCING, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Sourcing" }] },
+  { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Sản phẩm cần nguồn" }] },
+  { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_REQUESTS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Yêu cầu supplier" }] },
+  { pattern: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Providers", href: ROUTES.ADMIN.PROVIDERS }, { label: "Supplier đã duyệt" }] },
 
   { pattern: ROUTES.ADMIN.ORDERS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders" }] },
   { pattern: "/admin/orders/[id]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Orders", href: ROUTES.ADMIN.ORDERS }, { label: getRouteParamBreadcrumbLabel(params.id) }] },

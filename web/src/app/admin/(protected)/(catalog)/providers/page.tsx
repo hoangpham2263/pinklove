@@ -70,7 +70,7 @@ export default async function AdminProvidersPage() {
         />
         <AdminOverviewCard
           title="Availability"
-          description="Xem lớp calendar/time-slot của provider booking."
+          description="Admin chỉ xem/kiểm tra lịch; provider tự nhập lịch trong portal."
           href={ROUTES.ADMIN.PROVIDER_AVAILABILITY}
           hrefLabel="Xem lịch khả dụng"
           icon={CalendarClock}
@@ -85,7 +85,7 @@ export default async function AdminProvidersPage() {
         <AdminOverviewCard
           title="Sourcing & suppliers"
           description="Tìm nguồn hàng, duyệt provider cung ứng và quản lý vòng đời supplier."
-          href={ROUTES.ADMIN.PROVIDER_SOURCING}
+          href={ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS}
           hrefLabel="Vận hành nguồn hàng"
           icon={Truck}
         />

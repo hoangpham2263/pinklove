@@ -1,5 +1,6 @@
 "use client";
 import {
+  CalendarClock,
   ChevronRight,
   ExternalLink,
   LayoutDashboard,
@@ -27,6 +28,7 @@ type ProviderWorkspaceSidebarGroupProps = {
 };
 
 const iconMap = {
+  "calendar-clock": CalendarClock,
   "layout-dashboard": LayoutDashboard,
   "messages-square": MessagesSquare,
   "map-pin": MapPin,

@@ -1,0 +1,29 @@
+import { CheckCircle2, Truck } from "lucide-react";
+
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
+import { listOfferingProviderSuppliersForAdmin } from "@/features/provider-offering-submissions/server/service";
+import { requireAdmin } from "@/lib/auth";
+import { ProviderSourcingList } from "../provider-sourcing-list";
+
+export default async function AdminProviderSourcingSuppliersPage() {
+  await requireAdmin();
+
+  const suppliers = await listOfferingProviderSuppliersForAdmin();
+  const activeSupplierCount = suppliers.filter((supplier) => supplier.status === "active").length;
+
+  return (
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold">Supplier đã duyệt</h1>
+        <p className="text-sm text-muted-foreground">Quản lý trạng thái supplier đã được duyệt theo từng offering.</p>
+      </div>
+
+      <AdminOverviewGrid className="md:grid-cols-2 lg:grid-cols-2">
+        <AdminOverviewCard title="Tổng supplier" value={suppliers.length} icon={Truck} />
+        <AdminOverviewCard title="Đang hoạt động" value={activeSupplierCount} icon={CheckCircle2} />
+      </AdminOverviewGrid>
+
+      <ProviderSourcingList supplierRequests={[]} suppliers={suppliers} sourcingOfferings={[]} mode="suppliers" />
+    </section>
+  );
+}

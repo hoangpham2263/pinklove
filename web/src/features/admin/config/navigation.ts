@@ -123,11 +123,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     iconName: "store",
     defaultOpen: false,
     children: [
-      { label: "Tài khoản provider", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS, iconName: "store" },
       { label: "Overview", href: ROUTES.ADMIN.PROVIDERS, iconName: "briefcase-business", exact: true },
-      { label: "Lịch khả dụng", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock", exact: true },
+      { label: "Tài khoản provider", href: ROUTES.ADMIN.PROVIDER_ACCOUNTS, iconName: "store" },
+      { label: "Lịch provider", href: ROUTES.ADMIN.PROVIDER_AVAILABILITY, iconName: "calendar-clock", exact: true },
+      { label: "Sản phẩm cần nguồn", href: ROUTES.ADMIN.PROVIDER_SOURCING_OFFERINGS, iconName: "package", exact: true },
+      { label: "Yêu cầu supplier", href: ROUTES.ADMIN.PROVIDER_SOURCING_REQUESTS, iconName: "truck", exact: true },
+      { label: "Supplier đã duyệt", href: ROUTES.ADMIN.PROVIDER_SOURCING_SUPPLIERS, iconName: "store", exact: true },
       { label: "Duyệt yêu cầu sản phẩm", href: ROUTES.ADMIN.PROVIDER_OFFERINGS, iconName: "package" },
-      { label: "Nguồn hàng & supplier", href: ROUTES.ADMIN.PROVIDER_SOURCING, iconName: "truck", exact: true },
     ],
   },
   {

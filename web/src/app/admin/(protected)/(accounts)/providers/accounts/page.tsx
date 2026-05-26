@@ -1,6 +1,5 @@
 import { CheckCircle2, ClipboardList, PackageSearch, Store } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminProviderAccountList, type AdminProviderAccountRow } from "@/features/admin/components/provider-account-management/admin-provider-account-list";
@@ -82,14 +81,7 @@ export default async function AdminProviderAccountsPage({ searchParams }: AdminP
         <AdminOverviewCard title="Hồ sơ cần review" value={totalPendingOfferings} description="Submitted / under review / cần bổ sung" icon={PackageSearch} />
       </AdminOverviewGrid>
 
-      <Card className="rounded-lg">
-        <CardHeader className="border-b">
-          <CardTitle>Danh sách provider</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <AdminProviderAccountList providerAccounts={providerAccounts} />
-        </CardContent>
-      </Card>
+      <AdminProviderAccountList providerAccounts={providerAccounts} />
     </section>
   );
 }

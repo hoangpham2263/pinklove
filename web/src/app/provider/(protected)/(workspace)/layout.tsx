@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ExternalLink,
+  CalendarClock,
   LayoutDashboard,
   MapPin,
   MessagesSquare,
@@ -26,6 +27,7 @@ import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
 
 const providerIconMap = {
+  "calendar-clock": CalendarClock,
   "layout-dashboard": LayoutDashboard,
   "messages-square": MessagesSquare,
   "map-pin": MapPin,

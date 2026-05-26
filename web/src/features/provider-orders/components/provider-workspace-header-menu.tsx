@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  CalendarClock,
   ChevronRight,
   ExternalLink,
   LayoutDashboard,
@@ -36,6 +37,7 @@ import { isRouteActive } from "@/lib/navigation";
 import { ROUTES } from "@/lib/routes";
 
 const iconMap = {
+  "calendar-clock": CalendarClock,
   "layout-dashboard": LayoutDashboard,
   "messages-square": MessagesSquare,
   "map-pin": MapPin,

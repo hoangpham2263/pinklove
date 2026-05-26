@@ -1,6 +1,7 @@
 import { ROUTES } from "@/lib/routes";
 
 export type ProviderNavIconName =
+  | "calendar-clock"
   | "layout-dashboard"
   | "messages-square"
   | "map-pin"
@@ -80,6 +81,12 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         href: ROUTES.PROVIDER.OFFERING_NEW,
         iconName: "package-plus",
         exact: true,
+      },
+      {
+        label: "Lịch khả dụng",
+        href: ROUTES.PROVIDER.AVAILABILITY,
+        iconName: "calendar-clock",
+        matchPrefixes: [ROUTES.PROVIDER.AVAILABILITY],
       },
       {
         label: "Mẫu có thể cung cấp",
