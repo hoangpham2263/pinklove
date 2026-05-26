@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { ProviderAvailabilityRule } from "@/features/providers/server/availability";
-import { ROUTES } from "@/lib/routes";
+import { providerApi } from "@/lib/api-client.provider";
 
 type ProviderAvailabilityCalendarProps = {
   rules: ProviderAvailabilityRule[];
@@ -92,19 +92,8 @@ export function ProviderAvailabilityCalendar({ rules }: ProviderAvailabilityCale
   async function submitAvailability(formData: FormData) {
     setSaving(true);
     try {
-      const response = await fetch(ROUTES.API.PROVIDER.AVAILABILITY, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: formData,
-      });
-
-      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-
-      if (!response.ok) {
-        throw new Error(payload?.message || "Không thể lưu lịch.");
-      }
-
-      toast.success(payload?.message || "Đã cập nhật lịch.");
+      const result = await providerApi.updateAvailability(formData);
+      toast.success(result.message || "Đã cập nhật lịch.");
       router.refresh();
       return true;
     } catch (error) {

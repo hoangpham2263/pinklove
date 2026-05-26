@@ -59,6 +59,22 @@ Use this file for the dedicated provider portal.
 - Approving one supplier request rejects other open requests for the same offering and revokes older active/paused/suspended suppliers for that offering.
 - Approval of a supplier request should update the sell price only when admin intentionally enters a valid admin sell price.
 
+## Provider Availability Flow
+
+- Provider availability belongs to the service booking domain, not to offering type configuration.
+- `providers.provider_type` is the provider category (`supplier`, `studio`, `makeup`, `photographer`, etc.). Do not add a separate calendar type just to represent provider categories.
+- `booking_calendars` is the provider-owned calendar container. Use `key`, `label`, `timezone`, and `config` when a provider later needs multiple calendars such as default, team, studio room, or seasonal calendars.
+- `provider_availability` stores recurring weekly availability rules:
+  - `day_of_week`
+  - `starts_at`
+  - `ends_at`
+  - `capacity`
+  - `status` (`available`, `unavailable`, `blocked`)
+- `provider_time_slots` is reserved for concrete dated slots used by booking/reservation workflows. Do not use it as the source of truth for provider-declared weekly rules.
+- Provider UI mutations for availability should use `providerApi.updateAvailability()` from `src/lib/api-client.provider.ts`.
+- The provider calendar UI should create a rule only when the user selects/drags a time range. Clicking an existing rule opens edit actions; it should not delete immediately.
+- Admin availability screens may inspect concrete time slots, but provider-facing schedule management should remain in `/provider/availability`.
+
 ## Realtime Direction
 
 - Use the event log first.

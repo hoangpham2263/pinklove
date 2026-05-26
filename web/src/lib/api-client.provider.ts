@@ -36,6 +36,10 @@ async function createSupplyRequest(formData: FormData) {
   return submitForm(ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS, formData);
 }
 
+async function updateAvailability(formData: FormData) {
+  return submitForm(ROUTES.API.PROVIDER.AVAILABILITY, formData);
+}
+
 async function fetchProviderOrderDetail(url: string) {
   const response = await apiFetch(url, {
     cache: "no-store",
@@ -77,6 +81,7 @@ export const providerApi = {
   saveOfferingSubmission,
   submitOfferingSubmission,
   createSupplyRequest,
+  updateAvailability,
   fetchProviderOrderDetail,
   fetchRequiredProviderOrderDetail,
   fetchProviderPortalSummary,
@@ -88,4 +93,5 @@ export const providerApiActions = {
   saveOfferingSubmission: ROUTES.API.PROVIDER.OFFERINGS.SUBMISSIONS,
   submitOfferingSubmission: ROUTES.API.PROVIDER.OFFERINGS.SUBMIT,
   createSupplyRequest: ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS,
+  updateAvailability: ROUTES.API.PROVIDER.AVAILABILITY,
 } as const;

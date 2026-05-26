@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ProviderDeleteButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderEmptyState, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import type { ProviderAvailabilityRule } from "@/features/providers/server/availability";
-import { ROUTES } from "@/lib/routes";
+import { providerApi } from "@/lib/api-client.provider";
 
 type ProviderAvailabilityManagerProps = {
   rules: ProviderAvailabilityRule[];
@@ -84,18 +84,8 @@ export function ProviderAvailabilityManager() {
   async function submitAvailability(formData: FormData) {
     setSaving(true);
     try {
-      const response = await fetch(ROUTES.API.PROVIDER.AVAILABILITY, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: formData,
-      });
-      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-
-      if (!response.ok) {
-        throw new Error(payload?.message || "Không thể lưu lịch.");
-      }
-
-      toast.success(payload?.message || "Đã cập nhật lịch.");
+      const result = await providerApi.updateAvailability(formData);
+      toast.success(result.message || "Đã cập nhật lịch.");
       router.refresh();
       return true;
     } catch (error) {
@@ -206,18 +196,8 @@ export function ProviderAvailabilityRulesList({ rules }: ProviderAvailabilityMan
   async function submitAvailability(formData: FormData) {
     setSaving(true);
     try {
-      const response = await fetch(ROUTES.API.PROVIDER.AVAILABILITY, {
-        method: "POST",
-        headers: { Accept: "application/json" },
-        body: formData,
-      });
-      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-
-      if (!response.ok) {
-        throw new Error(payload?.message || "Không thể lưu lịch.");
-      }
-
-      toast.success(payload?.message || "Đã cập nhật lịch.");
+      const result = await providerApi.updateAvailability(formData);
+      toast.success(result.message || "Đã cập nhật lịch.");
       router.refresh();
       return true;
     } catch (error) {

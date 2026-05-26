@@ -217,6 +217,16 @@ Dynamic fields are limited to UI metadata, presentation, discovery, and optional
 structured fields. Payments, permissions, inventory, critical business
 workflows, analytics, and booking core logic must stay relational-first.
 
+Availability is split intentionally:
+
+- `booking_calendars` is the provider-owned calendar container and can be
+  distinguished by `key`, `label`, `timezone`, and `config`.
+- `provider_availability` stores recurring weekly rules declared by providers.
+- `provider_time_slots` stores concrete dated slots for booking workflows.
+- Calendar provider category is derived from `providers.provider_type`; do not
+  add a separate calendar type for provider categories unless a new booking
+  domain requires a relationally queried classification.
+
 ## Overview
 
 ```mermaid
