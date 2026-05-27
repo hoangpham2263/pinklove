@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
-import { PaymentMethodCard } from "@/features/ecommerce/components/checkout-payment-method-picker";
+import { CheckoutPaymentMethodPicker } from "@/features/ecommerce/components/checkout-payment-method-picker";
 import { CheckoutSubmitButton } from "@/features/ecommerce/components/checkout-submit-button";
 import { VatInvoiceRequestCard } from "@/features/ecommerce/components/checkout-vat-invoice-fields";
 import type { CartItem } from "@/features/ecommerce/types";
@@ -221,6 +221,16 @@ export function CheckoutPageView({
                   </div>
                 ))}
               </div>
+              <div className="space-y-3 border-t pt-4">
+                <h3 className="text-sm font-semibold text-stone-900">Phương thức thanh toán</h3>
+                {paymentMethods.length === 0 ? (
+                  <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                    Chưa có phương thức thanh toán nào đang bật trong admin.
+                  </div>
+                ) : (
+                  <CheckoutPaymentMethodPicker methods={paymentMethods} formId="checkout-form" />
+                )}
+              </div>
               <div className="space-y-2 border-t pt-4 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Tạm tính</span>
@@ -235,21 +245,20 @@ export function CheckoutPageView({
                   <span>{formatCurrency(totalAmount, settings.ecommerce)}</span>
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
-                <CheckoutSubmitButton
-                  formId="checkout-form"
-                  disabled={paymentMethods.length === 0 || (requiresShipping && addresses.length === 0)}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  render={<Link href={ROUTES.WISHLIST}>Quay lại yêu thích</Link>}
-                />
-              </div>
             </CardContent>
           </Card>
 
-          <PaymentMethodCard methods={paymentMethods} formId="checkout-form" />
+          <div className="flex flex-col gap-3">
+            <CheckoutSubmitButton
+              formId="checkout-form"
+              disabled={paymentMethods.length === 0 || (requiresShipping && addresses.length === 0)}
+            />
+            <Button
+              variant="outline"
+              className="w-full bg-white/80 backdrop-blur"
+              render={<Link href={ROUTES.WISHLIST}>Quay lại yêu thích</Link>}
+            />
+          </div>
         </div>
       </section>
     </main>
