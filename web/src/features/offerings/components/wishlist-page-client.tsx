@@ -68,18 +68,48 @@ export function WishlistPageClient({
   };
 
   return (
-    <GuestShell className="pb-16 pt-32 lg:pt-36">
-      <div className="flex flex-col gap-8">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Wishlist</p>
-          <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">
-            Danh sach yêu thích
-          </h1>
-          <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-            Day la danh sach yeu thich dong vai tro nhu gio hang: ban luu san pham o day roi tien hanh thanh toan tu cung mot noi.
-          </p>
+    <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <span className="contact-cloud-decor service-cloud-decor-one" />
+        <span className="contact-cloud-decor service-cloud-decor-two" />
+        <span className="contact-cloud-decor service-cloud-decor-three opacity-20" />
+        <span className="contact-cloud-decor service-cloud-decor-four opacity-15" />
+        <span className="contact-cloud-decor service-cloud-decor-five opacity-10" />
+        <span className="contact-cloud-decor service-cloud-decor-six opacity-10" />
+        <span className="contact-cloud-decor service-cloud-decor-seven opacity-15" />
+        <span className="contact-cloud-decor service-cloud-decor-eight opacity-10" />
+        <span className="contact-cloud-decor service-cloud-decor-nine opacity-10" />
+        <span className="contact-cloud-decor service-cloud-decor-ten opacity-10" />
+        <span className="cta-sparkle-float absolute left-[14%] top-[3%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]">✦</span>
+        <span className="cta-sparkle-float absolute left-[36%] top-[5%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-70 drop-shadow-[0_6px_14px_rgba(255,184,251,0.12)]">✦</span>
+        <span className="cta-heart-pop absolute left-[20%] top-[14%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-65 drop-shadow-[0_8px_18px_rgba(217,77,206,0.14)]">♥</span>
+        <span className="cta-sparkle-float absolute right-[28%] top-[8%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-75 drop-shadow-[0_6px_16px_rgba(255,111,245,0.14)]">✦</span>
+        <span className="cta-heart-pop absolute right-[18%] top-[22%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.08)]">♥</span>
+        <span className="cta-sparkle-float absolute right-[10%] top-[34%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-20 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]">✦</span>
+      </div>
+
+      <section className="relative z-10 isolate overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 hidden lg:block">
+          <span className="cta-sparkle-float absolute left-[8%] top-[18%] text-4xl text-[#ff6ff5]/75 drop-shadow-[0_6px_16px_rgba(255,111,245,0.2)]">✦</span>
+          <span className="cta-heart-pop absolute left-[13%] bottom-[26%] text-3xl text-[#d94dce]/70 drop-shadow-[0_8px_18px_rgba(217,77,206,0.24)]">♥</span>
+          <span className="cta-sparkle-float absolute right-[8%] top-[46%] text-4xl text-[#ff6ff5]/70 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
         </div>
 
+        <div className="container relative z-10 mx-auto px-4 pb-10 pt-16 lg:pb-12 lg:pt-24">
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">Wishlist PinkLove</p>
+            <h1 className="text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl lg:text-6xl">
+              Danh sách yêu thích
+            </h1>
+            <p className="mx-auto max-w-3xl text-sm font-medium leading-8 text-stone-700 md:text-base lg:text-lg">
+              Lưu các mẫu thiệp, sản phẩm và dịch vụ cưới bạn quan tâm vào một nơi, sau đó chọn hạng mục phù hợp để tiếp tục thanh toán hoặc quay lại catalog.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <GuestShell className="relative z-10 pb-16 pt-8 lg:pb-20 lg:pt-12">
+        <div className="flex flex-col gap-8">
         {items.length === 0 ? (
           <GuestPanel>
             <GuestPanelBody className="flex flex-col items-center gap-5 py-12 text-center">
@@ -243,7 +273,8 @@ export function WishlistPageClient({
             </GuestPanel>
           </form>
         )}
-      </div>
-    </GuestShell>
+        </div>
+      </GuestShell>
+    </main>
   );
 }

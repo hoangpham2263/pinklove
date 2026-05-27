@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { providerApi } from "@/lib/api-client.provider";
 import { ROUTES } from "@/lib/routes";
@@ -188,7 +189,9 @@ export function ProviderAssignmentPanel({
             {detail.order.metadata.requestVatInvoice ? (
               <div className="rounded-md border border-primary/30 bg-primary/10 p-3">
                 <p className="text-xs uppercase tracking-wide text-primary">Hóa đơn VAT</p>
-                <p className="mt-1 font-medium text-primary">Khách yêu cầu xuất hóa đơn VAT.</p>
+                <div className="mt-3">
+                  <VatInvoiceInfo info={detail.order.metadata.vatInvoiceInfo} />
+                </div>
               </div>
             ) : null}
           </CardContent>

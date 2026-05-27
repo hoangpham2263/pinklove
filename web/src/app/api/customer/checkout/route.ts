@@ -28,6 +28,10 @@ function getCookieValue(request: Request, name: string) {
   );
 }
 
+function getRequiredVatField(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "").trim();
+}
+
 export async function POST(request: Request) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const formData = await request.formData();
@@ -53,6 +57,7 @@ export async function POST(request: Request) {
   const requestedPaymentMethod = String(formData.get("paymentMethod") ?? "").trim();
   const paymentMethod = requestedPaymentMethod || enabledPaymentMethods[0]?.code || "";
   const selectedPaymentMethod = enabledPaymentMethods.find((item) => item.code === paymentMethod);
+  const requestVatInvoice = settings.ecommerce.enableVatInvoiceRequest && formData.get("requestVatInvoice") === "on";
 
   if (!selectedPaymentMethod) {
     return respondError(request, {
@@ -82,6 +87,23 @@ export async function POST(request: Request) {
   try {
     const addressId = String(formData.get("addressId") ?? "").trim();
     const savedAddress = requiresShipping && addressId ? await getUserAddressById(user.id, addressId) : null;
+    const vatInvoiceInfo = requestVatInvoice
+      ? {
+          companyName: getRequiredVatField(formData, "vatCompanyName"),
+          taxCode: getRequiredVatField(formData, "vatTaxCode"),
+          companyAddress: getRequiredVatField(formData, "vatCompanyAddress"),
+          invoiceEmail: getRequiredVatField(formData, "vatInvoiceEmail"),
+          buyerName: getRequiredVatField(formData, "vatBuyerName") || undefined,
+        }
+      : null;
+
+    if (requestVatInvoice && (!vatInvoiceInfo?.companyName || !vatInvoiceInfo.taxCode || !vatInvoiceInfo.companyAddress || !vatInvoiceInfo.invoiceEmail)) {
+      return respondError(request, {
+        error: "vat_invoice_info_required",
+        message: "Vui lòng nhập đầy đủ tên công ty, mã số thuế, địa chỉ và email nhận hóa đơn VAT.",
+        location: ROUTES.CHECKOUT.INDEX,
+      });
+    }
 
     if (requiresShipping && addressId && !savedAddress) {
       return respondError(request, {
@@ -103,12 +125,13 @@ export async function POST(request: Request) {
       userId: user.id,
       customerName: String(formData.get("customerName") ?? "").trim(),
       customerEmail: String(formData.get("customerEmail") ?? "").trim() || `${user.username}@pinklove.local`,
-      customerPhone: String(formData.get("customerPhone") ?? "").trim(),
+      customerPhone: savedAddress?.phone || String(formData.get("customerPhone") ?? "").trim(),
       paymentMethod: selectedPaymentMethod.code,
       paymentProvider: selectedPaymentMethod.provider,
       paymentType: selectedPaymentMethod.type,
       notes: String(formData.get("notes") ?? ""),
-      requestVatInvoice: settings.ecommerce.enableVatInvoiceRequest && formData.get("requestVatInvoice") === "on",
+      requestVatInvoice,
+      vatInvoiceInfo,
       affiliateCode: decodeURIComponent(getCookieValue(request, AFFILIATE_REF_COOKIE_NAME)),
       shippingName: savedAddress?.recipientName,
       shippingPhone: savedAddress?.phone,

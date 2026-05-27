@@ -82,8 +82,17 @@ export type EcommerceEntitlement = {
   updatedAt: string;
 };
 
+export type EcommerceVatInvoiceInfo = {
+  companyName: string;
+  taxCode: string;
+  companyAddress: string;
+  invoiceEmail: string;
+  buyerName?: string;
+};
+
 export type EcommerceOrderMetadata = {
   requestVatInvoice?: boolean;
+  vatInvoiceInfo?: EcommerceVatInvoiceInfo | null;
 };
 
 export type EcommerceOrder = {

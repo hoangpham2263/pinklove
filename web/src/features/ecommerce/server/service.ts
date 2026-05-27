@@ -6,6 +6,7 @@ import type {
   EcommerceEntitlement,
   EcommerceOrder,
   EcommerceOrderItem,
+  EcommerceVatInvoiceInfo,
   EcommercePayment,
   EcommerceShipment,
   FulfillmentStatus,
@@ -153,6 +154,32 @@ function mapCartItemRow(row: CartItemRow): CartItem {
   };
 }
 
+function parseVatInvoiceInfo(metadata: Record<string, unknown> | null): EcommerceVatInvoiceInfo | null {
+  const rawInfo = metadata?.vatInvoiceInfo;
+  if (!rawInfo || typeof rawInfo !== "object" || Array.isArray(rawInfo)) {
+    return null;
+  }
+
+  const info = rawInfo as Record<string, unknown>;
+  const companyName = typeof info.companyName === "string" ? info.companyName : "";
+  const taxCode = typeof info.taxCode === "string" ? info.taxCode : "";
+  const companyAddress = typeof info.companyAddress === "string" ? info.companyAddress : "";
+  const invoiceEmail = typeof info.invoiceEmail === "string" ? info.invoiceEmail : "";
+  const buyerName = typeof info.buyerName === "string" ? info.buyerName : "";
+
+  if (!companyName && !taxCode && !companyAddress && !invoiceEmail && !buyerName) {
+    return null;
+  }
+
+  return {
+    companyName,
+    taxCode,
+    companyAddress,
+    invoiceEmail,
+    buyerName: buyerName || undefined,
+  };
+}
+
 function mapOrderRow(row: OrderRow): Omit<EcommerceOrder, "items" | "payments" | "shipment"> {
   return {
     id: row.id,
@@ -181,6 +208,7 @@ function mapOrderRow(row: OrderRow): Omit<EcommerceOrder, "items" | "payments" |
     notes: row.notes,
     metadata: {
       requestVatInvoice: row.metadata?.requestVatInvoice === true,
+      vatInvoiceInfo: parseVatInvoiceInfo(row.metadata),
     },
     affiliateUserId: row.affiliate_user_id ?? undefined,
     affiliateCode: row.affiliate_code ?? undefined,
@@ -498,6 +526,7 @@ export async function createOrderFromCart(input: {
   paymentType?: EcommercePaymentMethodSettings["type"];
   notes?: string;
   requestVatInvoice?: boolean;
+  vatInvoiceInfo?: EcommerceVatInvoiceInfo | null;
   affiliateCode?: string;
   shippingName?: string;
   shippingPhone?: string;
@@ -643,6 +672,9 @@ export async function createOrderFromCart(input: {
         input.notes?.trim() ?? "",
         JSON.stringify({
           requestVatInvoice: settings.ecommerce.enableVatInvoiceRequest && input.requestVatInvoice === true,
+          vatInvoiceInfo: settings.ecommerce.enableVatInvoiceRequest && input.requestVatInvoice === true
+            ? input.vatInvoiceInfo ?? null
+            : null,
         }),
         validAffiliateAccount?.userId ?? null,
         validAffiliateAccount?.code ?? null,

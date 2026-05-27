@@ -39,6 +39,7 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
   // SEO Preview States
   const [seoTitle, setSeoTitle] = useState(page.seoTitle || "");
   const [seoDescription, setSeoDescription] = useState(page.seoDescription || "");
+  const [canonicalUrl, setCanonicalUrl] = useState(page.canonicalUrl || "");
   const [slug, setSlug] = useState(page.slug || "");
   const [pageTitle, setPageTitle] = useState(page.title || "");
   const [pageName, setPageName] = useState(page.name || "");
@@ -251,7 +252,8 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
                     <Input
                       id="canonicalUrl"
                       name="canonicalUrl"
-                      defaultValue={page.canonicalUrl}
+                      value={canonicalUrl}
+                      onChange={(event) => setCanonicalUrl(event.target.value)}
                       placeholder="Để trống để dùng đường dẫn hiện tại"
                     />
                   </div>

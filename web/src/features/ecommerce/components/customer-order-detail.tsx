@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
+import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
 import type { EcommerceOrder } from "@/features/ecommerce/types";
 import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
@@ -77,8 +78,8 @@ export function CustomerOrderDetail({ order, ecommerceSettings }: CustomerOrderD
           <CardHeader>
             <CardTitle>Hóa đơn VAT</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Đơn hàng này đã ghi nhận yêu cầu xuất hóa đơn VAT. Đội ngũ sẽ liên hệ để xác nhận thông tin xuất hóa đơn.
+          <CardContent>
+            <VatInvoiceInfo info={order.metadata.vatInvoiceInfo} />
           </CardContent>
         </Card>
       ) : null}

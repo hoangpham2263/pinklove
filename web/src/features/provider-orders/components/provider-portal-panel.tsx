@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { ProviderTableActionButton, ProviderTableActions } from "@/features/provider-orders/components/provider-table-actions";
 import type { ProviderAssignmentStatus, ProviderOrderSummary } from "@/features/provider-orders/types";
@@ -439,7 +440,9 @@ export function ProviderPortalPanel({
               {previewEntry.order.metadata.requestVatInvoice ? (
                 <div className="rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
                   <p className="text-xs uppercase tracking-wide text-primary">Hóa đơn VAT</p>
-                  <p className="mt-1 font-medium text-primary">Khách yêu cầu xuất hóa đơn VAT.</p>
+                  <div className="mt-3">
+                    <VatInvoiceInfo info={previewEntry.order.metadata.vatInvoiceInfo} />
+                  </div>
                 </div>
               ) : null}
 

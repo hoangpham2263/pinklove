@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminOrderStatePanel } from "@/features/ecommerce/admin/admin-order-state-panel";
+import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
 import { getOrderById } from "@/features/ecommerce/server/service";
 import { AdminProviderAssignmentPanel } from "@/features/provider-orders/components/admin-provider-assignment-panel";
 import { getProviderAssignmentByOrderId } from "@/features/provider-orders/server/service";
@@ -80,9 +81,10 @@ export default async function AdminOrderDetailPage({
             ) : null}
 
             {order.metadata.requestVatInvoice ? (
-              <p className="inline-flex w-fit rounded-md border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                Khách yêu cầu xuất hóa đơn VAT
-              </p>
+              <div className="max-w-3xl rounded-md border border-primary/30 bg-primary/10 p-3">
+                <p className="mb-3 text-sm font-medium text-primary">Khách yêu cầu xuất hóa đơn VAT</p>
+                <VatInvoiceInfo info={order.metadata.vatInvoiceInfo} />
+              </div>
             ) : null}
           </div>
 
