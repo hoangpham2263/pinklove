@@ -44,10 +44,6 @@ export const ROUTES = {
     QR_BUILDER: "/cong-cu/tao-ma-qr",
     WEDDING_BUDGET: "/cong-cu/du-toan-cuoi",
   },
-  BLOG_PAGES: {
-    CATEGORY: (slug: string) => `/blog/category/${slug}`,
-    POST: (slug: string) => `/blog/${slug}`,
-  },
   AUTH: {
     LOGIN: "/login",
     REGISTER: "/register",

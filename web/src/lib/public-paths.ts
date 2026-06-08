@@ -3,7 +3,6 @@ import type { InvitationSite } from "@/features/invitations/types";
 import type { Offering } from "@/features/offerings/types";
 
 const BLOG_CATEGORY_BASE = "blog";
-const BLOG_CATEGORY_SEGMENT = "category";
 const TEMPLATE_BASE = "mau-thiep";
 const BUILDER_BASE = "tu-tao-thiep";
 const OFFERING_BASE = "thiep-giay";
@@ -27,7 +26,7 @@ function normalizePath(path: string) {
 
 export function getBlogCategoryPath(category: Pick<BlogCategory, "slug"> | string) {
   const slug = typeof category === "string" ? category : category.slug;
-  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${normalizeSegment(BLOG_CATEGORY_SEGMENT)}/${slug}`);
+  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${slug}`);
 }
 
 export function getBlogPostPath(post: Pick<BlogPost, "slug">) {

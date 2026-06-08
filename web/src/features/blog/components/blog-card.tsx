@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { BlogPost } from "@/features/blog/types";
-import { ROUTES } from "@/lib/routes";
+import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("vi-VN", {
@@ -13,8 +13,8 @@ function formatDate(value: string) {
 
 export function BlogCard({
   post,
-  postHref = ROUTES.BLOG_PAGES.POST(post.slug),
-  categoryHref = ROUTES.BLOG_PAGES.CATEGORY(post.categorySlug),
+  postHref = getBlogPostPath(post),
+  categoryHref = getBlogCategoryPath(post.categorySlug),
 }: {
   post: BlogPost;
   postHref?: string;

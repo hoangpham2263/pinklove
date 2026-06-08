@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { generateBlogCategoryMetadata, generateBlogPostMetadata, renderBlogPostPage } from "@/features/blog/server/renderers";
+import { notFound } from "next/navigation";
+import { generateBlogCategoryMetadata, generateBlogPostMetadata, renderBlogCategoryPage, renderBlogPostPage } from "@/features/blog/server/renderers";
 import {
   getPublishedBlogCategoryBySlug,
   getPublishedBlogPostBySlug,
+  listPublishedBlogCategories,
+  listPublishedBlogPosts,
   listRelatedBlogPosts,
 } from "@/features/blog/server/service";
-import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 
 export async function generateMetadata({
   params,
@@ -32,11 +33,6 @@ export default async function BlogPostPage({
   const post = await getPublishedBlogPostBySlug(slug);
 
   if (post) {
-    const targetPath = getBlogPostPath(post);
-    if (targetPath !== `/blog/${post.slug}`) {
-      redirect(targetPath);
-    }
-
     const relatedPosts = await listRelatedBlogPosts(post);
     return renderBlogPostPage({ post, relatedPosts });
   }
@@ -47,5 +43,10 @@ export default async function BlogPostPage({
     return notFound();
   }
 
-  permanentRedirect(getBlogCategoryPath(category));
+  const [categories, posts] = await Promise.all([
+    listPublishedBlogCategories(),
+    listPublishedBlogPosts(category.slug),
+  ]);
+
+  return renderBlogCategoryPage({ category, categories, posts });
 }
