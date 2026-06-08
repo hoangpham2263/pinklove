@@ -30,8 +30,8 @@ export default async function AdminOfferingCatPage() {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <AdminOverviewGrid>
-        <AdminOverviewCard title="Total" value={categories.length} icon={FolderTree} />
-        <AdminOverviewCard title="Published" value={publishedCount} description={`Draft: ${draftCount}`} icon={CheckCircle2} />
+        <AdminOverviewCard title="Tổng danh mục" value={categories.length} icon={FolderTree} />
+        <AdminOverviewCard title="Đang hiển thị" value={publishedCount} description={`Nháp: ${draftCount}`} icon={CheckCircle2} />
         <AdminOverviewCard title="Đã gắn sản phẩm" value={assignedCount} icon={PackageCheck} />
         <AdminOverviewCard title="Chưa gắn Offering Cat" icon={PackageX} contentClassName="flex items-center justify-between gap-3">
             <p>{unassignedCount}</p>

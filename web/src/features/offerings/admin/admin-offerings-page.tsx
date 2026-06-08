@@ -82,8 +82,8 @@ export async function AdminOfferingsPageView({
 
       <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
         <AdminOverviewCard title="Tổng sản phẩm" value={filteredOfferings.length} icon={Package} />
-        <AdminOverviewCard title="Published" value={publishedCount} icon={CheckCircle2} />
-        <AdminOverviewCard title="Draft" value={draftCount} icon={FileText} />
+        <AdminOverviewCard title="Đang hiển thị" value={publishedCount} icon={CheckCircle2} />
+        <AdminOverviewCard title="Nháp / khác" value={draftCount} icon={FileText} />
       </AdminOverviewGrid>
 
       <AdminOfferingList

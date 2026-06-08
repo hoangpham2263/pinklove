@@ -7,7 +7,7 @@ import { getSystemSettings } from "@/lib/system-settings";
 
 const CONFIG_SECTIONS = [
   {
-    title: "Brand & UI",
+    title: "Nhận diện & giao diện",
     icon: "settings" as const,
     items: [
       {
@@ -20,15 +20,26 @@ const CONFIG_SECTIONS = [
         description: "Quản lý thông báo toàn site hiển thị dùng chung cho người dùng.",
         href: ROUTES.ADMIN.NOTIFICATIONS,
       },
+    ],
+  },
+  {
+    title: "Giao tiếp & đăng nhập",
+    icon: "globe" as const,
+    items: [
       {
         title: "Email",
         description: "Cấu hình sender, SMTP transport và card gửi demo cho email dùng chung toàn hệ thống.",
         href: ROUTES.ADMIN.CONFIG_EMAIL,
       },
+      {
+        title: "Đăng nhập bên thứ 3",
+        description: "Cấu hình OAuth và các nhà cung cấp đăng nhập ngoài như Google.",
+        href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
+      },
     ],
   },
   {
-    title: "SEO",
+    title: "SEO & Indexing",
     icon: "link" as const,
     items: [
       {
@@ -59,7 +70,7 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "SEO Docs",
+    title: "Tài liệu SEO",
     icon: "docs" as const,
     items: [
       {
@@ -80,7 +91,7 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "Ecommerce",
+    title: "Bán hàng & thanh toán",
     icon: "settings" as const,
     items: [
       {
@@ -101,7 +112,23 @@ const CONFIG_SECTIONS = [
     ],
   },
   {
-    title: "Nâng cao",
+    title: "Catalog & discovery",
+    icon: "docs" as const,
+    items: [
+      {
+        title: "Search Documents",
+        description: "Kiểm tra dữ liệu index tìm kiếm đã sinh cho offering khi cần debug search.",
+        href: ROUTES.ADMIN.CONFIG_SEARCH_DOCUMENTS,
+      },
+      {
+        title: "Template Attributes",
+        description: "Kiểm tra attribute phục vụ discovery/SEO cho template và offering.",
+        href: ROUTES.ADMIN.CONFIG_TEMPLATE_ATTRIBUTES,
+      },
+    ],
+  },
+  {
+    title: "Tích hợp & vận hành",
     icon: "globe" as const,
     items: [
       {
@@ -110,19 +137,14 @@ const CONFIG_SECTIONS = [
         href: ROUTES.ADMIN.CONFIG_INTERNAL_APIS,
       },
       {
-        title: "Đăng nhập bên thứ 3",
-        description: "Cấu hình OAuth và các nhà cung cấp đăng nhập ngoài như Google.",
-        href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
+        title: "Hooks",
+        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
+        href: ROUTES.ADMIN.HOOKS,
       },
       {
         title: "Backups",
         description: "Theo dõi backup database, uploads và hướng dẫn restore dữ liệu production.",
         href: ROUTES.ADMIN.CONFIG_BACKUPS,
-      },
-      {
-        title: "Hooks",
-        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
-        href: ROUTES.ADMIN.HOOKS,
       },
     ],
   },

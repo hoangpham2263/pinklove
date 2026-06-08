@@ -375,6 +375,14 @@
   padding-inline: var(--ui-control-padding-x) !important;
 }
 
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @keyframes cta-sparkle-float {
   0%, 100% {
     opacity: 0.82;

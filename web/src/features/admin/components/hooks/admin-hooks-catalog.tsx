@@ -218,7 +218,7 @@ export function AdminHooksCatalog({ hooks }: AdminHooksCatalogProps) {
               onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
               options={[
                 { value: "", label: "Tất cả trạng thái" },
-                { value: "active", label: "Đang dùng" },
+                { value: "active", label: "Active" },
                 { value: "inactive", label: "Legacy / Inactive" },
               ]}
             />

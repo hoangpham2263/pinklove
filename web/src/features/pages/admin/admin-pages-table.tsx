@@ -133,7 +133,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
         accessorKey: "adminUsed",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Đã sử dụng</AdminTableSortButton>
+            Used</AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => {
           if (!filterValue) return true;
@@ -240,8 +240,8 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
             onChange={(value) => table.getColumn("adminUsed")?.setFilterValue(value)}
             options={[
               { value: "", label: "Tất cả đánh dấu" },
-              { value: "checked", label: "Đã sử dụng" },
-              { value: "unchecked", label: "Chưa sử dụng" },
+              { value: "checked", label: "Used" },
+              { value: "unchecked", label: "Unused" },
             ]}
           />
           <AdminTableClearButton

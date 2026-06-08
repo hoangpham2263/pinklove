@@ -71,8 +71,8 @@ export async function POST(request: Request) {
         : normalizedBulkAction === "draft"
           ? "Draft"
           : normalizedBulkAction === "admin_used"
-            ? "Đã sử dụng"
-            : "Chưa sử dụng";
+            ? "Used"
+            : "Unused";
 
     return respondSuccess(request, {
       location: ROUTES.ADMIN.PAGES,

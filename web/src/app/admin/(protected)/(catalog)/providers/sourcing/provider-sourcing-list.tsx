@@ -193,8 +193,8 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
             onChange={setOfferingStatus}
             options={[
               { value: "", label: "Tất cả trạng thái" },
-              { value: "open", label: "Đang mở" },
-              { value: "closed", label: "Chưa mở" },
+              { value: "open", label: "Open" },
+              { value: "closed", label: "Closed" },
             ]}
           />
           <AdminTableClearButton
@@ -212,8 +212,8 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
               <TableRow>
                 <TableHead className="font-medium">Dịch vụ/sản phẩm</TableHead>
                 <TableHead className="text-right font-medium">Giá bán</TableHead>
-                <TableHead className="text-right font-medium">Đang chờ</TableHead>
-                <TableHead className="text-right font-medium">Đã duyệt</TableHead>
+                <TableHead className="text-right font-medium">Pending</TableHead>
+                <TableHead className="text-right font-medium">Approved</TableHead>
                 <TableHead className="font-medium">Trạng thái</TableHead>
               </TableRow>
             </TableHeader>

@@ -78,7 +78,7 @@ Use this file as the entrypoint for project documentation.
 - Respect module ownership from `docs/platform.md`; cross-module mutations go
   through owning services, public APIs, or domain events.
 - Use the standard admin/customer/editor 12-column layout language for protected screens.
-- Show human-facing order and provider status labels in Vietnamese on management screens when that improves operational clarity.
+- Show human-facing status labels in English consistently across the project.
 
 ## Update Rules
 

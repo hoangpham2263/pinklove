@@ -95,6 +95,7 @@ export function renderBlogCategoryPage({
           <Link
             key={item.id}
             href={getBlogCategoryPath(item)}
+            aria-current={item.slug === category.slug ? "page" : undefined}
             className={`inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition lg:rounded-2xl ${
               item.slug === category.slug
                 ? "border border-stone-900 bg-stone-950 text-white"

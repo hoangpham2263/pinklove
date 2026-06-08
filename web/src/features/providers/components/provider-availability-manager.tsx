@@ -37,12 +37,12 @@ const DAY_OPTIONS = [
 function getStatusLabel(value: string) {
   switch (value) {
     case "blocked":
-      return "Khóa lịch";
+      return "Blocked";
     case "unavailable":
-      return "Không nhận";
+      return "Unavailable";
     case "available":
     default:
-      return "Nhận lịch";
+      return "Available";
   }
 }
 
@@ -285,9 +285,9 @@ export function ProviderAvailabilityManager({ services }: Pick<ProviderAvailabil
               <div className="space-y-2">
                 <label className="text-sm font-medium">Trạng thái</label>
                 <select name="status" defaultValue="available" className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                  <option value="available">Nhận lịch</option>
-                  <option value="unavailable">Không nhận</option>
-                  <option value="blocked">Khóa lịch</option>
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable</option>
+                  <option value="blocked">Blocked</option>
                 </select>
               </div>
             </div>
@@ -422,9 +422,9 @@ export function ProviderAvailabilityRulesList({ rules, services }: ProviderAvail
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trạng thái</label>
                   <select name="status" defaultValue={editingRule.status} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    <option value="available">Nhận lịch</option>
-                    <option value="unavailable">Không nhận</option>
-                    <option value="blocked">Khóa lịch</option>
+                    <option value="available">Available</option>
+                    <option value="unavailable">Unavailable</option>
+                    <option value="blocked">Blocked</option>
                   </select>
                 </div>
               </div>

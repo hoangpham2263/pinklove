@@ -221,9 +221,9 @@ export function OfferingTypeForm({
                   defaultValue={offeringType?.status ?? "active"}
                   className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 >
-                  <option value="active">active</option>
-                  <option value="draft">draft</option>
-                  <option value="archived">archived</option>
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
 

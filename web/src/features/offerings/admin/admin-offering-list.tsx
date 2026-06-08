@@ -188,7 +188,7 @@ export function AdminOfferingList({
         },
         cell: ({ row }) => (
           <Badge variant={row.original.status === "published" ? "default" : "secondary"}>
-            {row.original.status}
+            {getOfferingStatusLabel(row.original.status)}
           </Badge>
         ),
       },
@@ -270,7 +270,7 @@ export function AdminOfferingList({
         },
       },
     ],
-    [router, returnTo]
+    [confirm, router, returnTo]
   );
 
   const table = useReactTable({
@@ -398,7 +398,7 @@ export function AdminOfferingList({
               <option value="">Tác vụ hàng loạt</option>
               <option value="publish">Published</option>
               <option value="draft">Draft</option>
-              {canBulkDelete ? <option value="delete">Delete</option> : null}
+              {canBulkDelete ? <option value="delete">Xóa</option> : null}
             </select>
             <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
               Áp dụng

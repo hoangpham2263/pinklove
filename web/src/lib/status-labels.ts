@@ -2,40 +2,40 @@ import type { FulfillmentStatus, OrderStatus, PaymentStatus } from "@/features/e
 import type { ProviderAssignmentStatus } from "@/features/provider-orders/types";
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending_payment: "Chờ thanh toán",
-  paid: "Đã thanh toán",
-  processing: "Đang xử lý",
-  ready_to_ship: "Sẵn sàng giao",
-  shipped: "Đã giao vận",
-  completed: "Hoàn tất",
-  cancelled: "Đã hủy",
-  refunded: "Đã hoàn tiền",
+  pending_payment: "Pending payment",
+  paid: "Paid",
+  processing: "Processing",
+  ready_to_ship: "Ready to ship",
+  shipped: "Shipped",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
 };
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  unpaid: "Chưa thanh toán",
-  pending: "Đang chờ",
-  paid: "Đã thanh toán",
-  failed: "Thanh toán lỗi",
-  refunded: "Đã hoàn tiền",
+  unpaid: "Unpaid",
+  pending: "Pending",
+  paid: "Paid",
+  failed: "Failed",
+  refunded: "Refunded",
 };
 
 const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
-  not_required: "Không cần giao",
-  pending: "Chờ xử lý",
-  processing: "Đang chuẩn bị",
-  shipped: "Đang giao",
-  delivered: "Đã giao",
-  cancelled: "Đã hủy",
+  not_required: "Not required",
+  pending: "Pending",
+  processing: "Processing",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
 };
 
 const PROVIDER_ASSIGNMENT_STATUS_LABELS: Record<ProviderAssignmentStatus, string> = {
-  pending_confirmation: "Chờ xác nhận",
-  accepted: "Đã nhận",
-  in_progress: "Đang thực hiện",
-  ready_for_review: "Chờ duyệt",
-  completed: "Hoàn tất",
-  cancelled: "Đã hủy",
+  pending_confirmation: "Pending confirmation",
+  accepted: "Accepted",
+  in_progress: "In progress",
+  ready_for_review: "Ready for review",
+  completed: "Completed",
+  cancelled: "Cancelled",
 };
 
 export function getOrderStatusLabel(status: OrderStatus) {

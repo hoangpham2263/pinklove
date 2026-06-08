@@ -209,6 +209,14 @@ async function saveOfferingType(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.OFFERINGS.TYPES.SAVE, formData);
 }
 
+async function saveOfferingBundle(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.BUNDLES_SAVE, formData);
+}
+
+async function deleteOfferingBundle(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.OFFERINGS.BUNDLES_DELETE, formData);
+}
+
 async function savePaymentMethod(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE, formData);
 }
@@ -451,6 +459,8 @@ export const adminApi = {
   deleteOfferingCategory,
   bulkUpdateOfferingCategories,
   saveOfferingType,
+  saveOfferingBundle,
+  deleteOfferingBundle,
   savePaymentMethod,
   deletePaymentMethod,
   fetchAdminOrderState,
@@ -508,6 +518,8 @@ export const adminApiActions = {
   deleteOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.DELETE,
   bulkUpdateOfferingCategories: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.BULK,
   saveOfferingType: ROUTES.API.ADMIN.OFFERINGS.TYPES.SAVE,
+  saveOfferingBundle: ROUTES.API.ADMIN.OFFERINGS.BUNDLES_SAVE,
+  deleteOfferingBundle: ROUTES.API.ADMIN.OFFERINGS.BUNDLES_DELETE,
   savePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.SAVE,
   deletePaymentMethod: ROUTES.API.ADMIN.PAYMENT_METHODS.DELETE,
 } as const;

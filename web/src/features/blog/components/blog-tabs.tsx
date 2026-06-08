@@ -1,11 +1,9 @@
-"use client";
-
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import { GuestPanel, GuestPanelBody, GuestPanelHeader } from "@/app/(guest)/_components/guest-ui";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
+import { ROUTES } from "@/lib/routes";
 
 type BlogTabsProps = {
   categories: BlogCategory[];
@@ -13,19 +11,9 @@ type BlogTabsProps = {
 };
 
 export function BlogTabs({ categories, posts }: BlogTabsProps) {
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-
-  const filteredPosts = useMemo(() => {
-    if (activeCategory === "all") {
-      return posts;
-    }
-
-    return posts.filter((post) => post.categorySlug === activeCategory);
-  }, [activeCategory, posts]);
-
-  const featuredPost = filteredPosts[0];
-  const recentPosts = filteredPosts.slice(1);
-  const visiblePosts = recentPosts.length ? recentPosts : filteredPosts;
+  const featuredPost = posts[0];
+  const recentPosts = posts.slice(1);
+  const visiblePosts = recentPosts.length ? recentPosts : posts;
   const getCategoryHref = (slug: string) => getBlogCategoryPath(slug);
   const getPostHref = (post: BlogPost) => getBlogPostPath(post);
 
@@ -33,30 +21,21 @@ export function BlogTabs({ categories, posts }: BlogTabsProps) {
     <>
       <section className="space-y-5">
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setActiveCategory("all")}
-            className={`inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition lg:rounded-2xl ${
-              activeCategory === "all"
-                ? "border border-stone-900 bg-stone-950 text-white"
-                : "border border-stone-300 bg-white text-stone-900 hover:bg-stone-50"
-            }`}
+          <Link
+            href={ROUTES.BLOG}
+            aria-current="page"
+            className="inline-flex min-h-12 items-center justify-center rounded-xl border border-stone-900 bg-stone-950 px-5 text-sm font-semibold text-white transition lg:rounded-2xl"
           >
             Tất cả
-          </button>
+          </Link>
           {categories.map((category) => (
-            <button
+            <Link
               key={category.id}
-              type="button"
-              onClick={() => setActiveCategory(category.slug)}
-              className={`inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition lg:rounded-2xl ${
-                activeCategory === category.slug
-                  ? "border border-stone-900 bg-stone-950 text-white"
-                  : "border border-stone-300 bg-white text-stone-900 hover:bg-stone-50"
-              }`}
+              href={getCategoryHref(category.slug)}
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-stone-300 bg-white px-5 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
             >
               {category.name}
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -66,14 +45,6 @@ export function BlogTabs({ categories, posts }: BlogTabsProps) {
           <GuestPanelHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Bài nổi bật</p>
-              {activeCategory !== "all" ? (
-                <Link
-                  href={getCategoryHref(activeCategory)}
-                  className="text-xs uppercase tracking-[0.2em] text-stone-500 hover:text-stone-900"
-                >
-                  Xem trang danh mục
-                </Link>
-              ) : null}
             </div>
           </GuestPanelHeader>
           <GuestPanelBody className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
@@ -105,7 +76,7 @@ export function BlogTabs({ categories, posts }: BlogTabsProps) {
       <section className="space-y-6">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-stone-400">
-            {activeCategory === "all" ? "Mới nhất" : "Theo danh mục"}
+            Mới nhất
           </p>
           <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">Danh sách bài viết</h2>
         </div>

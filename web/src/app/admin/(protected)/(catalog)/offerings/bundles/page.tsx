@@ -1,43 +1,37 @@
-import { Boxes } from "lucide-react";
+import Link from "next/link";
+import { Boxes, PackagePlus } from "lucide-react";
 
-import { AdminDatabasePage } from "@/features/admin/components/admin-database-page";
+import { Button } from "@/components/ui/button";
+import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
+import { OfferingBundleList } from "@/features/offerings/admin/offering-bundle-list";
+import { listOfferingBundles } from "@/features/offerings/server/bundles";
+import { listAllOfferings } from "@/features/offerings/server/service";
 import { requireAdmin } from "@/lib/auth";
-import { query } from "@/lib/database";
+import { ROUTES } from "@/lib/routes";
 
 export default async function AdminOfferingBundlesPage() {
   await requireAdmin();
-  const result = await query<Record<string, unknown>>(`
-    SELECT
-      bundle.id,
-      bundle.slug,
-      bundle.name,
-      bundle.status,
-      bundle.price::text AS price,
-      bundle.currency,
-      COUNT(item.id)::int AS item_count,
-      bundle.updated_at
-    FROM offering_bundles bundle
-    LEFT JOIN offering_bundle_items item ON item.bundle_id = bundle.id
-    GROUP BY bundle.id
-    ORDER BY bundle.updated_at DESC
-  `);
+  const [bundles, offerings] = await Promise.all([listOfferingBundles(), listAllOfferings()]);
+  const selectableOfferings = offerings.filter((offering) => offering.status !== "archived");
 
   return (
-    <AdminDatabasePage
-      title="Offering Bundles"
-      description="Quản lý kiến trúc package/bundle cho wedding commerce."
-      rows={result.rows}
-      icon={Boxes}
-      metricLabel="Bundles"
-      columns={[
-        { key: "slug", label: "Slug" },
-        { key: "name", label: "Name" },
-        { key: "status", label: "Status" },
-        { key: "price", label: "Price" },
-        { key: "currency", label: "Currency" },
-        { key: "item_count", label: "Items" },
-        { key: "updated_at", label: "Updated" },
-      ]}
-    />
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">Combo dịch vụ</h1>
+          <p className="text-sm text-muted-foreground">
+            Quản lý combo ghép từ nhiều dịch vụ/sản phẩm có sẵn. Dùng cho gói cưới trọn bộ, gói triển khai hoặc combo bán kèm.
+          </p>
+        </div>
+        <Button render={<Link href={ROUTES.ADMIN.OFFERING_BUNDLE_NEW}>Tạo combo</Link>} />
+      </div>
+
+      <AdminOverviewGrid className="md:grid-cols-2">
+        <AdminOverviewCard title="Combo đã tạo" value={bundles.length} description="Gói ghép từ nhiều dịch vụ/sản phẩm" icon={Boxes} />
+        <AdminOverviewCard title="Dịch vụ có thể chọn" value={selectableOfferings.length} description="Nguồn để ghép vào combo" icon={PackagePlus} />
+      </AdminOverviewGrid>
+
+      <OfferingBundleList bundles={bundles} />
+    </section>
   );
 }

@@ -28,9 +28,9 @@ type ProviderAvailabilityCalendarProps = {
 };
 
 const STATUS_LABELS: Record<ProviderAvailabilityRule["status"], string> = {
-  available: "Nhận lịch",
-  unavailable: "Không nhận",
-  blocked: "Khóa lịch",
+  available: "Available",
+  unavailable: "Unavailable",
+  blocked: "Blocked",
 };
 
 function formatTime(date: Date) {
@@ -383,9 +383,9 @@ export function ProviderAvailabilityCalendar({ rules, services }: ProviderAvaila
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trạng thái</label>
                   <select name="status" defaultValue={editingRule.status} className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-                    <option value="available">Nhận lịch</option>
-                    <option value="unavailable">Không nhận</option>
-                    <option value="blocked">Khóa lịch</option>
+                    <option value="available">Available</option>
+                    <option value="unavailable">Unavailable</option>
+                    <option value="blocked">Blocked</option>
                   </select>
                 </div>
               </div>

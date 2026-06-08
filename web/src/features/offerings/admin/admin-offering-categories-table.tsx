@@ -58,6 +58,10 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getCategoryStatusLabel(status: OfferingCategory["status"]) {
+  return status === "published" ? "Published" : "Draft";
+}
+
 export function AdminOfferingCategoriesTable({
   categories,
   offeringCountByCategory,
@@ -146,7 +150,7 @@ export function AdminOfferingCategoriesTable({
         },
         cell: ({ row }) => (
           <Badge variant={row.original.status === "published" ? "default" : "secondary"}>
-            {row.original.status}
+            {getCategoryStatusLabel(row.original.status)}
           </Badge>
         ),
       },
@@ -154,7 +158,7 @@ export function AdminOfferingCategoriesTable({
         accessorKey: "updatedAt",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Updated</AdminTableSortButton>
+            Cập nhật</AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.updatedAt),
       },
@@ -298,7 +302,7 @@ export function AdminOfferingCategoriesTable({
                 <option value="">Tác vụ hàng loạt</option>
                 <option value="publish">Published</option>
                 <option value="draft">Draft</option>
-                <option value="delete">Delete</option>
+                <option value="delete">Xóa</option>
               </select>
               <AdminBulkSubmitButton disabled={!bulkAction || selectedCount === 0}>
                 Áp dụng
@@ -362,7 +366,7 @@ export function AdminOfferingCategoriesTable({
               <div className="space-y-1">
                 <p className="text-sm">Trạng thái</p>
                 <Badge variant={previewCategory.status === "published" ? "default" : "secondary"}>
-                  {previewCategory.status}
+                  {getCategoryStatusLabel(previewCategory.status)}
                 </Badge>
               </div>
               <div className="space-y-1">
@@ -505,8 +509,8 @@ function OfferingCategoryPopupForm({
             defaultValue={category.status}
             className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
           >
-            <option value="draft">draft</option>
-            <option value="published">published</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
           </select>
         </div>
 

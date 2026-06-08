@@ -108,4 +108,4 @@ Use this file for the dedicated provider portal.
   - realtime activity visibility
 - Keep `/provider/orders/[id]` focused on timeline and provider status updates.
 - Avoid admin-style navigation shells for the provider-facing canonical portal.
-- Provider operational status labels should be shown in Vietnamese even when the stored enum values remain English in code and database.
+- Provider operational status labels should be shown in English consistently with the rest of the project.

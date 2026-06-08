@@ -164,13 +164,13 @@ function getConversationLabel(conversation: ChatConversationSummary) {
 function getConversationStatusLabel(status: ChatConversationStatus) {
   switch (status) {
     case "pending":
-      return "Đang chờ";
+      return "Pending";
     case "resolved":
-      return "Đã xử lý";
+      return "Resolved";
     case "closed":
-      return "Đã đóng";
+      return "Closed";
     default:
-      return "Đang mở";
+      return "Open";
   }
 }
 
@@ -203,13 +203,13 @@ function getConversationTrackingLabel(conversation: ChatConversationSummary) {
     case "new_message":
       return "Tin nhắn đầu tiên";
     case "waiting_for_admin":
-      return "Chờ admin phản hồi";
+      return "Waiting for admin";
     case "waiting_for_customer":
-      return "Chờ khách phản hồi";
+      return "Waiting for customer";
     case "resolved":
-      return "Đã xử lý";
+      return "Resolved";
     case "closed":
-      return "Đã đóng";
+      return "Closed";
   }
 }
 
@@ -263,8 +263,8 @@ function getMessagePreview(
 }
 
 function getRealtimeLabel(status: RealtimeStatus) {
-  if (status === "retrying") return "Đang kết nối lại";
-  if (status === "connecting") return "Đang kết nối";
+  if (status === "retrying") return "Retrying";
+  if (status === "connecting") return "Connecting";
   return "Live";
 }
 
@@ -1150,14 +1150,14 @@ export function ChatInboxClient({
                 className="h-10 rounded-lg border bg-background px-3 text-sm"
               >
                 <option value="all">Tất cả</option>
-                <option value="unread">Chưa xem</option>
+                <option value="unread">Unread</option>
                 <option value="mine">Của tôi</option>
-                <option value="active">Đang hoạt động</option>
+                <option value="active">Active</option>
                 <option value="first_message">Tin nhắn đầu</option>
-                <option value="waiting_admin">Chờ admin</option>
-                <option value="waiting_customer">Chờ khách</option>
-                <option value="resolved">Đã xử lý</option>
-                <option value="closed">Đã đóng</option>
+                <option value="waiting_admin">Waiting for admin</option>
+                <option value="waiting_customer">Waiting for customer</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
               </select>
             ) : null}
           </div>
@@ -1471,7 +1471,7 @@ export function ChatInboxClient({
                                 </span>
                               ))}
                             </div>
-                            <span>Đã xem</span>
+                            <span>Read</span>
                           </div>
                         </div>
                       ) : null}
@@ -2004,10 +2004,10 @@ export function ChatInboxClient({
                         <div className="mt-3 flex flex-wrap gap-2">
                           {([
                             { code: "N", label: "Tin nhắn đầu tiên", className: "border-amber-300 bg-amber-50 text-amber-700" },
-                            { code: "A", label: "Chờ admin phản hồi", className: "border-rose-300 bg-rose-50 text-rose-700" },
-                            { code: "C", label: "Chờ khách phản hồi", className: "border-sky-300 bg-sky-50 text-sky-700" },
-                            { code: "R", label: "Đã xử lý", className: "border-emerald-300 bg-emerald-50 text-emerald-700" },
-                            { code: "D", label: "Đã đóng", className: "border-slate-300 bg-slate-100 text-slate-700" },
+                            { code: "A", label: "Waiting for admin", className: "border-rose-300 bg-rose-50 text-rose-700" },
+                            { code: "C", label: "Waiting for customer", className: "border-sky-300 bg-sky-50 text-sky-700" },
+                            { code: "R", label: "Resolved", className: "border-emerald-300 bg-emerald-50 text-emerald-700" },
+                            { code: "D", label: "Closed", className: "border-slate-300 bg-slate-100 text-slate-700" },
                           ] as const).map((item) => (
                             <div key={item.code} className="inline-flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
                               <Badge className={`min-w-5 justify-center rounded-md border px-1 py-0 text-[10px] leading-4 ${item.className}`}>

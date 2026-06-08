@@ -78,18 +78,18 @@ function getAudienceLabel(audienceType: NotificationAudienceType) {
 
 function getStatusLabel(status: NotificationStatus) {
   if (status === "sent") {
-    return "Đã gửi";
+    return "Sent";
   }
 
   if (status === "scheduled") {
-    return "Đã lên lịch";
+    return "Scheduled";
   }
 
   if (status === "archived") {
-    return "Lưu trữ";
+    return "Archived";
   }
 
-  return "Bản nháp";
+  return "Draft";
 }
 
 function getStatusVariant(status: NotificationStatus): "default" | "secondary" | "destructive" | "outline" {
@@ -384,9 +384,9 @@ export function AdminNotificationsTable({
               className="h-9 w-full rounded-lg border border-input bg-white px-3 outline-none md:w-44"
             >
               <option value="">Tác vụ hàng loạt</option>
-              <option value="sent">Đánh dấu đã gửi</option>
-              <option value="draft">Chuyển thành nháp</option>
-              <option value="archived">Lưu trữ</option>
+              <option value="sent">Mark as sent</option>
+              <option value="draft">Move to draft</option>
+              <option value="archived">Archive</option>
               <option value="delete">Xóa</option>
             </select>
             <AdminBulkSubmitButton

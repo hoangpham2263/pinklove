@@ -57,9 +57,9 @@ const DAY_LABELS: Record<number, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  available: "Có thể nhận",
-  unavailable: "Không nhận",
-  blocked: "Đã chặn",
+  available: "Available",
+  unavailable: "Unavailable",
+  blocked: "Blocked",
 };
 
 const STATUS_CLASSES: Record<string, string> = {

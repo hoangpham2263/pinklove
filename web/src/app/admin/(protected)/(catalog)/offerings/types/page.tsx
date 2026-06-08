@@ -22,7 +22,7 @@ export default async function AdminOfferingTypesPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AdminOverviewCard title="Tổng type" value={offeringTypes.length} icon={Boxes} />
-        <AdminOverviewCard title="Active" value={activeCount} icon={Settings2} />
+        <AdminOverviewCard title="Đang dùng" value={activeCount} icon={Settings2} />
         <AdminOverviewCard title="Custom" value={customCount} icon={Layers3} />
         <AdminOverviewCard title="Fields" value={fieldCount} icon={Database} />
       </div>

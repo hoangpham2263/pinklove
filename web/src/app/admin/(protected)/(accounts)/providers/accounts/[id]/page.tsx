@@ -120,7 +120,7 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
                       defaultValue={provider.accountStatus}
                       className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                     >
-                      <option value="active">Đang hoạt động</option>
+                      <option value="active">Active</option>
                       <option value="blocked">Block supplier và ẩn catalog</option>
                       <option value="banned">Ban supplier</option>
                       <option value="deleted">Xóa mềm supplier</option>

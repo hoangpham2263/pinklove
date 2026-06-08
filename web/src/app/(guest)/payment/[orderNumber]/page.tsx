@@ -76,7 +76,7 @@ export default async function OrderPaymentPage({
 
       <Card className="h-fit lg:sticky lg:top-24">
         <CardHeader>
-          <CardTitle>Hoàn tất</CardTitle>
+          <CardTitle>Complete</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm leading-6 text-muted-foreground">

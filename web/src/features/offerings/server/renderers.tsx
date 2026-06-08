@@ -46,14 +46,14 @@ function formatDetailLabel(key: string) {
 
 function formatDetailValue(value: unknown) {
   if (Array.isArray(value)) {
-    return value.length > 0 ? `${value.length} mục` : "Chưa thiết lập";
+    return value.length > 0 ? `${value.length} mục` : "Not set";
   }
 
   if (typeof value === "object" && value) {
-    return "Đã thiết lập";
+    return "Configured";
   }
 
-  return String(value || "Chưa thiết lập");
+  return String(value || "Not set");
 }
 
 function getFulfillmentLabel(value: Offering["fulfillmentType"]) {

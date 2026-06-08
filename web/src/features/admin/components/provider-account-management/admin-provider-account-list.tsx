@@ -65,14 +65,14 @@ function getProviderName(provider: AccountUser) {
 function getAccountStatusLabel(status: AccountStatus) {
   switch (status) {
     case "blocked":
-      return "Đang block";
+      return "Blocked";
     case "banned":
-      return "Đã ban";
+      return "Banned";
     case "deleted":
-      return "Đã xóa mềm";
+      return "Deleted";
     case "active":
     default:
-      return "Đang hoạt động";
+      return "Active";
   }
 }
 
@@ -442,10 +442,10 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
           onChange={(value) => table.getColumn("accountStatus")?.setFilterValue(value)}
           options={[
             { value: "", label: "Tất cả tài khoản" },
-            { value: "active", label: "Đang hoạt động" },
-            { value: "blocked", label: "Đang block" },
-            { value: "banned", label: "Đã ban" },
-            { value: "deleted", label: "Đã xóa mềm" },
+            { value: "active", label: "Active" },
+            { value: "blocked", label: "Blocked" },
+            { value: "banned", label: "Banned" },
+            { value: "deleted", label: "Deleted" },
           ]}
         />
         <AdminTableSelect

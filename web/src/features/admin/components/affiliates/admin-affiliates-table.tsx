@@ -45,10 +45,10 @@ type AdminAffiliatesTableProps = {
 };
 
 const AFFILIATE_STATUS_OPTIONS: Array<{ value: AffiliateStatus; label: string }> = [
-  { value: "pending", label: "Chờ duyệt" },
-  { value: "active", label: "Đang hoạt động" },
-  { value: "rejected", label: "Từ chối" },
-  { value: "blocked", label: "Đã khóa" },
+  { value: "pending", label: "Pending" },
+  { value: "active", label: "Active" },
+  { value: "rejected", label: "Rejected" },
+  { value: "blocked", label: "Blocked" },
 ];
 
 const AFFILIATE_COMMISSION_TYPE_OPTIONS: Array<{ value: AffiliateCommissionType; label: string }> = [

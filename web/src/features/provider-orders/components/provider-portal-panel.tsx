@@ -290,7 +290,7 @@ export function ProviderPortalPanel({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Đang xử lý</CardTitle>
+            <CardTitle className="text-sm">Active</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{stats.active}</p>
@@ -298,7 +298,7 @@ export function ProviderPortalPanel({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Chờ duyệt</CardTitle>
+            <CardTitle className="text-sm">Review</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{stats.review}</p>
@@ -306,7 +306,7 @@ export function ProviderPortalPanel({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Hoàn tất</CardTitle>
+            <CardTitle className="text-sm">Completed</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{stats.completed}</p>
@@ -331,12 +331,12 @@ export function ProviderPortalPanel({
                 className="h-10 rounded-md border bg-background px-3 pr-10 text-sm"
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="pending_confirmation">Chờ xác nhận</option>
-                <option value="accepted">Đã nhận</option>
-                <option value="in_progress">Đang thực hiện</option>
-                <option value="ready_for_review">Chờ duyệt</option>
-                <option value="completed">Hoàn tất</option>
-                <option value="cancelled">Đã hủy</option>
+                <option value="pending_confirmation">Pending confirmation</option>
+                <option value="accepted">Accepted</option>
+                <option value="in_progress">In progress</option>
+                <option value="ready_for_review">Ready for review</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
               </select>
               <select
                 value={String(table.getColumn("paymentStatus")?.getFilterValue() ?? "")}
@@ -344,11 +344,11 @@ export function ProviderPortalPanel({
                 className="h-10 rounded-md border bg-background px-3 pr-10 text-sm"
               >
                 <option value="">Tất cả thanh toán</option>
-                <option value="unpaid">Chưa thanh toán</option>
-                <option value="pending">Đang chờ</option>
-                <option value="paid">Đã thanh toán</option>
-                <option value="failed">Thanh toán lỗi</option>
-                <option value="refunded">Đã hoàn tiền</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="failed">Failed</option>
+                <option value="refunded">Refunded</option>
               </select>
             </div>
           </div>

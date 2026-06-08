@@ -63,6 +63,18 @@ function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
   }
 }
 
+function getOfferingTypeStatusLabel(status: OfferingTypeDefinition["status"]) {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "archived":
+      return "Archived";
+    case "draft":
+    default:
+      return "Draft";
+  }
+}
+
 export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -116,13 +128,13 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
         accessorKey: "status",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Status
+            Trạng thái
           </AdminTableSortButton>
         ),
         filterFn: (row, columnId, filterValue) => !filterValue || row.getValue<string>(columnId) === filterValue,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Badge variant={row.original.status === "active" ? "default" : "secondary"}>{row.original.status}</Badge>
+            <Badge variant={row.original.status === "active" ? "default" : "secondary"}>{getOfferingTypeStatusLabel(row.original.status)}</Badge>
             {row.original.isSystem ? <span className="rounded border px-1.5 py-0.5 text-xs text-muted-foreground">system</span> : null}
           </div>
         ),
@@ -131,7 +143,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
         accessorKey: "updatedAt",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Updated
+            Cập nhật
           </AdminTableSortButton>
         ),
         cell: ({ row }) => formatDate(row.original.updatedAt),
@@ -282,7 +294,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
             </DialogHeader>
             <div className="grid gap-4 md:grid-cols-3">
               <PreviewField label="Fulfillment" value={getFulfillmentTypeLabel(previewType.fulfillmentType)} />
-              <PreviewField label="Status" value={previewType.status} />
+              <PreviewField label="Trạng thái" value={getOfferingTypeStatusLabel(previewType.status)} />
               <PreviewField label="Fields" value={previewType.fieldSchema.length} />
               <PreviewField label="Template key" value={previewType.templateKey} />
               <PreviewField label="Inventory" value={previewType.supportsInventory ? "Yes" : "No"} />

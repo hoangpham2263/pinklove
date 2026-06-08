@@ -22,19 +22,19 @@ export function getProviderOfferingSubmissionTypeLabel(value: ProviderOfferingSu
 export function getProviderOfferingReviewStatusLabel(value: ProviderOfferingReviewStatus) {
   switch (value) {
     case "draft":
-      return "Nháp";
+      return "Draft";
     case "submitted":
-      return "Đã gửi duyệt";
+      return "Submitted";
     case "under_review":
-      return "Đang duyệt";
+      return "Under review";
     case "changes_requested":
-      return "Cần chỉnh sửa";
+      return "Changes requested";
     case "approved":
-      return "Đã duyệt";
+      return "Approved";
     case "rejected":
-      return "Từ chối";
+      return "Rejected";
     case "archived":
-      return "Lưu trữ";
+      return "Archived";
     default:
       return value;
   }
@@ -43,15 +43,15 @@ export function getProviderOfferingReviewStatusLabel(value: ProviderOfferingRevi
 export function getProviderOfferingSupplierRequestStatusLabel(value: ProviderOfferingSupplierRequestStatus) {
   switch (value) {
     case "submitted":
-      return "Đã gửi duyệt";
+      return "Submitted";
     case "under_review":
-      return "Đang duyệt";
+      return "Under review";
     case "changes_requested":
-      return "Cần bổ sung";
+      return "Changes requested";
     case "approved":
-      return "Đã duyệt";
+      return "Approved";
     case "rejected":
-      return "Từ chối";
+      return "Rejected";
     default:
       return value;
   }
@@ -60,13 +60,13 @@ export function getProviderOfferingSupplierRequestStatusLabel(value: ProviderOff
 export function getOfferingProviderSupplierStatusLabel(value: OfferingProviderSupplierStatus) {
   switch (value) {
     case "active":
-      return "Đang cung cấp";
+      return "Active";
     case "paused":
-      return "Tạm dừng";
+      return "Paused";
     case "suspended":
-      return "Bị hạn chế";
+      return "Suspended";
     case "revoked":
-      return "Đã thu hồi";
+      return "Revoked";
     default:
       return value;
   }

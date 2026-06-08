@@ -104,8 +104,8 @@ export function OfferingCategoryEditorForm({ category }: { category: OfferingCat
               defaultValue={category.status}
               className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             >
-              <option value="draft">draft</option>
-              <option value="published">published</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
             </select>
           </div>
           <AdminSubmitButton className="w-full" disabled={isSaving}>

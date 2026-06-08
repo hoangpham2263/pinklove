@@ -30,17 +30,17 @@ function getAffiliateErrorMessage(error: string | undefined) {
 }
 
 function getAffiliateStatusLabel(status: string) {
-  if (status === "active") return "Đang hoạt động";
-  if (status === "rejected") return "Từ chối";
-  if (status === "blocked") return "Đã khóa";
-  return "Chờ duyệt";
+  if (status === "active") return "Active";
+  if (status === "rejected") return "Rejected";
+  if (status === "blocked") return "Blocked";
+  return "Pending";
 }
 
 function getConversionStatusLabel(status: string) {
-  if (status === "approved") return "Đã duyệt";
-  if (status === "paid") return "Đã thanh toán";
-  if (status === "rejected") return "Từ chối";
-  return "Chờ duyệt";
+  if (status === "approved") return "Approved";
+  if (status === "paid") return "Paid";
+  if (status === "rejected") return "Rejected";
+  return "Pending";
 }
 
 export default async function CustomerAffiliatePage({ searchParams }: CustomerAffiliatePageProps) {
