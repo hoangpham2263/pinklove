@@ -19,6 +19,8 @@ import {
 import { ensureOfferingCatalogReady, query, withTransaction, type DbExecutor } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
+import { recordFieldChanges } from "@/features/platform/server/field-change-logs";
+import { syncMediaAssetLinkForUrl } from "@/features/media/server/media-links";
 import { upsertOfferingSearchDocument } from "@/features/offerings/server/search-documents";
 import { upsertProviderServiceForOffering } from "@/features/providers/server/service";
 
@@ -46,6 +48,7 @@ type OfferingInput = {
   ownerType?: OfferingOwnerType;
   ownerProviderId?: string;
   ownerProviderType?: string;
+  actorId?: string;
   config?: Record<string, unknown>;
   crossSells?: string[];
   upsells?: string[];
@@ -1429,6 +1432,13 @@ export async function createOffering(input: OfferingInput): Promise<Offering> {
   }
 
   await upsertOfferingSearchDocument(created);
+  await syncMediaAssetLinkForUrl({
+    url: created.thumbnailUrl,
+    targetType: "offering",
+    targetId: created.id,
+    role: "thumbnail",
+    metadata: { source: "offering_create" },
+  });
   await recordDomainEvent({
     eventName: "offering.created",
     aggregateType: "offering",
@@ -1630,6 +1640,24 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
   const updatedOffering = await getOfferingBySlug(input.slug ?? slug);
   if (updatedOffering) {
     await upsertOfferingSearchDocument(updatedOffering);
+    await syncMediaAssetLinkForUrl({
+      url: updatedOffering.thumbnailUrl,
+      targetType: "offering",
+      targetId: updatedOffering.id,
+      role: "thumbnail",
+      metadata: { source: "offering_update" },
+    });
+    await recordFieldChanges([
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "slug", oldValue: existing.slug, newValue: updatedOffering.slug, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "categoryId", oldValue: existing.categoryId ?? null, newValue: updatedOffering.categoryId ?? null, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "name", oldValue: existing.name, newValue: updatedOffering.name, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "status", oldValue: existing.status, newValue: updatedOffering.status, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "price", oldValue: existing.price, newValue: updatedOffering.price, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "fulfillmentType", oldValue: existing.fulfillmentType, newValue: updatedOffering.fulfillmentType, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "thumbnailUrl", oldValue: existing.thumbnailUrl ?? null, newValue: updatedOffering.thumbnailUrl ?? null, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "ownerProviderId", oldValue: existing.ownerProviderId ?? null, newValue: updatedOffering.ownerProviderId ?? null, actorId: input.actorId },
+      { targetType: "offering", targetId: updatedOffering.id, fieldKey: "config", oldValue: sanitizeOfferingConfig(existing.config), newValue: sanitizeOfferingConfig(updatedOffering.config), actorId: input.actorId },
+    ]);
     await recordDomainEvent({
       eventName: "offering.updated",
       aggregateType: "offering",

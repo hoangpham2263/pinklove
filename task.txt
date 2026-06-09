@@ -1,3 +1,0 @@
-fix size input mobile
-gửi mail 
-http://localhost:3000/admin/providers/offerings - phần tìm nguồn hàng chưa hợp lý giao diện

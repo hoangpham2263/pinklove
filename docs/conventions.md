@@ -5,8 +5,8 @@ This file is the repo-wide source of truth.
 ## Documentation workflow
 
 - `docs/index.md` is the docs entrypoint.
-- `docs/CONVENTIONS.md` is the repo-wide rules file.
-- Prefer lowercase filenames for new documentation files in `docs/`. The existing `CONVENTIONS.md` filename remains the workspace-compatible exception.
+- `docs/conventions.md` is the repo-wide rules file.
+- Prefer lowercase filenames for new documentation files in `docs/`.
 - If code changes affect structure, roles, routes, schema, or workflows, update the matching doc files in the same change.
 - If a change affects more than one app area, update every affected convention file instead of leaving the rule only in one place.
 - If code and docs conflict, update the docs in the same task so they stay aligned with the repository.
@@ -195,7 +195,7 @@ This file is the repo-wide source of truth.
 
 ## Agent workflow
 
-- When `docs/index.md` is referenced, read `docs/CONVENTIONS.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
+- When `docs/index.md` is referenced, read `docs/conventions.md` first, then `docs/structure.md` and `docs/schema.md`, then the area docs affected by the task.
 - Treat the docs as describing the repository as it exists now, including incomplete offering areas.
 - If a code change affects documented behavior, update the docs in the same task.
 - Database access is raw SQL through `web/src/lib/database.ts`.

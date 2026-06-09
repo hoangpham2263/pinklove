@@ -2,7 +2,7 @@ import { randomUUID } from"node:crypto";
 import { promises as fs } from"node:fs";
 import path from"node:path";
 
-import { query } from"@/lib/database";
+import { query, type DbExecutor } from"@/lib/database";
 import type { MediaAsset } from"../types";
 
 const UPLOAD_ROOT_DIR = path.join(process.cwd(),"public","uploads");
@@ -93,8 +93,8 @@ export async function countMediaAssets(): Promise<number> {
  return Number(result.rows[0]?.total ??"0");
 }
 
-export async function findMediaAssetByUrl(url:string): Promise<MediaAsset | null> {
- const result = await query<MediaAssetRow>(
+export async function findMediaAssetByUrl(url:string, execute:DbExecutor = query): Promise<MediaAsset | null> {
+ const result = await execute<MediaAssetRow>(
   `SELECT ${MEDIA_ASSET_SELECT}
    FROM media_assets
    WHERE url = $1

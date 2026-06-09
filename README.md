@@ -45,7 +45,7 @@ Current notable behavior:
   - left asset library
   - center live editor
   - right publish/settings sidebar
-- Checkout, real orders, conversion attribution, and payout settlement are intentionally not implemented yet
+- Checkout, orders, payment records, provider assignments, affiliate tracking, and invitation workflows are implemented in the monolith and documented under `docs/`.
 
 ## Getting Started
 
@@ -81,8 +81,11 @@ Development note:
 
 - [index](./docs/index.md)
 - [conventions](./docs/conventions.md)
+- [architecture](./docs/architecture.md)
 - [guest](./docs/guest.md)
 - [customer](./docs/customer.md)
 - [admin](./docs/admin.md)
+- [provider](./docs/provider.md)
+- [ecommerce](./docs/ecommerce.md)
 - [structure](./docs/structure.md)
 - [database schema / ER diagram](./docs/schema.md)

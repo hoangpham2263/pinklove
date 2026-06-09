@@ -23,7 +23,7 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Use per-field `width` in the schema for admin layout control instead of hardcoded renderer grid presets.
 - Use `type: "wysiwyg"` for reusable visual rich-text fields that should use the shared editor.
 - Offering type fields should support the final field set documented in
-  `docs/architecture-todo.md`, including relation, repeater, media, gallery,
+  `docs/architecture.md`, including relation, repeater, media, gallery,
   blocks, and conditional field behavior.
 - Offering type field groups should be represented by
   `offering_type_field_groups`, with stable `key`, visible `label`, sortable

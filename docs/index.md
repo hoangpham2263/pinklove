@@ -17,9 +17,9 @@ Use this file as the entrypoint for project documentation.
 
 ## Read Order
 
-1. [CONVENTIONS](./CONVENTIONS.md)
+1. [conventions](./conventions.md)
 2. [structure](./structure.md)
-3. [architecture todo](./architecture-todo.md)
+3. [architecture](./architecture.md)
 4. [platform](./platform.md)
 5. [schema](./schema.md)
 6. [fields](./fields.md)
@@ -35,12 +35,12 @@ Use this file as the entrypoint for project documentation.
 
 - `docs/index.md`
   Project-level navigation, doc ownership, and high-level shared standards only.
-- `docs/CONVENTIONS.md`
+- `docs/conventions.md`
   Repo workflow, naming, routing, import/export, runtime, and cross-cutting engineering rules.
 - `docs/structure.md`
   Folder structure, route groups, architecture layout, and implemented feature map.
-- `docs/architecture-todo.md`
-  Final refactor roadmap for the headless dynamic wedding commerce platform.
+- `docs/architecture.md`
+  Current architecture, domain boundaries, and remaining product gaps.
 - `docs/platform.md`
   Internal modular monolith boundaries, provider strategy, event consumers,
   cache tags, search pipeline, dynamic field limits, and template contracts.
@@ -86,7 +86,7 @@ Use this file as the entrypoint for project documentation.
 - When a rule belongs to a specific concern, update the owned doc directly:
   - workflow/routing/imports/runtime: `conventions.md`
   - folders/routes/feature map: `structure.md`
-  - platform refactor roadmap: `architecture-todo.md`
+  - architecture and domain boundaries: `architecture.md`
   - database/storage: `schema.md`
   - fields/rich text/editor contract: `fields.md`
   - shared realtime/event transport: `realtime.md`
@@ -96,7 +96,7 @@ Use this file as the entrypoint for project documentation.
   - checkout/payment/order workflow: `ecommerce.md`
   - provider area: `provider.md`
 - If code and docs conflict, update docs in the same task.
-- Keep new files in `docs/` lowercase. The existing repo-wide rules file remains `docs/CONVENTIONS.md` for compatibility with workspace tooling.
+- Keep new files in `docs/` lowercase.
 
 ## Verification Baseline
 

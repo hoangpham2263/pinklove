@@ -23,9 +23,9 @@ This file covers the normal customer area and customer-owned site flows.
 - Customer purchase flow uses cart and checkout routes before order creation. The invitation/site table name remains `wedding_sites`.
 - Customer address management owns the reusable address book at `/customer/addresses`. A user may store multiple shipping addresses in `user_addresses`, with exactly one default address when at least one address exists.
 - Checkout should prefer the default saved address for physical orders, while still allowing a one-off shipping address snapshot on the order.
-- Current builder limitations:
-  - element height is not draggable/resizable yet
-  - editor grouping is not implemented yet
+- Current builder gaps:
+  - element height resizing is still pending
+  - editor grouping is still pending
 - Customer UI mutations and fetches should go through `src/lib/api-client.customer.ts`.
 - Public/guest-only UI flows should use `src/lib/api-client.public.ts`, not the customer client file.
 - If a customer client form needs a native `action=` fallback, prefer `customerApiActions.*` from the same role API file.

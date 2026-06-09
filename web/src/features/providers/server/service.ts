@@ -1,5 +1,6 @@
 import "server-only";
 
+import { setProviderPricing } from "@/features/providers/server/marketplace";
 import { query, type DbExecutor } from "@/lib/database";
 
 export type ProviderType = "supplier" | "creator" | "studio" | "planner" | "makeup" | "photographer" | "florist" | "videographer";
@@ -111,6 +112,15 @@ export async function upsertProviderServiceForOffering(input: {
     `,
     [input.providerId, input.offeringId, input.fulfillmentType ?? "service"]
   );
+
+  await setProviderPricing({
+    providerId: input.providerId,
+    offeringId: input.offeringId,
+    priceType: "base",
+    amount: input.basePrice ?? 0,
+    metadata: { source: "provider_service" },
+    execute,
+  });
 
   return result.rows[0]?.id ?? "";
 }

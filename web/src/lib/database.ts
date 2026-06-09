@@ -2158,6 +2158,10 @@ async function ensureCoreDatabaseRefactorMigration() {
 
   await pool.query(`CREATE INDEX IF NOT EXISTS media_asset_links_target_idx ON media_asset_links(target_type, target_id, role, sort_order);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS media_asset_links_media_asset_id_idx ON media_asset_links(media_asset_id);`);
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS media_asset_links_target_role_uidx
+    ON media_asset_links(media_asset_id, target_type, target_id, role);
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_site_pages (
@@ -2285,6 +2289,7 @@ async function ensureCoreDatabaseRefactorMigration() {
       slug TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       organization_type TEXT NOT NULL DEFAULT 'studio',
+      owner_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
       status TEXT NOT NULL DEFAULT 'active',
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -2298,6 +2303,11 @@ async function ensureCoreDatabaseRefactorMigration() {
     ALTER TABLE organizations
     ADD CONSTRAINT organizations_type_check
     CHECK (organization_type IN ('studio', 'agency', 'provider_group', 'creator_group', 'wedding_team'));
+  `);
+
+  await pool.query(`
+    ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS owner_user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL;
   `);
 
   await pool.query(`

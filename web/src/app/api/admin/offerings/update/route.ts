@@ -20,7 +20,7 @@ import { respondError, respondSuccess } from "@/lib/action-response";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const formData = await request.formData();
   const originalSlug = String(formData.get("originalSlug") ?? "").trim();
@@ -206,6 +206,7 @@ export async function POST(request: Request) {
       allowProviderSupply,
       ownerType,
       ownerProviderId: ownerType === "provider" ? ownerProviderId : undefined,
+      actorId: admin.id,
       config: {
         customFields,
         ...(!supportsInventory && offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? { siteDefaults: normalizedSiteDefaults } : {}),

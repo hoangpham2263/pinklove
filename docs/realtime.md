@@ -130,4 +130,5 @@ Use this file for project-wide rules around realtime transport, event contracts,
   - saving does not trigger a full page navigation
   - only the affected panel data changes after save
   - the passive side receives the change without manual refresh
-- The latest manual smoke checklist lives in `docs/realtime-test-todo.md`.
+- Keep manual realtime checks inside this section instead of creating separate
+  one-off checklist files.

@@ -50,7 +50,7 @@ The sellable catalog source of truth is `offerings`. The older product naming
 has been removed from the application surface and new catalog work should not
 create `products` tables, routes, services, or API names.
 
-The final roadmap lives in `docs/architecture-todo.md`. This schema document
+The architecture overview lives in `docs/architecture.md`. This schema document
 tracks the runtime database plus the next target shape when the runtime has
 known transitional tables.
 
@@ -1130,6 +1130,7 @@ archived without breaking existing catalog rows.
 | `organization_members.organization_id` | `organizations.id` | CASCADE |
 | `organization_members.role_id` | `organization_roles.id` | SET NULL |
 | `organization_members.user_id` | `users.id` | CASCADE |
+| `organizations.owner_user_id` | `users.id` | SET NULL |
 | `organization_roles.organization_id` | `organizations.id` | CASCADE |
 | `provider_availability.calendar_id` | `booking_calendars.id` | CASCADE |
 | `provider_availability.provider_id` | `providers.id` | CASCADE |
