@@ -88,8 +88,6 @@ async function main() {
       "domain_event_types",
       "field_change_logs",
       "seo_redirects",
-      "seo_metadata",
-      "seo_indexing_rules",
       "landing_pages",
       "landing_page_sections",
       "campaigns",

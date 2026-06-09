@@ -191,7 +191,6 @@ marking the phase complete:
   - `service_offerings`
   - `creator_service_offerings`
   - `experience_offerings`
-  - `subscription_offerings`
 - [x] Normalize runtime type keys to business-domain names only.
 - [x] Seed fixed digital type and provider/dropshipping catalog type keys:
   - `digital_template`
@@ -316,7 +315,7 @@ marking the phase complete:
   - permissions
   - business-critical relations
 
-## Phase 6: Template Attribute And Discovery
+## Phase 6: Template Attributes
 
 - [x] Add `template_attributes`.
 - [x] Add `template_attribute_values`.
@@ -328,14 +327,6 @@ marking the phase complete:
   - `color`
   - `season`
   - `event_type`
-- [x] Keep template discovery tables:
-  - `template_tags`
-  - `template_styles`
-  - `template_categories`
-  - `template_analytics`
-  - `template_views`
-  - `template_shares`
-  - `template_conversions`
 
 ## Phase 7: Search Documents
 
@@ -454,9 +445,6 @@ marking the phase complete:
 ## Phase 14: Events And Realtime
 
 - [x] Keep:
-  - `activities`
-  - `activity_actors`
-  - `activity_targets`
   - `notifications`
 - [x] Add `domain_events`.
 - [x] Add `domain_event_types`.
@@ -509,6 +497,32 @@ marking the phase complete:
   - `regions`
   - `shipping_regions`
   - `service_regions`
+
+## Future Feature Completion
+
+These tables remain intentionally because they support planned product areas
+that are not fully wired end-to-end yet.
+
+- [ ] Complete booking transactions:
+  - `bookings`
+  - `booking_items`
+  - `booking_payments`
+  - `booking_status_logs`
+- [ ] Complete provider marketplace enrichment:
+  - `provider_pricing`
+  - `provider_regions`
+  - `provider_reviews`
+  - `regions`
+  - `service_regions`
+  - `shipping_regions`
+- [ ] Complete organization/team ownership:
+  - `organizations`
+  - `organization_roles`
+  - `organization_members`
+- [ ] Complete media attachment relations:
+  - `media_asset_links`
+- [ ] Complete field-level audit logging:
+  - `field_change_logs`
 
 ## Implementation Rule
 

@@ -15,7 +15,6 @@ const globalForDb = globalThis as unknown as {
   userProfilesMigrationDone?: boolean;
   userAddressesMigrationDone?: boolean;
   userShippingProfilesMigrationDone?: boolean;
-  userSettingsDensityMigrationDone?: boolean;
   oauthAccountsMigrationDone?: boolean;
   menuTablesMigrationDone?: boolean;
   affiliateTablesMigrationDone?: boolean;
@@ -288,16 +287,6 @@ async function initSchema() {
  await pool.query(`
  CREATE INDEX IF NOT EXISTS user_sessions_token_hash_idx
  ON user_sessions(token_hash);
- `);
-
- await pool.query(`
- CREATE TABLE IF NOT EXISTS user_settings (
-  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  ui_density TEXT NOT NULL DEFAULT 'medium',
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT user_settings_ui_density_check
-  CHECK (ui_density IN ('small', 'medium', 'large'))
- );
  `);
 
 }
@@ -625,42 +614,6 @@ async function ensureUserAddressesMigration() {
  CREATE UNIQUE INDEX IF NOT EXISTS user_addresses_one_default_uidx
  ON user_addresses(user_id)
  WHERE is_default = TRUE;
- `);
-}
-
-async function ensureUserSettingsDensityMigration() {
- const pool = getPool();
-
- await pool.query(`
- ALTER TABLE user_settings
- DROP CONSTRAINT IF EXISTS user_settings_ui_density_check;
- `);
-
- await pool.query(`
- ALTER TABLE user_settings
- ALTER COLUMN ui_density SET DEFAULT 'medium';
- `);
-
- await pool.query(`
- UPDATE user_settings
- SET ui_density = CASE
-  WHEN ui_density = 'compact' THEN 'small'
-  WHEN ui_density = 'comfortable' THEN 'medium'
-  ELSE ui_density
- END;
- `);
-
- await pool.query(`
- DO $$
- BEGIN
-  ALTER TABLE user_settings
-  ADD CONSTRAINT user_settings_ui_density_check
-  CHECK (ui_density IN ('small', 'medium', 'large'));
- EXCEPTION
-  WHEN duplicate_object THEN
-  NULL;
- END
- $$;
  `);
 }
 
@@ -2188,19 +2141,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS subscription_offerings (
-      offering_id TEXT PRIMARY KEY REFERENCES offerings(id) ON DELETE CASCADE,
-      billing_period TEXT NOT NULL DEFAULT 'month',
-      feature_set JSONB NOT NULL DEFAULT '{}'::jsonb,
-      trial_days INT NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT subscription_offerings_period_check CHECK (billing_period IN ('month', 'year', 'lifetime'))
-    );
-  `);
-
-
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS media_asset_links (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       media_asset_id TEXT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
@@ -2804,50 +2744,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS digital_access_grants (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      offering_id TEXT REFERENCES offerings(id) ON DELETE CASCADE,
-      source_type TEXT NOT NULL DEFAULT 'manual',
-      source_id TEXT,
-      status TEXT NOT NULL DEFAULT 'active',
-      starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      expires_at TIMESTAMPTZ,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS subscription_access (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      current_period_start TIMESTAMPTZ,
-      current_period_end TIMESTAMPTZ,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS feature_access (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      user_id ${userIdType} NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      feature_key TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      credit_balance INT NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (user_id, feature_key)
-    );
-  `);
-
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS offering_bundles (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
@@ -2920,92 +2816,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   await pool.query(`CREATE INDEX IF NOT EXISTS offering_search_documents_filter_idx ON offering_search_documents USING GIN (filter_json);`);
 
   await pool.query(`
-    INSERT INTO digital_access_grants (
-      user_id,
-      offering_id,
-      source_type,
-      source_id,
-      status,
-      starts_at,
-      metadata,
-      created_at,
-      updated_at
-    )
-    SELECT
-      commerce_entitlements.user_id,
-      commerce_entitlements.offering_id::text,
-      'commerce_entitlement',
-      commerce_entitlements.id,
-      commerce_entitlements.status,
-      commerce_entitlements.created_at,
-      commerce_entitlements.metadata,
-      commerce_entitlements.created_at,
-      commerce_entitlements.updated_at
-    FROM commerce_entitlements
-    ON CONFLICT DO NOTHING;
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_collections (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      slug TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'draft',
-      sort_order INT NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_variants (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      slug TEXT NOT NULL,
-      name TEXT NOT NULL,
-      variant_config JSONB NOT NULL DEFAULT '{}'::jsonb,
-      status TEXT NOT NULL DEFAULT 'draft',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (offering_id, slug)
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_tags (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      slug TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_styles (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      slug TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_categories (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      slug TEXT NOT NULL UNIQUE,
-      name TEXT NOT NULL,
-      parent_id TEXT REFERENCES template_categories(id) ON DELETE SET NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS template_attributes (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       key TEXT NOT NULL UNIQUE,
@@ -3035,20 +2845,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_analytics (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      metric_key TEXT NOT NULL,
-      metric_value NUMERIC(14,2) NOT NULL DEFAULT 0,
-      bucket_date DATE NOT NULL DEFAULT CURRENT_DATE,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (offering_id, metric_key, bucket_date)
-    );
-  `);
-
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS tags (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       slug TEXT NOT NULL UNIQUE,
@@ -3072,18 +2868,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS tag_relations_target_idx ON tag_relations(target_type, target_id, sort_order);`);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS activities (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      activity_type TEXT NOT NULL,
-      verb TEXT NOT NULL,
-      summary TEXT NOT NULL DEFAULT '',
-      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS domain_events (
@@ -3148,65 +2932,6 @@ async function ensureCoreDatabaseRefactorMigration() {
   await pool.query(`CREATE INDEX IF NOT EXISTS analytics_events_name_idx ON analytics_events(event_name, occurred_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS analytics_page_views_target_idx ON analytics_page_views(target_type, target_id, viewed_at DESC);`);
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS activity_actors (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
-      actor_type TEXT NOT NULL,
-      actor_id TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'actor',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS activity_targets (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
-      target_type TEXT NOT NULL,
-      target_id TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'target',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`CREATE INDEX IF NOT EXISTS activity_targets_lookup_idx ON activity_targets(target_type, target_id, created_at DESC);`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS activity_actors_lookup_idx ON activity_actors(actor_type, actor_id, created_at DESC);`);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_views (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      visitor_token TEXT NOT NULL DEFAULT '',
-      source TEXT NOT NULL DEFAULT '',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_shares (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      channel TEXT NOT NULL DEFAULT '',
-      visitor_token TEXT NOT NULL DEFAULT '',
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS template_conversions (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      offering_id TEXT NOT NULL REFERENCES offerings(id) ON DELETE CASCADE,
-      conversion_type TEXT NOT NULL DEFAULT 'checkout',
-      source_id TEXT,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`CREATE INDEX IF NOT EXISTS template_views_offering_created_idx ON template_views(offering_id, created_at DESC);`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS template_shares_offering_created_idx ON template_shares(offering_id, created_at DESC);`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS template_conversions_offering_created_idx ON template_conversions(offering_id, created_at DESC);`);
 }
 
 async function ensureFinalArchitectureCleanupMigration() {
@@ -3548,18 +3273,6 @@ async function ensureFinalArchitectureCleanupMigration() {
     END $$;
   `);
   await pool.query(`
-    ALTER TABLE template_analytics
-    ADD COLUMN IF NOT EXISTS trend_score NUMERIC(10,4) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS conversion_score NUMERIC(10,4) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS quality_score NUMERIC(10,4) NOT NULL DEFAULT 0;
-  `);
-  await pool.query(`
-    ALTER TABLE template_variants
-    ADD COLUMN IF NOT EXISTS trend_score NUMERIC(10,4) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS conversion_score NUMERIC(10,4) NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS quality_score NUMERIC(10,4) NOT NULL DEFAULT 0;
-  `);
-  await pool.query(`
     ALTER TABLE offering_bundles
     ADD COLUMN IF NOT EXISTS pricing_strategy TEXT NOT NULL DEFAULT 'fixed',
     ADD COLUMN IF NOT EXISTS discount_type TEXT NOT NULL DEFAULT 'none',
@@ -3633,36 +3346,6 @@ async function ensureFinalArchitectureCleanupMigration() {
         is_active = EXCLUDED.is_active,
         metadata = EXCLUDED.metadata,
         updated_at = NOW();
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS seo_metadata (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      target_type TEXT NOT NULL,
-      target_id TEXT NOT NULL,
-      canonical_path TEXT NOT NULL DEFAULT '',
-      title TEXT NOT NULL DEFAULT '',
-      description TEXT NOT NULL DEFAULT '',
-      robots TEXT NOT NULL DEFAULT '',
-      open_graph JSONB NOT NULL DEFAULT '{}'::jsonb,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (target_type, target_id)
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS seo_indexing_rules (
-      id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      target_type TEXT NOT NULL,
-      target_pattern TEXT NOT NULL,
-      indexable BOOLEAN NOT NULL DEFAULT TRUE,
-      follow_links BOOLEAN NOT NULL DEFAULT TRUE,
-      priority INT NOT NULL DEFAULT 0,
-      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (target_type, target_pattern)
-    );
   `);
 }
 
@@ -5046,11 +4729,6 @@ export async function ensureDb() {
       if (!globalForDb.userShippingProfilesMigrationDone) {
         await ensureUserShippingProfilesMigration();
         globalForDb.userShippingProfilesMigrationDone = true;
-      }
-
-      if (!globalForDb.userSettingsDensityMigrationDone) {
-        await ensureUserSettingsDensityMigration();
-        globalForDb.userSettingsDensityMigrationDone = true;
       }
 
       await ensureAppSettingsMigration();

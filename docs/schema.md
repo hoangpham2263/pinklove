@@ -20,29 +20,29 @@ generator. The latest DB audit returned zero `bigint`/`integer` ID columns.
 
 ## Table Count
 
-Current database has 120 public tables after final physical offering cleanup:
+Current database has 108 public tables after final physical offering cleanup:
 
 | Area | Tables |
 | --- | --- |
-| Identity | `users`, `user_sessions`, `user_settings`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
+| Identity | `users`, `user_sessions`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
 | CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `media_asset_links`, `app_settings` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
-| Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `digital_template_offerings`, `physical_offerings`, `offering_bundles`, `offering_bundle_items`, `offering_relationships`, `offering_search_documents`, `shopping_cart_items` |
+| Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `offering_bundles`, `offering_bundle_items`, `offering_relationships`, `offering_search_documents`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
+| Landing / campaigns | `landing_pages`, `landing_page_sections`, `campaigns`, `campaign_stats`, `ab_experiments`, `ab_experiment_landing_pages` |
 | Providers | `provider_order_assignments`, `provider_order_events`, `provider_offering_submissions`, `provider_offering_submission_events`, `offering_provider_suppliers`, `provider_offering_supplier_requests`, `provider_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
-| Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings`, `subscription_offerings` |
+| Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings` |
 | Wedding experience | `wedding_sites`, `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
 | Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments`, `provider_types` |
 | Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments`, `booking_calendars`, `provider_availability`, `provider_time_slots` |
-| Digital access | `digital_access_grants`, `subscription_access`, `feature_access` |
 | Organizations | `organizations`, `organization_members`, `organization_roles` |
-| Template discovery | `template_collections`, `template_variants`, `template_tags`, `template_styles`, `template_categories`, `template_attributes`, `template_attribute_values`, `template_analytics`, `template_views`, `template_shares`, `template_conversions`, `template_engines` |
-| Taxonomy / activity / regions | `tags`, `tag_relations`, `activities`, `activity_actors`, `activity_targets`, `domain_events`, `domain_event_types`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
+| Template attributes / engines | `template_attributes`, `template_attribute_values`, `template_engines` |
+| Taxonomy / events / regions | `tags`, `tag_relations`, `domain_events`, `domain_event_types`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
 | System config / constraints | `offering_statuses`, `media_target_types`, `media_roles` |
-| SEO / audit | `seo_redirects`, `seo_metadata`, `seo_indexing_rules`, `field_change_logs` |
+| SEO / audit | `seo_redirects`, `field_change_logs` |
 
 ## Core Refactor Status
 
@@ -89,7 +89,6 @@ Current domain tables:
 - `service_offerings`
 - `creator_service_offerings`
 - `experience_offerings`
-- `subscription_offerings`
 
 Current system offering type keys:
 
@@ -170,13 +169,10 @@ Current runtime offering data:
   `tsvector` with a GIN index for full-text search.
 - Search sync event names are registered in `domain_event_types`:
   `offering.search.sync`, `template.search.sync`, and `provider.search.sync`.
-- Template ranking columns are available as `trend_score`, `conversion_score`,
-  and `quality_score`.
 - Bundles support pricing rules through `pricing_strategy`, `discount_type`, and
   `discount_value`.
 - `field_change_logs` stores auditable field changes across modules.
-- `seo_redirects`, `seo_metadata`, and `seo_indexing_rules` hold SEO domain
-  state outside generic JSON settings.
+- `seo_redirects` holds redirect domain state outside generic JSON settings.
 - Admin redirect management and runtime redirect lookup use `seo_redirects`;
   legacy `app_settings.seo_redirects` is only a fallback/backfill source.
 - `domain_event_types` declares canonical event names and marks cache
@@ -265,7 +261,6 @@ erDiagram
   offerings ||--o| physical_offerings : has
   offerings ||--o| service_offerings : has
   offerings ||--o| creator_service_offerings : has
-  offerings ||--o| subscription_offerings : has
   offerings ||--o| experience_offerings : has
   offerings ||--o{ media_asset_links : media
   offerings ||--o{ wedding_sites : creates
@@ -383,12 +378,6 @@ erDiagram
     text location_note
   }
 
-  subscription_offerings {
-    text offering_id PK, FK
-    text billing_period
-    jsonb feature_set
-  }
-
   media_assets {
     text id PK
     text url
@@ -421,7 +410,6 @@ erDiagram
   offerings ||--o| service_offerings : service
   offerings ||--o| creator_service_offerings : creator_service
   offerings ||--o| experience_offerings : experience
-  offerings ||--o| subscription_offerings : subscription
   media_assets ||--o{ media_asset_links : linked
 ```
 
@@ -536,14 +524,6 @@ erDiagram
     text provider_id FK
   }
 
-  digital_access_grants {
-    text id PK
-    text user_id FK
-    text offering_id FK
-    text source_type
-    text status
-  }
-
   tags {
     text id PK
     text slug UK
@@ -553,26 +533,6 @@ erDiagram
   tag_relations {
     text id PK
     text tag_id FK
-    text target_type
-    text target_id
-  }
-
-  activities {
-    text id PK
-    text activity_type
-    text verb
-  }
-
-  activity_actors {
-    text id PK
-    text activity_id FK
-    text actor_type
-    text actor_id
-  }
-
-  activity_targets {
-    text id PK
-    text activity_id FK
     text target_type
     text target_id
   }
@@ -590,10 +550,7 @@ erDiagram
   providers ||--o{ booking_items : fulfills
   bookings ||--o{ booking_items : contains
   offerings ||--o{ booking_items : booked_as
-  offerings ||--o{ digital_access_grants : grants
   tags ||--o{ tag_relations : labels
-  activities ||--o{ activity_actors : has
-  activities ||--o{ activity_targets : targets
 ```
 
 ## Identity And CMS
@@ -612,11 +569,6 @@ erDiagram
     text id PK
     text user_id FK
     text token_hash UK
-  }
-
-  user_settings {
-    text user_id PK, FK
-    text ui_density
   }
 
   user_profiles {
@@ -688,7 +640,6 @@ erDiagram
   }
 
   users ||--o{ user_sessions : owns
-  users ||--|| user_settings : has
   users ||--|| user_profiles : has
   users ||--o{ user_shipping_profiles : has
   users ||--o{ user_addresses : has
@@ -1104,8 +1055,6 @@ archived without breaking existing catalog rows.
 
 | From | To | On delete |
 | --- | --- | --- |
-| `activity_actors.activity_id` | `activities.id` | CASCADE |
-| `activity_targets.activity_id` | `activities.id` | CASCADE |
 | `affiliate_accounts.approved_by` | `users.id` | SET NULL |
 | `affiliate_accounts.user_id` | `users.id` | CASCADE |
 | `affiliate_clicks.affiliate_user_id` | `affiliate_accounts.user_id` | CASCADE |
@@ -1153,11 +1102,8 @@ archived without breaking existing catalog rows.
 | `content_comments.author_user_id` | `users.id` | SET NULL |
 | `creator_service_offerings.offering_id` | `offerings.id` | CASCADE |
 | `creator_service_offerings.provider_id` | `providers.id` | SET NULL |
-| `digital_access_grants.offering_id` | `offerings.id` | CASCADE |
-| `digital_access_grants.user_id` | `users.id` | CASCADE |
 | `digital_template_offerings.offering_id` | `offerings.id` | CASCADE |
 | `experience_offerings.offering_id` | `offerings.id` | CASCADE |
-| `feature_access.user_id` | `users.id` | CASCADE |
 | `field_change_logs.actor_id` | `users.id` | SET NULL |
 | `media_asset_links.media_asset_id` | `media_assets.id` | CASCADE |
 | `physical_offerings.offering_id` | `offerings.id` | CASCADE |
@@ -1210,23 +1156,13 @@ archived without breaking existing catalog rows.
 | `shipping_regions.region_id` | `regions.id` | CASCADE |
 | `shopping_cart_items.offering_id` | `offerings.id` | CASCADE |
 | `shopping_cart_items.user_id` | `users.id` | CASCADE |
-| `subscription_access.offering_id` | `offerings.id` | SET NULL |
-| `subscription_access.user_id` | `users.id` | CASCADE |
-| `subscription_offerings.offering_id` | `offerings.id` | CASCADE |
 | `tag_relations.tag_id` | `tags.id` | CASCADE |
-| `template_analytics.offering_id` | `offerings.id` | CASCADE |
 | `template_attribute_values.attribute_id` | `template_attributes.id` | CASCADE |
 | `template_attribute_values.offering_id` | `offerings.id` | CASCADE |
-| `template_categories.parent_id` | `template_categories.id` | SET NULL |
-| `template_conversions.offering_id` | `offerings.id` | CASCADE |
-| `template_shares.offering_id` | `offerings.id` | CASCADE |
-| `template_variants.offering_id` | `offerings.id` | CASCADE |
-| `template_views.offering_id` | `offerings.id` | CASCADE |
 | `user_addresses.user_id` | `users.id` | CASCADE |
 | `user_oauth_accounts.user_id` | `users.id` | CASCADE |
 | `user_profiles.user_id` | `users.id` | CASCADE |
 | `user_sessions.user_id` | `users.id` | CASCADE |
-| `user_settings.user_id` | `users.id` | CASCADE |
 | `user_shipping_profiles.user_id` | `users.id` | CASCADE |
 | `users.account_status_updated_by` | `users.id` | SET NULL |
 | `provider_order_assignments.order_id` | `commerce_orders.id` | CASCADE |
