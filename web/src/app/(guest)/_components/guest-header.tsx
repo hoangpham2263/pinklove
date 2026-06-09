@@ -151,7 +151,7 @@ export function GuestHeader({
     "relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 transition hover:border-stone-300 hover:bg-stone-50";
 
   return (
-    <header className="container px-4 mx-auto fixed inset-x-0 top-2.5 z-50 flex justify-center">
+    <header data-guest-header className="container px-4 mx-auto fixed inset-x-0 top-2.5 z-50 flex justify-center">
       <div
         style={{ width: isScrolled ? "1024px" : "100%", maxWidth: "100%" }}
         className={[

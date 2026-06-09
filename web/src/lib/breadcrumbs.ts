@@ -28,6 +28,9 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.MEDIA, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Media" }] },
   { pattern: ROUTES.ADMIN.GLOBAL_FIELDS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Global Fields" }] },
   { pattern: ROUTES.ADMIN.HOOKS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Hooks" }] },
+  { pattern: ROUTES.ADMIN.LANDING_PAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Landing Pages" }] },
+  { pattern: ROUTES.ADMIN.LANDING_PAGE_NEW, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Landing Pages", href: ROUTES.ADMIN.LANDING_PAGES }, { label: "Tạo landing page" }] },
+  { pattern: ROUTES.ADMIN.LANDING_PAGE("[landingPageId]"), items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Landing Pages", href: ROUTES.ADMIN.LANDING_PAGES }, { label: getRouteParamBreadcrumbLabel(params.landingPageId) }] },
 
   { pattern: ROUTES.ADMIN.PAGES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh sách Trang" }] },
   { pattern: "/admin/pages/[...slug]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Danh sách Trang", href: ROUTES.ADMIN.PAGES }, { label: getRouteParamBreadcrumbLabel(params.slug) }] },

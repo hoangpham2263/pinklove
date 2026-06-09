@@ -175,7 +175,7 @@ export async function GuestFooter({
 
   return (
     <>
-      <footer className="relative isolate overflow-hidden">
+      <footer data-guest-footer className="relative isolate overflow-hidden">
         <div className="absolute inset-0 z-0 bg-[#f5f5f5]" aria-hidden="true" />
         {footerBackgroundImage ? (
           <img

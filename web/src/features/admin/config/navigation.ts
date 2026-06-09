@@ -91,11 +91,13 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         excludePrefixes: [
           ROUTES.ADMIN.OFFERING_TEMPLATES,
           ROUTES.ADMIN.OFFERING_BUILDER,
+          ROUTES.ADMIN.LANDING_PAGES,
           ROUTES.ADMIN.OFFERING_TYPES,
           ROUTES.ADMIN.OFFERING_CATEGORIES,
           ROUTES.ADMIN.OFFERING_BUNDLES,
         ],
       },
+      { label: "Landing Pages", href: ROUTES.ADMIN.LANDING_PAGES, iconName: "blocks" },
       { label: "Offering Types", href: ROUTES.ADMIN.OFFERING_TYPES, iconName: "list-tree" },
       { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES, iconName: "file-code-2" },
       { label: "Offering Builder", href: ROUTES.ADMIN.OFFERING_BUILDER, iconName: "blocks" },

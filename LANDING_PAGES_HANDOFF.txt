@@ -1,0 +1,80 @@
+LANDING PAGES REFACTOR HANDOFF
+Updated: 2026-06-09
+
+OBJECTIVE
+- A landing page is an independent campaign page.
+- Each landing page has its own globally unique slug and public URL.
+- A product/offering is only a selectable data source used by the landing renderer.
+- Do not build public landing URLs from product slugs or query parameters.
+- Keep route construction centralized. Do not hardcode internal paths.
+
+FINAL ROUTES
+- Public landing: /landing/[slug]
+- Admin list: /admin/landing-pages
+- Admin create: /admin/landing-pages/new
+- Admin edit: /admin/landing-pages/[landingPageId]
+- Admin API: /api/admin/landing-pages/{create,update,delete}
+- Sitemap: /sitemap-landing-pages.xml
+
+DATABASE MODEL
+- landing_pages
+  - id
+  - source_offering_id nullable, FK offerings(id), ON DELETE SET NULL
+  - name
+  - slug globally unique
+  - page_type
+  - status
+  - theme_config
+- landing_page_sections.landing_page_id
+- campaigns.landing_page_id
+- ab_experiment_landing_pages.landing_page_id
+- ab_experiments has no offering_id.
+- Database initialization only defines the current landing page schema.
+
+CODE OWNERSHIP
+- Domain types, service, templates and admin UI:
+  web/src/features/landing-pages
+- Public page:
+  web/src/app/(landing)/landing/[slug]/page.tsx
+- Admin pages:
+  web/src/app/admin/(protected)/landing-pages
+- Admin API:
+  web/src/app/api/admin/landing-pages
+- Schema migration:
+  web/src/lib/database.ts
+- Schema verification:
+  web/scripts/audit-schema.mjs
+- Public path helper:
+  getLandingPagePath in web/src/lib/public-paths.ts delegates to ROUTES.LANDING_PAGE
+
+RENDER FLOW
+1. Resolve a published landing page by its global slug.
+2. Load its source offering by source_offering_id.
+3. Load landing_page_sections.
+4. Render the selected landing template with offering data plus landing-owned content.
+5. Return 404 if the landing, source offering, or template is unavailable.
+
+ADMIN WORKFLOW
+- Create/edit forms submit sourceOfferingId, never a product slug.
+- Source offering can be changed from the landing editor.
+- Product detail only lists landing pages that currently use that product as a source.
+- Public preview/copy actions always use getLandingPagePath.
+
+VERIFICATION COMPLETED
+- npx tsc --noEmit: passed
+- npm run lint: passed with existing project warnings only
+- npm run build: passed
+- npm run audit:schema: passed
+- GET /landing/luxury: 200
+- GET /sitemap-landing-pages.xml: 200 and contains independent landing URLs
+- Public landing route is outside the guest layout, so it owns its header/footer directly.
+- Admin routes use /admin/landing-pages.
+- Database constraints use landing_pages, landing_page_sections and landing_page_id names consistently.
+- No legacy landing route folders or compatibility API folders remain.
+
+RULES FOR FUTURE WORK
+- Keep landing content and campaign behavior inside features/landing-pages.
+- Do not introduce product-slug-based landing routing or query-based landing rendering.
+- Do not add product ownership semantics; source_offering_id is a data-source reference only.
+- Use IDs for relations and slugs only for public routing.
+- Update this file when the architecture or remaining work changes.

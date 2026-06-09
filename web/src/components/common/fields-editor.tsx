@@ -32,6 +32,7 @@ type FieldsEditorProps = {
   onChange?: (name: string, value: unknown) => void;
   offeringOptions?: FieldsEditorOfferingOption[];
   className?: string;
+  showTabs?: boolean;
 };
 
 export function FieldsEditor({
@@ -40,6 +41,7 @@ export function FieldsEditor({
   onChange,
   offeringOptions = [],
   className = "pt-4",
+  showTabs = true,
 }: FieldsEditorProps) {
   const [activeTab, setActiveTab] = useState(getFieldTabKey(fields[0], 0));
 
@@ -50,6 +52,21 @@ export function FieldsEditor({
   const resolvedActiveTab = fields.some((field, index) => getFieldTabKey(field, index) === activeTab)
     ? activeTab
     : getFieldTabKey(fields[0], 0);
+
+  if (!showTabs) {
+    return (
+      <div className={className}>
+        {fields.map((field, index) => (
+          <div
+            key={getFieldTabKey(field, index)}
+            className={getFieldWidthClass(field, { compact: true })}
+          >
+            {renderField(field, values, onChange, { compact: true, offeringOptions })}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

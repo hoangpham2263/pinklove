@@ -5,12 +5,14 @@ import path from "node:path";
 import { listPublishedBlogCategories, listPublishedBlogPosts } from "@/features/blog/server/service";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import { listPublishedInvitations } from "@/features/invitations/server/service";
+import { listPublishedLandingPages } from "@/features/landing-pages/server/service";
 import { listPublishedManagedPagesForSitemap } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import {
   getBlogCategoryPath,
   getBlogPostPath,
   getInvitationPath,
+  getLandingPagePath,
   getOfferingPath,
 } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
@@ -191,6 +193,17 @@ export async function getOfferingSitemapItems(siteUrl: string): Promise<SitemapU
   }));
 }
 
+export async function getLandingPageSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
+  const landingPages = await listPublishedLandingPages();
+
+  return landingPages.map((landingPage) => ({
+    loc: `${siteUrl}${getLandingPagePath(landingPage)}`,
+    lastmod: toIsoDate(landingPage.updatedAt),
+    changefreq: "weekly",
+    priority: "0.8",
+  }));
+}
+
 export async function getInvitationSiteSitemapItems(siteUrl: string): Promise<SitemapUrlItem[]> {
   const sites = await listPublishedInvitations();
 
@@ -231,6 +244,13 @@ function getSitemapProviders(): SitemapProvider[] {
       routePath: ROUTES.SITEMAP.OFFERINGS,
       enabled: (settings) => settings.sitemap.enabled && settings.sitemap.includeOfferings,
       getItems: getOfferingSitemapItems,
+    },
+    {
+      key: "landing-pages",
+      label: "Landing Pages",
+      routePath: ROUTES.SITEMAP.LANDING_PAGES,
+      enabled: (settings) => settings.sitemap.enabled && settings.sitemap.includeOfferings,
+      getItems: getLandingPageSitemapItems,
     },
     {
       key: "invitations",

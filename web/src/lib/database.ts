@@ -21,6 +21,7 @@ const globalForDb = globalThis as unknown as {
   affiliateTablesMigrationDone?: boolean;
   internalAccountsMigrationDone?: boolean;
   offeringTablesMigrationDone?: boolean;
+  landingPageTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
   commerceTablesMigrationDone?: boolean;
   offeringProviderPaperTypeMigrationDone?: boolean;
@@ -1639,6 +1640,222 @@ async function ensureOfferingTablesMigration() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS wedding_sites_user_id_idx
     ON wedding_sites(user_id);
+  `);
+}
+
+async function ensureLandingPageTablesMigration() {
+  const pool = getPool();
+  const offeringIdType = await getColumnTypeSql("offerings", "id", "TEXT");
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS landing_pages (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      source_offering_id ${offeringIdType} REFERENCES offerings(id) ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      page_type TEXT NOT NULL DEFAULT 'landing',
+      status TEXT NOT NULL DEFAULT 'draft',
+      theme_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT landing_pages_type_check CHECK (page_type IN ('default', 'landing', 'seo', 'campaign', 'ab_test')),
+      CONSTRAINT landing_pages_status_check CHECK (status IN ('draft', 'published', 'archived', 'disabled')),
+      CONSTRAINT landing_pages_slug_format_check CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE landing_pages ALTER COLUMN source_offering_id DROP NOT NULL;
+    ALTER TABLE landing_pages DROP CONSTRAINT IF EXISTS landing_pages_type_check;
+    ALTER TABLE landing_pages DROP CONSTRAINT IF EXISTS landing_pages_status_check;
+    ALTER TABLE landing_pages DROP CONSTRAINT IF EXISTS landing_pages_slug_format_check;
+  `);
+
+  await pool.query(`
+    UPDATE landing_pages page
+    SET slug = page.slug || '-' || LOWER(REGEXP_REPLACE(page.id, '[^a-zA-Z0-9]', '', 'g'))
+    FROM (
+      SELECT id
+      FROM (
+        SELECT id, ROW_NUMBER() OVER (PARTITION BY slug ORDER BY created_at, id) AS duplicate_order
+        FROM landing_pages
+      ) ranked
+      WHERE duplicate_order > 1
+    ) duplicates
+    WHERE page.id = duplicates.id;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'landing_pages_source_offering_id_fkey'
+          AND conrelid = 'landing_pages'::regclass
+      ) THEN
+        ALTER TABLE landing_pages
+          ADD CONSTRAINT landing_pages_source_offering_id_fkey
+          FOREIGN KEY (source_offering_id) REFERENCES offerings(id) ON DELETE SET NULL;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'landing_pages_slug_unique'
+          AND conrelid = 'landing_pages'::regclass
+      ) THEN
+        ALTER TABLE landing_pages
+          ADD CONSTRAINT landing_pages_slug_unique UNIQUE (slug);
+      END IF;
+    END
+    $$;
+
+    ALTER TABLE landing_pages
+      ADD CONSTRAINT landing_pages_type_check
+      CHECK (page_type IN ('default', 'landing', 'seo', 'campaign', 'ab_test'));
+    ALTER TABLE landing_pages
+      ADD CONSTRAINT landing_pages_status_check
+      CHECK (status IN ('draft', 'published', 'archived', 'disabled'));
+    ALTER TABLE landing_pages
+      ADD CONSTRAINT landing_pages_slug_format_check
+      CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$');
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS landing_page_sections (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      landing_page_id TEXT NOT NULL REFERENCES landing_pages(id) ON DELETE CASCADE,
+      section_type TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      content JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT landing_page_sections_type_check CHECK (
+        section_type IN (
+          'hero',
+          'gallery',
+          'video',
+          'reviews',
+          'faq',
+          'countdown',
+          'cta',
+          'pricing',
+          'features',
+          'related_products',
+          'custom'
+        )
+      )
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE landing_page_sections DROP CONSTRAINT IF EXISTS landing_page_sections_type_check;
+    ALTER TABLE landing_page_sections
+      ADD CONSTRAINT landing_page_sections_type_check
+      CHECK (
+        section_type IN (
+          'hero',
+          'gallery',
+          'video',
+          'reviews',
+          'faq',
+          'countdown',
+          'cta',
+          'pricing',
+          'features',
+          'related_products',
+          'custom'
+        )
+      );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      name TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      landing_page_id TEXT NOT NULL REFERENCES landing_pages(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'draft',
+      budget NUMERIC(12,2) NOT NULL DEFAULT 0,
+      started_at TIMESTAMPTZ,
+      ended_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT campaigns_channel_check CHECK (channel IN ('facebook', 'tiktok', 'google', 'email', 'affiliate', 'organic')),
+      CONSTRAINT campaigns_status_check CHECK (status IN ('draft', 'active', 'paused', 'completed', 'archived')),
+      CONSTRAINT campaigns_budget_check CHECK (budget >= 0),
+      CONSTRAINT campaigns_date_range_check CHECK (ended_at IS NULL OR started_at IS NULL OR ended_at >= started_at)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS campaign_stats (
+      campaign_id TEXT PRIMARY KEY REFERENCES campaigns(id) ON DELETE CASCADE,
+      views INT NOT NULL DEFAULT 0,
+      clicks INT NOT NULL DEFAULT 0,
+      add_to_cart INT NOT NULL DEFAULT 0,
+      checkout INT NOT NULL DEFAULT 0,
+      orders INT NOT NULL DEFAULT 0,
+      revenue NUMERIC(12,2) NOT NULL DEFAULT 0,
+      roas NUMERIC(12,4) NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT campaign_stats_non_negative_check CHECK (
+        views >= 0
+        AND clicks >= 0
+        AND add_to_cart >= 0
+        AND checkout >= 0
+        AND orders >= 0
+        AND revenue >= 0
+        AND roas >= 0
+      )
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ab_experiments (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      primary_metric TEXT NOT NULL DEFAULT 'orders',
+      started_at TIMESTAMPTZ,
+      ended_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT ab_experiments_status_check CHECK (status IN ('draft', 'running', 'paused', 'completed', 'archived')),
+      CONSTRAINT ab_experiments_primary_metric_check CHECK (primary_metric IN ('views', 'clicks', 'add_to_cart', 'checkout', 'orders', 'revenue')),
+      CONSTRAINT ab_experiments_date_range_check CHECK (ended_at IS NULL OR started_at IS NULL OR ended_at >= started_at)
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE ab_experiments DROP COLUMN IF EXISTS offering_id;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ab_experiment_landing_pages (
+      experiment_id TEXT NOT NULL REFERENCES ab_experiments(id) ON DELETE CASCADE,
+      landing_page_id TEXT NOT NULL REFERENCES landing_pages(id) ON DELETE CASCADE,
+      traffic_percent NUMERIC(5,2) NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (experiment_id, landing_page_id),
+      CONSTRAINT ab_experiment_landing_pages_traffic_check CHECK (traffic_percent >= 0 AND traffic_percent <= 100)
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE ab_experiment_landing_pages DROP CONSTRAINT IF EXISTS ab_experiment_landing_pages_traffic_check;
+    ALTER TABLE ab_experiment_landing_pages
+      ADD CONSTRAINT ab_experiment_landing_pages_traffic_check
+      CHECK (traffic_percent >= 0 AND traffic_percent <= 100);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS landing_pages_source_offering_id_idx ON landing_pages(source_offering_id);
+    CREATE INDEX IF NOT EXISTS landing_pages_status_idx ON landing_pages(status);
+    CREATE INDEX IF NOT EXISTS landing_page_sections_page_sort_idx ON landing_page_sections(landing_page_id, sort_order, created_at);
+    CREATE INDEX IF NOT EXISTS campaigns_landing_page_id_idx ON campaigns(landing_page_id);
+    CREATE INDEX IF NOT EXISTS campaigns_channel_status_idx ON campaigns(channel, status);
+    CREATE INDEX IF NOT EXISTS ab_experiment_landing_pages_page_id_idx ON ab_experiment_landing_pages(landing_page_id);
   `);
 }
 
@@ -4865,6 +5082,11 @@ export async function ensureDb() {
       if (!globalForDb.offeringTablesMigrationDone) {
         await ensureOfferingTablesMigration();
         globalForDb.offeringTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.landingPageTablesMigrationDone) {
+        await ensureLandingPageTablesMigration();
+        globalForDb.landingPageTablesMigrationDone = true;
       }
 
       if (!globalForDb.blogTablesMigrationDone) {

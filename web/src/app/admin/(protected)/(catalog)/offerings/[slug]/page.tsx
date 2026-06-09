@@ -1,9 +1,12 @@
 import { notFound, redirect } from "next/navigation";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
+import { listLandingPagesBySourceOfferingId } from "@/features/landing-pages/server/service";
 import { listProviders } from "@/features/providers/server/service";
+import { getOfferingPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingEditorPageProps = {
@@ -39,6 +42,12 @@ export default async function AdminOfferingEditorPage({
     redirect(`${ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TEMPLATES)}`);
   }
 
+  const publicHref = getOfferingPath(offering);
+  const [offeringTypeDefinition, landingPages] = await Promise.all([
+    getOfferingTypeByKey(offering.offeringType),
+    listLandingPagesBySourceOfferingId(offering.id),
+  ]);
+
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -47,13 +56,17 @@ export default async function AdminOfferingEditorPage({
             {offering.offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT ? "Edit Offering" : "Edit Template"}: {offering.name}
           </h1>
         </div>
+        <div className="flex items-center gap-3">
+          <AdminTableActionButton action="external" href={publicHref} target="_blank" label="Xem nhanh" />
+        </div>
       </div>
       <OfferingEditorForm
         offering={offering}
-        offeringTypeDefinition={await getOfferingTypeByKey(offering.offeringType)}
+        offeringTypeDefinition={offeringTypeDefinition}
         categories={categories}
         providers={providers}
         allOfferings={allOfferings}
+        landingPages={landingPages}
         returnTo={returnTo}
       />
     </section>

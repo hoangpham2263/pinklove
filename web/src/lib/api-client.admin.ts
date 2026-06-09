@@ -181,6 +181,18 @@ async function updateOffering(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.OFFERINGS.UPDATE, formData);
 }
 
+async function createLandingPage(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.LANDING_PAGES.CREATE, formData);
+}
+
+async function updateLandingPage(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.LANDING_PAGES.UPDATE, formData);
+}
+
+async function deleteLandingPage(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.LANDING_PAGES.DELETE, formData);
+}
+
 async function deleteOffering(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.OFFERINGS.DELETE, formData);
 }
@@ -452,6 +464,9 @@ export const adminApi = {
   bulkUpdatePages,
   createOffering,
   updateOffering,
+  createLandingPage,
+  updateLandingPage,
+  deleteLandingPage,
   deleteOffering,
   bulkUpdateOfferings,
   createOfferingCategory,
@@ -511,6 +526,9 @@ export const adminApiActions = {
   bulkUpdatePages: ROUTES.API.ADMIN.PAGES.BULK,
   createOffering: ROUTES.API.ADMIN.OFFERINGS.CREATE,
   updateOffering: ROUTES.API.ADMIN.OFFERINGS.UPDATE,
+  createLandingPage: ROUTES.API.ADMIN.LANDING_PAGES.CREATE,
+  updateLandingPage: ROUTES.API.ADMIN.LANDING_PAGES.UPDATE,
+  deleteLandingPage: ROUTES.API.ADMIN.LANDING_PAGES.DELETE,
   deleteOffering: ROUTES.API.ADMIN.OFFERINGS.DELETE,
   bulkUpdateOfferings: ROUTES.API.ADMIN.OFFERINGS.BULK,
   createOfferingCategory: ROUTES.API.ADMIN.OFFERINGS.CATEGORIES.CREATE,

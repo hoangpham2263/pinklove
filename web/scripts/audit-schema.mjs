@@ -90,6 +90,12 @@ async function main() {
       "seo_redirects",
       "seo_metadata",
       "seo_indexing_rules",
+      "landing_pages",
+      "landing_page_sections",
+      "campaigns",
+      "campaign_stats",
+      "ab_experiments",
+      "ab_experiment_landing_pages",
     ];
     const existingTables = await client.query(
       `
@@ -186,6 +192,118 @@ async function main() {
     );
     for (const status of ["draft", "pending_review", "published", "archived", "disabled"]) {
       assert(offeringStatusConstraint.includes(status), `offerings_status_check is missing ${status}`);
+    }
+
+    const landingPageTypeConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'landing_pages_type_check'
+          AND conrelid = 'landing_pages'::regclass
+        `
+      ) ?? ""
+    );
+    for (const pageType of ["default", "landing", "seo", "campaign", "ab_test"]) {
+      assert(landingPageTypeConstraint.includes(pageType), `landing_pages_type_check is missing ${pageType}`);
+    }
+
+    const landingPageSectionConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'landing_page_sections_type_check'
+          AND conrelid = 'landing_page_sections'::regclass
+        `
+      ) ?? ""
+    );
+    for (const sectionType of [
+      "hero",
+      "gallery",
+      "video",
+      "reviews",
+      "faq",
+      "countdown",
+      "cta",
+      "pricing",
+      "features",
+      "related_products",
+      "custom",
+    ]) {
+      assert(landingPageSectionConstraint.includes(sectionType), `landing_page_sections_type_check is missing ${sectionType}`);
+    }
+
+    const sourceOfferingColumn = await client.query(`
+      SELECT is_nullable
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'landing_pages'
+        AND column_name = 'source_offering_id'
+    `);
+    assert(sourceOfferingColumn.rows[0]?.is_nullable === "YES", "landing_pages.source_offering_id must be nullable");
+
+    const sourceOfferingForeignKey = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'landing_pages_source_offering_id_fkey'
+          AND conrelid = 'landing_pages'::regclass
+        `
+      ) ?? ""
+    );
+    assert(sourceOfferingForeignKey.includes("ON DELETE SET NULL"), "Landing source offering FK must use ON DELETE SET NULL");
+
+    const landingPageSlugUnique = Number(
+      await scalar(
+        client,
+        `
+        SELECT COUNT(*)
+        FROM pg_constraint
+        WHERE conname = 'landing_pages_slug_unique'
+          AND conrelid = 'landing_pages'::regclass
+          AND contype = 'u'
+        `
+      )
+    );
+    assert(landingPageSlugUnique === 1, "landing_pages.slug must be globally unique");
+
+    const landingRelationColumns = await client.query(`
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND (
+          (table_name = 'campaigns' AND column_name = 'landing_page_id')
+          OR (table_name = 'ab_experiments' AND column_name = 'offering_id')
+          OR (table_name = 'ab_experiment_landing_pages' AND column_name = 'landing_page_id')
+        )
+    `);
+    const landingRelationColumnSet = new Set(
+      landingRelationColumns.rows.map((row) => `${row.table_name}.${row.column_name}`)
+    );
+    assert(landingRelationColumnSet.has("campaigns.landing_page_id"), "campaigns.landing_page_id is required");
+    assert(!landingRelationColumnSet.has("ab_experiments.offering_id"), "ab_experiments.offering_id must be removed");
+    assert(
+      landingRelationColumnSet.has("ab_experiment_landing_pages.landing_page_id"),
+      "ab_experiment_landing_pages.landing_page_id is required"
+    );
+    const campaignChannelConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'campaigns_channel_check'
+          AND conrelid = 'campaigns'::regclass
+        `
+      ) ?? ""
+    );
+    for (const channel of ["facebook", "tiktok", "google", "email", "affiliate", "organic"]) {
+      assert(campaignChannelConstraint.includes(channel), `campaigns_channel_check is missing ${channel}`);
     }
 
     const providerColumns = await client.query(`

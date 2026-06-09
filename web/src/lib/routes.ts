@@ -15,6 +15,7 @@ export const ROUTES = {
   AFFILIATE_APPLY: "/affiliates",
   TOOLS: "/cong-cu",
   BLOG: "/blog",
+  LANDING_PAGES: "/landing",
   SITEMAP_XML: "/sitemap.xml",
   ROBOTS_TXT: "/robots.txt",
   SITEMAP: {
@@ -23,6 +24,7 @@ export const ROUTES = {
     BLOG_CATEGORIES: "/sitemap-blog-categories.xml",
     BLOG_POSTS: "/sitemap-blog-posts.xml",
     OFFERINGS: "/sitemap-offerings.xml",
+    LANDING_PAGES: "/sitemap-landing-pages.xml",
     INVITATIONS: "/sitemap-invitations.xml",
   },
   CATALOG: {
@@ -30,6 +32,7 @@ export const ROUTES = {
     BUILDER: (slug: string) => `/tu-tao-thiep/${slug}`,
     OFFERING: (slug: string) => `/thiep-giay/${slug}`,
   },
+  LANDING_PAGE: (slug: string) => `/landing/${encodeURIComponent(slug)}`,
   INVITATIONS: {
     PUBLIC: (slug: string) => `/invitations/${slug}`,
     DASHBOARD: "/customer/invitations",
@@ -143,6 +146,9 @@ export const ROUTES = {
     OFFERING_TEMPLATES: "/admin/offerings/templates",
     OFFERING_TEMPLATE: (slug: string) => `/admin/offerings/templates/${slug}`,
     OFFERING_BUILDER: "/admin/offerings/builder",
+    LANDING_PAGES: "/admin/landing-pages",
+    LANDING_PAGE_NEW: "/admin/landing-pages/new",
+    LANDING_PAGE: (landingPageId: string) => `/admin/landing-pages/${encodeURIComponent(landingPageId)}`,
     OFFERING_TYPES: "/admin/offerings/types",
     OFFERING_TYPE_NEW: "/admin/offerings/types/new",
     OFFERING_TYPE: (key: string) => `/admin/offerings/types/${encodeURIComponent(key)}`,
@@ -305,6 +311,11 @@ export const ROUTES = {
         BULK: "/api/admin/offerings/bulk",
         BUNDLES_SAVE: "/api/admin/offerings/bundles/save",
         BUNDLES_DELETE: "/api/admin/offerings/bundles/delete",
+      },
+      LANDING_PAGES: {
+        CREATE: "/api/admin/landing-pages/create",
+        UPDATE: "/api/admin/landing-pages/update",
+        DELETE: "/api/admin/landing-pages/delete",
       },
       ORDERS: {
         UPDATE: "/api/admin/orders/update",

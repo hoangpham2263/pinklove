@@ -1,6 +1,8 @@
 import type { BlogCategory, BlogPost } from "@/features/blog/types";
 import type { InvitationSite } from "@/features/invitations/types";
+import type { LandingPage } from "@/features/landing-pages/types";
 import type { Offering } from "@/features/offerings/types";
+import { ROUTES } from "@/lib/routes";
 
 const BLOG_CATEGORY_BASE = "blog";
 const TEMPLATE_BASE = "mau-thiep";
@@ -61,6 +63,11 @@ export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType"
 export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string) {
   const slug = typeof site === "string" ? site : site.slug;
   return normalizePath(`/${normalizeSegment(INVITATION_BASE)}/${slug}`);
+}
+
+export function getLandingPagePath(page: Pick<LandingPage, "slug"> | string) {
+  const slug = typeof page === "string" ? page : page.slug;
+  return ROUTES.LANDING_PAGE(slug);
 }
 
 export function matchBlogPostPath(pathname: string, post: Pick<BlogPost, "slug">) {

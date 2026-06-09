@@ -9,12 +9,14 @@ import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { DynamicOfferingFields } from "@/features/offerings/admin/dynamic-offering-fields";
 import { OfferingSearchSelect } from "@/features/offerings/admin/offering-search-select";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { BuilderEditorClient } from "@/features/invitations/builder/editor-client";
 import { BuilderWorkspaceShell } from "@/features/invitations/builder/builder-workspace-shell";
 import { getInvitationTemplateFields } from "@/features/invitations/templates/registry";
+import type { LandingPage } from "@/features/landing-pages/types";
 import {
   OFFERING_STATUSES,
   SYSTEM_OFFERING_TYPES,
@@ -27,6 +29,7 @@ import {
 } from "@/features/offerings/types";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
+import { getLandingPagePath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 import { slugify } from "@/lib/utils";
 import { useConfirm } from "@/components/common/confirm-provider";
@@ -45,15 +48,17 @@ type OfferingEditorFormProps = {
   categories: OfferingCategory[];
   providers: ProviderOption[];
   allOfferings?: Offering[];
+  landingPages?: LandingPage[];
   returnTo?: string;
 };
 
-type ProductEditorTab = "commerce" | "source" | "relations";
+type ProductEditorTab = "commerce" | "source" | "relations" | "landingPages";
 
 const PRODUCT_EDITOR_TABS: Array<{ key: ProductEditorTab; label: string; description: string }> = [
   { key: "commerce", label: "Giá & kho", description: "Giá bán, giá nhập, tồn kho" },
   { key: "source", label: "Nguồn hàng", description: "Provider, supplier request" },
   { key: "relations", label: "Liên kết", description: "Bán chéo và bán kèm" },
+  { key: "landingPages", label: "Landing", description: "Landing pages" },
 ];
 
 function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
@@ -75,6 +80,7 @@ export function OfferingEditorForm({
   categories,
   providers,
   allOfferings = [],
+  landingPages = [],
   returnTo = ROUTES.ADMIN.OFFERING_LIST,
 }: OfferingEditorFormProps) {
   const router = useRouter();
@@ -100,6 +106,7 @@ export function OfferingEditorForm({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingLandingPageId, setDeletingLandingPageId] = useState<string | null>(null);
   const isGeneralOffering = offering.offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const isBuilder = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER;
   const isCodedTemplate = offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED;
@@ -154,6 +161,33 @@ export function OfferingEditorForm({
       toast.error(error instanceof Error ? error.message : "Không thể xóa sản phẩm.");
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  async function handleDeleteLandingPage(landingPage: LandingPage) {
+    const isConfirmed = await confirm({
+      title: "Xóa landing",
+      description: `Xóa “${landingPage.name}” và dữ liệu liên quan?`,
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      variant: "destructive",
+    });
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setDeletingLandingPageId(landingPage.id);
+    try {
+      const formData = new FormData();
+      formData.set("landingPageId", landingPage.id);
+      const result = await adminApi.deleteLandingPage(formData);
+      toast.success(result.message ?? "Đã xóa landing.");
+      finishMutation(router, result, { redirect: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa landing.");
+    } finally {
+      setDeletingLandingPageId(null);
     }
   }
 
@@ -581,6 +615,45 @@ export function OfferingEditorForm({
                         excludeId={offering.id}
                       />
                     </div>
+                  </section>
+
+                  <section className={activeProductTab !== "landingPages" ? "hidden" : "space-y-5"}>
+                    <p className="text-sm text-muted-foreground">{landingPages.length} landing</p>
+
+                    {landingPages.length ? (
+                      <div className="divide-y rounded-md border">
+                        {landingPages.map((landingPage) => (
+                          <div key={landingPage.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                            <div className="min-w-0">
+                              <p className="truncate font-medium">{landingPage.name}</p>
+                            </div>
+                            <AdminTableActions>
+                              <AdminTableActionButton
+                                action="edit"
+                                label="Sửa"
+                                href={ROUTES.ADMIN.LANDING_PAGE(landingPage.id)}
+                              />
+                              <AdminTableActionButton
+                                action="external"
+                                label="Mở trang"
+                                href={getLandingPagePath(landingPage)}
+                                target="_blank"
+                              />
+                              <AdminTableActionButton
+                                action="delete"
+                                label="Xóa"
+                                disabled={deletingLandingPageId === landingPage.id}
+                                onClick={() => void handleDeleteLandingPage(landingPage)}
+                              />
+                            </AdminTableActions>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-md border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                        Chưa có landing.
+                      </div>
+                    )}
                   </section>
                 </div>
               </div>
