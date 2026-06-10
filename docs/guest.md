@@ -37,10 +37,9 @@ This file covers the public `GUEST` area.
 - `src/app/(guest)/(marketing)/about/page.tsx`
 - `src/app/(guest)/(marketing)/contact/page.tsx`
 - `src/app/(guest)/(marketing)/services/page.tsx`
-- `src/app/(guest)/(catalog)/templates/page.tsx`
-- `src/app/(guest)/(catalog)/templates/[slug]/page.tsx`
-- `src/app/(guest)/(catalog)/builder/page.tsx`
-- `src/app/(guest)/(catalog)/builder/[slug]/page.tsx`
+- `src/app/(guest)/(catalog)/mau-thiep/[slug]/page.tsx`
+- `src/app/(guest)/(catalog)/mau-thiep/[slug]/customize/page.tsx`
+- `src/app/(guest)/(catalog)/tu-tao-thiep/[slug]/page.tsx`
 - `src/app/(guest)/(catalog)/wishlist/page.tsx`
 - `src/app/(guest)/(catalog)/invitations/[slug]/page.tsx`
 - `src/app/(guest)/(content)/blog/page.tsx`

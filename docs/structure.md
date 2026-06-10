@@ -276,10 +276,9 @@ web/
 - Public content pages are explicit route files in `src/app/(guest)`.
 - Current public catalog flows:
   - `src/app/(guest)/(catalog)/wishlist/page.tsx`
-  - `src/app/(guest)/(catalog)/templates/page.tsx`
-  - `src/app/(guest)/(catalog)/templates/[slug]/page.tsx`
-  - `src/app/(guest)/(catalog)/builder/page.tsx`
-  - `src/app/(guest)/(catalog)/builder/[slug]/page.tsx`
+  - `src/app/(guest)/(catalog)/mau-thiep/[slug]/page.tsx`
+  - `src/app/(guest)/(catalog)/mau-thiep/[slug]/customize/page.tsx`
+  - `src/app/(guest)/(catalog)/tu-tao-thiep/[slug]/page.tsx`
 - Public content search lives at `src/app/(guest)/(content)/search/page.tsx`.
 - Public invitation rendering lives at `src/app/(guest)/(catalog)/invitations/[slug]/page.tsx`.
 
@@ -301,7 +300,9 @@ web/
   - signed out: landing + login
   - signed in as that provider: assigned-order working surface
 - `src/app/provider/(protected)/(workspace)/orders/[id]/page.tsx` serves the public URL `/provider/orders/[id]` for per-assignment collaboration detail.
-- `src/app/provider/dashboard/page.tsx` and `src/app/provider/orders/page.tsx` are legacy redirect-only aliases back to the canonical provider portal route.
+- Provider workspace URLs are served by route groups under
+  `src/app/provider/(protected)/(workspace)`, including dashboard, orders,
+  offerings, availability, messages, and config routes.
 - Protected provider workspace routes share the same sidebar/top-header shell pattern as admin and customer through `src/app/provider/(protected)/(workspace)/layout.tsx`.
 
 ## Admin area
@@ -328,6 +329,11 @@ web/
 - `src/features/offerings`: sellable catalog offerings plus admin offering/category/type management UI
 - `src/features/invitations`: per-customer invitation instances, renderers, and builder editor
 - `src/features/search`: guest-facing search services and result aggregation
+- `src/features/bookings`: booking creation, status logs, payments, and
+  provider slot coordination
+- `src/features/organizations`: provider/team organization ownership services
+- `src/features/providers`: provider ecosystem, marketplace enrichment,
+  regions, reviews, pricing, and provider-owned service wiring
 - `src/features/website-hooks`: outbound website integration/webhook inventory surfaced in admin
 
 ## Current implementation notes

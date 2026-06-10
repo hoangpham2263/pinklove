@@ -18,20 +18,22 @@ Current notable behavior:
 - Auth-page config and shared loading logic live in:
   - `web/src/features/auth/page-registry.ts`
   - `web/src/features/auth/auth-page-loader.ts`
-- Wedding offering catalog and wedding-site flow live in:
+- Wedding offering catalog and invitation-site flow live in:
   - `web/src/features/offerings/`
-  - `web/src/features/sites/`
+  - `web/src/features/invitations/`
+  - `web/src/features/landing-pages/`
 - Domain server services now live with their features:
   - `web/src/features/offerings/server/service.ts`
-  - `web/src/features/sites/server/service.ts`
+  - `web/src/features/invitations/server/service.ts`
+  - `web/src/features/landing-pages/server/service.ts`
   - `web/src/features/affiliate/server/service.ts`
 - Public content pages are code-managed routes, not admin-created CMS routes:
   - `web/src/app/(guest)/page.tsx`
-  - `web/src/app/(guest)/about-us/page.tsx`
-  - `web/src/app/(guest)/contact/page.tsx`
+  - `web/src/app/(guest)/(marketing)/about/page.tsx`
+  - `web/src/app/(guest)/(marketing)/contact/page.tsx`
 - Public page UI now lives directly alongside those routes inside `web/src/app/(guest)`.
 - Admin `Pages` edits only managed content/system pages already registered in code.
-- Account roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `VENDOR`; the first registered account becomes `ADMIN`
+- Account roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER`; the first registered account becomes `ADMIN`
 - Affiliate foundation is implemented: customers can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
 - Wedding invitation offering foundation is implemented:
   - `Thiếp mẫu sẵn` for coded templates

@@ -45,6 +45,33 @@ Core product areas:
 - `providers.id` is the marketplace provider identity. Account ownership uses
   `providers.owner_user_id`.
 - `provider_user_id` is only for account-bound supplier/request workflows.
+- Cross-module writes should go through owning services, public APIs, or domain
+  events. Shared read models are allowed when they are intentionally query-only.
+
+## Module Ownership
+
+| Module | Owns |
+| --- | --- |
+| Offerings | `offerings`, offering type tables, subtype tables, bundles, search documents |
+| Providers | `providers`, provider profiles, services, regions, reviews, pricing, availability |
+| Commerce | orders, order items, payments, payment logs, shipments, entitlements |
+| Wedding | `wedding_sites`, pages, sections, guests, RSVPs, events, galleries |
+| Identity | users, sessions, profiles, addresses, OAuth accounts |
+| Notifications | notifications, target roles/users, user notification states |
+| Analytics | analytics sessions, page views, events |
+| SEO | redirects, sitemap, robots, page SEO output |
+
+## Search And Cache
+
+- `offering_search_documents` is the canonical offering search read model.
+- Search sync should be idempotent by `offering_id`.
+- Search indexing must exclude payment state, permissions, inventory internals,
+  and analytics payloads.
+- Stable cache tags are `offering:{id}`, `provider:{id}`, `template:{id}`, and
+  `wedding_site:{id}`.
+- Cache invalidation events such as `offering.updated`, `template.updated`,
+  `provider.updated`, and `site.published` should resolve to stable tags before
+  falling back to broad route refresh.
 
 ## Active Feature Foundations
 

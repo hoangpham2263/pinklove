@@ -20,10 +20,9 @@ Use this file as the entrypoint for project documentation.
 1. [conventions](./conventions.md)
 2. [structure](./structure.md)
 3. [architecture](./architecture.md)
-4. [platform](./platform.md)
-5. [schema](./schema.md)
-6. [fields](./fields.md)
-7. [realtime](./realtime.md)
+4. [schema](./schema.md)
+5. [fields](./fields.md)
+6. [realtime](./realtime.md)
 7. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
@@ -41,9 +40,6 @@ Use this file as the entrypoint for project documentation.
   Folder structure, route groups, architecture layout, and implemented feature map.
 - `docs/architecture.md`
   Current architecture, domain boundaries, and remaining product gaps.
-- `docs/platform.md`
-  Internal modular monolith boundaries, provider strategy, event consumers,
-  cache tags, search pipeline, dynamic field limits, and template contracts.
 - `docs/schema.md`
   Database tables, storage shape, and persistence compatibility notes.
 - `docs/fields.md`
@@ -75,7 +71,7 @@ Use this file as the entrypoint for project documentation.
 - Use explicit route handlers for `robots.txt` and `sitemap*.xml` when SEO output needs plain-text or XML control.
 - Keep PinkLove as a modular monolith. Do not introduce microservices, Kafka,
   RabbitMQ, broad CQRS, or distributed event buses without a concrete bottleneck.
-- Respect module ownership from `docs/platform.md`; cross-module mutations go
+- Respect module ownership from `docs/architecture.md`; cross-module mutations go
   through owning services, public APIs, or domain events.
 - Use the standard admin/customer/editor 12-column layout language for protected screens.
 - Show human-facing status labels in English consistently across the project.
