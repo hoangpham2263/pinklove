@@ -1,11 +1,16 @@
 import { ROUTES } from "@/lib/routes";
+import { ADMIN_FEATURES } from "@/features/admin/config/navigation";
 
 export function getAdminPageTitle(pathname: string): string {
+  const feature = ADMIN_FEATURES.find((entry) => entry.href === pathname);
+  if (feature) return feature.label;
+
   if (pathname === ROUTES.ADMIN.ROOT || pathname.startsWith(ROUTES.ADMIN.DASHBOARD)) return "Dashboard";
   if (pathname.startsWith(ROUTES.ADMIN.GLOBAL_FIELDS)) return "Global Fields";
   if (pathname.startsWith(ROUTES.ADMIN.PAGES)) return "Pages";
-  if (pathname.startsWith(ROUTES.ADMIN.BLOG)) return "Blog Posts";
   if (pathname.startsWith(ROUTES.ADMIN.BLOG_CATEGORIES)) return "Blog Categories";
+  if (pathname.startsWith(ROUTES.ADMIN.BLOG_POSTS)) return "Blog Posts";
+  if (pathname.startsWith(ROUTES.ADMIN.BLOG)) return "Blog";
   if (pathname.startsWith(ROUTES.ADMIN.MENUS)) return "Navigation";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TYPES)) return "Offering Types";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_TEMPLATES)) return "Offering Templates";
@@ -37,6 +42,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.AUDIT_LOGS)) return "Audit Logs";
   if (pathname.startsWith(ROUTES.ADMIN.MARKETING_CAMPAIGNS)) return "Campaigns";
   if (pathname.startsWith(ROUTES.ADMIN.AB_EXPERIMENTS)) return "A/B Tests";
+  if (pathname.startsWith(ROUTES.ADMIN.ANALYTICS_EVENTS)) return "Conversion/Event Analytics";
   if (pathname.startsWith(ROUTES.ADMIN.ANALYTICS_GOALS)) return "Analytics Goals";
   if (pathname.startsWith(ROUTES.ADMIN.COMMENTS)) return "Comments";
   if (pathname.startsWith(ROUTES.ADMIN.NOTIFICATIONS)) return "Thông báo";

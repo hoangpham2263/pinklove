@@ -112,7 +112,7 @@ export function AdminBlogPostsTable({ posts, categories }: AdminBlogPostsTablePr
             <AdminTableActions>
               <AdminTableActionButton action="view" label="Xem bài viết" onClick={() => setPreviewPostId(post.id)} />
               <AdminTableActionButton action="external" label="Xem ngoài site" href={getBlogPostPath(post)} target="_blank" />
-              <AdminTableActionButton action="edit" label="Chỉnh sửa" href={`${ROUTES.ADMIN.BLOG_ENTRY(post.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.BLOG)}`} />
+              <AdminTableActionButton action="edit" label="Chỉnh sửa" href={`${ROUTES.ADMIN.BLOG_ENTRY(post.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.BLOG_POSTS)}`} />
               <NativeForm
                 action={adminApiActions.deleteBlogPost}
                 method="POST"

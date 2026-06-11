@@ -9,18 +9,12 @@ export default async function AdminMediaCollectionsPage() {
   ]);
 
   return (
-    <section className="flex w-full flex-1 flex-col gap-7 p-5 md:p-7.5">
-      <div>
-        <h1 className="text-2xl font-semibold">Media Collections</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Quản lý album/gallery theo wedding site, provider, offering và landing page.
-        </p>
-      </div>
-
+    <section className="flex w-full flex-1 flex-col p-5 md:p-7.5">
       <MediaCollectionsManager
         collections={collections}
         targets={collectionTargets}
         action={ROUTES.API.ADMIN.MEDIA_COLLECTIONS}
+        plain
       />
     </section>
   );

@@ -12,6 +12,19 @@ This file covers the admin area and admin-controlled workflows.
 
 - Only the `ADMIN` role may access the admin area.
 - The admin shell lives under `src/app/admin/(protected)`.
+- Admin desktop and mobile navigation use the same flat feature registry in
+  `src/features/admin/config/navigation.ts`.
+- The Admin menubar exposes nine top-level entries ordered by operational use:
+  Dashboard, Commerce, Marketplace, Accounts, Communication, Analytics, Website,
+  Blog and Configuration.
+- Related management routes are grouped into sections on each function hub
+  instead of nested sidebar menus.
+- Group hub pages use `AdminFeatureOverview` and the same registry sections as
+  the menubar so routes, permissions, and active prefixes are not duplicated.
+- Configuration remains a separate top-level entry and keeps its specialized
+  section-based page at `/admin/config`.
+- Customer and Provider portal navigation remain independent from the Admin
+  navigation registry.
 - Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER` for stored roles; `GUEST` is the public non-authenticated actor only.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Edit Page` keeps page metadata and body content in `Thông tin trang`,
@@ -45,7 +58,7 @@ This file covers the admin area and admin-controlled workflows.
   `media_assets`; it must not duplicate asset records.
 - Admin analytics reads business conversions from `conversion_goals` and
   `conversion_events` through the analytics service layer.
-- `Admin > Sales > Wedding Planning` provides the cross-customer planning
+- `Admin > Commerce > Wedding Planning` provides the cross-customer planning
   overview for wedding sites, guests, RSVP, seating, tasks, and timeline.
 - `Admin > Nhà cung cấp > Leads & Quotes` provides the marketplace lead and
   quote overview before accepted quotes become bookings.
@@ -75,25 +88,14 @@ This file covers the admin area and admin-controlled workflows.
 ## Current admin sections
 
 - dashboard
-- global fields
-- blog posts
-- blog categories
-- customer management
-- affiliate actor management
-- provider management
-- ecommerce operations
-  - orders
-  - bookings
-  - payments
-  - shipments
-- pages
-- menus
-- media
-  - media library
-  - media collections
-- notifications
-- internal accounts
-- access roles
+- commerce
+- marketplace
+- accounts
+- communication
+- analytics
+- website
+- blog
+- configuration
 
 ## Admin Access
 

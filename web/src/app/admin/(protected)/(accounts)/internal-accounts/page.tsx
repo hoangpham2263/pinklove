@@ -9,7 +9,7 @@ type AdminInternalAccountsPageProps = {
 export default async function AdminInternalAccountsPage({
   searchParams,
 }: AdminInternalAccountsPageProps) {
-  await requireAdminPermission("accounts.manage");
+  await requireAdminPermission("accounts.view");
   await searchParams;
 
   const accounts = await listInternalAccounts();

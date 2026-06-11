@@ -1,8 +1,5 @@
 import {
   CreditCard,
-  FileText,
-  Image as ImageIcon,
-  LayoutTemplate,
   Package,
   ShoppingCart,
   Users,
@@ -15,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AdminActionLinkTile } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminRevenueLineChart } from "@/features/admin/components/dashboard/admin-revenue-line-chart";
 import { formatCompactVnd, formatVnd } from "@/lib/currency";
@@ -27,17 +23,8 @@ type RevenueSummaryRow = {
   paid_orders_30d: string;
   pending_orders_30d: string;
   pending_orders: string;
-  published_invitations: string;
-  draft_invitations: string;
-  published_offerings: string;
-  draft_offerings: string;
-  published_posts: string;
-  published_pages: string;
-  draft_posts: string;
-  draft_pages: string;
   active_users: string;
   inactive_users: string;
-  media_assets: string;
 };
 
 type RevenueChartRow = {
@@ -50,7 +37,6 @@ type RecentOrderRow = {
   id: string;
   order_number: string;
   customer_name: string;
-  status: string;
   payment_status: string;
   total_amount: string;
   created_at: string;
@@ -111,46 +97,6 @@ export default async function AdminDashboardPage() {
         ) AS pending_orders,
         (
           SELECT COUNT(*)::text
-          FROM wedding_sites
-          WHERE status = 'published'
-        ) AS published_invitations,
-        (
-          SELECT COUNT(*)::text
-          FROM wedding_sites
-          WHERE status = 'draft'
-        ) AS draft_invitations,
-        (
-          SELECT COUNT(*)::text
-          FROM offerings
-          WHERE status = 'published'
-        ) AS published_offerings,
-        (
-          SELECT COUNT(*)::text
-          FROM offerings
-          WHERE status = 'draft'
-        ) AS draft_offerings,
-        (
-          SELECT COUNT(*)::text
-          FROM blog_posts
-          WHERE status = 'published'
-        ) AS published_posts,
-        (
-          SELECT COUNT(*)::text
-          FROM managed_pages
-          WHERE status = 'published'
-        ) AS published_pages,
-        (
-          SELECT COUNT(*)::text
-          FROM blog_posts
-          WHERE status = 'draft'
-        ) AS draft_posts,
-        (
-          SELECT COUNT(*)::text
-          FROM managed_pages
-          WHERE status = 'draft'
-        ) AS draft_pages,
-        (
-          SELECT COUNT(*)::text
           FROM users
           WHERE account_status = 'active'
         ) AS active_users,
@@ -158,11 +104,7 @@ export default async function AdminDashboardPage() {
           SELECT COUNT(*)::text
           FROM users
           WHERE account_status <> 'active'
-        ) AS inactive_users,
-        (
-          SELECT COUNT(*)::text
-          FROM media_assets
-        ) AS media_assets
+        ) AS inactive_users
     `),
     query<RevenueChartRow>(`
       WITH days AS (
@@ -188,7 +130,6 @@ export default async function AdminDashboardPage() {
         id,
         order_number,
         customer_name,
-        status,
         payment_status,
         total_amount::text,
         created_at
@@ -203,15 +144,8 @@ export default async function AdminDashboardPage() {
   const paidOrders30d = asNumber(summary?.paid_orders_30d);
   const pendingOrders30d = asNumber(summary?.pending_orders_30d);
   const pendingOrders = asNumber(summary?.pending_orders);
-  const publishedInvitations = asNumber(summary?.published_invitations);
-  const draftInvitations = asNumber(summary?.draft_invitations);
-  const publishedOfferings = asNumber(summary?.published_offerings);
-  const draftOfferings = asNumber(summary?.draft_offerings);
-  const publishedContent = asNumber(summary?.published_posts) + asNumber(summary?.published_pages);
-  const draftContent = asNumber(summary?.draft_posts) + asNumber(summary?.draft_pages);
   const activeUsers = asNumber(summary?.active_users);
   const inactiveUsers = asNumber(summary?.inactive_users);
-  const mediaAssets = asNumber(summary?.media_assets);
 
   const chartData = revenueResult.rows.map((item) => ({
     ...item,
@@ -249,42 +183,6 @@ export default async function AdminDashboardPage() {
       icon: Users,
       href: ROUTES.ADMIN.USERS,
     },
-    {
-      title: "Thiệp đang chạy",
-      value: publishedInvitations.toLocaleString("vi-VN"),
-      detail: `${draftInvitations.toLocaleString("vi-VN")} thiệp còn draft`,
-      icon: LayoutTemplate,
-    },
-    {
-      title: "Catalog đang chạy",
-      value: publishedOfferings.toLocaleString("vi-VN"),
-      detail: `${draftOfferings.toLocaleString("vi-VN")} sản phẩm còn ở draft`,
-      icon: FileText,
-      href: ROUTES.ADMIN.OFFERING_LIST,
-    },
-    {
-      title: "Nội dung live",
-      value: publishedContent.toLocaleString("vi-VN"),
-      detail: `${draftContent.toLocaleString("vi-VN")} nội dung còn draft`,
-      icon: FileText,
-      href: ROUTES.ADMIN.PAGES,
-    },
-    {
-      title: "Media assets",
-      value: mediaAssets.toLocaleString("vi-VN"),
-      detail: "Tệp đang có trong thư viện",
-      icon: ImageIcon,
-      href: ROUTES.ADMIN.MEDIA_LIBRARY,
-    },
-  ];
-
-  const quickLinks = [
-    { label: "Đơn hàng", href: ROUTES.ADMIN.ORDERS },
-    { label: "Thanh toán", href: ROUTES.ADMIN.PAYMENTS },
-    { label: "Sản phẩm", href: ROUTES.ADMIN.OFFERING_LIST },
-    { label: "Blog", href: ROUTES.ADMIN.BLOG },
-    { label: "Pages", href: ROUTES.ADMIN.PAGES },
-    { label: "Cấu hình", href: ROUTES.ADMIN.CONFIG },
   ];
 
   return (
@@ -302,7 +200,7 @@ export default async function AdminDashboardPage() {
         ))}
       </AdminOverviewGrid>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_360px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.75fr)]">
         <Card className="flex min-h-[380px] flex-col rounded-lg">
           <CardHeader className="pb-3">
             <CardDescription>7 ngày gần nhất</CardDescription>
@@ -313,90 +211,36 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-5">
-          <Card className="rounded-lg">
-            <CardHeader>
-              <CardDescription>Nội dung và catalog</CardDescription>
-              <CardTitle>Trạng thái xuất bản</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Nội dung đang live</span>
-                <span className="text-lg font-semibold">{publishedContent}</span>
+        <Card className="rounded-lg">
+          <CardHeader>
+            <CardDescription>5 đơn mới nhất</CardDescription>
+            <CardTitle>Đơn hàng gần đây</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recentOrdersResult.rows.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                Chưa có dữ liệu đơn hàng.
               </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Nội dung còn draft</span>
-                <span className="text-lg font-semibold">{draftContent}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Sản phẩm live</span>
-                <span className="text-lg font-semibold">{publishedOfferings}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Sản phẩm draft</span>
-                <span className="text-lg font-semibold">{draftOfferings}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Thiệp live</span>
-                <span className="text-lg font-semibold">{publishedInvitations}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm text-muted-foreground">Thiệp draft</span>
-                <span className="text-lg font-semibold">{draftInvitations}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-lg">
-            <CardHeader>
-              <CardDescription>Thao tác nhanh</CardDescription>
-              <CardTitle>Điều hướng</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              {quickLinks.map((item) => (
-                <AdminActionLinkTile key={item.href} href={item.href} label={item.label} showArrow />
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              recentOrdersResult.rows.map((order) => (
+                <div key={order.id} className="space-y-2 border-b pb-3 last:border-b-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{order.order_number}</p>
+                      <p className="truncate text-sm text-muted-foreground">{order.customer_name}</p>
+                    </div>
+                    <span className="shrink-0 font-semibold">{formatVnd(order.total_amount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                    <span className="capitalize">{formatStatus(order.payment_status)}</span>
+                    <span>{formatDateTime(order.created_at)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardDescription>Đơn mới nhất</CardDescription>
-          <CardTitle>Hoạt động gần đây</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {recentOrdersResult.rows.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Chưa có dữ liệu đơn hàng để hiển thị.
-            </div>
-          ) : (
-            recentOrdersResult.rows.map((order) => (
-              <div
-                key={order.id}
-                className="flex flex-col gap-2 rounded-lg border p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium">{order.order_number}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {order.customer_name} • {formatDateTime(order.created_at)}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
-                    {formatStatus(order.status)}
-                  </span>
-                  <span className="rounded-full bg-muted px-2.5 py-1 capitalize text-muted-foreground">
-                    {formatStatus(order.payment_status)}
-                  </span>
-                  <span className="font-semibold">{formatVnd(order.total_amount)}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
     </section>
   );
 }

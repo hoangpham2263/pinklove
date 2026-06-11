@@ -18,13 +18,13 @@ export async function POST(request: Request) {
   const status = String(formData.get("status") ?? "draft") as "draft" | "published";
 
   if (!title || !slug || !categoryId) {
-    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để tạo blog post.", location: `${ROUTES.ADMIN.BLOG}?error=missing_fields` });
+    return respondError(request, { error: "missing_fields", message: "Thiếu dữ liệu để tạo blog post.", location: `${ROUTES.ADMIN.BLOG_POSTS}?error=missing_fields` });
   }
 
   try {
     const post = await createBlogPost({ title, slug, categoryId, excerpt, content, coverImage, status });
     return respondSuccess(request, { location: ROUTES.ADMIN.BLOG_ENTRY(post.slug), message: "Đã tạo blog post." });
   } catch {
-    return respondError(request, { error: "create_failed", message: "Không thể tạo blog post.", location: `${ROUTES.ADMIN.BLOG}?error=create_failed` });
+    return respondError(request, { error: "create_failed", message: "Không thể tạo blog post.", location: `${ROUTES.ADMIN.BLOG_POSTS}?error=create_failed` });
   }
 }

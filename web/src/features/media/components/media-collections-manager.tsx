@@ -40,6 +40,7 @@ export function MediaCollectionsManager({
   action = ROUTES.API.MEDIA_COLLECTIONS,
   title = "Media Collections",
   summary = "Gom ảnh thành album hoặc gallery có thứ tự để wedding site, provider, offering và landing page sử dụng lại.",
+  plain = false,
 }: {
   collections: Array<MediaCollection & { item_count: number }>;
   targets: MediaCollectionTarget[];
@@ -48,6 +49,7 @@ export function MediaCollectionsManager({
   action?: string;
   title?: string;
   summary?: string;
+  plain?: boolean;
 }) {
   const contextual = Boolean(fixedTargetType && fixedTargetId);
   const defaultTargetType = fixedTargetType ?? targets[0]?.type ?? "wedding_site";
@@ -123,8 +125,8 @@ export function MediaCollectionsManager({
   }
 
   return (
-    <Card>
-      <CardHeader className="border-b">
+    <Card className={plain ? "border-0 bg-transparent py-0 shadow-none" : undefined}>
+      <CardHeader className={plain ? "border-b px-0 pt-0" : "border-b"}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <CardTitle>{title}</CardTitle>
@@ -136,7 +138,7 @@ export function MediaCollectionsManager({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 pt-5">
+      <CardContent className={plain ? "space-y-5 px-0 pt-5 pb-0" : "space-y-5 pt-5"}>
         <div className="flex flex-wrap gap-3">
           <div className="relative min-w-60 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

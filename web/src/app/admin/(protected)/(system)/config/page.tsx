@@ -1,9 +1,6 @@
-import { CheckCircle2, FileCode2, ListChecks, SearchCheck } from "lucide-react";
-import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-import { getSystemSettings } from "@/lib/system-settings";
 
 const CONFIG_SECTIONS = [
   {
@@ -152,24 +149,9 @@ const CONFIG_SECTIONS = [
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
-  const settings = await getSystemSettings();
-  const enabledCount = [
-    settings.breadcrumb.enabled,
-    settings.sitemap.enabled,
-    settings.email.enabled,
-    settings.branding.siteName.trim().length > 0,
-    settings.favicon.siteFavicon.trim().length > 0,
-  ].filter(Boolean).length;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <AdminOverviewGrid>
-        <AdminOverviewCard title="Tổng mục cấu hình" value={CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0)} icon={ListChecks} />
-        <AdminOverviewCard title="Cấu hình đang bật" value={enabledCount} icon={CheckCircle2} />
-        <AdminOverviewCard title="Sitemap XML" value={settings.sitemap.enabled ? "On" : "Off"} icon={FileCode2} />
-        <AdminOverviewCard title="Cho phép index" value={settings.indexing.siteIndexingEnabled ? "On" : "Off"} icon={SearchCheck} />
-      </AdminOverviewGrid>
-
       <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
     </section>
   );

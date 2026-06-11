@@ -2,7 +2,7 @@ import { InternalAccountEditorForm } from "@/features/admin/components/internal-
 import { requireAdminPermission } from "@/lib/auth";
 
 export default async function AdminInternalAccountCreatePage() {
-  await requireAdminPermission("accounts.manage");
+  await requireAdminPermission("accounts.view");
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

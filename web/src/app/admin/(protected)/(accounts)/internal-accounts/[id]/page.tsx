@@ -9,7 +9,7 @@ type AdminInternalAccountEditPageProps = {
 };
 
 export default async function AdminInternalAccountEditPage({ params }: AdminInternalAccountEditPageProps) {
-  await requireAdminPermission("accounts.manage");
+  await requireAdminPermission("accounts.view");
   const { id } = await params;
   const account = await getInternalAccount(id);
   if (!account) notFound();
