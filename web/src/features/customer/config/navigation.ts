@@ -65,6 +65,9 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
     defaultOpen: false,
     children: [
       { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS, iconName: "folder-heart" },
+      { label: "Kế hoạch cưới", href: ROUTES.CUSTOMER.WEDDING_PLANNING, iconName: "folder-heart" },
+      { label: "Yêu cầu nhà cung cấp", href: ROUTES.CUSTOMER.VENDOR_LEADS, iconName: "store" },
+      { label: "Bookings", href: ROUTES.CUSTOMER.BOOKINGS, iconName: "shopping-bag" },
       { label: "Đơn hàng", href: ROUTES.CUSTOMER.ORDERS, iconName: "shopping-bag" },
     ],
   },

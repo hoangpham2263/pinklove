@@ -1,10 +1,7 @@
-import { Users } from "lucide-react";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
-import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
-import { listAccountsByRole, requireAdmin } from "@/lib/auth";
-import { getRoleLabel, USER_ROLES } from "@/lib/roles";
+import { UserCreateForm } from "@/features/admin/components/users/user-create-form";
+import { listAdminRoles } from "@/features/access/server/service";
+import { requireAdminPermission } from "@/lib/auth";
+import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
 type AdminAffiliateUsersCreatePageProps = {
@@ -12,24 +9,20 @@ type AdminAffiliateUsersCreatePageProps = {
 };
 
 export default async function AdminAffiliateUsersCreatePage({ searchParams }: AdminAffiliateUsersCreatePageProps) {
-  await requireAdmin();
+  await requireAdminPermission("accounts.manage");
   await searchParams;
-  const accounts = await listAccountsByRole(USER_ROLES.AFFILIATE);
+  const adminRoles = await listAdminRoles();
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <AdminOverviewGrid className="md:grid-cols-1 lg:grid-cols-1">
-        <AdminOverviewCard title={getRoleLabel(USER_ROLES.AFFILIATE)} value={accounts.length} icon={Users} />
-      </AdminOverviewGrid>
-
-      <Card className="rounded-lg">
-        <CardHeader>
-          <CardTitle>Tạo tài khoản đối tác / CTV</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <QuickCreateUserForm defaultRole={USER_ROLES.AFFILIATE} returnTo={ROUTES.ADMIN.AFFILIATE_USERS} />
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Tạo đối tác / CTV</h1>
+      </div>
+      <UserCreateForm
+        defaultRole={USER_ROLES.AFFILIATE}
+        returnTo={ROUTES.ADMIN.AFFILIATE_USERS}
+        adminRoles={adminRoles}
+      />
     </section>
   );
 }

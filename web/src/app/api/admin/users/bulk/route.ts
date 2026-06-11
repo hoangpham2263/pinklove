@@ -2,6 +2,7 @@ import { adminDeleteAccount, adminUpdateRole, getCurrentUserFromRequest, isAdmin
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { parseUserRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
+import { assignAdminRole } from "@/features/access/server/service";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     return respondError(request, { error: "missing_selection", message: "Hãy chọn ít nhất một người dùng.", location: `${returnTo}?error=missing_selection` });
   }
 
-  const allowedBulkRoles = USER_ROLE_OPTIONS.map((option) => option.value);
+  const allowedBulkRoles = USER_ROLE_OPTIONS.filter((option) => option.value !== "ADMIN").map((option) => option.value);
   if (![...allowedBulkRoles, "delete"].includes(bulkAction)) {
     return respondError(request, { error: "invalid_bulk_action", message: "Tác vụ hàng loạt không hợp lệ.", location: `${returnTo}?error=invalid_bulk_action` });
   }
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     } else {
       const nextRole: UserRole = parseUserRole(bulkAction);
       for (const userId of userIds) {
+        await assignAdminRole(userId, null, actor.id);
         await adminUpdateRole(actor.id, userId, nextRole);
       }
     }

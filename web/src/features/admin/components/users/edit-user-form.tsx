@@ -3,26 +3,35 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/common/confirm-provider";
 import { NativeForm } from "@/components/common/native-form";
 import { PasswordInput } from "@/components/common/password-input";
-import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { AccountUser, AuthUser, UserProfile } from "@/lib/auth";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import { USER_ROLE_OPTIONS, getRoleLabel } from "@/lib/roles";
+import { USER_ROLE_OPTIONS, USER_ROLES, getRoleLabel } from "@/lib/roles";
+import type { AdminRole } from "@/features/access/server/service";
 
 type EditUserFormProps = {
   actor: AuthUser;
   user: AccountUser;
   profile: UserProfile | null;
   returnTo?: string;
+  adminRoles: AdminRole[];
 };
 
-export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormProps) {
+export function EditUserForm({ actor, user, profile, returnTo, adminRoles }: EditUserFormProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const currentAccessRole = user.role === USER_ROLES.ADMIN
+    ? `admin:${user.adminRoleId}`
+    : `portal:${user.role}`;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,84 +48,137 @@ export function EditUserForm({ actor, user, profile, returnTo }: EditUserFormPro
     }
   }
 
+  async function handleDelete() {
+    const isConfirmed = await confirm({
+      title: "Xóa người dùng",
+      description: `Bạn có chắc chắn muốn xóa người dùng: ${user.username}? Hành động này không thể hoàn tác.`,
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      variant: "destructive",
+    });
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const formData = new FormData();
+      formData.append("userId", user.id);
+      if (returnTo) {
+        formData.append("returnTo", returnTo);
+      }
+      const result = await adminApi.deleteUser(formData);
+      toast.success(result.message ?? "Đã xóa tài khoản.");
+      finishMutation(router, result, { redirect: "push", refresh: false });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Không thể xóa tài khoản.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
-    <NativeForm action={adminApiActions.updateUser} method="POST" className="flex flex-col gap-6 lg:flex-row" onSubmit={handleSubmit}>
+    <NativeForm
+      id="user-update-form"
+      action={adminApiActions.updateUser}
+      method="POST"
+      className="grid gap-6 lg:grid-cols-12"
+      onSubmit={handleSubmit}
+    >
       <input type="hidden" name="userId" value={user.id} />
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
 
-      <div className="flex-1 space-y-6">
-        <Card>
-          <CardHeader>
+      <div className="min-w-0 space-y-6 lg:col-span-9">
+        <Card className="min-w-0 overflow-visible rounded-lg gap-0">
+          <CardHeader className="border-b gap-0 pb-0">
             <CardTitle>Tài khoản</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label>Tên đăng nhập</label>
-              <Input name="username" defaultValue={user.username} placeholder="" required />
-            </div>
+          <CardContent className="space-y-5 pt-5">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tên đăng nhập</label>
+                <Input name="username" defaultValue={user.username} required />
+              </div>
 
-            <div className="space-y-2">
-              <label>Mật khẩu mới (để trống nếu không đổi)</label>
-              <PasswordInput name="password" placeholder="Nhập mật khẩu mới hoặc tạo tự động" autoComplete="new-password" allowGenerate />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Mật khẩu mới (để trống nếu không đổi)</label>
+                <PasswordInput name="password" placeholder="Nhập mật khẩu mới hoặc tạo tự động" autoComplete="new-password" allowGenerate />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Hồ sơ (Profile)</CardTitle>
+        <Card className="min-w-0 overflow-visible rounded-lg gap-0">
+          <CardHeader className="border-b gap-0 pb-0">
+            <CardTitle>Hồ sơ</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label>Họ và tên</label>
-              <Input name="fullName" defaultValue={profile?.fullName ?? ""} placeholder="" />
+          <CardContent className="space-y-5 pt-5">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Họ và tên</label>
+                <Input name="fullName" defaultValue={profile?.fullName ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tên hiển thị</label>
+                <Input name="displayName" defaultValue={profile?.displayName ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Số điện thoại</label>
+                <Input name="phone" defaultValue={profile?.phone ?? ""} />
+              </div>
             </div>
+
             <div className="space-y-2">
-              <label>Tên hiển thị</label>
-              <Input name="displayName" defaultValue={profile?.displayName ?? ""} placeholder="" />
-            </div>
-            <div className="space-y-2">
-              <label>Số điện thoại</label>
-              <Input name="phone" defaultValue={profile?.phone ?? ""} placeholder="" />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <label>Tiểu sử (Bio)</label>
-              <textarea
+              <label className="text-sm font-medium">Tiểu sử</label>
+              <Textarea
                 name="bio"
                 defaultValue={profile?.bio ?? ""}
                 rows={3}
-                className="flex min-h-[80px] w-full rounded-lg border border-input bg-transparent focus:outline-none"
-                placeholder=""
               />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="w-full shrink-0 space-y-6 lg:w-80">
-        <Card>
+      <div className="min-w-0 space-y-6 lg:col-span-3">
+        <Card className="min-w-0 rounded-lg lg:self-start">
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
+            <CardTitle>Thiết lập</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <label className="font-medium">Vai trò</label>
               <select
-                name="role"
-                defaultValue={user.role}
+                name="accessRole"
+                defaultValue={currentAccessRole}
                 disabled={user.id === actor.id}
                 className="h-10 w-full disabled:opacity-50"
               >
-                {USER_ROLE_OPTIONS.map((role) => (
-                  <option key={role.value} value={role.value}>
+                {adminRoles.filter((role) => role.isActive).map((role) => (
+                  <option key={role.id} value={`admin:${role.id}`}>
+                    {role.key === "super_admin" ? "Admin" : role.label}
+                  </option>
+                ))}
+                {USER_ROLE_OPTIONS.filter((role) => role.value !== USER_ROLES.ADMIN).map((role) => (
+                  <option key={role.value} value={`portal:${role.value}`}>
                     {getRoleLabel(role.value)} ({role.value})
                   </option>
                 ))}
-              </select>
+                </select>
             </div>
-            <AdminSubmitButton className="w-full" disabled={isSaving}>
+
+            <AdminSubmitButton className="w-full rounded-md" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
             </AdminSubmitButton>
+
+            {user.id !== actor.id ? (
+              <div className="border-t pt-4">
+                <AdminDeleteButton className="w-full rounded-md" disabled={isDeleting} onClick={() => void handleDelete()}>
+                  {isDeleting ? "Đang xóa..." : "Xóa người dùng"}
+                </AdminDeleteButton>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>

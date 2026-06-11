@@ -53,6 +53,7 @@ type OfferingEditorFormProps = {
 };
 
 type ProductEditorTab = "commerce" | "source" | "relations" | "landingPages";
+type OfferingInfoTab = "templateFields" | "customFields";
 
 const PRODUCT_EDITOR_TABS: Array<{ key: ProductEditorTab; label: string; description: string }> = [
   { key: "commerce", label: "Giá & kho", description: "Giá bán, giá nhập, tồn kho" },
@@ -97,6 +98,7 @@ export function OfferingEditorForm({
   const [ownerType, setOwnerType] = useState<"internal" | "provider">(offering.ownerType);
   const [ownerProviderId, setOwnerProviderId] = useState(offering.ownerProviderId || "");
   const [allowProviderSupply, setAllowProviderSupply] = useState(offering.allowProviderSupply);
+  const [activeInfoTab, setActiveInfoTab] = useState<OfferingInfoTab>("templateFields");
   const [activeProductTab, setActiveProductTab] = useState<ProductEditorTab>("commerce");
   const [siteDefaults, setSiteDefaults] = useState<Record<string, unknown>>(
     (offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}
@@ -116,6 +118,18 @@ export function OfferingEditorForm({
     () => (isGeneralOffering || isBuilder ? [] : getInvitationTemplateFields(offering.templateKey)),
     [isGeneralOffering, isBuilder, offering.templateKey]
   );
+  const hasCustomFieldSchema = Boolean(offeringTypeDefinition?.fieldSchema?.length);
+  const infoTabs = useMemo(() => {
+    const tabs: Array<{ key: OfferingInfoTab; label: string; description: string }> = [];
+    if (templateFields.length > 0) {
+      tabs.push({ key: "templateFields", label: "Nội dung mẫu", description: "Field mặc định của template" });
+    }
+    if (hasCustomFieldSchema && offeringTypeDefinition) {
+      tabs.push({ key: "customFields", label: "Thông số", description: offeringTypeDefinition.label });
+    }
+    return tabs;
+  }, [hasCustomFieldSchema, offeringTypeDefinition, templateFields.length]);
+  const activeFieldTab = infoTabs.some((tab) => tab.key === activeInfoTab) ? activeInfoTab : infoTabs[0]?.key;
   const builderInitialValue = useMemo(
     () => (siteDefaults.builderDocument ?? siteDefaults.builderCanvas ?? null),
     [siteDefaults]
@@ -336,107 +350,170 @@ export function OfferingEditorForm({
             <CardTitle>{isGeneralOffering ? "Thông tin sản phẩm" : "Thông tin mẫu chuẩn"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 pt-5">
-                                <div className="grid gap-5 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <label className="font-medium text-sm">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
-                                    <Input
-                                      name="name"
-                                      value={name}
-                                      onChange={(e) => {
-                                        const next = e.target.value;
-                                        setName(next);
-                                        setSlug(slugify(next));
-                                      }}
-                                    />
-                                  </div>
-                    
-                                  <div className="space-y-2">
-                                    <label className="font-medium text-sm">Slug</label>
-                                    <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
-                                  </div>
-                                </div>
-                    
-                                <div className="grid gap-5 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <label className="font-medium text-sm">Danh mục</label>
-                                    <select
-                                      name="categoryId"
-                                      defaultValue={offering.categoryId ?? ""}
-                                      className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                                    >
-                                      <option value="">Không chọn danh mục</option>
-                                      {categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                          {category.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                    
-                                  <div className="space-y-2">
-                                    <label className="font-medium text-sm">Hình thức bàn giao</label>
-                                    {isGeneralOffering ? (
-                                      <select
-                                        name="fulfillmentType"
-                                        value={fulfillmentType}
-                                        onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
-                                        className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                                      >
-                                        <option value="digital">Sản phẩm online - Nhận qua link/file</option>
-                                        <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
-                                        <option value="service">Dịch vụ - Có người thực hiện/ đặt lịch</option>
-                                      </select>
-                                    ) : (
-                                      <>
-                                        <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
-                                        <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                                          {getFulfillmentTypeLabel(offering.fulfillmentType)}
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                    
-                                {!isGeneralOffering ? (
-                                  <div className="space-y-2 md:col-span-2">
-                                    <label className="font-medium text-sm">Template source</label>
-                                    <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
-                                      {offering.templateKey}
-                                    </div>
-                                  </div>
-                                ) : null}
-                    
-                                <div className="space-y-2">
-                                  <label className="font-medium text-sm">Mô tả ngắn</label>
-                                  <textarea
-                                    name="excerpt"
-                                    defaultValue={offering.excerpt}
-                                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                                  />
-                                </div>
-                    
-                                <div className="space-y-2">
-                                  <label className="font-medium text-sm">Mô tả chi tiết</label>
-                                  <textarea
-                                    name="description"
-                                    defaultValue={offering.description}
-                                    className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
-                                  />
-                                </div>
-                    
-                                {templateFields.length > 0 ? (
-                                  <FieldsEditor
-                                    fields={templateFields}
-                                    values={siteDefaults}
-                                    onChange={(fieldName, value) => {
-                                      setSiteDefaults((prev) => ({
-                                        ...prev,
-                                        [fieldName]: value,
-                                      }));
-                                    }}
-                                  />
-                                ) : null}
-                              </CardContent>        </Card>
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
+                <Input
+                  name="name"
+                  value={name}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setName(next);
+                    setSlug(slugify(next));
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Slug</label>
+                <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Danh mục</label>
+                <select
+                  name="categoryId"
+                  defaultValue={offering.categoryId ?? ""}
+                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                >
+                  <option value="">Không chọn danh mục</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Hình thức bàn giao</label>
+                {isGeneralOffering ? (
+                  <select
+                    name="fulfillmentType"
+                    value={fulfillmentType}
+                    onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
+                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                  >
+                    <option value="digital">Sản phẩm online - Nhận qua link/file</option>
+                    <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
+                    <option value="service">Dịch vụ - Có người thực hiện/ đặt lịch</option>
+                  </select>
+                ) : (
+                  <>
+                    <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
+                    <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                      {getFulfillmentTypeLabel(offering.fulfillmentType)}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {!isGeneralOffering ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Template source</label>
+                <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                  {offering.templateKey}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Mô tả ngắn</label>
+              <textarea
+                name="excerpt"
+                defaultValue={offering.excerpt}
+                className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Mô tả chi tiết</label>
+              <textarea
+                name="description"
+                defaultValue={offering.description}
+                className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {infoTabs.length > 0 ? (
+          <Card className="min-w-0 overflow-hidden rounded-lg gap-0">
+            <CardHeader className="border-b gap-0 pb-0">
+              <CardTitle>Nội dung</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid min-h-[30rem] lg:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="border-b bg-white p-3 lg:border-r lg:border-b-0">
+                  <div className="grid gap-1">
+                    {infoTabs.map((tab) => {
+                      const active = activeFieldTab === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          type="button"
+                          className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                            active
+                              ? "border-primary/30 bg-primary/5"
+                              : "border-border/50 bg-white hover:border-primary/30 hover:bg-primary/5"
+                          }`}
+                          onClick={() => setActiveInfoTab(tab.key)}
+                        >
+                          <span className="block font-medium">{tab.label}</span>
+                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">{tab.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="min-w-0 p-5 md:p-6">
+                  {templateFields.length > 0 ? (
+                    <section className={activeFieldTab !== "templateFields" ? "hidden" : "space-y-6"}>
+                      <div className="border-b pb-5">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Template defaults
+                        </p>
+                        <h3 className="mt-1 text-lg font-semibold">Nội dung mẫu</h3>
+                      </div>
+                      <FieldsEditor
+                        fields={templateFields}
+                        values={siteDefaults}
+                        showTabs={false}
+                        className="grid grid-cols-12 gap-4"
+                        onChange={(fieldName, value) => {
+                          setSiteDefaults((prev) => ({
+                            ...prev,
+                            [fieldName]: value,
+                          }));
+                        }}
+                      />
+                    </section>
+                  ) : null}
+
+                  {hasCustomFieldSchema && offeringTypeDefinition ? (
+                    <section className={activeFieldTab !== "customFields" ? "hidden" : "space-y-6"}>
+                      <div className="border-b pb-5">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Dynamic fields
+                        </p>
+                        <h3 className="mt-1 text-lg font-semibold">Thông số: {offeringTypeDefinition.label}</h3>
+                      </div>
+                      <DynamicOfferingFields
+                        offeringType={offeringTypeDefinition}
+                        values={customFields}
+                        onChange={setCustomFields}
+                      />
+                    </section>
+                  ) : null}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
 
         {isGeneralOffering ? (
           <Card className="min-w-0 overflow-hidden rounded-lg gap-0">
@@ -668,22 +745,6 @@ export function OfferingEditorForm({
           </>
         )}
 
-        {offeringTypeDefinition && offeringTypeDefinition.fieldSchema && offeringTypeDefinition.fieldSchema.length > 0 ? (
-          <Card className="min-w-0 overflow-visible rounded-lg gap-0">
-            <CardHeader className="border-b gap-0 pb-0">
-              <CardTitle>Thông số: {offeringTypeDefinition.label}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8 pt-5">
-              <div className="grid gap-5 grid-cols-1">
-                <DynamicOfferingFields
-                  offeringType={offeringTypeDefinition}
-                  values={customFields}
-                  onChange={setCustomFields}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
       </div>
 
       <div className="min-w-0 space-y-6 lg:col-span-3">

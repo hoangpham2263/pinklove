@@ -19,6 +19,7 @@ const globalForDb = globalThis as unknown as {
   menuTablesMigrationDone?: boolean;
   affiliateTablesMigrationDone?: boolean;
   internalAccountsMigrationDone?: boolean;
+  adminRbacMigrationDone?: boolean;
   offeringTablesMigrationDone?: boolean;
   landingPageTablesMigrationDone?: boolean;
   blogTablesMigrationDone?: boolean;
@@ -32,12 +33,6 @@ const globalForDb = globalThis as unknown as {
   providerApplicationsMigrationDone?: boolean;
   affiliateApplicationsMigrationDone?: boolean;
   chatTablesMigrationDone?: boolean;
-  chatTablesMigrationV2Done?: boolean;
-  chatTablesMigrationV3Done?: boolean;
-  chatTablesMigrationV4Done?: boolean;
-  chatTablesMigrationV5Done?: boolean;
-  chatTablesMigrationV6Done?: boolean;
-  chatTablesMigrationV7Done?: boolean;
   notificationTablesMigrationDone?: boolean;
 	  contentCommentsMigrationDone?: boolean;
 	  mediaTablesMigrationDone?: boolean;
@@ -334,6 +329,107 @@ async function ensureUsersRoleMigration() {
   NULL;
  END
  $$;
+ `);
+}
+
+async function ensureAdminRbacMigration() {
+ const pool = getPool();
+
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS admin_roles (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   key TEXT NOT NULL UNIQUE,
+   label TEXT NOT NULL,
+   description TEXT NOT NULL DEFAULT '',
+   is_system BOOLEAN NOT NULL DEFAULT FALSE,
+   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+   sort_order INT NOT NULL DEFAULT 0,
+   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  CREATE TABLE IF NOT EXISTS admin_permissions (
+   id TEXT PRIMARY KEY DEFAULT app_random_id(),
+   key TEXT NOT NULL UNIQUE,
+   label TEXT NOT NULL,
+   description TEXT NOT NULL DEFAULT '',
+   module TEXT NOT NULL,
+   sort_order INT NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS admin_role_permissions (
+   role_id TEXT NOT NULL REFERENCES admin_roles(id) ON DELETE CASCADE,
+   permission_id TEXT NOT NULL REFERENCES admin_permissions(id) ON DELETE CASCADE,
+   PRIMARY KEY (role_id, permission_id)
+  );
+
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role_id TEXT;
+
+  DO $$
+  BEGIN
+   IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'users'::regclass
+      AND conname = 'users_admin_role_id_fkey'
+   ) THEN
+    ALTER TABLE users
+    ADD CONSTRAINT users_admin_role_id_fkey
+    FOREIGN KEY (admin_role_id) REFERENCES admin_roles(id) ON DELETE RESTRICT;
+   END IF;
+  END
+  $$;
+
+  CREATE INDEX IF NOT EXISTS users_admin_role_idx ON users(admin_role_id);
+  CREATE INDEX IF NOT EXISTS admin_permissions_module_idx ON admin_permissions(module, sort_order);
+
+  INSERT INTO admin_roles (key,label,description,is_system,is_active,sort_order)
+  VALUES
+   ('super_admin','Super Admin','Toàn quyền quản trị hệ thống.',TRUE,TRUE,0),
+   ('staff','Staff','Tài khoản nội bộ có quyền giới hạn.',FALSE,TRUE,10)
+  ON CONFLICT (key) DO UPDATE
+  SET label=EXCLUDED.label,description=EXCLUDED.description,is_active=TRUE;
+
+  INSERT INTO admin_permissions (key,label,description,module,sort_order) VALUES
+   ('dashboard.view','Xem Dashboard','Truy cập tổng quan Admin.','dashboard',10),
+   ('content.view','Xem Content','Truy cập Pages, Navigation và Blog.','content',20),
+   ('commerce.view','Xem Commerce','Truy cập Orders, Payments và Shipments.','commerce',30),
+   ('marketplace.view','Xem Marketplace','Truy cập Provider và Marketplace.','marketplace',40),
+   ('bookings.view','Xem Booking','Truy cập quản lý Booking.','bookings',50),
+   ('marketing.view','Xem Marketing','Truy cập Landing Pages và Campaigns.','marketing',60),
+   ('planning.view','Xem Planning','Truy cập Wedding Planning.','planning',70),
+   ('offerings.view','Xem Offerings','Truy cập quản lý Offering.','offerings',80),
+   ('affiliates.view','Xem Affiliate','Truy cập Affiliate Marketing.','affiliates',90),
+   ('accounts.view','Xem Accounts','Truy cập Users, Customers và Internal Accounts.','accounts',100),
+   ('accounts.manage','Quản lý Accounts','Tạo, sửa và phân quyền tài khoản.','accounts',110),
+   ('system.view','Xem System','Truy cập công cụ hệ thống.','system',120),
+   ('analytics.view','Xem Analytics','Truy cập Analytics.','analytics',130),
+   ('configuration.view','Xem Configuration','Truy cập cấu hình hệ thống.','configuration',140),
+   ('messages.view','Xem Messages','Truy cập tin nhắn.','messages',150),
+   ('comments.view','Xem Comments','Truy cập bình luận.','comments',160)
+  ON CONFLICT (key) DO UPDATE
+  SET label=EXCLUDED.label,description=EXCLUDED.description,module=EXCLUDED.module,sort_order=EXCLUDED.sort_order;
+
+  INSERT INTO admin_role_permissions (role_id,permission_id)
+  SELECT role.id,permission.id
+  FROM admin_roles role
+  INNER JOIN admin_permissions permission ON permission.key='dashboard.view'
+  WHERE role.key='staff'
+  ON CONFLICT DO NOTHING;
+
+  UPDATE users
+  SET admin_role_id = (SELECT id FROM admin_roles WHERE key='super_admin')
+  WHERE role='ADMIN' AND admin_role_id IS NULL;
+
+  DROP TABLE IF EXISTS
+   work_reports,work_time_entries,staff_availability,staff_leave_requests,
+   work_report_types,work_time_entry_types,staff_availability_statuses,
+   staff_leave_types,staff_leave_statuses,work_task_attachments,work_task_comments,
+   work_task_checklists,work_task_assignees,work_project_members,work_tasks,
+   work_projects,work_task_types,work_task_priorities,work_task_statuses,
+   work_project_statuses,staff_role_assignments,staff_role_permissions,
+   staff_profiles,staff_positions,staff_departments,staff_employment_types,
+   staff_statuses,staff_permissions,staff_roles
+  CASCADE;
  `);
 }
 
@@ -1185,29 +1281,6 @@ async function ensureOfferingTablesMigration() {
   `);
 
   await pool.query(`
-    WITH deprecated_system_types AS (
-      SELECT id
-      FROM offering_types
-      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
-    )
-    DELETE FROM offering_type_fields
-    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
-  `);
-  await pool.query(`
-    WITH deprecated_system_types AS (
-      SELECT id
-      FROM offering_types
-      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
-    )
-    DELETE FROM offering_type_field_groups
-    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
-  `);
-  await pool.query(`
-    DELETE FROM offering_types
-    WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon');
-  `);
-
-  await pool.query(`
     ALTER TABLE offerings
     ADD COLUMN IF NOT EXISTS category_id TEXT,
     ADD COLUMN IF NOT EXISTS fulfillment_type TEXT DEFAULT 'digital',
@@ -1560,6 +1633,29 @@ async function ensureOfferingTablesMigration() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS offering_type_field_groups_type_sort_idx
     ON offering_type_field_groups(offering_type_id, sort_order, label);
+  `);
+
+  await pool.query(`
+    WITH deprecated_system_types AS (
+      SELECT id
+      FROM offering_types
+      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
+    )
+    DELETE FROM offering_type_fields
+    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
+  `);
+  await pool.query(`
+    WITH deprecated_system_types AS (
+      SELECT id
+      FROM offering_types
+      WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon')
+    )
+    DELETE FROM offering_type_field_groups
+    WHERE offering_type_id IN (SELECT id FROM deprecated_system_types);
+  `);
+  await pool.query(`
+    DELETE FROM offering_types
+    WHERE key IN ('service', 'creator_service', 'experience', 'subscription', 'addon');
   `);
 
   await pool.query(`
@@ -2164,9 +2260,66 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS wedding_site_pages (
+    CREATE TABLE IF NOT EXISTS media_collections (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS media_collection_items (
+      collection_id TEXT NOT NULL REFERENCES media_collections(id) ON DELETE CASCADE,
+      media_asset_id TEXT NOT NULL REFERENCES media_assets(id) ON DELETE CASCADE,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (collection_id, media_asset_id)
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS media_collections_target_idx ON media_collections(target_type, target_id);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS media_collection_items_collection_sort_idx ON media_collection_items(collection_id, sort_order);`);
+
+  await pool.query(`
+    ALTER TABLE wedding_sites
+    ADD COLUMN IF NOT EXISTS project_status TEXT NOT NULL DEFAULT 'active',
+    ADD COLUMN IF NOT EXISTS budget NUMERIC(12,2) NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS event_date DATE,
+    ADD COLUMN IF NOT EXISTS guest_target INT NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE wedding_sites DROP CONSTRAINT IF EXISTS wedding_sites_project_status_check;
+    ALTER TABLE wedding_sites
+    ADD CONSTRAINT wedding_sites_project_status_check
+    CHECK (project_status IN ('draft', 'active', 'completed', 'archived'));
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF to_regclass(format('%I.%I', current_schema(), 'pages')) IS NULL
+         AND to_regclass(format('%I.%I', current_schema(), 'wedding_site_pages')) IS NOT NULL THEN
+        ALTER TABLE wedding_site_pages RENAME TO pages;
+      END IF;
+
+      IF to_regclass(format('%I.%I', current_schema(), 'page_sections')) IS NULL
+         AND to_regclass(format('%I.%I', current_schema(), 'wedding_site_sections')) IS NOT NULL THEN
+        ALTER TABLE wedding_site_sections RENAME TO page_sections;
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pages (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      owner_type TEXT NOT NULL DEFAULT 'wedding_site',
+      owner_id TEXT NOT NULL,
+      page_type TEXT NOT NULL DEFAULT 'website',
       slug TEXT NOT NULL,
       title TEXT NOT NULL DEFAULT '',
       sort_order INT NOT NULL DEFAULT 0,
@@ -2174,24 +2327,159 @@ async function ensureCoreDatabaseRefactorMigration() {
       settings JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE (wedding_site_id, slug)
+      UNIQUE (owner_type, owner_id, slug)
     );
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS wedding_site_sections (
+    ALTER TABLE pages
+    ADD COLUMN IF NOT EXISTS owner_type TEXT NOT NULL DEFAULT 'wedding_site',
+    ADD COLUMN IF NOT EXISTS owner_id TEXT,
+    ADD COLUMN IF NOT EXISTS page_type TEXT NOT NULL DEFAULT 'website',
+    ADD COLUMN IF NOT EXISTS slug TEXT,
+    ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'draft',
+    ADD COLUMN IF NOT EXISTS settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'pages'
+          AND column_name = 'wedding_site_id'
+      ) THEN
+        EXECUTE '
+          UPDATE pages
+          SET
+            owner_type = COALESCE(NULLIF(owner_type, ''''), ''wedding_site''),
+            owner_id = COALESCE(owner_id, wedding_site_id::text),
+            page_type = COALESCE(NULLIF(page_type, ''''), ''website'')
+          WHERE owner_id IS NULL
+        ';
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
+    ALTER TABLE pages DROP CONSTRAINT IF EXISTS pages_owner_type_check;
+    ALTER TABLE pages DROP CONSTRAINT IF EXISTS pages_page_type_check;
+    ALTER TABLE pages
+    ADD CONSTRAINT pages_owner_type_check
+    CHECK (owner_type IN ('wedding_site', 'provider', 'offering', 'landing'));
+    ALTER TABLE pages
+    ADD CONSTRAINT pages_page_type_check
+    CHECK (page_type IN ('website', 'landing', 'seo', 'campaign', 'vendor'));
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS pages_owner_slug_uidx
+    ON pages(owner_type, owner_id, slug);
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS pages_owner_type_idx ON pages(owner_type, owner_id, page_type, status);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS page_sections (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
-      page_id TEXT REFERENCES wedding_site_pages(id) ON DELETE CASCADE,
+      page_id TEXT REFERENCES pages(id) ON DELETE CASCADE,
       section_type TEXT NOT NULL,
       title TEXT NOT NULL DEFAULT '',
       sort_order INT NOT NULL DEFAULT 0,
       content JSONB NOT NULL DEFAULT '{}'::jsonb,
       settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+      visibility_rules JSONB NOT NULL DEFAULT '{}'::jsonb,
+      display_conditions JSONB NOT NULL DEFAULT '{}'::jsonb,
+      ab_variant_key TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await pool.query(`
+    ALTER TABLE page_sections
+    ADD COLUMN IF NOT EXISTS page_id TEXT,
+    ADD COLUMN IF NOT EXISTS section_type TEXT NOT NULL DEFAULT 'custom',
+    ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS content JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS visibility_rules JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS display_conditions JSONB NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS ab_variant_key TEXT,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+  `);
+
+  await pool.query(`
+    INSERT INTO pages (owner_type, owner_id, page_type, slug, title, sort_order, status, settings)
+    SELECT 'wedding_site', wedding_sites.id, 'website', 'home', wedding_sites.title, 0, wedding_sites.status, '{}'::jsonb
+    FROM wedding_sites
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM pages
+      WHERE owner_type = 'wedding_site'
+        AND owner_id = wedding_sites.id
+        AND slug = 'home'
+    );
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND table_name = 'page_sections'
+          AND column_name = 'wedding_site_id'
+      ) THEN
+        EXECUTE '
+          UPDATE page_sections section
+          SET page_id = page.id
+          FROM pages page
+          WHERE section.page_id IS NULL
+            AND page.owner_type = ''wedding_site''
+            AND page.slug = ''home''
+            AND page.owner_id = section.wedding_site_id::text
+        ';
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`
+    ALTER TABLE pages DROP COLUMN IF EXISTS wedding_site_id;
+    ALTER TABLE pages ALTER COLUMN owner_id SET NOT NULL;
+    ALTER TABLE pages ALTER COLUMN slug SET NOT NULL;
+  `);
+
+  await pool.query(`
+    ALTER TABLE page_sections DROP COLUMN IF EXISTS wedding_site_id;
+    ALTER TABLE page_sections ALTER COLUMN page_id SET NOT NULL;
+  `);
+
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'page_sections'::regclass
+          AND conname = 'page_sections_page_id_fkey'
+      ) THEN
+        ALTER TABLE page_sections
+        ADD CONSTRAINT page_sections_page_id_fkey
+        FOREIGN KEY (page_id) REFERENCES pages(id) ON DELETE CASCADE;
+      END IF;
+    END $$;
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS page_sections_page_sort_idx ON page_sections(page_id, sort_order, created_at);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS page_sections_ab_variant_key_idx ON page_sections(ab_variant_key);`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_site_guests (
@@ -2211,6 +2499,25 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS guest_groups (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS guest_groups_site_sort_idx ON guest_groups(wedding_site_id, sort_order);`);
+
+  await pool.query(`
+    ALTER TABLE wedding_site_guests
+    ADD COLUMN IF NOT EXISTS guest_group_id TEXT REFERENCES guest_groups(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT '';
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_site_rsvps (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
@@ -2226,6 +2533,77 @@ async function ensureCoreDatabaseRefactorMigration() {
       CONSTRAINT wedding_site_rsvps_status_check CHECK (response_status IN ('pending', 'accepted', 'declined', 'maybe'))
     );
   `);
+
+  await pool.query(`
+    ALTER TABLE wedding_site_rsvps
+    ADD COLUMN IF NOT EXISTS attendee_count INT NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS meal_choice TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS special_requests TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS responded_at TIMESTAMPTZ;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_tables (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      capacity INT NOT NULL DEFAULT 0,
+      sort_order INT NOT NULL DEFAULT 0,
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_table_guests (
+      table_id TEXT NOT NULL REFERENCES wedding_tables(id) ON DELETE CASCADE,
+      guest_id TEXT NOT NULL REFERENCES wedding_site_guests(id) ON DELETE CASCADE,
+      seat_number TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (table_id, guest_id)
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS wedding_tables_site_sort_idx ON wedding_tables(wedding_site_id, sort_order);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS wedding_table_guests_guest_idx ON wedding_table_guests(guest_id);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_tasks (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'other',
+      status TEXT NOT NULL DEFAULT 'pending',
+      priority TEXT NOT NULL DEFAULT 'normal',
+      due_date DATE,
+      completed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT wedding_tasks_category_check CHECK (category IN ('venue', 'photo', 'video', 'makeup', 'planner', 'decoration', 'transportation', 'legal', 'gift', 'other')),
+      CONSTRAINT wedding_tasks_status_check CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS wedding_tasks_site_status_due_idx ON wedding_tasks(wedding_site_id, status, due_date);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS wedding_timeline_items (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      wedding_site_id ${weddingSiteIdType} NOT NULL REFERENCES wedding_sites(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+      timeline_type TEXT NOT NULL DEFAULT 'custom',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT wedding_timeline_items_type_check CHECK (timeline_type IN ('preparation', 'ceremony', 'reception', 'custom'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS wedding_timeline_items_site_starts_idx ON wedding_timeline_items(wedding_site_id, starts_at);`);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS wedding_site_events (
@@ -2257,22 +2635,26 @@ async function ensureCoreDatabaseRefactorMigration() {
   `);
 
   await pool.query(`
-    INSERT INTO wedding_site_sections (
-      wedding_site_id, section_type, title, sort_order, content, settings
+    INSERT INTO page_sections (
+      page_id, section_type, title, sort_order, content, settings
     )
     SELECT
-      wedding_sites.id,
+      pages.id,
       'template_data',
       'Template data',
       0,
       wedding_sites.custom_data,
       '{}'::jsonb
     FROM wedding_sites
+    INNER JOIN pages
+      ON pages.owner_type = 'wedding_site'
+     AND pages.owner_id = wedding_sites.id
+     AND pages.slug = 'home'
     WHERE wedding_sites.custom_data <> '{}'::jsonb
       AND NOT EXISTS (
         SELECT 1
-        FROM wedding_site_sections section
-        WHERE section.wedding_site_id = wedding_sites.id
+        FROM page_sections section
+        WHERE section.page_id = pages.id
           AND section.section_type = 'template_data'
       );
   `);
@@ -2523,6 +2905,59 @@ async function ensureCoreDatabaseRefactorMigration() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_leads (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      budget NUMERIC(12,2) NOT NULL DEFAULT 0,
+      event_date DATE,
+      message TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_leads_status_check CHECK (status IN ('new', 'contacted', 'quoted', 'won', 'lost', 'closed'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS vendor_quotes (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      lead_id TEXT NOT NULL REFERENCES vendor_leads(id) ON DELETE CASCADE,
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      message TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT vendor_quotes_status_check CHECK (status IN ('draft', 'sent', 'accepted', 'rejected', 'expired'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS vendor_leads_provider_status_idx ON vendor_leads(provider_id, status, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS vendor_leads_user_created_idx ON vendor_leads(user_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS vendor_quotes_lead_status_idx ON vendor_quotes(lead_id, status, created_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_search_documents (
+      provider_id TEXT PRIMARY KEY REFERENCES providers(id) ON DELETE CASCADE,
+      search_text TEXT NOT NULL DEFAULT '',
+      filter_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('simple', search_text)) STORED,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS provider_search_documents_search_vector_idx
+    ON provider_search_documents USING GIN (search_vector);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS provider_search_documents_filter_json_idx
+    ON provider_search_documents USING GIN (filter_json);
   `);
 
   await pool.query(`
@@ -2941,6 +3376,49 @@ async function ensureCoreDatabaseRefactorMigration() {
 
   await pool.query(`CREATE INDEX IF NOT EXISTS analytics_events_name_idx ON analytics_events(event_name, occurred_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS analytics_page_views_target_idx ON analytics_page_views(target_type, target_id, viewed_at DESC);`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS conversion_goals (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      key TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS conversion_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      goal_id TEXT NOT NULL REFERENCES conversion_goals(id) ON DELETE CASCADE,
+      session_id TEXT REFERENCES analytics_sessions(id) ON DELETE SET NULL,
+      user_id ${userIdType} REFERENCES users(id) ON DELETE SET NULL,
+      target_type TEXT NOT NULL,
+      target_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO conversion_goals (key, label, target_type, is_active)
+    VALUES
+      ('rsvp_submitted', 'RSVP Submitted', 'wedding_site', TRUE),
+      ('lead_created', 'Lead Created', 'provider', TRUE),
+      ('booking_created', 'Booking Created', 'booking', TRUE),
+      ('checkout_success', 'Checkout Success', 'commerce_order', TRUE),
+      ('contact_vendor', 'Contact Vendor', 'provider', TRUE)
+    ON CONFLICT (key) DO UPDATE
+    SET label = EXCLUDED.label,
+        target_type = EXCLUDED.target_type,
+        is_active = EXCLUDED.is_active,
+        updated_at = NOW();
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS conversion_events_goal_created_idx ON conversion_events(goal_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS conversion_events_target_idx ON conversion_events(target_type, target_id, created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS conversion_events_user_created_idx ON conversion_events(user_id, created_at DESC);`);
 
 }
 
@@ -4767,9 +5245,19 @@ export async function ensureDb() {
         globalForDb.internalAccountsMigrationDone = true;
       }
 
+      if (!globalForDb.adminRbacMigrationDone) {
+        await ensureAdminRbacMigration();
+        globalForDb.adminRbacMigrationDone = true;
+      }
+
       if (!globalForDb.offeringTablesMigrationDone) {
         await ensureOfferingTablesMigration();
         globalForDb.offeringTablesMigrationDone = true;
+      }
+
+      if (!globalForDb.coreDatabaseRefactorMigrationDone) {
+        await ensureCoreDatabaseRefactorMigration();
+        globalForDb.coreDatabaseRefactorMigrationDone = true;
       }
 
       if (!globalForDb.landingPageTablesMigrationDone) {
@@ -4822,36 +5310,6 @@ export async function ensureDb() {
         globalForDb.chatTablesMigrationDone = true;
       }
 
-      if (!globalForDb.chatTablesMigrationV2Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV2Done = true;
-      }
-
-      if (!globalForDb.chatTablesMigrationV3Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV3Done = true;
-      }
-
-      if (!globalForDb.chatTablesMigrationV4Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV4Done = true;
-      }
-
-      if (!globalForDb.chatTablesMigrationV5Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV5Done = true;
-      }
-
-      if (!globalForDb.chatTablesMigrationV6Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV6Done = true;
-      }
-
-      if (!globalForDb.chatTablesMigrationV7Done) {
-        await ensureChatTablesMigration();
-        globalForDb.chatTablesMigrationV7Done = true;
-      }
-
       if (!globalForDb.notificationTablesMigrationDone) {
         await ensureNotificationTablesMigration();
         globalForDb.notificationTablesMigrationDone = true;
@@ -4860,11 +5318,6 @@ export async function ensureDb() {
       if (!globalForDb.contentCommentsMigrationDone) {
         await ensureContentCommentsMigration();
         globalForDb.contentCommentsMigrationDone = true;
-      }
-
-      if (!globalForDb.coreDatabaseRefactorMigrationDone) {
-        await ensureCoreDatabaseRefactorMigration();
-        globalForDb.coreDatabaseRefactorMigrationDone = true;
       }
 
       if (!globalForDb.finalArchitectureCleanupMigrationDone) {
@@ -4898,21 +5351,6 @@ export async function ensureDb() {
 	  if (!globalForDb.managedPagesMigrationDone) {
 	    await ensureManagedPagesMigrationOnce();
 	  }
-
-  if (!globalForDb.chatTablesMigrationV5Done) {
-    await ensureChatTablesMigration();
-    globalForDb.chatTablesMigrationV5Done = true;
-  }
-
-  if (!globalForDb.chatTablesMigrationV6Done) {
-    await ensureChatTablesMigration();
-    globalForDb.chatTablesMigrationV6Done = true;
-  }
-
-  if (!globalForDb.chatTablesMigrationV7Done) {
-    await ensureChatTablesMigration();
-    globalForDb.chatTablesMigrationV7Done = true;
-  }
 
   if (!globalForDb.notificationTablesMigrationDone) {
     await ensureNotificationTablesMigration();

@@ -14,6 +14,9 @@ This file covers the admin area and admin-controlled workflows.
 - The admin shell lives under `src/app/admin/(protected)`.
 - Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER` for stored roles; `GUEST` is the public non-authenticated actor only.
 - Admin `Pages` edits only managed content and system pages already registered in code.
+- Admin `Edit Page` keeps page metadata and body content in `Thông tin trang`,
+  managed fields in the `Custom Fields` vertical tab workspace, and SEO in the
+  separate `SEO Settings` card.
 - Admin `Global Fields` manages code-registered global fields for whole-site shared content.
 - Admin offering flows operate on catalog entries in `offerings`.
 - `/admin/offerings` is the main offering management table across all offering
@@ -31,10 +34,28 @@ This file covers the admin area and admin-controlled workflows.
   fields, validation rules, and conditional logic. The expected backing tables
   are `offering_type_field_groups` and `offering_type_fields`.
 - Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
+- `Admin > Commerce > Bookings` manages service bookings, status changes,
+  booking payments, and status logs. Keep this separate from physical commerce
+  orders.
 - `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New offering flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
 - `Admin > Cấu hình > Payment Methods` owns payment method settings. Admin users should be able to enable, disable, rename, describe, and configure method provider/type through structured form fields instead of raw JSON.
 - Admin order detail should keep operational updates close to the top of the right column. `Cập nhật đơn hàng` is a first-class action surface and should not be buried below long secondary content.
 - Menu management expects `navigation_menus` and `navigation_menu_items`.
+- Media management includes ordered `media_collections` backed by existing
+  `media_assets`; it must not duplicate asset records.
+- Admin analytics reads business conversions from `conversion_goals` and
+  `conversion_events` through the analytics service layer.
+- `Admin > Sales > Wedding Planning` provides the cross-customer planning
+  overview for wedding sites, guests, RSVP, seating, tasks, and timeline.
+- `Admin > Nhà cung cấp > Leads & Quotes` provides the marketplace lead and
+  quote overview before accepted quotes become bookings.
+- `Admin > Nhà cung cấp > Provider Reviews` moderates customer reviews after
+  booking completion or confirmation.
+- `Admin > System > Audit Logs` reads `field_change_logs`.
+- `Admin > Marketing & Planning` owns Campaigns, A/B Experiments, and Landing
+  Page planning surfaces.
+- `Admin > Analytics > Conversion Goals` manages conversion goal metadata used
+  by analytics reports.
 - Public guest header/footer navigation is loaded from `navigation_menus`
   (`header` and `footer`) through the guest layout. Admin Menu Management is the
   source of truth for those links.
@@ -62,13 +83,27 @@ This file covers the admin area and admin-controlled workflows.
 - provider management
 - ecommerce operations
   - orders
+  - bookings
   - payments
   - shipments
 - pages
 - menus
 - media
+  - media library
+  - media collections
 - notifications
 - internal accounts
+- access roles
+
+## Admin Access
+
+- All internal operators use `/admin`; there is no separate Staff portal.
+- `users.role = 'ADMIN'` enables the technical Admin portal.
+- `users.admin_role_id` assigns one database-managed Admin role.
+- `/admin/access/roles` manages module permissions.
+- Page navigation and `/api/admin/*` requests use the same permission mapping.
+- Detailed HR, internal tasks, time tracking, leave, recruitment, contracts,
+  and payroll belong to a separate internal system.
 - affiliates
 - offerings
   - main offering management table
@@ -79,11 +114,16 @@ This file covers the admin area and admin-controlled workflows.
   - template attributes
   - bundles
   - providers
+  - provider reviews
   - search documents
   - provider availability
 - analytics
   - analytics events
   - domain events
+  - conversion goals
+- marketing
+  - campaigns
+  - A/B experiments
 - seo
   - page seo
   - seo schema

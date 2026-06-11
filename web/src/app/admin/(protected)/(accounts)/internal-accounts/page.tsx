@@ -1,6 +1,6 @@
 import { InternalAccountsManager } from "@/features/admin/components/internal-accounts/internal-accounts-manager";
 import { listInternalAccounts } from "@/lib/internal-accounts";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdminPermission } from "@/lib/auth";
 
 type AdminInternalAccountsPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -9,7 +9,7 @@ type AdminInternalAccountsPageProps = {
 export default async function AdminInternalAccountsPage({
   searchParams,
 }: AdminInternalAccountsPageProps) {
-  await requireAdmin();
+  await requireAdminPermission("accounts.manage");
   await searchParams;
 
   const accounts = await listInternalAccounts();

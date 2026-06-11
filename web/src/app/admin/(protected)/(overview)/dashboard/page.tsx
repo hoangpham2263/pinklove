@@ -274,7 +274,7 @@ export default async function AdminDashboardPage() {
       value: mediaAssets.toLocaleString("vi-VN"),
       detail: "Tệp đang có trong thư viện",
       icon: ImageIcon,
-      href: ROUTES.ADMIN.MEDIA,
+      href: ROUTES.ADMIN.MEDIA_LIBRARY,
     },
   ];
 

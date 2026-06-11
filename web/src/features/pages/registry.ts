@@ -54,7 +54,7 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
       {
         type: "section",
-        label: "About Us",
+        label: "Giới thiệu",
         description: "Nội dung phần giới thiệu trên trang chủ.",
         layout: "two-columns",
         fields: [

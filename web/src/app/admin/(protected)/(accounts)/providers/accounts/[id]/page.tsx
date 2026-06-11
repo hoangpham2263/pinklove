@@ -1,13 +1,12 @@
 import { notFound } from "next/navigation";
-import { CheckCircle2, ClipboardList, Clock3, SearchCheck } from "lucide-react";
 
 import { ProviderAccountEditForm } from "@/features/admin/components/provider-account-management/provider-account-edit-form";
 import { ProviderPortalInfoCard } from "@/features/admin/components/provider-account-management/provider-portal-info-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminLinkButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
-import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
-import { countProviderAssignmentsForProvider, listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
-import { ensureProviderPortalSlug, getUserAccount, requireAdmin } from "@/lib/auth";
+import { listProviderOrderSummariesForProvider } from "@/features/provider-orders/server/service";
+import { ensureProviderPortalSlug, getUserAccount, requireAdminPermission } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
 import { USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -26,7 +25,7 @@ type AdminProviderAccountDetailPageProps = {
 };
 
 export default async function AdminProviderAccountDetailPage({ params }: AdminProviderAccountDetailPageProps) {
-  await requireAdmin();
+  await requireAdminPermission("accounts.manage");
   const { id } = await params;
   const provider = await getUserAccount(id);
 
@@ -36,22 +35,18 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
 
   const providerPortalSlug = provider.providerPortalSlug || (await ensureProviderPortalSlug(provider.id));
 
-  const [stats, assignments, settings] = await Promise.all([
-    countProviderAssignmentsForProvider(provider.id),
+  const [assignments, settings] = await Promise.all([
     listProviderOrderSummariesForProvider(provider.id),
     getSystemSettings(),
   ]);
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <h1 className="text-2xl font-semibold">{provider.displayName || provider.fullName || provider.username}</h1>
-
-      <AdminOverviewGrid>
-        <AdminOverviewCard title="Tổng phân công" value={stats.total} icon={ClipboardList} />
-        <AdminOverviewCard title="Đang xử lý" value={stats.active} icon={Clock3} />
-        <AdminOverviewCard title="Chờ review" value={stats.review} icon={SearchCheck} />
-        <AdminOverviewCard title="Hoàn tất" value={stats.completed} icon={CheckCircle2} />
-      </AdminOverviewGrid>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Chỉnh sửa provider: {provider.displayName || provider.fullName || provider.username}
+        </h1>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="min-w-0 space-y-6 lg:col-span-9">
@@ -126,11 +121,10 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
                       <option value="deleted">Xóa mềm supplier</option>
                     </select>
                   </div>
-                  <textarea
+                  <Textarea
                     form="provider-update-form"
                     name="reason"
                     defaultValue={provider.accountStatusReason}
-                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
                     placeholder="Lý do block / ban / xóa mềm supplier"
                   />
                   <AdminSubmitButton form="provider-update-form" className="w-full rounded-md">Lưu provider</AdminSubmitButton>

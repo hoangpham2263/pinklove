@@ -141,6 +141,14 @@ async function removeInternalAccount(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.DELETE, formData);
 }
 
+async function saveAdminRole(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.ACCESS.ROLE_SAVE, formData);
+}
+
+async function deleteAdminRole(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.ACCESS.ROLE_DELETE, formData);
+}
+
 async function updateConfig(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.CONFIG.UPDATE, formData);
 }
@@ -454,6 +462,8 @@ export const adminApi = {
   bulkUpdateUsers,
   saveInternalAccount,
   removeInternalAccount,
+  saveAdminRole,
+  deleteAdminRole,
   updateConfig,
   sendTestEmail,
   createNotification,
@@ -516,6 +526,8 @@ export const adminApiActions = {
   bulkUpdateUsers: ROUTES.API.ADMIN.USERS.BULK,
   saveInternalAccount: ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.SAVE,
   removeInternalAccount: ROUTES.API.ADMIN.INTERNAL_ACCOUNTS.DELETE,
+  saveAdminRole: ROUTES.API.ADMIN.ACCESS.ROLE_SAVE,
+  deleteAdminRole: ROUTES.API.ADMIN.ACCESS.ROLE_DELETE,
   updateConfig: ROUTES.API.ADMIN.CONFIG.UPDATE,
   sendTestEmail: ROUTES.API.ADMIN.EMAIL.TEST,
   createNotification: ROUTES.API.ADMIN.NOTIFICATIONS.CREATE,

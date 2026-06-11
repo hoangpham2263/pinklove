@@ -9,6 +9,7 @@ import { PasswordInput } from "@/components/common/password-input";
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { AdminCancelButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -48,7 +49,7 @@ export function ProviderAccountCreateForm({
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="returnTo" value={returnTo} />
-      <input type="hidden" name="role" value={USER_ROLES.PROVIDER} />
+      <input type="hidden" name="accessRole" value={`portal:${USER_ROLES.PROVIDER}`} />
 
       <div className="min-w-0 space-y-6 lg:col-span-9">
         <Card className="min-w-0 overflow-visible rounded-lg gap-0">
@@ -98,10 +99,10 @@ export function ProviderAccountCreateForm({
 
             <div className="space-y-2">
               <label htmlFor="provider-bio" className="text-sm font-medium">Bio</label>
-              <textarea
+              <Textarea
                 id="provider-bio"
                 name="bio"
-                className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                className="min-h-32"
               />
             </div>
           </CardContent>

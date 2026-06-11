@@ -451,6 +451,24 @@ export async function renderGeneralOfferingPage(offering: Offering) {
         ]}
         actions={
           <>
+            {offering.fulfillmentType === "service" ? (
+              user ? (
+                <form action={ROUTES.API.CUSTOMER.BOOKINGS_CREATE} method="POST" className="sm:min-w-56">
+                  <input type="hidden" name="offeringId" value={offering.id} />
+                  <input type="hidden" name="providerId" value={offering.ownerProviderId ?? ""} />
+                  <input type="hidden" name="providerType" value={offering.ownerProviderType ?? ""} />
+                  <input type="hidden" name="quantity" value="1" />
+                  <input type="hidden" name="returnTo" value={ROUTES.CUSTOMER.BOOKINGS} />
+                  <GuestButton type="submit" className="w-full rounded-sm bg-orange-600 hover:bg-orange-700">
+                    Đặt trực tiếp
+                  </GuestButton>
+                </form>
+              ) : (
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getGeneralOfferingPath(offering))}`} className="flex rounded-sm bg-orange-600 hover:bg-orange-700 sm:min-w-56">
+                  Đăng nhập để đặt
+                </GuestLinkButton>
+              )
+            ) : null}
             {user ? (
               <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST" className="sm:min-w-56">
                 <input type="hidden" name="intent" value="add" />

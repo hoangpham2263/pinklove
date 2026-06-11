@@ -1,29 +1,18 @@
 import { ChartNoAxesCombined } from "lucide-react";
 
 import { AdminDatabasePage } from "@/features/admin/components/admin-database-page";
+import { listConversionEventGroups } from "@/features/analytics/server/conversions";
 import { requireAdmin } from "@/lib/auth";
-import { query } from "@/lib/database";
 
 export default async function AdminAnalyticsPage() {
   await requireAdmin();
-  const result = await query<Record<string, unknown>>(`
-    SELECT
-      event.event_name,
-      event.target_type,
-      event.target_id,
-      COUNT(*)::int AS total,
-      MAX(event.occurred_at) AS last_seen
-    FROM analytics_events event
-    GROUP BY event.event_name, event.target_type, event.target_id
-    ORDER BY last_seen DESC NULLS LAST
-    LIMIT 200
-  `);
+  const rows = await listConversionEventGroups();
 
   return (
     <AdminDatabasePage
       title="Analytics"
-      description="Aggregated analytics events for optimization and conversion tracking."
-      rows={result.rows}
+      description="Business conversion goals across RSVP, leads, bookings, checkout and vendor contact."
+      rows={rows}
       icon={ChartNoAxesCombined}
       metricLabel="Event groups"
       columns={[

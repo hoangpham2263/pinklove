@@ -1,7 +1,9 @@
 # Architecture
 
 PinkLove is a modular Next.js monolith backed by PostgreSQL. The project is a
-wedding commerce platform, not a single-purpose invitation CRUD app.
+long-term wedding platform in the direction of The Knot, Zola, and
+WeddingWire, while keeping the existing builder, commerce, marketplace,
+provider portal, and landing strengths.
 
 ## Product Scope
 
@@ -14,6 +16,22 @@ Core product areas:
   consultation, production, and handoff workflows.
 - Provider marketplace, affiliate tracking, checkout, orders, payments,
   notifications, media, landing pages, and analytics.
+
+## Bounded Contexts
+
+Every database object must belong to exactly one of these contexts:
+
+| Context | Owns |
+| --- | --- |
+| Catalog | `offerings`, offering type tables, offering field definitions, offering search |
+| Commerce | ecommerce orders, order items, payments, shipments, entitlements |
+| Provider Marketplace | providers, services, pricing, regions, reviews, fulfillments, leads, quotes, provider search |
+| Wedding Planning | `wedding_sites`, guests, RSVP, seating, tasks, timeline |
+| Website Builder | reusable `pages` and `page_sections` owned by wedding sites, providers, offerings, or landing entities |
+| Marketing | landing pages, landing sections, campaigns, A/B experiments, conversion goals/events |
+
+Do not add a database table unless its bounded context is clear. Do not create
+duplicate root concepts for the same domain.
 
 ## System Shape
 
@@ -52,14 +70,14 @@ Core product areas:
 
 | Module | Owns |
 | --- | --- |
-| Offerings | `offerings`, offering type tables, subtype tables, bundles, search documents |
-| Providers | `providers`, provider profiles, services, regions, reviews, pricing, availability |
-| Commerce | orders, order items, payments, payment logs, shipments, entitlements |
-| Wedding | `wedding_sites`, pages, sections, guests, RSVPs, events, galleries |
-| Identity | users, sessions, profiles, addresses, OAuth accounts |
-| Notifications | notifications, target roles/users, user notification states |
-| Analytics | analytics sessions, page views, events |
-| SEO | redirects, sitemap, robots, page SEO output |
+| Catalog | `offerings`, `offering_types`, `offering_type_fields`, `offering_type_field_groups` |
+| Provider Marketplace | `providers`, `provider_profiles`, `provider_services`, `provider_reviews`, `provider_regions`, `provider_pricing`, `provider_fulfillments`, `provider_types` |
+| Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_entitlements`, `commerce_shipments` |
+| Booking | `bookings`, `booking_items`, `booking_payments`, `booking_status_logs`, `provider_availability`, `provider_time_slots` |
+| Website Builder | `pages`, `page_sections` |
+| Wedding Planning | `wedding_sites`, guests, RSVP, seating, checklist, timeline |
+| Marketing | `landing_pages`, `landing_page_sections`, `campaigns`, `ab_experiments`, `ab_experiment_landing_pages`, conversion goals/events |
+| Media | `media_assets`, direct media links, media collections |
 
 ## Search And Cache
 
@@ -92,7 +110,72 @@ old template-version tables.
 - Field audit:
   `field_change_logs`.
 
-## Current Completion Gaps
+## Implemented Architecture
+
+### Catalog
+
+- Keep `offerings` as the catalog root. Everything sellable is an offering.
+- Keep `offering_types`, `offering_type_fields`, and
+  `offering_type_field_groups`.
+- New catalog work must extend `offerings` and offering type metadata instead
+  of creating another sellable-item root.
+
+### Provider Marketplace
+
+- Keep the current provider ecosystem tables.
+- Do not rename providers to organizations. Organizations remain a separate
+  ownership/team concept.
+- `vendor_leads` and `vendor_quotes` own the lead-to-quote flow before a
+  customer accepts a quote and creates a booking.
+- `provider_search_documents` owns the denormalized provider search document.
+
+### Commerce And Booking
+
+- Keep ecommerce orders separate from bookings.
+- Order lifecycle and booking lifecycle must not merge.
+- Commerce owns `commerce_*`; booking owns `bookings`, `booking_items`,
+  `booking_payments`, `booking_status_logs`, availability, and time slots.
+
+### Website Builder
+
+- `pages` is the reusable page root for builder-managed surfaces.
+- `page_sections` stores reusable section content and targeting metadata.
+- `pages` supports `owner_type`, `owner_id`, and `page_type`.
+- `page_sections` supports `visibility_rules`, `display_conditions`, and
+  `ab_variant_key`.
+- The builder supports wedding sites, landing pages, provider pages, campaign
+  pages, and SEO pages.
+
+### Wedding Planning
+
+- Keep `wedding_sites` as the wedding planning aggregate name. Do not rename it
+  to `wedding_projects`.
+- Expand `wedding_sites` with planning fields: `project_status`, `budget`,
+  `event_date`, and `guest_target`.
+- Guest groups, RSVP details, seating tables, checklist tasks, and timeline
+  items belong under the Wedding Planning context.
+
+### Media
+
+- Keep `media_asset_links` for direct asset relations.
+- `media_collections` and `media_collection_items` own ordered wedding albums,
+  provider portfolios, and galleries.
+
+### Marketing And Analytics
+
+- Keep `landing_pages`, `landing_page_sections`, `campaigns`,
+  `ab_experiments`, and `ab_experiment_landing_pages`.
+- Landing/campaign experiments own campaign variants.
+- `conversion_goals` and `conversion_events` own business-level conversion
+  tracking for RSVP, lead, contact, booking, and checkout flows.
+
+### Explicitly Not In Scope
+
+Marketplace billing and ads are not part of the current architecture. Do not
+create ad, subscription, premium listing, provider billing, marketplace billing,
+or sponsored listing tables until an approved product workflow defines ownership.
+
+## Product Completion Gaps
 
 These are product gaps, not unused database tables:
 
@@ -107,9 +190,10 @@ These are product gaps, not unused database tables:
 - Keep PinkLove as a modular monolith until a concrete scale bottleneck exists.
 - Do not introduce microservices, Kafka, RabbitMQ, broad CQRS, or a distributed
   event bus without a measured need.
-- Do not reintroduce old `template_*` version/catalog tables. Template discovery
-  now belongs to offerings, landing pages, template attributes, analytics, and
-  search documents.
+- Template discovery belongs to offerings, landing pages, template attributes,
+  analytics, and search documents.
+- Catalog, builder, and marketing changes must extend the approved domain
+  tables instead of creating parallel roots.
 - When schema changes, update `web/src/lib/database.ts`, `docs/schema.md`, and
   `web/scripts/audit-schema.mjs` together.
 - When a feature workflow changes, update the matching area doc in the same

@@ -96,6 +96,15 @@ This file is the repo-wide source of truth.
 - Use `NativeForm` from `src/components/common/native-form.tsx` for POST forms that rely on redirect responses.
 - `NativeForm` should be preferred for browser-native submissions that need server redirects to behave predictably.
 - For client-managed mutation forms, keep the submit logic and fallback action aligned through the same role API module whenever possible.
+- Admin edit forms use this layout convention:
+  basic metadata belongs in a standalone card, usually titled `Thông tin`.
+  Dense editable groups belong in a separate vertical tab workspace, usually
+  titled `Nội dung` or with a domain-specific name. Do not put basic
+  name/slug/title/category/status fields inside that workspace.
+- Vertical tab workspaces always use a single-column form layout. Render every
+  field full-width on its own row, recursively through sections and repeaters.
+  Ignore schema `width`, `column`, and `layout: "two-columns"` while rendering
+  tab content.
 
 ## Managed Pages and content
 
@@ -174,6 +183,10 @@ This file is the repo-wide source of truth.
 
 ## Styling
 
+- Protected admin screens must use role-owned core controls such as
+  `AdminSubmitButton`, `AdminCancelButton`, `AdminIconButton`, and
+  `AdminTableActionButton`. Do not recreate button variants with local Tailwind
+  classes when a matching core control exists.
 - Global styles live in `src/app/globals.css`.
 - Prefer the project token system already defined in `globals.css`.
 - The project uses a px-first scale. Prefer px-backed Tailwind tokens and px arbitrary values over rem-based arbitrary values.

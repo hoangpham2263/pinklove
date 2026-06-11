@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const user = await getCurrentUserFromRequest(request);
   const formData = await request.formData();
-  const returnTo = String(formData.get("returnTo") ?? ROUTES.CUSTOMER.ORDERS).trim() || ROUTES.CUSTOMER.ORDERS;
+  const returnTo = String(formData.get("returnTo") ?? ROUTES.CUSTOMER.BOOKINGS).trim() || ROUTES.CUSTOMER.BOOKINGS;
 
   if (!user) {
     return respondError(request, {

@@ -64,10 +64,22 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
     defaultOpen: false,
     children: [
       {
+        label: "Bookings",
+        href: ROUTES.PROVIDER.BOOKINGS,
+        iconName: "calendar-clock",
+        matchPrefixes: [ROUTES.PROVIDER.BOOKINGS],
+      },
+      {
         label: "Đơn được giao",
         href: ROUTES.PROVIDER.ORDERS,
         iconName: "package-search",
         matchPrefixes: [ROUTES.PROVIDER.ORDERS, providerOrderPrefix],
+      },
+      {
+        label: "Khách hàng tiềm năng",
+        href: ROUTES.PROVIDER.LEADS,
+        iconName: "package-search",
+        matchPrefixes: [ROUTES.PROVIDER.LEADS],
       },
       {
         label: "Yêu cầu dịch vụ/sản phẩm",
@@ -80,6 +92,36 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         href: ROUTES.PROVIDER.AVAILABILITY,
         iconName: "calendar-clock",
         matchPrefixes: [ROUTES.PROVIDER.AVAILABILITY],
+      },
+      {
+        label: "Portfolio",
+        href: ROUTES.PROVIDER.PORTFOLIO,
+        iconName: "package-check",
+        matchPrefixes: [ROUTES.PROVIDER.PORTFOLIO],
+      },
+      {
+        label: "Pricing",
+        href: ROUTES.PROVIDER.PRICING,
+        iconName: "package-check",
+        matchPrefixes: [ROUTES.PROVIDER.PRICING],
+      },
+      {
+        label: "Regions",
+        href: ROUTES.PROVIDER.REGIONS,
+        iconName: "map-pin",
+        matchPrefixes: [ROUTES.PROVIDER.REGIONS],
+      },
+      {
+        label: "Reviews",
+        href: ROUTES.PROVIDER.REVIEWS,
+        iconName: "messages-square",
+        matchPrefixes: [ROUTES.PROVIDER.REVIEWS],
+      },
+      {
+        label: "Organization",
+        href: ROUTES.PROVIDER.ORGANIZATION,
+        iconName: "user",
+        matchPrefixes: [ROUTES.PROVIDER.ORGANIZATION],
       },
       {
         label: "Mẫu có thể cung cấp",

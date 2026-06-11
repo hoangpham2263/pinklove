@@ -9,12 +9,14 @@ type AdminTopHeaderProps = {
   username: string;
   breadcrumbEnabled?: boolean;
   breadcrumbSeparator?: string;
+  permissionKeys?: string[];
 };
 
 export function AdminTopHeader({
   username,
   breadcrumbEnabled = true,
   breadcrumbSeparator,
+  permissionKeys,
 }: AdminTopHeaderProps) {
   return (
     <header
@@ -39,7 +41,7 @@ export function AdminTopHeader({
         <div className="flex items-center gap-3">
           <NotificationBell listHref={ROUTES.ADMIN.NOTIFICATIONS} />
           <span>{username}</span>
-          <AdminHeaderMenu />
+          <AdminHeaderMenu permissionKeys={permissionKeys} />
         </div>
       </div>
     </header>

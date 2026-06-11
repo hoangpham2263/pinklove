@@ -47,6 +47,9 @@ web/
           (overview)/
             dashboard/page.tsx
           (ecommerce)/
+            wedding-planning/page.tsx
+            wedding-planning/[id]/page.tsx
+            bookings/page.tsx
             orders/page.tsx
             orders/[id]/page.tsx
             payments/page.tsx
@@ -61,6 +64,8 @@ web/
             offerings/page.tsx
             offerings/list/page.tsx
             offerings/[slug]/page.tsx
+            providers/leads/page.tsx
+            providers/reviews/page.tsx
           (accounts)/
             affiliates/page.tsx
             affiliate-users/page.tsx
@@ -75,8 +80,11 @@ web/
             providers/accounts/create/page.tsx
             providers/accounts/[id]/page.tsx
           (system)/
+            audit-logs/page.tsx
             global-fields/page.tsx
             media/page.tsx
+            media/library/page.tsx
+            media/collections/page.tsx
             config/page.tsx
             config/branding/page.tsx
             config/breadcrumbs/page.tsx
@@ -86,6 +94,13 @@ web/
             config/sitemap/page.tsx
             config/ecommerce/page.tsx
             config/email/page.tsx
+          (marketing)/
+            marketing/campaigns/page.tsx
+            marketing/ab-experiments/page.tsx
+          (analytics)/
+            analytics/page.tsx
+            analytics/domain-events/page.tsx
+            analytics/goals/page.tsx
       customer/
         page.tsx
         (auth)/
@@ -99,6 +114,9 @@ web/
             invitations/page.tsx
             invitations/[id]/page.tsx
             design/[id]/page.tsx
+            wedding-planning/page.tsx
+            vendor-leads/page.tsx
+            bookings/page.tsx
             orders/page.tsx
             orders/[id]/page.tsx
           (account)/
@@ -117,6 +135,13 @@ web/
           layout.tsx
           (workspace)/
             dashboard/page.tsx
+            leads/page.tsx
+            bookings/page.tsx
+            portfolio/page.tsx
+            pricing/page.tsx
+            regions/page.tsx
+            reviews/page.tsx
+            organization/page.tsx
             orders/page.tsx
             orders/[id]/page.tsx
       (seo)/
@@ -129,6 +154,11 @@ web/
         sitemap-blog-posts.xml/route.ts
       api/
         admin/
+          analytics/goals/route.ts
+          bookings/status/route.ts
+          marketing/campaigns/route.ts
+          marketing/ab-experiments/route.ts
+          providers/reviews/status/route.ts
           orders/provider-assignment/route.ts
           global-fields/update/route.ts
           affiliates/update/route.ts
@@ -148,6 +178,10 @@ web/
           addresses/route.ts
           affiliate/apply/route.ts
           checkout/route.ts
+          vendor-leads/route.ts
+          provider-reviews/route.ts
+          wedding-planning/route.ts
+          invitations/rsvp/route.ts
           wishlist/route.ts
           profile/route.ts
           invitations/create-builder/route.ts
@@ -155,6 +189,11 @@ web/
           invitations/update/route.ts
         provider/
           auth/login/route.ts
+          bookings/status/route.ts
+          organization/route.ts
+          pricing/route.ts
+          regions/route.ts
+          leads/route.ts
           orders/update/route.ts
     components/
       common/
@@ -184,6 +223,8 @@ web/
       ecommerce/
         server/
         types.ts
+      analytics/
+        server/
       invitations/
         builder/
         components/
@@ -203,6 +244,12 @@ web/
         server/
         types.ts
       search/
+        server/
+      providers/
+        server/
+      website-builder/
+        server/
+      wedding-planning/
         server/
       website-hooks/
         catalog.ts
@@ -249,8 +296,11 @@ web/
   - `src/lib/api-client.provider.ts` owns provider/provider-facing UI API methods.
   - `src/lib/api-client.public.ts` owns public/guest UI API methods.
 - Client components should call role APIs directly instead of importing feature-local API client wrappers.
-- Database access is raw SQL through `src/lib/database.ts`.
+- Database access is raw SQL through feature-owned server services and shared
+  database helpers. Pages and components must not own business queries.
 - `database.ts` also performs limited auto-migrations and seed steps on first use.
+- `scripts/audit-schema.mjs` enforces the exact runtime table inventory so
+  migrations cannot silently leave obsolete or unapproved tables behind.
 - Media files are stored on disk, not in PostgreSQL.
 - Shared custom-field architecture uses code-registered schemas.
   Managed-page field schemas live under `src/features/pages/*`.
@@ -285,13 +335,16 @@ web/
 ## Customer Area
 
 - The customer shell lives under `src/app/customer`.
-- Protected customer flows include dashboard, profile, settings, affiliate, orders, and site management.
+- Protected customer flows include dashboard, profile, settings, affiliate,
+  orders, service bookings, and site management.
 - Customer address management lives at `src/app/customer/(protected)/(account)/addresses/page.tsx` and uses the shared address book component for `user_addresses`.
 - Customer invitation flows live at:
   - `src/app/customer/(protected)/(workspace)/invitations/page.tsx`
   - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
 - Builder editing for customer-owned builder invitations lives at:
   - `src/app/customer/(protected)/(workspace)/design/[id]/page.tsx`
+- Customer service bookings live at:
+  - `src/app/customer/(protected)/(workspace)/bookings/page.tsx`
 
 ## Provider Area
 
@@ -302,23 +355,28 @@ web/
 - `src/app/provider/(protected)/(workspace)/orders/[id]/page.tsx` serves the public URL `/provider/orders/[id]` for per-assignment collaboration detail.
 - Provider workspace URLs are served by route groups under
   `src/app/provider/(protected)/(workspace)`, including dashboard, orders,
-  offerings, availability, messages, and config routes.
+  bookings, portfolio, pricing, regions, reviews, organization, offerings,
+  availability, messages, and config routes.
 - Protected provider workspace routes share the same sidebar/top-header shell pattern as admin and customer through `src/app/provider/(protected)/(workspace)/layout.tsx`.
 
 ## Admin area
 
 - The admin shell lives under `src/app/admin/(protected)`.
-- Implemented admin sections include dashboard, users, pages, menus, media, notifications, affiliates, providers, offerings, ecommerce operations, SEO, blog management, and config.
+- Implemented admin sections include dashboard, users, pages, menus, media,
+  notifications, affiliates, providers, offerings, ecommerce operations,
+  marketing, analytics, SEO, blog management, audit logs, and config.
 - Admin offering management works at the catalog level, including dynamic
   offering type definitions. `/admin/offerings` is the main management surface,
   while route children such as `/admin/offerings/list`,
   `/admin/offerings/templates`, and `/admin/offerings/bundles` provide scoped
   table views.
-  Order/payment/shipment operations live in the dedicated ecommerce section.
+  Order/payment/shipment operations and service bookings live in the dedicated
+  ecommerce section.
 
 ## Feature map
 
 - `src/features/admin`: shared admin shell layout, navigation, route metadata, and admin-only modules that are not owned by a business domain
+- `src/features/access`: simplified database-backed Admin roles and permissions
 - `src/features/pages`: managed content page registry, managed-page config, and admin page editing UI
 - `src/features/auth`: auth page fields, registry, and shared loader logic
 - `src/features/blog`: public blog renderers/services plus admin blog forms
@@ -341,8 +399,8 @@ web/
 - Public content pages are code-managed routes, not admin-created arbitrary routes.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - `home`, `login`, and `register` are system managed pages seeded by `src/lib/database.ts`.
-- The current builder editor does not support dragging/resizing element height yet.
-- The current builder editor does not support grouping selected elements yet.
+- The builder editor supports dragging/resizing element height and
+  grouping/ungrouping selected elements.
 - Checkout, order creation, entitlement grant, and admin order/payment/shipment management are now implemented in-app.
 - Ecommerce table foreign keys must remain compatible with environments that still use legacy numeric IDs on `users`; current offering references use text ids.
   The persisted SQL table names remain `commerce_*` for legacy compatibility.

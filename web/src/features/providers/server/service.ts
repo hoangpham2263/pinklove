@@ -1,5 +1,6 @@
 import "server-only";
 
+import { syncProviderSearchDocument } from "@/features/providers/server/leads";
 import { setProviderPricing } from "@/features/providers/server/marketplace";
 import { query, type DbExecutor } from "@/lib/database";
 
@@ -121,6 +122,7 @@ export async function upsertProviderServiceForOffering(input: {
     metadata: { source: "provider_service" },
     execute,
   });
+  await syncProviderSearchDocument(input.providerId);
 
   return result.rows[0]?.id ?? "";
 }
@@ -185,6 +187,7 @@ export async function saveProvider(input: ProviderInput) {
     );
   }
 
+  await syncProviderSearchDocument(providerId);
   return providerId;
 }
 

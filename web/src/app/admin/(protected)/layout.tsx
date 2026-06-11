@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import {
   BadgePercent,
   Bell,
@@ -41,6 +42,9 @@ import { AdminSidebarGroup } from "@/features/admin/layout/admin-sidebar-group";
 import { AdminTopHeader } from "@/features/admin/layout/admin-top-header";
 import { requireAdmin } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/system-settings";
+import { getAdminAccessContext } from "@/features/access/server/service";
+import { getAdminPathPermission } from "@/features/access/config/permissions";
+import { ROUTES } from "@/lib/routes";
 
 const standaloneIconMap = {
   "layout-dashboard": LayoutDashboard,
@@ -78,7 +82,16 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, settings] = await Promise.all([requireAdmin(), getSystemSettings()]);
+  const [user, settings, requestHeaders] = await Promise.all([requireAdmin(), getSystemSettings(), headers()]);
+  const access = await getAdminAccessContext(user.id);
+  const permissionKeys = access?.isSuperAdmin ? undefined : access?.permissionKeys ?? [];
+  const allowed = (permission?: string) => !permissionKeys || !permission || permissionKeys.includes(permission);
+  const pathname = requestHeaders.get("x-admin-pathname") ?? ROUTES.ADMIN.DASHBOARD;
+  const canViewPage = allowed(getAdminPathPermission(pathname));
+  const visibleGroups = ADMIN_NAV_GROUPS.filter((group) => allowed(group.permission)).map((group) => ({
+    ...group,
+    children: group.children.filter((item) => allowed(item.permission)),
+  })).filter((group) => group.children.length > 0);
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-11">
@@ -99,7 +112,7 @@ export default async function AdminLayout({
 
         <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="flex flex-col gap-2.5">
-            {ADMIN_NAV_PRIMARY_ITEMS.map((item) => {
+            {ADMIN_NAV_PRIMARY_ITEMS.filter((item) => allowed(item.permission)).map((item) => {
               const Icon = standaloneIconMap[item.iconName];
 
               return (
@@ -110,15 +123,15 @@ export default async function AdminLayout({
                   matchPrefixes={item.matchPrefixes}
                   excludePaths={item.excludePaths}
                   excludePrefixes={item.excludePrefixes}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="truncate" title={item.label}>{item.label}</span>
                 </AdminNavLink>
               );
             })}
 
-            {ADMIN_NAV_GROUPS.map((group) => (
+            {visibleGroups.map((group) => (
               <AdminSidebarGroup
                 key={group.label}
                 label={group.label}
@@ -128,7 +141,7 @@ export default async function AdminLayout({
               />
             ))}
 
-            {ADMIN_NAV_SECONDARY_ITEMS.map((item) => {
+            {ADMIN_NAV_SECONDARY_ITEMS.filter((item) => allowed(item.permission)).map((item) => {
               const Icon = standaloneIconMap[item.iconName];
 
               return (
@@ -139,10 +152,10 @@ export default async function AdminLayout({
                   matchPrefixes={item.matchPrefixes}
                   excludePaths={item.excludePaths}
                   excludePrefixes={item.excludePrefixes}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="truncate" title={item.label}>{item.label}</span>
                 </AdminNavLink>
               );
             })}
@@ -154,9 +167,9 @@ export default async function AdminLayout({
             const Icon = standaloneIconMap[item.iconName];
 
             return (
-              <Link key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
-                <Icon className="h-5 w-5" />
-                {item.label}
+              <Link key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted">
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate" title={item.label}>{item.label}</span>
               </Link>
             );
           })}
@@ -166,11 +179,12 @@ export default async function AdminLayout({
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
         <AdminTopHeader
           username={user.username}
+          permissionKeys={permissionKeys}
           breadcrumbEnabled={settings.breadcrumb.adminEnabled}
           breadcrumbSeparator={settings.breadcrumb.adminSeparator}
         />
         <section className="min-h-screen pt-14">
-          {children}
+          {canViewPage ? children : <div className="p-7.5"><h1 className="text-2xl font-semibold">403</h1><p className="text-muted-foreground">Bạn không có quyền truy cập khu vực này.</p></div>}
         </section>
       </main>
     </div>

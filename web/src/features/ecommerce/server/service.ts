@@ -1,6 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
+import { CONVERSION_GOAL_KEYS, recordConversion } from "@/features/analytics/server/conversions";
 import type {
   CartItem,
   EcommerceEntitlement,
@@ -761,6 +762,14 @@ export async function createOrderFromCart(input: {
   });
 
   await ensureEntitlementsForOrder(order);
+  if (autoApprove) {
+    await recordConversion({
+      goalKey: CONVERSION_GOAL_KEYS.CHECKOUT_SUCCESS,
+      userId: input.userId,
+      targetType: "commerce_order",
+      targetId: order,
+    });
+  }
   return (await loadOrderBundleById(order))!;
 }
 
@@ -851,6 +860,15 @@ export async function adminUpdateOrderState(input: {
   );
 
   await ensureEntitlementsForOrder(input.orderId);
+  if (input.paymentStatus === "paid") {
+    const order = await getOrderById(input.orderId);
+    await recordConversion({
+      goalKey: CONVERSION_GOAL_KEYS.CHECKOUT_SUCCESS,
+      userId: order?.userId,
+      targetType: "commerce_order",
+      targetId: input.orderId,
+    });
+  }
 }
 
 export async function adminUpdatePaymentState(input: {
@@ -896,6 +914,14 @@ export async function adminUpdatePaymentState(input: {
   );
 
   await ensureEntitlementsForOrder(payment.order_id);
+  if (input.status === "paid") {
+    await recordConversion({
+      goalKey: CONVERSION_GOAL_KEYS.CHECKOUT_SUCCESS,
+      userId: order.userId,
+      targetType: "commerce_order",
+      targetId: payment.order_id,
+    });
+  }
 }
 
 export async function recordPaymentLog(input: {

@@ -26,8 +26,6 @@ export default async function AdminCustomersPage({ searchParams }: AdminCustomer
       createHref={ROUTES.ADMIN.CUSTOMERS_CREATE}
       listHref={ROUTES.ADMIN.CUSTOMERS}
       createLabel="Tạo khách hàng"
-      showInlineCreateForm={false}
-      useCreateDialog
     />
   );
 }

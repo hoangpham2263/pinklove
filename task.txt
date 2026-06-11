@@ -1,0 +1,302 @@
+# Task - Simplified Admin Menubar
+
+## Trạng thái
+
+- [ ] Chờ duyệt cấu trúc trước khi triển khai.
+- Phạm vi chỉ áp dụng cho `/admin`.
+- Customer Portal, Provider Portal và giao diện public giữ nguyên.
+- RBAC Admin hiện tại là nền tảng, không thay schema database trong task này.
+
+## Mục tiêu
+
+- Sidebar và mobile menu Admin chỉ hiển thị các chức năng chính.
+- Không hiển thị danh sách route con trực tiếp trong menubar.
+- Mỗi chức năng chính có một trang overview/hub.
+- Trang overview hiển thị các mục quản lý hiện đang nằm trong submenu.
+- Click card/item trên overview sẽ đi tới route quản lý hiện tại.
+- Giảm độ dài menu nhưng không làm mất route, quyền hoặc chức năng đang có.
+
+## Nguyên tắc bắt buộc
+
+- [ ] Menu Admin là danh sách phẳng, không dùng accordion/collapsible.
+- [ ] Không đổi URL CRUD/detail hiện tại nếu không thật sự cần.
+- [ ] Chỉ thêm overview route cho nhóm chưa có trang hub phù hợp.
+- [ ] Không hardcode menu và overview thành hai danh sách riêng.
+- [ ] Dùng một registry làm source of truth cho:
+  - Label, icon và overview route.
+  - Permission cần để thấy chức năng chính.
+  - Danh sách item con và route đích.
+  - Active state của sidebar/mobile menu.
+- [ ] Permission tiếp tục lấy từ RBAC database hiện tại.
+- [ ] Overview page phải lọc item theo permission ở server.
+- [ ] Truy cập trực tiếp route con vẫn phải kiểm tra permission như hiện tại.
+- [ ] Không sửa navigation của Customer Portal và Provider Portal.
+- [ ] Giữ nguyên chiều rộng menubar; label dài dùng truncate một dòng.
+
+## Menubar Admin đích
+
+### Tổng quan
+
+- [ ] `Dashboard`
+  - Overview: `/admin/dashboard`.
+  - Không có submenu.
+
+### Kinh doanh
+
+- [ ] `Content`
+  - Overview mới: `/admin/content`.
+  - Items:
+    - Pages.
+    - Navigation.
+    - Blog Posts.
+    - Blog Categories.
+
+- [ ] `Offerings`
+  - Dùng overview hiện có: `/admin/offerings`.
+  - Items:
+    - Quản lý sản phẩm.
+    - Tạo sản phẩm.
+    - Offering Types.
+    - Offering Templates.
+    - Offering Builder.
+    - Offering Categories.
+    - Combo dịch vụ.
+
+- [ ] `Commerce`
+  - Overview mới: `/admin/commerce`.
+  - Items:
+    - Orders.
+    - Payments.
+    - Shipments.
+
+- [ ] `Marketplace`
+  - Dùng và chuẩn hóa overview hiện có: `/admin/providers`.
+  - Đổi tiêu đề hiển thị từ `Providers` thành `Marketplace`.
+  - Items:
+    - Provider Accounts.
+    - Leads & Quotes.
+    - Reviews.
+    - Provider Availability.
+    - Dịch vụ/sản phẩm cần provider.
+    - Yêu cầu supplier.
+    - Supplier đã duyệt.
+    - Duyệt submission dịch vụ/sản phẩm.
+
+- [ ] `Booking`
+  - Overview mới: `/admin/booking`.
+  - Items:
+    - Quản lý Bookings tại `/admin/bookings`.
+
+- [ ] `Marketing`
+  - Overview mới: `/admin/marketing`.
+  - Items:
+    - Landing Pages.
+    - Campaigns.
+    - A/B Tests.
+
+- [ ] `Planning`
+  - Overview mới: `/admin/planning`.
+  - Items:
+    - Wedding Planning tại `/admin/wedding-planning`.
+
+- [ ] `Affiliate`
+  - Dùng overview hiện có: `/admin/affiliates`.
+  - Items:
+    - Affiliate Users.
+    - Hồ sơ Guest Affiliate.
+    - Hoa hồng Affiliate.
+    - Duyệt Customer Affiliate.
+
+### Vận hành
+
+- [ ] `Accounts`
+  - Overview mới: `/admin/accounts`.
+  - Items:
+    - Users, yêu cầu `accounts.manage`.
+    - Customers.
+    - Internal Accounts.
+    - Access Roles, yêu cầu `accounts.manage`.
+  - Provider Accounts thuộc Marketplace, không lặp lại ở Accounts.
+
+- [ ] `Communication`
+  - Overview mới: `/admin/communication`.
+  - Items:
+    - Messages.
+    - Comments.
+    - Notifications.
+
+- [ ] `Analytics`
+  - Chuẩn hóa `/admin/analytics` thành overview.
+  - Items:
+    - Conversion/Event Analytics.
+    - Analytics Goals.
+  - Tách bảng event hiện tại sang `/admin/analytics/events`.
+
+### Nền tảng
+
+- [ ] `System`
+  - Overview mới: `/admin/system`.
+  - Items:
+    - Audit Logs.
+    - Domain Events.
+    - Global Fields.
+    - Media Library.
+    - Media Collections.
+
+- [ ] `Configuration`
+  - Dùng overview hiện có: `/admin/config`.
+  - Giữ các section cấu hình hiện tại trong page.
+  - Không đưa từng config item trở lại sidebar.
+
+### Liên kết phụ
+
+- [ ] `View Website`
+  - Giữ ở cuối menu.
+  - Là external/navigation utility, không cần overview.
+
+## Cấu trúc code đích
+
+- [ ] Chuẩn hóa registry chức năng Admin tại:
+  - `web/src/features/admin/config/navigation.ts`
+- [ ] Mỗi function definition gồm tối thiểu:
+  - `key`.
+  - `label`.
+  - `href` của overview.
+  - `iconName`.
+  - `permission`.
+  - `matchPrefixes`.
+  - `items`.
+- [ ] Mỗi overview item gồm:
+  - `key`.
+  - `title`.
+  - `description`.
+  - `href`.
+  - `iconName`.
+  - Permission tùy chọn.
+- [ ] Tạo component overview dùng chung:
+  - `AdminFeatureOverview`.
+  - Render header, mô tả và grid item.
+  - Hỗ trợ metric/card tùy chọn cho các overview đã có thống kê riêng.
+- [ ] Desktop sidebar render trực tiếp function definitions.
+- [ ] Mobile menu dùng cùng function definitions.
+- [ ] Không còn `AdminNavGroup.children` trong menubar.
+- [ ] Xóa component collapsible/group nếu không còn caller:
+  - `AdminSidebarGroup`.
+  - `MenuGroup`.
+  - Các type child/group cũ.
+- [ ] Route metadata đọc từ registry khi phù hợp, tránh map label lần hai.
+
+## Overview routes cần thêm
+
+- [ ] `/admin/content`
+- [ ] `/admin/commerce`
+- [ ] `/admin/booking`
+- [ ] `/admin/marketing`
+- [ ] `/admin/planning`
+- [ ] `/admin/accounts`
+- [ ] `/admin/communication`
+- [ ] `/admin/analytics/events`
+- [ ] `/admin/system`
+
+## Overview routes tái sử dụng
+
+- [ ] `/admin/dashboard`
+- [ ] `/admin/offerings`
+- [ ] `/admin/providers`
+- [ ] `/admin/affiliates`
+- [ ] `/admin/analytics`
+- [ ] `/admin/config`
+
+## Sắp xếp file route đề xuất
+
+- [ ] Giữ route groups hiện tại vì route group không ảnh hưởng URL.
+- [ ] Đặt page overview vào domain phù hợp:
+  - `(content)/content/page.tsx`
+  - `(ecommerce)/commerce/page.tsx`
+  - `(ecommerce)/booking/page.tsx`
+  - `(marketing)/marketing/page.tsx`
+  - `(ecommerce)/planning/page.tsx`
+  - `(accounts)/accounts/page.tsx`
+  - `(communication)/communication/page.tsx`
+  - `(analytics)/analytics/events/page.tsx`
+  - `(system)/system/page.tsx`
+- [ ] Không di chuyển hàng loạt các page CRUD hiện tại chỉ để đẹp thư mục.
+- [ ] Không tạo redirect hoặc compatibility route nếu URL cũ vẫn được giữ.
+
+## Active state và điều hướng
+
+- [ ] Khi đang ở route con, menu chính tương ứng phải active.
+- [ ] Active state dùng `matchPrefixes` từ registry.
+- [ ] Route con không xuất hiện thành item riêng trong sidebar.
+- [ ] Desktop và mobile cho kết quả active giống nhau.
+- [ ] Overview item dùng route constants từ `ROUTES`, không viết URL string rải rác.
+- [ ] Breadcrumb/page title tiếp tục hiển thị tên trang con chính xác.
+
+## Permission
+
+- [ ] Chỉ hiện function chính nếu role có permission module tương ứng.
+- [ ] `Accounts` hiện với `accounts.view`.
+- [ ] Item Users và Access Roles chỉ hiện với `accounts.manage`.
+- [ ] Communication xử lý riêng:
+  - Messages dùng `messages.view`.
+  - Comments dùng `comments.view`.
+  - Notifications dùng permission phù hợp hiện tại.
+  - Function Communication hiện nếu user có ít nhất một permission con.
+- [ ] System chỉ hiển thị các item user được phép truy cập.
+- [ ] Super Admin thấy đầy đủ.
+- [ ] Không gộp hoặc đổi permission database trong task menubar.
+
+## Nội dung overview
+
+- [ ] Dùng card/link tile đồng bộ Admin core component.
+- [ ] Mỗi item có tên ngắn, mô tả rõ chức năng và CTA.
+- [ ] Overview không chứa form create/edit dạng popup.
+- [ ] Không nhân đôi bảng quản lý ở overview; overview chỉ tóm tắt và điều hướng.
+- [ ] Overview có thể giữ metric hiện tại nếu metric hữu ích.
+- [ ] Không query dữ liệu nặng chỉ để trang hub hiển thị số lượng.
+- [ ] Ưu tiên reuse:
+  - `AdminOverviewGrid`.
+  - `AdminOverviewCard`.
+  - `AdminActionLinkTile`.
+  - Shared icon registry.
+
+## Cleanup
+
+- [ ] Xóa config/type/component navigation cũ không còn dùng.
+- [ ] Xóa logic mở/đóng group và animation collapsible khỏi Admin menu.
+- [ ] Xóa `defaultOpen`, `children`, `AdminNavChild`, `AdminNavGroup` nếu hết caller.
+- [ ] Không để desktop sidebar và mobile menu có hai cấu trúc khác nhau.
+- [ ] Không để overview item bị khai báo lặp giữa page và navigation config.
+- [ ] Cập nhật docs Admin navigation sau khi triển khai.
+
+## Thứ tự triển khai
+
+1. Chốt bản đồ function và item trong task này.
+2. Thiết kế registry navigation/overview dùng chung.
+3. Tạo component `AdminFeatureOverview`.
+4. Tạo các overview route còn thiếu.
+5. Chuẩn hóa các overview route đang có.
+6. Chuyển desktop sidebar sang menu phẳng.
+7. Chuyển mobile menu sang cùng registry.
+8. Chuẩn hóa active state, title và breadcrumb.
+9. Xóa code collapsible/group cũ không còn dùng.
+10. Kiểm tra permission cho từng role.
+11. Cập nhật docs và chạy verification.
+
+## Verification bắt buộc
+
+- [ ] Admin sidebar chỉ còn function chính, không còn submenu.
+- [ ] Mobile Admin menu có cùng cấu trúc với desktop.
+- [ ] Mỗi function chính mở đúng overview.
+- [ ] Mỗi overview item mở đúng route quản lý hiện tại.
+- [ ] Route create/edit/detail hiện tại không bị đổi ngoài kế hoạch.
+- [ ] Active state đúng ở overview và mọi route con.
+- [ ] Role giới hạn chỉ thấy function/item được cấp quyền.
+- [ ] Truy cập trực tiếp route không quyền vẫn bị chặn server-side.
+- [ ] Customer Portal không thay đổi.
+- [ ] Provider Portal không thay đổi.
+- [ ] Không còn component/config navigation Admin dư.
+- [ ] `npx tsc --noEmit` pass.
+- [ ] Scope ESLint không có error.
+- [ ] `npm run build` pass.
+- [ ] `git diff --check` pass.

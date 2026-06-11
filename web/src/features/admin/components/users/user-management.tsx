@@ -39,7 +39,7 @@ import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableTo
 import { AccountUser, AuthUser } from "@/lib/auth";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
-import { getRoleLabel, isAdminRole, type UserRole, USER_ROLE_OPTIONS } from "@/lib/roles";
+import { getRoleLabel, isAdminRole, type UserRole, USER_ROLES, USER_ROLE_OPTIONS } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { ProviderPortalCopyButton } from "@/features/admin/components/provider-account-management/provider-portal-copy-button";
 
@@ -63,6 +63,11 @@ function getAccountStatusLabel(status: AccountUser["accountStatus"]) {
     default:
       return "Active";
   }
+}
+
+function getAccountRoleLabel(user: AccountUser) {
+  if (!isAdminRole(user.role)) return getRoleLabel(user.role);
+  return user.adminRoleLabel === "Super Admin" ? "Admin" : (user.adminRoleLabel || "Admin");
 }
 
 function getAccountStatusBadgeVariant(status: AccountUser["accountStatus"]): "default" | "secondary" | "destructive" | "outline" {
@@ -154,7 +159,7 @@ export function UserManagement({
         },
         cell: ({ row }) => (
           <Badge variant={isAdminRole(row.original.role) ? "default" : "secondary"}>
-            {getRoleLabel(row.original.role)}
+            {getAccountRoleLabel(row.original)}
           </Badge>
         ),
       },
@@ -267,7 +272,7 @@ export function UserManagement({
       if (!keyword) return true;
 
       const user = row.original;
-      return [user.username, user.role, getRoleLabel(user.role)]
+      return [user.username, user.role, getAccountRoleLabel(user)]
         .concat(user.accountStatus, getAccountStatusLabel(user.accountStatus), user.accountStatusReason)
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
@@ -348,7 +353,7 @@ export function UserManagement({
               className="h-9 min-w-52 rounded-lg border border-input bg-background px-3 text-sm outline-none"
             >
               <option value="">Tác vụ hàng loạt</option>
-              {USER_ROLE_OPTIONS.map((role) => (
+              {USER_ROLE_OPTIONS.filter((role) => role.value !== USER_ROLES.ADMIN).map((role) => (
                 <option key={role.value} value={role.value}>
                   Đổi sang {getRoleLabel(role.value)}
                 </option>
@@ -418,7 +423,7 @@ export function UserManagement({
                 <div className="space-y-1">
                   <p className="text-sm">Vai trò</p>
                   <p className="text-sm text-muted-foreground">
-                    {getRoleLabel(previewUser.role)} ({previewUser.role})
+                    {getAccountRoleLabel(previewUser)}
                   </p>
                 </div>
                 <div className="space-y-1">

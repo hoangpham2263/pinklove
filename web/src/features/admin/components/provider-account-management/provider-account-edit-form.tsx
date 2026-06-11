@@ -8,6 +8,7 @@ import { PasswordInput } from "@/components/common/password-input";
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import type { AccountUser } from "@/lib/auth";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -37,7 +38,7 @@ export function ProviderAccountEditForm({ provider }: ProviderAccountEditFormPro
   return (
     <NativeForm id="provider-update-form" action={adminApiActions.updateUser} method="POST" onSubmit={handleSubmit}>
       <input type="hidden" name="userId" value={provider.id} />
-      <input type="hidden" name="role" value={USER_ROLES.PROVIDER} />
+      <input type="hidden" name="accessRole" value={`portal:${USER_ROLES.PROVIDER}`} />
       <input type="hidden" name="returnTo" value={ROUTES.ADMIN.PROVIDER_ACCOUNT(provider.id)} />
 
       <Card className="min-w-0 overflow-visible rounded-lg gap-0">
@@ -77,11 +78,11 @@ export function ProviderAccountEditForm({ provider }: ProviderAccountEditFormPro
 
           <div className="space-y-2">
             <label htmlFor="provider-bio" className="text-sm font-medium">Bio</label>
-            <textarea
+            <Textarea
               id="provider-bio"
               name="bio"
               defaultValue={provider.bio ?? ""}
-              className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              className="min-h-32"
             />
           </div>
 

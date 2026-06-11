@@ -19,6 +19,7 @@ import {
   type InvitationStatus,
   type InvitationType,
 } from "@/features/invitations/types";
+import { ensureBuilderPage } from "@/features/website-builder/server/service";
 
 type InvitationRow = {
   id: string;
@@ -40,8 +41,11 @@ const WEDDING_SITE_DATA_SELECT = `
   COALESCE(
     (
       SELECT section.content
-      FROM wedding_site_sections section
-      WHERE section.wedding_site_id = ws.id
+      FROM page_sections section
+      INNER JOIN pages page ON page.id = section.page_id
+      WHERE page.owner_type = 'wedding_site'
+        AND page.owner_id = ws.id
+        AND page.slug = 'home'
         AND section.section_type = 'template_data'
       ORDER BY section.sort_order ASC, section.created_at ASC
       LIMIT 1
@@ -78,15 +82,21 @@ function asArray(value: unknown): unknown[] {
 }
 
 async function syncWeddingSiteRelationalData(siteId: string, customData: Record<string, unknown>) {
-  await query("DELETE FROM wedding_site_sections WHERE wedding_site_id = $1 AND section_type = 'template_data'", [siteId]);
+  const page = await ensureBuilderPage({
+    ownerType: "wedding_site",
+    ownerId: siteId,
+    pageType: "website",
+    slug: "home",
+  });
+  await query("DELETE FROM page_sections WHERE page_id = $1 AND section_type = 'template_data'", [page.id]);
   await query(
     `
-      INSERT INTO wedding_site_sections (
-        wedding_site_id, section_type, title, sort_order, content, settings
+      INSERT INTO page_sections (
+        page_id, section_type, title, sort_order, content, settings
       )
       VALUES ($1, 'template_data', 'Template data', 0, $2::jsonb, '{}'::jsonb)
     `,
-    [siteId, customData]
+    [page.id, customData]
   );
 
   await query("DELETE FROM wedding_site_events WHERE wedding_site_id = $1", [siteId]);

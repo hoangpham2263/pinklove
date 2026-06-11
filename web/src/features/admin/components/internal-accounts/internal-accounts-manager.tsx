@@ -1,14 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ExternalLink, KeyRound, Link2, Shapes } from "lucide-react";
 import { toast } from "sonner";
 
-import { NativeForm } from "@/components/common/native-form";
-import { PasswordInput } from "@/components/common/password-input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { useConfirm } from "@/components/common/confirm-provider";
 import {
   Table,
   TableBody,
@@ -17,126 +13,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
-import { AdminCancelButton, AdminDialogCreateTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
-import { adminApi, adminApiActions } from "@/lib/api-client.admin";
+import { adminApi } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { type InternalAccount } from "@/lib/internal-accounts";
+import { ROUTES } from "@/lib/routes";
 
 type InternalAccountsManagerProps = {
   accounts: InternalAccount[];
 };
 
-type DraftAccount = {
-  platform: string;
-  label: string;
-  loginUsername: string;
-  loginPassword: string;
-  loginUrl: string;
-  notes: string;
-  sortOrder: string;
-};
-
-const EMPTY_DRAFT: DraftAccount = {
-  platform: "",
-  label: "",
-  loginUsername: "",
-  loginPassword: "",
-  loginUrl: "",
-  notes: "",
-  sortOrder: "0",
-};
-
-function toDraft(account: InternalAccount): DraftAccount {
-  return {
-    platform: account.platform,
-    label: account.label,
-    loginUsername: account.loginUsername,
-    loginPassword: account.loginPassword,
-    loginUrl: account.loginUrl,
-    notes: account.notes,
-    sortOrder: String(account.sortOrder),
-  };
-}
-
 function formatDateTime(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString("vi-VN");
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("vi-VN");
 }
 
 export function InternalAccountsManager({ accounts }: InternalAccountsManagerProps) {
   const router = useRouter();
-  const [createDraft, setCreateDraft] = useState<DraftAccount>(EMPTY_DRAFT);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<DraftAccount>(EMPTY_DRAFT);
+  const confirm = useConfirm();
+  const accountsWithUrl = accounts.filter((account) => account.loginUrl.trim().length > 0).length;
+  const platformCount = new Set(accounts.map((account) => account.platform.trim().toLowerCase()).filter(Boolean)).size;
 
-  const accountsWithUrl = useMemo(
-    () => accounts.filter((account) => account.loginUrl.trim().length > 0).length,
-    [accounts]
-  );
-  const platformCount = useMemo(
-    () => new Set(accounts.map((account) => account.platform.trim().toLowerCase()).filter(Boolean)).size,
-    [accounts]
-  );
+  async function handleDelete(account: InternalAccount) {
+    const approved = await confirm({
+      title: "Xóa tài khoản nội bộ",
+      description: `Bạn có chắc chắn muốn xóa tài khoản "${account.label}"?`,
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      variant: "destructive",
+    });
+    if (!approved) return;
 
-  function resetCreateDraft() {
-    setCreateDraft(EMPTY_DRAFT);
-  }
-
-  function startEditing(account: InternalAccount) {
-    setEditingId(account.id);
-    setEditDraft(toDraft(account));
-  }
-
-  function cancelEditing() {
-    setEditingId(null);
-    setEditDraft(EMPTY_DRAFT);
-  }
-
-  async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+    const formData = new FormData();
+    formData.set("id", account.id);
     try {
-      const result = await adminApi.saveInternalAccount(new FormData(event.currentTarget));
-      toast.success(result.message ?? "Đã thêm tài khoản nội bộ.");
-      resetCreateDraft();
-      finishMutation(router, result, { redirect: false });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể thêm tài khoản nội bộ.");
-    }
-  }
-
-  async function handleUpdate(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    try {
-      const result = await adminApi.saveInternalAccount(new FormData(event.currentTarget));
-      toast.success(result.message ?? "Đã cập nhật tài khoản nội bộ.");
-      cancelEditing();
-      finishMutation(router, result, { redirect: false });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Không thể cập nhật tài khoản nội bộ.");
-    }
-  }
-
-  async function handleDelete(event: React.FormEvent<HTMLFormElement>, label: string) {
-    event.preventDefault();
-
-    if (!confirm(`Xóa tài khoản "${label}"?`)) {
-      return;
-    }
-
-    try {
-      const result = await adminApi.removeInternalAccount(new FormData(event.currentTarget));
+      const result = await adminApi.removeInternalAccount(formData);
       toast.success(result.message ?? "Đã xóa tài khoản nội bộ.");
-      if (editingId) {
-        cancelEditing();
-      }
       finishMutation(router, result, { redirect: false });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể xóa tài khoản nội bộ.");
@@ -145,101 +59,30 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
 
   return (
     <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Tài khoản nội bộ</h1>
+        <AdminCreateLinkButton href={ROUTES.ADMIN.INTERNAL_ACCOUNT_NEW}>Thêm tài khoản</AdminCreateLinkButton>
+      </div>
+
       <AdminOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">
         <AdminOverviewCard title="Tổng tài khoản" value={accounts.length} icon={KeyRound} />
         <AdminOverviewCard title="Có link mở nhanh" value={accountsWithUrl} icon={Link2} />
-        <AdminOverviewCard title="Nền tảng đang lưu" icon={Shapes} contentClassName="flex items-center justify-between gap-3">
-          <p>{platformCount}</p>
-            <Dialog>
-              <AdminDialogCreateTrigger>
-                Thêm tài khoản
-              </AdminDialogCreateTrigger>
-              <DialogContent className="max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Thêm tài khoản nội bộ</DialogTitle>
-                  <DialogDescription>Lưu nhanh tài khoản nội bộ cần tra cứu khi đăng nhập.</DialogDescription>
-                </DialogHeader>
-                <NativeForm
-                  action={adminApiActions.saveInternalAccount}
-                  method="POST"
-                  className="grid gap-3 md:grid-cols-2"
-                  onSubmit={handleCreate}
-                >
-                  <Input
-                    name="platform"
-                    placeholder="Nền tảng"
-                    value={createDraft.platform}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, platform: event.target.value }))}
-                    required
-                  />
-                  <Input
-                    name="label"
-                    placeholder="Tên tài khoản"
-                    value={createDraft.label}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, label: event.target.value }))}
-                    required
-                  />
-                  <Input
-                    name="loginUsername"
-                    placeholder="Email / username / số điện thoại"
-                    value={createDraft.loginUsername}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginUsername: event.target.value }))}
-                  />
-                  <PasswordInput
-                    name="loginPassword"
-                    placeholder="Nhập mật khẩu hoặc tạo tự động"
-                    value={createDraft.loginPassword}
-                    autoComplete="new-password"
-                    allowGenerate
-                    onValueChange={(value) => setCreateDraft((current) => ({ ...current, loginPassword: value }))}
-                  />
-                  <Input
-                    name="loginUrl"
-                    placeholder="Link đăng nhập hoặc trang quản trị"
-                    value={createDraft.loginUrl}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, loginUrl: event.target.value }))}
-                  />
-                  <Input
-                    name="sortOrder"
-                    type="number"
-                    placeholder="Thứ tự"
-                    value={createDraft.sortOrder}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, sortOrder: event.target.value }))}
-                  />
-                  <Input
-                    name="notes"
-                    placeholder="Ghi chú"
-                    value={createDraft.notes}
-                    onChange={(event) => setCreateDraft((current) => ({ ...current, notes: event.target.value }))}
-                    className="md:col-span-2"
-                  />
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <AdminSubmitButton>
-                      Thêm tài khoản
-                    </AdminSubmitButton>
-                    <AdminCancelButton onClick={resetCreateDraft}>
-                      Xóa form
-                    </AdminCancelButton>
-                  </div>
-                </NativeForm>
-              </DialogContent>
-            </Dialog>
-        </AdminOverviewCard>
+        <AdminOverviewCard title="Nền tảng đang lưu" value={platformCount} icon={Shapes} />
       </AdminOverviewGrid>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="font-medium">Nền tảng</TableHead>
-              <TableHead className="font-medium">Tên tài khoản</TableHead>
-              <TableHead className="font-medium">Đăng nhập</TableHead>
-              <TableHead className="font-medium">Mật khẩu</TableHead>
-              <TableHead className="font-medium">Link</TableHead>
-              <TableHead className="font-medium">Ghi chú</TableHead>
-              <TableHead className="font-medium">Thứ tự</TableHead>
-              <TableHead className="font-medium">Cập nhật</TableHead>
-              <TableHead className="text-right font-medium">Hành động</TableHead>
+              <TableHead>Nền tảng</TableHead>
+              <TableHead>Tên tài khoản</TableHead>
+              <TableHead>Đăng nhập</TableHead>
+              <TableHead>Mật khẩu</TableHead>
+              <TableHead>Link</TableHead>
+              <TableHead>Ghi chú</TableHead>
+              <TableHead>Thứ tự</TableHead>
+              <TableHead>Cập nhật</TableHead>
+              <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -251,156 +94,46 @@ export function InternalAccountsManager({ accounts }: InternalAccountsManagerPro
               </TableRow>
             ) : null}
 
-            {accounts.map((account) => {
-              const isEditing = editingId === account.id;
-              const currentDraft = isEditing ? editDraft : toDraft(account);
-
-              return (
-                <TableRow key={account.id}>
-                  <TableCell className="min-w-32">
-                    {isEditing ? (
-                      <Input
-                        name="platform"
-                        value={currentDraft.platform}
-                        onChange={(event) =>
-                          setEditDraft((current) => ({ ...current, platform: event.target.value }))
-                        }
-                        required
-                      />
-                    ) : (
-                      <span>{account.platform}</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-40">
-                    {isEditing ? (
-                      <Input
-                        name="label"
-                        value={currentDraft.label}
-                        onChange={(event) => setEditDraft((current) => ({ ...current, label: event.target.value }))}
-                        required
-                      />
-                    ) : (
-                      account.label
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-48">
-                    {isEditing ? (
-                      <Input
-                        name="loginUsername"
-                        value={currentDraft.loginUsername}
-                        onChange={(event) =>
-                          setEditDraft((current) => ({ ...current, loginUsername: event.target.value }))
-                        }
-                      />
-                    ) : (
-                      account.loginUsername || <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-36">
-                    {isEditing ? (
-                      <PasswordInput
-                        name="loginPassword"
-                        value={currentDraft.loginPassword}
-                        autoComplete="new-password"
-                        allowGenerate
-                        onValueChange={(value) =>
-                          setEditDraft((current) => ({ ...current, loginPassword: value }))
-                        }
-                      />
-                    ) : account.loginPassword ? (
-                      <code>{account.loginPassword}</code>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-52">
-                    {isEditing ? (
-                      <Input
-                        name="loginUrl"
-                        value={currentDraft.loginUrl}
-                        onChange={(event) => setEditDraft((current) => ({ ...current, loginUrl: event.target.value }))}
-                      />
-                    ) : account.loginUrl ? (
-                      <a
-                        href={account.loginUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                      >
-                        Mở nhanh
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-52">
-                    {isEditing ? (
-                      <Input
-                        name="notes"
-                        value={currentDraft.notes}
-                        onChange={(event) => setEditDraft((current) => ({ ...current, notes: event.target.value }))}
-                      />
-                    ) : (
-                      account.notes || <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="min-w-24">
-                    {isEditing ? (
-                      <Input
-                        name="sortOrder"
-                        type="number"
-                        value={currentDraft.sortOrder}
-                        onChange={(event) =>
-                          setEditDraft((current) => ({ ...current, sortOrder: event.target.value }))
-                        }
-                      />
-                    ) : (
-                      account.sortOrder
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {formatDateTime(account.updatedAt)}
-                  </TableCell>
-                  <TableCell>
-                    <AdminTableActions>
-                      {isEditing ? (
-                        <>
-                          <NativeForm
-                            action={adminApiActions.saveInternalAccount}
-                            method="POST"
-                            onSubmit={handleUpdate}
-                          >
-                            <input type="hidden" name="id" value={account.id} />
-                            <input type="hidden" name="platform" value={currentDraft.platform} />
-                            <input type="hidden" name="label" value={currentDraft.label} />
-                            <input type="hidden" name="loginUsername" value={currentDraft.loginUsername} />
-                            <input type="hidden" name="loginPassword" value={currentDraft.loginPassword} />
-                            <input type="hidden" name="loginUrl" value={currentDraft.loginUrl} />
-                            <input type="hidden" name="notes" value={currentDraft.notes} />
-                            <input type="hidden" name="sortOrder" value={currentDraft.sortOrder} />
-                            <AdminTableActionButton action="save" label="Lưu" type="submit" />
-                          </NativeForm>
-                          <AdminTableActionButton action="cancel" label="Hủy" onClick={cancelEditing} />
-                        </>
-                      ) : (
-                        <>
-                          <AdminTableActionButton action="edit" label="Sửa" onClick={() => startEditing(account)} />
-                          <NativeForm
-                            action={adminApiActions.removeInternalAccount}
-                            method="POST"
-                            onSubmit={(event) => handleDelete(event, account.label)}
-                          >
-                            <input type="hidden" name="id" value={account.id} />
-                            <AdminTableActionButton action="delete" label="Xóa" type="submit" />
-                          </NativeForm>
-                        </>
-                      )}
-                    </AdminTableActions>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {accounts.map((account) => (
+              <TableRow key={account.id}>
+                <TableCell className="font-medium">{account.platform}</TableCell>
+                <TableCell>{account.label}</TableCell>
+                <TableCell>{account.loginUsername || <span className="text-muted-foreground">-</span>}</TableCell>
+                <TableCell>{account.loginPassword ? "••••••••" : <span className="text-muted-foreground">-</span>}</TableCell>
+                <TableCell>
+                  {account.loginUrl ? (
+                    <a
+                      href={account.loginUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                    >
+                      Mở nhanh
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="max-w-64 truncate">{account.notes || <span className="text-muted-foreground">-</span>}</TableCell>
+                <TableCell>{account.sortOrder}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{formatDateTime(account.updatedAt)}</TableCell>
+                <TableCell>
+                  <AdminTableActions>
+                    <AdminTableActionButton
+                      action="edit"
+                      label={`Sửa ${account.label}`}
+                      href={ROUTES.ADMIN.INTERNAL_ACCOUNT(account.id)}
+                    />
+                    <AdminTableActionButton
+                      action="delete"
+                      label={`Xóa ${account.label}`}
+                      onClick={() => void handleDelete(account)}
+                    />
+                  </AdminTableActions>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

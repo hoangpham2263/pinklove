@@ -18,6 +18,16 @@ Use this file for the dedicated provider portal.
   - `/provider`
 - Protected provider detail route:
   - `/provider/orders/[id]`
+- Provider marketplace lead queue:
+  - `/provider/leads`
+- Provider service bookings:
+  - `/provider/bookings`
+- Provider portfolio and profile operations:
+  - `/provider/portfolio`
+  - `/provider/pricing`
+  - `/provider/regions`
+  - `/provider/reviews`
+  - `/provider/organization`
 - Legacy redirect-only aliases:
   - `/provider/dashboard`
   - `/provider/orders`
@@ -43,6 +53,26 @@ Use this file for the dedicated provider portal.
 - Provider also sees admin-driven order-state changes from the provider order detail without a page reload.
 - Provider receives realtime account notifications from the provider portal header bell without switching to another page.
 - Internal links from admin or customer bridge pages should prefer the canonical provider portal link, not the legacy aliases.
+
+## Provider Lead Flow
+
+- `vendor_leads` stores customer interest before a booking exists.
+- Providers update lead status and issue quotes from `/provider/leads`.
+- Accepting a sent quote creates a booking; it does not create a commerce order.
+- Provider lead/search queries belong to `src/features/providers/server/*`.
+
+## Provider Booking and Profile Flow
+
+- `/provider/bookings` is the provider-owned view of service bookings and
+  allows direct status updates for assigned bookings.
+- `/provider/pricing` manages provider pricing rows for marketplace profile
+  enrichment.
+- `/provider/regions` manages provider service regions and coverage data.
+- `/provider/reviews` surfaces customer reviews created after eligible
+  bookings.
+- `/provider/portfolio` manages provider media collections and albums.
+- `/provider/organization` manages provider organizations, invited members,
+  and organization roles.
 
 ## Provider Offering Approval
 

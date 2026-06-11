@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { getManagedPageFields, isManagedSitePageSlug } from "@/features/pages/config/managed-pages";
 import { MediaSelector } from "@/features/media/components/media-selector";
+import type { FieldSchema } from "@/features/pages/schema";
 import { STRUCTURED_DATA_FIELD } from "@/lib/page-fields";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { SeoPreview } from "./seo-preview";
@@ -31,10 +32,19 @@ type PageEditorFormProps = {
   offeringOptions?: FieldsEditorOfferingOption[];
 };
 
+function getCustomFieldTabKey(field: FieldSchema, index: number) {
+  return "name" in field ? `${field.type}-${field.name}` : `${field.type}-${field.label}-${index}`;
+}
+
+function getCustomFieldTabLabel(field: FieldSchema) {
+  return "label" in field ? field.label : "Field";
+}
+
 export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormProps) {
   const router = useRouter();
   const [ogImage, setOgImage] = useState(page.ogImage || "");
   const [isSaving, setIsSaving] = useState(false);
+  const [activeCustomFieldTab, setActiveCustomFieldTab] = useState("");
   
   // SEO Preview States
   const [seoTitle, setSeoTitle] = useState(page.seoTitle || "");
@@ -78,6 +88,11 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
 
   const isProtectedSlug = isManagedSitePageSlug(page.slug);
   const templateFields = getManagedPageFields(page.slug);
+  const activeCustomFieldKey = templateFields.length === 0
+    ? ""
+    : templateFields.some((field, index) => getCustomFieldTabKey(field, index) === activeCustomFieldTab)
+      ? activeCustomFieldTab
+      : getCustomFieldTabKey(templateFields[0], 0);
 
   const previewPage: ManagedPage = {
     ...page,
@@ -105,37 +120,36 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
       <input type="hidden" name="ogImage" value={ogImage} />
       <input type="hidden" name="customFields" value={JSON.stringify(customFields)} />
 
-      {/* Left Column: Main Content & SEO (9/12) */}
       <div className="space-y-5 lg:col-span-9">
-        <Card className="">
-          <CardHeader>
-            <CardTitle>Content</CardTitle>
+        <Card className="min-w-0 overflow-visible rounded-lg gap-0">
+          <CardHeader className="border-b gap-0 pb-0">
+            <CardTitle>Thông tin trang</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="space-y-5 pt-5">
+            <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="name" className="font-medium">
+                <label htmlFor="name" className="text-sm font-medium">
                   Page Name
                 </label>
-                <Input 
-                  id="name" 
-                  name="name" 
-                  value={pageName} 
+                <Input
+                  id="name"
+                  name="name"
+                  value={pageName}
                   onChange={handleNameChange}
-                  required 
-                  placeholder="Internal name" 
+                  required
+                  placeholder="Internal name"
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="slug" className="font-medium">
+                <label htmlFor="slug" className="text-sm font-medium">
                   Slug nội bộ
                 </label>
-                <Input 
-                  id="slug" 
-                  name="slug" 
-                  value={slug} 
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={slug}
                   onChange={handleSlugChange}
-                  required 
+                  required
                   placeholder="URL path segment"
                   readOnly={isProtectedSlug}
                   className={isProtectedSlug ? "bg-muted cursor-not-allowed opacity-70" : ""}
@@ -144,20 +158,20 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="title" className="font-medium">
+              <label htmlFor="title" className="text-sm font-medium">
                 Page Title (H1)
               </label>
-              <Input 
-                id="title" 
-                name="title" 
-                value={pageTitle} 
+              <Input
+                id="title"
+                name="title"
+                value={pageTitle}
                 onChange={handleTitleChange}
-                placeholder="Main heading displayed on page" 
+                placeholder="Main heading displayed on page"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="excerpt" className="font-medium">
+              <label htmlFor="excerpt" className="text-sm font-medium">
                 Excerpt
               </label>
               <textarea
@@ -170,7 +184,7 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="body" className="font-medium">
+              <label htmlFor="body" className="text-sm font-medium">
                 Body Content
               </label>
               <TiptapRichTextEditor
@@ -181,32 +195,72 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
           </CardContent>
         </Card>
 
-        {templateFields.length > 0 && (
-          <Card>
-            <CardHeader>
+        {templateFields.length > 0 ? (
+          <Card className="min-w-0 overflow-hidden rounded-lg gap-0">
+            <CardHeader className="border-b gap-0 pb-0">
               <CardTitle>Custom Fields</CardTitle>
             </CardHeader>
-            <CardContent>
-              <FieldsEditor
-                fields={templateFields}
-                values={customFields}
-                onChange={handleCustomFieldChange}
-                offeringOptions={offeringOptions}
-              />
+            <CardContent className="p-0">
+              <div className="grid min-h-[30rem] lg:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="border-b bg-white p-3 lg:border-r lg:border-b-0">
+                  <div className="grid gap-1">
+                    {templateFields.map((field, index) => {
+                      const tabKey = getCustomFieldTabKey(field, index);
+                      const active = activeCustomFieldKey === tabKey;
+                      return (
+                        <button
+                          key={tabKey}
+                          type="button"
+                          className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                            active
+                              ? "border-primary/30 bg-primary/5"
+                              : "border-border/50 bg-white hover:border-primary/30 hover:bg-primary/5"
+                          }`}
+                          onClick={() => setActiveCustomFieldTab(tabKey)}
+                        >
+                          <span className="block truncate font-medium">{getCustomFieldTabLabel(field)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="min-w-0 p-5 md:p-6">
+                  {templateFields.map((field, index) => {
+                    const tabKey = getCustomFieldTabKey(field, index);
+                    if (tabKey !== activeCustomFieldKey) {
+                      return null;
+                    }
+
+                    return (
+                      <FieldsEditor
+                        key={tabKey}
+                        fields={[field]}
+                        values={customFields}
+                        showTabs={false}
+                        forceSingleColumn
+                        className="grid grid-cols-12 gap-4"
+                        onChange={handleCustomFieldChange}
+                        offeringOptions={offeringOptions}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
-        <Card>
+        <Card className="min-w-0 overflow-visible rounded-lg gap-0">
           <details className="group">
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
               <CardTitle>SEO Settings</CardTitle>
               <span className="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
             </summary>
             <CardContent className="space-y-4 border-t pt-4">
-              <SeoPreview 
-                title={seoTitle || pageTitle} 
-                description={seoDescription} 
+              <SeoPreview
+                title={seoTitle || pageTitle}
+                description={seoDescription}
                 path={getManagedPagePath(previewPage)}
               />
 
@@ -291,7 +345,6 @@ export function PageEditorForm({ page, offeringOptions = [] }: PageEditorFormPro
         </Card>
       </div>
 
-      {/* Right Column: Sidebar (3/12) */}
       <div className="space-y-5 lg:col-span-3 lg:sticky lg:top-20 lg:self-start">
         <Card className="">
           <CardHeader className="pb-3">

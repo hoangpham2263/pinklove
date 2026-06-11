@@ -1,10 +1,8 @@
 import { BadgePercent, ShieldCheck, UserPlus, Users } from "lucide-react";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AdminDialogCreateTrigger, AdminLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
-import { QuickCreateUserForm } from "@/features/admin/components/users/quick-create-user-form";
-import { countAdmins, listAccounts, requireAdmin } from "@/lib/auth";
+import { countAdmins, listAccounts, requireAdminPermission } from "@/lib/auth";
 import { UserManagement } from "@/features/admin/components/users/user-management";
 import { getRoleLabel, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -14,7 +12,7 @@ type AdminUserPageProps = {
 };
 
 export default async function AdminUserPage({ searchParams }: AdminUserPageProps) {
-  const actor = await requireAdmin();
+  const actor = await requireAdminPermission("accounts.manage");
   const users = await listAccounts();
   const adminCount = await countAdmins();
   const customerCount = users.filter((user) => user.role === USER_ROLES.CUSTOMER).length;
@@ -35,18 +33,7 @@ export default async function AdminUserPage({ searchParams }: AdminUserPageProps
         <AdminLinkButton href={ROUTES.ADMIN.CUSTOMERS}>Mở danh sách khách hàng</AdminLinkButton>
         <AdminLinkButton href={ROUTES.ADMIN.AFFILIATE_USERS}>Mở danh sách đối tác / CTV</AdminLinkButton>
         <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNTS}>Mở danh sách nhà cung cấp</AdminLinkButton>
-        <Dialog>
-          <AdminDialogCreateTrigger>
-            Tạo người dùng
-          </AdminDialogCreateTrigger>
-          <DialogContent className="max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Tạo người dùng</DialogTitle>
-              <DialogDescription>Tạo tài khoản mới và chọn vai trò phù hợp.</DialogDescription>
-            </DialogHeader>
-            <QuickCreateUserForm returnTo={ROUTES.ADMIN.USERS} />
-          </DialogContent>
-        </Dialog>
+        <AdminCreateLinkButton href={ROUTES.ADMIN.USERS_CREATE}>Tạo người dùng</AdminCreateLinkButton>
       </div>
 
       <UserManagement initialUsers={users} actor={actor} />

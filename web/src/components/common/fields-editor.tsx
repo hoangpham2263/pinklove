@@ -33,6 +33,7 @@ type FieldsEditorProps = {
   offeringOptions?: FieldsEditorOfferingOption[];
   className?: string;
   showTabs?: boolean;
+  forceSingleColumn?: boolean;
 };
 
 export function FieldsEditor({
@@ -42,6 +43,7 @@ export function FieldsEditor({
   offeringOptions = [],
   className = "pt-4",
   showTabs = true,
+  forceSingleColumn = false,
 }: FieldsEditorProps) {
   const [activeTab, setActiveTab] = useState(getFieldTabKey(fields[0], 0));
 
@@ -59,9 +61,9 @@ export function FieldsEditor({
         {fields.map((field, index) => (
           <div
             key={getFieldTabKey(field, index)}
-            className={getFieldWidthClass(field, { compact: true })}
+            className={getFieldWidthClass(field, { compact: true, forceSingleColumn })}
           >
-            {renderField(field, values, onChange, { compact: true, offeringOptions })}
+            {renderField(field, values, onChange, { compact: true, forceSingleColumn, offeringOptions })}
           </div>
         ))}
       </div>
@@ -102,7 +104,7 @@ export function FieldsEditor({
 
         return (
           <Fragment key={tabKey}>
-            {renderField(field, values, onChange, { offeringOptions })}
+            {renderField(field, values, onChange, { forceSingleColumn, offeringOptions })}
           </Fragment>
         );
       })}
@@ -116,6 +118,7 @@ function renderField(
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
     offeringOptions?: FieldsEditorOfferingOption[];
   }
 ) {
@@ -137,22 +140,22 @@ function renderField(
             <p className="text-sm text-muted-foreground">{field.description}</p>
           ) : null}
         </div>
-        {field.layout === "two-columns" ? (
+        {field.layout === "two-columns" && !options?.forceSingleColumn ? (
           <div className={cn("grid gap-6 lg:grid-cols-2", options?.compact ? "" : "p-4")}>
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column !== "right")
-                .map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
+                .map((child, index) => renderChild(child, index, { compact: true, forceSingleColumn: options?.forceSingleColumn, offeringOptions: options?.offeringOptions }))}
             </div>
             <div className="grid grid-cols-12 content-start gap-4">
               {field.fields
                 .filter((child) => child.column === "right")
-                .map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
+                .map((child, index) => renderChild(child, index, { compact: true, forceSingleColumn: options?.forceSingleColumn, offeringOptions: options?.offeringOptions }))}
             </div>
           </div>
         ) : (
           <div className={cn("grid grid-cols-12 gap-4", options?.compact ? "" : "p-4")}>
-            {field.fields.map((child, index) => renderChild(child, index, { compact: true, offeringOptions: options?.offeringOptions }))}
+            {field.fields.map((child, index) => renderChild(child, index, { compact: true, forceSingleColumn: options?.forceSingleColumn, offeringOptions: options?.offeringOptions }))}
           </div>
         )}
       </section>
@@ -177,6 +180,7 @@ function RepeaterField({
   onChange?: (name: string, value: unknown) => void;
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
     offeringOptions?: FieldsEditorOfferingOption[];
   };
 }) {
@@ -291,6 +295,7 @@ function SortableRepeaterItem({
   onChange?: (name: string, value: unknown) => void;
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
     offeringOptions?: FieldsEditorOfferingOption[];
   };
 }) {
@@ -363,6 +368,7 @@ function SortableRepeaterItem({
               : undefined,
             {
               compact: true,
+              forceSingleColumn: options?.forceSingleColumn,
               fieldPath: `${field.name}.${itemIndex}.${child.name}`,
               offeringOptions: options?.offeringOptions,
             }
@@ -379,6 +385,7 @@ function renderLeafField(
   onChange?: (name: string, value: unknown) => void,
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
     fieldPath?: string;
     offeringOptions?: FieldsEditorOfferingOption[];
   }
@@ -584,8 +591,13 @@ function getFieldWidthClass(
   field: FieldSchema,
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
   }
 ) {
+  if (options?.forceSingleColumn) {
+    return "col-span-12";
+  }
+
   if (field.type === "section") {
     return "col-span-12";
   }
@@ -601,8 +613,13 @@ function getLeafWidthClass(
   field: Extract<FieldSchema, { type: "text" | "textarea" | "media" | "wysiwyg" | "switch" | "checkbox" | "offering-select" }>,
   options?: {
     compact?: boolean;
+    forceSingleColumn?: boolean;
   }
 ) {
+  if (options?.forceSingleColumn) {
+    return "col-span-12";
+  }
+
   const width = field.width ?? (field.type === "textarea" && !options?.compact ? 12 : 6);
 
   return getSchemaWidthClass(width);
@@ -675,6 +692,7 @@ function OfferingSelectField({
 }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const selectedValues = normalizeStringArray(value);
 
   const availableOptions = useMemo(() => {
@@ -725,37 +743,48 @@ function OfferingSelectField({
     );
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    if (!onChange || !multiple) {
+      return;
+    }
+
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = selectedValues.indexOf(String(active.id));
+    const newIndex = selectedValues.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) {
+      return;
+    }
+
+    onChange(fieldName, arrayMove(selectedValues, oldIndex, newIndex));
+  }
+
   return (
     <div className="space-y-3">
       <div className="rounded-md border bg-card p-3">
         {selectedOptions.length === 0 ? (
           <p className="mb-3 text-sm text-muted-foreground">Chưa chọn sản phẩm nào.</p>
         ) : (
-          <div className="mb-3 flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
-            {selectedOptions.map((option) => (
-              <div
-                key={option.value}
-                className="flex items-center justify-between gap-2 rounded-md border bg-secondary/30 px-3 py-2 text-sm transition-colors hover:bg-secondary/50"
-              >
-                <span className="min-w-0 space-y-0.5">
-                  <span className="block truncate font-medium">{option.label}</span>
-                  {option.description ? (
-                    <span className="block truncate text-xs text-muted-foreground">{option.description}</span>
-                  ) : null}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeOffering(option.value)}
-                  aria-label={`Bỏ ${option.label}`}
-                >
-                  <X className="size-4" />
-                </Button>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext
+              items={selectedOptions.map((option) => option.value)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="mb-3 flex max-h-48 flex-col gap-2 overflow-y-auto pr-1">
+                {selectedOptions.map((option) => (
+                  <SortableOfferingOption
+                    key={option.value}
+                    option={option}
+                    sortable={Boolean(onChange && multiple && selectedOptions.length > 1)}
+                    onRemove={() => removeOffering(option.value)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
 
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -822,6 +851,63 @@ function OfferingSelectField({
           </DialogContent>
         </Dialog>
       </div>
+    </div>
+  );
+}
+
+function SortableOfferingOption({
+  option,
+  sortable,
+  onRemove,
+}: {
+  option: FieldsEditorOfferingOption;
+  sortable: boolean;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: option.value,
+    disabled: !sortable,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={cn(
+        "flex items-center gap-2 rounded-md border bg-secondary/30 px-2 py-2 text-sm transition-colors hover:bg-secondary/50",
+        isDragging ? "relative z-10 opacity-80 shadow-md" : ""
+      )}
+    >
+      {sortable ? (
+        <button
+          type="button"
+          className="inline-flex size-8 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-background active:cursor-grabbing"
+          aria-label={`Kéo để sắp xếp ${option.label}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      ) : null}
+      <span className="min-w-0 flex-1 space-y-0.5 px-1">
+        <span className="block truncate font-medium">{option.label}</span>
+        {option.description ? (
+          <span className="block truncate text-xs text-muted-foreground">{option.description}</span>
+        ) : null}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+        onClick={onRemove}
+        aria-label={`Bỏ ${option.label}`}
+      >
+        <X className="size-4" />
+      </Button>
     </div>
   );
 }

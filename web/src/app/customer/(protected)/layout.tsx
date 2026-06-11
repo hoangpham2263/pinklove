@@ -70,10 +70,10 @@ export default async function CustomerLayout({
                 <CustomerNavLink
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="truncate" title={item.label}>{item.label}</span>
                 </CustomerNavLink>
               );
             })}
@@ -94,10 +94,10 @@ export default async function CustomerLayout({
                 <CustomerNavLink
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="truncate" title={item.label}>{item.label}</span>
                 </CustomerNavLink>
               );
             })}
@@ -113,10 +113,10 @@ export default async function CustomerLayout({
                 href={item.href}
                 target={item.href.startsWith("http") ? "_blank" : undefined}
                 rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted"
+                className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-muted"
               >
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate" title={item.label}>{item.label}</span>
               </Link>
             );
           })}

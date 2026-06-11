@@ -157,18 +157,6 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     payloadKeys: ["user.id", "actor.id", "deletedAt"],
   }),
   createHook({
-    key: "users.role_updated",
-    label: "User Role Updated",
-    scope: "users",
-    description: "Kích hoạt khi admin đổi role của user.",
-    direction: "outbound_sync",
-    status: "active",
-    statusLabel: "Active",
-    statusReason: "Route đổi role user đang tồn tại.",
-    triggerSource: "POST /api/admin/users/role",
-    payloadKeys: ["user.id", "user.role", "actor.id", "updatedAt"],
-  }),
-  createHook({
     key: "users.bulk_updated",
     label: "Users Bulk Updated",
     scope: "users",

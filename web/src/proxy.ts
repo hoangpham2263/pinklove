@@ -34,7 +34,9 @@ function unauthorized() {
 
 export function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith(API_PREFIX)) {
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-admin-pathname", request.nextUrl.pathname);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     const secret = getInternalApiSecret();
 
     if (secret) {

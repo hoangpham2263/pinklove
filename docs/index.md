@@ -65,6 +65,11 @@ Use this file as the entrypoint for project documentation.
 - Use shared `FieldsEditor` media fields for image selection; when a field stores a media gallery, model it as `type: "media"` with `multiple: true` instead of raw textarea URL input.
 - Media Library upload surfaces should allow batch uploads into the shared library even when the consuming field stores only one selected asset.
 - Product/media search-select surfaces should use the shared fixed-size dialog picker pattern so selected items stay visible in the form and long option lists scroll inside the popup.
+- Admin edit forms keep basic metadata in a standalone card and place dense
+  editable groups in a separate vertical tab workspace. Every field inside a
+  vertical tab workspace renders full-width on its own row, including fields
+  nested in sections and repeaters. Schema `width`, `column`, and
+  `layout: "two-columns"` must not split tab content into multiple columns.
 - For admin/provider operational screens, prefer `toast + partial JSON refresh` over redirect-driven saves or full-route reloads.
 - Use `web/src/lib/page-paths.ts` as the source of truth for managed-page public paths.
 - Use `web/src/lib/public-paths.ts` as the source of truth for blog, offering, builder, and invitation public paths.

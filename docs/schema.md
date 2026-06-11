@@ -10,7 +10,7 @@ Snapshot source:
 
 - Runtime database: local Docker PostgreSQL `app`
 - Schema source in code: `web/src/lib/database.ts`
-- Last refreshed from DB: 2026-05-23
+- Last refreshed from DB: 2026-06-10
 
 ## ID Policy
 
@@ -20,12 +20,15 @@ generator. The latest DB audit returned zero `bigint`/`integer` ID columns.
 
 ## Table Count
 
-Current database has 108 public tables after final physical offering cleanup:
+Target runtime database has 123 public tables after the simplified Admin RBAC
+refactor:
 
 | Area | Tables |
 | --- | --- |
-| Identity | `users`, `user_sessions`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts` |
-| CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `media_assets`, `media_asset_links`, `app_settings` |
+| Identity and Admin access | `users`, `user_sessions`, `user_profiles`, `user_shipping_profiles`, `user_addresses`, `user_oauth_accounts`, `internal_accounts`, `admin_roles`, `admin_permissions`, `admin_role_permissions` |
+| CMS | `managed_pages`, `navigation_menus`, `navigation_menu_items`, `app_settings` |
+| Website builder | `pages`, `page_sections` |
+| Media | `media_assets`, `media_asset_links`, `media_collections`, `media_collection_items` |
 | Affiliate | `affiliate_accounts`, `affiliate_clicks`, `affiliate_conversions`, `affiliate_applications` |
 | Offerings | `offering_types`, `offering_type_field_groups`, `offering_type_fields`, `offering_categories`, `offerings`, `offering_bundles`, `offering_bundle_items`, `offering_relationships`, `offering_search_documents`, `shopping_cart_items` |
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
@@ -35,12 +38,12 @@ Current database has 108 public tables after final physical offering cleanup:
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
 | Offering domain extensions | `digital_template_offerings`, `physical_offerings`, `wedding_site_offerings`, `service_offerings`, `creator_service_offerings`, `experience_offerings` |
-| Wedding experience | `wedding_sites`, `wedding_site_pages`, `wedding_site_sections`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_site_events`, `wedding_site_galleries` |
-| Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments`, `provider_types` |
+| Wedding planning | `wedding_sites`, `guest_groups`, `wedding_site_guests`, `wedding_site_rsvps`, `wedding_tables`, `wedding_table_guests`, `wedding_tasks`, `wedding_timeline_items`, `wedding_site_events`, `wedding_site_galleries` |
+| Provider ecosystem | `providers`, `provider_profiles`, `provider_services`, `provider_regions`, `provider_reviews`, `provider_pricing`, `provider_fulfillments`, `provider_types`, `vendor_leads`, `vendor_quotes`, `provider_search_documents` |
 | Service booking | `bookings`, `booking_items`, `booking_status_logs`, `booking_payments`, `booking_calendars`, `provider_availability`, `provider_time_slots` |
 | Organizations | `organizations`, `organization_members`, `organization_roles` |
 | Template attributes / engines | `template_attributes`, `template_attribute_values`, `template_engines` |
-| Taxonomy / events / regions | `tags`, `tag_relations`, `domain_events`, `domain_event_types`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `regions`, `shipping_regions`, `service_regions` |
+| Taxonomy / events / analytics / regions | `tags`, `tag_relations`, `domain_events`, `domain_event_types`, `analytics_sessions`, `analytics_page_views`, `analytics_events`, `conversion_goals`, `conversion_events`, `regions`, `shipping_regions`, `service_regions` |
 | System config / constraints | `offering_statuses`, `media_target_types`, `media_roles` |
 | SEO / audit | `seo_redirects`, `field_change_logs` |
 
@@ -50,9 +53,22 @@ The sellable catalog source of truth is `offerings`. The older product naming
 has been removed from the application surface and new catalog work should not
 create `products` tables, routes, services, or API names.
 
-The architecture overview lives in `docs/architecture.md`. This schema document
-tracks the runtime database plus the next target shape when the runtime has
-known transitional tables.
+The architecture overview lives in `docs/architecture.md`. This document tracks
+the implemented runtime schema only. Proposed tables do not belong here.
+
+`web/scripts/audit-schema.mjs` locks the exact 123-table public inventory,
+required architecture columns, foreign-key integrity, and forbidden legacy
+tables. A migration is complete only when the audit passes against both the
+current database and a newly created empty database.
+
+Admin access is intentionally minimal:
+
+- `users.role = 'ADMIN'` selects the Admin portal.
+- `users.admin_role_id` selects one active role.
+- `admin_role_permissions` grants database-managed module permissions.
+- `super_admin` bypasses individual permission rows.
+- Staff profiles, remote work, time tracking, leave, recruitment, contracts,
+  and payroll are outside this application.
 
 Offering types are data-driven through `offering_types`:
 
@@ -413,7 +429,7 @@ erDiagram
   media_assets ||--o{ media_asset_links : linked
 ```
 
-## Wedding Experience Split
+## Wedding Planning And Website Builder
 
 ```mermaid
 erDiagram
@@ -422,29 +438,45 @@ erDiagram
     text user_id FK
     text offering_id FK
     text slug UK
+    text project_status
+    numeric budget
+    date event_date
+    int guest_target
     jsonb custom_data "always empty after bootstrap"
   }
 
-  wedding_site_pages {
+  pages {
     text id PK
-    text wedding_site_id FK
+    text owner_type
+    text owner_id
+    text page_type
     text slug
     text title
   }
 
-  wedding_site_sections {
+  page_sections {
     text id PK
-    text wedding_site_id FK
     text page_id FK
     text section_type
     jsonb content
+    jsonb visibility_rules
+    jsonb display_conditions
+    text ab_variant_key
+  }
+
+  guest_groups {
+    text id PK
+    text wedding_site_id FK
+    text name
   }
 
   wedding_site_guests {
     text id PK
     text wedding_site_id FK
+    text guest_group_id FK
     text full_name
     text invite_code
+    text note
   }
 
   wedding_site_rsvps {
@@ -452,6 +484,41 @@ erDiagram
     text wedding_site_id FK
     text guest_id FK
     text response_status
+    int attendee_count
+    text meal_choice
+    text special_requests
+    timestamptz responded_at
+  }
+
+  wedding_tables {
+    text id PK
+    text wedding_site_id FK
+    text name
+    int capacity
+  }
+
+  wedding_table_guests {
+    text table_id PK, FK
+    text guest_id PK, FK
+    text seat_number
+  }
+
+  wedding_tasks {
+    text id PK
+    text wedding_site_id FK
+    text title
+    text category
+    text status
+    date due_date
+  }
+
+  wedding_timeline_items {
+    text id PK
+    text wedding_site_id FK
+    text title
+    timestamptz starts_at
+    timestamptz ends_at
+    text timeline_type
   }
 
   wedding_site_events {
@@ -467,18 +534,25 @@ erDiagram
     text title
   }
 
-  wedding_sites ||--o{ wedding_site_pages : has
-  wedding_sites ||--o{ wedding_site_sections : has
-  wedding_site_pages ||--o{ wedding_site_sections : contains
+  wedding_sites ||--o{ pages : owns
+  pages ||--o{ page_sections : contains
+  wedding_sites ||--o{ guest_groups : groups
   wedding_sites ||--o{ wedding_site_guests : invites
+  guest_groups ||--o{ wedding_site_guests : groups
   wedding_sites ||--o{ wedding_site_rsvps : receives
   wedding_site_guests ||--o{ wedding_site_rsvps : responds
+  wedding_sites ||--o{ wedding_tables : plans
+  wedding_tables ||--o{ wedding_table_guests : seats
+  wedding_site_guests ||--o{ wedding_table_guests : assigned
+  wedding_sites ||--o{ wedding_tasks : tracks
+  wedding_sites ||--o{ wedding_timeline_items : schedules
   wedding_sites ||--o{ wedding_site_events : schedules
   wedding_sites ||--o{ wedding_site_galleries : has
 ```
 
-Invitation runtime data is persisted through `wedding_site_sections` with
-`section_type = template_data`. `wedding_sites.custom_data` is no longer a write
+Invitation runtime data is persisted through `page_sections` with
+`owner_type = wedding_site` and `section_type = template_data`.
+`wedding_sites.custom_data` is no longer a write
 target; bootstrap clears old values and runtime create/update paths keep it as
 `{}`. Structured arrays in template data are also synced into
 `wedding_site_events`, `wedding_site_guests`, and `wedding_site_rsvps` when
@@ -1179,15 +1253,32 @@ archived without breaking existing catalog rows.
 | `provider_offering_supplier_requests.offering_id` | `offerings.id` | CASCADE |
 | `provider_offering_supplier_requests.reviewed_by` | `users.id` | SET NULL |
 | `provider_offering_supplier_requests.provider_user_id` | `users.id` | CASCADE |
+| `guest_groups.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `page_sections.page_id` | `pages.id` | CASCADE |
+| `pages.owner_id` | polymorphic owner id | app-enforced |
+| `vendor_leads.offering_id` | `offerings.id` | SET NULL |
+| `vendor_leads.provider_id` | `providers.id` | CASCADE |
+| `vendor_leads.user_id` | `users.id` | SET NULL |
+| `vendor_quotes.lead_id` | `vendor_leads.id` | CASCADE |
+| `vendor_quotes.provider_id` | `providers.id` | CASCADE |
+| `provider_search_documents.provider_id` | `providers.id` | CASCADE |
+| `media_collection_items.collection_id` | `media_collections.id` | CASCADE |
+| `media_collection_items.media_asset_id` | `media_assets.id` | CASCADE |
+| `conversion_events.goal_id` | `conversion_goals.id` | CASCADE |
+| `conversion_events.session_id` | `analytics_sessions.id` | SET NULL |
+| `conversion_events.user_id` | `users.id` | SET NULL |
 | `wedding_site_events.wedding_site_id` | `wedding_sites.id` | CASCADE |
 | `wedding_site_galleries.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_site_guests.guest_group_id` | `guest_groups.id` | SET NULL |
 | `wedding_site_guests.wedding_site_id` | `wedding_sites.id` | CASCADE |
 | `wedding_site_offerings.offering_id` | `offerings.id` | CASCADE |
-| `wedding_site_pages.wedding_site_id` | `wedding_sites.id` | CASCADE |
 | `wedding_site_rsvps.guest_id` | `wedding_site_guests.id` | SET NULL |
 | `wedding_site_rsvps.wedding_site_id` | `wedding_sites.id` | CASCADE |
-| `wedding_site_sections.page_id` | `wedding_site_pages.id` | CASCADE |
-| `wedding_site_sections.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_table_guests.guest_id` | `wedding_site_guests.id` | CASCADE |
+| `wedding_table_guests.table_id` | `wedding_tables.id` | CASCADE |
+| `wedding_tables.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_tasks.wedding_site_id` | `wedding_sites.id` | CASCADE |
+| `wedding_timeline_items.wedding_site_id` | `wedding_sites.id` | CASCADE |
 | `wedding_sites.offering_id` | `offerings.id` | SET NULL |
 | `wedding_sites.user_id` | `users.id` | CASCADE |
 

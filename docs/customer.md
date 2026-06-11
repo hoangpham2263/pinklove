@@ -21,11 +21,17 @@ This file covers the normal customer area and customer-owned site flows.
 - Builder-template sites should be edited through the dedicated designer route, not the generic site detail form.
 - Invitation ownership now comes from ecommerce entitlements for paid offerings before customer create flows can instantiate new sites.
 - Customer purchase flow uses cart and checkout routes before order creation. The invitation/site table name remains `wedding_sites`.
+- `/customer/wedding-planning` manages project metadata, guest groups, guests,
+  RSVP, seating, checklist tasks, and timeline items for customer-owned sites.
+- `/customer/vendor-leads` owns customer lead creation, quote review, and quote
+  acceptance into the separate booking lifecycle.
+- `/customer/bookings` owns the service-booking lifecycle after direct service
+  booking or accepted provider quotes. Keep it separate from physical commerce
+  orders.
 - Customer address management owns the reusable address book at `/customer/config/addresses`. A user may store multiple shipping addresses in `user_addresses`, with exactly one default address when at least one address exists.
 - Checkout should prefer the default saved address for physical orders, while still allowing a one-off shipping address snapshot on the order.
-- Current builder gaps:
-  - element height resizing is still pending
-  - editor grouping is still pending
+- Invitation builder supports element height resizing plus grouping/ungrouping
+  selected elements.
 - Customer UI mutations and fetches should go through `src/lib/api-client.customer.ts`.
 - Public/guest-only UI flows should use `src/lib/api-client.public.ts`, not the customer client file.
 - If a customer client form needs a native `action=` fallback, prefer `customerApiActions.*` from the same role API file.
@@ -39,6 +45,9 @@ This file covers the normal customer area and customer-owned site flows.
 - `src/app/customer/(protected)/(workspace)/invitations/[id]/page.tsx`
 - `src/app/customer/(protected)/(workspace)/orders/page.tsx`
 - `src/app/customer/(protected)/(workspace)/orders/[id]/page.tsx`
+- `src/app/customer/(protected)/(workspace)/wedding-planning/page.tsx`
+- `src/app/customer/(protected)/(workspace)/vendor-leads/page.tsx`
+- `src/app/customer/(protected)/(workspace)/bookings/page.tsx`
 - `src/app/customer/(protected)/(workspace)/messages/page.tsx`
 - `src/app/customer/(protected)/(account)/config/page.tsx`
 - `src/app/customer/(protected)/(account)/config/profile/page.tsx`

@@ -350,7 +350,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               {fields.aboutDescription ? (<div className={`${RICH_TEXT_CONTENT_CLASSNAME} text-white`} dangerouslySetInnerHTML={createRichTextMarkup(fields.aboutDescription)} />) : null}
               <div className="overflow-hidden rounded-xl max-w-lg">
                 {aboutImage ? (
-                  <Image src={aboutImage} alt={fields.aboutTitle || "About us"} fill className="!relative object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+                  <Image src={aboutImage} alt={fields.aboutTitle || "Giới thiệu"} fill className="!relative object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
                 ) : null}
               </div>
             </div>

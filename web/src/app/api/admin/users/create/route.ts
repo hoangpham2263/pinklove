@@ -3,6 +3,7 @@ import { parseUserRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/constants";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { assignAdminRole } from "@/features/access/server/service";
 
 export const runtime ="nodejs";
 
@@ -18,9 +19,12 @@ export async function POST(request: Request) {
  const formData = await request.formData();
  const username = String(formData.get("username") ??"").trim();
  const password = String(formData.get("password") ??"");
- const roleInput = String(formData.get("role") ?? USER_ROLES.CUSTOMER);
+ const accessRole = String(formData.get("accessRole") ?? `portal:${USER_ROLES.CUSTOMER}`).trim();
  const returnTo = String(formData.get("returnTo") ?? ROUTES.ADMIN.USERS).trim() || ROUTES.ADMIN.USERS;
- const role: UserRole = parseUserRole(roleInput, USER_ROLES.CUSTOMER);
+ const adminRoleId = accessRole.startsWith("admin:") ? accessRole.slice(6).trim() : "";
+ const role: UserRole = adminRoleId
+  ? USER_ROLES.ADMIN
+  : parseUserRole(accessRole.replace(/^portal:/, ""), USER_ROLES.CUSTOMER);
  const fullName = String(formData.get("fullName") ?? "").trim();
  const displayName = String(formData.get("displayName") ?? "").trim();
  const phone = String(formData.get("phone") ?? "").trim();
@@ -32,9 +36,15 @@ export async function POST(request: Request) {
  if (password.length < MIN_PASSWORD_LENGTH) {
  return respondError(request, { error: "weak_password", message: "Mật khẩu quá ngắn.", location: `${returnTo}?error=weak_password` });
  }
+ if (role === USER_ROLES.ADMIN && !adminRoleId) {
+  return respondError(request, { error: "admin_role_required", message: "Vui lòng chọn vai trò Admin hoặc Staff.", location: `${returnTo}?error=admin_role_required` });
+ }
 
  try {
  const created = await adminCreateAccount(username, password, role);
+ if (role === USER_ROLES.ADMIN) {
+  await assignAdminRole(created.id, adminRoleId, actor.id);
+ }
  await setUserProfile(created.id, { fullName, displayName, phone, bio });
  return respondSuccess(request, { location: returnTo, message: "Đã tạo tài khoản mới." });
  } catch (error) {

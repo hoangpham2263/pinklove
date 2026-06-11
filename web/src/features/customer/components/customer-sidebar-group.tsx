@@ -75,11 +75,11 @@ export function CustomerSidebarGroup({
       <CollapsibleTrigger
         className="flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted data-[state=open]:bg-muted"
       >
-        <div className="flex items-center gap-3">
-          <GroupIcon className="h-5 w-5" />
-          <span>{label}</span>
+        <div className="flex min-w-0 items-center gap-3">
+          <GroupIcon className="h-5 w-5 shrink-0" />
+          <span className="truncate" title={label}>{label}</span>
         </div>
-        <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+        <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-none data-[state=open]:animate-none data-[state=closed]:h-0 data-[state=open]:h-[var(--radix-collapsible-content-height)] data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-[height,opacity] duration-200 ease-out">
         <div className="ml-5 mt-1 flex flex-col gap-1 border-l pl-2.5">
@@ -87,9 +87,9 @@ export function CustomerSidebarGroup({
             <CustomerNavLink
               key={item.href}
               href={item.href}
-              className="flex items-center rounded-md px-3 py-2 transition-colors hover:bg-muted"
+              className="flex min-w-0 items-center rounded-md px-3 py-2 transition-colors hover:bg-muted"
             >
-              <span>{item.label}</span>
+              <span className="truncate" title={item.label}>{item.label}</span>
             </CustomerNavLink>
           ))}
         </div>

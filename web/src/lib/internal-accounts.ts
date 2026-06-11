@@ -76,6 +76,20 @@ export async function listInternalAccounts(): Promise<InternalAccount[]> {
   return result.rows.map(mapInternalAccount);
 }
 
+export async function getInternalAccount(id: string): Promise<InternalAccount | null> {
+  const accountId = normalizeText(id);
+  if (!accountId) return null;
+  const result = await query<InternalAccountRow>(
+    `
+      SELECT id,platform,label,login_username,login_password,login_url,notes,sort_order,created_at,updated_at
+      FROM internal_accounts
+      WHERE id = $1
+    `,
+    [accountId]
+  );
+  return result.rows[0] ? mapInternalAccount(result.rows[0]) : null;
+}
+
 export async function createInternalAccount(input: {
   platform: string;
   label: string;

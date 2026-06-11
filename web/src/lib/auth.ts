@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { query } from "@/lib/database";
+import { getAdminPathPermission } from "@/features/access/config/permissions";
+import { getAdminAccessContext, hasAdminPermission } from "@/features/access/server/service";
 import { canAccessUserPortal, isAdminRole, isProviderRole, type UserRole, USER_ROLES } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 
@@ -59,6 +61,8 @@ export type AccountUser = {
   phone: string;
   providerPortalSlug: string;
   bio: string;
+  adminRoleId: string;
+  adminRoleLabel: string;
 };
 
 type UserRow = {
@@ -351,7 +355,13 @@ export async function getCurrentUserFromRequest(
  const cookiesMap = parseCookieHeader(cookieHeader);
  const token = cookiesMap.get(SESSION_COOKIE_NAME);
  if (!token) return null;
- return getUserByToken(token);
+ const user = await getUserByToken(token);
+ if (!user) return null;
+ if (request.url.includes("/api/admin/")) {
+  const permission = getAdminPathPermission(new URL(request.url).pathname);
+  if (!(await hasAdminPermission(user.id, permission))) return null;
+ }
+ return user;
 }
 
 export async function requireUser(redirectTo: string = ROUTES.AUTH.LOGIN): Promise<AuthUser> {
@@ -374,7 +384,7 @@ export async function requireAdmin(redirectTo: string = ROUTES.ADMIN.LOGIN): Pro
 
   const user = await requireUser(redirectTo);
 
-  if (!isAdminRole(user.role)) {
+  if (!isAdminRole(user.role) || !(await getAdminAccessContext(user.id))) {
 
     redirect(ROUTES.CUSTOMER.DASHBOARD);
 
@@ -382,6 +392,17 @@ export async function requireAdmin(redirectTo: string = ROUTES.ADMIN.LOGIN): Pro
 
   return user;
 
+}
+
+export async function requireAdminPermission(
+  permissionKey: string,
+  redirectTo: string = ROUTES.ADMIN.DASHBOARD
+): Promise<AuthUser> {
+  const user = await requireAdmin();
+  if (!(await hasAdminPermission(user.id, permissionKey))) {
+    redirect(redirectTo);
+  }
+  return user;
 }
 
 
@@ -642,6 +663,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
  phone: string | null;
  provider_portal_slug: string | null;
  bio: string | null;
+ admin_role_id: string | null;
+ admin_role_label: string | null;
  }>(
  `
   SELECT
@@ -655,9 +678,12 @@ export async function listAccounts(): Promise<AccountUser[]> {
    p.display_name,
    p.phone,
    p.provider_portal_slug,
-   p.bio
+   p.bio,
+   u.admin_role_id,
+   admin_role.label AS admin_role_label
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
+  LEFT JOIN admin_roles admin_role ON admin_role.id = u.admin_role_id
   ORDER BY u.created_at ASC
  `
  );
@@ -674,6 +700,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
  phone: row.phone ?? "",
  providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
+ adminRoleId: row.admin_role_id ?? "",
+ adminRoleLabel: row.admin_role_label ?? "",
  }));
 }
 
@@ -695,6 +723,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  phone: string | null;
  provider_portal_slug: string | null;
  bio: string | null;
+ admin_role_id: string | null;
+ admin_role_label: string | null;
  }>(
  `
   SELECT
@@ -708,9 +738,12 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
    p.display_name,
    p.phone,
    p.provider_portal_slug,
-   p.bio
+   p.bio,
+   u.admin_role_id,
+   admin_role.label AS admin_role_label
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
+  LEFT JOIN admin_roles admin_role ON admin_role.id = u.admin_role_id
   WHERE u.id = $1
   LIMIT 1
  `,
@@ -731,6 +764,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  phone: row.phone ?? "",
  providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
+ adminRoleId: row.admin_role_id ?? "",
+ adminRoleLabel: row.admin_role_label ?? "",
  };
 }
 
@@ -829,6 +864,8 @@ export async function getProviderPortalAccountBySlug(slug: string): Promise<Acco
  phone: row.phone ?? "",
  providerPortalSlug: row.provider_portal_slug ?? "",
  bio: row.bio ?? "",
+ adminRoleId: "",
+ adminRoleLabel: "",
  };
 }
 

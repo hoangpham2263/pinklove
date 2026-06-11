@@ -73,21 +73,31 @@ const SECTION_FIELDS: Record<LandingPageSectionType, FieldSchema[]> = {
   ],
 };
 
+const AUTOMATION_FIELDS: FieldSchema[] = [
+  { name: "visibilityRules", label: "Visibility Rules", type: "textarea", rows: 3, width: 6 },
+  { name: "displayConditions", label: "Display Conditions", type: "textarea", rows: 3, width: 6 },
+  { name: "abVariantKey", label: "A/B Variant Key", type: "text", width: 12 },
+];
+
 const STRING_LIST_FIELDS = new Set(["captions", "items", "quotes", "metrics", "questions"]);
 const NUMBER_FIELDS = new Set(["durationMinutes"]);
+const JSON_TEXT_FIELDS = new Set(["visibilityRules", "displayConditions"]);
 
 export function getLandingPageSectionFields(sectionType: LandingPageSectionType) {
-  return SECTION_FIELDS[sectionType];
+  return [...SECTION_FIELDS[sectionType], ...AUTOMATION_FIELDS];
 }
 
 export function toSectionEditorValues(content: Record<string, unknown>) {
   return Object.fromEntries(
-    Object.entries(content).map(([key, value]) => [
-      key,
-      STRING_LIST_FIELDS.has(key) && Array.isArray(value)
-        ? value.map((item) => ({ value: String(item) }))
-        : value,
-    ])
+    Object.entries(content).map(([key, value]) => {
+      if (STRING_LIST_FIELDS.has(key) && Array.isArray(value)) {
+        return [key, value.map((item) => ({ value: String(item) }))];
+      }
+      if (JSON_TEXT_FIELDS.has(key) && value && typeof value === "object") {
+        return [key, JSON.stringify(value, null, 2)];
+      }
+      return [key, value];
+    })
   );
 }
 
@@ -111,6 +121,16 @@ export function fromSectionEditorValues(values: Record<string, unknown>) {
       if (NUMBER_FIELDS.has(key) && typeof value === "string") {
         const numberValue = Number(value);
         return [key, Number.isFinite(numberValue) ? numberValue : 0];
+      }
+
+      if (JSON_TEXT_FIELDS.has(key) && typeof value === "string") {
+        const trimmed = value.trim();
+        if (!trimmed) return [key, {}];
+        try {
+          return [key, JSON.parse(trimmed) as unknown];
+        } catch {
+          return [key, { raw: trimmed }];
+        }
       }
 
       return [key, value];

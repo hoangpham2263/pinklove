@@ -20,7 +20,9 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - When a page or feature moves to a new field structure, remove old field readers and legacy fallback branches instead of supporting both shapes.
 - For complex managed-page fields, prefer top-to-bottom `section` groups and `repeater` collections so the editor order matches the public page layout.
 - Keep related content inside the same section and use repeater item fields only for repeatable UI blocks such as socials, FAQs, cards, timelines, or lists.
-- Use per-field `width` in the schema for admin layout control instead of hardcoded renderer grid presets.
+- Schema `width`, `column`, and section `layout` are available only to editor
+  surfaces that explicitly support multi-column layouts. They do not override
+  the single-column contract of a vertical tab workspace.
 - Use `type: "wysiwyg"` for reusable visual rich-text fields that should use the shared editor.
 - Offering type fields should support the final field set documented in
   `docs/architecture.md`, including relation, repeater, media, gallery,
@@ -54,8 +56,15 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Shared Media Library upload UI should accept multiple files even for single-value media fields; only the stored selection count should differ.
 - Search-select fields must use the shared fixed-size dialog picker pattern: selected items render in the form, searching and choosing happen inside a scrollable dialog, and the dialog footer shows the selected count plus a confirm/close action.
 - `type: "offering-select"` fields in `FieldsEditor`, offering relationship pickers, and the Media Library picker should stay visually aligned with that dialog picker pattern.
+- Multi-value `offering-select` fields render selected offerings in stored
+  order and provide drag handles for reordering. Reordering updates the value
+  array directly so frontend rendering follows the admin-defined order.
 - Top-level field groups render as tabs by default.
 - Within the active tab, `section` and `repeater` content render as normal bordered blocks without nested accordion behavior.
+- Vertical tab workspaces pass the shared editor's single-column mode. Every
+  leaf field, section child, and repeater child renders full-width in schema
+  order. A section declared with `layout: "two-columns"` must collapse to one
+  column in this mode.
 - Admin field UI should stay on default project component styling and only customize structural layout where needed.
 
 ## Rich Text Rules

@@ -38,7 +38,10 @@ export async function POST(request: Request) {
       });
     }
 
-    return respondSuccess(request, { message: "Đã xóa tài khoản nội bộ." });
+    return respondSuccess(request, {
+      location: ROUTES.ADMIN.INTERNAL_ACCOUNTS,
+      message: "Đã xóa tài khoản nội bộ.",
+    });
   } catch (error) {
     console.error("Failed to delete internal account:", error);
     return respondError(request, {

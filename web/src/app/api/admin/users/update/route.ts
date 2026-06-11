@@ -2,6 +2,7 @@ import { adminSetProviderAccountStatus, adminUpdateAccount, getCurrentUserFromRe
 import { parseUserRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { assignAdminRole } from "@/features/access/server/service";
 
 export const runtime ="nodejs";
 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
  const userIdRaw = String(formData.get("userId") ??"");
  const username = String(formData.get("username") ??"").trim();
  const password = String(formData.get("password") ??"");
- const roleInput = String(formData.get("role") ??"");
+ const accessRole = String(formData.get("accessRole") ?? "").trim();
  const returnTo = String(formData.get("returnTo") ?? `${ROUTES.ADMIN.USERS}/${userIdRaw}`).trim();
  
  // Profile fields
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
  const bio = String(formData.get("bio") ??"").trim();
  const nextStatusInput = String(formData.get("nextStatus") ?? "").trim();
  const statusReason = String(formData.get("reason") ?? "").trim();
+ const adminRoleId = accessRole.startsWith("admin:") ? accessRole.slice(6).trim() : "";
  
  const userId = userIdRaw.trim();
  if (!userId) {
@@ -38,10 +40,16 @@ export async function POST(request: Request) {
  const data: { username?: string; password?: string; role?: UserRole } = {};
  if (username) data.username = username;
  if (password) data.password = password;
- if (roleInput.trim()) data.role = parseUserRole(roleInput);
+ if (accessRole) {
+  data.role = adminRoleId ? "ADMIN" : parseUserRole(accessRole.replace(/^portal:/, ""));
+ }
 
  try {
- // Update account basic info
+ if (actor.id !== userId) {
+  const nextRole = data.role ?? (await getUserAccount(userId))?.role;
+  await assignAdminRole(userId, nextRole === "ADMIN" ? adminRoleId : null, actor.id);
+ }
+ // Update account basic info after RBAC guards protect the final Super Admin.
  await adminUpdateAccount(actor.id, userId, data);
  
  // Update profile info
@@ -70,6 +78,9 @@ export async function POST(request: Request) {
  }
  if (message ==="LAST_ADMIN_PROTECTED") {
   return respondError(request, { error: "last_admin_protected", message: "Không thể hạ quyền quản trị viên cuối cùng.", location: `${returnLocation}?error=last_admin_protected` });
+ }
+ if (message === "LAST_SUPER_ADMIN") {
+  return respondError(request, { error: "last_super_admin", message: "Không thể hạ quyền Super Admin cuối cùng.", location: `${returnLocation}?error=last_super_admin` });
  }
  return respondError(request, { error: "update_failed", message: "Không thể cập nhật người dùng.", location: `${returnLocation}?error=update_failed` });
 }

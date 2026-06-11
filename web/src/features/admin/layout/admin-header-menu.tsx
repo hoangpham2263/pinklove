@@ -190,8 +190,13 @@ function StandaloneItem({
   );
 }
 
-export function AdminHeaderMenu() {
+export function AdminHeaderMenu({ permissionKeys }: { permissionKeys?: string[] }) {
   const [open, setOpen] = useState(false);
+  const allowed = (permission?: string) => !permissionKeys || !permission || permissionKeys.includes(permission);
+  const visibleGroups = ADMIN_NAV_GROUPS.filter((group) => allowed(group.permission)).map((group) => ({
+    ...group,
+    children: group.children.filter((item) => allowed(item.permission)),
+  })).filter((group) => group.children.length > 0);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -209,19 +214,19 @@ export function AdminHeaderMenu() {
         </SheetHeader>
 
         <div className="flex max-h-[calc(100vh-5rem)] flex-col gap-2 overflow-y-auto px-3 py-3">
-          {ADMIN_NAV_PRIMARY_ITEMS.map((item) => (
+          {ADMIN_NAV_PRIMARY_ITEMS.filter((item) => allowed(item.permission)).map((item) => (
             <StandaloneItem key={item.href} item={item} onNavigate={() => setOpen(false)} />
           ))}
 
           <div className="my-1 border-t" />
 
-          {ADMIN_NAV_GROUPS.map((group) => (
+          {visibleGroups.map((group) => (
             <MenuGroup key={group.label} group={group} onNavigate={() => setOpen(false)} />
           ))}
 
           <div className="my-1 border-t" />
 
-          {ADMIN_NAV_SECONDARY_ITEMS.map((item) => (
+          {ADMIN_NAV_SECONDARY_ITEMS.filter((item) => allowed(item.permission)).map((item) => (
             <StandaloneItem key={item.href} item={item} onNavigate={() => setOpen(false)} />
           ))}
 

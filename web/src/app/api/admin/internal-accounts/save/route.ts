@@ -56,10 +56,13 @@ export async function POST(request: Request) {
         });
       }
 
-      return respondSuccess(request, { message: "Đã cập nhật tài khoản nội bộ." });
+      return respondSuccess(request, {
+        location: ROUTES.ADMIN.INTERNAL_ACCOUNT(updated.id),
+        message: "Đã cập nhật tài khoản nội bộ.",
+      });
     }
 
-    await createInternalAccount({
+    const created = await createInternalAccount({
       platform,
       label,
       loginUsername: String(formData.get("loginUsername") ?? ""),
@@ -69,7 +72,10 @@ export async function POST(request: Request) {
       sortOrder: parseSortOrder(formData.get("sortOrder")),
     });
 
-    return respondSuccess(request, { message: "Đã thêm tài khoản nội bộ." });
+    return respondSuccess(request, {
+      location: ROUTES.ADMIN.INTERNAL_ACCOUNT(created.id),
+      message: "Đã thêm tài khoản nội bộ.",
+    });
   } catch (error) {
     console.error("Failed to save internal account:", error);
     return respondError(request, {
