@@ -12,7 +12,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/components/admin-buttons";
+import { AdminLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { AdminTableClearButton, AdminTableSearch, AdminTableSelect, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
 import {
-  SYSTEM_OFFERING_TYPES,
   type OfferingFulfillmentType,
   type OfferingTypeDefinition,
 } from "@/features/offerings/types";
@@ -60,18 +58,6 @@ function getFulfillmentTypeLabel(value: OfferingFulfillmentType) {
       return "Dịch vụ - Có người thực hiện/đặt lịch";
     default:
       return value;
-  }
-}
-
-function getOfferingTypeStatusLabel(status: OfferingTypeDefinition["status"]) {
-  switch (status) {
-    case "active":
-      return "Active";
-    case "archived":
-      return "Archived";
-    case "draft":
-    default:
-      return "Draft";
   }
 }
 
@@ -125,21 +111,6 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
         cell: ({ row }) => (row.original.supportsProviderSupply ? "Yes" : "No"),
       },
       {
-        accessorKey: "status",
-        header: ({ column }) => (
-          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Trạng thái
-          </AdminTableSortButton>
-        ),
-        filterFn: (row, columnId, filterValue) => !filterValue || row.getValue<string>(columnId) === filterValue,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Badge variant={row.original.status === "active" ? "default" : "secondary"}>{getOfferingTypeStatusLabel(row.original.status)}</Badge>
-            {row.original.isSystem ? <span className="rounded border px-1.5 py-0.5 text-xs text-muted-foreground">system</span> : null}
-          </div>
-        ),
-      },
-      {
         accessorKey: "updatedAt",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -158,17 +129,13 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               <AdminTableActionButton action="view" label="Xem type" onClick={() => setPreviewTypeId(type.id)} />
               <AdminTableActionButton
                 action="edit"
-                label="Sửa type"
+                label="Chỉnh trường"
                 href={`${ROUTES.ADMIN.OFFERING_TYPE(type.key)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TYPES)}`}
               />
               <AdminTableActionButton
                 action="external"
-                label="Tạo offering"
-                href={
-                  type.key === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
-                    ? ROUTES.ADMIN.OFFERING_BUILDER
-                    : `${ROUTES.ADMIN.OFFERINGS}?type=${encodeURIComponent(type.key)}`
-                }
+                label="Mở offerings"
+                href={`${ROUTES.ADMIN.OFFERINGS}?type=${encodeURIComponent(type.key)}`}
               />
             </AdminTableActions>
           );
@@ -193,7 +160,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
       const keyword = String(filterValue).trim().toLowerCase();
       if (!keyword) return true;
       const type = row.original;
-      return [type.key, type.label, type.description, type.fulfillmentType, type.status]
+      return [type.key, type.label, type.description, type.fulfillmentType]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     },
@@ -203,28 +170,14 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
     getRowId: (row) => row.id,
   });
 
-  const statusFilterValue = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "";
   const fulfillmentFilterValue = (table.getColumn("fulfillmentType")?.getFilterValue() as string | undefined) ?? "";
-  const hasFilters = globalFilter.trim().length > 0 || statusFilterValue.length > 0 || fulfillmentFilterValue.length > 0;
-  const listReturnTo = encodeURIComponent(ROUTES.ADMIN.OFFERING_TYPES);
-
+  const hasFilters = globalFilter.trim().length > 0 || fulfillmentFilterValue.length > 0;
   return (
     <>
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3">
           <AdminTableToolbar>
             <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm type, key, fulfillment..." />
-            <AdminTableSelect
-              value={statusFilterValue}
-              label="Lọc trạng thái"
-              onChange={(value) => table.getColumn("status")?.setFilterValue(value)}
-              options={[
-                { value: "", label: "Tất cả trạng thái" },
-                { value: "active", label: "Active" },
-                { value: "draft", label: "Draft" },
-                { value: "archived", label: "Archived" },
-              ]}
-            />
             <AdminTableSelect
               value={fulfillmentFilterValue}
               label="Lọc fulfillment"
@@ -240,13 +193,10 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               visible={hasFilters}
               onClick={() => {
                 setGlobalFilter("");
-                table.getColumn("status")?.setFilterValue("");
                 table.getColumn("fulfillmentType")?.setFilterValue("");
               }}
             />
           </AdminTableToolbar>
-
-          <AdminCreateLinkButton href={`${ROUTES.ADMIN.OFFERING_TYPE_NEW}?returnTo=${listReturnTo}`}>Tạo type</AdminCreateLinkButton>
         </div>
 
         <div className="rounded-md border">
@@ -294,7 +244,6 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
             </DialogHeader>
             <div className="grid gap-4 md:grid-cols-3">
               <PreviewField label="Fulfillment" value={getFulfillmentTypeLabel(previewType.fulfillmentType)} />
-              <PreviewField label="Trạng thái" value={getOfferingTypeStatusLabel(previewType.status)} />
               <PreviewField label="Fields" value={previewType.fieldSchema.length} />
               <PreviewField label="Template key" value={previewType.templateKey} />
               <PreviewField label="Inventory" value={previewType.supportsInventory ? "Yes" : "No"} />
@@ -334,7 +283,11 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
               </Table>
             </div>
             <div className="flex justify-end">
-              <AdminLinkButton href={`${ROUTES.ADMIN.OFFERING_TYPE(previewType.key)}?returnTo=${listReturnTo}`}>Chỉnh sửa</AdminLinkButton>
+              <AdminLinkButton
+                href={`${ROUTES.ADMIN.OFFERING_TYPE(previewType.key)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TYPES)}`}
+              >
+                Chỉnh trường
+              </AdminLinkButton>
             </div>
           </DialogContent>
         ) : null}

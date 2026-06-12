@@ -16,6 +16,7 @@ import {
   type OfferingTypeField,
   type OfferingTypeFieldGroup,
 } from "@/features/offerings/types";
+import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
 import { ensureOfferingCatalogReady, query, withTransaction, type DbExecutor } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
@@ -65,15 +66,6 @@ type OfferingRelationshipType = "cross_sell" | "upsell";
 
 type OfferingTypeInput = {
   key: string;
-  label: string;
-  description?: string;
-  status?: "draft" | "active" | "archived";
-  fulfillmentType?: OfferingFulfillmentType;
-  templateKey?: string;
-  templateEngine?: OfferingTemplateEngine;
-  templateMode?: OfferingTemplateMode;
-  supportsInventory?: boolean;
-  supportsProviderSupply?: boolean;
   fieldSchema?: OfferingTypeField[];
 };
 
@@ -82,7 +74,6 @@ type OfferingTypeRow = {
   key: string;
   label: string;
   description: string | null;
-  status: "draft" | "active" | "archived";
   fulfillment_type: OfferingFulfillmentType;
   template_key: string;
   template_engine: string | null;
@@ -90,6 +81,7 @@ type OfferingTypeRow = {
   supports_inventory: boolean;
   supports_provider_supply: boolean;
   is_system: boolean;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -450,7 +442,6 @@ function mapOfferingTypeRow(
     key: row.key,
     label: row.label,
     description: row.description ?? undefined,
-    status: row.status,
     fulfillmentType: row.fulfillment_type,
     templateKey: row.template_key,
     templateEngine: row.template_engine ? (row.template_engine as OfferingTemplateEngine) : undefined,
@@ -458,6 +449,7 @@ function mapOfferingTypeRow(
     supportsInventory: row.supports_inventory,
     supportsProviderSupply: row.supports_provider_supply,
     isSystem: row.is_system,
+    isDefault: row.is_default,
     fieldGroups,
     fieldSchema: fields,
     createdAt: row.created_at,
@@ -902,7 +894,7 @@ export async function listAllOfferings(): Promise<Offering[]> {
   return mapOfferingRows(result.rows);
 }
 
-export async function listOfferingTypes(options: { includeArchived?: boolean } = {}): Promise<OfferingTypeDefinition[]> {
+export async function listOfferingTypes(): Promise<OfferingTypeDefinition[]> {
   const result = await withOfferingCatalogRetry(() =>
     query<OfferingTypeRow>(
       `
@@ -911,7 +903,6 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
           key,
           label,
           description,
-          status,
           fulfillment_type,
           template_key,
           template_engine,
@@ -919,13 +910,12 @@ export async function listOfferingTypes(options: { includeArchived?: boolean } =
           supports_inventory,
           supports_provider_supply,
           is_system,
+          is_default,
           created_at,
           updated_at
         FROM offering_types
-        WHERE ($1::boolean = TRUE OR status <> 'archived')
-        ORDER BY is_system DESC, label ASC, key ASC
-      `,
-      [Boolean(options.includeArchived)]
+        ORDER BY is_default DESC, is_system DESC, label ASC, key ASC
+      `
     )
   );
 
@@ -949,7 +939,6 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
           key,
           label,
           description,
-          status,
           fulfillment_type,
           template_key,
           template_engine,
@@ -957,6 +946,7 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
           supports_inventory,
           supports_provider_supply,
           is_system,
+          is_default,
           created_at,
           updated_at
         FROM offering_types
@@ -982,13 +972,8 @@ export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDef
 
 export async function saveOfferingType(input: OfferingTypeInput): Promise<OfferingTypeDefinition> {
   const key = input.key.trim().toLowerCase();
-  if (!/^[a-z][a-z0-9_]*$/.test(key)) {
-    throw new Error("INVALID_OFFERING_TYPE_KEY");
-  }
-
-  const label = input.label.trim();
-  if (!label) {
-    throw new Error("MISSING_OFFERING_TYPE_LABEL");
+  if (!getRegisteredOfferingType(key)) {
+    throw new Error("UNREGISTERED_OFFERING_TYPE");
   }
 
   const fieldSchema = normalizeOfferingTypeFields(Array.isArray(input.fieldSchema) ? input.fieldSchema : []);
@@ -996,38 +981,11 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
     withTransaction(async (execute) => {
       const result = await execute<OfferingTypeRow>(
       `
-        INSERT INTO offering_types (
-          key,
-          label,
-          description,
-          status,
-          fulfillment_type,
-          template_key,
-          template_engine,
-          template_mode,
-          supports_inventory,
-          supports_provider_supply,
-          is_system
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, FALSE)
-        ON CONFLICT (key) DO UPDATE
-        SET
-          label = EXCLUDED.label,
-          description = EXCLUDED.description,
-          status = EXCLUDED.status,
-          fulfillment_type = EXCLUDED.fulfillment_type,
-          template_key = EXCLUDED.template_key,
-          template_engine = EXCLUDED.template_engine,
-          template_mode = EXCLUDED.template_mode,
-          supports_inventory = EXCLUDED.supports_inventory,
-          supports_provider_supply = EXCLUDED.supports_provider_supply,
-          updated_at = NOW()
-        RETURNING
+        SELECT
           id,
           key,
           label,
           description,
-          status,
           fulfillment_type,
           template_key,
           template_engine,
@@ -1035,24 +993,20 @@ export async function saveOfferingType(input: OfferingTypeInput): Promise<Offeri
           supports_inventory,
           supports_provider_supply,
           is_system,
+          is_default,
           created_at,
           updated_at
+        FROM offering_types
+        WHERE key = $1
+        LIMIT 1
       `,
-      [
-        key,
-        label,
-        input.description?.trim() || null,
-        input.status ?? "active",
-        input.fulfillmentType ?? "digital",
-        input.templateKey?.trim() || key,
-        input.templateEngine?.trim() || "",
-        input.templateMode?.trim() || "",
-        Boolean(input.supportsInventory),
-        Boolean(input.supportsProviderSupply),
-      ]
+      [key]
       );
 
       const typeRow = result.rows[0];
+      if (!typeRow) {
+        throw new Error("OFFERING_TYPE_NOT_SYNCED");
+      }
       await execute("DELETE FROM offering_type_fields WHERE offering_type_id = $1", [typeRow.id]);
 
       for (const [index, field] of fieldSchema.entries()) {

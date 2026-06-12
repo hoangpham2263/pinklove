@@ -70,7 +70,7 @@ export async function POST(request: Request) {
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
 
-  if (!offeringTypeDefinition || offeringTypeDefinition.status !== "active") {
+  if (!offeringTypeDefinition) {
     return respondError(request, {
       error: "invalid_offering_type",
       message: "Luồng tạo sản phẩm không hợp lệ.",

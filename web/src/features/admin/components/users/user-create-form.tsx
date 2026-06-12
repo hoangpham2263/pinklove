@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { PasswordInput } from "@/components/common/password-input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminField, AdminInput, AdminSelect } from "@/features/admin/components/admin-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { USER_ROLE_OPTIONS, type UserRole, USER_ROLES, getRoleLabel } from "@/lib/roles";
@@ -64,12 +64,10 @@ export function UserCreateForm({
           </CardHeader>
           <CardContent className="space-y-5 pt-5">
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tên đăng nhập</label>
-                <Input name="username" required />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Mật khẩu</label>
+              <AdminField label="Tên đăng nhập">
+                <AdminInput name="username" required />
+              </AdminField>
+              <AdminField label="Mật khẩu">
                 <PasswordInput
                   name="password"
                   placeholder="Nhập mật khẩu hoặc tạo tự động"
@@ -77,7 +75,7 @@ export function UserCreateForm({
                   allowGenerate
                   required
                 />
-              </div>
+              </AdminField>
             </div>
           </CardContent>
         </Card>
@@ -88,18 +86,15 @@ export function UserCreateForm({
           </CardHeader>
           <CardContent className="space-y-5 pt-5">
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Họ và tên</label>
-                <Input name="fullName" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tên hiển thị</label>
-                <Input name="displayName" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Số điện thoại</label>
-                <Input name="phone" />
-              </div>
+              <AdminField label="Họ và tên">
+                <AdminInput name="fullName" />
+              </AdminField>
+              <AdminField label="Tên hiển thị">
+                <AdminInput name="displayName" />
+              </AdminField>
+              <AdminField label="Số điện thoại">
+                <AdminInput name="phone" />
+              </AdminField>
             </div>
           </CardContent>
         </Card>
@@ -111,12 +106,10 @@ export function UserCreateForm({
             <CardTitle>Thiết lập</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="font-medium">Vai trò</label>
-              <select
+            <AdminField label="Vai trò">
+              <AdminSelect
                 name="accessRole"
                 defaultValue={defaultAccessRole}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 {adminRoles.filter((role) => role.isActive).map((role) => (
                   <option key={role.id} value={`admin:${role.id}`}>
@@ -128,8 +121,8 @@ export function UserCreateForm({
                     {getRoleLabel(role.value)} ({role.value})
                   </option>
                 ))}
-              </select>
-            </div>
+              </AdminSelect>
+            </AdminField>
 
             <AdminSubmitButton className="h-10 w-full rounded-md" disabled={isSubmitting}>
               {isSubmitting ? "Đang tạo..." : "Tạo tài khoản"}

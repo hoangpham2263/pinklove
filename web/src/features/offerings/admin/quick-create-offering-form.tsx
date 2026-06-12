@@ -117,13 +117,11 @@ export function QuickCreateOfferingForm({
                 }}
                 className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
-                {offeringTypes
-                  .filter((type) => type.status === "active")
-                  .map((type) => (
-                    <option key={type.key} value={type.key}>
-                      {type.label}
-                    </option>
-                  ))}
+                {offeringTypes.map((type) => (
+                  <option key={type.key} value={type.key}>
+                    {type.label}
+                  </option>
+                ))}
               </select>
             </div>
 

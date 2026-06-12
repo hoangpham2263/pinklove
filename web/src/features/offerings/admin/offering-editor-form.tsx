@@ -7,8 +7,8 @@ import { CurrencyInput } from "@/components/common/currency-input";
 import { NativeForm } from "@/components/common/native-form";
 import { FieldsEditor } from "@/components/common/fields-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminActionTileButton, AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminCheckbox, AdminField, AdminInput, AdminReadonlyField, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import { DynamicOfferingFields } from "@/features/offerings/admin/dynamic-offering-fields";
 import { OfferingSearchSelect } from "@/features/offerings/admin/offering-search-select";
@@ -235,9 +235,8 @@ export function OfferingEditorForm({
               </div>
 
               <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Tên builder</label>
-                  <Input
+                <AdminField label="Tên builder" className="space-y-1">
+                  <AdminInput
                     name="name"
                     value={name}
                     onChange={(e) => {
@@ -246,37 +245,31 @@ export function OfferingEditorForm({
                       setSlug(slugify(next));
                     }}
                   />
-                </div>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Slug</label>
-                  <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
-                </div>
+                <AdminField label="Slug" className="space-y-1">
+                  <AdminInput name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Trạng thái</label>
-                  <select
+                <AdminField label="Trạng thái" className="space-y-1">
+                  <AdminSelect
                     name="status"
                     defaultValue={offering.status}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     {OFFERING_STATUSES.map((statusOption) => (
                       <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
                     ))}
-                  </select>
-                </div>
+                  </AdminSelect>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Giá</label>
+                <AdminField label="Giá" className="space-y-1">
                   <CurrencyInput name="price" defaultValue={offering.price} />
-                </div>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Danh mục</label>
-                  <select
+                <AdminField label="Danh mục" className="space-y-1">
+                  <AdminSelect
                     name="categoryId"
                     defaultValue={offering.categoryId ?? ""}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="">Không chọn danh mục</option>
                     {categories.map((category) => (
@@ -284,31 +277,28 @@ export function OfferingEditorForm({
                         {category.name}
                       </option>
                     ))}
-                  </select>
-                </div>
+                  </AdminSelect>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Ảnh đại diện</label>
+                <AdminField label="Ảnh đại diện" className="space-y-1">
                   <MediaSelector value={thumbnailUrl} onChange={setThumbnailUrl} />
-                </div>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Mô tả ngắn</label>
-                  <textarea
+                <AdminField label="Mô tả ngắn" className="space-y-1">
+                  <AdminTextarea
                     name="excerpt"
                     defaultValue={offering.excerpt}
-                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                    className="min-h-20"
                   />
-                </div>
+                </AdminField>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Mô tả chi tiết</label>
-                  <textarea
+                <AdminField label="Mô tả chi tiết" className="space-y-1">
+                  <AdminTextarea
                     name="description"
                     defaultValue={offering.description}
-                    className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                    className="min-h-20"
                   />
-                </div>
+                </AdminField>
               </div>
 
               <div className="space-y-3">
@@ -351,9 +341,8 @@ export function OfferingEditorForm({
           </CardHeader>
           <CardContent className="space-y-5 pt-5">
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}</label>
-                <Input
+              <AdminField label={isGeneralOffering ? "Tên sản phẩm" : "Tên mẫu"}>
+                <AdminInput
                   name="name"
                   value={name}
                   onChange={(e) => {
@@ -362,21 +351,18 @@ export function OfferingEditorForm({
                     setSlug(slugify(next));
                   }}
                 />
-              </div>
+              </AdminField>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Slug</label>
-                <Input name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
-              </div>
+              <AdminField label="Slug">
+                <AdminInput name="slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+              </AdminField>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Danh mục</label>
-                <select
+              <AdminField label="Danh mục">
+                <AdminSelect
                   name="categoryId"
                   defaultValue={offering.categoryId ?? ""}
-                  className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 >
                   <option value="">Không chọn danh mục</option>
                   {categories.map((category) => (
@@ -384,59 +370,54 @@ export function OfferingEditorForm({
                       {category.name}
                     </option>
                   ))}
-                </select>
-              </div>
+                </AdminSelect>
+              </AdminField>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Hình thức bàn giao</label>
+              <AdminField label="Hình thức bàn giao">
                 {isGeneralOffering ? (
-                  <select
+                  <AdminSelect
                     name="fulfillmentType"
                     value={fulfillmentType}
                     onChange={(e) => setFulfillmentType(e.target.value as OfferingFulfillmentType)}
-                    className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                   >
                     <option value="digital">Sản phẩm online - Nhận qua link/file</option>
                     <option value="physical">Sản phẩm vật lý - Có sản xuất/giao hàng</option>
                     <option value="service">Dịch vụ - Có người thực hiện/ đặt lịch</option>
-                  </select>
+                  </AdminSelect>
                 ) : (
                   <>
                     <input type="hidden" name="fulfillmentType" value={offering.fulfillmentType} />
-                    <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                    <AdminReadonlyField>
                       {getFulfillmentTypeLabel(offering.fulfillmentType)}
-                    </div>
+                    </AdminReadonlyField>
                   </>
                 )}
-              </div>
+              </AdminField>
             </div>
 
             {!isGeneralOffering ? (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Template source</label>
-                <div className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm">
+              <AdminField label="Template source">
+                <AdminReadonlyField>
                   {offering.templateKey}
-                </div>
-              </div>
+                </AdminReadonlyField>
+              </AdminField>
             ) : null}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Mô tả ngắn</label>
-              <textarea
+            <AdminField label="Mô tả ngắn">
+              <AdminTextarea
                 name="excerpt"
                 defaultValue={offering.excerpt}
-                className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                className="min-h-24"
               />
-            </div>
+            </AdminField>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Mô tả chi tiết</label>
-              <textarea
+            <AdminField label="Mô tả chi tiết">
+              <AdminTextarea
                 name="description"
                 defaultValue={offering.description}
-                className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+                className="min-h-40"
               />
-            </div>
+            </AdminField>
           </CardContent>
         </Card>
 
@@ -452,7 +433,7 @@ export function OfferingEditorForm({
                     {infoTabs.map((tab) => {
                       const active = activeFieldTab === tab.key;
                       return (
-                        <button
+                        <AdminActionTileButton
                           key={tab.key}
                           type="button"
                           className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
@@ -464,7 +445,7 @@ export function OfferingEditorForm({
                         >
                           <span className="block font-medium">{tab.label}</span>
                           <span className="mt-0.5 block truncate text-xs text-muted-foreground">{tab.description}</span>
-                        </button>
+                        </AdminActionTileButton>
                       );
                     })}
                   </div>
@@ -527,7 +508,7 @@ export function OfferingEditorForm({
                     {PRODUCT_EDITOR_TABS.map((tab) => {
                       const active = activeProductTab === tab.key;
                       return (
-                        <button
+                        <AdminActionTileButton
                           key={tab.key}
                           type="button"
                           className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
@@ -538,7 +519,7 @@ export function OfferingEditorForm({
                           onClick={() => setActiveProductTab(tab.key)}
                         >
                           <span className="block font-medium">{tab.label}</span>
-                        </button>
+                        </AdminActionTileButton>
                       );
                     })}
                   </div>
@@ -547,38 +528,29 @@ export function OfferingEditorForm({
                 <div className="min-w-0 p-6">
                   <section className={activeProductTab !== "commerce" ? "hidden" : "space-y-8"}>
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="font-medium">Giá bán</label>
+                      <AdminField label="Giá bán">
                         <CurrencyInput name="price" defaultValue={offering.price} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Giá nhập</label>
+                      </AdminField>
+                      <AdminField label="Giá nhập">
                         <CurrencyInput
                           name="costPrice"
                           value={costPrice}
                           onValueChange={setCostPrice}
                         />
-                      </div>
+                      </AdminField>
                     </div>
 
                     <div className="space-y-4 border-t pt-8">
-                      <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                        <input
-                          type="checkbox"
-                          name="trackInventory"
-                          checked={trackInventory}
-                          onChange={(e) => setTrackInventory(e.target.checked)}
-                          className="mt-1 rounded border-input"
-                        />
-                        <span className="space-y-1">
-                          <span className="block font-medium">Bật quản lý kho cho sản phẩm này</span>
-                        </span>
-                      </label>
+                      <AdminCheckbox
+                        name="trackInventory"
+                        checked={trackInventory}
+                        onChange={(e) => setTrackInventory(e.target.checked)}
+                        label="Bật quản lý kho cho sản phẩm này"
+                      />
 
                       <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <label className="font-medium">Tồn kho hiện tại</label>
-                          <Input
+                        <AdminField label="Tồn kho hiện tại">
+                          <AdminInput
                             name="stockQuantity"
                             type="number"
                             min={allowBackorder ? undefined : 0}
@@ -586,10 +558,9 @@ export function OfferingEditorForm({
                             disabled={!trackInventory}
                             onChange={(e) => setStockQuantity(Number(e.target.value || "0"))}
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="font-medium">Ngưỡng cảnh báo thấp</label>
-                          <Input
+                        </AdminField>
+                        <AdminField label="Ngưỡng cảnh báo thấp">
+                          <AdminInput
                             name="lowStockThreshold"
                             type="number"
                             min="0"
@@ -597,48 +568,39 @@ export function OfferingEditorForm({
                             disabled={!trackInventory}
                             onChange={(e) => setLowStockThreshold(Math.max(0, Number(e.target.value || "0")))}
                           />
-                        </div>
+                        </AdminField>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="font-medium">Cho phép backorder</label>
-                        <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                          <input
-                            type="checkbox"
-                            name="allowBackorder"
-                            checked={allowBackorder}
-                            disabled={!trackInventory}
-                            onChange={(e) => setAllowBackorder(e.target.checked)}
-                            className="mt-1 rounded border-input"
-                          />
-                          <span className="block text-sm text-muted-foreground">Cho phép đơn đi tiếp kể cả khi tồn kho không đủ.</span>
-                        </label>
-                      </div>
+                      <AdminField label="Cho phép backorder">
+                        <AdminCheckbox
+                          name="allowBackorder"
+                          checked={allowBackorder}
+                          disabled={!trackInventory}
+                          onChange={(e) => setAllowBackorder(e.target.checked)}
+                          description="Cho phép đơn đi tiếp kể cả khi tồn kho không đủ."
+                        />
+                      </AdminField>
                     </div>
                   </section>
 
                   <section className={activeProductTab !== "source" ? "hidden" : "space-y-8"}>
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="font-medium">Nguồn hàng / chủ sở hữu</label>
-                        <select
+                      <AdminField label="Nguồn hàng / chủ sở hữu">
+                        <AdminSelect
                           name="ownerType"
                           value={ownerType}
                           onChange={(e) => setOwnerType(e.target.value === "provider" ? "provider" : "internal")}
-                          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                         >
                           <option value="internal">Sản phẩm của tôi / nội bộ</option>
                           <option value="provider">Sản phẩm của provider</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="font-medium">Provider</label>
-                        <select
+                        </AdminSelect>
+                      </AdminField>
+                      <AdminField label="Provider">
+                        <AdminSelect
                           name="ownerProviderId"
                           value={ownerProviderId}
                           onChange={(e) => setOwnerProviderId(e.target.value)}
                           disabled={ownerType !== "provider"}
-                          className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
                         >
                           <option value="">Chọn provider</option>
                           {providers.map((provider) => (
@@ -646,32 +608,25 @@ export function OfferingEditorForm({
                               {provider.displayName || provider.display_name || provider.fullName || provider.username}
                             </option>
                           ))}
-                        </select>
-                      </div>
+                        </AdminSelect>
+                      </AdminField>
                     </div>
-                    <div className="space-y-2">
-                      <label className="font-medium">Provider SKU</label>
-                      <Input
+                    <AdminField label="Provider SKU">
+                      <AdminInput
                         name="providerSku"
                         value={providerSku}
                         onChange={(e) => setProviderSku(e.target.value)}
                         placeholder="Mã nội bộ phía provider"
                       />
-                    </div>
+                    </AdminField>
 
                     <div className="border-t pt-8">
-                      <label className="flex items-start gap-3 rounded-md border bg-card p-3">
-                        <input
-                          type="checkbox"
-                          name="allowProviderSupply"
-                          checked={allowProviderSupply}
-                          onChange={(e) => setAllowProviderSupply(e.target.checked)}
-                          className="mt-1 rounded border-input"
-                        />
-                        <span className="space-y-1">
-                          <span className="block font-medium">Cho phép provider xin cung cấp dịch vụ/sản phẩm này</span>
-                        </span>
-                      </label>
+                      <AdminCheckbox
+                        name="allowProviderSupply"
+                        checked={allowProviderSupply}
+                        onChange={(e) => setAllowProviderSupply(e.target.checked)}
+                        label="Cho phép provider xin cung cấp dịch vụ/sản phẩm này"
+                      />
                     </div>
                   </section>
 
@@ -753,24 +708,21 @@ export function OfferingEditorForm({
             <CardTitle>{isGeneralOffering ? "Sản phẩm bán ra" : "Mẫu chuẩn"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="font-medium">Trạng thái</label>
-              <select
+            <AdminField label="Trạng thái">
+              <AdminSelect
                 name="status"
                 defaultValue={offering.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 {OFFERING_STATUSES.map((statusOption) => (
                   <option key={statusOption} value={statusOption}>{getOfferingStatusLabel(statusOption)}</option>
                 ))}
-              </select>
-            </div>
+              </AdminSelect>
+            </AdminField>
 
             {!isGeneralOffering ? (
-              <div className="space-y-2">
-                <label className="font-medium">Giá</label>
+              <AdminField label="Giá">
                 <CurrencyInput name="price" defaultValue={offering.price} />
-              </div>
+              </AdminField>
             ) : null}
 
             <AdminSubmitButton className="w-full rounded-md" disabled={isSaving}>

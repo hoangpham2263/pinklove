@@ -75,8 +75,11 @@ Offering types are data-driven through `offering_types`:
 - `offerings.offering_type` stores the type key.
 - `offering_types.key` defines available type keys, labels, fulfillment behavior,
   and inventory/provider flags.
+- `offering_types.is_default` marks types prioritized by default in Admin offering workflows.
 - Relational `offering_type_fields` rows are the source of truth for admin field
   definitions.
+- `offering_types.status` has been removed; type availability is controlled by
+  code registration.
 - `offering_types.field_schema` has been removed from the clean runtime schema.
 - Custom type-specific values are stored under `offerings.config.customFields`.
 - `offerings.config` is guarded as lightweight UI/metadata storage only. The
@@ -87,8 +90,9 @@ Offering types are data-driven through `offering_types`:
   32768`, so it cannot become a dumping ground.
 - Physical inventory, cost, provider ownership, and provider supply flags live in
   `physical_offerings`, not in `offerings.config`.
-- A new type such as `video_invitation` or `creator_service` can be created from
-  `/admin/offerings/types` without adding a new table or hardcoded union.
+- New offering types must be registered in
+  `src/features/offerings/type-registry.ts` together with their frontend
+  renderer contract. `/admin/offerings/types` only edits relational fields.
 - Add a dedicated subtype table only when a domain needs strongly queried,
   relational columns at scale.
 
@@ -108,20 +112,13 @@ Current domain tables:
 
 Current system offering type keys:
 
-- `digital_template`
 - `physical_product`
-- `wedding_video`
 - `wedding_photo`
-- `bridal_makeup`
-- `wedding_decoration`
-- `wedding_planner`
-- `wedding_service`
 - `wedding_gift`
 
-`digital_template` is reserved for the two fixed invitation flows:
-`template_engine = coded` and `template_engine = builder`. All other seeded
-types belong to `/admin/offerings/list` and can be connected to providers or
-third-party suppliers.
+Legacy digital template rendering support remains in code, but the clean catalog
+contains only the three code-registered types above. Database bootstrap upserts
+their metadata and deletes unregistered types and corresponding offerings.
 
 Field definitions are relational `offering_type_fields` rows grouped by
 `offering_type_field_groups`. Admin offering create/edit forms read these rows
@@ -142,23 +139,17 @@ Current runtime seed data:
 
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Provider supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
-| `bridal_makeup` | Makeup cô dâu | active | service | `bridal_makeup` | no | yes | yes | 0 |
-| `digital_template` | Thiệp cưới online | active | digital | `digital_template` | no | no | yes | 0 |
 | `physical_product` | Thiệp giấy | active | physical | `physical_product` | yes | yes | yes | 0 |
-| `wedding_decoration` | Trang trí tiệc cưới | active | service | `wedding_decoration` | no | yes | yes | 0 |
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
-| `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
-| `wedding_service` | Dịch vụ cưới | active | service | `wedding_service` | no | yes | yes | 0 |
-| `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
 
 Current runtime offering data:
 
 | Offering type | Template engine | Rows |
 | --- | --- | ---: |
-| `digital_template` | `builder` | 6 |
-| `digital_template` | `coded` | 6 |
-| `physical_product` | none | 6 |
+| `physical_product` | none | 1 |
+| `wedding_photo` | none | 1 |
+| `wedding_gift` | none | 1 |
 
 ## Final Cleanup Runtime Contracts
 
@@ -312,7 +303,6 @@ erDiagram
     text id PK
     text key UK
     text label
-    text status
     text fulfillment_type
     text template_key
     text template_engine
@@ -736,7 +726,6 @@ erDiagram
     text id PK
     text key UK
     text label
-    text status
     text fulfillment_type
     text template_key
     text template_engine
@@ -1295,7 +1284,7 @@ docker compose exec db psql -U app -d app -P pager=off -c \
   "select tc.table_name, kcu.column_name, ccu.table_name as foreign_table_name, ccu.column_name as foreign_column_name, rc.delete_rule from information_schema.table_constraints tc join information_schema.key_column_usage kcu on tc.constraint_name=kcu.constraint_name and tc.table_schema=kcu.table_schema join information_schema.constraint_column_usage ccu on ccu.constraint_name=tc.constraint_name and ccu.table_schema=tc.table_schema join information_schema.referential_constraints rc on rc.constraint_name=tc.constraint_name and rc.constraint_schema=tc.table_schema where tc.constraint_type='FOREIGN KEY' and tc.table_schema='public' order by tc.table_name,kcu.column_name;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
-  "select ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system,count(otf.id) as fields from offering_types ot left join offering_type_fields otf on otf.offering_type_id=ot.id group by ot.id,ot.key,ot.label,ot.status,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system order by ot.is_system desc, ot.key;"
+  "select ot.key,ot.label,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system,count(otf.id) as fields from offering_types ot left join offering_type_fields otf on otf.offering_type_id=ot.id group by ot.id,ot.key,ot.label,ot.fulfillment_type,ot.template_key,ot.supports_inventory,ot.supports_provider_supply,ot.is_system order by ot.is_system desc, ot.key;"
 
 docker compose exec db psql -U app -d app -P pager=off -c \
   "select offering_type,count(*) from offerings group by offering_type order by offering_type;"

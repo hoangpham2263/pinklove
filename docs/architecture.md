@@ -160,6 +160,14 @@ old template-version tables.
 - Keep `media_asset_links` for direct asset relations.
 - `media_collections` and `media_collection_items` own ordered wedding albums,
   provider portfolios, and galleries.
+- Media Collections may be linked to provider deliverables only as lightweight
+  preview, cover, thumbnail, or curated gallery records. They must not become
+  the source of truth for full-resolution post-shoot file delivery.
+- Full-resolution wedding photo/video handoff belongs to a Provider
+  Deliverables workflow tied to `bookings`, `wedding_sites`, and the provider
+  account/entity. Store external delivery links and metadata there; keep heavy
+  files in Google Drive, Dropbox, Pixieset, Pic-Time, YouTube/Vimeo, or an
+  equivalent provider-owned storage system.
 
 ### Marketing And Analytics
 
@@ -183,6 +191,9 @@ These are product gaps, not unused database tables:
 - Add admin/provider screens for booking status and booking payment management.
 - Expand provider pricing/region/review management beyond service-level helpers.
 - Add organization management UI if multi-user provider teams become active.
+- Design Provider Deliverables for photography, videography, planning, and
+  other service bookings that need post-event handoff links, customer notes,
+  delivery deadlines, revision requests, and received/accepted states.
 - Add admin surface for field-level audit log inspection when needed.
 
 ## Operating Rules

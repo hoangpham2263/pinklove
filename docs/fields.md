@@ -8,6 +8,8 @@ Use this file for project-wide rules around field schema, field editors, and ric
 - Whole-site shared custom fields live in `Admin > Global Fields` as code-registered global fields backed by `app_settings.global_fields_config`.
 - Offering type field definitions live in relational
   `offering_type_fields` rows.
+- Offering type renderer contracts live in
+  `src/features/offerings/type-registry.ts`; they cannot be created from admin.
 - Admin offering type editing lives in `Admin > Offerings > Offering Types`.
   It should manage relational fields, groups, validation rules, and conditional
   logic instead of writing duplicate JSON schema definitions.
@@ -15,8 +17,8 @@ Use this file for project-wide rules around field schema, field editors, and ric
 ## Schema Rules
 
 - Treat the active schema source as the contract between admin data entry and
-  frontend rendering: code schemas for managed/global fields, database schemas
-  for offering type fields.
+  frontend rendering: code schemas for managed/global fields and offering type
+  contracts, database schemas for offering type fields.
 - When a page or feature moves to a new field structure, remove old field readers and legacy fallback branches instead of supporting both shapes.
 - For complex managed-page fields, prefer top-to-bottom `section` groups and `repeater` collections so the editor order matches the public page layout.
 - Keep related content inside the same section and use repeater item fields only for repeatable UI blocks such as socials, FAQs, cards, timelines, or lists.

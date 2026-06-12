@@ -3,6 +3,7 @@ import"server-only";
 import { Pool, type PoolClient, type QueryResultRow } from"pg";
 import { CONTENT_PAGE_SLUG_ALIASES, CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
+import { REGISTERED_OFFERING_TYPES } from "@/features/offerings/type-registry";
 import offeringSeedCatalog from "@/lib/offering-seed-data.json";
 
 const globalForDb = globalThis as unknown as {
@@ -1209,7 +1210,6 @@ async function ensureOfferingTablesMigration() {
       key TEXT NOT NULL UNIQUE,
       label TEXT NOT NULL,
       description TEXT,
-      status TEXT NOT NULL DEFAULT 'active',
       fulfillment_type TEXT NOT NULL DEFAULT 'digital',
       template_key TEXT NOT NULL DEFAULT '',
       template_engine TEXT NOT NULL DEFAULT '',
@@ -1217,11 +1217,17 @@ async function ensureOfferingTablesMigration() {
       supports_inventory BOOLEAN NOT NULL DEFAULT FALSE,
       supports_provider_supply BOOLEAN NOT NULL DEFAULT FALSE,
       is_system BOOLEAN NOT NULL DEFAULT FALSE,
+      is_default BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT offering_types_status_check CHECK (status IN ('draft', 'active', 'archived')),
       CONSTRAINT offering_types_fulfillment_type_check CHECK (fulfillment_type IN ('digital', 'physical', 'service'))
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE offering_types
+    DROP CONSTRAINT IF EXISTS offering_types_status_check,
+    DROP COLUMN IF EXISTS status;
   `);
 
   await pool.query(`
@@ -1239,46 +1245,64 @@ async function ensureOfferingTablesMigration() {
     ALTER TABLE offering_types
     ADD COLUMN IF NOT EXISTS template_engine TEXT NOT NULL DEFAULT '',
     ADD COLUMN IF NOT EXISTS template_mode TEXT NOT NULL DEFAULT '',
-    ADD COLUMN IF NOT EXISTS supports_provider_supply BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN IF NOT EXISTS supports_provider_supply BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS is_default BOOLEAN NOT NULL DEFAULT FALSE;
   `);
 
-  await pool.query(`
-    INSERT INTO offering_types (
-      key,
-      label,
-      description,
-      status,
-      fulfillment_type,
-      template_key,
-      template_engine,
-      template_mode,
-      supports_inventory,
-      supports_provider_supply,
-      is_system
-    )
-    VALUES
-      ('digital_template', 'Thiệp cưới online', 'Mẫu thiệp cưới online, website cưới, motion hoặc template builder.', 'active', 'digital', 'digital_template', 'coded', 'fixed', FALSE, FALSE, TRUE),
-      ('physical_product', 'Thiệp giấy', 'Thiệp cưới in ấn, bộ thiệp giấy, phụ kiện giấy và sản phẩm hữu hình liên quan.', 'active', 'physical', 'physical_product', '', '', TRUE, TRUE, TRUE),
-      ('wedding_video', 'Làm video cưới', 'Dịch vụ dựng video cưới, video save-the-date, video trình chiếu tiệc cưới hoặc clip kỷ niệm.', 'active', 'service', 'wedding_video', '', '', FALSE, TRUE, TRUE),
-      ('wedding_photo', 'Chụp ảnh cưới', 'Dịch vụ chụp ảnh cưới, phóng sự cưới, chụp pre-wedding hoặc chụp ngày cưới.', 'active', 'service', 'wedding_photo', '', '', FALSE, TRUE, TRUE),
-      ('bridal_makeup', 'Makeup cô dâu', 'Dịch vụ trang điểm cô dâu, makeup tiệc cưới, thử makeup hoặc làm tóc cô dâu.', 'active', 'service', 'bridal_makeup', '', '', FALSE, TRUE, TRUE),
-      ('wedding_decoration', 'Trang trí tiệc cưới', 'Dịch vụ trang trí gia tiên, backdrop, bàn gallery, hoa cưới và không gian tiệc.', 'active', 'service', 'wedding_decoration', '', '', FALSE, TRUE, TRUE),
-      ('wedding_planner', 'Wedding planner', 'Dịch vụ lập kế hoạch, điều phối, tư vấn timeline và quản lý ngày cưới.', 'active', 'service', 'wedding_planner', '', '', FALSE, TRUE, TRUE),
-      ('wedding_service', 'Dịch vụ cưới', 'Dịch vụ cưới khác cần provider thực hiện, tư vấn, bàn giao hoặc điều phối theo lịch.', 'active', 'service', 'wedding_service', '', '', FALSE, TRUE, TRUE),
-      ('wedding_gift', 'Quà cưới', 'Quà tặng, hộp quà, phụ kiện cưới và sản phẩm hữu hình có thể cung ứng bởi đối tác.', 'active', 'physical', 'wedding_gift', '', '', TRUE, TRUE, TRUE)
-    ON CONFLICT (key) DO UPDATE
-    SET
-      label = EXCLUDED.label,
-      description = EXCLUDED.description,
-      fulfillment_type = EXCLUDED.fulfillment_type,
-      template_key = EXCLUDED.template_key,
-      template_engine = EXCLUDED.template_engine,
-      template_mode = EXCLUDED.template_mode,
-      supports_inventory = EXCLUDED.supports_inventory,
-      supports_provider_supply = EXCLUDED.supports_provider_supply,
-      is_system = TRUE,
-      updated_at = NOW();
-  `);
+  for (const type of REGISTERED_OFFERING_TYPES) {
+    await pool.query(
+      `
+        INSERT INTO offering_types (
+          key,
+          label,
+          description,
+          fulfillment_type,
+          template_key,
+          template_engine,
+          template_mode,
+          supports_inventory,
+          supports_provider_supply,
+          is_system,
+          is_default
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, TRUE)
+        ON CONFLICT (key) DO UPDATE
+        SET
+          label = EXCLUDED.label,
+          description = EXCLUDED.description,
+          fulfillment_type = EXCLUDED.fulfillment_type,
+          template_key = EXCLUDED.template_key,
+          template_engine = EXCLUDED.template_engine,
+          template_mode = EXCLUDED.template_mode,
+          supports_inventory = EXCLUDED.supports_inventory,
+          supports_provider_supply = EXCLUDED.supports_provider_supply,
+          is_system = TRUE,
+          is_default = TRUE,
+          updated_at = NOW()
+      `,
+      [
+        type.key,
+        type.label,
+        type.description,
+        type.fulfillmentType,
+        type.templateKey,
+        type.templateEngine ?? "",
+        type.templateMode ?? "",
+        type.supportsInventory,
+        type.supportsProviderSupply,
+      ]
+    );
+  }
+
+  const registeredOfferingTypeKeys = REGISTERED_OFFERING_TYPES.map((type) => type.key);
+  await pool.query(
+    "DELETE FROM offerings WHERE NOT (offering_type = ANY($1::text[]))",
+    [registeredOfferingTypeKeys]
+  );
+  await pool.query(
+    "DELETE FROM offering_types WHERE NOT (key = ANY($1::text[]))",
+    [registeredOfferingTypeKeys]
+  );
 
   await pool.query(`
     ALTER TABLE offerings
@@ -4795,7 +4819,11 @@ async function ensureOfferingSeed() {
 
   for (const offering of offeringSeedCatalog.offerings) {
     const offeringType = offering.offeringType;
-    const seedTemplateEngine = typeof offering.templateEngine === "string" ? offering.templateEngine : "";
+    const seedOffering = offering as typeof offering & {
+      templateEngine?: string;
+      config?: Record<string, unknown>;
+    };
+    const seedTemplateEngine = typeof seedOffering.templateEngine === "string" ? seedOffering.templateEngine : "";
     const templateEngine =
       seedTemplateEngine ||
       (offeringType === "digital_template" ? "coded" : "");
@@ -4922,7 +4950,13 @@ async function ensureOfferingSeed() {
             INSERT INTO digital_template_offerings (offering_id, template_key, template_engine, template_mode, site_defaults)
             VALUES ($1, $2, $3, $4, $5)
           `,
-        [offeringId, templateKey, templateEngine || "coded", templateMode || "fixed", offering.config.siteDefaults ?? {}]
+        [
+          offeringId,
+          templateKey,
+          templateEngine || "coded",
+          templateMode || "fixed",
+          seedOffering.config?.siteDefaults ?? {},
+        ]
       );
     }
 

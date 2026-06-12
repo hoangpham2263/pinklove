@@ -5,8 +5,8 @@ import { CheckCircle2, RotateCcw, ShieldAlert, X, XCircle } from "lucide-react";
 
 import { CurrencyInput } from "@/components/common/currency-input";
 import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionTrigger, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import {
   getOfferingProviderSupplierSourceLabel,
@@ -39,12 +39,15 @@ function SubmitStatusButton({
   children: React.ReactNode;
   name?: string;
   value: string;
-  variant?: React.ComponentProps<typeof Button>["variant"];
+  variant?: "default" | "outline" | "destructive";
 }) {
+  const ButtonComponent =
+    variant === "destructive" ? AdminDeleteButton : variant === "default" ? AdminSubmitButton : AdminOutlineButton;
+
   return (
-    <Button type="submit" name={name} value={value} variant={variant} className="gap-2">
+    <ButtonComponent type="submit" name={name} value={value} className="gap-2">
       {children}
-    </Button>
+    </ButtonComponent>
   );
 }
 

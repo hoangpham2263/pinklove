@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { Boxes, PackagePlus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { OfferingBundleList } from "@/features/offerings/admin/offering-bundle-list";
 import { listOfferingBundles } from "@/features/offerings/server/bundles";
@@ -23,7 +22,7 @@ export default async function AdminOfferingBundlesPage() {
             Quản lý combo ghép từ nhiều dịch vụ/sản phẩm có sẵn. Dùng cho gói cưới trọn bộ, gói triển khai hoặc combo bán kèm.
           </p>
         </div>
-        <Button render={<Link href={ROUTES.ADMIN.OFFERING_BUNDLE_NEW}>Tạo combo</Link>} />
+        <AdminCreateLinkButton href={ROUTES.ADMIN.OFFERING_BUNDLE_NEW}>Tạo combo</AdminCreateLinkButton>
       </div>
 
       <AdminOverviewGrid className="md:grid-cols-2">

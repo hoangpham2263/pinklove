@@ -581,6 +581,462 @@ async function createProviderAssignment(client, input) {
   return assignment;
 }
 
+async function upsertMediaAsset(client, input) {
+  await client.query(
+    `
+      INSERT INTO media_assets (id, url, file_name, original_name, mime_type, size_bytes)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (id)
+      DO UPDATE SET
+        url = EXCLUDED.url,
+        file_name = EXCLUDED.file_name,
+        original_name = EXCLUDED.original_name,
+        mime_type = EXCLUDED.mime_type,
+        size_bytes = EXCLUDED.size_bytes
+    `,
+    [input.id, input.url, input.fileName, input.originalName, input.mimeType, input.sizeBytes]
+  );
+}
+
+async function seedWeddingPlanningWorkspace(client, input) {
+  const site = await fetchRow(
+    client,
+    `
+      INSERT INTO wedding_sites (
+        user_id,
+        offering_id,
+        title,
+        slug,
+        site_type,
+        template_key,
+        status,
+        custom_data,
+        project_status,
+        budget,
+        event_date,
+        guest_target
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11::date, $12)
+      ON CONFLICT (slug)
+      DO UPDATE SET
+        user_id = EXCLUDED.user_id,
+        offering_id = EXCLUDED.offering_id,
+        title = EXCLUDED.title,
+        site_type = EXCLUDED.site_type,
+        template_key = EXCLUDED.template_key,
+        status = EXCLUDED.status,
+        custom_data = EXCLUDED.custom_data,
+        project_status = EXCLUDED.project_status,
+        budget = EXCLUDED.budget,
+        event_date = EXCLUDED.event_date,
+        guest_target = EXCLUDED.guest_target,
+        updated_at = NOW()
+      RETURNING id, title, slug
+    `,
+    [
+      input.userId,
+      input.offeringId ?? null,
+      input.title,
+      input.slug,
+      input.siteType ?? "coded",
+      input.templateKey ?? "aurora_veil",
+      input.status ?? "published",
+      JSON.stringify(input.customData ?? {}),
+      input.projectStatus ?? "active",
+      input.budget ?? 0,
+      input.eventDate ?? null,
+      input.guestTarget ?? 0,
+    ]
+  );
+
+  await client.query("DELETE FROM media_collection_items WHERE collection_id IN (SELECT id FROM media_collections WHERE target_type = 'wedding_site' AND target_id = $1)", [site.id]);
+  await client.query("DELETE FROM media_collections WHERE target_type = 'wedding_site' AND target_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_table_guests WHERE table_id IN (SELECT id FROM wedding_tables WHERE wedding_site_id = $1)", [site.id]);
+  await client.query("DELETE FROM wedding_site_rsvps WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_site_guests WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM guest_groups WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_tables WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_tasks WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_timeline_items WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_site_events WHERE wedding_site_id = $1", [site.id]);
+  await client.query("DELETE FROM wedding_site_galleries WHERE wedding_site_id = $1", [site.id]);
+
+  const groupIds = new Map();
+  for (const [index, group] of input.groups.entries()) {
+    const row = await fetchRow(
+      client,
+      `
+        INSERT INTO guest_groups (wedding_site_id, name, sort_order)
+        VALUES ($1, $2, $3)
+        RETURNING id
+      `,
+      [site.id, group.name, index]
+    );
+    groupIds.set(group.key, row.id);
+  }
+
+  const guestIds = new Map();
+  for (const guest of input.guests) {
+    const row = await fetchRow(
+      client,
+      `
+        INSERT INTO wedding_site_guests (
+          wedding_site_id,
+          full_name,
+          phone,
+          email,
+          group_name,
+          guest_group_id,
+          status,
+          note,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
+        RETURNING id
+      `,
+      [
+        site.id,
+        guest.fullName,
+        guest.phone ?? "",
+        guest.email ?? "",
+        guest.groupName ?? "",
+        groupIds.get(guest.groupKey) ?? null,
+        guest.status ?? "invited",
+        guest.note ?? "",
+        JSON.stringify(guest.metadata ?? {}),
+      ]
+    );
+    guestIds.set(guest.key, row.id);
+  }
+
+  for (const rsvp of input.rsvps) {
+    await client.query(
+      `
+        INSERT INTO wedding_site_rsvps (
+          wedding_site_id,
+          guest_id,
+          attendee_name,
+          attendee_count,
+          response_status,
+          message,
+          meal_choice,
+          special_requests,
+          responded_at,
+          metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz, $10::jsonb)
+      `,
+      [
+        site.id,
+        guestIds.get(rsvp.guestKey) ?? null,
+        rsvp.attendeeName,
+        rsvp.attendeeCount ?? 1,
+        rsvp.responseStatus ?? "pending",
+        rsvp.message ?? "",
+        rsvp.mealChoice ?? "",
+        rsvp.specialRequests ?? "",
+        rsvp.respondedAt ?? null,
+        JSON.stringify(rsvp.metadata ?? {}),
+      ]
+    );
+  }
+
+  const tableIds = new Map();
+  for (const [index, table] of input.tables.entries()) {
+    const row = await fetchRow(
+      client,
+      `
+        INSERT INTO wedding_tables (wedding_site_id, name, capacity, sort_order, notes)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
+      `,
+      [site.id, table.name, table.capacity, index, table.notes ?? ""]
+    );
+    tableIds.set(table.key, row.id);
+  }
+
+  for (const assignment of input.tableAssignments) {
+    await client.query(
+      `
+        INSERT INTO wedding_table_guests (table_id, guest_id, seat_number)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (table_id, guest_id)
+        DO UPDATE SET seat_number = EXCLUDED.seat_number
+      `,
+      [tableIds.get(assignment.tableKey), guestIds.get(assignment.guestKey), assignment.seatNumber ?? ""]
+    );
+  }
+
+  for (const task of input.tasks) {
+    await client.query(
+      `
+        INSERT INTO wedding_tasks (
+          wedding_site_id,
+          title,
+          description,
+          category,
+          status,
+          priority,
+          due_date,
+          completed_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8::timestamptz)
+      `,
+      [
+        site.id,
+        task.title,
+        task.description ?? "",
+        task.category ?? "other",
+        task.status ?? "pending",
+        task.priority ?? "normal",
+        task.dueDate ?? null,
+        task.completedAt ?? null,
+      ]
+    );
+  }
+
+  for (const item of input.timeline) {
+    await client.query(
+      `
+        INSERT INTO wedding_timeline_items (
+          wedding_site_id,
+          title,
+          starts_at,
+          ends_at,
+          timeline_type,
+          notes
+        )
+        VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6)
+      `,
+      [site.id, item.title, item.startsAt ?? null, item.endsAt ?? null, item.timelineType ?? "custom", item.notes ?? ""]
+    );
+  }
+
+  for (const [index, event] of (input.events ?? []).entries()) {
+    await client.query(
+      `
+        INSERT INTO wedding_site_events (
+          wedding_site_id,
+          title,
+          starts_at,
+          ends_at,
+          venue_name,
+          address,
+          sort_order,
+          metadata
+        )
+        VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7, $8::jsonb)
+      `,
+      [
+        site.id,
+        event.title,
+        event.startsAt ?? null,
+        event.endsAt ?? null,
+        event.venueName ?? "",
+        event.address ?? "",
+        index,
+        JSON.stringify(event.metadata ?? {}),
+      ]
+    );
+  }
+
+  for (const collection of input.collections ?? []) {
+    const collectionRow = await fetchRow(
+      client,
+      `
+        INSERT INTO media_collections (name, target_type, target_id, description)
+        VALUES ($1, 'wedding_site', $2, $3)
+        RETURNING id
+      `,
+      [collection.name, site.id, collection.description ?? ""]
+    );
+
+    for (const [index, asset] of collection.assets.entries()) {
+      await upsertMediaAsset(client, asset);
+      await client.query(
+        `
+          INSERT INTO media_collection_items (collection_id, media_asset_id, sort_order)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (collection_id, media_asset_id)
+          DO UPDATE SET sort_order = EXCLUDED.sort_order
+        `,
+        [collectionRow.id, asset.id, index]
+      );
+    }
+  }
+
+  return site;
+}
+
+async function seedWeddingPlanningDemo(client, { customerOne, customerTwo, offeringA, offeringB }) {
+  const lanMinhSite = await seedWeddingPlanningWorkspace(client, {
+    userId: customerOne.id,
+    offeringId: offeringA.id,
+    title: "Minh & Lan - Wedding Day",
+    slug: "minh-lan-wedding-day",
+    siteType: "coded",
+    templateKey: "aurora_veil",
+    status: "published",
+    projectStatus: "active",
+    budget: 420000000,
+    eventDate: "2026-12-15",
+    guestTarget: 180,
+    customData: {
+      brideName: "Lan",
+      groomName: "Minh",
+      heroSubtitle: "Trân trọng kính mời bạn đến chung vui trong ngày trọng đại của chúng tôi.",
+      eventDate: "15.12.2026",
+      venue: "White Palace, TP.HCM",
+      storyTitle: "Ngày mình chọn nhau",
+      storyBody: "Một hành trình nhỏ được gom lại thành ngày vui lớn với gia đình và bạn bè.",
+      gallery: [
+        "/uploads/seed-offerings/seed-red-wedding-web-01.png",
+        "/uploads/seed-offerings/seed-red-wedding-web-02.png",
+      ],
+    },
+    groups: [
+      { key: "nha-trai", name: "Nhà trai" },
+      { key: "nha-gai", name: "Nhà gái" },
+      { key: "ban-be", name: "Bạn bè" },
+      { key: "cong-ty", name: "Đồng nghiệp" },
+    ],
+    guests: [
+      { key: "guest-01", fullName: "Nguyen Van An", phone: "0901000001", email: "an@example.local", groupKey: "nha-trai", status: "confirmed", note: "Đi cùng gia đình 4 người." },
+      { key: "guest-02", fullName: "Pham Thi Hoa", phone: "0901000002", email: "hoa@example.local", groupKey: "nha-gai", status: "confirmed", note: "Ăn chay." },
+      { key: "guest-03", fullName: "Le Quang Huy", phone: "0901000003", email: "huy@example.local", groupKey: "ban-be", status: "invited", note: "Bạn đại học." },
+      { key: "guest-04", fullName: "Tran Mai Anh", phone: "0901000004", email: "maianh@example.local", groupKey: "ban-be", status: "confirmed", note: "Phụ trách hỗ trợ check-in." },
+      { key: "guest-05", fullName: "Vo Duc Khang", phone: "0901000005", email: "khang@example.local", groupKey: "cong-ty", status: "declined", note: "Bận công tác." },
+      { key: "guest-06", fullName: "Do Thanh Tam", phone: "0901000006", email: "tam@example.local", groupKey: "cong-ty", status: "confirmed", note: "Đi 2 người." },
+      { key: "guest-07", fullName: "Bui Kim Chi", phone: "0901000007", email: "kimchi@example.local", groupKey: "nha-gai", status: "invited", note: "Cần gọi xác nhận lại." },
+      { key: "guest-08", fullName: "Hoang Gia Bao", phone: "0901000008", email: "bao@example.local", groupKey: "nha-trai", status: "confirmed", note: "Ngồi gần sân khấu." },
+    ],
+    rsvps: [
+      { guestKey: "guest-01", attendeeName: "Nguyen Van An", attendeeCount: 4, responseStatus: "accepted", mealChoice: "Set menu tiêu chuẩn", respondedAt: "2026-06-01T03:15:00.000Z" },
+      { guestKey: "guest-02", attendeeName: "Pham Thi Hoa", attendeeCount: 1, responseStatus: "accepted", mealChoice: "Vegetarian", specialRequests: "Không hành tỏi", respondedAt: "2026-06-02T08:20:00.000Z" },
+      { guestKey: "guest-04", attendeeName: "Tran Mai Anh", attendeeCount: 1, responseStatus: "accepted", message: "Mình sẽ đến sớm hỗ trợ.", respondedAt: "2026-06-03T10:00:00.000Z" },
+      { guestKey: "guest-05", attendeeName: "Vo Duc Khang", attendeeCount: 1, responseStatus: "declined", message: "Xin lỗi vì lịch công tác trùng ngày.", respondedAt: "2026-06-04T11:30:00.000Z" },
+      { guestKey: "guest-06", attendeeName: "Do Thanh Tam", attendeeCount: 2, responseStatus: "accepted", specialRequests: "Cần ghế trẻ em nếu có.", respondedAt: "2026-06-05T02:40:00.000Z" },
+    ],
+    tables: [
+      { key: "table-family-groom", name: "Bàn Nhà Trai 01", capacity: 10, notes: "Ưu tiên người lớn tuổi." },
+      { key: "table-family-bride", name: "Bàn Nhà Gái 01", capacity: 10, notes: "Gần lối lên sân khấu." },
+      { key: "table-friends", name: "Bàn Bạn Bè", capacity: 12, notes: "Nhóm bạn đại học và bạn thân." },
+      { key: "table-company", name: "Bàn Đồng Nghiệp", capacity: 10, notes: "Khu giữa sảnh." },
+    ],
+    tableAssignments: [
+      { tableKey: "table-family-groom", guestKey: "guest-01", seatNumber: "A1" },
+      { tableKey: "table-family-bride", guestKey: "guest-02", seatNumber: "B1" },
+      { tableKey: "table-friends", guestKey: "guest-03", seatNumber: "C1" },
+      { tableKey: "table-friends", guestKey: "guest-04", seatNumber: "C2" },
+      { tableKey: "table-company", guestKey: "guest-06", seatNumber: "D1" },
+      { tableKey: "table-family-bride", guestKey: "guest-07", seatNumber: "B2" },
+      { tableKey: "table-family-groom", guestKey: "guest-08", seatNumber: "A2" },
+    ],
+    tasks: [
+      { title: "Chốt sảnh tiệc White Palace", description: "Xác nhận số bàn dự phòng và sơ đồ sân khấu.", category: "venue", status: "completed", priority: "high", dueDate: "2026-07-01", completedAt: "2026-05-30T09:00:00.000Z" },
+      { title: "Chụp pre-wedding Đà Lạt", description: "Chuẩn bị 3 concept, lịch di chuyển và makeup.", category: "photo", status: "in_progress", priority: "high", dueDate: "2026-08-12" },
+      { title: "Duyệt mẫu trang trí bàn gallery", description: "Chọn tone trắng hồng, kiểm tra backdrop welcome.", category: "decoration", status: "pending", priority: "normal", dueDate: "2026-09-05" },
+      { title: "Hoàn tất danh sách khách mời", description: "Gọi xác nhận nhóm chưa RSVP.", category: "planner", status: "in_progress", priority: "high", dueDate: "2026-10-20" },
+      { title: "Chuẩn bị giấy tờ đăng ký kết hôn", description: "Kiểm tra bản sao giấy tờ và lịch hẹn phường.", category: "legal", status: "pending", priority: "normal", dueDate: "2026-11-01" },
+      { title: "Đặt xe đưa đón gia đình", description: "2 xe 16 chỗ cho hai bên gia đình.", category: "transportation", status: "pending", priority: "normal", dueDate: "2026-11-20" },
+    ],
+    timeline: [
+      { title: "Makeup cô dâu", timelineType: "preparation", startsAt: "2026-12-15T00:30:00.000Z", endsAt: "2026-12-15T02:30:00.000Z", notes: "Makeup tại nhà cô dâu." },
+      { title: "Lễ gia tiên", timelineType: "ceremony", startsAt: "2026-12-15T03:00:00.000Z", endsAt: "2026-12-15T04:30:00.000Z", notes: "Nhà gái, đội bưng quả có mặt trước 30 phút." },
+      { title: "Chụp ảnh gia đình", timelineType: "custom", startsAt: "2026-12-15T08:30:00.000Z", endsAt: "2026-12-15T09:30:00.000Z", notes: "Sảnh chính White Palace." },
+      { title: "Đón khách tiệc tối", timelineType: "reception", startsAt: "2026-12-15T10:30:00.000Z", endsAt: "2026-12-15T11:30:00.000Z", notes: "Check-in QR và ký tên." },
+      { title: "Khai tiệc", timelineType: "reception", startsAt: "2026-12-15T11:45:00.000Z", endsAt: "2026-12-15T14:00:00.000Z", notes: "MC giới thiệu, nghi thức rót rượu, dùng tiệc." },
+    ],
+    events: [
+      { title: "Lễ gia tiên", startsAt: "2026-12-15T03:00:00.000Z", endsAt: "2026-12-15T04:30:00.000Z", venueName: "Nhà cô dâu", address: "Quận 3, TP.HCM" },
+      { title: "Tiệc cưới", startsAt: "2026-12-15T10:30:00.000Z", endsAt: "2026-12-15T14:00:00.000Z", venueName: "White Palace", address: "194 Hoang Van Thu, Phu Nhuan, TP.HCM" },
+    ],
+    collections: [
+      {
+        name: "Pre-wedding Da Lat",
+        description: "Ảnh demo cho album pre-wedding hiển thị trong wedding planning.",
+        assets: [
+          { id: "seed-wp-lan-minh-01", url: "/uploads/seed-offerings/seed-red-wedding-web-01.png", fileName: "seed-red-wedding-web-01.png", originalName: "Lan Minh pre-wedding 01", mimeType: "image/png", sizeBytes: 248000 },
+          { id: "seed-wp-lan-minh-02", url: "/uploads/seed-offerings/seed-red-wedding-web-02.png", fileName: "seed-red-wedding-web-02.png", originalName: "Lan Minh pre-wedding 02", mimeType: "image/png", sizeBytes: 252000 },
+        ],
+      },
+    ],
+  });
+
+  const minhThaoSite = await seedWeddingPlanningWorkspace(client, {
+    userId: customerTwo.id,
+    offeringId: offeringB.id,
+    title: "Minh & Thao - Reception Plan",
+    slug: "minh-thao-reception-plan",
+    siteType: "coded",
+    templateKey: "golden_aisle",
+    status: "published",
+    projectStatus: "completed",
+    budget: 280000000,
+    eventDate: "2026-04-26",
+    guestTarget: 120,
+    customData: {
+      brideName: "Thao",
+      groomName: "Minh",
+      heroSubtitle: "Cảm ơn bạn đã chung vui cùng gia đình chúng tôi.",
+      eventDate: "26.04.2026",
+      venue: "Gem Center, TP.HCM",
+      storyTitle: "Một ngày trọn vẹn",
+      storyBody: "Wedding planning demo đã hoàn tất để admin xem trạng thái completed.",
+      gallery: ["/uploads/seed-offerings/seed-red-wedding-web-03.png"],
+    },
+    groups: [
+      { key: "family", name: "Gia đình" },
+      { key: "friends", name: "Bạn bè" },
+      { key: "work", name: "Công ty" },
+    ],
+    guests: [
+      { key: "guest-01", fullName: "Dang Quoc Viet", phone: "0902000001", email: "viet@example.local", groupKey: "family", status: "confirmed" },
+      { key: "guest-02", fullName: "Nguyen Thu Ha", phone: "0902000002", email: "ha@example.local", groupKey: "friends", status: "confirmed" },
+      { key: "guest-03", fullName: "Le Bao Tram", phone: "0902000003", email: "tram@example.local", groupKey: "work", status: "confirmed" },
+    ],
+    rsvps: [
+      { guestKey: "guest-01", attendeeName: "Dang Quoc Viet", attendeeCount: 2, responseStatus: "accepted", respondedAt: "2026-03-20T04:00:00.000Z" },
+      { guestKey: "guest-02", attendeeName: "Nguyen Thu Ha", attendeeCount: 1, responseStatus: "accepted", respondedAt: "2026-03-21T04:00:00.000Z" },
+      { guestKey: "guest-03", attendeeName: "Le Bao Tram", attendeeCount: 1, responseStatus: "accepted", respondedAt: "2026-03-22T04:00:00.000Z" },
+    ],
+    tables: [
+      { key: "table-vip", name: "Bàn VIP", capacity: 10, notes: "Gia đình hai bên." },
+      { key: "table-friends", name: "Bàn Bạn Bè", capacity: 10, notes: "Bạn thân." },
+    ],
+    tableAssignments: [
+      { tableKey: "table-vip", guestKey: "guest-01", seatNumber: "V1" },
+      { tableKey: "table-friends", guestKey: "guest-02", seatNumber: "F1" },
+      { tableKey: "table-friends", guestKey: "guest-03", seatNumber: "F2" },
+    ],
+    tasks: [
+      { title: "Chốt final menu", category: "venue", status: "completed", priority: "high", dueDate: "2026-03-30", completedAt: "2026-03-28T04:00:00.000Z" },
+      { title: "Gửi ảnh highlight cho khách", category: "photo", status: "completed", priority: "normal", dueDate: "2026-05-02", completedAt: "2026-05-01T04:00:00.000Z" },
+    ],
+    timeline: [
+      { title: "Đón khách", timelineType: "reception", startsAt: "2026-04-26T10:00:00.000Z", endsAt: "2026-04-26T11:00:00.000Z" },
+      { title: "Khai tiệc", timelineType: "reception", startsAt: "2026-04-26T11:00:00.000Z", endsAt: "2026-04-26T13:30:00.000Z" },
+    ],
+    events: [
+      { title: "Tiệc cưới", startsAt: "2026-04-26T10:00:00.000Z", endsAt: "2026-04-26T13:30:00.000Z", venueName: "Gem Center", address: "8 Nguyen Binh Khiem, District 1, TP.HCM" },
+    ],
+    collections: [
+      {
+        name: "Reception Highlights",
+        description: "Album demo cho wedding đã completed.",
+        assets: [
+          { id: "seed-wp-minh-thao-01", url: "/uploads/seed-offerings/seed-red-wedding-web-03.png", fileName: "seed-red-wedding-web-03.png", originalName: "Minh Thao reception 01", mimeType: "image/png", sizeBytes: 220000 },
+        ],
+      },
+    ],
+  });
+
+  return [
+    { title: lanMinhSite.title, slug: lanMinhSite.slug, link: withBaseUrl(`/customer/wedding-planning?site=${encodeURIComponent(lanMinhSite.id)}`) },
+    { title: minhThaoSite.title, slug: minhThaoSite.slug, link: withBaseUrl(`/customer/wedding-planning?site=${encodeURIComponent(minhThaoSite.id)}`) },
+  ];
+}
+
 function sumItems(items) {
   return items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 }
@@ -751,6 +1207,13 @@ async function main() {
         { landingPath: "/blog", referrer: "https://tiktok.com", visitorToken: "seed-visitor-003", userAgent: "SeedAgent/1.0" },
       ],
       conversions: [],
+    });
+
+    const seededWeddingPlanning = await seedWeddingPlanningDemo(client, {
+      customerOne,
+      customerTwo,
+      offeringA,
+      offeringB,
     });
 
     const orderScenarios = [
@@ -930,6 +1393,7 @@ async function main() {
             { username: affiliateRose.username, code: "rose-love" },
             { username: affiliateNova.username, code: "nova-plan" },
           ],
+          weddingPlanning: seededWeddingPlanning,
           orders: seededOrders,
           notes: [
             "Khong tao admin moi. Hay dung admin co san cua he thong de test admin area.",

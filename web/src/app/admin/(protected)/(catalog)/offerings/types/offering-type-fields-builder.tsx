@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AdminIconButton, AdminOutlineButton } from "@/features/admin/components/admin-buttons";
 import {
   OFFERING_TYPE_FIELD_TYPES,
   type OfferingTypeField,
@@ -71,10 +71,10 @@ export function OfferingTypeFieldsBuilder({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <label className="font-medium">Fields</label>
-        <Button type="button" variant="outline" size="sm" onClick={() => setRows((current) => [...current, createRow()])}>
+        <AdminOutlineButton type="button" size="sm" onClick={() => setRows((current) => [...current, createRow()])}>
           <Plus className="mr-2 size-4" />
           Thêm field
-        </Button>
+        </AdminOutlineButton>
       </div>
 
       <div className="space-y-3">
@@ -82,9 +82,9 @@ export function OfferingTypeFieldsBuilder({
           <div key={row.id} className="rounded-lg border bg-background p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-sm font-medium">Field {index + 1}</div>
-              <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => removeRow(row.id)}>
+              <AdminIconButton type="button" className="size-8" onClick={() => removeRow(row.id)}>
                 <Trash2 className="size-4" />
-              </Button>
+              </AdminIconButton>
             </div>
 
             <div className="grid gap-3">

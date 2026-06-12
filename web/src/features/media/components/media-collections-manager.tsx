@@ -183,8 +183,8 @@ export function MediaCollectionsManager({
                   <span className="shrink-0 text-muted-foreground">{collection.item_count} media</span>
                 </div>
                 {collection.media_urls.length > 0 ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {collection.media_urls.slice(0, 4).map((url) => (
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 xl:grid-cols-8">
+                    {collection.media_urls.slice(0, 8).map((url) => (
                       <div key={url} className="aspect-square overflow-hidden rounded-md border bg-muted">
                         <div className="relative size-full">
                           <Image src={url} alt="" fill sizes="96px" className="object-cover" />

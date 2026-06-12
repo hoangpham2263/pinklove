@@ -1,10 +1,9 @@
-import Link from "next/link";
-
 import { CurrencyInput } from "@/components/common/currency-input";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOfferingProviderSupplierStatusLabel, getProviderOfferingSupplierRequestStatusLabel } from "@/features/provider-offering-submissions/labels";
 import { listAvailableOfferingsForProviderSupply } from "@/features/provider-offering-submissions/server/service";
+import { ProviderLinkButton, ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderInput, ProviderTextarea } from "@/features/provider-orders/components/provider-form";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -18,7 +17,7 @@ export default async function ProviderAvailableTemplatesPage() {
       <ProviderPageHeader
         title="Dịch vụ/sản phẩm cần provider"
         description="Chọn dịch vụ/sản phẩm admin đang cần provider và gửi báo giá, năng lực cung ứng, chất lượng để admin so sánh trước khi duyệt."
-        actions={<Button variant="outline" render={<Link href={ROUTES.PROVIDER.SUPPLY_REQUESTS}>Yêu cầu cung cấp của tôi</Link>} />}
+        actions={<ProviderLinkButton href={ROUTES.PROVIDER.SUPPLY_REQUESTS}>Yêu cầu cung cấp của tôi</ProviderLinkButton>}
       />
 
       {offerings.length === 0 ? (
@@ -54,15 +53,15 @@ export default async function ProviderAvailableTemplatesPage() {
                   <form action={ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
                     <input type="hidden" name="offeringId" value={offering.id} />
                     <CurrencyInput name="purchaseCost" placeholder="Giá nhập/gia công" className="rounded-md bg-background px-3 text-sm" />
-                    <input name="providerSku" placeholder="Mã SKU của bạn" className="h-10 rounded-md border bg-background px-3 text-sm" />
-                    <input name="leadTimeDays" type="number" min="0" placeholder="Thời gian xử lý ngày" className="h-10 rounded-md border bg-background px-3 text-sm" />
-                    <input name="monthlyCapacity" type="number" min="0" placeholder="Năng lực/tháng" className="h-10 rounded-md border bg-background px-3 text-sm" />
-                    <input name="serviceArea" placeholder="Khu vực phục vụ" className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2" />
-                    <input name="sampleImageUrl" placeholder="Link ảnh mẫu in thử" className="h-10 rounded-md border bg-background px-3 text-sm md:col-span-2" />
-                    <textarea name="materialNote" placeholder="Chất liệu/giấy/hoàn thiện" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
-                    <textarea name="qualityNote" placeholder="Cam kết chất lượng/đóng gói" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
-                    <textarea name="providerNote" placeholder="Ghi chú thêm cho admin" className="min-h-20 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
-                    <Button type="submit" className="md:col-span-2">{submitLabel}</Button>
+                    <ProviderInput name="providerSku" placeholder="Mã SKU của bạn" />
+                    <ProviderInput name="leadTimeDays" type="number" min="0" placeholder="Thời gian xử lý ngày" />
+                    <ProviderInput name="monthlyCapacity" type="number" min="0" placeholder="Năng lực/tháng" />
+                    <ProviderInput name="serviceArea" placeholder="Khu vực phục vụ" className="md:col-span-2" />
+                    <ProviderInput name="sampleImageUrl" placeholder="Link ảnh mẫu in thử" className="md:col-span-2" />
+                    <ProviderTextarea name="materialNote" placeholder="Chất liệu/giấy/hoàn thiện" className="min-h-20 md:col-span-2" />
+                    <ProviderTextarea name="qualityNote" placeholder="Cam kết chất lượng/đóng gói" className="min-h-20 md:col-span-2" />
+                    <ProviderTextarea name="providerNote" placeholder="Ghi chú thêm cho admin" className="min-h-20 md:col-span-2" />
+                    <ProviderSubmitButton type="submit" className="md:col-span-2">{submitLabel}</ProviderSubmitButton>
                   </form>
                 ) : null}
               </CardContent>

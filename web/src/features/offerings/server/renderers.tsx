@@ -12,6 +12,7 @@ import {
 } from "@/app/(guest)/_components/guest-ui";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
 import { CommentSection } from "@/features/comments/components/comment-section";
+import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
 import type { Offering } from "@/features/offerings/types";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
 import { getCurrentUser } from "@/lib/auth";
@@ -507,4 +508,30 @@ export async function renderGeneralOfferingPage(offering: Offering) {
       <CommentSection target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }} />
     </>
   );
+}
+
+export function generateRegisteredOfferingMetadata(offering: Offering) {
+  const type = getRegisteredOfferingType(offering.offeringType);
+  if (!type) {
+    return {};
+  }
+
+  switch (type.rendererKey) {
+    case "physical-product":
+    case "service":
+      return generateGeneralOfferingMetadata(offering);
+  }
+}
+
+export function renderRegisteredOfferingPage(offering: Offering) {
+  const type = getRegisteredOfferingType(offering.offeringType);
+  if (!type) {
+    return null;
+  }
+
+  switch (type.rendererKey) {
+    case "physical-product":
+    case "service":
+      return renderGeneralOfferingPage(offering);
+  }
 }

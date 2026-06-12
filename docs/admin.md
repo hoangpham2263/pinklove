@@ -38,11 +38,13 @@ This file covers the admin area and admin-controlled workflows.
   views for focused operations.
 - Offering management screens should keep the same dense table management style
   as the main `/admin/offerings` table.
-- Admin offering type management lives at `/admin/offerings/types` and writes to
-  `offering_types` plus relational `offering_type_fields`. The type management
-  UI is also table-first, with preview and create/edit dialogs. Use it to define
-  custom fields for new catalog types instead of hardcoding type unions in forms
-  or API routes.
+- Offering type contracts are registered in
+  `src/features/offerings/type-registry.ts`. Runtime bootstrap synchronizes
+  their metadata to `offering_types` and removes unregistered types and their
+  offerings.
+- Admin offering type management lives at `/admin/offerings/types`. Admin can
+  edit only relational `offering_type_fields`; creating a type or changing its
+  renderer, fulfillment, template, and capabilities requires a code change.
 - Admin dynamic offering forms should render from relational field groups,
   fields, validation rules, and conditional logic. The expected backing tables
   are `offering_type_field_groups` and `offering_type_fields`.

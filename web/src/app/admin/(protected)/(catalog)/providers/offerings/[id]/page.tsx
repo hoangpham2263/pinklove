@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CurrencyInput } from "@/components/common/currency-input";
 import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminCheckbox, AdminField, AdminTextarea } from "@/features/admin/components/admin-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth";
 import { formatVnd } from "@/lib/currency";
@@ -77,8 +78,8 @@ export default async function AdminProviderOfferingDetailPage({
         </div>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-12">
+        <div className="space-y-5 lg:col-span-9">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Thông tin submission</CardTitle>
@@ -147,7 +148,7 @@ export default async function AdminProviderOfferingDetailPage({
           </Card>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-5 lg:col-span-3">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Thao tác duyệt</CardTitle>
@@ -160,13 +161,13 @@ export default async function AdminProviderOfferingDetailPage({
 
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="changes_requested" />
-                <textarea name="reviewNote" className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Nêu rõ provider cần chỉnh gì" />
+                <AdminTextarea name="reviewNote" className="min-h-24" placeholder="Nêu rõ provider cần chỉnh gì" />
                 <AdminOutlineButton type="submit" className="w-full">Yêu cầu chỉnh sửa</AdminOutlineButton>
               </form>
 
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="rejected" />
-                <textarea name="reviewNote" className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="Lý do từ chối" />
+                <AdminTextarea name="reviewNote" className="min-h-24" placeholder="Lý do từ chối" />
                 <AdminDeleteButton type="submit" className="w-full">Từ chối hồ sơ</AdminDeleteButton>
               </form>
             </CardContent>
@@ -178,8 +179,7 @@ export default async function AdminProviderOfferingDetailPage({
             </CardHeader>
             <CardContent className="pt-4">
               <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.APPROVE(detail.id)} method="POST" className="space-y-3">
-                <div className="space-y-2">
-                  <label className="text-sm">Giá bán admin</label>
+                <AdminField label="Giá bán admin">
                   <CurrencyInput
                     name="adminSellPrice"
                     defaultValue={detail.adminSellPrice ? String(detail.adminSellPrice) : ""}
@@ -187,16 +187,15 @@ export default async function AdminProviderOfferingDetailPage({
                     disabled={!canApply}
                     className="rounded-md bg-background px-3 text-sm disabled:opacity-60"
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm">Ghi chú duyệt</label>
-                  <textarea
+                </AdminField>
+                <AdminField label="Ghi chú duyệt">
+                  <AdminTextarea
                     name="reviewNote"
                     defaultValue={detail.reviewNote}
                     disabled={!canApply}
-                    className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60"
+                    className="min-h-24"
                   />
-                </div>
+                </AdminField>
                 {detail.submissionType !== "discontinue" ? (
                   <div className="rounded-md border bg-muted/30 p-3 text-sm">
                     <p className="font-medium">Cung ứng / chủ sở hữu</p>
@@ -206,16 +205,12 @@ export default async function AdminProviderOfferingDetailPage({
                   </div>
                 ) : null}
                 {detail.submissionType !== "discontinue" ? (
-                  <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
-                    <input
-                      type="checkbox"
-                      name="assignProviderSupplier"
-                      defaultChecked
-                      disabled={!canApply}
-                      className="mt-1"
-                    />
-                    <span>Gán provider này làm nhà cung cấp đã duyệt cho dịch vụ/sản phẩm sau khi áp dụng.</span>
-                  </label>
+                  <AdminCheckbox
+                    name="assignProviderSupplier"
+                    defaultChecked
+                    disabled={!canApply}
+                    description="Gán provider này làm nhà cung cấp đã duyệt cho dịch vụ/sản phẩm sau khi áp dụng."
+                  />
                 ) : null}
                 <AdminSubmitButton className="w-full" disabled={!canApply}>
                   {applyLabel}

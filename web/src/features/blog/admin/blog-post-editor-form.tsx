@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminField, AdminInput, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -66,9 +66,8 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">Tiêu đề</label>
-              <Input
+            <AdminField label="Tiêu đề">
+              <AdminInput
                 name="title"
                 value={title}
                 onChange={(event) => {
@@ -78,19 +77,16 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
                 }}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <label className="font-medium">Slug</label>
-              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
-            </div>
+            </AdminField>
+            <AdminField label="Slug">
+              <AdminInput name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
+            </AdminField>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">Danh mục</label>
-              <select
+            <AdminField label="Danh mục">
+              <AdminSelect
                 name="categoryId"
                 defaultValue={post.categoryId}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
                 required
               >
                 {categories.map((category) => (
@@ -98,36 +94,32 @@ export function BlogPostEditorForm({ post, categories }: { post: BlogPost; categ
                     {category.name}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="font-medium">Trạng thái</label>
-              <select
+              </AdminSelect>
+            </AdminField>
+            <AdminField label="Trạng thái">
+              <AdminSelect
                 name="status"
                 defaultValue={post.status}
-                className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
               >
                 <option value="draft">draft</option>
                 <option value="published">published</option>
-              </select>
-            </div>
+              </AdminSelect>
+            </AdminField>
           </div>
-          <div className="space-y-2">
-            <label className="font-medium">Mô tả ngắn</label>
-            <textarea
+          <AdminField label="Mô tả ngắn">
+            <AdminTextarea
               name="excerpt"
               defaultValue={post.excerpt}
-              className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              className="min-h-24"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="font-medium">Nội dung</label>
-            <textarea
+          </AdminField>
+          <AdminField label="Nội dung">
+            <AdminTextarea
               name="content"
               defaultValue={post.content}
-              className="min-h-56 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              className="min-h-56"
             />
-          </div>
+          </AdminField>
         </CardContent>
       </Card>
 

@@ -116,10 +116,10 @@ function normalizeBuilderNode(node: unknown): BuilderNode | null {
       type,
       x: toFiniteNumber(record.x, 180),
       y: toFiniteNumber(record.y, 180),
-      width: toNonNegativeNumber(record.width, 840),
+      width: Math.min(BUILDER_PAGE_WIDTH, Math.max(80, toNonNegativeNumber(record.width, 480))),
       rotation: toFiniteNumber(record.rotation, 0),
       opacity: toOpacity(record.opacity, 1),
-      text: toStringValue(record.text, "Văn bản mới"),
+      text: toStringValue(record.text, "Text mới"),
       fontSize: toNonNegativeNumber(record.fontSize, 42),
       fontFamily: toStringValue(record.fontFamily, "Georgia"),
       fontStyle: record.fontStyle === "bold" ? "bold" : "normal",
@@ -140,6 +140,8 @@ function normalizeBuilderNode(node: unknown): BuilderNode | null {
       opacity: toOpacity(record.opacity, 1),
       src: toStringValue(record.src, ""),
       cornerRadius: toNonNegativeNumber(record.cornerRadius, 32),
+      stroke: toStringValue(record.stroke, "transparent"),
+      strokeWidth: toNonNegativeNumber(record.strokeWidth, 0),
     };
   }
 
@@ -155,6 +157,8 @@ function normalizeBuilderNode(node: unknown): BuilderNode | null {
       opacity: toOpacity(record.opacity, 1),
       fill: toStringValue(record.fill, "#ffe4ec"),
       cornerRadius: toNonNegativeNumber(record.cornerRadius, 24),
+      stroke: toStringValue(record.stroke, "transparent"),
+      strokeWidth: toNonNegativeNumber(record.strokeWidth, 0),
     };
   }
 
@@ -206,13 +210,13 @@ export function createTextNode(partial?: Partial<BuilderTextNode>): BuilderTextN
   return {
     id: createNodeId("text"),
     type: "text",
-    x: 180,
+    x: 120,
     y: 180,
-    width: 840,
+    width: 480,
     rotation: 0,
     opacity: 1,
-    text: "Văn bản mới",
-    fontSize: 42,
+    text: "Text mới",
+    fontSize: 32,
     fontFamily: "Georgia",
     fontStyle: "normal",
     fill: "#6f1d3a",
@@ -233,6 +237,8 @@ export function createShapeNode(partial?: Partial<BuilderShapeNode>): BuilderSha
     opacity: 1,
     fill: "#ffe4ec",
     cornerRadius: 24,
+    stroke: "transparent",
+    strokeWidth: 0,
     ...partial,
   };
 }
@@ -249,6 +255,8 @@ export function createImageNode(partial?: Partial<BuilderImageNode>): BuilderIma
     opacity: 1,
     src: "",
     cornerRadius: 32,
+    stroke: "transparent",
+    strokeWidth: 0,
     ...partial,
   };
 }

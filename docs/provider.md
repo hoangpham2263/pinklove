@@ -74,6 +74,37 @@ Use this file for the dedicated provider portal.
 - `/provider/organization` manages provider organizations, invited members,
   and organization roles.
 
+## Provider Deliverables
+
+- Provider Deliverables is the correct workflow for post-service handoff after
+  a photography, videography, planning, or similar service booking.
+- Do not overload `/provider/portfolio` or Media Collections as the delivery
+  system for customer files. Portfolio and collections are for public/provider
+  albums, preview sets, covers, and curated galleries.
+- A deliverable should be linked to:
+  - `booking`
+  - `wedding_site` when the booking belongs to a wedding workspace
+  - `provider_user_id` for the provider account performing the handoff
+  - `provider_id` when marketplace/provider entity ownership is needed
+  - optional lightweight `media_collection` preview or cover set
+- The provider-facing form should capture external links instead of uploading
+  heavy files into the website:
+  - Google Drive, Dropbox, Pixieset, Pic-Time, YouTube/Vimeo, or similar URL
+  - delivery title and description
+  - file/count summary, such as selected photos, full gallery, raw files, video
+  - delivery deadline and delivered-at timestamps
+  - customer note and provider internal note
+  - status such as `draft`, `sent`, `viewed`, `revision_requested`,
+    `accepted`, `expired`, or `broken_link`
+- Customer workspace should show deliverables from their bookings, let the
+  customer confirm receipt, and let them request revisions or report broken
+  links without requiring staff to resend files manually.
+- Admin/CSKH should be able to monitor overdue deliverables, broken links,
+  revision requests, and bookings whose deliverable is still missing.
+- This workflow should be added on top of the existing `wedding_photo` service
+  offering type and provider booking flow. Do not add a new offering type only
+  to represent file delivery.
+
 ## Provider Offering Approval
 
 - Provider product submissions remain account workflow records and store the actor as `provider_user_id`.

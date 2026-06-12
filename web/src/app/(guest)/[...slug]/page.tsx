@@ -4,10 +4,10 @@ import { generateBlogCategoryMetadata, generateBlogPostMetadata, renderBlogCateg
 import { listRelatedBlogPosts } from "@/features/blog/server/service";
 import {
   generateBuilderOfferingMetadata,
-  generateGeneralOfferingMetadata,
+  generateRegisteredOfferingMetadata,
   generateTemplateOfferingMetadata,
   renderBuilderOfferingPage,
-  renderGeneralOfferingPage,
+  renderRegisteredOfferingPage,
   renderTemplateOfferingPage,
 } from "@/features/offerings/server/renderers";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
@@ -51,7 +51,7 @@ export async function generateMetadata({ params, searchParams }: DynamicManagedP
     case "builder-offering":
       return generateBuilderOfferingMetadata(resolvedContent.offering);
     case "general-offering":
-      return generateGeneralOfferingMetadata(resolvedContent.offering);
+      return generateRegisteredOfferingMetadata(resolvedContent.offering);
     default:
       return {};
   }
@@ -97,7 +97,7 @@ export default async function DynamicManagedPage({ params, searchParams }: Dynam
     case "builder-offering":
       return renderBuilderOfferingPage(resolvedContent.offering);
     case "general-offering":
-      return renderGeneralOfferingPage(resolvedContent.offering);
+      return renderRegisteredOfferingPage(resolvedContent.offering);
     case "invitation": {
       const { invitation } = resolvedContent;
       if (invitation.status !== "published") {

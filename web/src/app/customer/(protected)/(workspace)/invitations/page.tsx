@@ -38,7 +38,7 @@ export default async function CustomerInvitationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {invitations.map((invitation) => (
             <InvitationCard key={invitation.id} invitation={invitation} publicHref={getInvitationPath(invitation)} />
           ))}

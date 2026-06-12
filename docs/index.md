@@ -64,6 +64,10 @@ Use this file as the entrypoint for project documentation.
 - Use the shared realtime core in `web/src/features/realtime/*` for SSE client/server behavior instead of feature-level copy-paste loops.
 - Use shared `FieldsEditor` media fields for image selection; when a field stores a media gallery, model it as `type: "media"` with `multiple: true` instead of raw textarea URL input.
 - Media Library upload surfaces should allow batch uploads into the shared library even when the consuming field stores only one selected asset.
+- Keep full-resolution post-shoot photo/video delivery out of the website Media
+  Library. Use Provider Deliverables with external storage links; Media
+  Collections should only hold lightweight previews, covers, or curated album
+  items.
 - Product/media search-select surfaces should use the shared fixed-size dialog picker pattern so selected items stay visible in the form and long option lists scroll inside the popup.
 - Admin edit forms keep basic metadata in a standalone card and place dense
   editable groups in a separate vertical tab workspace. Every field inside a

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { getOfferingTypeByKey } from "@/features/offerings/server/service";
+import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { OfferingTypeForm } from "../offering-type-form";
@@ -22,7 +23,13 @@ export default async function AdminOfferingTypeEditorPage({
   const { key } = await params;
   const query = (await searchParams) ?? {};
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_TYPES;
-  const offeringType = await getOfferingTypeByKey(decodeURIComponent(key));
+  const decodedKey = decodeURIComponent(key);
+
+  if (!getRegisteredOfferingType(decodedKey)) {
+    notFound();
+  }
+
+  const offeringType = await getOfferingTypeByKey(decodedKey);
 
   if (!offeringType) {
     notFound();

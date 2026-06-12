@@ -1,13 +1,11 @@
 import { NativeForm } from "@/components/common/native-form";
-import { Input } from "@/components/ui/input";
+import { ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderInput, ProviderSelect } from "@/features/provider-orders/components/provider-form";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { VENDOR_LEAD_STATUSES, listVendorLeadsForProvider } from "@/features/providers/server/leads";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-
-const inputClass = "h-9 rounded-md border bg-background px-3 text-sm";
-const buttonClass = "inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground";
 
 export default async function ProviderLeadsPage() {
   const user = await requireProvider(ROUTES.PROVIDER.LOGIN);
@@ -33,14 +31,14 @@ export default async function ProviderLeadsPage() {
             <div className="space-y-3">
               <NativeForm action={ROUTES.API.PROVIDER.LEADS} method="POST" className="flex gap-2">
                 <input type="hidden" name="intent" value="update_status" /><input type="hidden" name="leadId" value={lead.id} />
-                <select name="status" defaultValue={lead.status} className={`${inputClass} min-w-0 flex-1`}>{VENDOR_LEAD_STATUSES.map((status) => <option key={status}>{status}</option>)}</select>
-                <button className={buttonClass}>Cập nhật</button>
+                <ProviderSelect name="status" defaultValue={lead.status} className="min-w-0 flex-1">{VENDOR_LEAD_STATUSES.map((status) => <option key={status}>{status}</option>)}</ProviderSelect>
+                <ProviderSubmitButton>Cập nhật</ProviderSubmitButton>
               </NativeForm>
               <NativeForm action={ROUTES.API.PROVIDER.LEADS} method="POST" className="grid gap-2">
                 <input type="hidden" name="intent" value="create_quote" /><input type="hidden" name="leadId" value={lead.id} />
-                <Input name="amount" type="number" min="0" placeholder="Số tiền báo giá" required />
-                <Input name="message" placeholder="Ghi chú báo giá" />
-                <button className={buttonClass}>Gửi báo giá</button>
+                <ProviderInput name="amount" type="number" min="0" placeholder="Số tiền báo giá" required />
+                <ProviderInput name="message" placeholder="Ghi chú báo giá" />
+                <ProviderSubmitButton>Gửi báo giá</ProviderSubmitButton>
               </NativeForm>
             </div>
           </div>

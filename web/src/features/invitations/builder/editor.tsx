@@ -132,6 +132,8 @@ function BuilderImageNodeInGroup({ node }: { node: BuilderImageNode }) {
       rotation={node.rotation}
       opacity={node.opacity}
       cornerRadius={node.cornerRadius}
+      stroke={node.stroke === "transparent" ? undefined : node.stroke}
+      strokeWidth={node.strokeWidth}
       listening={false}
     />
   );
@@ -172,6 +174,8 @@ function BuilderImageNodeView({
         rotation={node.rotation}
         opacity={node.opacity}
         cornerRadius={node.cornerRadius}
+        stroke={node.stroke === "transparent" ? undefined : node.stroke}
+        strokeWidth={node.strokeWidth}
         draggable
         onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
         onTap={() => onSelect(false)}
@@ -303,6 +307,8 @@ function BuilderShapeNodeView({
         cornerRadius={node.cornerRadius}
         opacity={node.opacity}
         rotation={node.rotation}
+        stroke={node.stroke === "transparent" ? undefined : node.stroke}
+        strokeWidth={node.strokeWidth}
         draggable
         onClick={(event) => onSelect(isAppendSelectionKey(event.evt))}
         onTap={() => onSelect(false)}
@@ -420,6 +426,8 @@ function BuilderGroupNodeView({
                 cornerRadius={child.cornerRadius}
                 opacity={child.opacity}
                 rotation={child.rotation}
+                stroke={child.stroke === "transparent" ? undefined : child.stroke}
+                strokeWidth={child.strokeWidth}
                 listening={false}
               />
             );
@@ -452,14 +460,14 @@ function BuilderGroupNodeView({
 
 const BuilderHeader = memo(function BuilderHeader() {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-border/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,244,246,0.9))]">
-      <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.4fr)_280px] lg:px-6">
-        <div className="space-y-3">
-          <div className="inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+    <div className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border/40">
+      <div className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="space-y-2">
+          <div className="inline-flex items-center rounded-full bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
             Trình builder
           </div>
-          <div className="space-y-2">
-            <h3 className="text-2xl font-semibold tracking-tight">Thiết kế thiệp trên canvas.</h3>
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold tracking-tight">Thiết kế thiệp trên canvas</h3>
             <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
               Hãy tạo mẫu thiệp yêu thích của bạn với trình builder của Pink Love.
             </p>
@@ -468,7 +476,7 @@ const BuilderHeader = memo(function BuilderHeader() {
 
         <div className="flex justify-end">
           <Dialog>
-            <DialogTrigger className={cn(buttonVariants({ variant: "outline" }), "border-white/70 bg-white/85 backdrop-blur")}>
+            <DialogTrigger className={cn(buttonVariants({ variant: "outline" }), "bg-white/85 backdrop-blur")}>
               Phím tắt
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -477,15 +485,15 @@ const BuilderHeader = memo(function BuilderHeader() {
                 <DialogDescription>Các thao tác nhanh trong builder để dàn trang thuận tiện hơn.</DialogDescription>
               </DialogHeader>
               <div className="space-y-3 text-sm">
-                <div className="rounded-xl border bg-muted/20 p-3">
+                <div className="rounded-lg bg-muted/30 p-3">
                   <p className="font-medium">Delete</p>
                   <p className="mt-1 text-muted-foreground">Xóa item đang chọn.</p>
                 </div>
-                <div className="rounded-xl border bg-muted/20 p-3">
+                <div className="rounded-lg bg-muted/30 p-3">
                   <p className="font-medium">Ctrl/Cmd + D</p>
                   <p className="mt-1 text-muted-foreground">Nhân bản item đang chọn.</p>
                 </div>
-                <div className="rounded-xl border bg-muted/20 p-3">
+                <div className="rounded-lg bg-muted/30 p-3">
                   <p className="font-medium">Ctrl/Cmd + G</p>
                   <p className="mt-1 text-muted-foreground">Nhóm nhiều item đang chọn.</p>
                 </div>
@@ -510,42 +518,42 @@ const BuilderSidebarPanel = memo(function BuilderSidebarPanel({
   onAddPreset: (node: BuilderNode) => void;
 }) {
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border bg-card p-4">
-        <div className="mb-4 flex items-start justify-between gap-3">
+    <div className="space-y-4">
+      <div className="rounded-lg bg-card p-3 shadow-sm ring-1 ring-border/40">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold">Nội dung canvas</h3>
             <p className="mt-1 text-sm text-muted-foreground">Thêm block mới hoặc chèn preset có sẵn vào thiết kế.</p>
           </div>
-          <div className="rounded-xl bg-primary/8 p-2 text-primary">
+          <div className="rounded-lg bg-primary/8 p-2 text-primary">
             <MousePointer2 className="size-4" />
           </div>
         </div>
         <div className="grid gap-2">
-          <Button type="button" variant="outline" className="justify-start" onClick={onAddText}>
+          <Button type="button" variant="secondary" className="justify-start" onClick={onAddText}>
             <Type className="size-4" />
             Thêm block chữ
           </Button>
-          <Button type="button" variant="outline" className="justify-start" onClick={onAddShape}>
+          <Button type="button" variant="secondary" className="justify-start" onClick={onAddShape}>
             <Square className="size-4" />
             Thêm shape
           </Button>
-          <Button type="button" variant="outline" className="justify-start" onClick={onAddImage}>
+          <Button type="button" variant="secondary" className="justify-start" onClick={onAddImage}>
             <ImageIcon className="size-4" />
             Thêm khung ảnh
           </Button>
         </div>
-        <div className="mt-5 border-t pt-5">
-          <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mt-4 pt-4">
+          <div className="mb-3 flex items-start justify-between gap-3">
             <div>
               <h4 className="font-medium">Preset có sẵn</h4>
               <p className="mt-1 text-sm text-muted-foreground">Kéo preset vào canvas hoặc double click để chèn nhanh.</p>
             </div>
-            <div className="rounded-xl bg-muted p-2 text-foreground">
+            <div className="rounded-lg bg-muted p-2 text-foreground">
               <Grip className="size-4" />
             </div>
           </div>
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {BUILDER_ASSET_PRESETS.map((preset) => (
               <div
                 key={preset.id}
@@ -555,7 +563,7 @@ const BuilderSidebarPanel = memo(function BuilderSidebarPanel({
                   event.dataTransfer.effectAllowed = "copy";
                 }}
                 onDoubleClick={() => onAddPreset(preset.createNode())}
-                className="flex cursor-grab items-center justify-between rounded-2xl border border-border/70 bg-background px-3 py-3 transition hover:border-primary/35 hover:bg-primary/5"
+                className="flex cursor-grab items-center justify-between rounded-lg bg-background px-3 py-3 shadow-sm ring-1 ring-border/40 transition hover:bg-primary/5 hover:ring-primary/30"
               >
                 <div className="min-w-0">
                   <p className="font-medium">{preset.label}</p>
@@ -563,7 +571,7 @@ const BuilderSidebarPanel = memo(function BuilderSidebarPanel({
                     {preset.preview}
                   </p>
                 </div>
-                <Button type="button" variant="outline" onClick={() => onAddPreset(preset.createNode())}>
+                <Button type="button" variant="ghost" onClick={() => onAddPreset(preset.createNode())}>
                   Thêm
                 </Button>
               </div>
@@ -592,9 +600,12 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
   removeSelectedNodes,
   patchSelectedNode,
 }: SelectedNodeInspectorProps) {
+  const editableStroke = editableImageNode?.stroke ?? editableShapeNode?.stroke ?? "#000000";
+  const editableStrokeColor = editableStroke === "transparent" ? "#000000" : editableStroke;
+
   return (
-    <div className="mb-4 rounded-2xl border bg-muted/20 p-4">
-      <div className="mb-4 flex min-h-6 items-center text-sm text-muted-foreground">
+    <div className="mb-3 rounded-lg bg-muted/30 p-3 ring-1 ring-border/40">
+      <div className="mb-3 flex min-h-6 items-center text-sm text-muted-foreground">
         {selectedIds.length > 1
           ? `Đang chọn ${selectedIds.length} item. ${canGroup ? "Có thể group các item này." : "Group lồng nhau hiện chưa hỗ trợ."}`
           : editableNode
@@ -602,7 +613,7 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
             : "Chưa chọn item nào."}
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap gap-2">
         {canGroup ? (
           <Button type="button" variant="outline" size="sm" onClick={groupSelectedNodes}>
             <Layers3 className="size-4" />
@@ -636,7 +647,7 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
         ) : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-6 xl:grid-cols-6">
+      <div className="grid gap-3 md:grid-cols-6 xl:grid-cols-6">
         <div className="space-y-2">
           <label className="font-medium">X</label>
           <Input
@@ -695,14 +706,34 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
           />
         </div>
 
-        <div className="md:col-span-6 grid gap-2.5 md:grid-cols-2 lg:gap-4">
+        <div className="space-y-2">
+          <label className="font-medium">Bo góc</label>
+          <Input
+            type="number"
+            min="0"
+            value={String(editableImageNode?.cornerRadius ?? editableShapeNode?.cornerRadius ?? 0)}
+            disabled={!editableImageNode && !editableShapeNode}
+            onChange={(e) => patchSelectedNode({ cornerRadius: Number(e.target.value) } as Partial<BuilderNode>)}
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="font-medium">Border</label>
+          <Input
+            type="number"
+            min="0"
+            value={String(editableImageNode?.strokeWidth ?? editableShapeNode?.strokeWidth ?? 0)}
+            disabled={!editableImageNode && !editableShapeNode}
+            onChange={(e) => patchSelectedNode({ strokeWidth: Number(e.target.value) } as Partial<BuilderNode>)}
+          />
+        </div>
+        <div className="md:col-span-6 grid gap-2.5 md:grid-cols-2 lg:gap-3">
           <textarea
             value={editableTextNode?.text ?? ""}
             disabled={!editableTextNode}
             onChange={(e) => patchSelectedNode({ text: e.target.value } as Partial<BuilderTextNode>)}
-            className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none disabled:opacity-60"
+            className="min-h-20 w-full rounded-md bg-background px-3 py-2 text-sm outline-none ring-1 ring-border/60 disabled:opacity-60"
           />
-          <div className="grid gap-2.5 lg:gap-4">
+          <div className="grid gap-2.5 lg:gap-3">
             {editableImageNode ? (
               <MediaSelector
                 value={editableImageNode.src}
@@ -712,13 +743,28 @@ const SelectedNodeInspector = memo(function SelectedNodeInspector({
             ) : (
               <Input value="" disabled placeholder="Chọn image layer để đổi ảnh" />
             )}
-            <Input
-              type="color"
-              value={editableTextNode?.fill ?? editableShapeNode?.fill ?? "#000000"}
-              disabled={!editableTextNode && !editableShapeNode}
-              onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)}
-              className="h-10 w-full"
-            />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Màu chữ/nền</label>
+                <Input
+                  type="color"
+                  value={editableTextNode?.fill ?? editableShapeNode?.fill ?? "#000000"}
+                  disabled={!editableTextNode && !editableShapeNode}
+                  onChange={(e) => patchSelectedNode({ fill: e.target.value } as Partial<BuilderTextNode>)}
+                  className="h-10 w-full"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Màu border</label>
+                <Input
+                  type="color"
+                  value={editableStrokeColor}
+                  disabled={!editableImageNode && !editableShapeNode}
+                  onChange={(e) => patchSelectedNode({ stroke: e.target.value } as Partial<BuilderNode>)}
+                  className="h-10 w-full"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -736,7 +782,7 @@ const CanvasControls = memo(function CanvasControls({
   setDocument,
 }: CanvasControlsProps) {
   return (
-    <div className="mt-4 flex justify-center">
+    <div className="mt-3 flex justify-center">
       <div className="flex flex-wrap items-end justify-center gap-3">
         <div className="min-w-20">
           <label className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground" htmlFor="builder-canvas-grid">
@@ -807,7 +853,7 @@ const CanvasControls = memo(function CanvasControls({
           <label className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground" htmlFor="builder-canvas-zoom">
             Zoom
           </label>
-          <div className="mt-1 flex items-center gap-1 rounded-md border bg-background px-1">
+          <div className="mt-1 flex items-center gap-1 rounded-md bg-background px-1 ring-1 ring-border/60">
             <Button type="button" variant="ghost" size="icon-sm" onClick={() => setZoom((prev) => Math.max(0.3, Number((prev - 0.1).toFixed(2))))}>
               <ZoomOut className="size-4" />
             </Button>
@@ -917,7 +963,7 @@ const CanvasStage = memo(function CanvasStage({
   return (
     <div
       ref={stageWrapperRef}
-      className="relative flex items-center justify-center overflow-auto rounded-[24px] border bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(244,244,245,0.96))] p-4 pb-14"
+      className="relative flex items-center justify-center overflow-auto rounded-lg bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(244,244,245,0.96))] p-4 pb-14 shadow-inner ring-1 ring-border/50"
       onDragOver={(event) => {
         if (event.dataTransfer.types.includes("application/pinklove-builder-asset")) {
           event.preventDefault();
@@ -958,7 +1004,7 @@ const CanvasStage = memo(function CanvasStage({
               setEditingTextId(null);
             }
           }}
-          className="absolute z-20 resize-none overflow-hidden border border-primary bg-white/95 px-2 py-1 outline-none"
+          className="absolute z-20 resize-none overflow-hidden bg-white/95 px-2 py-1 outline-none ring-2 ring-primary"
           style={editorOverlayStyle}
         />
       ) : null}
@@ -1082,7 +1128,7 @@ const CanvasStage = memo(function CanvasStage({
       </Stage>
 
       <div
-        className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-row-resize items-center gap-2 rounded-full border bg-background/95 px-3 py-1 text-xs text-muted-foreground"
+        className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-row-resize items-center gap-2 rounded-full bg-background/95 px-3 py-1 text-xs text-muted-foreground shadow-sm ring-1 ring-border/50"
         onMouseDown={(event) => {
           event.preventDefault();
           resizeSessionRef.current = {
@@ -1407,7 +1453,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
   const addPresetNode = useCallback((node: BuilderNode) => addNode(node), [addNode]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <input
         ref={hiddenDocumentInputRef}
         type="hidden"
@@ -1417,7 +1463,7 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
 
       <BuilderHeader />
 
-      <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
         <BuilderSidebarPanel
           onAddText={addTextNode}
           onAddShape={addShapeNode}
@@ -1425,9 +1471,9 @@ export function BuilderEditor({ initialValue }: BuilderEditorProps) {
           onAddPreset={addPresetNode}
         />
 
-        <div className="space-y-5">
-          <div className="rounded-2xl border bg-card p-4">
-            <div className="mb-4">
+        <div className="space-y-4">
+          <div className="rounded-lg bg-card p-3 shadow-sm ring-1 ring-border/40">
+            <div className="mb-3">
               <h3 className="font-semibold">Khu vực canvas</h3>
             </div>
 

@@ -155,10 +155,12 @@ This file is the repo-wide source of truth.
 - Run `npm run audit:schema` after DB architecture changes. The audit must pass
   before considering ID, offering config, search index, SEO table, or enum-like
   config cleanup complete.
-- `digital_template` offerings represent online templates, motion/video templates,
-  and builder starters.
 - `physical_product` offerings represent regular shop/provider/API products such
   as paper invitations and add-ons.
+- `wedding_photo` is a service offering type for booking photography work. Post
+  shoot file handoff should be modeled as Provider Deliverables linked to the
+  booking/provider/wedding site, not as a new offering type and not as raw data
+  inside `offerings.config`.
 - Coded/builder behavior belongs to `template_engine`, not `offering_type`.
 - Guest catalog pages should use the configured offering type scope first, then category/price/sort filters.
 - Each coded invitation `template_key` should belong to only one catalog offering. Do not create multiple offerings that reuse the same coded template identity.
@@ -174,6 +176,10 @@ This file is the repo-wide source of truth.
 - Metadata is stored in PostgreSQL table `media_assets`; do not add file-backed JSON storage for media records.
 - The upload API currently accepts any browser `File` up to `20MB`; add explicit server-side MIME validation in `src/features/media/server/media-store.ts` before documenting a restricted allowlist.
 - Media listing uses paginated DB queries. Keep admin/library callers on `GET /api/media?page=...&limit=...` instead of loading every asset.
+- Do not use the website Media Library as the storage backend for full wedding
+  photo/video delivery. Store only previews/covers/thumbnails in Media
+  Collections and keep heavy post-shoot files in external provider/customer
+  storage through Provider Deliverables links.
 
 ## Search Selects
 

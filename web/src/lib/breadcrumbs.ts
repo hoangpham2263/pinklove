@@ -68,7 +68,6 @@ const APP_BREADCRUMB_SPECS: BreadcrumbSpec[] = [
   { pattern: ROUTES.ADMIN.OFFERING_MANAGE, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offerings", href: ROUTES.ADMIN.OFFERING_LIST }, { label: "Quản lý" }] },
   { pattern: ROUTES.ADMIN.OFFERINGS, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Sản phẩm", href: ROUTES.ADMIN.OFFERING_LIST }, { label: "Tạo sản phẩm" }] },
   { pattern: ROUTES.ADMIN.OFFERING_TYPES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Types" }] },
-  { pattern: ROUTES.ADMIN.OFFERING_TYPE_NEW, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Types", href: ROUTES.ADMIN.OFFERING_TYPES }, { label: "Tạo type" }] },
   { pattern: "/admin/offerings/types/[key]", items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Types", href: ROUTES.ADMIN.OFFERING_TYPES }, { label: getRouteParamBreadcrumbLabel(params.key) }] },
   { pattern: ROUTES.ADMIN.OFFERING_TEMPLATES, items: [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Templates" }] },
   { pattern: ROUTES.ADMIN.OFFERING_TEMPLATE("[slug]"), items: ({ params }) => [{ label: "Admin", href: ROUTES.ADMIN.DASHBOARD }, { label: "Offering Templates", href: ROUTES.ADMIN.OFFERING_TEMPLATES }, { label: getRouteParamBreadcrumbLabel(params.slug) }] },

@@ -49,6 +49,8 @@ function renderNode(node: BuilderNode, offsetX = 0, offsetY = 0): ReactNode {
         rx={node.cornerRadius}
         ry={node.cornerRadius}
         fill={node.fill}
+        stroke={node.stroke === "transparent" ? undefined : node.stroke}
+        strokeWidth={node.strokeWidth || undefined}
         opacity={node.opacity}
         transform={`rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`}
       />
@@ -59,18 +61,32 @@ function renderNode(node: BuilderNode, offsetX = 0, offsetY = 0): ReactNode {
     return null;
   }
 
+  const transform = `rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`;
+
   return (
-    <image
-      key={node.id}
-      href={node.src}
-      x={x}
-      y={y}
-      width={node.width}
-      height={node.height}
-      opacity={node.opacity}
-      preserveAspectRatio="xMidYMid slice"
-      transform={`rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`}
-    />
+    <g key={node.id} transform={transform} opacity={node.opacity}>
+      <image
+        href={node.src}
+        x={x}
+        y={y}
+        width={node.width}
+        height={node.height}
+        preserveAspectRatio="xMidYMid slice"
+      />
+      {node.strokeWidth > 0 ? (
+        <rect
+          x={x}
+          y={y}
+          width={node.width}
+          height={node.height}
+          rx={node.cornerRadius}
+          ry={node.cornerRadius}
+          fill="none"
+          stroke={node.stroke}
+          strokeWidth={node.strokeWidth}
+        />
+      ) : null}
+    </g>
   );
 }
 

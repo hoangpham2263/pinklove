@@ -2,7 +2,8 @@ import { CalendarClock } from "lucide-react";
 
 import { NativeForm } from "@/components/common/native-form";
 import { DatabasePage } from "@/components/common/database-table";
-import { Button } from "@/components/ui/button";
+import { CustomerSubmitButton } from "@/features/customer/ui/customer-buttons";
+import { CustomerInput, CustomerSelect } from "@/features/customer/ui/customer-form";
 import { listBookingsForCustomer, listReviewableBookingProvidersForCustomer } from "@/features/bookings/server/service";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -36,18 +37,18 @@ export default async function CustomerBookingsPage() {
         <h2 className="text-base font-semibold">Đánh giá provider sau booking</h2>
         {reviewTargets.length > 0 ? (
           <NativeForm action={ROUTES.API.CUSTOMER.PROVIDER_REVIEWS} method="POST" className="mt-4 grid gap-3 md:grid-cols-[1fr_8rem_1fr_auto]">
-            <select name="providerId" className="h-9 rounded-md border bg-background px-3 text-sm">
+            <CustomerSelect name="providerId">
               {reviewTargets.map((target) => (
                 <option key={String(target.id)} value={String(target.id)}>
                   {String(target.display_name)} · {String(target.booking_number)}
                 </option>
               ))}
-            </select>
-            <select name="rating" defaultValue="5" className="h-9 rounded-md border bg-background px-3 text-sm">
+            </CustomerSelect>
+            <CustomerSelect name="rating" defaultValue="5">
               {[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} sao</option>)}
-            </select>
-            <input name="content" placeholder="Nhận xét của bạn" className="h-9 rounded-md border bg-background px-3 text-sm" />
-            <Button type="submit" size="lg">Gửi</Button>
+            </CustomerSelect>
+            <CustomerInput name="content" placeholder="Nhận xét của bạn" />
+            <CustomerSubmitButton type="submit">Gửi</CustomerSubmitButton>
           </NativeForm>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">Bạn sẽ có thể đánh giá provider sau khi booking được xác nhận hoặc hoàn tất.</p>

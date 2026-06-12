@@ -1,12 +1,10 @@
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { CustomerSubmitButton } from "@/features/customer/ui/customer-buttons";
+import { CustomerField, CustomerInput, CustomerSelect, CustomerTextarea } from "@/features/customer/ui/customer-form";
 import { listVendorLeadsForUser, listVendorLeadTargets } from "@/features/providers/server/leads";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
-
-const inputClass = "h-9 w-full rounded-md border bg-background px-3 text-sm";
-const buttonClass = "inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground";
 
 export default async function CustomerVendorLeadsPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
@@ -24,7 +22,8 @@ export default async function CustomerVendorLeadsPage() {
         <CardContent>
           <NativeForm action={ROUTES.API.CUSTOMER.VENDOR_LEADS} method="POST" className="grid gap-3 md:grid-cols-2">
             <input type="hidden" name="intent" value="create_lead" />
-            <select name="target" className={inputClass} required>
+            <CustomerField label="Nhà cung cấp hoặc dịch vụ">
+            <CustomerSelect name="target" required>
               <option value="">Chọn nhà cung cấp hoặc dịch vụ</option>
               {targets.map((target) => (
                 <option
@@ -34,12 +33,19 @@ export default async function CustomerVendorLeadsPage() {
                   {target.provider_name}{target.offering_name ? ` - ${target.offering_name}` : " - Yêu cầu chung"}
                 </option>
               ))}
-            </select>
-            <Input name="budget" type="number" min="0" placeholder="Ngân sách dự kiến" />
-            <Input name="eventDate" type="date" />
+            </CustomerSelect>
+            </CustomerField>
+            <CustomerField label="Ngân sách dự kiến">
+              <CustomerInput name="budget" type="number" min="0" placeholder="Ngân sách dự kiến" />
+            </CustomerField>
+            <CustomerField label="Ngày sự kiện">
+              <CustomerInput name="eventDate" type="date" />
+            </CustomerField>
             <div />
-            <textarea name="message" required className="min-h-24 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" placeholder="Mô tả nhu cầu" />
-            <div className="md:col-span-2"><button className={buttonClass}>Gửi yêu cầu</button></div>
+            <CustomerField label="Mô tả nhu cầu" className="md:col-span-2">
+              <CustomerTextarea name="message" required className="min-h-24" placeholder="Mô tả nhu cầu" />
+            </CustomerField>
+            <div className="md:col-span-2"><CustomerSubmitButton>Gửi yêu cầu</CustomerSubmitButton></div>
           </NativeForm>
         </CardContent>
       </Card>
@@ -58,7 +64,7 @@ export default async function CustomerVendorLeadsPage() {
             {lead.quote_status === "sent" ? (
               <NativeForm action={ROUTES.API.CUSTOMER.VENDOR_LEADS} method="POST">
                 <input type="hidden" name="intent" value="accept_quote" /><input type="hidden" name="leadId" value={lead.id} />
-                <button className={buttonClass}>Chấp nhận báo giá</button>
+                <CustomerSubmitButton>Chấp nhận báo giá</CustomerSubmitButton>
               </NativeForm>
             ) : null}
           </div>

@@ -58,10 +58,26 @@ export const BUILDER_ASSET_PRESETS: BuilderAssetPreset[] = [
     preview: "T",
     createNode: () =>
       createTextNode({
-        text: "Tiêu đề thiệp",
+        text: "Tiêu đề",
+        x: 100,
         fontSize: 68,
         fontStyle: "bold",
+        width: 520,
         y: 160,
+      }),
+  },
+  {
+    id: "text-body",
+    label: "Text nội dung",
+    preview: "Aa",
+    createNode: () =>
+      createTextNode({
+        text: "Dòng mô tả",
+        x: 120,
+        y: 260,
+        width: 480,
+        fontSize: 28,
+        fill: "#8a4560",
       }),
   },
   {
@@ -84,9 +100,9 @@ export const BUILDER_ASSET_PRESETS: BuilderAssetPreset[] = [
     createNode: () =>
       createImageNode({
         src: wreathSvg,
-        width: 420,
-        height: 420,
-        x: 390,
+        width: 320,
+        height: 320,
+        x: 200,
         y: 500,
       }),
   },
@@ -97,9 +113,9 @@ export const BUILDER_ASSET_PRESETS: BuilderAssetPreset[] = [
     createNode: () =>
       createImageNode({
         src: photoPlaceholderSvg,
-        width: 760,
-        height: 500,
-        x: 220,
+        width: 520,
+        height: 360,
+        x: 100,
         y: 420,
       }),
   },

@@ -169,7 +169,6 @@ export const ROUTES = {
     LANDING_PAGE_NEW: "/admin/landing-pages/new",
     LANDING_PAGE: (landingPageId: string) => `/admin/landing-pages/${encodeURIComponent(landingPageId)}`,
     OFFERING_TYPES: "/admin/offerings/types",
-    OFFERING_TYPE_NEW: "/admin/offerings/types/new",
     OFFERING_TYPE: (key: string) => `/admin/offerings/types/${encodeURIComponent(key)}`,
     OFFERING_CATEGORIES: "/admin/offerings/categories",
     OFFERING_BUNDLES: "/admin/offerings/bundles",

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { AdminDeleteButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminField, AdminInput, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { slugify } from "@/lib/utils";
@@ -63,9 +63,8 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="font-medium">Tên danh mục</label>
-              <Input
+            <AdminField label="Tên danh mục">
+              <AdminInput
                 name="name"
                 value={name}
                 onChange={(event) => {
@@ -75,20 +74,18 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
                 }}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <label className="font-medium">Slug</label>
-              <Input name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
-            </div>
+            </AdminField>
+            <AdminField label="Slug">
+              <AdminInput name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} required />
+            </AdminField>
           </div>
-          <div className="space-y-2">
-            <label className="font-medium">Mô tả</label>
-            <textarea
+          <AdminField label="Mô tả">
+            <AdminTextarea
               name="description"
               defaultValue={category.description}
-              className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
+              className="min-h-32"
             />
-          </div>
+          </AdminField>
         </CardContent>
       </Card>
 
@@ -97,17 +94,15 @@ export function BlogCategoryEditorForm({ category }: { category: BlogCategory })
           <CardTitle>Xuất bản</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="font-medium">Trạng thái</label>
-            <select
+          <AdminField label="Trạng thái">
+            <AdminSelect
               name="status"
               defaultValue={category.status}
-              className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none"
             >
               <option value="draft">draft</option>
               <option value="published">published</option>
-            </select>
-          </div>
+            </AdminSelect>
+          </AdminField>
           <AdminSubmitButton className="w-full" disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu danh mục"}
           </AdminSubmitButton>

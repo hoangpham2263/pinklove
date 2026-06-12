@@ -1,5 +1,5 @@
 import { saveOfferingType } from "@/features/offerings/server/service";
-import type { OfferingFulfillmentType, OfferingTypeField } from "@/features/offerings/types";
+import type { OfferingTypeField } from "@/features/offerings/types";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -98,13 +98,6 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const key = String(formData.get("key") ?? "").trim();
-  const label = String(formData.get("label") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const status = String(formData.get("status") ?? "active") as "draft" | "active" | "archived";
-  const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
-  const templateKey = String(formData.get("templateKey") ?? "").trim();
-  const supportsInventory = formData.get("supportsInventory") === "on";
-  const supportsProviderSupply = formData.get("supportsProviderSupply") === "on";
   const fieldSchemaRaw = String(formData.get("fieldSchema") ?? "");
   const returnTo = getSafeAdminReturnTo(String(formData.get("returnTo") ?? ""));
 
@@ -114,7 +107,7 @@ export async function POST(request: Request) {
   } catch {
     return respondError(request, {
       error: "invalid_field_definitions",
-      message: "Field definitions phải hợp lệ.",
+      message: "Trường dữ liệu không hợp lệ.",
       location: withQuery(returnTo, "error", "invalid_field_definitions"),
     });
   }
@@ -122,24 +115,17 @@ export async function POST(request: Request) {
   try {
     await saveOfferingType({
       key,
-      label,
-      description,
-      status,
-      fulfillmentType,
-      templateKey: templateKey || key,
-      supportsInventory,
-      supportsProviderSupply,
       fieldSchema,
     });
 
     return respondSuccess(request, {
       location: withQuery(returnTo, "saved", key),
-      message: "Đã lưu loại offering.",
+      message: "Đã lưu thay đổi.",
     });
   } catch (error) {
     return respondError(request, {
       error: error instanceof Error ? error.message : "save_failed",
-      message: "Không thể lưu loại offering.",
+      message: "Không thể lưu thay đổi.",
       location: withQuery(returnTo, "error", "save_failed"),
     });
   }

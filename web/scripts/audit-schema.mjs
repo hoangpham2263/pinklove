@@ -354,21 +354,40 @@ async function main() {
       ORDER BY key
     `);
     const expectedSystemOfferingTypes = [
-      "bridal_makeup",
-      "digital_template",
       "physical_product",
-      "wedding_decoration",
       "wedding_gift",
       "wedding_photo",
-      "wedding_planner",
-      "wedding_service",
-      "wedding_video",
     ];
     const actualSystemOfferingTypes = systemOfferingTypes.rows.map((row) => row.key);
     assert(
       JSON.stringify(actualSystemOfferingTypes) === JSON.stringify(expectedSystemOfferingTypes),
       `System offering types must be ${expectedSystemOfferingTypes.join(", ")}; found ${actualSystemOfferingTypes.join(", ")}`
     );
+
+    const defaultOfferingTypes = await client.query(`
+      SELECT key
+      FROM offering_types
+      WHERE is_default = TRUE
+      ORDER BY key
+    `);
+    const expectedDefaultOfferingTypes = ["physical_product", "wedding_gift", "wedding_photo"];
+    const actualDefaultOfferingTypes = defaultOfferingTypes.rows.map((row) => row.key);
+    assert(
+      JSON.stringify(actualDefaultOfferingTypes) === JSON.stringify(expectedDefaultOfferingTypes),
+      `Default offering types must be ${expectedDefaultOfferingTypes.join(", ")}; found ${actualDefaultOfferingTypes.join(", ")}`
+    );
+
+    const offeringTypeStatusColumn = await scalar(
+      client,
+      `
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'offering_types'
+        AND column_name = 'status'
+      `
+    );
+    assert(offeringTypeStatusColumn === undefined, "offering_types.status must not exist; type availability is code-registered");
 
     const searchVectorType = await scalar(
       client,

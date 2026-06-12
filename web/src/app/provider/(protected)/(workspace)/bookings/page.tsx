@@ -2,7 +2,8 @@ import { CalendarClock } from "lucide-react";
 
 import { NativeForm } from "@/components/common/native-form";
 import { DatabasePage } from "@/components/common/database-table";
-import { Button } from "@/components/ui/button";
+import { ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderInput, ProviderSelect } from "@/features/provider-orders/components/provider-form";
 import { listBookingsForProvider } from "@/features/bookings/server/service";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { requireProvider } from "@/lib/auth";
@@ -41,11 +42,11 @@ export default async function ProviderBookingsPage() {
                 <p className="font-medium">{row.booking_number}</p>
                 <p className="text-muted-foreground">{row.customer} · {row.status}</p>
               </div>
-              <select name="status" defaultValue={row.status} className="h-9 rounded-md border bg-background px-3 text-sm">
+              <ProviderSelect name="status" defaultValue={row.status}>
                 {["requested", "confirmed", "completed", "cancelled"].map((status) => <option key={status}>{status}</option>)}
-              </select>
-              <input name="note" placeholder="Ghi chú cho khách/Admin" className="h-9 rounded-md border bg-background px-3 text-sm" />
-              <Button type="submit" size="lg">Lưu</Button>
+              </ProviderSelect>
+              <ProviderInput name="note" placeholder="Ghi chú cho khách/Admin" />
+              <ProviderSubmitButton type="submit">Lưu</ProviderSubmitButton>
             </NativeForm>
           ))}
         </div>

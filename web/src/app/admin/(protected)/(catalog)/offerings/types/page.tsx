@@ -1,14 +1,14 @@
 import { AdminOverviewCard } from "@/features/admin/components/admin-overview-card";
 import { listOfferingTypes } from "@/features/offerings/server/service";
 import { requireAdmin } from "@/lib/auth";
-import { Boxes, Database, Layers3, Settings2 } from "lucide-react";
+import { Boxes, Camera, Database, Package } from "lucide-react";
 import { AdminOfferingTypesTable } from "./admin-offering-types-table";
 
 export default async function AdminOfferingTypesPage() {
   await requireAdmin();
-  const offeringTypes = await listOfferingTypes({ includeArchived: true });
-  const activeCount = offeringTypes.filter((type) => type.status === "active").length;
-  const customCount = offeringTypes.filter((type) => !type.isSystem).length;
+  const offeringTypes = await listOfferingTypes();
+  const physicalCount = offeringTypes.filter((type) => type.fulfillmentType === "physical").length;
+  const serviceCount = offeringTypes.filter((type) => type.fulfillmentType === "service").length;
   const fieldCount = offeringTypes.reduce((sum, type) => sum + type.fieldSchema.length, 0);
 
   return (
@@ -16,14 +16,14 @@ export default async function AdminOfferingTypesPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Offering Types</h1>
         <p className="text-sm text-muted-foreground">
-          Quản lý type, fulfillment và dynamic fields bằng table.
+          Type được đăng ký trong code. Tại đây chỉ quản lý field definitions.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <AdminOverviewCard title="Tổng type" value={offeringTypes.length} icon={Boxes} />
-        <AdminOverviewCard title="Đang dùng" value={activeCount} icon={Settings2} />
-        <AdminOverviewCard title="Custom" value={customCount} icon={Layers3} />
+        <AdminOverviewCard title="Type code" value={offeringTypes.length} icon={Boxes} />
+        <AdminOverviewCard title="Sản phẩm vật lý" value={physicalCount} icon={Package} />
+        <AdminOverviewCard title="Dịch vụ" value={serviceCount} icon={Camera} />
         <AdminOverviewCard title="Fields" value={fieldCount} icon={Database} />
       </div>
 

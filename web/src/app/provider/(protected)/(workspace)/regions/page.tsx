@@ -2,7 +2,9 @@ import { MapPin } from "lucide-react";
 
 import { NativeForm } from "@/components/common/native-form";
 import { DatabasePage } from "@/components/common/database-table";
-import { Button } from "@/components/ui/button";
+import { ProviderDeleteButton, ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderField, ProviderInput, ProviderSelect } from "@/features/provider-orders/components/provider-form";
+import { ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { listAvailableRegions, listProviderRegions } from "@/features/providers/server/workspace";
 import { requireProvider } from "@/lib/auth";
@@ -15,23 +17,27 @@ export default async function ProviderRegionsPage() {
   const availableRegions = await listAvailableRegions();
 
   return (
-    <>
-      <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-        <div className="rounded-md border bg-background p-5">
-          <h1 className="text-2xl font-semibold">Regions</h1>
-          <NativeForm action={ROUTES.API.PROVIDER.REGIONS} method="POST" className="mt-4 grid gap-3 md:grid-cols-4">
-            <select name="regionId" className="h-9 rounded-md border bg-background px-3 text-sm">
+    <ProviderPage>
+      <ProviderPageHeader title="Regions" description="Cấu hình khu vực phục vụ của provider." />
+      <ProviderSectionCard title="Thêm hoặc cập nhật khu vực">
+          <NativeForm action={ROUTES.API.PROVIDER.REGIONS} method="POST" className="grid gap-3 md:grid-cols-4">
+            <ProviderField label="Khu vực">
+            <ProviderSelect name="regionId">
               <option value="">Tạo khu vực mới</option>
               {availableRegions.map((region) => <option key={String(region.id)} value={String(region.id)}>{String(region.name)}</option>)}
-            </select>
-            <input name="regionName" placeholder="Tên khu vực mới" className="h-9 rounded-md border bg-background px-3 text-sm" />
-            <select name="serviceMode" className="h-9 rounded-md border bg-background px-3 text-sm">
+            </ProviderSelect>
+            </ProviderField>
+            <ProviderField label="Tên khu vực mới">
+              <ProviderInput name="regionName" placeholder="Tên khu vực mới" />
+            </ProviderField>
+            <ProviderField label="Service mode">
+            <ProviderSelect name="serviceMode">
               {["available", "travel", "remote", "unavailable"].map((item) => <option key={item}>{item}</option>)}
-            </select>
-            <Button type="submit" size="lg">Lưu khu vực</Button>
+            </ProviderSelect>
+            </ProviderField>
+            <ProviderSubmitButton type="submit" className="self-end">Lưu khu vực</ProviderSubmitButton>
           </NativeForm>
-        </div>
-      </section>
+      </ProviderSectionCard>
       <DatabasePage
         title="Configured regions"
         description="Khu vực phục vụ đã cấu hình cho provider."
@@ -52,11 +58,11 @@ export default async function ProviderRegionsPage() {
             <NativeForm key={String(row.id)} action={ROUTES.API.PROVIDER.REGIONS} method="POST">
               <input type="hidden" name="intent" value="delete" />
               <input type="hidden" name="regionId" value={String(row.id)} />
-              <Button type="submit" variant="outline" size="lg">Xóa {String(row.name)}</Button>
+              <ProviderDeleteButton type="submit">Xóa {String(row.name)}</ProviderDeleteButton>
             </NativeForm>
           ))}
         </div>
       </section>
-    </>
+    </ProviderPage>
   );
 }

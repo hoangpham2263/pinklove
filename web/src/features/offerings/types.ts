@@ -125,7 +125,6 @@ export type OfferingTypeDefinition = {
   key: OfferingType;
   label: string;
   description?: string;
-  status: "draft" | "active" | "archived";
   fulfillmentType: OfferingFulfillmentType;
   templateKey: string;
   templateEngine?: OfferingTemplateEngine;
@@ -133,6 +132,7 @@ export type OfferingTypeDefinition = {
   supportsInventory: boolean;
   supportsProviderSupply: boolean;
   isSystem: boolean;
+  isDefault: boolean;
   fieldGroups?: OfferingTypeFieldGroup[];
   fieldSchema: OfferingTypeField[];
   createdAt: string;

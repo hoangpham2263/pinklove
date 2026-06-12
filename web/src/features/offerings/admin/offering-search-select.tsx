@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { X, Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AdminActionTileButton,
+  AdminIconButton,
+  AdminOutlineButton,
+  AdminSubmitButton,
+} from "@/features/admin/components/admin-buttons";
 import { type Offering } from "@/features/offerings/types";
 import { formatVnd } from "@/lib/currency";
 
@@ -89,16 +94,14 @@ export function OfferingSearchSelect({
                   <span className="truncate font-medium">{option.name}</span>
                   <span className="text-xs text-muted-foreground">{formatVnd(option.price)}</span>
                 </div>
-                <Button
+                <AdminIconButton
                   type="button"
-                  variant="ghost"
-                  size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                   onClick={() => removeOffering(option.id)}
                   aria-label={`Bỏ ${option.name}`}
                 >
                   <X className="size-4" />
-                </Button>
+                </AdminIconButton>
               </div>
             ))}
           </div>
@@ -107,10 +110,10 @@ export function OfferingSearchSelect({
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger
             render={
-              <Button type="button" variant="outline" className="w-full border-dashed" onClick={() => setSearch("")}>
+              <AdminOutlineButton type="button" className="w-full border-dashed" onClick={() => setSearch("")}>
                 <Plus className="mr-2 size-4" />
                 Thêm sản phẩm
-              </Button>
+              </AdminOutlineButton>
             }
           />
           <DialogContent className="flex h-[min(42rem,calc(100vh-2rem))] w-[min(44rem,calc(100vw-2rem))] max-w-none grid-rows-none flex-col gap-0 overflow-hidden p-0">
@@ -140,7 +143,7 @@ export function OfferingSearchSelect({
                   filteredOptions.map((option) => {
                     const isSelected = selectedValues.includes(option.id);
                     return (
-                      <button
+                      <AdminActionTileButton
                         key={option.id}
                         type="button"
                         className={`flex min-h-16 cursor-pointer items-center justify-between gap-3 rounded-md border p-3 text-left transition-colors ${
@@ -155,7 +158,7 @@ export function OfferingSearchSelect({
                         <span className="shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium">
                           {isSelected ? "Bỏ chọn" : "Chọn"}
                         </span>
-                      </button>
+                      </AdminActionTileButton>
                     );
                   })
                 )}
@@ -166,7 +169,7 @@ export function OfferingSearchSelect({
               <span className="text-sm text-muted-foreground">
                 Đã chọn {selectedValues.length} sản phẩm
               </span>
-              <Button type="button" onClick={() => setIsOpen(false)}>Xong</Button>
+              <AdminSubmitButton type="button" onClick={() => setIsOpen(false)}>Xong</AdminSubmitButton>
             </div>
           </DialogContent>
         </Dialog>

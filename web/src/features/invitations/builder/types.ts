@@ -28,6 +28,8 @@ export type BuilderImageNode = {
   opacity: number;
   src: string;
   cornerRadius: number;
+  stroke: string;
+  strokeWidth: number;
 };
 
 export type BuilderShapeNode = {
@@ -41,6 +43,8 @@ export type BuilderShapeNode = {
   opacity: number;
   fill: string;
   cornerRadius: number;
+  stroke: string;
+  strokeWidth: number;
 };
 
 export type BuilderLeafNode = BuilderTextNode | BuilderImageNode | BuilderShapeNode;

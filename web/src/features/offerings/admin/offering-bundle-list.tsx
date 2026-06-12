@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -8,8 +7,8 @@ import { toast } from "sonner";
 import { NativeForm } from "@/components/common/native-form";
 import { useConfirm } from "@/components/common/confirm-provider";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
 import type { OfferingBundle } from "@/features/offerings/server/bundles";
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
@@ -70,8 +69,12 @@ export function OfferingBundleList({ bundles }: { bundles: OfferingBundle[] }) {
                 <TableCell className="text-right">{bundle.itemCount}</TableCell>
                 <TableCell>{formatDateTime(bundle.updatedAt)}</TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="outline" render={<Link href={ROUTES.ADMIN.OFFERING_BUNDLE(bundle.slug)}>Sửa</Link>} />
+                  <AdminTableActions>
+                    <AdminTableActionButton
+                      action="edit"
+                      label="Chỉnh sửa combo"
+                      href={ROUTES.ADMIN.OFFERING_BUNDLE(bundle.slug)}
+                    />
                     <NativeForm
                       action={adminApiActions.deleteOfferingBundle}
                       method="POST"
@@ -101,11 +104,14 @@ export function OfferingBundleList({ bundles }: { bundles: OfferingBundle[] }) {
                       }}
                     >
                       <input type="hidden" name="slug" value={bundle.slug} />
-                      <Button size="sm" variant="outline" type="submit" disabled={deletingSlug === bundle.slug}>
-                        {deletingSlug === bundle.slug ? "Đang xóa..." : "Xóa"}
-                      </Button>
+                      <AdminTableActionButton
+                        action="delete"
+                        label={deletingSlug === bundle.slug ? "Đang xóa combo" : "Xóa combo"}
+                        type="submit"
+                        disabled={deletingSlug === bundle.slug}
+                      />
                     </NativeForm>
-                  </div>
+                  </AdminTableActions>
                 </TableCell>
               </TableRow>
             ))

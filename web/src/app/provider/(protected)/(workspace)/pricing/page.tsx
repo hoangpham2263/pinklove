@@ -2,7 +2,9 @@ import { BadgePercent } from "lucide-react";
 
 import { NativeForm } from "@/components/common/native-form";
 import { DatabasePage } from "@/components/common/database-table";
-import { Button } from "@/components/ui/button";
+import { ProviderDeleteButton, ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderField, ProviderInput, ProviderSelect } from "@/features/provider-orders/components/provider-form";
+import { ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { getProviderByUserId } from "@/features/providers/server/service";
 import { listProviderPricing } from "@/features/providers/server/workspace";
 import { requireProvider } from "@/lib/auth";
@@ -14,22 +16,28 @@ export default async function ProviderPricingPage() {
   const rows = provider ? await listProviderPricing(provider.id) : [];
 
   return (
-    <>
-      <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-        <div className="rounded-md border bg-background p-5">
-          <h1 className="text-2xl font-semibold">Pricing</h1>
-          <NativeForm action={ROUTES.API.PROVIDER.PRICING} method="POST" className="mt-4 grid gap-3 md:grid-cols-5">
+    <ProviderPage>
+      <ProviderPageHeader title="Pricing" description="Quản lý bảng giá provider theo offering và price type." />
+      <ProviderSectionCard title="Thêm hoặc cập nhật giá">
+          <NativeForm action={ROUTES.API.PROVIDER.PRICING} method="POST" className="grid gap-3 md:grid-cols-5">
             <input type="hidden" name="intent" value="save" />
-            <input name="offeringId" placeholder="Offering ID (optional)" className="h-9 rounded-md border bg-background px-3 text-sm" />
-            <select name="priceType" className="h-9 rounded-md border bg-background px-3 text-sm">
+            <ProviderField label="Offering ID" className="md:col-span-1">
+              <ProviderInput name="offeringId" placeholder="Optional" />
+            </ProviderField>
+            <ProviderField label="Loại giá">
+            <ProviderSelect name="priceType">
               {["base", "starting_at", "package", "hourly", "custom"].map((item) => <option key={item}>{item}</option>)}
-            </select>
-            <input name="amount" type="number" min="0" placeholder="Amount" className="h-9 rounded-md border bg-background px-3 text-sm" required />
-            <input name="note" placeholder="Note" className="h-9 rounded-md border bg-background px-3 text-sm" />
-            <Button type="submit" size="lg">Lưu giá</Button>
+            </ProviderSelect>
+            </ProviderField>
+            <ProviderField label="Số tiền">
+              <ProviderInput name="amount" type="number" min="0" placeholder="Amount" required />
+            </ProviderField>
+            <ProviderField label="Ghi chú">
+              <ProviderInput name="note" placeholder="Note" />
+            </ProviderField>
+            <ProviderSubmitButton type="submit" className="self-end">Lưu giá</ProviderSubmitButton>
           </NativeForm>
-        </div>
-      </section>
+      </ProviderSectionCard>
       <DatabasePage
         title="Pricing rows"
         description="Quản lý bảng giá provider theo offering và price type."
@@ -51,11 +59,11 @@ export default async function ProviderPricingPage() {
             <NativeForm key={String(row.id)} action={ROUTES.API.PROVIDER.PRICING} method="POST">
               <input type="hidden" name="intent" value="delete" />
               <input type="hidden" name="pricingId" value={String(row.id)} />
-              <Button type="submit" variant="outline" size="lg">Xóa {String(row.price_type)}</Button>
+              <ProviderDeleteButton type="submit">Xóa {String(row.price_type)}</ProviderDeleteButton>
             </NativeForm>
           ))}
         </div>
       </section>
-    </>
+    </ProviderPage>
   );
 }
