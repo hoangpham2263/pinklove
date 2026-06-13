@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/lib/routes";
+import { AdminFeatureOverview } from "@/features/admin/components/admin-feature-overview";
 
 export default function AdminMarketingOverviewPage() {
-  redirect(`${ROUTES.ADMIN.CONTENT}#marketing`);
+  return <AdminFeatureOverview featureKey="marketing" />;
 }

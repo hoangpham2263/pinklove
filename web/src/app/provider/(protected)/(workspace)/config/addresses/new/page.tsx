@@ -1,5 +1,5 @@
 import { AddressEditorForm } from "@/components/common/address-editor-form";
-import { ProviderPage, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
+import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { ROUTES } from "@/lib/routes";
@@ -15,9 +15,8 @@ export default async function ProviderAddressNewPage({
 
   return (
     <ProviderPage>
-      <ProviderSectionCard title="Thêm địa chỉ provider">
-        <AddressEditorForm actionUrl={ROUTES.API.ACCOUNT.ADDRESSES} returnTo={returnTo} cancelHref={returnTo} />
-      </ProviderSectionCard>
+      <ProviderPageHeader title="Thêm địa chỉ provider" description="Tạo địa chỉ dùng cho lấy hàng, hoàn hàng và giao nhận provider." />
+      <AddressEditorForm actionUrl={ROUTES.API.ACCOUNT.ADDRESSES} returnTo={returnTo} cancelHref={returnTo} />
     </ProviderPage>
   );
 }

@@ -1,4 +1,5 @@
-import { CalendarDays, CheckSquare2, ClipboardCheck, Table2, Users } from "lucide-react";
+import type { ReactNode } from "react";
+import { CalendarDays, CheckSquare2, ChevronDown, ClipboardCheck, Images, Settings2, Table2, Users } from "lucide-react";
 
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,12 +24,63 @@ const textareaClass = "min-h-20 w-full rounded-md border bg-background px-3 py-2
 const formClass = "grid gap-3";
 const buttonClass = "inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground sm:w-fit";
 
+function MetricCard({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+  return (
+    <div className="rounded-md border bg-background p-4">
+      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
+function PlanningPanel({
+  title,
+  summary,
+  icon,
+  count,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  summary: string;
+  icon: ReactNode;
+  count?: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Card className="overflow-hidden rounded-lg">
+      <details open={defaultOpen} className="group">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 border-b px-5 py-4 [&::-webkit-details-marker]:hidden">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border bg-muted/40 text-muted-foreground">
+              {icon}
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="truncate text-base">{title}</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            {count ? <span className="rounded-full border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">{count}</span> : null}
+            <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+          </div>
+        </summary>
+        <CardContent className="space-y-5 p-5 md:p-6">{children}</CardContent>
+      </details>
+    </Card>
+  );
+}
+
 export default async function WeddingPlanningPage({ searchParams }: PlanningPageProps) {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const params = await searchParams;
   const workspace = await getWeddingPlanningWorkspace(user.id, params.site);
   const site = workspace.activeSite;
   const collections = site ? await listMediaCollections("wedding_site", site.id) : [];
+  const acceptedRsvps = workspace.rsvps.filter((rsvp) => rsvp.response_status === "accepted").length;
+  const openTasks = workspace.tasks.filter((task) => !["done", "completed"].includes(task.status)).length;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -53,18 +105,21 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
         </div>
       ) : (
         <>
-          <MediaCollectionsManager
-            collections={collections}
-            targets={site ? [{ type: "wedding_site", id: site.id, label: site.title }] : []}
-            targetType="wedding_site"
-            targetId={site.id}
-            title="Albums / Galleries"
-            summary="Tải và sắp xếp ảnh pre-wedding, ảnh lễ cưới hoặc ảnh tiệc cưới cho wedding site này."
-          />
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <MetricCard label="Khách mời" value={workspace.guests.length} hint={`Mục tiêu ${site.guest_target || 0}`} />
+            <MetricCard label="RSVP tham dự" value={acceptedRsvps} hint={`${workspace.rsvps.length} phản hồi`} />
+            <MetricCard label="Bàn tiệc" value={workspace.tables.length} hint="Đã tạo trong sơ đồ bàn" />
+            <MetricCard label="Việc cần xử lý" value={openTasks} hint={`${workspace.tasks.length} checklist`} />
+            <MetricCard label="Timeline" value={workspace.timeline.length} hint="Mốc chương trình" />
+          </div>
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Thông tin kế hoạch</CardTitle></CardHeader>
-            <CardContent>
+          <div className="grid gap-4">
+            <PlanningPanel
+              title="Thông tin kế hoạch"
+              summary="Trạng thái, ngân sách, ngày cưới và mục tiêu khách."
+              icon={<Settings2 className="size-4" />}
+              defaultOpen
+            >
               <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                 <input type="hidden" name="intent" value="update_project" />
                 <input type="hidden" name="weddingSiteId" value={site.id} />
@@ -74,13 +129,30 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                 <label className="space-y-2 text-sm"><span>Mục tiêu khách</span><Input name="guestTarget" type="number" min="0" defaultValue={site.guest_target} /></label>
                 <button className={buttonClass}>Lưu kế hoạch</button>
               </NativeForm>
-            </CardContent>
-          </Card>
+            </PlanningPanel>
 
-          <div className="grid gap-5">
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Users className="size-4" />Khách mời</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+            <PlanningPanel
+              title="Albums / Galleries"
+              summary="Tải và sắp xếp ảnh pre-wedding, lễ cưới hoặc tiệc cưới."
+              icon={<Images className="size-4" />}
+              count={`${collections.length} album`}
+            >
+              <MediaCollectionsManager
+                collections={collections}
+                targets={[{ type: "wedding_site", id: site.id, label: site.title }]}
+                targetType="wedding_site"
+                targetId={site.id}
+                title="Albums / Galleries"
+                summary="Tải và sắp xếp ảnh pre-wedding, ảnh lễ cưới hoặc ảnh tiệc cưới cho wedding site này."
+              />
+            </PlanningPanel>
+
+            <PlanningPanel
+              title="Khách mời"
+              summary="Tạo nhóm, thêm khách và kiểm tra danh sách theo nhóm."
+              icon={<Users className="size-4" />}
+              count={`${workspace.guests.length} khách`}
+            >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_group" /><input type="hidden" name="weddingSiteId" value={site.id} />
                   <Input name="name" placeholder="Tên nhóm: Nhà trai, Bạn bè..." required /><button className={buttonClass}>Thêm nhóm</button>
@@ -97,12 +169,14 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                   {workspace.guests.map((guest) => <div key={guest.id} className="flex justify-between gap-3 p-3 text-sm"><span className="font-medium">{guest.full_name}</span><span className="text-muted-foreground">{guest.group_label || "Chưa phân nhóm"}</span></div>)}
                   {workspace.guests.length === 0 ? <p className="p-4 text-sm text-muted-foreground">Chưa có khách mời.</p> : null}
                 </div>
-              </CardContent>
-            </Card>
+            </PlanningPanel>
 
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base"><ClipboardCheck className="size-4" />RSVP</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+            <PlanningPanel
+              title="RSVP"
+              summary="Lưu phản hồi tham dự, số lượng người đi cùng và yêu cầu đặc biệt."
+              icon={<ClipboardCheck className="size-4" />}
+              count={`${workspace.rsvps.length} phản hồi`}
+            >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="save_rsvp" /><input type="hidden" name="weddingSiteId" value={site.id} />
                   <select name="guestId" className={inputClass}>
@@ -120,12 +194,14 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                   {workspace.rsvps.map((rsvp) => <div key={rsvp.id} className="flex justify-between gap-3 p-3 text-sm"><span className="font-medium">{rsvp.attendee_name}</span><span className="text-muted-foreground">{rsvp.response_status} · {rsvp.attendee_count} người</span></div>)}
                   {workspace.rsvps.length === 0 ? <p className="p-4 text-sm text-muted-foreground">Chưa có phản hồi RSVP.</p> : null}
                 </div>
-              </CardContent>
-            </Card>
+            </PlanningPanel>
 
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Table2 className="size-4" />Bàn tiệc</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+            <PlanningPanel
+              title="Bàn tiệc"
+              summary="Tạo bàn, đặt sức chứa và xếp khách vào bàn."
+              icon={<Table2 className="size-4" />}
+              count={`${workspace.tables.length} bàn`}
+            >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_table" /><input type="hidden" name="weddingSiteId" value={site.id} />
                   <Input name="name" placeholder="Tên bàn" required /><Input name="capacity" type="number" min="0" placeholder="Sức chứa" />
@@ -140,12 +216,14 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                   <button className={buttonClass}>Xếp chỗ</button>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.tables.map((table) => <div key={table.id} className="flex justify-between p-3 text-sm"><span className="font-medium">{table.name}</span><span className="text-muted-foreground">{table.assigned_guests}/{table.capacity}</span></div>)}</div>
-              </CardContent>
-            </Card>
+            </PlanningPanel>
 
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base"><CheckSquare2 className="size-4" />Checklist</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+            <PlanningPanel
+              title="Checklist"
+              summary="Quản lý công việc theo hạng mục, trạng thái, ưu tiên và hạn xử lý."
+              icon={<CheckSquare2 className="size-4" />}
+              count={`${openTasks} việc mở`}
+            >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_task" /><input type="hidden" name="weddingSiteId" value={site.id} />
                   <Input name="title" placeholder="Tên công việc" required />
@@ -156,12 +234,14 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                   <button className={buttonClass}>Thêm công việc</button>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.tasks.map((task) => <div key={task.id} className="p-3 text-sm"><div className="flex justify-between gap-3"><span className="font-medium">{task.title}</span><span className="text-muted-foreground">{task.status}</span></div><p className="mt-1 text-xs text-muted-foreground">{task.category}{task.due_date ? ` · ${task.due_date}` : ""}</p></div>)}</div>
-              </CardContent>
-            </Card>
+            </PlanningPanel>
 
-            <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2 text-base"><CalendarDays className="size-4" />Timeline</CardTitle></CardHeader>
-              <CardContent className="space-y-5">
+            <PlanningPanel
+              title="Timeline"
+              summary="Lên lịch hoạt động cho lễ, tiệc, chụp ảnh và các mốc chuẩn bị."
+              icon={<CalendarDays className="size-4" />}
+              count={`${workspace.timeline.length} mốc`}
+            >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_timeline" /><input type="hidden" name="weddingSiteId" value={site.id} />
                   <Input name="title" placeholder="Tên hoạt động" required />
@@ -172,8 +252,7 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
                   <button className={buttonClass}>Thêm timeline</button>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.timeline.map((item) => <div key={item.id} className="p-3 text-sm"><div className="flex justify-between gap-3"><span className="font-medium">{item.title}</span><span className="text-muted-foreground">{item.timeline_type}</span></div><p className="mt-1 text-xs text-muted-foreground">{item.starts_at || "Chưa đặt thời gian"}</p></div>)}</div>
-              </CardContent>
-            </Card>
+            </PlanningPanel>
           </div>
         </>
       )}

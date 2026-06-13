@@ -1,4 +1,4 @@
-import { adminSetProviderAccountStatus, adminUpdateAccount, getCurrentUserFromRequest, getUserAccount, isAdminRole, setUserProfile, type AccountStatus } from"@/lib/auth";
+import { adminSetProviderAccountStatus, adminUpdateAccount, getCurrentUserFromRequest, getUserAccount, getUserProfile, isAdminRole, setUserProfile, type AccountStatus } from"@/lib/auth";
 import { parseUserRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
@@ -53,11 +53,14 @@ export async function POST(request: Request) {
  await adminUpdateAccount(actor.id, userId, data);
  
  // Update profile info
+ const existingProfile = await getUserProfile(userId);
  await setUserProfile(userId, {
   fullName,
   displayName,
   phone,
-  bio
+  providerPortalSlug: existingProfile.providerPortalSlug,
+  bio,
+  avatarUrl: existingProfile.avatarUrl,
  });
 
  if (isAccountStatus(nextStatusInput)) {

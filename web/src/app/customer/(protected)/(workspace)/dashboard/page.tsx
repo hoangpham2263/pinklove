@@ -136,9 +136,9 @@ export default async function CustomerDashboardPage() {
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customer Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Khu khách hàng</h1>
           <p className="text-sm text-muted-foreground">
-            Theo dõi thiệp cưới, hồ sơ cá nhân và trạng thái affiliate của bạn tại một nơi.
+            Theo dõi thiệp cưới, đơn hàng, lịch hẹn và hồ sơ cá nhân tại một nơi.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -170,24 +170,24 @@ export default async function CustomerDashboardPage() {
         <Card className="rounded-lg">
           <CardHeader className="flex flex-row items-center justify-between gap-3">
             <div>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Lối tắt thao tác</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <CustomerActionLinkTile href={ROUTES.CUSTOMER.INVITATIONS} label="My Invitations" description="Quản lý toàn bộ thiệp của bạn." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.INVITATIONS} label="Thiệp của tôi" description="Quản lý toàn bộ thiệp của bạn." showArrow />
             <CustomerActionLinkTile href={ROUTES.CUSTOMER.ORDERS} label="Đơn hàng" description="Theo dõi checkout, thanh toán và giao hàng." showArrow />
-            <CustomerActionLinkTile href={ROUTES.CUSTOMER.CONFIG_PROFILE} label="Profile" description="Cập nhật hồ sơ và thông tin hiển thị." showArrow />
-            <CustomerActionLinkTile href={ROUTES.CUSTOMER.AFFILIATE} label="Affiliate" description="Theo dõi trạng thái và link giới thiệu." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.CONFIG_PROFILE} label="Hồ sơ" description="Cập nhật hồ sơ và thông tin hiển thị." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.AFFILIATE} label="Affiliate" description="Khu đối tác cho link giới thiệu và hoa hồng." showArrow />
             {providerActor ? (
-              <CustomerActionLinkTile href={ROUTES.CUSTOMER.PROVIDER} label="Provider Workspace" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
+              <CustomerActionLinkTile href={ROUTES.CUSTOMER.PROVIDER} label="Không gian provider" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
             ) : null}
-            <CustomerActionLinkTile href={ROUTES.BUILDER} label="Create New Site" description="Bắt đầu với builder hoặc template." showArrow />
+            <CustomerActionLinkTile href={ROUTES.BUILDER} label="Tạo thiệp mới" description="Bắt đầu với builder hoặc template." showArrow />
           </CardContent>
         </Card>
 
         <Card className="rounded-lg">
           <CardHeader>
-            <CardTitle>Affiliate Overview</CardTitle>
+            <CardTitle>Khu đối tác Affiliate</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {!affiliateAccount ? (
@@ -241,7 +241,7 @@ export default async function CustomerDashboardPage() {
 
       <Card className="rounded-lg">
         <CardHeader className="flex flex-row items-center justify-between gap-3">
-          <CardTitle>Recent Invitations</CardTitle>
+          <CardTitle>Thiệp gần đây</CardTitle>
           <Button
             variant="outline"
             className="rounded-md"

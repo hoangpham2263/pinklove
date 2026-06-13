@@ -541,6 +541,18 @@ export function buildInvitationPayload(formData: FormData, templateKey: string) 
     }
   }
 
+  const customData = formData.get("customData");
+  if (typeof customData === "string" && customData.trim()) {
+    try {
+      const parsed = JSON.parse(customData);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Fall back to legacy field extraction below.
+    }
+  }
+
   const payload: Record<string, unknown> = {};
 
   for (const field of getInvitationTemplateFields(templateKey)) {

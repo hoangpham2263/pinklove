@@ -68,8 +68,11 @@ web/
             providers/reviews/page.tsx
           (accounts)/
             affiliates/page.tsx
-            affiliate-users/page.tsx
-            affiliate-users/create/page.tsx
+            affiliates/users/page.tsx
+            affiliates/users/create/page.tsx
+            affiliates/accounts/page.tsx
+            affiliates/applications/page.tsx
+            affiliates/conversions/page.tsx
             customers/page.tsx
             customers/create/page.tsx
             users/page.tsx

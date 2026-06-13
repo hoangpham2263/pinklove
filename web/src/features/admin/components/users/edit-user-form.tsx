@@ -87,7 +87,6 @@ export function EditUserForm({ actor, user, profile, returnTo, adminRoles }: Edi
       onSubmit={handleSubmit}
     >
       <input type="hidden" name="userId" value={user.id} />
-      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
 
       <div className="min-w-0 space-y-6 lg:col-span-9">
         <Card className="min-w-0 overflow-visible rounded-lg gap-0">

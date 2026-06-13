@@ -59,6 +59,7 @@ export default async function AdminLayout({
                   href={feature.href}
                   exact={feature.exact}
                   matchPrefixes={feature.matchPrefixes}
+                  excludePrefixes={feature.excludePrefixes}
                   className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
                 >
                   <Icon className="h-5 w-5 shrink-0" />

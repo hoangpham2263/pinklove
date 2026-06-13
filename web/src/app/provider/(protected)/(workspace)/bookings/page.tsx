@@ -18,7 +18,7 @@ export default async function ProviderBookingsPage() {
     <>
       <DatabasePage
         title="Bookings"
-        description="Theo dõi các yêu cầu đặt dịch vụ có gắn với provider của bạn."
+        description="Theo dõi các yêu cầu đặt dịch vụ, slot lịch khách đã giữ và trạng thái xử lý của provider."
         rows={rows}
         icon={CalendarClock}
         metricLabel="Bookings"

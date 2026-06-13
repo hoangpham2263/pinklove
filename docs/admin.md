@@ -14,9 +14,9 @@ This file covers the admin area and admin-controlled workflows.
 - The admin shell lives under `src/app/admin/(protected)`.
 - Admin desktop and mobile navigation use the same flat feature registry in
   `src/features/admin/config/navigation.ts`.
-- The Admin menubar exposes nine top-level entries ordered by operational use:
-  Dashboard, Commerce, Marketplace, Accounts, Communication, Analytics, Website,
-  Blog and Configuration.
+- The Admin menubar exposes twelve top-level entries ordered by operational
+  use: Dashboard, Commerce, Bookings, Providers, Accounts, Affiliates,
+  Communication, Analytics, Marketing, Website, Blog and Configuration.
 - Related management routes are grouped into sections on each function hub
   instead of nested sidebar menus.
 - Group hub pages use `AdminFeatureOverview` and the same registry sections as
@@ -26,6 +26,19 @@ This file covers the admin area and admin-controlled workflows.
 - Customer and Provider portal navigation remain independent from the Admin
   navigation registry.
 - Account/actor management now uses actor codes `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER` for stored roles; `GUEST` is the public non-authenticated actor only.
+- `Admin > Accounts` owns login actors and access: all users, customers,
+  internal accounts, and admin access roles.
+- `Admin > Affiliates` owns the affiliate program: affiliate users,
+  applications, customer affiliate approvals, conversions, and commissions.
+- `Admin > Providers` owns provider operations end to end: provider accounts,
+  provider directory, leads, reviews, availability, sourcing, and provider
+  submissions.
+- `Admin > Commerce` owns offerings, offering types, templates, categories,
+  bundles, orders, payments, and shipments.
+- `Admin > Bookings` owns service bookings and wedding planning operations.
+- `Admin > Marketing` owns landing pages, campaigns, and A/B experiments.
+- `Admin > Website` owns managed pages, navigation, SEO, media, and shared
+  website data.
 - Admin `Pages` edits only managed content and system pages already registered in code.
 - Admin `Edit Page` keeps page metadata and body content in `Thông tin trang`,
   managed fields in the `Custom Fields` vertical tab workspace, and SEO in the
@@ -48,8 +61,8 @@ This file covers the admin area and admin-controlled workflows.
 - Admin dynamic offering forms should render from relational field groups,
   fields, validation rules, and conditional logic. The expected backing tables
   are `offering_type_field_groups` and `offering_type_fields`.
-- Admin ecommerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
-- `Admin > Commerce > Bookings` manages service bookings, status changes,
+- Admin commerce flows manage carts indirectly through customer checkout, and directly manage orders, payments, shipments, and fulfillment state.
+- `Admin > Bookings > Service bookings` manages service bookings, status changes,
   booking payments, and status logs. Keep this separate from physical commerce
   orders.
 - `Admin > Cấu hình > Email` owns the reusable email sender config and template demo. New offering flows should render shortcode templates through `src/lib/email-template.ts`, then send through `src/lib/email.ts` instead of wiring transport-specific logic in feature code.
@@ -60,15 +73,15 @@ This file covers the admin area and admin-controlled workflows.
   `media_assets`; it must not duplicate asset records.
 - Admin analytics reads business conversions from `conversion_goals` and
   `conversion_events` through the analytics service layer.
-- `Admin > Commerce > Wedding Planning` provides the cross-customer planning
+- `Admin > Bookings > Wedding Planning` provides the cross-customer planning
   overview for wedding sites, guests, RSVP, seating, tasks, and timeline.
-- `Admin > Nhà cung cấp > Leads & Quotes` provides the marketplace lead and
+- `Admin > Providers > Leads & Quotes` provides the marketplace lead and
   quote overview before accepted quotes become bookings.
-- `Admin > Nhà cung cấp > Provider Reviews` moderates customer reviews after
+- `Admin > Providers > Provider Reviews` moderates customer reviews after
   booking completion or confirmation.
 - `Admin > System > Audit Logs` reads `field_change_logs`.
-- `Admin > Marketing & Planning` owns Campaigns, A/B Experiments, and Landing
-  Page planning surfaces.
+- `Admin > Marketing` owns Campaigns, A/B Experiments, and Landing Page
+  planning surfaces.
 - `Admin > Analytics > Conversion Goals` manages conversion goal metadata used
   by analytics reports.
 - Public guest header/footer navigation is loaded from `navigation_menus`
@@ -91,10 +104,13 @@ This file covers the admin area and admin-controlled workflows.
 
 - dashboard
 - commerce
-- marketplace
+- bookings
+- providers
 - accounts
+- affiliates
 - communication
 - analytics
+- marketing
 - website
 - blog
 - configuration

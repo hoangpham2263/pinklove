@@ -42,7 +42,7 @@ const providerOfferingPrefix = ROUTES.PROVIDER.OFFERING("").slice(0, -1);
 export const PROVIDER_NAV_PRIMARY_ITEMS: ProviderNavLinkEntry[] = [
   {
     type: "link",
-    label: "Tổng quan",
+    label: "Dashboard",
     href: ROUTES.PROVIDER.DASHBOARD,
     iconName: "layout-dashboard",
     exact: true,
@@ -54,14 +54,21 @@ export const PROVIDER_NAV_PRIMARY_ITEMS: ProviderNavLinkEntry[] = [
     iconName: "messages-square",
     exact: true,
   },
+  {
+    type: "link",
+    label: "Cấu hình",
+    href: ROUTES.PROVIDER.CONFIG,
+    iconName: "settings",
+    exact: true,
+  },
 ];
 
 export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
   {
     type: "group",
-    label: "Vận hành",
+    label: "Công việc",
     iconName: "shopping-bag",
-    defaultOpen: false,
+    defaultOpen: true,
     children: [
       {
         label: "Bookings",
@@ -81,17 +88,19 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         iconName: "package-search",
         matchPrefixes: [ROUTES.PROVIDER.LEADS],
       },
+    ],
+  },
+  {
+    type: "group",
+    label: "Dịch vụ & hồ sơ",
+    iconName: "package-check",
+    defaultOpen: false,
+    children: [
       {
         label: "Yêu cầu dịch vụ/sản phẩm",
         href: ROUTES.PROVIDER.OFFERINGS,
         iconName: "package-plus",
         matchPrefixes: [ROUTES.PROVIDER.OFFERINGS, providerOfferingPrefix],
-      },
-      {
-        label: "Lịch khả dụng",
-        href: ROUTES.PROVIDER.AVAILABILITY,
-        iconName: "calendar-clock",
-        matchPrefixes: [ROUTES.PROVIDER.AVAILABILITY],
       },
       {
         label: "Portfolio",
@@ -112,19 +121,27 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.REGIONS],
       },
       {
+        label: "Lịch khả dụng",
+        href: ROUTES.PROVIDER.AVAILABILITY,
+        iconName: "calendar-clock",
+        matchPrefixes: [ROUTES.PROVIDER.AVAILABILITY],
+      },
+      {
         label: "Reviews",
         href: ROUTES.PROVIDER.REVIEWS,
         iconName: "messages-square",
         matchPrefixes: [ROUTES.PROVIDER.REVIEWS],
       },
+    ],
+  },
+  {
+    type: "group",
+    label: "Nguồn cung",
+    iconName: "package-plus",
+    defaultOpen: false,
+    children: [
       {
-        label: "Organization",
-        href: ROUTES.PROVIDER.ORGANIZATION,
-        iconName: "user",
-        matchPrefixes: [ROUTES.PROVIDER.ORGANIZATION],
-      },
-      {
-        label: "Mẫu có thể cung cấp",
+        label: "Dịch vụ/sản phẩm cần provider",
         href: ROUTES.PROVIDER.AVAILABLE_TEMPLATES,
         iconName: "package-check",
         matchPrefixes: [ROUTES.PROVIDER.AVAILABLE_TEMPLATES],
@@ -156,19 +173,17 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
         matchPrefixes: [ROUTES.PROVIDER.CONFIG_ADDRESSES],
         excludePaths: [ROUTES.PROVIDER.CONFIG_ADDRESS_NEW],
       },
+      {
+        label: "Tổ chức",
+        href: ROUTES.PROVIDER.ORGANIZATION,
+        iconName: "user",
+        matchPrefixes: [ROUTES.PROVIDER.ORGANIZATION],
+      },
     ],
   },
 ];
 
-export const PROVIDER_NAV_SECONDARY_ITEMS: ProviderNavLinkEntry[] = [
-  {
-    type: "link",
-    label: "Cấu hình",
-    href: ROUTES.PROVIDER.CONFIG,
-    iconName: "settings",
-    exact: true,
-  },
-];
+export const PROVIDER_NAV_SECONDARY_ITEMS: ProviderNavLinkEntry[] = [];
 
 export const PROVIDER_NAV_AUXILIARY_ITEMS: ProviderNavLinkEntry[] = [
   {

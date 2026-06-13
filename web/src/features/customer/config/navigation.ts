@@ -5,6 +5,7 @@ export type CustomerNavIconName =
   | "map-pin"
   | "folder-heart"
   | "shopping-bag"
+  | "calendar-clock"
   | "message-circle"
   | "user"
   | "badge-percent"
@@ -55,20 +56,34 @@ export const CUSTOMER_NAV_PRIMARY_ITEMS: CustomerNavLinkEntry[] = [
     href: ROUTES.CUSTOMER.MESSAGES,
     iconName: "message-circle",
   },
+  {
+    type: "link",
+    label: "Cấu hình",
+    href: ROUTES.CUSTOMER.CONFIG,
+    iconName: "settings",
+  },
 ];
 
 export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
   {
     type: "group",
-    label: "Workspace",
+    label: "Thiệp & kế hoạch",
     iconName: "folder-heart",
-    defaultOpen: false,
+    defaultOpen: true,
     children: [
       { label: "Thiệp của tôi", href: ROUTES.CUSTOMER.INVITATIONS, iconName: "folder-heart" },
       { label: "Kế hoạch cưới", href: ROUTES.CUSTOMER.WEDDING_PLANNING, iconName: "folder-heart" },
-      { label: "Yêu cầu nhà cung cấp", href: ROUTES.CUSTOMER.VENDOR_LEADS, iconName: "store" },
-      { label: "Bookings", href: ROUTES.CUSTOMER.BOOKINGS, iconName: "shopping-bag" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Đơn hàng & lịch hẹn",
+    iconName: "shopping-bag",
+    defaultOpen: false,
+    children: [
       { label: "Đơn hàng", href: ROUTES.CUSTOMER.ORDERS, iconName: "shopping-bag" },
+      { label: "Bookings", href: ROUTES.CUSTOMER.BOOKINGS, iconName: "calendar-clock" },
+      { label: "Yêu cầu nhà cung cấp", href: ROUTES.CUSTOMER.VENDOR_LEADS, iconName: "store" },
     ],
   },
   {
@@ -79,7 +94,18 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
     children: [
       { label: "Hồ sơ", href: ROUTES.CUSTOMER.CONFIG_PROFILE, iconName: "user" },
       { label: "Địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESSES, iconName: "map-pin" },
-      { label: "Thêm địa chỉ", href: ROUTES.CUSTOMER.CONFIG_ADDRESS_NEW, iconName: "map-pin" },
+    ],
+  },
+];
+
+export const CUSTOMER_NAV_PARTNER_GROUPS: CustomerNavGroupEntry[] = [
+  {
+    type: "group",
+    label: "Provider",
+    iconName: "store",
+    defaultOpen: false,
+    children: [
+      { label: "Không gian provider", href: ROUTES.CUSTOMER.PROVIDER, iconName: "store" },
     ],
   },
   {
@@ -92,25 +118,9 @@ export const CUSTOMER_NAV_GROUPS: CustomerNavGroupEntry[] = [
       { label: "Tạo link affiliate", href: ROUTES.CUSTOMER.AFFILIATE_LINKS, iconName: "link" },
     ],
   },
-  {
-    type: "group",
-    label: "Provider",
-    iconName: "store",
-    defaultOpen: false,
-    children: [
-      { label: "Nhà cung cấp", href: ROUTES.CUSTOMER.PROVIDER, iconName: "store" },
-    ],
-  },
 ];
 
-export const CUSTOMER_NAV_SECONDARY_ITEMS: CustomerNavLinkEntry[] = [
-  {
-    type: "link",
-    label: "Cấu hình",
-    href: ROUTES.CUSTOMER.CONFIG,
-    iconName: "settings",
-  },
-];
+export const CUSTOMER_NAV_SECONDARY_ITEMS: CustomerNavLinkEntry[] = [];
 
 export const CUSTOMER_NAV_AUXILIARY_ITEMS: CustomerNavLinkEntry[] = [
   {
@@ -122,7 +132,7 @@ export const CUSTOMER_NAV_AUXILIARY_ITEMS: CustomerNavLinkEntry[] = [
 ];
 
 export function getCustomerNavGroups(): CustomerNavEntry[] {
-  return [...CUSTOMER_NAV_GROUPS, ...CUSTOMER_NAV_SECONDARY_ITEMS];
+  return [...CUSTOMER_NAV_GROUPS, ...CUSTOMER_NAV_PARTNER_GROUPS, ...CUSTOMER_NAV_SECONDARY_ITEMS];
 }
 
 export const CUSTOMER_MOBILE_NAV: CustomerMobileNavEntry[] = [
@@ -132,6 +142,13 @@ export const CUSTOMER_MOBILE_NAV: CustomerMobileNavEntry[] = [
     iconName: item.iconName,
   })),
   ...CUSTOMER_NAV_GROUPS.flatMap((group) =>
+    group.children.map((item) => ({
+      label: item.label,
+      href: item.href,
+      iconName: item.iconName,
+    }))
+  ),
+  ...CUSTOMER_NAV_PARTNER_GROUPS.flatMap((group) =>
     group.children.map((item) => ({
       label: item.label,
       href: item.href,

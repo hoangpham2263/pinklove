@@ -37,6 +37,8 @@ export async function AdminFeatureOverview({ featureKey }: AdminFeatureOverviewP
     }))
     .filter((section) => section.items.length > 0);
 
+  const hideSingleSectionHeader = visibleSections.length === 1;
+
   return (
     <section className="flex w-full flex-1 flex-col gap-8 p-5 md:p-7.5">
       <div className="space-y-2">
@@ -46,10 +48,13 @@ export async function AdminFeatureOverview({ featureKey }: AdminFeatureOverviewP
 
       {visibleSections.map((section) => (
         <section key={section.key} id={section.key} className="scroll-mt-20 space-y-4 border-t pt-6 first:border-t-0 first:pt-0">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">{section.title}</h2>
-            <p className="text-sm text-muted-foreground">{section.description}</p>
-          </div>
+          {!hideSingleSectionHeader && !section.hideHeader ? (
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground" title={section.description}>
+                {section.title}
+              </h2>
+            </div>
+          ) : null}
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {section.items.map((entry) => {

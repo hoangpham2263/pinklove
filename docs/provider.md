@@ -162,6 +162,11 @@ Use this file for the dedicated provider portal.
 ## UI Rules
 
 - Provider pages use the same shared card/button/input language as admin and customer areas.
+- Provider navigation should stay grouped by provider workflow:
+  - `Công việc`: bookings, assigned orders, leads.
+  - `Dịch vụ & hồ sơ`: offerings, portfolio, pricing, regions, availability, reviews.
+  - `Nguồn cung`: available sourcing opportunities and supply requests.
+  - `Tài khoản`: provider account, addresses, organization.
 - Keep the canonical provider portal operations-first:
   - landing + login when signed out
   - assigned-order list when signed in

@@ -17,7 +17,7 @@ const CONFIG_SECTIONS = [
       },
       {
         title: "Tiếp thị liên kết",
-        description: "Theo dõi trạng thái affiliate, link giới thiệu và khu vực tăng trưởng của tài khoản.",
+        description: "Khu đối tác Affiliate để theo dõi trạng thái, link giới thiệu và hoa hồng.",
         href: ROUTES.CUSTOMER.AFFILIATE,
       },
     ],
@@ -47,10 +47,10 @@ export default async function CustomerConfigPage() {
         <CustomerOverviewCard title="Tổng mục cấu hình" value={totalItems} icon={ListChecks} />
         <CustomerOverviewCard title="Hồ sơ" value={displayName} description="Thông tin tài khoản cá nhân" icon={UserCircle2} />
         <CustomerOverviewCard title="Địa chỉ" value={addresses.length} description="Địa chỉ dùng cho checkout" icon={MapPin} />
-        <CustomerOverviewCard title="Affiliate" value="User" description="Khu vực tăng trưởng tài khoản" icon={BadgePercent} />
+        <CustomerOverviewCard title="Affiliate" value="Đối tác" description="Link giới thiệu và hoa hồng" icon={BadgePercent} />
       </CustomerOverviewGrid>
 
-      <CustomerConfigSectionsHub sections={[...CONFIG_SECTIONS]} scopeLabel="Quản lý tập trung cho cấu hình tài khoản user" />
+      <CustomerConfigSectionsHub sections={[...CONFIG_SECTIONS]} scopeLabel="Quản lý tập trung cho tài khoản khách hàng" />
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BadgePercent,
+  CalendarClock,
   ExternalLink,
   FolderHeart,
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
 import {
   CUSTOMER_NAV_AUXILIARY_ITEMS,
   CUSTOMER_NAV_GROUPS,
+  CUSTOMER_NAV_PARTNER_GROUPS,
   CUSTOMER_NAV_PRIMARY_ITEMS,
   CUSTOMER_NAV_SECONDARY_ITEMS,
 } from "@/features/customer/config/navigation";
@@ -31,6 +33,7 @@ const customerMobileIconMap = {
   "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
+  "calendar-clock": CalendarClock,
   "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,
@@ -64,6 +67,7 @@ export default async function CustomerLayout({
 
         <nav className="customer-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="flex flex-col gap-2.5">
+            <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Chính</p>
             {CUSTOMER_NAV_PRIMARY_ITEMS.map((item) => {
               const Icon = customerMobileIconMap[item.iconName];
               return (
@@ -78,6 +82,9 @@ export default async function CustomerLayout({
               );
             })}
 
+            <div className="my-1 border-t" />
+            <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Khu khách hàng</p>
+
             {CUSTOMER_NAV_GROUPS.map((entry) => (
               <CustomerSidebarGroup
                 key={entry.label}
@@ -88,19 +95,37 @@ export default async function CustomerLayout({
               />
             ))}
 
-            {CUSTOMER_NAV_SECONDARY_ITEMS.map((item) => {
-              const Icon = customerMobileIconMap[item.iconName];
-              return (
-                <CustomerNavLink
-                  key={item.href}
-                  href={item.href}
-                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="truncate" title={item.label}>{item.label}</span>
-                </CustomerNavLink>
-              );
-            })}
+            <div className="my-1 border-t" />
+            <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Khu đối tác</p>
+
+            {CUSTOMER_NAV_PARTNER_GROUPS.map((entry) => (
+              <CustomerSidebarGroup
+                key={entry.label}
+                label={entry.label}
+                iconName={entry.iconName}
+                items={entry.children}
+                defaultOpen={entry.defaultOpen}
+              />
+            ))}
+
+            {CUSTOMER_NAV_SECONDARY_ITEMS.length > 0 ? (
+              <>
+                <div className="my-1 border-t" />
+                {CUSTOMER_NAV_SECONDARY_ITEMS.map((item) => {
+                  const Icon = customerMobileIconMap[item.iconName];
+                  return (
+                    <CustomerNavLink
+                      key={item.href}
+                      href={item.href}
+                      className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span className="truncate" title={item.label}>{item.label}</span>
+                    </CustomerNavLink>
+                  );
+                })}
+              </>
+            ) : null}
           </div>
         </nav>
 

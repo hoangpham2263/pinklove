@@ -21,8 +21,9 @@ export async function POST(request: Request) {
  const phone = String(formData.get("phone") ??"");
  const providerPortalSlug = String(formData.get("providerPortalSlug") ?? "");
  const bio = String(formData.get("bio") ??"");
+ const avatarUrl = String(formData.get("avatarUrl") ?? "");
 
- await setUserProfile(user.id, { fullName, displayName, phone, providerPortalSlug, bio });
+ await setUserProfile(user.id, { fullName, displayName, phone, providerPortalSlug, bio, avatarUrl });
  if (wantsJson) {
  return NextResponse.json({ success: true });
  }

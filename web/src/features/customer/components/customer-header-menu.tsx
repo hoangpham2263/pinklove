@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   BadgePercent,
+  CalendarClock,
   ChevronRight,
   ExternalLink,
   FolderHeart,
@@ -24,6 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import {
   CUSTOMER_NAV_AUXILIARY_ITEMS,
   CUSTOMER_NAV_GROUPS,
+  CUSTOMER_NAV_PARTNER_GROUPS,
   CUSTOMER_NAV_PRIMARY_ITEMS,
   CUSTOMER_NAV_SECONDARY_ITEMS,
   type CustomerNavChild,
@@ -40,6 +42,7 @@ const customerMobileIconMap = {
   "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
+  "calendar-clock": CalendarClock,
   "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,
@@ -141,13 +144,22 @@ export function CustomerHeaderMenu() {
         </SheetHeader>
 
         <div className="customer-sidebar-scroll flex max-h-[calc(100vh-5rem)] flex-col gap-2 overflow-y-auto px-3 py-3">
+          <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Chính</p>
           {CUSTOMER_NAV_PRIMARY_ITEMS.map((item) => (
             <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
           ))}
 
           <div className="my-1 border-t" />
+          <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Khu khách hàng</p>
 
           {CUSTOMER_NAV_GROUPS.map((entry) => (
+            <MenuGroup key={entry.label} group={entry} onNavigate={closeMenu} />
+          ))}
+
+          <div className="my-1 border-t" />
+          <p className="px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Khu đối tác</p>
+
+          {CUSTOMER_NAV_PARTNER_GROUPS.map((entry) => (
             <MenuGroup key={entry.label} group={entry} onNavigate={closeMenu} />
           ))}
 

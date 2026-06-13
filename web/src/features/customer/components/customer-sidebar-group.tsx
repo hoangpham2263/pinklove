@@ -2,6 +2,7 @@
 
 import {
   BadgePercent,
+  CalendarClock,
   ChevronRight,
   ExternalLink,
   FolderHeart,
@@ -24,6 +25,7 @@ type CustomerSidebarIconName =
   | "map-pin"
   | "folder-heart"
   | "shopping-bag"
+  | "calendar-clock"
   | "message-circle"
   | "user"
   | "badge-percent"
@@ -50,6 +52,7 @@ const iconMap = {
   "map-pin": MapPin,
   "folder-heart": FolderHeart,
   "shopping-bag": ShoppingBag,
+  "calendar-clock": CalendarClock,
   "message-circle": MessageCircle,
   user: UserIcon,
   "badge-percent": BadgePercent,

@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
-
-import { ROUTES } from "@/lib/routes";
+import { AdminFeatureOverview } from "@/features/admin/components/admin-feature-overview";
 
 export default function AdminAffiliatesPage() {
-  redirect(`${ROUTES.ADMIN.ACCOUNTS}#affiliate`);
+  return <AdminFeatureOverview featureKey="affiliates" />;
 }

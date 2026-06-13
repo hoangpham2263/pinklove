@@ -28,6 +28,7 @@ export type UserProfile = {
   phone: string;
   providerPortalSlug?: string;
   bio: string;
+  avatarUrl: string;
 };
 
 export type UserShippingProfile = {
@@ -432,6 +433,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  phone: string | null;
  provider_portal_slug: string | null;
  bio: string | null;
+ avatar_url: string | null;
  }>(
  `
   SELECT
@@ -439,7 +441,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     display_name,
     phone,
     provider_portal_slug,
-    bio
+    bio,
+    avatar_url
   FROM user_profiles
   WHERE user_id = $1
   LIMIT 1
@@ -454,6 +457,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  phone: row?.phone ??"",
  providerPortalSlug: row?.provider_portal_slug ?? "",
  bio: row?.bio ??"",
+ avatarUrl: row?.avatar_url ?? "",
  };
 }
 
@@ -463,11 +467,12 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
  const phone = profile.phone.trim();
  const providerPortalSlug = profile.providerPortalSlug?.trim() ?? "";
  const bio = profile.bio.trim();
+ const avatarUrl = profile.avatarUrl.trim();
 
  await query(
  `
-  INSERT INTO user_profiles (user_id, full_name, display_name, phone, provider_portal_slug, bio)
-  VALUES ($1, $2, $3, $4, $5, $6)
+  INSERT INTO user_profiles (user_id, full_name, display_name, phone, provider_portal_slug, bio, avatar_url)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
   ON CONFLICT (user_id)
   DO UPDATE SET
   full_name = EXCLUDED.full_name,
@@ -475,6 +480,7 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
   phone = EXCLUDED.phone,
   provider_portal_slug = EXCLUDED.provider_portal_slug,
   bio = EXCLUDED.bio,
+  avatar_url = EXCLUDED.avatar_url,
   updated_at = NOW()
  `,
  [
@@ -484,6 +490,7 @@ export async function setUserProfile(userId: string, profile: UserProfile): Prom
   phone.length > 0 ? phone : null,
   providerPortalSlug.length > 0 ? normalizeProviderPortalSlug(providerPortalSlug) : null,
   bio.length > 0 ? bio : null,
+  avatarUrl.length > 0 ? avatarUrl : null,
  ]
  );
 }

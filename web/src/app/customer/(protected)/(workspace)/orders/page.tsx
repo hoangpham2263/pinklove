@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CustomerTableActionButton, CustomerTableActions } from "@/features/customer/ui/customer-table-actions";
+import { CustomerOrdersTable } from "@/features/customer/components/customer-orders-table";
 import { listOrdersForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
-import { formatCurrency } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
-import { getFulfillmentStatusLabel, getOrderStatusLabel, getPaymentStatusLabel } from "@/lib/status-labels";
 import { getSystemSettings } from "@/lib/system-settings";
 
 export default async function CustomerOrdersPage() {
@@ -38,36 +36,7 @@ export default async function CustomerOrdersPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {orders.map((order) => (
-            <Card key={order.id}>
-              <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{order.orderNumber}</p>
-                    {order.metadata.requestVatInvoice ? (
-                      <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                        VAT
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {order.items.map((item) => item.offeringName).join(", ")}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Đơn: {getOrderStatusLabel(order.status)} • Thanh toán: {getPaymentStatusLabel(order.paymentStatus)} • Giao hàng: {getFulfillmentStatusLabel(order.fulfillmentStatus)}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-3">
-                  <p className="font-semibold">{formatCurrency(order.totalAmount, settings.ecommerce)}</p>
-                  <CustomerTableActions>
-                    <CustomerTableActionButton action="view" label="Xem đơn" href={ROUTES.CUSTOMER.ORDER(order.id)} />
-                  </CustomerTableActions>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <CustomerOrdersTable orders={orders} currencySettings={settings.ecommerce} />
       )}
     </section>
   );

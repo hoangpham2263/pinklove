@@ -554,7 +554,8 @@ async function ensureUserProfilesMigration() {
 
   await pool.query(`
   ALTER TABLE user_profiles
-  ADD COLUMN IF NOT EXISTS provider_portal_slug TEXT;
+  ADD COLUMN IF NOT EXISTS provider_portal_slug TEXT,
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT;
   `);
 
   await pool.query(`

@@ -1,7 +1,6 @@
-import { CalendarClock } from "lucide-react";
-
 import { NativeForm } from "@/components/common/native-form";
-import { DatabasePage } from "@/components/common/database-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomerBookingsTable } from "@/features/customer/components/customer-bookings-table";
 import { CustomerSubmitButton } from "@/features/customer/ui/customer-buttons";
 import { CustomerInput, CustomerSelect } from "@/features/customer/ui/customer-form";
 import { listBookingsForCustomer, listReviewableBookingProvidersForCustomer } from "@/features/bookings/server/service";
@@ -16,25 +15,34 @@ export default async function CustomerBookingsPage() {
   ]);
 
   return (
-    <>
-      <DatabasePage
-        title="Bookings"
-        description="Theo dõi các yêu cầu đặt dịch vụ tách biệt khỏi đơn hàng vật lý."
-        rows={rows}
-        icon={CalendarClock}
-        metricLabel="Bookings"
-        columns={[
-          { key: "booking_number", label: "Booking" },
-          { key: "providers", label: "Providers" },
-          { key: "status", label: "Status" },
-          { key: "latest_payment_status", label: "Payment" },
-          { key: "scheduled_at", label: "Scheduled" },
-          { key: "total_amount", label: "Total" },
-          { key: "latest_status_note", label: "Latest update" },
-        ]}
-      />
-      <section className="mx-5 mb-7.5 rounded-md border bg-background p-5 md:mx-7.5">
-        <h2 className="text-base font-semibold">Đánh giá provider sau booking</h2>
+    <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
+      <div>
+        <h1 className="text-2xl font-semibold">Bookings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Theo dõi các yêu cầu đặt dịch vụ, slot lịch đã giữ và cập nhật trạng thái từ provider.
+        </p>
+      </div>
+
+      {rows.length > 0 ? (
+        <CustomerBookingsTable bookings={rows} />
+      ) : (
+        <Card className="rounded-lg border-dashed">
+          <CardHeader>
+            <CardTitle>Chưa có booking nào</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Các booking từ quote, provider hoặc dịch vụ có lịch hẹn sẽ xuất hiện tại đây.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="rounded-lg">
+        <CardHeader>
+          <CardTitle>Đánh giá provider sau booking</CardTitle>
+        </CardHeader>
+        <CardContent>
         {reviewTargets.length > 0 ? (
           <NativeForm action={ROUTES.API.CUSTOMER.PROVIDER_REVIEWS} method="POST" className="mt-4 grid gap-3 md:grid-cols-[1fr_8rem_1fr_auto]">
             <CustomerSelect name="providerId">
@@ -53,7 +61,8 @@ export default async function CustomerBookingsPage() {
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">Bạn sẽ có thể đánh giá provider sau khi booking được xác nhận hoặc hoàn tất.</p>
         )}
-      </section>
-    </>
+        </CardContent>
+      </Card>
+    </section>
   );
 }

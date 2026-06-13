@@ -45,7 +45,7 @@ export async function POST(request: Request) {
  if (role === USER_ROLES.ADMIN) {
   await assignAdminRole(created.id, adminRoleId, actor.id);
  }
- await setUserProfile(created.id, { fullName, displayName, phone, bio });
+ await setUserProfile(created.id, { fullName, displayName, phone, bio, avatarUrl: "" });
  return respondSuccess(request, { location: returnTo, message: "Đã tạo tài khoản mới." });
  } catch (error) {
  const message = error instanceof Error ? error.message :"";

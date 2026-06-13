@@ -1,8 +1,52 @@
 import { randomBytes, scryptSync } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { Client } from "pg";
 
 const PASSWORD = process.env.SEED_PROVIDER_PASSWORD ?? "12313";
 const BASE_URL = process.env.SEED_BASE_URL ?? "";
+const rootDir = path.resolve(process.cwd(), "..");
+
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (!(key in process.env)) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile(path.join(rootDir, ".env"));
+loadEnvFile(path.join(rootDir, ".env.local"));
+
+function getDatabaseUrl() {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+
+  const user = process.env.POSTGRES_USER || "app";
+  const password = process.env.POSTGRES_PASSWORD || "change-me";
+  const db = process.env.POSTGRES_DB || "app";
+  const port = process.env.POSTGRES_PORT || "5433";
+
+  return `postgresql://${user}:${password}@localhost:${port}/${db}`;
+}
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -255,16 +299,262 @@ async function createEvent(client, assignmentId, actorUserId, actorType, eventTy
   );
 }
 
+async function upsertMarketplaceProvider(client, { ownerUserId, slug, displayName, providerType, phone, bio, description }) {
+  const provider = await fetchRow(
+    client,
+    `
+      INSERT INTO providers (owner_user_id, slug, display_name, provider_type, status, metadata)
+      VALUES ($1, $2, $3, $4, 'published', '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+      ON CONFLICT (slug)
+      DO UPDATE SET
+        owner_user_id = EXCLUDED.owner_user_id,
+        display_name = EXCLUDED.display_name,
+        provider_type = EXCLUDED.provider_type,
+        status = 'published',
+        metadata = providers.metadata || EXCLUDED.metadata,
+        updated_at = NOW()
+      RETURNING id, slug, display_name
+    `,
+    [ownerUserId, slug, displayName, providerType]
+  );
+
+  await client.query(
+    `
+      INSERT INTO provider_profiles (provider_id, business_name, contact_email, phone, bio, description, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+      ON CONFLICT (provider_id)
+      DO UPDATE SET
+        business_name = EXCLUDED.business_name,
+        phone = EXCLUDED.phone,
+        bio = EXCLUDED.bio,
+        description = EXCLUDED.description,
+        metadata = provider_profiles.metadata || EXCLUDED.metadata,
+        updated_at = NOW()
+    `,
+    [provider.id, displayName, `${slug}@pinklove.local`, phone, bio, description]
+  );
+
+  return provider;
+}
+
+async function upsertProviderService(client, { providerId, offering, serviceKind, durationMinutes, serviceArea }) {
+  const existing = await fetchRow(
+    client,
+    "SELECT id FROM provider_services WHERE provider_id = $1 AND offering_id = $2 LIMIT 1",
+    [providerId, offering.id]
+  );
+
+  if (existing?.id) {
+    return await fetchRow(
+      client,
+      `
+        UPDATE provider_services
+        SET
+          title = $3,
+          status = 'active',
+          base_price = $4,
+          metadata = provider_services.metadata || jsonb_build_object(
+            'source', 'seed_provider_portal_fixtures',
+            'service_kind', $5::text,
+            'service_location_mode', $5::text,
+            'duration_minutes', $6::int,
+            'service_area', $7::text
+          ),
+          updated_at = NOW()
+        WHERE id = $1
+        RETURNING id
+      `,
+      [existing.id, offering.id, offering.name, Number(offering.base_price ?? 0), serviceKind, durationMinutes, serviceArea]
+    );
+  }
+
+  const service = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_services (provider_id, offering_id, title, status, base_price, metadata)
+      VALUES (
+        $1,
+        $2,
+        $3,
+        'active',
+        $4,
+        jsonb_build_object(
+          'source', 'seed_provider_portal_fixtures',
+          'service_kind', $5::text,
+          'service_location_mode', $5::text,
+          'duration_minutes', $6::int,
+          'service_area', $7::text
+        )
+      )
+      ON CONFLICT DO NOTHING
+      RETURNING id
+    `,
+    [providerId, offering.id, offering.name, Number(offering.base_price ?? 0), serviceKind, durationMinutes, serviceArea]
+  );
+  return service;
+}
+
+async function seedCalendarAndSlots(client, { providerId, providerServiceId, offeringId, label, slotBaseHour }) {
+  const calendar = await fetchRow(
+    client,
+    `
+      INSERT INTO booking_calendars (provider_id, key, label, timezone, config)
+      VALUES ($1, 'seed_demo', $2, 'Asia/Ho_Chi_Minh', '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+      ON CONFLICT (provider_id, key)
+      DO UPDATE SET label = EXCLUDED.label, config = booking_calendars.config || EXCLUDED.config, updated_at = NOW()
+      RETURNING id
+    `,
+    [providerId, label]
+  );
+
+  await client.query("DELETE FROM provider_time_slots WHERE provider_id = $1 AND metadata ->> 'source' = 'seed_provider_portal_fixtures'", [providerId]);
+  await client.query("DELETE FROM provider_availability WHERE provider_id = $1 AND metadata ->> 'source' = 'seed_provider_portal_fixtures'", [providerId]);
+
+  const availability = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_availability (
+        provider_id, calendar_id, provider_service_id, offering_id, availability_kind,
+        day_of_week, starts_at, ends_at, duration_minutes, capacity, status, metadata
+      )
+      VALUES ($1, $2, $3, $4, 'consultation', 6, '09:00', '17:00', 120, 1, 'available', '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+      RETURNING id
+    `,
+    [providerId, calendar.id, providerServiceId, offeringId]
+  );
+
+  const slots = [];
+  for (let index = 0; index < 4; index += 1) {
+    const startsAt = new Date(Date.UTC(2026, 6, 4 + index, slotBaseHour, 0, 0));
+    const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
+    const slot = await fetchRow(
+      client,
+      `
+        INSERT INTO provider_time_slots (
+          provider_id, calendar_id, availability_id, provider_service_id, offering_id,
+          availability_kind, starts_at, ends_at, capacity, status, metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, 'consultation', $6, $7, 1, 'available', '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+        RETURNING id, starts_at
+      `,
+      [providerId, calendar.id, availability.id, providerServiceId, offeringId, startsAt.toISOString(), endsAt.toISOString()]
+    );
+    slots.push(slot);
+  }
+
+  return slots;
+}
+
+async function seedLeadQuoteBookingFlow(client, { customer, provider, offering, slot, status, quoteStatus, bookingStatus, message }) {
+  await client.query(
+    `
+      DELETE FROM booking_status_logs
+      WHERE booking_id IN (
+        SELECT id FROM bookings WHERE metadata ->> 'seedKey' = $1
+      )
+    `,
+    [`lead-${customer.username}-${provider.slug}-${status}`]
+  );
+  await client.query(
+    `
+      DELETE FROM booking_items
+      WHERE booking_id IN (
+        SELECT id FROM bookings WHERE metadata ->> 'seedKey' = $1
+      )
+    `,
+    [`lead-${customer.username}-${provider.slug}-${status}`]
+  );
+  await client.query("DELETE FROM bookings WHERE metadata ->> 'seedKey' = $1", [`lead-${customer.username}-${provider.slug}-${status}`]);
+  await client.query("DELETE FROM vendor_leads WHERE message = $1 AND user_id = $2 AND provider_id = $3", [message, customer.id, provider.id]);
+
+  const lead = await fetchRow(
+    client,
+    `
+      INSERT INTO vendor_leads (provider_id, user_id, offering_id, budget, event_date, message, status)
+      VALUES ($1, $2, $3, $4, '2026-07-12', $5, $6)
+      RETURNING id
+    `,
+    [provider.id, customer.id, offering.id, Number(offering.base_price ?? 0) || 1200000, message, status]
+  );
+
+  const quote = await fetchRow(
+    client,
+    `
+      INSERT INTO vendor_quotes (lead_id, provider_id, amount, message, status)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id
+    `,
+    [
+      lead.id,
+      provider.id,
+      (Number(offering.base_price ?? 0) || 1200000) + 300000,
+      "Seed quote: đã bao gồm tư vấn lịch, triển khai và ưu tiên slot quảng cáo.",
+      quoteStatus,
+    ]
+  );
+
+  if (!bookingStatus) {
+    return { leadId: lead.id, quoteId: quote.id, bookingId: null };
+  }
+
+  const booking = await fetchRow(
+    client,
+    `
+      INSERT INTO bookings (booking_number, user_id, status, scheduled_at, total_amount, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+      RETURNING id
+    `,
+    [
+      `BK-SEED-${provider.slug.toUpperCase().replace(/[^A-Z0-9]+/g, "-")}-${status.toUpperCase()}`,
+      customer.id,
+      bookingStatus,
+      slot.starts_at,
+      (Number(offering.base_price ?? 0) || 1200000) + 300000,
+      JSON.stringify({
+        source: "seed_provider_portal_fixtures",
+        seedKey: `lead-${customer.username}-${provider.slug}-${status}`,
+        vendorLeadId: lead.id,
+        vendorQuoteId: quote.id,
+        providerTimeSlotId: slot.id,
+        adPriority: "slot_confirmed",
+      }),
+    ]
+  );
+
+  await client.query(
+    `
+      INSERT INTO booking_items (booking_id, offering_id, provider_type, provider_id, title, quantity, unit_price, line_total, metadata)
+      VALUES ($1, $2, $3, $4, $5, 1, $6, $6, '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+    `,
+    [booking.id, offering.id, "studio", provider.id, offering.name, (Number(offering.base_price ?? 0) || 1200000) + 300000]
+  );
+  await client.query(
+    `
+      INSERT INTO booking_status_logs (booking_id, actor_user_id, from_status, to_status, note)
+      VALUES ($1, $2, NULL, $3, $4)
+    `,
+    [booking.id, customer.id, bookingStatus, "Seed booking từ quote đã chấp nhận và slot ưu tiên quảng cáo."]
+  );
+  await client.query(
+    `
+      UPDATE provider_time_slots
+      SET status = CASE WHEN $2 = 'confirmed' THEN 'booked' ELSE 'held' END,
+          metadata = provider_time_slots.metadata || jsonb_build_object('bookingId', $3::text, 'adPriority', 'slot_confirmed'),
+          updated_at = NOW()
+      WHERE id = $1
+    `,
+    [slot.id, bookingStatus, booking.id]
+  );
+
+  return { leadId: lead.id, quoteId: quote.id, bookingId: booking.id };
+}
+
 function sumItems(items) {
   return items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
 
 async function main() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required");
-  }
-
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
+  const client = new Client({ connectionString: getDatabaseUrl() });
   await client.connect();
 
   try {
@@ -333,6 +623,85 @@ async function main() {
       phone: "0900000012",
       bio: "Seeded customer two.",
     });
+
+    const marketplaceAlpha = await upsertMarketplaceProvider(client, {
+      ownerUserId: providerAlpha.id,
+      slug: "studio-alpha-wedding",
+      displayName: "Studio Alpha Wedding",
+      providerType: "studio",
+      phone: "0900000001",
+      bio: "Studio chụp ảnh, quay phim và tư vấn slot ưu tiên cho chiến dịch cưới.",
+      description: "Seed provider để xem Provider Leads & Quotes, lịch đặt dịch vụ và booking từ quote.",
+    });
+    const marketplaceBeta = await upsertMarketplaceProvider(client, {
+      ownerUserId: providerBeta.id,
+      slug: "makeup-beta-bridal",
+      displayName: "Makeup Beta Bridal",
+      providerType: "makeup",
+      phone: "0900000002",
+      bio: "Makeup cô dâu và lịch thử layout theo khung giờ.",
+      description: "Seed provider thứ hai để test lead, quote, slot và booking ở màn khách hàng/provider/admin.",
+    });
+    const alphaService = await upsertProviderService(client, {
+      providerId: marketplaceAlpha.id,
+      offering: offeringA,
+      serviceKind: "provider_site_service",
+      durationMinutes: 120,
+      serviceArea: "TP. Ho Chi Minh",
+    });
+    const betaService = await upsertProviderService(client, {
+      providerId: marketplaceBeta.id,
+      offering: offeringB,
+      serviceKind: "consultation",
+      durationMinutes: 90,
+      serviceArea: "TP. Ho Chi Minh, Binh Duong",
+    });
+    const alphaSlots = await seedCalendarAndSlots(client, {
+      providerId: marketplaceAlpha.id,
+      providerServiceId: alphaService.id,
+      offeringId: offeringA.id,
+      label: "Alpha priority booking slots",
+      slotBaseHour: 3,
+    });
+    const betaSlots = await seedCalendarAndSlots(client, {
+      providerId: marketplaceBeta.id,
+      providerServiceId: betaService.id,
+      offeringId: offeringB.id,
+      label: "Beta bridal trial slots",
+      slotBaseHour: 5,
+    });
+    const seededLeadFlows = [
+      await seedLeadQuoteBookingFlow(client, {
+        customer: customerOne,
+        provider: marketplaceAlpha,
+        offering: offeringA,
+        slot: alphaSlots[0],
+        status: "quoted",
+        quoteStatus: "sent",
+        bookingStatus: null,
+        message: "Seed lead đang chờ khách chọn slot ưu tiên quảng cáo cho gói Alpha.",
+      }),
+      await seedLeadQuoteBookingFlow(client, {
+        customer: customerOne,
+        provider: marketplaceBeta,
+        offering: offeringB,
+        slot: betaSlots[0],
+        status: "won",
+        quoteStatus: "accepted",
+        bookingStatus: "confirmed",
+        message: "Seed lead đã chốt quote và giữ slot makeup Beta.",
+      }),
+      await seedLeadQuoteBookingFlow(client, {
+        customer: customerTwo,
+        provider: marketplaceAlpha,
+        offering: offeringA,
+        slot: alphaSlots[1],
+        status: "won",
+        quoteStatus: "accepted",
+        bookingStatus: "requested",
+        message: "Seed lead đã tạo booking nhưng chờ admin/provider xác nhận.",
+      }),
+    ];
 
     const scenarios = [
       {
@@ -518,6 +887,13 @@ async function main() {
               username: customerTwo.username,
             },
           ],
+          marketplace: {
+            leadsAndQuotesLink: formatLink("/admin/providers/leads"),
+            customerVendorLeadsLink: formatLink("/customer/vendor-leads"),
+            bookingsLink: formatLink("/admin/bookings"),
+            availabilityLink: formatLink("/provider/availability"),
+            seededLeadFlows,
+          },
           orders: seededOrders,
         },
         null,

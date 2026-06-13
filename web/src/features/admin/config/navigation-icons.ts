@@ -17,7 +17,9 @@ import {
   Menu,
   MessageCircle,
   MessagesSquare,
+  Newspaper,
   Package,
+  PanelsTopLeft,
   Radio,
   ReceiptText,
   Search,
@@ -60,4 +62,6 @@ export const ADMIN_NAV_ICON_MAP = {
   "badge-percent": BadgePercent,
   settings: Settings,
   "external-link": ExternalLink,
+  "panels-top-left": PanelsTopLeft,
+  newspaper: Newspaper,
 } satisfies Record<AdminNavIconName, React.ComponentType<{ className?: string }>>;

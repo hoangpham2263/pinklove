@@ -4,8 +4,8 @@ type PermissionRule = {
 };
 
 const rules: PermissionRule[] = [
-  { prefixes: ["/api/admin/access", "/api/admin/users"], permission: "accounts.manage" },
-  { prefixes: ["/admin/accounts", "/admin/access", "/admin/users", "/admin/customers", "/admin/internal-accounts", "/api/admin/users", "/api/admin/internal-accounts"], permission: "accounts.view" },
+  { prefixes: ["/api/admin/access", "/api/admin/users", "/api/admin/providers/accounts"], permission: "accounts.manage" },
+  { prefixes: ["/admin/accounts", "/admin/providers/accounts", "/admin/access", "/admin/users", "/admin/customers", "/admin/internal-accounts", "/api/admin/users", "/api/admin/internal-accounts"], permission: "accounts.view" },
   { prefixes: ["/admin/content"], permission: "content.view" },
   { prefixes: ["/admin/offerings", "/api/admin/offerings"], permission: "offerings.view" },
   { prefixes: ["/admin/providers", "/api/admin/providers"], permission: "marketplace.view" },

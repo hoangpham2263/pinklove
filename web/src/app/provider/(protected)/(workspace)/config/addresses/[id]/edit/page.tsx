@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { AddressEditorForm } from "@/components/common/address-editor-form";
 import { getUserAddressById } from "@/features/account/server/address-service";
-import { ProviderPage, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
+import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
 import { ROUTES } from "@/lib/routes";
@@ -27,14 +27,13 @@ export default async function ProviderAddressEditPage({
 
   return (
     <ProviderPage>
-      <ProviderSectionCard title="Sửa địa chỉ provider">
-        <AddressEditorForm
-          actionUrl={ROUTES.API.ACCOUNT.ADDRESSES}
-          returnTo={returnTo}
-          cancelHref={returnTo}
-          address={address}
-        />
-      </ProviderSectionCard>
+      <ProviderPageHeader title="Sửa địa chỉ provider" description="Cập nhật thông tin người nhận, khu vực và thiết lập mặc định." />
+      <AddressEditorForm
+        actionUrl={ROUTES.API.ACCOUNT.ADDRESSES}
+        returnTo={returnTo}
+        cancelHref={returnTo}
+        address={address}
+      />
     </ProviderPage>
   );
 }

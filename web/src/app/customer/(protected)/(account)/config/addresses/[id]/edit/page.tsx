@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
 import { AddressEditorForm } from "@/components/common/address-editor-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserAddressById } from "@/features/account/server/address-service";
 import { requireAppUser } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
@@ -27,19 +26,16 @@ export default async function CustomerAddressEditPage({
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <Card>
-        <CardHeader>
-          <CardTitle>Sửa địa chỉ</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AddressEditorForm
-            actionUrl={ROUTES.API.ACCOUNT.ADDRESSES}
-            returnTo={returnTo}
-            cancelHref={returnTo}
-            address={address}
-          />
-        </CardContent>
-      </Card>
+      <div>
+        <h1 className="text-2xl font-semibold">Sửa địa chỉ</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Cập nhật thông tin người nhận, khu vực và thiết lập mặc định.</p>
+      </div>
+      <AddressEditorForm
+        actionUrl={ROUTES.API.ACCOUNT.ADDRESSES}
+        returnTo={returnTo}
+        cancelHref={returnTo}
+        address={address}
+      />
     </section>
   );
 }

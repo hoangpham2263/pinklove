@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, Heart } from "lucide-react";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
-import type { Offering } from "@/features/offerings/types";
+import { getOfferingTypeLabel, type Offering } from "@/features/offerings/types";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
 import { formatVnd } from "@/lib/currency";
 import { getOfferingPath } from "@/lib/public-paths";
@@ -81,6 +81,14 @@ export function LoopOfferingCard({
         )}
 
         <div className="flex flex-1 flex-col gap-2 p-4 lg:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-fit rounded-sm bg-stone-100 px-2 py-1 text-xs font-medium text-stone-600">
+              {getOfferingTypeLabel(offering.offeringType)}
+            </span>
+            {offering.fulfillmentType === "service" ? (
+              <span className="w-fit rounded-sm bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700">Đặt lịch</span>
+            ) : null}
+          </div>
           <h3 className="line-clamp-2 text-base font-semibold leading-tight text-stone-950 lg:text-lg">
             {offering.name}
           </h3>

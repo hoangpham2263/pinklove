@@ -23,7 +23,8 @@ Use this file as the entrypoint for project documentation.
 4. [schema](./schema.md)
 5. [fields](./fields.md)
 6. [realtime](./realtime.md)
-7. Area docs as needed:
+7. [account-role-map](./account-role-map.md)
+8. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
@@ -46,6 +47,8 @@ Use this file as the entrypoint for project documentation.
   Field schema contract, shared field editor rules, `wysiwyg` rules, repeater/section rules, and rich-text field standards.
 - `docs/realtime.md`
   Shared realtime architecture, SSE/event contracts, client/server core rules, and scale path for transport upgrades.
+- `docs/account-role-map.md`
+  Account, customer workspace, provider account, and provider marketplace entity relationship map.
 - `docs/guest.md`
   Public site conventions, guest typography/layout rules, and guest route expectations.
 - `docs/customer.md`

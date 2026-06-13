@@ -13,7 +13,7 @@ import {
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
 import { CommentSection } from "@/features/comments/components/comment-section";
 import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
-import type { Offering } from "@/features/offerings/types";
+import { getOfferingTypeLabel, type Offering } from "@/features/offerings/types";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
 import { getCurrentUser } from "@/lib/auth";
 import { getInvitationTemplateDefaults, getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
@@ -443,8 +443,8 @@ export async function renderGeneralOfferingPage(offering: Offering) {
       <JsonLd data={offeringJsonLd} />
       <OfferingDetailLayout
         offering={offering}
-        eyebrow="Sản phẩm"
-        offeringLabel="Hàng catalog"
+        eyebrow={offering.fulfillmentType === "service" ? "Dịch vụ" : "Sản phẩm"}
+        offeringLabel={getOfferingTypeLabel(offering.offeringType)}
         metaRows={[
           ["Tình trạng", getStockLabel(offering)],
           ["Bàn giao", getFulfillmentLabel(offering.fulfillmentType)],

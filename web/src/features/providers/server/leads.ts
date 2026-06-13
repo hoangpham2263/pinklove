@@ -7,8 +7,22 @@ import { query, withTransaction } from "@/lib/database";
 export const VENDOR_LEAD_STATUSES = ["new", "contacted", "quoted", "won", "lost", "closed"] as const;
 export const VENDOR_QUOTE_STATUSES = ["draft", "sent", "accepted", "rejected", "expired"] as const;
 
+export type VendorLeadAdminRow = {
+  id: string;
+  provider: string;
+  customer: string | null;
+  offering: string | null;
+  budget: string;
+  event_date: string | null;
+  status: string;
+  quote_amount: string | null;
+  quote_status: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function listVendorLeadsForAdmin() {
-  const result = await query<Record<string, unknown>>(
+  const result = await query<VendorLeadAdminRow>(
     `
       SELECT
         lead.id,
@@ -206,6 +220,47 @@ export async function listVendorLeadsForUser(userId: string) {
   return result.rows;
 }
 
+export async function listAvailableTimeSlotsForVendorLeads(userId: string) {
+  const result = await query<{
+    lead_id: string;
+    slot_id: string;
+    provider_name: string;
+    offering_name: string | null;
+    starts_at: string;
+    ends_at: string;
+    availability_kind: string;
+  }>(
+    `
+      SELECT
+        lead.id AS lead_id,
+        slot.id AS slot_id,
+        provider.display_name AS provider_name,
+        offering.name AS offering_name,
+        slot.starts_at::text,
+        slot.ends_at::text,
+        slot.availability_kind
+      FROM vendor_leads lead
+      INNER JOIN providers provider ON provider.id = lead.provider_id
+      INNER JOIN provider_time_slots slot
+        ON slot.provider_id = lead.provider_id
+       AND slot.status = 'available'
+       AND slot.starts_at >= NOW()
+       AND (
+         lead.offering_id IS NULL
+         OR slot.offering_id IS NULL
+         OR slot.offering_id = lead.offering_id
+       )
+      LEFT JOIN offerings offering ON offering.id = COALESCE(slot.offering_id, lead.offering_id)
+      WHERE lead.user_id = $1
+        AND lead.status IN ('new', 'contacted', 'quoted')
+      ORDER BY slot.starts_at ASC
+      LIMIT 80
+    `,
+    [userId]
+  );
+  return result.rows;
+}
+
 export async function updateVendorLeadStatus(providerId: string, leadId: string, status: string) {
   const result = await query<{ id: string }>(
     `
@@ -246,7 +301,7 @@ export async function createVendorQuote(input: {
   });
 }
 
-export async function acceptVendorQuote(input: { userId: string; leadId: string }) {
+export async function acceptVendorQuote(input: { userId: string; leadId: string; providerTimeSlotId?: string | null }) {
   const leadResult = await query<{
     id: string;
     provider_id: string;
@@ -254,6 +309,7 @@ export async function acceptVendorQuote(input: { userId: string; leadId: string 
     offering_name: string | null;
     amount: string;
     quote_id: string;
+    event_date: string | null;
   }>(
     `
       SELECT
@@ -262,7 +318,8 @@ export async function acceptVendorQuote(input: { userId: string; leadId: string 
         lead.offering_id,
         offering.name AS offering_name,
         quote.amount::text,
-        quote.id AS quote_id
+        quote.id AS quote_id,
+        lead.event_date::text
       FROM vendor_leads lead
       INNER JOIN LATERAL (
         SELECT id, amount
@@ -280,15 +337,40 @@ export async function acceptVendorQuote(input: { userId: string; leadId: string 
   const lead = leadResult.rows[0];
   if (!lead) throw new Error("VENDOR_QUOTE_NOT_FOUND");
 
+  let scheduledAt: string | null = lead.event_date ? `${lead.event_date}T09:00:00+07:00` : null;
+  let providerTimeSlotId: string | null = null;
+
+  if (input.providerTimeSlotId) {
+    const slotResult = await query<{ id: string; starts_at: string }>(
+      `
+        SELECT id, starts_at::text
+        FROM provider_time_slots
+        WHERE id = $1
+          AND provider_id = $2
+          AND status = 'available'
+          AND starts_at >= NOW()
+          AND ($3::text IS NULL OR offering_id IS NULL OR offering_id = $3)
+        LIMIT 1
+      `,
+      [input.providerTimeSlotId, lead.provider_id, lead.offering_id]
+    );
+    const slot = slotResult.rows[0];
+    if (!slot) throw new Error("VENDOR_SLOT_NOT_AVAILABLE");
+    providerTimeSlotId = slot.id;
+    scheduledAt = slot.starts_at;
+  }
+
   const booking = await createBooking({
     userId: input.userId,
+    scheduledAt,
+    providerTimeSlotId,
     items: [{
       offeringId: lead.offering_id,
       providerId: lead.provider_id,
       title: lead.offering_name || "Vendor service",
       unitPrice: Number(lead.amount),
     }],
-    metadata: { vendorLeadId: lead.id, vendorQuoteId: lead.quote_id },
+    metadata: { vendorLeadId: lead.id, vendorQuoteId: lead.quote_id, bookingSource: "vendor_quote" },
     actorUserId: input.userId,
   });
 

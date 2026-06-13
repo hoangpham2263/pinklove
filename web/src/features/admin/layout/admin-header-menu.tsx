@@ -43,6 +43,7 @@ export function AdminHeaderMenu({ permissionKeys }: { permissionKeys?: string[] 
                 href={feature.href}
                 exact={feature.exact}
                 matchPrefixes={feature.matchPrefixes}
+                excludePrefixes={feature.excludePrefixes}
                 className="flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
                 onClick={() => setOpen(false)}
               >
