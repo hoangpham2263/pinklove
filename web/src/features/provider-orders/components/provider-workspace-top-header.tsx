@@ -3,6 +3,7 @@
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { ProviderNavSubmitButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderWorkspaceHeaderMenu } from "@/features/provider-orders/components/provider-workspace-header-menu";
 import { ROUTES } from "@/lib/routes";
 
@@ -42,9 +43,7 @@ export function ProviderWorkspaceTopHeader({
           <NotificationBell listHref={portalHref} />
           <span className="hidden text-sm md:inline">{username}</span>
           <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
-            <button type="submit" className="text-sm font-medium transition-colors hover:underline">
-              Đăng xuất
-            </button>
+            <ProviderNavSubmitButton className="px-0 py-0 hover:bg-transparent hover:underline">Đăng xuất</ProviderNavSubmitButton>
           </form>
           <ProviderWorkspaceHeaderMenu />
         </div>

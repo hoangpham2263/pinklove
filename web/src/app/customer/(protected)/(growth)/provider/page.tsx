@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { ExternalLink, Settings2, Store, UserCircle2 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CustomerLinkButton, CustomerOutlineButton } from "@/features/customer/ui/customer-buttons";
 import { getUserProfile, requireAppUser } from "@/lib/auth";
 import { isProviderRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
@@ -20,14 +19,17 @@ function SummaryBox({ label, value }: { label: string; value: string }) {
 function ActionLink({ href, label, disabled = false }: { href: string; label: string; disabled?: boolean }) {
   if (disabled) {
     return (
-      <Button className="w-full justify-start" variant="outline" disabled>
+      <CustomerOutlineButton className="w-full justify-start" disabled>
         {label}
-      </Button>
+      </CustomerOutlineButton>
     );
   }
 
   return (
-    <Button className="w-full justify-between" variant="outline" render={<Link href={href}>{label}<ExternalLink className="size-4" /></Link>} />
+    <CustomerLinkButton href={href} className="w-full justify-between">
+      {label}
+      <ExternalLink className="size-4" />
+    </CustomerLinkButton>
   );
 }
 
@@ -58,7 +60,7 @@ export default async function CustomerProviderPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Tài khoản này vẫn có thể truy cập khu customer chung, nhưng chưa được gắn actor `PROVIDER`.</p>
-            <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.DASHBOARD}>Quay lại dashboard</Link>} />
+            <CustomerLinkButton href={ROUTES.CUSTOMER.DASHBOARD}>Quay lại dashboard</CustomerLinkButton>
           </CardContent>
         </Card>
       ) : null}
@@ -133,7 +135,7 @@ export default async function CustomerProviderPage() {
                   <p className="text-sm text-muted-foreground">{profile.providerPortalSlug || "Chưa có portal slug"}</p>
                 </div>
               </div>
-              <Button className="w-full" render={<Link href={ROUTES.CUSTOMER.CONFIG_PROFILE}>Cập nhật hồ sơ</Link>} />
+              <CustomerLinkButton href={ROUTES.CUSTOMER.CONFIG_PROFILE} className="w-full">Cập nhật hồ sơ</CustomerLinkButton>
             </CardContent>
           </Card>
 

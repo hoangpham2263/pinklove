@@ -2,6 +2,7 @@
 
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { CustomerHeaderMenu } from "@/features/customer/components/customer-header-menu";
+import { CustomerNavSubmitButton } from "@/features/customer/ui/customer-buttons";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ROUTES } from "@/lib/routes";
 
@@ -40,9 +41,7 @@ export function CustomerTopHeader({
           <NotificationBell />
           <span>{username}</span>
           <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
-            <button type="submit" className="hover:underline">
-              Logout
-            </button>
+            <CustomerNavSubmitButton className="px-0 py-0 hover:bg-transparent hover:underline">Logout</CustomerNavSubmitButton>
           </form>
           <CustomerHeaderMenu />
         </div>

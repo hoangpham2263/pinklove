@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { PageToast } from "@/components/common/page-toast";
-import { Button } from "@/components/ui/button";
+import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderAssignmentPanel } from "@/features/provider-orders/components/provider-assignment-panel";
 import { ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { getProviderOrderDetailForProvider } from "@/features/provider-orders/server/service";
@@ -42,16 +41,10 @@ export default async function ProviderOrderDetailPage({
         title={detail.order.orderNumber}
         description="Theo dõi tiến độ xử lý đơn hàng và cập nhật ngay khi có thay đổi để đội ngũ quản lý nắm tiến độ theo thời gian thực."
         actions={
-          <Button
-            variant="outline"
-            className="gap-2"
-            render={
-              <Link href={ROUTES.PROVIDER.ORDERS}>
-                <ArrowLeft className="h-4 w-4" />
-                Danh sách đơn hàng
-              </Link>
-            }
-          />
+          <ProviderLinkButton href={ROUTES.PROVIDER.ORDERS} className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Danh sách đơn hàng
+          </ProviderLinkButton>
         }
       />
 

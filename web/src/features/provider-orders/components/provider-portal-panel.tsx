@@ -17,9 +17,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
+import { ProviderInput, ProviderSelect } from "@/features/provider-orders/components/provider-form";
+import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { ProviderTableActionButton, ProviderTableActions } from "@/features/provider-orders/components/provider-table-actions";
 import type { ProviderAssignmentStatus, ProviderOrderSummary } from "@/features/provider-orders/types";
@@ -144,7 +145,7 @@ export function ProviderPortalPanel({
         ),
         cell: ({ row }) => (
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="block truncate font-medium text-zinc-950">{row.original.order.orderNumber}</span>
+            <span className="block truncate font-medium text-foreground">{row.original.order.orderNumber}</span>
             {row.original.order.metadata.requestVatInvoice ? (
               <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                 VAT
@@ -279,56 +280,28 @@ export function ProviderPortalPanel({
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tổng đơn được giao</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{stats.total}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Active</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{stats.active}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Review</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{stats.review}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Completed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{stats.completed}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <ProviderOverviewGrid>
+        <ProviderOverviewCard title="Tổng đơn được giao" value={stats.total} />
+        <ProviderOverviewCard title="Active" value={stats.active} />
+        <ProviderOverviewCard title="Review" value={stats.review} />
+        <ProviderOverviewCard title="Completed" value={stats.completed} />
+      </ProviderOverviewGrid>
 
       <Card className="border-zinc-200/80">
         <CardHeader className="gap-4 border-b">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <CardTitle>Đơn hàng được giao</CardTitle>
             <div className="flex flex-col gap-3 md:flex-row">
-              <Input
+              <ProviderInput
                 value={globalFilter}
                 onChange={(event) => setGlobalFilter(event.target.value)}
                 placeholder="Tìm theo mã đơn, khách hàng, sản phẩm..."
                 className="w-full md:w-72"
               />
-              <select
+              <ProviderSelect
                 value={String(table.getColumn("assignmentStatus")?.getFilterValue() ?? "")}
                 onChange={(event) => table.getColumn("assignmentStatus")?.setFilterValue(event.target.value)}
-                className="h-10 rounded-md border bg-background px-3 pr-10 text-sm"
+                className="md:w-52"
               >
                 <option value="">Tất cả trạng thái</option>
                 <option value="pending_confirmation">Pending confirmation</option>
@@ -337,11 +310,11 @@ export function ProviderPortalPanel({
                 <option value="ready_for_review">Ready for review</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
-              </select>
-              <select
+              </ProviderSelect>
+              <ProviderSelect
                 value={String(table.getColumn("paymentStatus")?.getFilterValue() ?? "")}
                 onChange={(event) => table.getColumn("paymentStatus")?.setFilterValue(event.target.value)}
-                className="h-10 rounded-md border bg-background px-3 pr-10 text-sm"
+                className="md:w-48"
               >
                 <option value="">Tất cả thanh toán</option>
                 <option value="unpaid">Unpaid</option>
@@ -349,7 +322,7 @@ export function ProviderPortalPanel({
                 <option value="paid">Paid</option>
                 <option value="failed">Failed</option>
                 <option value="refunded">Refunded</option>
-              </select>
+              </ProviderSelect>
             </div>
           </div>
         </CardHeader>

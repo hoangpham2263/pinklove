@@ -1,8 +1,6 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
 import { getProviderOfferingSupplierRequestStatusLabel } from "@/features/provider-offering-submissions/labels";
 import { listSupplierRequestsForProvider } from "@/features/provider-offering-submissions/server/service";
+import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { formatVnd } from "@/lib/currency";
@@ -21,7 +19,7 @@ export default async function ProviderSupplyRequestsPage() {
       <ProviderPageHeader
         title="Yêu cầu cung cấp của tôi"
         description="Theo dõi các dịch vụ/sản phẩm bạn đã xin cung cấp và phản hồi duyệt từ admin."
-        actions={<Button render={<Link href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem dịch vụ/sản phẩm cần provider</Link>} />}
+        actions={<ProviderLinkButton href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem dịch vụ/sản phẩm cần provider</ProviderLinkButton>}
       />
 
       <ProviderSectionCard title="Danh sách yêu cầu">

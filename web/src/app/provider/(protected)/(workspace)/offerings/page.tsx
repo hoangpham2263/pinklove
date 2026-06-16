@@ -1,10 +1,8 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { ProviderOfferingRequestsTable } from "@/features/provider-offering-submissions/components/provider-offering-requests-table";
 import { listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
+import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 
@@ -17,7 +15,7 @@ export default async function ProviderOfferingsPage() {
       <ProviderPageHeader
         title="Yêu cầu dịch vụ/sản phẩm"
         description="Provider gửi yêu cầu nhận dịch vụ hoặc sản phẩm để admin kiểm tra, duyệt và cấp quyền lên lịch/bán."
-        actions={<Button render={<Link href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</Link>} />}
+        actions={<ProviderLinkButton href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</ProviderLinkButton>}
       />
 
       <ProviderOverviewGrid className="md:grid-cols-3 lg:grid-cols-3">

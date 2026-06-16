@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { requireAppUser } from "@/lib/auth";
 import { getInvitationPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
@@ -43,8 +42,8 @@ export default async function InvitationEditorPage({ params, searchParams }: Inv
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Quay lại danh sách</Link>} />
-          <Button render={<Link href={`${publicHref}?preview=1`}>Preview</Link>} />
+          <CustomerLinkButton href={ROUTES.CUSTOMER.INVITATIONS}>Quay lại danh sách</CustomerLinkButton>
+          <CustomerLinkButton href={`${publicHref}?preview=1`}>Preview</CustomerLinkButton>
         </div>
       </div>
       <InvitationEditorForm site={invitation} publicHref={publicHref} canPublish={canPublish} />

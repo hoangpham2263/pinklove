@@ -16,6 +16,12 @@ Use this file for the dedicated provider portal.
   - `/provider`
 - Canonical provider working surface:
   - `/provider`
+- Provider hub pages:
+  - `/provider/work`
+  - `/provider/services`
+  - `/provider/profile`
+  - `/provider/sourcing` redirects to `/provider/services`; sourcing actions live inside the Service hub.
+  - `/provider/config`
 - Protected provider detail route:
   - `/provider/orders/[id]`
 - Provider marketplace lead queue:
@@ -163,15 +169,18 @@ Use this file for the dedicated provider portal.
 
 - Provider pages use the same shared card/button/input language as admin and customer areas.
 - Provider navigation should stay grouped by provider workflow:
-  - `Công việc`: bookings, assigned orders, leads.
-  - `Dịch vụ & hồ sơ`: offerings, portfolio, pricing, regions, availability, reviews.
-  - `Nguồn cung`: available sourcing opportunities and supply requests.
-  - `Tài khoản`: provider account, addresses, organization.
+  - top-level provider menubar mirrors the Admin shell style: show only the
+    main hub entries, then render child routes inside each hub page.
+  - `Đơn & booking`: bookings, assigned orders, leads.
+  - `Dịch vụ`: provider service/product submissions, available sourcing opportunities, supply requests, pricing.
+  - `Hồ sơ & lịch`: portfolio, regions, availability, reviews.
+  - `Tài khoản & tổ chức`: provider account, addresses, organization.
 - Keep the canonical provider portal operations-first:
   - landing + login when signed out
   - assigned-order list when signed in
   - link into per-order detail
   - realtime activity visibility
 - Keep `/provider/orders/[id]` focused on timeline and provider status updates.
-- Avoid admin-style navigation shells for the provider-facing canonical portal.
+- Customer workspace keeps its own navigation shell; provider follows the
+  Admin-style grouped menubar for operational consistency.
 - Provider operational status labels should be shown in English consistently with the rest of the project.

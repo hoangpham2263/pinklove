@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
+import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
 import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 import { ProviderAvailabilityCalendar } from "@/features/providers/components/provider-availability-calendar";
@@ -62,7 +60,7 @@ export default async function ProviderAvailabilityPage() {
             <ProviderSectionCard
               title="Cần yêu cầu nhận dịch vụ"
               description="Provider cần có dịch vụ được admin duyệt/gán trước khi khai báo lịch. Sau khi có dịch vụ, lịch sẽ được tạo theo từng dịch vụ cụ thể."
-              actions={<Button render={<Link href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</Link>} />}
+              actions={<ProviderLinkButton href={`${ROUTES.PROVIDER.OFFERING_NEW}?intent=service`}>Yêu cầu nhận dịch vụ</ProviderLinkButton>}
             >
               <ProviderEmptyState>
                 Chưa có dịch vụ nào có thể lên lịch. Hãy gửi yêu cầu nhận dịch vụ để admin kiểm tra, duyệt và cấp dịch vụ cho provider.

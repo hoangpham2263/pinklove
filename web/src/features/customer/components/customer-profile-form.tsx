@@ -3,9 +3,9 @@
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { CustomerSubmitButton } from "@/features/customer/ui/customer-buttons";
+import { CustomerField, CustomerInput, CustomerTextarea } from "@/features/customer/ui/customer-form";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { customerApi } from "@/lib/api-client.customer";
 
@@ -57,24 +57,18 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
                 <h3 className="mt-1 text-lg font-semibold">Tên hiển thị</h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label htmlFor="fullName" className="font-medium">
-                    Full name
-                  </label>
-                  <Input id="fullName" name="fullName" defaultValue={initialProfile.fullName} placeholder="Nguyen Van A" />
-                </div>
+                <CustomerField label="Full name">
+                  <CustomerInput id="fullName" name="fullName" defaultValue={initialProfile.fullName} placeholder="Nguyen Van A" />
+                </CustomerField>
 
-                <div className="space-y-2">
-                  <label htmlFor="displayName" className="font-medium">
-                    Display name
-                  </label>
-                  <Input
+                <CustomerField label="Display name">
+                  <CustomerInput
                     id="displayName"
                     name="displayName"
                     defaultValue={initialProfile.displayName}
                     placeholder="Pinklove Customer"
                   />
-                </div>
+                </CustomerField>
               </div>
             </section>
 
@@ -84,20 +78,14 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
                 <h3 className="mt-1 text-lg font-semibold">Số điện thoại và portal</h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="font-medium">
-                    Phone
-                  </label>
-                  <Input id="phone" name="phone" defaultValue={initialProfile.phone} placeholder="0901234567" />
-                </div>
+                <CustomerField label="Phone">
+                  <CustomerInput id="phone" name="phone" defaultValue={initialProfile.phone} placeholder="0901234567" />
+                </CustomerField>
 
                 {initialProfile.providerPortalSlug ? (
-                  <div className="space-y-2">
-                    <label htmlFor="providerPortalSlug" className="font-medium">
-                      Provider portal slug
-                    </label>
-                    <Input id="providerPortalSlug" name="providerPortalSlug" defaultValue={initialProfile.providerPortalSlug} readOnly />
-                  </div>
+                  <CustomerField label="Provider portal slug">
+                    <CustomerInput id="providerPortalSlug" name="providerPortalSlug" defaultValue={initialProfile.providerPortalSlug} readOnly />
+                  </CustomerField>
                 ) : (
                   <input type="hidden" name="providerPortalSlug" value="" />
                 )}
@@ -109,18 +97,15 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Giới thiệu</p>
                 <h3 className="mt-1 text-lg font-semibold">Bio</h3>
               </div>
-              <div className="space-y-2">
-                <label htmlFor="bio" className="font-medium">
-                  Bio
-                </label>
-                <textarea
+              <CustomerField label="Bio">
+                <CustomerTextarea
                   id="bio"
                   name="bio"
                   defaultValue={initialProfile.bio}
-                  className="flex min-h-28 w-full rounded-lg border border-input bg-transparent px-3 py-2 outline-none placeholder:text-muted-foreground"
+                  className="min-h-28"
                   placeholder="Tell us about yourself..."
                 />
-              </div>
+              </CustomerField>
             </section>
           </CardContent>
         </Card>
@@ -133,9 +118,9 @@ export function CustomerProfileForm({ initialProfile }: CustomerProfileFormProps
           </CardHeader>
           <CardContent className="space-y-4">
             <MediaSelector value={avatarUrl} onChange={setAvatarUrl} />
-            <Button type="submit" className="w-full" disabled={isSaving}>
+            <CustomerSubmitButton type="submit" className="w-full" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save profile"}
-            </Button>
+            </CustomerSubmitButton>
           </CardContent>
         </Card>
       </div>

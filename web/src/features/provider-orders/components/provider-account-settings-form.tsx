@@ -4,11 +4,11 @@ import { type FormEvent, useMemo, useState } from "react";
 import { Building2, MapPin, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
+import { ProviderLinkButton, ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderField, ProviderInput, ProviderTextarea } from "@/features/provider-orders/components/provider-form";
 import { customerApi } from "@/lib/api-client.customer";
 import { providerApi } from "@/lib/api-client.provider";
 import type { UserProfile, UserShippingProfile } from "@/lib/auth";
@@ -37,10 +37,9 @@ function Field({
   disabled?: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      <label htmlFor={name} className="text-sm font-medium">{label}</label>
-      <Input id={name} name={name} type={type} defaultValue={defaultValue ?? ""} placeholder={placeholder} disabled={disabled} />
-    </div>
+    <ProviderField label={label}>
+      <ProviderInput id={name} name={name} type={type} defaultValue={defaultValue ?? ""} placeholder={placeholder} disabled={disabled} />
+    </ProviderField>
   );
 }
 
@@ -118,16 +117,15 @@ export function ProviderAccountSettingsForm({
                 <Field label="Tên hiển thị" name="displayName" defaultValue={initialProfile.displayName} placeholder="Studio ABC" />
                 <Field label="Số điện thoại" name="phone" defaultValue={initialProfile.phone} placeholder="0901234567" />
                 <Field label="Provider portal slug" name="providerPortalSlug" defaultValue={initialProfile.providerPortalSlug} disabled />
-                <div className="space-y-2 md:col-span-2">
-                  <label htmlFor="bio" className="text-sm font-medium">Bio</label>
-                  <textarea
+                <ProviderField label="Bio" className="md:col-span-2">
+                  <ProviderTextarea
                     id="bio"
                     name="bio"
                     defaultValue={initialProfile.bio}
-                    className="flex min-h-28 w-full rounded-lg border border-input bg-transparent px-3 py-2 outline-none placeholder:text-muted-foreground"
+                    className="min-h-28"
                     placeholder="Giới thiệu ngắn về provider..."
                   />
-                </div>
+                </ProviderField>
               </div>
             </section>
 
@@ -184,7 +182,7 @@ export function ProviderAccountSettingsForm({
                   Chưa có địa chỉ provider. Hãy thêm địa chỉ ở trang cấu hình địa chỉ.
                 </div>
               )}
-              <Button type="button" variant="outline" render={<a href={ROUTES.PROVIDER.CONFIG_ADDRESSES}>Mở cấu hình địa chỉ</a>} />
+              <ProviderLinkButton href={ROUTES.PROVIDER.CONFIG_ADDRESSES}>Mở cấu hình địa chỉ</ProviderLinkButton>
             </div>
           </CardContent>
         </Card>
@@ -197,10 +195,10 @@ export function ProviderAccountSettingsForm({
           </CardHeader>
           <CardContent className="space-y-4">
             <MediaSelector value={avatarUrl} onChange={setAvatarUrl} />
-            <Button type="submit" className="w-full" disabled={isSaving}>
+            <ProviderSubmitButton type="submit" className="w-full" disabled={isSaving}>
               {isSaving ? "Đang lưu..." : "Lưu hồ sơ"}
-            </Button>
-            <Button type="button" variant="outline" className="w-full" render={<a href={portalHref}>Mở portal đối tác</a>} />
+            </ProviderSubmitButton>
+            <ProviderLinkButton href={portalHref} className="w-full">Mở portal đối tác</ProviderLinkButton>
           </CardContent>
         </Card>
 

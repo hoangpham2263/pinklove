@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { ArrowRight, CheckCircle2, CircleDollarSign, FileText, FolderHeart, LayoutDashboard, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CustomerActionLinkTile, CustomerCreateLinkButton, CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
@@ -225,16 +223,10 @@ export default async function CustomerDashboardPage() {
                 </div>
               </>
             )}
-            <Button
-              variant="outline"
-              className="w-full rounded-md"
-              render={
-                <Link href={ROUTES.CUSTOMER.AFFILIATE}>
-                  Mở Affiliate
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              }
-            />
+            <CustomerLinkButton href={ROUTES.CUSTOMER.AFFILIATE} className="w-full rounded-md">
+              Mở Affiliate
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </CustomerLinkButton>
           </CardContent>
         </Card>
       </div>
@@ -242,11 +234,7 @@ export default async function CustomerDashboardPage() {
       <Card className="rounded-lg">
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>Thiệp gần đây</CardTitle>
-          <Button
-            variant="outline"
-            className="rounded-md"
-            render={<Link href={ROUTES.CUSTOMER.INVITATIONS}>Xem tất cả</Link>}
-          />
+          <CustomerLinkButton href={ROUTES.CUSTOMER.INVITATIONS} className="rounded-md">Xem tất cả</CustomerLinkButton>
         </CardHeader>
         <CardContent>
           {recentInvitations.length === 0 ? (

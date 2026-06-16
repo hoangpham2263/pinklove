@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { InvitationCard } from "@/features/invitations/components/invitation-card";
 import { requireAppUser } from "@/lib/auth";
 import { getInvitationPath } from "@/lib/public-paths";
@@ -21,8 +20,8 @@ export default async function CustomerInvitationsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" render={<Link href={ROUTES.TEMPLATES}>Tạo từ mẫu</Link>} />
-          <Button render={<Link href={ROUTES.BUILDER}>Tự tạo thiệp</Link>} />
+          <CustomerLinkButton href={ROUTES.TEMPLATES}>Tạo từ mẫu</CustomerLinkButton>
+          <CustomerLinkButton href={ROUTES.BUILDER}>Tự tạo thiệp</CustomerLinkButton>
         </div>
       </div>
 

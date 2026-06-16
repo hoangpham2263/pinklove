@@ -28,12 +28,6 @@ type FooterSocialLink = FooterRepeaterLink & {
   platform?: string;
 };
 
-type FloatingBarItem = {
-  image?: string;
-  label?: string;
-  url?: string;
-};
-
 type PinkCloudMessageItem = {
   message?: string;
 };
@@ -46,7 +40,6 @@ type GuestFooterGlobalFields = {
   footerCopyright?: string;
   footerIntroItems?: FooterIntroItem[];
   footerSocialLinks?: FooterSocialLink[];
-  floatingBarItems?: FloatingBarItem[];
   pinkCloudMessages?: PinkCloudMessageItem[];
 };
 
@@ -78,18 +71,6 @@ async function normalizeIntroItems(items: FooterIntroItem[] | undefined) {
         label: item.label!.trim(),
         value: item.value!.trim(),
         href: item.href?.trim() || "",
-      }))
-  );
-}
-
-async function normalizeFloatingBarItems(items: FloatingBarItem[] | undefined) {
-  return Promise.all(
-    (Array.isArray(items) ? items : [])
-      .filter((item) => item.url?.trim())
-      .map(async (item) => ({
-        image: await resolveMediaUrl(item.image),
-        label: item.label?.trim() || "Floating button",
-        url: normalizeActionUrl(item.url!.trim()),
       }))
   );
 }
@@ -170,7 +151,6 @@ export async function GuestFooter({
   const brandTagline = globalFields.footerBrandTagline?.trim();
   const newsletterPlaceholder = globalFields.footerNewsletterPlaceholder?.trim();
   const copyright = globalFields.footerCopyright?.trim();
-  const floatingLinks = await normalizeFloatingBarItems(globalFields.floatingBarItems);
   const pinkCloudMessages = normalizePinkCloudMessages(globalFields.pinkCloudMessages);
 
   return (
@@ -271,26 +251,6 @@ export async function GuestFooter({
       </footer>
 
       <div className="fixed right-4 bottom-10 z-40 flex flex-col items-center gap-2.5">
-        {floatingLinks.map((item) => {
-          const Icon = getSocialIcon(item.label);
-
-          return (
-            <a
-              key={`${item.label}-${item.url}`}
-              href={item.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200/30 bg-[radial-gradient(circle_at_30%_30%,#93f5c6_0%,#69daa8_44%,#2a6b56_100%)] text-white shadow-[0_10px_28px_rgba(42,107,86,0.45)] transition hover:-translate-y-0.5"
-              aria-label={item.label}
-            >
-              {item.image ? (
-                <img src={item.image} alt={item.label} className="h-6 w-6 object-contain" />
-              ) : (
-                <Icon className="h-5 w-5" />
-              )}
-            </a>
-          );
-        })}
         <ScrollToTopButton />
         <GuestPinkCloud messages={pinkCloudMessages} />
       </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminLinkButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminField, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { adminApi } from "@/lib/api-client.admin";
@@ -170,13 +171,11 @@ export function AdminProviderAssignmentPanel({
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="font-medium">Provider phu trach</label>
-                <select
+              <AdminField label="Provider phu trach">
+                <AdminSelect
                   name="providerId"
                   value={providerId}
                   onChange={(event) => setProviderUserId(event.target.value)}
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                 >
                   <option value="" disabled>
                     Chon provider
@@ -186,19 +185,18 @@ export function AdminProviderAssignmentPanel({
                       {provider.label}
                     </option>
                   ))}
-                </select>
-              </div>
+                </AdminSelect>
+              </AdminField>
 
-              <div className="space-y-2">
-                <label className="font-medium">Ghi chu noi bo</label>
-                <textarea
+              <AdminField label="Ghi chu noi bo">
+                <AdminTextarea
                   name="internalNote"
                   value={internalNote}
                   onChange={(event) => setInternalNote(event.target.value)}
-                  className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  className="min-h-24"
                   placeholder="Scope cong viec, deadline, dau moi ban giao..."
                 />
-              </div>
+              </AdminField>
 
               <AdminSubmitButton className="w-full" disabled={isSaving || !providerId}>
                 {isSaving ? "Dang luu..." : "Luu phan cong provider"}

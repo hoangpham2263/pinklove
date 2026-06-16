@@ -26,8 +26,8 @@ export function ProviderWorkspaceNavLink({
   excludePaths,
   excludePrefixes,
   className,
-  activeClassName = "bg-zinc-950 text-white",
-  inactiveClassName = "text-zinc-700 hover:bg-zinc-100",
+  activeClassName = "bg-muted",
+  inactiveClassName = "hover:bg-muted",
   onNavigate,
   children,
 }: ProviderWorkspaceNavLinkProps) {

@@ -3,7 +3,8 @@ import { CalendarDays, CheckSquare2, ChevronDown, ClipboardCheck, Images, Settin
 
 import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { CustomerSubmitButton } from "@/features/customer/ui/customer-buttons";
+import { CustomerField, CustomerInput, CustomerSelect, CustomerTextarea } from "@/features/customer/ui/customer-form";
 import { MediaCollectionsManager } from "@/features/media/components/media-collections-manager";
 import { listMediaCollections } from "@/features/media/server/media-collections";
 import {
@@ -19,10 +20,7 @@ type PlanningPageProps = {
   searchParams: Promise<{ site?: string }>;
 };
 
-const inputClass = "h-9 w-full rounded-md border bg-background px-3 text-sm";
-const textareaClass = "min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm";
 const formClass = "grid gap-3";
-const buttonClass = "inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground sm:w-fit";
 
 function MetricCard({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
@@ -91,10 +89,10 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
         </div>
         {workspace.sites.length > 0 ? (
           <NativeForm method="GET" className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(240px,1fr)_auto]">
-            <select name="site" defaultValue={site?.id} className={inputClass}>
+            <CustomerSelect name="site" defaultValue={site?.id}>
               {workspace.sites.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
-            </select>
-            <button className={buttonClass}>Mở</button>
+            </CustomerSelect>
+            <CustomerSubmitButton>Mở</CustomerSubmitButton>
           </NativeForm>
         ) : null}
       </div>
@@ -123,11 +121,11 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
               <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                 <input type="hidden" name="intent" value="update_project" />
                 <input type="hidden" name="weddingSiteId" value={site.id} />
-                <label className="space-y-2 text-sm"><span>Trạng thái</span><select name="projectStatus" defaultValue={site.project_status} className={inputClass}><option value="draft">Draft</option><option value="active">Active</option><option value="completed">Completed</option><option value="archived">Archived</option></select></label>
-                <label className="space-y-2 text-sm"><span>Ngân sách</span><Input name="budget" type="number" min="0" defaultValue={site.budget} /></label>
-                <label className="space-y-2 text-sm"><span>Ngày cưới</span><Input name="eventDate" type="date" defaultValue={site.event_date ?? ""} /></label>
-                <label className="space-y-2 text-sm"><span>Mục tiêu khách</span><Input name="guestTarget" type="number" min="0" defaultValue={site.guest_target} /></label>
-                <button className={buttonClass}>Lưu kế hoạch</button>
+                <CustomerField label="Trạng thái"><CustomerSelect name="projectStatus" defaultValue={site.project_status}><option value="draft">Draft</option><option value="active">Active</option><option value="completed">Completed</option><option value="archived">Archived</option></CustomerSelect></CustomerField>
+                <CustomerField label="Ngân sách"><CustomerInput name="budget" type="number" min="0" defaultValue={site.budget} /></CustomerField>
+                <CustomerField label="Ngày cưới"><CustomerInput name="eventDate" type="date" defaultValue={site.event_date ?? ""} /></CustomerField>
+                <CustomerField label="Mục tiêu khách"><CustomerInput name="guestTarget" type="number" min="0" defaultValue={site.guest_target} /></CustomerField>
+                <CustomerSubmitButton>Lưu kế hoạch</CustomerSubmitButton>
               </NativeForm>
             </PlanningPanel>
 
@@ -155,15 +153,15 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
             >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_group" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <Input name="name" placeholder="Tên nhóm: Nhà trai, Bạn bè..." required /><button className={buttonClass}>Thêm nhóm</button>
+                  <CustomerInput name="name" placeholder="Tên nhóm: Nhà trai, Bạn bè..." required /><CustomerSubmitButton>Thêm nhóm</CustomerSubmitButton>
                 </NativeForm>
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_guest" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <Input name="fullName" placeholder="Tên khách mời" required /><Input name="phone" placeholder="Số điện thoại" />
-                  <Input name="email" type="email" placeholder="Email" />
-                  <select name="guestGroupId" className={inputClass}><option value="">Không có nhóm</option>{workspace.groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select>
-                  <Input name="note" placeholder="Ghi chú" />
-                  <button className={buttonClass}>Thêm khách</button>
+                  <CustomerInput name="fullName" placeholder="Tên khách mời" required /><CustomerInput name="phone" placeholder="Số điện thoại" />
+                  <CustomerInput name="email" type="email" placeholder="Email" />
+                  <CustomerSelect name="guestGroupId"><option value="">Không có nhóm</option>{workspace.groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</CustomerSelect>
+                  <CustomerInput name="note" placeholder="Ghi chú" />
+                  <CustomerSubmitButton>Thêm khách</CustomerSubmitButton>
                 </NativeForm>
                 <div className="divide-y rounded-md border">
                   {workspace.guests.map((guest) => <div key={guest.id} className="flex justify-between gap-3 p-3 text-sm"><span className="font-medium">{guest.full_name}</span><span className="text-muted-foreground">{guest.group_label || "Chưa phân nhóm"}</span></div>)}
@@ -179,16 +177,16 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
             >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="save_rsvp" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <select name="guestId" className={inputClass}>
+                  <CustomerSelect name="guestId">
                     <option value="">Không liên kết khách mời</option>
                     {workspace.guests.map((guest) => <option key={guest.id} value={guest.id}>{guest.full_name}</option>)}
-                  </select>
-                  <Input name="attendeeName" placeholder="Tên người phản hồi" required />
-                  <Input name="attendeeCount" type="number" min="1" defaultValue="1" />
-                  <select name="responseStatus" className={inputClass}><option value="accepted">Tham dự</option><option value="declined">Không tham dự</option><option value="pending">Chưa xác nhận</option></select>
-                  <Input name="mealChoice" placeholder="Lựa chọn món ăn" />
-                  <Input name="specialRequests" placeholder="Yêu cầu đặc biệt" />
-                  <button className={buttonClass}>Lưu RSVP</button>
+                  </CustomerSelect>
+                  <CustomerInput name="attendeeName" placeholder="Tên người phản hồi" required />
+                  <CustomerInput name="attendeeCount" type="number" min="1" defaultValue="1" />
+                  <CustomerSelect name="responseStatus"><option value="accepted">Tham dự</option><option value="declined">Không tham dự</option><option value="pending">Chưa xác nhận</option></CustomerSelect>
+                  <CustomerInput name="mealChoice" placeholder="Lựa chọn món ăn" />
+                  <CustomerInput name="specialRequests" placeholder="Yêu cầu đặc biệt" />
+                  <CustomerSubmitButton>Lưu RSVP</CustomerSubmitButton>
                 </NativeForm>
                 <div className="divide-y rounded-md border">
                   {workspace.rsvps.map((rsvp) => <div key={rsvp.id} className="flex justify-between gap-3 p-3 text-sm"><span className="font-medium">{rsvp.attendee_name}</span><span className="text-muted-foreground">{rsvp.response_status} · {rsvp.attendee_count} người</span></div>)}
@@ -204,16 +202,16 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
             >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_table" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <Input name="name" placeholder="Tên bàn" required /><Input name="capacity" type="number" min="0" placeholder="Sức chứa" />
-                  <Input name="notes" placeholder="Ghi chú" />
-                  <button className={buttonClass}>Thêm bàn</button>
+                  <CustomerInput name="name" placeholder="Tên bàn" required /><CustomerInput name="capacity" type="number" min="0" placeholder="Sức chứa" />
+                  <CustomerInput name="notes" placeholder="Ghi chú" />
+                  <CustomerSubmitButton>Thêm bàn</CustomerSubmitButton>
                 </NativeForm>
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="assign_guest" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <select name="tableId" className={inputClass} required><option value="">Chọn bàn</option>{workspace.tables.map((table) => <option key={table.id} value={table.id}>{table.name}</option>)}</select>
-                  <select name="guestId" className={inputClass} required><option value="">Chọn khách</option>{workspace.guests.map((guest) => <option key={guest.id} value={guest.id}>{guest.full_name}</option>)}</select>
-                  <Input name="seatNumber" placeholder="Số ghế" />
-                  <button className={buttonClass}>Xếp chỗ</button>
+                  <CustomerSelect name="tableId" required><option value="">Chọn bàn</option>{workspace.tables.map((table) => <option key={table.id} value={table.id}>{table.name}</option>)}</CustomerSelect>
+                  <CustomerSelect name="guestId" required><option value="">Chọn khách</option>{workspace.guests.map((guest) => <option key={guest.id} value={guest.id}>{guest.full_name}</option>)}</CustomerSelect>
+                  <CustomerInput name="seatNumber" placeholder="Số ghế" />
+                  <CustomerSubmitButton>Xếp chỗ</CustomerSubmitButton>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.tables.map((table) => <div key={table.id} className="flex justify-between p-3 text-sm"><span className="font-medium">{table.name}</span><span className="text-muted-foreground">{table.assigned_guests}/{table.capacity}</span></div>)}</div>
             </PlanningPanel>
@@ -226,12 +224,12 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
             >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_task" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <Input name="title" placeholder="Tên công việc" required />
-                  <select name="category" className={inputClass}>{WEDDING_TASK_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select>
-                  <select name="status" className={inputClass}>{WEDDING_TASK_STATUSES.map((item) => <option key={item}>{item}</option>)}</select>
-                  <Input name="priority" placeholder="Mức ưu tiên" defaultValue="normal" />
-                  <Input name="dueDate" type="date" /><textarea name="description" className={textareaClass} placeholder="Mô tả" />
-                  <button className={buttonClass}>Thêm công việc</button>
+                  <CustomerInput name="title" placeholder="Tên công việc" required />
+                  <CustomerSelect name="category">{WEDDING_TASK_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</CustomerSelect>
+                  <CustomerSelect name="status">{WEDDING_TASK_STATUSES.map((item) => <option key={item}>{item}</option>)}</CustomerSelect>
+                  <CustomerInput name="priority" placeholder="Mức ưu tiên" defaultValue="normal" />
+                  <CustomerInput name="dueDate" type="date" /><CustomerTextarea name="description" className="min-h-20" placeholder="Mô tả" />
+                  <CustomerSubmitButton>Thêm công việc</CustomerSubmitButton>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.tasks.map((task) => <div key={task.id} className="p-3 text-sm"><div className="flex justify-between gap-3"><span className="font-medium">{task.title}</span><span className="text-muted-foreground">{task.status}</span></div><p className="mt-1 text-xs text-muted-foreground">{task.category}{task.due_date ? ` · ${task.due_date}` : ""}</p></div>)}</div>
             </PlanningPanel>
@@ -244,12 +242,12 @@ export default async function WeddingPlanningPage({ searchParams }: PlanningPage
             >
                 <NativeForm action={ROUTES.API.CUSTOMER.WEDDING_PLANNING} method="POST" className={formClass}>
                   <input type="hidden" name="intent" value="create_timeline" /><input type="hidden" name="weddingSiteId" value={site.id} />
-                  <Input name="title" placeholder="Tên hoạt động" required />
-                  <select name="timelineType" className={inputClass}>{WEDDING_TIMELINE_TYPES.map((item) => <option key={item}>{item}</option>)}</select>
-                  <label className="space-y-1 text-sm"><span>Bắt đầu</span><Input name="startsAt" type="datetime-local" /></label>
-                  <label className="space-y-1 text-sm"><span>Kết thúc</span><Input name="endsAt" type="datetime-local" /></label>
-                  <textarea name="notes" className={textareaClass} placeholder="Ghi chú" />
-                  <button className={buttonClass}>Thêm timeline</button>
+                  <CustomerInput name="title" placeholder="Tên hoạt động" required />
+                  <CustomerSelect name="timelineType">{WEDDING_TIMELINE_TYPES.map((item) => <option key={item}>{item}</option>)}</CustomerSelect>
+                  <CustomerField label="Bắt đầu"><CustomerInput name="startsAt" type="datetime-local" /></CustomerField>
+                  <CustomerField label="Kết thúc"><CustomerInput name="endsAt" type="datetime-local" /></CustomerField>
+                  <CustomerTextarea name="notes" className="min-h-20" placeholder="Ghi chú" />
+                  <CustomerSubmitButton>Thêm timeline</CustomerSubmitButton>
                 </NativeForm>
                 <div className="divide-y rounded-md border">{workspace.timeline.map((item) => <div key={item.id} className="p-3 text-sm"><div className="flex justify-between gap-3"><span className="font-medium">{item.title}</span><span className="text-muted-foreground">{item.timeline_type}</span></div><p className="mt-1 text-xs text-muted-foreground">{item.starts_at || "Chưa đặt thời gian"}</p></div>)}</div>
             </PlanningPanel>

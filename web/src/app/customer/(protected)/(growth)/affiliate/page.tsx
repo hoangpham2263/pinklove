@@ -1,11 +1,10 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { PageToast } from "@/components/common/page-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AffiliateLinkCard } from "@/features/affiliate/components/affiliate-link-card";
 import { AffiliateApplyForm } from "@/features/affiliate/components/affiliate-apply-form";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import {
   buildAffiliateLink,
   getAffiliateAccountForUser,
@@ -122,7 +121,7 @@ export default async function CustomerAffiliatePage({ searchParams }: CustomerAf
                     code={account.code}
                     link={buildAffiliateLink(account.code, origin)}
                   />
-                  <Button render={<Link href={ROUTES.CUSTOMER.AFFILIATE_LINKS}>Tạo link affiliate theo trang</Link>} />
+                  <CustomerLinkButton href={ROUTES.CUSTOMER.AFFILIATE_LINKS}>Tạo link affiliate theo trang</CustomerLinkButton>
                 </>
               ) : null}
 

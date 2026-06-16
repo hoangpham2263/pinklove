@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VatInvoiceInfo } from "@/features/ecommerce/components/vat-invoice-info";
+import { ProviderSubmitButton } from "@/features/provider-orders/components/provider-buttons";
+import { ProviderField, ProviderInput, ProviderSelect, ProviderTextarea } from "@/features/provider-orders/components/provider-form";
 import { useRealtimeResource } from "@/features/realtime/use-realtime-resource";
 import { providerApi } from "@/lib/api-client.provider";
 import { ROUTES } from "@/lib/routes";
@@ -229,47 +230,38 @@ export function ProviderAssignmentPanel({
           <CardContent className="space-y-4 pt-5">
             <form onSubmit={handleSubmit} className="space-y-4">
               <input type="hidden" name="assignmentId" value={detail.assignment.id} />
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Trạng thái xử lý</label>
-                <select
-                  name="status"
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value as ProviderAssignmentStatus)}
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                >
+              <ProviderField label="Trạng thái xử lý">
+                <ProviderSelect name="status" value={status} onChange={(event) => setStatus(event.target.value as ProviderAssignmentStatus)}>
                   {PROVIDER_STATUSES.map((item) => (
                     <option key={item} value={item}>
                       {getProviderAssignmentStatusLabel(item)}
                     </option>
                   ))}
-                </select>
-              </div>
+                </ProviderSelect>
+              </ProviderField>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Mã tham chiếu</label>
-                <input
+              <ProviderField label="Mã tham chiếu">
+                <ProviderInput
                   name="providerReference"
                   value={providerReference}
                   onChange={(event) => setProviderReference(event.target.value)}
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                   placeholder="Ví dụ: PO, mã nội bộ, mã vận đơn"
                 />
-              </div>
+              </ProviderField>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ghi chú cập nhật</label>
-                <textarea
+              <ProviderField label="Ghi chú cập nhật">
+                <ProviderTextarea
                   name="providerNote"
                   value={providerNote}
                   onChange={(event) => setProviderNote(event.target.value)}
-                  className="min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  className="min-h-32"
                   placeholder="Ghi rõ tiến độ, vướng mắc hoặc thời gian dự kiến"
                 />
-              </div>
+              </ProviderField>
 
-              <Button type="submit" className="w-full" disabled={isSaving}>
+              <ProviderSubmitButton type="submit" className="w-full" disabled={isSaving}>
                 {isSaving ? "Đang lưu..." : "Lưu cập nhật"}
-              </Button>
+              </ProviderSubmitButton>
             </form>
           </CardContent>
         </Card>

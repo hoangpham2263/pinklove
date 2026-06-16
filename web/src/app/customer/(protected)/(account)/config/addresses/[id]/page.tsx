@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 
 import { AddressDetails } from "@/components/common/address-editor-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { getUserAddressById } from "@/features/account/server/address-service";
 import { requireAppUser } from "@/lib/auth";
 import { getSafeReturnTo } from "@/lib/return-to";
@@ -35,16 +34,11 @@ export default async function CustomerAddressDetailPage({
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <CardTitle>Chi tiết địa chỉ</CardTitle>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" render={<Link href={returnTo}>Quay lại</Link>} />
-            <Button
-              className="gap-2"
-              render={
-                <Link href={`${ROUTES.CUSTOMER.CONFIG_ADDRESS_EDIT(address.id)}?returnTo=${encodedReturnTo}`}>
-                  <Pencil className="h-4 w-4" />
-                  Sửa địa chỉ
-                </Link>
-              }
-            />
+            <CustomerLinkButton href={returnTo}>Quay lại</CustomerLinkButton>
+            <CustomerLinkButton href={`${ROUTES.CUSTOMER.CONFIG_ADDRESS_EDIT(address.id)}?returnTo=${encodedReturnTo}`} className="gap-2">
+              <Pencil className="h-4 w-4" />
+              Sửa địa chỉ
+            </CustomerLinkButton>
           </div>
         </CardHeader>
         <CardContent>

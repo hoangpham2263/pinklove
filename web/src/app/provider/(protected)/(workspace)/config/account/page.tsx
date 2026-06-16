@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
+import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderAccountSettingsForm } from "@/features/provider-orders/components/provider-account-settings-form";
 import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { listUserAddresses } from "@/features/account/server/address-service";
@@ -31,9 +29,9 @@ export default async function ProviderConfigAccountPage() {
       />
 
       <div className="flex flex-wrap gap-3">
-        <Button className="justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.CONFIG}>Quay lại cấu hình</Link>} />
-        <Button className="justify-start" variant="outline" render={<Link href={ROUTES.PROVIDER.CONFIG_ADDRESSES}>Mở cấu hình địa chỉ</Link>} />
-        <Button className="justify-start" variant="outline" render={<Link href={portalHref}>Mở portal đối tác</Link>} />
+        <ProviderLinkButton href={ROUTES.PROVIDER.CONFIG} className="justify-start">Quay lại cấu hình</ProviderLinkButton>
+        <ProviderLinkButton href={ROUTES.PROVIDER.CONFIG_ADDRESSES} className="justify-start">Mở cấu hình địa chỉ</ProviderLinkButton>
+        <ProviderLinkButton href={portalHref} className="justify-start">Mở portal đối tác</ProviderLinkButton>
       </div>
     </ProviderPage>
   );

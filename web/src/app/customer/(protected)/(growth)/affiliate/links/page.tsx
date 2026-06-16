@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { BadgePercent, MousePointerClick, TrendingUp } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AffiliateLinkBuilder } from "@/features/affiliate/components/affiliate-link-builder";
 import { getAffiliateAccountForUser } from "@/features/affiliate/server/service";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { CustomerOverviewCard, CustomerOverviewGrid } from "@/features/customer/ui/customer-overview-card";
 import { requireAppUser } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -30,7 +29,7 @@ export default async function CustomerAffiliateLinksPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>Bạn cần đăng ký chương trình affiliate trước khi tạo link giới thiệu.</p>
-            <Button render={<Link href={ROUTES.CUSTOMER.AFFILIATE}>Mở trang affiliate</Link>} />
+            <CustomerLinkButton href={ROUTES.CUSTOMER.AFFILIATE}>Mở trang affiliate</CustomerLinkButton>
           </CardContent>
         </Card>
       </section>
@@ -49,7 +48,7 @@ export default async function CustomerAffiliateLinksPage() {
               Tài khoản hiện đang ở trạng thái <span className="font-medium text-foreground">{account.status}</span>.
               Link chỉ nên tạo và gửi khi admin đã duyệt active để tracking hoạt động.
             </p>
-            <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.AFFILIATE}>Xem trạng thái affiliate</Link>} />
+            <CustomerLinkButton href={ROUTES.CUSTOMER.AFFILIATE}>Xem trạng thái affiliate</CustomerLinkButton>
           </CardContent>
         </Card>
       </section>
@@ -65,7 +64,7 @@ export default async function CustomerAffiliateLinksPage() {
             Nhập link trong website, tạo link gắn mã affiliate rồi gửi cho khách.
           </p>
         </div>
-        <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.AFFILIATE}>Tổng quan affiliate</Link>} />
+        <CustomerLinkButton href={ROUTES.CUSTOMER.AFFILIATE}>Tổng quan affiliate</CustomerLinkButton>
       </div>
 
       <CustomerOverviewGrid>

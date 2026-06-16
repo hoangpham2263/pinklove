@@ -175,7 +175,7 @@ export function ProviderLoginForm({
         <p className="text-muted-foreground">{description}</p>
       </div>
 
-      <Card className={`w-full ${embedded ? "border-zinc-200/80 bg-white/95 shadow-sm" : "border-0 md:border"}`}>
+      <Card className={`w-full rounded-lg ${embedded ? "border bg-background shadow-sm" : "border-0 md:border"}`}>
         <CardHeader>
           <CardTitle>Provider Login</CardTitle>
         </CardHeader>
@@ -211,7 +211,7 @@ export function ProviderLoginForm({
         <div className="grid min-h-[calc(100vh-200px)] items-center gap-8 lg:grid-cols-2">
           {loginCard}
 
-          <div className="relative hidden min-h-125 overflow-hidden rounded-2xl bg-muted/30 p-8 lg:flex lg:items-center lg:justify-center">
+          <div className="relative hidden min-h-125 overflow-hidden rounded-lg bg-muted/30 p-8 lg:flex lg:items-center lg:justify-center">
             <div className="relative z-10 max-w-md space-y-4">
               <h2 className="text-3xl font-semibold">Workspace riêng cho đối tác</h2>
               <p className="text-muted-foreground">

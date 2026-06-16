@@ -1,44 +1,12 @@
 import Link from "next/link";
-import {
-  ExternalLink,
-  CalendarClock,
-  LayoutDashboard,
-  MapPin,
-  MessagesSquare,
-  PackageCheck,
-  PackagePlus,
-  PackageSearch,
-  Settings,
-  ShoppingBag,
-  User as UserIcon,
-} from "lucide-react";
 
 import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
-import { ProviderWorkspaceSidebarGroup } from "@/features/provider-orders/components/provider-workspace-sidebar-group";
 import { ProviderWorkspaceTopHeader } from "@/features/provider-orders/components/provider-workspace-top-header";
-import {
-  PROVIDER_NAV_AUXILIARY_ITEMS,
-  PROVIDER_NAV_GROUPS,
-  PROVIDER_NAV_PRIMARY_ITEMS,
-  PROVIDER_NAV_SECONDARY_ITEMS,
-} from "@/features/provider-orders/config/navigation";
+import { PROVIDER_NAV_AUXILIARY_ITEMS, getProviderNavItems } from "@/features/provider-orders/config/navigation";
+import { PROVIDER_NAV_ICON_MAP } from "@/features/provider-orders/config/navigation-icons";
 import { requireProvider } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { getSystemSettings } from "@/lib/system-settings";
-
-const providerIconMap = {
-  "calendar-clock": CalendarClock,
-  "layout-dashboard": LayoutDashboard,
-  "messages-square": MessagesSquare,
-  "map-pin": MapPin,
-  "package-check": PackageCheck,
-  "package-plus": PackagePlus,
-  "package-search": PackageSearch,
-  settings: Settings,
-  "shopping-bag": ShoppingBag,
-  user: UserIcon,
-  "external-link": ExternalLink,
-};
 
 export default async function ProviderWorkspaceLayout({
   children,
@@ -48,6 +16,7 @@ export default async function ProviderWorkspaceLayout({
   const provider = await requireProvider(ROUTES.PROVIDER.LOGIN);
   const settings = await getSystemSettings();
   const portalHref = ROUTES.PROVIDER.ROOT;
+  const navItems = getProviderNavItems();
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-11">
@@ -62,43 +31,13 @@ export default async function ProviderWorkspaceLayout({
 
         <nav className="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="flex flex-col gap-2.5">
-            {PROVIDER_NAV_PRIMARY_ITEMS.map((item) => {
-              const Icon = providerIconMap[item.iconName];
+            {navItems.map((item) => {
+              const Icon = PROVIDER_NAV_ICON_MAP[item.iconName];
               return (
                 <ProviderWorkspaceNavLink
-                  key={item.href}
+                  key={item.key}
                   href={item.href}
-                  exact={item.exact}
-                  matchPrefixes={item.matchPrefixes}
-                  excludePaths={item.excludePaths}
-                  excludePrefixes={item.excludePrefixes}
-                  className="flex min-w-0 items-center gap-3 rounded-md px-3 py-2 transition-colors"
-                  activeClassName="bg-muted"
-                  inactiveClassName="hover:bg-muted"
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="truncate" title={item.label}>{item.label}</span>
-                </ProviderWorkspaceNavLink>
-              );
-            })}
-
-            {PROVIDER_NAV_GROUPS.map((entry) => (
-              <ProviderWorkspaceSidebarGroup
-                key={entry.label}
-                label={entry.label}
-                iconName={entry.iconName}
-                items={entry.children}
-                defaultOpen={entry.defaultOpen}
-              />
-            ))}
-
-            {PROVIDER_NAV_SECONDARY_ITEMS.map((item) => {
-              const Icon = providerIconMap[item.iconName];
-              return (
-                <ProviderWorkspaceNavLink
-                  key={item.href}
-                  href={item.href}
-                  exact={item.exact}
+                  exact={item.type === "link" ? item.exact : undefined}
                   matchPrefixes={item.matchPrefixes}
                   excludePaths={item.excludePaths}
                   excludePrefixes={item.excludePrefixes}
@@ -116,7 +55,7 @@ export default async function ProviderWorkspaceLayout({
 
         <div className="mt-4 shrink-0 border-t pt-4">
           {PROVIDER_NAV_AUXILIARY_ITEMS.map((item) => {
-            const Icon = providerIconMap[item.iconName];
+            const Icon = PROVIDER_NAV_ICON_MAP[item.iconName];
             return (
               <Link
                 key={item.href}

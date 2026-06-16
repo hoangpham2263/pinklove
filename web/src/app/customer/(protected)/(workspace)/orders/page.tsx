@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { CustomerLinkButton } from "@/features/customer/ui/customer-buttons";
 import { CustomerOrdersTable } from "@/features/customer/components/customer-orders-table";
 import { listOrdersForUser } from "@/features/ecommerce/server/service";
 import { requireAppUser } from "@/lib/auth";
@@ -30,8 +29,8 @@ export default async function CustomerOrdersPage() {
               Bạn chưa tạo đơn nào. Có thể bắt đầu từ template hoặc builder starter.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline" render={<Link href={ROUTES.TEMPLATES}>Xem template</Link>} />
-              <Button render={<Link href={ROUTES.BUILDER}>Xem builder</Link>} />
+              <CustomerLinkButton href={ROUTES.TEMPLATES}>Xem template</CustomerLinkButton>
+              <CustomerLinkButton href={ROUTES.BUILDER}>Xem builder</CustomerLinkButton>
             </div>
           </CardContent>
         </Card>
