@@ -350,21 +350,21 @@ async function upsertProviderService(client, { providerId, offering, serviceKind
       `
         UPDATE provider_services
         SET
-          title = $3,
+          title = $2,
           status = 'active',
-          base_price = $4,
+          base_price = $3,
           metadata = provider_services.metadata || jsonb_build_object(
             'source', 'seed_provider_portal_fixtures',
-            'service_kind', $5::text,
-            'service_location_mode', $5::text,
-            'duration_minutes', $6::int,
-            'service_area', $7::text
+            'service_kind', $4::text,
+            'service_location_mode', $4::text,
+            'duration_minutes', $5::int,
+            'service_area', $6::text
           ),
           updated_at = NOW()
         WHERE id = $1
         RETURNING id
       `,
-      [existing.id, offering.id, offering.name, Number(offering.base_price ?? 0), serviceKind, durationMinutes, serviceArea]
+      [existing.id, offering.name, Number(offering.base_price ?? 0), serviceKind, durationMinutes, serviceArea]
     );
   }
 
@@ -549,6 +549,505 @@ async function seedLeadQuoteBookingFlow(client, { customer, provider, offering, 
   return { leadId: lead.id, quoteId: quote.id, bookingId: booking.id };
 }
 
+async function insertAdEvents(client, { campaignId, placementId, userId, targetType, targetId, counts }) {
+  for (const [eventType, count] of Object.entries(counts)) {
+    for (let index = 0; index < count; index += 1) {
+      await client.query(
+        `
+          INSERT INTO ad_events (campaign_id, placement_id, event_type, user_id, target_type, target_id, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6, '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+        `,
+        [campaignId, placementId, eventType, userId ?? null, targetType ?? null, targetId ?? null]
+      );
+    }
+  }
+}
+
+async function insertProviderPromotionEvents(client, { promotionId, providerId, userId, targetType, targetId, counts }) {
+  for (const [eventType, count] of Object.entries(counts)) {
+    for (let index = 0; index < count; index += 1) {
+      await client.query(
+        `
+          INSERT INTO provider_promotion_events (promotion_id, provider_id, event_type, user_id, target_type, target_id, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6, '{"source":"seed_provider_portal_fixtures"}'::jsonb)
+        `,
+        [promotionId, providerId, eventType, userId ?? null, targetType ?? null, targetId ?? null]
+      );
+    }
+  }
+}
+
+async function seedAdsAndProviderPriority(client, { customer, marketplaceAlpha, marketplaceBeta, promotedProviders = [], offeringA, offeringB }) {
+  await client.query(`
+    DELETE FROM ad_events
+    WHERE campaign_id IN (
+      SELECT id FROM ad_campaigns WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'
+    )
+  `);
+  await client.query(`
+    DELETE FROM provider_promotion_events
+    WHERE promotion_id IN (
+      SELECT id FROM provider_promotions WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'
+    )
+  `);
+  await client.query("DELETE FROM provider_promotions WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'");
+  await client.query("DELETE FROM ad_campaigns WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'");
+  await client.query("DELETE FROM ad_creatives WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'");
+  await client.query("DELETE FROM advertisers WHERE metadata ->> 'source' = 'seed_provider_portal_fixtures'");
+
+  const advertiser = await fetchRow(
+    client,
+    `
+      INSERT INTO advertisers (name, contact_name, contact_email, contact_phone, website_url, status, notes, metadata)
+      VALUES (
+        'Seed Wedding Ads Partner',
+        'Marketing Seed',
+        'marketing.seed@pinklove.local',
+        '0900000088',
+        'https://pinklove.local/seed-ads',
+        'active',
+        'Seed advertiser de test banner booking va campaign duyet quang cao.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `
+  );
+
+  const placements = {
+    homeHero: await fetchRow(client, "SELECT id, key FROM ad_placements WHERE key = 'home_hero_banner' LIMIT 1"),
+    blogSidebar: await fetchRow(client, "SELECT id, key FROM ad_placements WHERE key = 'blog_sidebar' LIMIT 1"),
+    providerTop: await fetchRow(client, "SELECT id, key FROM ad_placements WHERE key = 'provider_directory_top' LIMIT 1"),
+    categoryTop: await fetchRow(client, "SELECT id, key FROM ad_placements WHERE key = 'category_top' LIMIT 1"),
+    searchTop: await fetchRow(client, "SELECT id, key FROM ad_placements WHERE key = 'search_result_top' LIMIT 1"),
+  };
+
+  const heroCreative = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_creatives (
+        advertiser_id, title, creative_type, image_url, mobile_image_url, target_url,
+        alt_text, headline, body, cta_label, status, metadata
+      )
+      VALUES (
+        $1,
+        'Seed banner wedding season',
+        'image',
+        '/uploads/seed-offerings/general-offering-01.svg',
+        '/uploads/seed-offerings/general-offering-03.svg',
+        '/services',
+        'Seed wedding season banner',
+        'Wedding season booking',
+        'Banner demo cho luong thue quang cao ben ngoai.',
+        'Xem goi',
+        'approved',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id]
+  );
+
+  const blogCreative = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_creatives (
+        advertiser_id, title, creative_type, image_url, target_url,
+        alt_text, headline, body, cta_label, status, metadata
+      )
+      VALUES (
+        $1,
+        'Seed sidebar sponsor',
+        'image',
+        '/uploads/seed-offerings/general-offering-06.svg',
+        '/blog',
+        'Seed blog sidebar sponsor',
+        'Sponsor noi dung cuoi',
+        'Creative demo cho placement blog/sidebar.',
+        'Doc bai viet',
+        'approved',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id]
+  );
+
+  const categoryCreative = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_creatives (
+        advertiser_id, title, creative_type, image_url, target_url,
+        alt_text, headline, body, cta_label, status, metadata
+      )
+      VALUES (
+        $1,
+        'Seed category top visual',
+        'image',
+        '/uploads/seed-offerings/seed-red-wedding-web-01.png',
+        '/services',
+        'Seed category top sponsor',
+        'Dich vu cuoi noi bat',
+        'Creative demo cho category/search placement.',
+        'Kham pha',
+        'approved',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id]
+  );
+
+  const searchCreative = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_creatives (
+        advertiser_id, title, creative_type, image_url, target_url,
+        alt_text, headline, body, cta_label, status, metadata
+      )
+      VALUES (
+        $1,
+        'Seed search boost visual',
+        'image',
+        '/uploads/seed-offerings/seed-red-wedding-web-02.png',
+        '/search',
+        'Seed search boost sponsor',
+        'Tim provider phu hop nhanh hon',
+        'Creative demo cho search result top.',
+        'Tim kiem',
+        'approved',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id]
+  );
+
+  const heroCampaign = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_campaigns (
+        advertiser_id, placement_id, creative_id, name, target_url, status,
+        payment_status, price, starts_at, ends_at, notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, 'Seed Home Hero Paid Banner', '/services', 'active',
+        'paid', 2500000, NOW() - INTERVAL '2 days', NOW() + INTERVAL '28 days',
+        'Seed campaign cho trang admin marketing ads/banner-ads.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id, placements.homeHero.id, heroCreative.id]
+  );
+
+  const blogCampaign = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_campaigns (
+        advertiser_id, placement_id, creative_id, name, target_url, status,
+        payment_status, price, starts_at, ends_at, notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, 'Seed Blog Sidebar Sponsor', '/blog', 'active',
+        'paid', 1200000, NOW() - INTERVAL '1 day', NOW() + INTERVAL '20 days',
+        'Seed campaign cho placement blog sidebar.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id, placements.blogSidebar.id, blogCreative.id]
+  );
+
+  const categoryCampaign = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_campaigns (
+        advertiser_id, placement_id, creative_id, name, target_url, status,
+        payment_status, price, starts_at, ends_at, notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, 'Seed Category Top Sponsor', '/services', 'active',
+        'paid', 1500000, NOW() - INTERVAL '1 day', NOW() + INTERVAL '25 days',
+        'Seed campaign cho category top placement.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id, placements.categoryTop.id, categoryCreative.id]
+  );
+
+  const searchCampaign = await fetchRow(
+    client,
+    `
+      INSERT INTO ad_campaigns (
+        advertiser_id, placement_id, creative_id, name, target_url, status,
+        payment_status, price, starts_at, ends_at, notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, 'Seed Search Result Boost', '/search', 'active',
+        'paid', 900000, NOW() - INTERVAL '1 day', NOW() + INTERVAL '14 days',
+        'Seed campaign cho search result top placement.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [advertiser.id, placements.searchTop.id, searchCreative.id]
+  );
+
+  const extraCampaignIds = [];
+  const campaignSeeds = [
+    ["Seed Homepage Sponsor A", placements.homeHero, heroCreative, "/services", 2100000],
+    ["Seed Homepage Sponsor B", placements.homeHero, categoryCreative, "/services", 1900000],
+    ["Seed Blog Sponsor A", placements.blogSidebar, blogCreative, "/blog", 800000],
+    ["Seed Blog Sponsor B", placements.blogSidebar, searchCreative, "/blog", 700000],
+    ["Seed Category Sponsor A", placements.categoryTop, categoryCreative, "/services", 1300000],
+    ["Seed Category Sponsor B", placements.categoryTop, heroCreative, "/services", 1250000],
+    ["Seed Search Sponsor A", placements.searchTop, searchCreative, "/search", 650000],
+    ["Seed Search Sponsor B", placements.searchTop, blogCreative, "/search", 620000],
+    ["Seed Footer Awareness A", placements.blogSidebar, categoryCreative, "/contact", 580000],
+    ["Seed Provider Directory A", placements.providerTop, heroCreative, "/services", 1100000],
+    ["Seed Provider Directory B", placements.providerTop, searchCreative, "/services", 980000],
+    ["Seed Offering Detail A", placements.categoryTop, blogCreative, "/mau-thiep", 760000],
+    ["Seed Search Retarget A", placements.searchTop, categoryCreative, "/search", 540000],
+  ];
+
+  for (const [name, placement, creative, targetUrl, price] of campaignSeeds) {
+    const campaign = await fetchRow(
+      client,
+      `
+        INSERT INTO ad_campaigns (
+          advertiser_id, placement_id, creative_id, name, target_url, status,
+          payment_status, price, starts_at, ends_at, notes, metadata
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, 'active',
+          'paid', $6, NOW() - INTERVAL '1 day', NOW() + INTERVAL '30 days',
+          'Seed extra campaign de quan sat table va placement.',
+          '{"source":"seed_provider_portal_fixtures"}'::jsonb
+        )
+        RETURNING id
+      `,
+      [advertiser.id, placement.id, creative.id, name, targetUrl, price]
+    );
+    extraCampaignIds.push(campaign.id);
+    await insertAdEvents(client, {
+      campaignId: campaign.id,
+      placementId: placement.id,
+      userId: customer.id,
+      targetType: "campaign_seed",
+      targetId: String(name).toLowerCase().replaceAll(" ", "-"),
+      counts: { impression: 8, click: 2 },
+    });
+  }
+
+  await insertAdEvents(client, {
+    campaignId: heroCampaign.id,
+    placementId: placements.homeHero.id,
+    userId: customer.id,
+    targetType: "landing",
+    targetId: "home",
+    counts: { impression: 18, click: 5, conversion: 1 },
+  });
+  await insertAdEvents(client, {
+    campaignId: blogCampaign.id,
+    placementId: placements.blogSidebar.id,
+    userId: customer.id,
+    targetType: "blog",
+    targetId: "seed-sidebar",
+    counts: { impression: 11, click: 3 },
+  });
+  await insertAdEvents(client, {
+    campaignId: categoryCampaign.id,
+    placementId: placements.categoryTop.id,
+    userId: customer.id,
+    targetType: "category",
+    targetId: "services",
+    counts: { impression: 15, click: 4, lead: 1 },
+  });
+  await insertAdEvents(client, {
+    campaignId: searchCampaign.id,
+    placementId: placements.searchTop.id,
+    userId: customer.id,
+    targetType: "search",
+    targetId: "provider",
+    counts: { impression: 9, click: 2 },
+  });
+
+  const featuredPlan = await fetchRow(client, "SELECT id FROM provider_promotion_plans WHERE key = 'featured_provider_30' LIMIT 1");
+  const categoryPlan = await fetchRow(client, "SELECT id FROM provider_promotion_plans WHERE key = 'category_top_30' LIMIT 1");
+  const searchPlan = await fetchRow(client, "SELECT id FROM provider_promotion_plans WHERE key = 'search_boost_14' LIMIT 1");
+
+  const alphaPromotion = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_promotions (
+        provider_id, plan_id, placement_id, offering_id, target_type, target_id,
+        title, status, payment_status, priority_weight, price, starts_at, ends_at,
+        admin_notes, provider_notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, $4, 'provider', $1,
+        'Seed Alpha featured provider', 'active', 'paid', 180, 1800000,
+        NOW() - INTERVAL '3 days', NOW() + INTERVAL '27 days',
+        'Seed provider top/xuong top tra phi de uu tien hien thi.',
+        'Provider Alpha dang chay goi featured.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [marketplaceAlpha.id, featuredPlan.id, placements.providerTop.id, offeringA.id]
+  );
+
+  const betaPromotion = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_promotions (
+        provider_id, plan_id, placement_id, offering_id, target_type, target_id,
+        title, status, payment_status, priority_weight, price, starts_at, ends_at,
+        admin_notes, provider_notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, $4, 'offering', $4,
+        'Seed Beta category boost', 'active', 'waived', 140, 0,
+        NOW() - INTERVAL '1 day', NOW() + INTERVAL '29 days',
+        'Seed uu tien mien phi cho provider doi tac chat luong.',
+        'Provider Beta duoc admin cap boost theo category.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [marketplaceBeta.id, categoryPlan.id, placements.categoryTop.id, offeringB.id]
+  );
+
+  const betaDirectoryPromotion = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_promotions (
+        provider_id, plan_id, placement_id, offering_id, target_type, target_id,
+        title, status, payment_status, priority_weight, price, starts_at, ends_at,
+        admin_notes, provider_notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, $4, 'provider', $1,
+        'Seed Beta featured provider', 'active', 'waived', 155, 0,
+        NOW() - INTERVAL '1 day', NOW() + INTERVAL '21 days',
+        'Seed provider priority mien phi cho doi tac chat luong.',
+        'Provider Beta duoc hien trong danh sach uu tien ngoai client.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [marketplaceBeta.id, featuredPlan.id, placements.providerTop.id, offeringB.id]
+  );
+
+  const alphaSearchPromotion = await fetchRow(
+    client,
+    `
+      INSERT INTO provider_promotions (
+        provider_id, plan_id, placement_id, offering_id, target_type, target_id,
+        title, status, payment_status, priority_weight, price, starts_at, ends_at,
+        admin_notes, provider_notes, metadata
+      )
+      VALUES (
+        $1, $2, $3, $4, 'search', 'wedding-provider',
+        'Seed Alpha search boost', 'active', 'paid', 125, 650000,
+        NOW() - INTERVAL '1 day', NOW() + INTERVAL '13 days',
+        'Seed search boost provider/offering.',
+        'Provider Alpha dang chay boost ket qua tim kiem.',
+        '{"source":"seed_provider_portal_fixtures"}'::jsonb
+      )
+      RETURNING id
+    `,
+    [marketplaceAlpha.id, searchPlan.id, placements.searchTop.id, offeringA.id]
+  );
+
+  await insertProviderPromotionEvents(client, {
+    promotionId: alphaPromotion.id,
+    providerId: marketplaceAlpha.id,
+    userId: customer.id,
+    targetType: "provider",
+    targetId: marketplaceAlpha.id,
+    counts: { impression: 32, click: 9, lead: 3, booking: 1 },
+  });
+  await insertProviderPromotionEvents(client, {
+    promotionId: betaPromotion.id,
+    providerId: marketplaceBeta.id,
+    userId: customer.id,
+    targetType: "offering",
+    targetId: offeringB.id,
+    counts: { impression: 24, click: 6, lead: 2 },
+  });
+  await insertProviderPromotionEvents(client, {
+    promotionId: betaDirectoryPromotion.id,
+    providerId: marketplaceBeta.id,
+    userId: customer.id,
+    targetType: "provider",
+    targetId: marketplaceBeta.id,
+    counts: { impression: 28, click: 7, lead: 2, booking: 1 },
+  });
+  await insertProviderPromotionEvents(client, {
+    promotionId: alphaSearchPromotion.id,
+    providerId: marketplaceAlpha.id,
+    userId: customer.id,
+    targetType: "search",
+    targetId: "wedding-provider",
+    counts: { impression: 19, click: 5, lead: 1 },
+  });
+
+  const extraPromotionIds = [];
+  for (const [index, provider] of promotedProviders.entries()) {
+    const offering = index % 2 === 0 ? offeringA : offeringB;
+    const promotion = await fetchRow(
+      client,
+      `
+        INSERT INTO provider_promotions (
+          provider_id, plan_id, placement_id, offering_id, target_type, target_id,
+          title, status, payment_status, priority_weight, price, starts_at, ends_at,
+          admin_notes, provider_notes, metadata
+        )
+        VALUES (
+          $1, $2, $3, $4, 'provider', $1,
+          $5, 'active', $6, $7, $8,
+          NOW() - INTERVAL '1 day', NOW() + INTERVAL '30 days',
+          'Seed extra provider priority de quan sat ngoai client.',
+          'Provider seed duoc day len placement provider_directory_top.',
+          '{"source":"seed_provider_portal_fixtures"}'::jsonb
+        )
+        RETURNING id
+      `,
+      [
+        provider.id,
+        featuredPlan.id,
+        placements.providerTop.id,
+        offering.id,
+        `Seed ${provider.display_name} featured`,
+        index % 3 === 0 ? "paid" : "waived",
+        145 - index * 7,
+        index % 3 === 0 ? 900000 : 0,
+      ]
+    );
+    extraPromotionIds.push(promotion.id);
+    await insertProviderPromotionEvents(client, {
+      promotionId: promotion.id,
+      providerId: provider.id,
+      userId: customer.id,
+      targetType: "provider",
+      targetId: provider.id,
+      counts: { impression: 18 + index * 3, click: 4 + index, lead: 1 + (index % 2), booking: index % 3 === 0 ? 1 : 0 },
+    });
+  }
+
+  return {
+    advertiser: "Seed Wedding Ads Partner",
+    adminAdsLink: formatLink("/admin/marketing/ads"),
+    bannerAdsLink: formatLink("/admin/marketing/ads/banner-ads"),
+    providerPriorityAdminLink: formatLink("/admin/marketing/ads/provider-priority"),
+    providerPriorityLink: formatLink("/provider/priority"),
+    campaigns: [heroCampaign.id, blogCampaign.id, categoryCampaign.id, searchCampaign.id, ...extraCampaignIds],
+    providerPromotions: [alphaPromotion.id, betaPromotion.id, betaDirectoryPromotion.id, alphaSearchPromotion.id, ...extraPromotionIds],
+  };
+}
+
 function sumItems(items) {
   return items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
 }
@@ -642,6 +1141,35 @@ async function main() {
       bio: "Makeup cô dâu và lịch thử layout theo khung giờ.",
       description: "Seed provider thứ hai để test lead, quote, slot và booking ở màn khách hàng/provider/admin.",
     });
+    const extraMarketplaceProviders = [];
+    const extraProviderSeeds = [
+      ["photo-gamma-house", "Photo Gamma House", "photographer", "0900000003", "Nhóm chụp ảnh cưới ngoại cảnh và phóng sự ngày cưới."],
+      ["decor-delta-florist", "Decor Delta Florist", "florist", "0900000004", "Trang trí hoa tươi, cổng cưới và bàn gallery."],
+      ["planner-echo-event", "Planner Echo Event", "planner", "0900000005", "Wedding planner điều phối timeline và checklist ngày cưới."],
+      ["video-foxtrot-studio", "Video Foxtrot Studio", "videographer", "0900000006", "Quay phim highlight, phóng sự và reels cưới."],
+      ["creator-luna-invites", "Creator Luna Invites", "creator", "0900000007", "Thiết kế nội dung thiệp online và landing cưới."],
+      ["supplier-orchid-gifts", "Supplier Orchid Gifts", "supplier", "0900000008", "Cung ứng hộp quà, phụ kiện và sản phẩm cưới."],
+      ["studio-pearl-atelier", "Studio Pearl Atelier", "studio", "0900000009", "Studio chụp ảnh cưới trong nhà và album editorial."],
+      ["makeup-rose-veil", "Makeup Rose Veil", "makeup", "0900000010", "Makeup cô dâu phong cách tự nhiên, thử layout trước ngày cưới."],
+      ["planner-sage-moments", "Planner Sage Moments", "planner", "0900000013", "Điều phối lễ gia tiên, ceremony và reception theo timeline."],
+      ["photo-ivory-lens", "Photo Ivory Lens", "photographer", "0900000014", "Chụp pre-wedding, phóng sự cưới và ảnh gia đình."],
+      ["florist-mint-garden", "Florist Mint Garden", "florist", "0900000015", "Hoa cưới, backdrop, bàn gallery và lối đi ceremony."],
+      ["video-cinema-vow", "Video Cinema Vow", "videographer", "0900000016", "Phim cưới cinematic, teaser và highlight trong ngày."],
+      ["creator-paper-moon", "Creator Paper Moon", "creator", "0900000017", "Thiết kế nội dung, website cưới và bộ nhận diện sự kiện."],
+      ["supplier-golden-box", "Supplier Golden Box", "supplier", "0900000018", "Hộp quà cưới, phụ kiện bàn tiệc và sản phẩm custom."],
+      ["studio-lotus-frame", "Studio Lotus Frame", "studio", "0900000019", "Studio chụp ảnh cưới concept tối giản và truyền thống."],
+    ];
+    for (const [slug, displayName, providerType, phone, bio] of extraProviderSeeds) {
+      extraMarketplaceProviders.push(await upsertMarketplaceProvider(client, {
+        ownerUserId: null,
+        slug,
+        displayName,
+        providerType,
+        phone,
+        bio,
+        description: "Seed provider phụ để quan sát danh sách ưu tiên ngoài client và admin provider priority.",
+      }));
+    }
     const alphaService = await upsertProviderService(client, {
       providerId: marketplaceAlpha.id,
       offering: offeringA,
@@ -702,6 +1230,15 @@ async function main() {
         message: "Seed lead đã tạo booking nhưng chờ admin/provider xác nhận.",
       }),
     ];
+
+    const seededAds = await seedAdsAndProviderPriority(client, {
+      customer: customerOne,
+      marketplaceAlpha,
+      marketplaceBeta,
+      promotedProviders: extraMarketplaceProviders,
+      offeringA,
+      offeringB,
+    });
 
     const scenarios = [
       {
@@ -894,6 +1431,7 @@ async function main() {
             availabilityLink: formatLink("/provider/availability"),
             seededLeadFlows,
           },
+          ads: seededAds,
           orders: seededOrders,
         },
         null,

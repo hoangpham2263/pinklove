@@ -28,7 +28,7 @@ Every database object must belong to exactly one of these contexts:
 | Provider Marketplace | providers, services, pricing, regions, reviews, fulfillments, leads, quotes, provider search |
 | Wedding Planning | `wedding_sites`, guests, RSVP, seating, tasks, timeline |
 | Website Builder | reusable `pages` and `page_sections` owned by wedding sites, providers, offerings, or landing entities |
-| Marketing | landing pages, landing sections, campaigns, A/B experiments, conversion goals/events |
+| Marketing | landing pages, landing sections, campaigns, A/B experiments, conversion goals/events, admin-managed ads, provider priority placements |
 
 Do not add a database table unless its bounded context is clear. Do not create
 duplicate root concepts for the same domain.
@@ -176,12 +176,16 @@ old template-version tables.
 - Landing/campaign experiments own campaign variants.
 - `conversion_goals` and `conversion_events` own business-level conversion
   tracking for RSVP, lead, contact, booking, and checkout flows.
+- Admin-managed ads live in dedicated ad tables, not in service `bookings`.
+  External advertisers are business records controlled by Admin, not login
+  roles. Provider priority/sponsored listings reference existing `PROVIDER`
+  accounts and are used only for visibility/ranking.
 
 ### Explicitly Not In Scope
 
-Marketplace billing and ads are not part of the current architecture. Do not
-create ad, subscription, premium listing, provider billing, marketplace billing,
-or sponsored listing tables until an approved product workflow defines ownership.
+Self-service advertiser login, broad marketplace billing, subscriptions, and
+provider billing ledgers are not part of the current architecture. Do not add an
+`ADVERTISER` role until an approved self-service advertiser portal exists.
 
 ## Product Completion Gaps
 

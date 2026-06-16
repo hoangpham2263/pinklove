@@ -99,6 +99,12 @@ web/
             config/email/page.tsx
           (marketing)/
             marketing/campaigns/page.tsx
+            marketing/ads/page.tsx
+            marketing/ads/advertisers/page.tsx
+            marketing/ads/banner-ads/page.tsx
+            marketing/ads/creatives/page.tsx
+            marketing/ads/placements/page.tsx
+            marketing/ads/provider-priority/page.tsx
             marketing/ab-experiments/page.tsx
           (analytics)/
             analytics/page.tsx
@@ -359,7 +365,7 @@ web/
 - Provider workspace URLs are served by route groups under
   `src/app/provider/(protected)/(workspace)`, including dashboard, orders,
   bookings, portfolio, pricing, regions, reviews, organization, offerings,
-  availability, messages, and config routes.
+  availability, priority, messages, and config routes.
 - Protected provider workspace routes share the same sidebar/top-header shell pattern as admin and customer through `src/app/provider/(protected)/(workspace)/layout.tsx`.
 
 ## Admin area

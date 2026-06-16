@@ -34,6 +34,7 @@ refactor:
 | Blog / comments | `blog_categories`, `blog_posts`, `content_comments` |
 | Commerce | `commerce_orders`, `commerce_order_items`, `commerce_payments`, `commerce_payment_logs`, `commerce_shipments`, `commerce_entitlements` |
 | Landing / campaigns | `landing_pages`, `landing_page_sections`, `campaigns`, `campaign_stats`, `ab_experiments`, `ab_experiment_landing_pages` |
+| Ads / provider priority | `advertisers`, `ad_placements`, `ad_campaigns`, `ad_creatives`, `ad_events`, `provider_promotion_plans`, `provider_promotions`, `provider_promotion_events` |
 | Providers | `provider_order_assignments`, `provider_order_events`, `provider_offering_submissions`, `provider_offering_submission_events`, `offering_provider_suppliers`, `provider_offering_supplier_requests`, `provider_applications` |
 | Chat | `chat_conversations`, `chat_conversation_participants`, `chat_messages`, `chat_message_user_states`, `chat_conversation_user_states`, `chat_typing_states` |
 | Notifications | `notifications`, `notification_target_roles`, `notification_target_users`, `notification_user_states` |
@@ -112,9 +113,14 @@ Current domain tables:
 
 Current system offering type keys:
 
+- `bridal_makeup`
 - `physical_product`
-- `wedding_photo`
+- `wedding_decoration`
 - `wedding_gift`
+- `wedding_photo`
+- `wedding_planner`
+- `wedding_service`
+- `wedding_video`
 
 Legacy digital template rendering support remains in code, but the clean catalog
 contains only the three code-registered types above. Database bootstrap upserts
@@ -142,6 +148,11 @@ Current runtime seed data:
 | `physical_product` | Thiệp giấy | active | physical | `physical_product` | yes | yes | yes | 0 |
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
+| `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
+| `bridal_makeup` | Makeup cô dâu | active | service | `bridal_makeup` | no | yes | yes | 0 |
+| `wedding_decoration` | Trang trí tiệc cưới | active | service | `wedding_decoration` | no | yes | yes | 0 |
+| `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
+| `wedding_service` | Dịch vụ cưới | active | service | `wedding_service` | no | yes | yes | 0 |
 
 Current runtime offering data:
 
@@ -150,6 +161,11 @@ Current runtime offering data:
 | `physical_product` | none | 1 |
 | `wedding_photo` | none | 1 |
 | `wedding_gift` | none | 1 |
+| `wedding_video` | none | 1 |
+| `bridal_makeup` | none | 1 |
+| `wedding_decoration` | none | 1 |
+| `wedding_planner` | none | 1 |
+| `wedding_service` | none | 1 |
 
 ## Final Cleanup Runtime Contracts
 

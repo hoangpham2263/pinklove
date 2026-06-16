@@ -64,6 +64,11 @@ const expectedPublicTables = [
   "admin_permissions",
   "admin_role_permissions",
   "admin_roles",
+  "ad_campaigns",
+  "ad_creatives",
+  "ad_events",
+  "ad_placements",
+  "advertisers",
   "app_settings",
   "blog_categories",
   "blog_posts",
@@ -139,6 +144,9 @@ const expectedPublicTables = [
   "provider_order_events",
   "provider_pricing",
   "provider_profiles",
+  "provider_promotion_events",
+  "provider_promotion_plans",
+  "provider_promotions",
   "provider_regions",
   "provider_reviews",
   "provider_search_documents",
@@ -249,6 +257,14 @@ async function main() {
       "landing_page_sections",
       "campaigns",
       "campaign_stats",
+      "advertisers",
+      "ad_placements",
+      "ad_campaigns",
+      "ad_creatives",
+      "ad_events",
+      "provider_promotion_plans",
+      "provider_promotions",
+      "provider_promotion_events",
       "ab_experiments",
       "ab_experiment_landing_pages",
     ];
@@ -354,9 +370,14 @@ async function main() {
       ORDER BY key
     `);
     const expectedSystemOfferingTypes = [
+      "bridal_makeup",
       "physical_product",
+      "wedding_decoration",
       "wedding_gift",
       "wedding_photo",
+      "wedding_planner",
+      "wedding_service",
+      "wedding_video",
     ];
     const actualSystemOfferingTypes = systemOfferingTypes.rows.map((row) => row.key);
     assert(
@@ -370,7 +391,16 @@ async function main() {
       WHERE is_default = TRUE
       ORDER BY key
     `);
-    const expectedDefaultOfferingTypes = ["physical_product", "wedding_gift", "wedding_photo"];
+    const expectedDefaultOfferingTypes = [
+      "bridal_makeup",
+      "physical_product",
+      "wedding_decoration",
+      "wedding_gift",
+      "wedding_photo",
+      "wedding_planner",
+      "wedding_service",
+      "wedding_video",
+    ];
     const actualDefaultOfferingTypes = defaultOfferingTypes.rows.map((row) => row.key);
     assert(
       JSON.stringify(actualDefaultOfferingTypes) === JSON.stringify(expectedDefaultOfferingTypes),

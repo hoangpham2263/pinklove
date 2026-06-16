@@ -133,11 +133,9 @@ export function ProviderAssignmentPanel({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
       <div className="space-y-5 xl:col-span-8">
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold">Tổng quan xử lý</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3 pt-5 text-sm sm:grid-cols-2 xl:grid-cols-4">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight">Tổng quan xử lý</h2>
+          <div className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-md border p-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Trạng thái</p>
               <p className="mt-1 font-medium">{getProviderAssignmentStatusLabel(detail.assignment.status)}</p>
@@ -154,14 +152,12 @@ export function ProviderAssignmentPanel({
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Cập nhật gần nhất</p>
               <p className="mt-1 font-medium">{formatDateTime(detail.assignment.updatedAt)}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold">Ghi chú đơn hàng</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-5 text-sm">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight">Ghi chú đơn hàng</h2>
+          <div className="space-y-3 text-sm">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-md border p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Khách hàng</p>
@@ -195,14 +191,12 @@ export function ProviderAssignmentPanel({
                 </div>
               </div>
             ) : null}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="border-b">
-            <CardTitle className="text-base font-semibold">Lịch sử cập nhật</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-5">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight">Lịch sử cập nhật</h2>
+          <div className="space-y-3">
             {detail.events.length === 0 ? (
               <p className="text-sm text-muted-foreground">Chưa có cập nhật nào.</p>
             ) : (
@@ -218,8 +212,8 @@ export function ProviderAssignmentPanel({
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-5 xl:col-span-4 xl:sticky xl:top-5 xl:self-start">

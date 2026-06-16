@@ -174,7 +174,10 @@ Use this file for the dedicated provider portal.
   - `Đơn & booking`: bookings, assigned orders, leads.
   - `Dịch vụ`: provider service/product submissions, available sourcing opportunities, supply requests, pricing.
   - `Hồ sơ & lịch`: portfolio, regions, availability, reviews.
+  - `Ưu tiên hiển thị`: provider promotion status, placement, date range, and performance.
   - `Tài khoản & tổ chức`: provider account, addresses, organization.
+- Provider priority/sponsored listing uses the existing `PROVIDER` account. It
+  must not create a new role and must not reuse service `bookings`.
 - Keep the canonical provider portal operations-first:
   - landing + login when signed out
   - assigned-order list when signed in

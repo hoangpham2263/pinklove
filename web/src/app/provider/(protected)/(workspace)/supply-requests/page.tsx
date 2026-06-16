@@ -1,7 +1,7 @@
 import { getProviderOfferingSupplierRequestStatusLabel } from "@/features/provider-offering-submissions/labels";
 import { listSupplierRequestsForProvider } from "@/features/provider-offering-submissions/server/service";
 import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
-import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
+import { ProviderEmptyState, ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { requireProvider } from "@/lib/auth";
 import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
@@ -22,7 +22,10 @@ export default async function ProviderSupplyRequestsPage() {
         actions={<ProviderLinkButton href={ROUTES.PROVIDER.AVAILABLE_TEMPLATES}>Xem dịch vụ/sản phẩm cần provider</ProviderLinkButton>}
       />
 
-      <ProviderSectionCard title="Danh sách yêu cầu">
+      <div className="space-y-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight">Danh sách yêu cầu</h2>
+        </div>
         {requests.length === 0 ? (
           <ProviderEmptyState>Bạn chưa gửi yêu cầu cung cấp nào.</ProviderEmptyState>
         ) : (
@@ -61,7 +64,7 @@ export default async function ProviderSupplyRequestsPage() {
             </table>
           </div>
         )}
-      </ProviderSectionCard>
+      </div>
     </ProviderPage>
   );
 }

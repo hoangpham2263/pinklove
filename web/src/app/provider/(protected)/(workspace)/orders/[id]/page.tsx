@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { PageToast } from "@/components/common/page-toast";
 import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderAssignmentPanel } from "@/features/provider-orders/components/provider-assignment-panel";
-import { ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
+import { ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 import { getProviderOrderDetailForProvider } from "@/features/provider-orders/server/service";
 import { requireProvider } from "@/lib/auth";
 import { formatCurrency } from "@/lib/currency";
@@ -48,7 +48,7 @@ export default async function ProviderOrderDetailPage({
         }
       />
 
-      <div className="grid gap-3 rounded-md border bg-background p-4 text-sm md:grid-cols-3">
+      <div className="grid gap-3 text-sm md:grid-cols-3">
         <div className="rounded-md border p-3">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Khách hàng</p>
           <p className="mt-1 font-medium">{detail.order.customerName}</p>
@@ -64,17 +64,22 @@ export default async function ProviderOrderDetailPage({
         </div>
       </div>
 
-      <ProviderSectionCard title="Sản phẩm được giao" contentClassName="space-y-3">
-        {detail.order.items.map((item) => (
-          <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <p className="font-medium">{item.offeringName}</p>
-              <p className="text-sm text-muted-foreground">{item.fulfillmentType} • Số lượng {item.quantity}</p>
+      <div className="space-y-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight">Sản phẩm được giao</h2>
+        </div>
+        <div className="space-y-3">
+          {detail.order.items.map((item) => (
+            <div key={item.id} className="flex items-center justify-between rounded-md border p-3">
+              <div>
+                <p className="font-medium">{item.offeringName}</p>
+                <p className="text-sm text-muted-foreground">{item.fulfillmentType} • Số lượng {item.quantity}</p>
+              </div>
+              <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
             </div>
-            <div className="font-semibold">{formatCurrency(item.lineTotal, settings.ecommerce)}</div>
-          </div>
-        ))}
-      </ProviderSectionCard>
+          ))}
+        </div>
+      </div>
 
       <ProviderAssignmentPanel
         detailUrl={ROUTES.API.PROVIDER.ORDERS.PROVIDER_ASSIGNMENT(detail.assignment.id)}

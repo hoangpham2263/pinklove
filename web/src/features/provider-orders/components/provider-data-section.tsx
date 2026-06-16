@@ -1,5 +1,4 @@
 import { DatabaseTable } from "@/components/common/database-table";
-import { ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
 
 type ProviderDataColumn = {
   key: string;
@@ -22,8 +21,12 @@ export function ProviderDataSection({
   emptyMessage,
 }: ProviderDataSectionProps) {
   return (
-    <ProviderSectionCard title={title} description={description} contentClassName="pt-0">
+    <div className="space-y-4">
+      <div className="min-w-0">
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        {description ? <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p> : null}
+      </div>
       <DatabaseTable columns={columns} rows={rows} emptyMessage={emptyMessage} />
-    </ProviderSectionCard>
+    </div>
   );
 }

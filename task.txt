@@ -3,71 +3,72 @@ Ads & Provider Priority architecture
 Goal: build a clean monetization/visibility layer while keeping existing service bookings, provider marketplace, affiliate, and internal marketing campaigns separate.
 
 Development constraint:
-- [ ] DB/schema can be changed freely during develop. Prefer a clean final schema over backward-compatible compromises.
-- [ ] Existing dev data does not need to be preserved if a better normalized structure requires migration/reset.
-- [ ] Update docs/schema.md, docs/architecture.md, docs/admin.md, docs/provider.md, and docs/structure.md whenever routes, DB tables, roles, or workflows change.
+- [x] DB/schema can be changed freely during develop. Prefer a clean final schema over backward-compatible compromises.
+- [x] Existing dev data does not need to be preserved if a better normalized structure requires migration/reset.
+- [x] Update docs/schema.md, docs/architecture.md, docs/admin.md, docs/provider.md, and docs/structure.md whenever routes, DB tables, roles, or workflows change.
 
 Product decisions:
-- [ ] Keep `bookings` for customer service bookings only; do not reuse it for ads or priority placement.
-- [ ] Keep `campaigns` for internal marketing/landing campaigns; do not overload it as paid external ad booking without a deliberate schema update.
-- [ ] Do not add an `ADVERTISER` role yet. External advertisers are admin-managed business entities, not login accounts.
-- [ ] Provider paid/top visibility stays under existing `PROVIDER` accounts.
-- [ ] Separate two monetization surfaces:
-  - [ ] External Banner Ads: outside businesses pay PinkLove/admin to place controlled banner creatives.
-  - [ ] Provider Priority: provider/xưởng top or paid partners get priority/featured visibility in provider/offering listings.
+- [x] Keep `bookings` for customer service bookings only; do not reuse it for ads or priority placement.
+- [x] Keep `campaigns` for internal marketing/landing campaigns; do not overload it as paid external ad booking without a deliberate schema update.
+- [x] Do not add an `ADVERTISER` role yet. External advertisers are admin-managed business entities, not login accounts.
+- [x] Provider paid/top visibility stays under existing `PROVIDER` accounts.
+- [x] Separate two monetization surfaces:
+  - [x] External Banner Ads: outside businesses pay PinkLove/admin to place controlled banner creatives.
+  - [x] Provider Priority: provider/xưởng top or paid partners get priority/featured visibility in provider/offering listings.
 
 DB/schema design:
-- [ ] Audit current `campaigns`, `campaign_stats`, landing campaign tables, provider tables, and media tables before changing schema.
-- [ ] Add normalized advertiser entity for external ad customers, for example `advertisers`.
-- [ ] Add shared placement catalog for render locations, for example `ad_placements`.
-- [ ] Add external ad order/campaign table for admin-managed banner ads, for example `ad_campaigns` or `ad_orders`.
-- [ ] Add creative table for banner/media assets, for example `ad_creatives`.
-- [ ] Add event/stat tables for impressions, clicks, CTR, leads, bookings, and revenue attribution.
-- [ ] Add provider priority plan/table, for example `provider_promotion_plans`.
-- [ ] Add provider promotion runtime table, for example `provider_promotions`.
-- [ ] Add provider promotion stats/events table.
-- [ ] Define statuses clearly: draft, pending, approved, active, paused, expired, rejected, archived.
-- [ ] Define payment statuses clearly: unpaid, pending, paid, refunded, waived.
-- [ ] Add indexes for active placement lookup: placement key, status, date range, provider/offering/category target.
-- [ ] Add constraints for valid date ranges, non-negative price/budget, and valid placement/target types.
-- [ ] Seed default placements for homepage, blog, provider directory, category top, search result top, offering detail, and footer/banner areas.
+- [x] Audit current `campaigns`, `campaign_stats`, landing campaign tables, provider tables, and media tables before changing schema.
+- [x] Add normalized advertiser entity for external ad customers, for example `advertisers`.
+- [x] Add shared placement catalog for render locations, for example `ad_placements`.
+- [x] Add external ad order/campaign table for admin-managed banner ads, for example `ad_campaigns` or `ad_orders`.
+- [x] Add creative table for banner/media assets, for example `ad_creatives`.
+- [x] Add event/stat tables for impressions, clicks, CTR, leads, bookings, and revenue attribution.
+- [x] Add provider priority plan/table, for example `provider_promotion_plans`.
+- [x] Add provider promotion runtime table, for example `provider_promotions`.
+- [x] Add provider promotion stats/events table.
+- [x] Define statuses clearly: draft, pending, approved, active, paused, expired, rejected, archived.
+- [x] Define payment statuses clearly: unpaid, pending, paid, refunded, waived.
+- [x] Add indexes for active placement lookup: placement key, status, date range, provider/offering/category target.
+- [x] Add constraints for valid date ranges, non-negative price/budget, and valid placement/target types.
+- [x] Seed default placements for homepage, blog, provider directory, category top, search result top, offering detail, and footer/banner areas.
 
 Admin UX:
-- [ ] Add Admin > Marketing > Ads hub or equivalent grouped page.
-- [ ] Add Advertisers management page.
-- [ ] Add Banner Ads management page for external ad orders/campaigns.
-- [ ] Add Creative/Banner upload/approval controls.
-- [ ] Add Placements management page.
-- [ ] Add Sponsored Providers / Provider Priority management page.
-- [ ] Add stats dashboard for impressions, clicks, CTR, leads, bookings, revenue.
-- [ ] Keep admin UI using existing Admin shared section/card/form/table components.
+- [x] Add Admin > Marketing > Ads hub or equivalent grouped page.
+- [x] Add Advertisers management page.
+- [x] Add Banner Ads management page for external ad orders/campaigns.
+- [x] Add Creative/Banner URL entry and approval controls.
+- [ ] Add direct Media Library upload/picker for ad creatives if needed.
+- [x] Add Placements management page.
+- [x] Add Sponsored Providers / Provider Priority management page.
+- [x] Add stats dashboard for impressions, clicks, CTR, leads, bookings, revenue.
+- [x] Keep admin UI using existing Admin shared section/card/form/table components.
 
 Provider UX:
-- [ ] Add Provider > Ưu tiên hiển thị menu/hub.
-- [ ] Provider can view active/past promotions, placement, date range, status, and performance.
+- [x] Add Provider > Ưu tiên hiển thị menu/hub.
+- [x] Provider can view active/past promotions, placement, date range, status, and performance.
 - [ ] Provider can submit a request for priority/featured placement if self-service is enabled.
-- [ ] Admin still controls final approval, placement, pricing, and publish state.
-- [ ] Keep provider UI using existing Provider shared section/card/form/table components.
+- [x] Admin still controls final approval, placement, pricing, and publish state.
+- [x] Keep provider UI using existing Provider shared section/card/form/table components.
 
 Public rendering:
-- [ ] Add server helpers to fetch active banner ads by placement key.
-- [ ] Add server helpers to fetch active provider promotions by provider/offering/category/search context.
-- [ ] Render external ads only when creative is approved, campaign is active, payment is valid, and date range is current.
-- [ ] Apply provider priority ranking before organic ranking, but only within matching category/region/search context.
-- [ ] Show clear labels such as `Được tài trợ`, `Nổi bật`, or `Đối tác ưu tiên` where appropriate.
+- [x] Add server helpers to fetch active banner ads by placement key.
+- [x] Add server helpers to fetch active provider promotions by provider/offering/category/search context.
+- [x] Render external ads only when creative is approved, campaign is active, payment is valid, and date range is current.
+- [x] Apply provider priority ranking before organic ranking, but only within matching category/region/search context.
+- [x] Show clear labels such as `Được tài trợ`, `Nổi bật`, or `Đối tác ưu tiên` where appropriate.
 - [ ] Track impressions and clicks without blocking page render.
 
 Permissions and ownership:
-- [ ] Add admin permissions for ads/placements/provider promotions if needed.
-- [ ] External advertisers remain admin-owned records unless a future self-service advertiser portal is approved.
-- [ ] Provider promotions must always reference a valid provider and optionally target provider profile, offering, category, or placement.
-- [ ] Affiliate remains referral/commission only; do not mix affiliate with paid placement.
+- [x] Add admin permissions for ads/placements/provider promotions if needed.
+- [x] External advertisers remain admin-owned records unless a future self-service advertiser portal is approved.
+- [x] Provider promotions must always reference a valid provider and optionally target provider profile, offering, category, or placement.
+- [x] Affiliate remains referral/commission only; do not mix affiliate with paid placement.
 
 Verification:
-- [ ] Run schema audit after DB changes.
-- [ ] Run TypeScript.
+- [x] Run schema audit after DB changes.
+- [x] Run TypeScript.
 - [ ] Run route/render smoke checks for admin ads pages, provider priority page, and public placements.
-- [ ] Update task checklist as implementation progresses.
+- [x] Update task checklist as implementation progresses.
 
 Provider UI admin-style audit
 

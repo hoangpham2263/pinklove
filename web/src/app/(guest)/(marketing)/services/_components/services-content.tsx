@@ -13,6 +13,7 @@ import {
   Sparkles,
   UsersRound,
 } from "lucide-react";
+import { GuestPromotedProviders } from "@/features/ads/components/guest-ads";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
@@ -324,6 +325,8 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
           </div>
         </div>
       </section>
+
+      <GuestPromotedProviders placementKey="provider_directory_top" limit={17} className="relative z-10 py-10 lg:py-14" />
 
       {publishedServices.length ? (
         <section className="relative z-10 border-y border-stone-100 bg-white/75 px-4 py-12 lg:py-16">

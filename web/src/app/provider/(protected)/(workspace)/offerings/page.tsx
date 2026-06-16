@@ -4,7 +4,7 @@ import { ProviderOfferingRequestsTable } from "@/features/provider-offering-subm
 import { listProviderOfferingSubmissionsForProvider } from "@/features/provider-offering-submissions/server/service";
 import { ProviderLinkButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderOverviewCard, ProviderOverviewGrid } from "@/features/provider-orders/components/provider-overview-card";
-import { ProviderEmptyState, ProviderPage, ProviderPageHeader, ProviderSectionCard } from "@/features/provider-orders/components/provider-page";
+import { ProviderEmptyState, ProviderPage, ProviderPageHeader } from "@/features/provider-orders/components/provider-page";
 
 export default async function ProviderOfferingsPage() {
   const provider = await requireProvider(ROUTES.PROVIDER.LOGIN);
@@ -30,13 +30,16 @@ export default async function ProviderOfferingsPage() {
         />
       </ProviderOverviewGrid>
 
-      <ProviderSectionCard title="Danh sách yêu cầu dịch vụ/sản phẩm">
+      <div className="space-y-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight">Danh sách yêu cầu dịch vụ/sản phẩm</h2>
+        </div>
         {submissions.length === 0 ? (
           <ProviderEmptyState>Chưa có yêu cầu nào. Hãy gửi yêu cầu nhận dịch vụ/sản phẩm đầu tiên để admin duyệt.</ProviderEmptyState>
         ) : (
           <ProviderOfferingRequestsTable submissions={submissions} />
         )}
-      </ProviderSectionCard>
+      </div>
     </ProviderPage>
   );
 }

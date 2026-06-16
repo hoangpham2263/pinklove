@@ -36,7 +36,9 @@ This file covers the admin area and admin-controlled workflows.
 - `Admin > Commerce` owns offerings, offering types, templates, categories,
   bundles, orders, payments, and shipments.
 - `Admin > Bookings` owns service bookings and wedding planning operations.
-- `Admin > Marketing` owns landing pages, campaigns, and A/B experiments.
+- `Admin > Marketing` owns landing pages, campaigns, A/B experiments, Ads,
+  external advertisers, placements, banner creatives, and sponsored provider
+  priority. Ads must stay separate from service bookings.
 - `Admin > Website` owns managed pages, navigation, SEO, media, and shared
   website data.
 - Admin `Pages` edits only managed content and system pages already registered in code.

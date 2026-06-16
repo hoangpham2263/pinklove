@@ -239,6 +239,15 @@ export const PROVIDER_NAV_GROUPS: ProviderNavGroupEntry[] = [
 export const PROVIDER_NAV_SECONDARY_ITEMS: ProviderNavLinkEntry[] = [
   {
     type: "link",
+    key: "priority",
+    label: "Ưu tiên hiển thị",
+    description: "Theo dõi gói nổi bật, placement và hiệu quả hiển thị.",
+    href: ROUTES.PROVIDER.PRIORITY,
+    iconName: "package-check",
+    exact: true,
+  },
+  {
+    type: "link",
     key: "messages",
     label: "Tin nhắn",
     description: "Trao đổi với khách hàng và bộ phận vận hành.",

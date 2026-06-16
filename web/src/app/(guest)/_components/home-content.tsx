@@ -5,6 +5,7 @@ import { GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
 import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated-cta-button";
 import { HeroAnimatedTitle } from "@/app/(guest)/_components/hero-animated-title";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
+import { GuestAdBanner } from "@/features/ads/components/guest-ads";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
 import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
@@ -341,6 +342,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </div>
         </div>
       </section>
+
+      <GuestAdBanner placementKey="home_hero_banner" className="bg-white py-8 lg:py-10" />
 
       <section id="home-about" className="py-10 lg:py-15 2xl:py-20 bg-gradient-to-b from-[#FF6FF5] to-[#f5dbef] ">
         <div className="container mx-auto px-4">

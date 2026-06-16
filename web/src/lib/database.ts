@@ -35,6 +35,7 @@ const globalForDb = globalThis as unknown as {
   affiliateApplicationsMigrationDone?: boolean;
   chatTablesMigrationDone?: boolean;
   notificationTablesMigrationDone?: boolean;
+  adsTablesMigrationDone?: boolean;
 	  contentCommentsMigrationDone?: boolean;
 	  mediaTablesMigrationDone?: boolean;
 	  managedPagesMigrationDone?: boolean;
@@ -4752,6 +4753,209 @@ async function ensureContentCommentsMigration() {
  `);
 }
 
+async function ensureAdsTablesMigration() {
+  const pool = getPool();
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS advertisers (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      name TEXT NOT NULL,
+      contact_name TEXT,
+      contact_email TEXT,
+      contact_phone TEXT,
+      website_url TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT advertisers_status_check CHECK (status IN ('active', 'inactive', 'archived'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ad_placements (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      key TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      placement_type TEXT NOT NULL DEFAULT 'banner',
+      surface TEXT NOT NULL DEFAULT 'website',
+      description TEXT,
+      max_items INT NOT NULL DEFAULT 1,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT ad_placements_type_check CHECK (placement_type IN ('banner', 'provider_listing', 'offering_listing', 'mixed')),
+      CONSTRAINT ad_placements_surface_check CHECK (surface IN ('website', 'provider_directory', 'category', 'search', 'blog', 'checkout', 'footer')),
+      CONSTRAINT ad_placements_max_items_check CHECK (max_items > 0)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ad_creatives (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      advertiser_id TEXT REFERENCES advertisers(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      creative_type TEXT NOT NULL DEFAULT 'image',
+      image_url TEXT NOT NULL,
+      mobile_image_url TEXT,
+      target_url TEXT,
+      alt_text TEXT,
+      headline TEXT,
+      body TEXT,
+      cta_label TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT ad_creatives_type_check CHECK (creative_type IN ('image', 'html', 'text')),
+      CONSTRAINT ad_creatives_status_check CHECK (status IN ('draft', 'pending', 'approved', 'rejected', 'archived'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ad_campaigns (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      advertiser_id TEXT NOT NULL REFERENCES advertisers(id) ON DELETE CASCADE,
+      placement_id TEXT NOT NULL REFERENCES ad_placements(id) ON DELETE RESTRICT,
+      creative_id TEXT REFERENCES ad_creatives(id) ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      target_url TEXT,
+      status TEXT NOT NULL DEFAULT 'draft',
+      payment_status TEXT NOT NULL DEFAULT 'unpaid',
+      price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+      notes TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT ad_campaigns_status_check CHECK (status IN ('draft', 'pending', 'approved', 'active', 'paused', 'expired', 'rejected', 'archived')),
+      CONSTRAINT ad_campaigns_payment_status_check CHECK (payment_status IN ('unpaid', 'pending', 'paid', 'refunded', 'waived')),
+      CONSTRAINT ad_campaigns_price_check CHECK (price >= 0),
+      CONSTRAINT ad_campaigns_date_range_check CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ad_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      campaign_id TEXT NOT NULL REFERENCES ad_campaigns(id) ON DELETE CASCADE,
+      placement_id TEXT REFERENCES ad_placements(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      session_id TEXT,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      target_type TEXT,
+      target_id TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      CONSTRAINT ad_events_type_check CHECK (event_type IN ('impression', 'click', 'lead', 'booking', 'conversion'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_promotion_plans (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      key TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      description TEXT,
+      placement_id TEXT REFERENCES ad_placements(id) ON DELETE SET NULL,
+      price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      duration_days INT NOT NULL DEFAULT 30,
+      priority_weight INT NOT NULL DEFAULT 100,
+      is_active BOOLEAN NOT NULL DEFAULT TRUE,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT provider_promotion_plans_price_check CHECK (price >= 0),
+      CONSTRAINT provider_promotion_plans_duration_check CHECK (duration_days > 0),
+      CONSTRAINT provider_promotion_plans_priority_check CHECK (priority_weight >= 0)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_promotions (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      provider_id TEXT NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+      plan_id TEXT REFERENCES provider_promotion_plans(id) ON DELETE SET NULL,
+      placement_id TEXT REFERENCES ad_placements(id) ON DELETE SET NULL,
+      offering_id TEXT REFERENCES offerings(id) ON DELETE SET NULL,
+      target_type TEXT NOT NULL DEFAULT 'provider',
+      target_id TEXT,
+      title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      payment_status TEXT NOT NULL DEFAULT 'unpaid',
+      priority_weight INT NOT NULL DEFAULT 100,
+      price NUMERIC(12,2) NOT NULL DEFAULT 0,
+      starts_at TIMESTAMPTZ,
+      ends_at TIMESTAMPTZ,
+      admin_notes TEXT,
+      provider_notes TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT provider_promotions_target_type_check CHECK (target_type IN ('provider', 'offering', 'category', 'search')),
+      CONSTRAINT provider_promotions_status_check CHECK (status IN ('draft', 'pending', 'approved', 'active', 'paused', 'expired', 'rejected', 'archived')),
+      CONSTRAINT provider_promotions_payment_status_check CHECK (payment_status IN ('unpaid', 'pending', 'paid', 'refunded', 'waived')),
+      CONSTRAINT provider_promotions_price_check CHECK (price >= 0),
+      CONSTRAINT provider_promotions_priority_check CHECK (priority_weight >= 0),
+      CONSTRAINT provider_promotions_date_range_check CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at)
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS provider_promotion_events (
+      id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      promotion_id TEXT NOT NULL REFERENCES provider_promotions(id) ON DELETE CASCADE,
+      provider_id TEXT REFERENCES providers(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      session_id TEXT,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      target_type TEXT,
+      target_id TEXT,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      CONSTRAINT provider_promotion_events_type_check CHECK (event_type IN ('impression', 'click', 'lead', 'booking', 'conversion'))
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS advertisers_status_idx ON advertisers(status, updated_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ad_placements_active_idx ON ad_placements(key, is_active);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ad_campaigns_active_lookup_idx ON ad_campaigns(placement_id, status, payment_status, starts_at, ends_at);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ad_campaigns_advertiser_idx ON ad_campaigns(advertiser_id, updated_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ad_events_campaign_type_idx ON ad_events(campaign_id, event_type, occurred_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS provider_promotions_active_lookup_idx ON provider_promotions(provider_id, placement_id, status, payment_status, starts_at, ends_at);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS provider_promotions_target_idx ON provider_promotions(target_type, target_id, status, priority_weight DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS provider_promotion_events_idx ON provider_promotion_events(promotion_id, event_type, occurred_at DESC);`);
+
+  await pool.query(`
+    INSERT INTO ad_placements (key, label, placement_type, surface, description, max_items)
+    VALUES
+      ('home_hero_banner', 'Homepage hero banner', 'banner', 'website', 'Banner lớn ở trang chủ.', 1),
+      ('blog_sidebar', 'Blog sidebar', 'banner', 'blog', 'Banner cạnh bài viết/blog.', 2),
+      ('provider_directory_top', 'Provider directory top', 'provider_listing', 'provider_directory', 'Nhà cung cấp ưu tiên ở đầu danh sách.', 6),
+      ('category_top', 'Category top', 'mixed', 'category', 'Vị trí đầu trang category.', 4),
+      ('search_result_top', 'Search result top', 'mixed', 'search', 'Vị trí đầu kết quả tìm kiếm.', 4),
+      ('offering_detail_related', 'Offering detail related', 'mixed', 'website', 'Gợi ý liên quan trong trang offering.', 4),
+      ('footer_banner', 'Footer banner', 'banner', 'footer', 'Banner cuối trang.', 1)
+    ON CONFLICT (key) DO NOTHING;
+  `);
+
+  await pool.query(`
+    INSERT INTO provider_promotion_plans (key, name, description, placement_id, price, duration_days, priority_weight)
+    SELECT seed.key, seed.name, seed.description, placement.id, seed.price, seed.duration_days, seed.priority_weight
+    FROM (
+      VALUES
+        ('featured_provider_30', 'Featured Provider 30 ngày', 'Ưu tiên provider trong danh sách nhà cung cấp trong 30 ngày.', 'provider_directory_top', 0::numeric, 30, 120),
+        ('category_top_30', 'Category Top 30 ngày', 'Ưu tiên trong category phù hợp trong 30 ngày.', 'category_top', 0::numeric, 30, 150),
+        ('search_boost_14', 'Search Boost 14 ngày', 'Tăng thứ hạng provider/offering trong kết quả tìm kiếm.', 'search_result_top', 0::numeric, 14, 100)
+    ) AS seed(key, name, description, placement_key, price, duration_days, priority_weight)
+    LEFT JOIN ad_placements placement ON placement.key = seed.placement_key
+    ON CONFLICT (key) DO NOTHING;
+  `);
+}
+
 async function ensureOfferingProviderPaperTypeMigration() {
   const pool = getPool();
   await pool.query(`ALTER TABLE offerings DROP CONSTRAINT IF EXISTS offerings_type_check`);
@@ -5350,6 +5554,11 @@ export async function ensureDb() {
         globalForDb.notificationTablesMigrationDone = true;
       }
 
+      if (!globalForDb.adsTablesMigrationDone) {
+        await ensureAdsTablesMigration();
+        globalForDb.adsTablesMigrationDone = true;
+      }
+
       if (!globalForDb.contentCommentsMigrationDone) {
         await ensureContentCommentsMigration();
         globalForDb.contentCommentsMigrationDone = true;
@@ -5390,6 +5599,11 @@ export async function ensureDb() {
   if (!globalForDb.notificationTablesMigrationDone) {
     await ensureNotificationTablesMigration();
     globalForDb.notificationTablesMigrationDone = true;
+  }
+
+  if (!globalForDb.adsTablesMigrationDone) {
+    await ensureAdsTablesMigration();
+    globalForDb.adsTablesMigrationDone = true;
   }
 
   if (!globalForDb.contentCommentsMigrationDone) {
