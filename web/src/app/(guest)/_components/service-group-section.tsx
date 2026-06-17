@@ -103,17 +103,21 @@ export function ServiceGroupSection({
 
   return (
     <div>
-      <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className={`mb-8 flex flex-col gap-5 ${action ? "lg:flex-row lg:items-end lg:justify-between" : (isHome ? "items-center text-center mx-auto" : "")}`}>
         <div className="max-w-3xl">
-          <p className={`text-xs font-semibold uppercase tracking-[0.28em] ${eyebrowClassName}`}>
-            {eyebrow?.trim() || "Nhóm dịch vụ"}
-          </p>
+          {eyebrow?.trim() ? (
+            <p className={`text-xs font-semibold uppercase tracking-[0.28em] ${eyebrowClassName}`}>
+              {eyebrow.trim()}
+            </p>
+          ) : null}
           <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl">
             {title?.trim() || "Chọn đúng dịch vụ theo nhu cầu cưới"}
           </h2>
-          <p className="mt-4 text-sm leading-8 text-stone-600 md:text-base">
-            {description?.trim() || "Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống."}
-          </p>
+          {description?.trim() ? (
+            <p className="mt-4 text-sm leading-8 text-stone-600 md:text-base">
+              {description.trim()}
+            </p>
+          ) : null}
         </div>
         {action ? <div className="flex shrink-0 justify-start lg:justify-end">{action}</div> : null}
       </div>

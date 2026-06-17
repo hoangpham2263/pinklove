@@ -218,9 +218,9 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
       <section className="relative z-10 px-4 py-12 lg:py-16">
         <div className="container mx-auto">
           <ServiceGroupSection
-            eyebrow={fields.servicesEyebrow}
-            title={fields.servicesTitle}
-            description={fields.servicesDescription}
+            eyebrow={fields.servicesEyebrow?.trim() || "Nhóm dịch vụ"}
+            title={fields.servicesTitle?.trim() || "Chọn đúng dịch vụ theo nhu cầu cưới"}
+            description={fields.servicesDescription?.trim() || "Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống."}
             items={serviceItems}
           />
         </div>

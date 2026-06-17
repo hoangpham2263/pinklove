@@ -243,14 +243,15 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
   );
   const scrollDots = [
     { id: "hero", href: "#home-hero", label: "Đi đến banner", className: "size-4 bg-[#FF6FF5]" },
-    { id: "about", href: hasAboutContent ? "#home-about" : "#home-services", label: "Đi đến giới thiệu", className: "size-3.5 bg-[#FF6FF5]/80" },
-    { id: "services", href: "#home-services", label: "Đi đến dịch vụ", className: "size-3 bg-[#FF6FF5]/60" },
+    { id: "services", href: "#home-services", label: "Đi đến dịch vụ", className: "size-3.5 bg-[#FF6FF5]/80" },
     { id: "service-items", href: "#home-service-items", label: "Đi đến danh sách dịch vụ", className: "size-3 bg-[#FF6FF5]/60" },
+    { id: "about", href: hasAboutContent ? "#home-about" : "#home-stats", label: "Đi đến giới thiệu", className: "size-3 bg-[#FF6FF5]/60" },
   ];
 
   return (
-    <div>
-      <section id="home-hero" className="relative h-screen overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] py-12 sm:py-16 lg:py-0">
+    <div className="guest-soft-top-bg contact-wave-bg relative isolate overflow-hidden">
+      <GuestMarketingPageDecor ambientGlowDensity="regular" />
+      <section id="home-hero" className="relative z-10 h-screen overflow-hidden bg-gradient-to-b from-[#FFD1F7] to-[#F9F1FF] py-12 sm:py-16 lg:py-0">
         <div className="pointer-events-none absolute inset-0 z-0 hidden lg:block">
           <div className="absolute left-[8%] top-[20%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
           <div className="absolute right-[12%] top-[28%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
@@ -359,14 +360,41 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         </div>
       </section>
 
-      <div className="guest-soft-top-bg contact-wave-bg relative isolate overflow-hidden">
-        <GuestMarketingPageDecor ambientGlowDensity="regular" />
-        <div className="relative z-10">
-          <div className="space-y-14 py-10 lg:space-y-18 lg:py-16">
-        <HomeStatsSection items={homeStats} />
+        <section
+          id="home-services"
+          className="relative z-10 bg-white px-4 pb-10 pt-10 sm:pt-12 lg:pb-14 lg:pt-14"
+        >
+          <svg
+            className="pointer-events-none absolute inset-x-0 bottom-full z-0 h-[72px] w-full sm:h-[96px] lg:h-[128px]"
+            viewBox="0 0 1920 222"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m1920.5 91.325c-878.73-165.59-1537.7-68.638-1920.5 1e-4v130.67h1920.5v-130.67z"
+              fill="#fff"
+            />
+          </svg>
+          <div className="container relative z-10 mx-auto">
+            <div id="home-service-items" className="relative z-10">
+              <ServiceGroupSection
+                title={fields.servicesTitle?.trim() || "Chọn đúng dịch vụ theo nhu cầu cưới"}
+                items={resolvedServiceItems}
+                theme="home"
+                gridClassName="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+              />
+              <div className="mt-10 flex justify-center">
+                <GuestLinkButton href={ROUTES.SERVICES} className="rounded-full px-8 py-3.5 text-sm font-semibold uppercase">
+                  Xem toàn bộ dịch vụ
+                </GuestLinkButton>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {hasAboutContent ? (
-          <section id="home-about" className="container mx-auto px-4">
+          <section id="home-about" className="container relative z-10 mx-auto px-4">
               <div className="relative z-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                 <div className="space-y-6">
                   <HomePanelHeader
@@ -415,8 +443,10 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </section>
         ) : null}
 
+        <HomeStatsSection items={homeStats} className="relative z-10" />
+
         {page.body ? (
-          <section id="home-body" className="container mx-auto px-4">
+          <section id="home-body" className="container relative z-10 mx-auto px-4">
               <div
                 className={`relative z-10 mx-auto max-w-5xl text-stone-700 ${RICH_TEXT_CONTENT_CLASSNAME}`}
                 dangerouslySetInnerHTML={createRichTextMarkup(page.body)}
@@ -424,26 +454,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </section>
         ) : null}
 
-        <section id="home-services" className="container mx-auto px-4">
-            <div id="home-service-items" className="relative z-10">
-              <ServiceGroupSection
-                eyebrow="Nhóm dịch vụ"
-                title="Chọn đúng dịch vụ theo nhu cầu cưới"
-                description="Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống."
-                items={resolvedServiceItems}
-                action={(
-                  <GuestLinkButton href={ROUTES.SERVICES} className="rounded-full px-7 py-3 text-sm font-semibold uppercase">
-                    Xem toàn bộ dịch vụ
-                  </GuestLinkButton>
-                )}
-                theme="home"
-                gridClassName="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
-              />
-            </div>
-        </section>
-
         {hasEventPlannerSection ? (
-          <section id="home-event-planner" className="container mx-auto px-4">
+          <section id="home-event-planner" className="container relative z-10 mx-auto px-4">
               <div className="relative z-10 space-y-8">
                 <HomePanelHeader
                   eyebrow={eventPlannerEyebrow || "Wedding planner"}
@@ -530,7 +542,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         ) : null}
 
         {hasInvitationGallerySection ? (
-          <section id="home-invitation-gallery" className="container mx-auto px-4">
+          <section id="home-invitation-gallery" className="container relative z-10 mx-auto px-4">
               <div className="relative z-10">
                 <PagedCarousel
                   itemsPerPage={4}
@@ -570,7 +582,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         ) : null}
 
         {hasSharedInvitationsSection ? (
-          <section id="home-shared-invitations" className="container mx-auto px-4">
+          <section id="home-shared-invitations" className="container relative z-10 mx-auto px-4">
               <div className="relative z-10">
                 <PagedCarousel
                   itemsPerPage={4}
@@ -609,11 +621,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           </section>
         ) : null}
 
-            <GlobalFaqSection className="pb-6" containerClassName="container mx-auto px-4" />
-          </div>
+          <GlobalFaqSection className="relative z-10 pb-6" containerClassName="container mx-auto px-4" />
           <div id="home-page-end" className="h-px" aria-hidden="true" />
-        </div>
-      </div>
     </div>
   );
 }
