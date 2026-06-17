@@ -4,15 +4,12 @@ import {
   CalendarClock,
   Check,
   ClipboardCheck,
-  HeartHandshake,
-  Images,
   MapPin,
-  Megaphone,
-  Palette,
   Search,
   Sparkles,
   UsersRound,
 } from "lucide-react";
+import { normalizeServiceGroupItems, ServiceGroupSection, type ServiceGroupItemInput } from "@/app/(guest)/_components/service-group-section";
 import { GuestPromotedProviders } from "@/features/ads/components/guest-ads";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import type { ManagedPage } from "@/lib/managed-pages";
@@ -26,15 +23,6 @@ type ServiceFaqItem = {
   answer?: string;
 };
 
-type ServiceItem = {
-  title?: string;
-  description?: string;
-  detailItems?: string;
-  badge?: string;
-  ctaText?: string;
-  ctaLink?: string;
-};
-
 type WorkflowItem = {
   title?: string;
   description?: string;
@@ -44,33 +32,6 @@ type PlatformItem = {
   title?: string;
   description?: string;
 };
-
-const fallbackServices: Required<Pick<ServiceItem, "title" | "description" | "detailItems" | "badge" | "ctaText" | "ctaLink">>[] = [
-  {
-    title: "Thiệp cưới online & website cưới",
-    description: "Xây dựng thiệp online, landing page cưới và luồng chia sẻ khách mời trên một nền tảng thống nhất.",
-    detailItems: "Mẫu coded và builder\nRSVP, lời chúc, album, bản đồ\nTối ưu hiển thị mobile và SEO",
-    badge: "Digital",
-    ctaText: "Xem mẫu thiệp",
-    ctaLink: ROUTES.TEMPLATES,
-  },
-  {
-    title: "Thiệp giấy & sản phẩm cưới",
-    description: "Kết nối nhu cầu in ấn, quà cưới và sản phẩm vật lý với quy trình đặt hàng, thanh toán, fulfillment.",
-    detailItems: "Thiệp giấy, phụ kiện, quà tặng\nQuản lý đơn hàng và thanh toán\nSẵn sàng mở provider supply",
-    badge: "Commerce",
-    ctaText: "Khám phá thiệp giấy",
-    ctaLink: ROUTES.PAPER,
-  },
-  {
-    title: "Dịch vụ cưới từ provider",
-    description: "Tổ chức các dịch vụ như makeup, chụp ảnh, quay video, trang trí và wedding planner theo mô hình marketplace.",
-    detailItems: "Provider profile và phê duyệt dịch vụ\nLịch khả dụng theo từng dịch vụ\nSẵn sàng mở booking và điều phối",
-    badge: "Marketplace",
-    ctaText: "Trao đổi nhu cầu",
-    ctaLink: ROUTES.CONTACT,
-  },
-];
 
 const fallbackWorkflow: Required<WorkflowItem>[] = [
   {
@@ -121,35 +82,11 @@ const fallbackFaqs: ServiceFaqItem[] = [
   },
 ];
 
-const serviceIcons = [Palette, Images, HeartHandshake, Megaphone];
 const workflowIcons = [Search, ClipboardCheck, CalendarClock];
 const platformIcons = [Sparkles, UsersRound, MapPin, Check];
 
-function splitLines(value?: string) {
-  return (value ?? "")
-    .split(/\r?\n/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 function normalizeServiceExcerpt(value?: string) {
   return value?.replace(/\bGói\s+/gi, "Dịch vụ ").trim();
-}
-
-function normalizeServiceItems(items: ServiceItem[] | undefined) {
-  const source = Array.isArray(items) && items.length ? items : fallbackServices;
-
-  return source
-    .filter((item) => item.title?.trim() && item.description?.trim())
-    .slice(0, 6)
-    .map((item, index) => ({
-      title: item.title?.trim() || "",
-      description: item.description?.trim() || "",
-      badge: item.badge?.trim() || fallbackServices[index % fallbackServices.length].badge,
-      details: splitLines(item.detailItems),
-      ctaText: item.ctaText?.trim() || "Trao đổi nhu cầu",
-      ctaLink: item.ctaLink?.trim() || ROUTES.CONTACT,
-    }));
 }
 
 function normalizeWorkflowItems(items: WorkflowItem[] | undefined) {
@@ -188,7 +125,7 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
     servicesEyebrow?: string;
     servicesTitle?: string;
     servicesDescription?: string;
-    serviceItems?: ServiceItem[];
+    serviceItems?: ServiceGroupItemInput[];
     catalogEyebrow?: string;
     catalogTitle?: string;
     catalogDescription?: string;
@@ -213,7 +150,7 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
   const publishedServices = (await listPublishedOfferings())
     .filter((offering) => offering.fulfillmentType === "service")
     .slice(0, 6);
-  const serviceItems = normalizeServiceItems(fields.serviceItems);
+  const serviceItems = normalizeServiceGroupItems(fields.serviceItems);
   const workflowItems = normalizeWorkflowItems(fields.workflowItems);
   const platformItems = normalizePlatformItems(fields.platformItems);
   const faqs = (Array.isArray(fields.faqItems) && fields.faqItems.length ? fields.faqItems : fallbackFaqs).filter(
@@ -280,49 +217,12 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
 
       <section className="relative z-10 px-4 py-12 lg:py-16">
         <div className="container mx-auto">
-          <div className="mb-8 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-600">
-              {fields.servicesEyebrow?.trim() || "Nhóm dịch vụ"}
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl">
-              {fields.servicesTitle?.trim() || "Chọn đúng dịch vụ theo nhu cầu cưới"}
-            </h2>
-            <p className="mt-4 text-sm leading-8 text-stone-600 md:text-base">
-              {fields.servicesDescription?.trim() || "Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống."}
-            </p>
-          </div>
-
-          <div className="grid gap-5 lg:grid-cols-3">
-            {serviceItems.map((item, index) => {
-              const Icon = serviceIcons[index % serviceIcons.length];
-
-              return (
-                <article key={item.title} className="flex h-full flex-col rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-rose-200">
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="flex size-11 items-center justify-center rounded-xl bg-rose-50 text-rose-700">
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">{item.badge}</span>
-                  </div>
-                  <h3 className="mt-5 text-lg font-semibold text-stone-950">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{item.description}</p>
-                  {item.details.length ? (
-                    <ul className="mt-5 space-y-3 text-sm text-stone-700">
-                      {item.details.map((detail) => (
-                        <li key={detail} className="flex gap-3">
-                          <Check className="mt-1 size-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                          <span>{detail}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  <Link href={item.ctaLink} className="mt-auto inline-flex pt-6 text-sm font-semibold text-rose-700 hover:text-stone-950">
-                    {item.ctaText}
-                  </Link>
-                </article>
-              );
-            })}
-          </div>
+          <ServiceGroupSection
+            eyebrow={fields.servicesEyebrow}
+            title={fields.servicesTitle}
+            description={fields.servicesDescription}
+            items={serviceItems}
+          />
         </div>
       </section>
 

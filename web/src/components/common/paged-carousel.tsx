@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, Children, type PointerEvent, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PagedCarouselProps<TItem> = {
   items?: TItem[];
   itemsPerPage?: number;
   autoPlayMs?: number;
+  controlsVariant?: "arrows" | "buttons";
+  controlsPosition?: "footer" | "header";
   className?: string;
   gridClassName?: string;
   header?: ReactNode;
@@ -77,10 +80,37 @@ function CarouselArrowButton({
   );
 }
 
+function CarouselIconButton({
+  direction,
+  onClick,
+  disabled,
+}: {
+  direction: "previous" | "next";
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  const isPrevious = direction === "previous";
+  const Icon = isPrevious ? ChevronLeft : ChevronRight;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex size-10 items-center justify-center rounded-full border border-[#f8d8f4] bg-white text-stone-950 shadow-[0_12px_28px_rgba(35,31,39,0.08)] transition hover:-translate-y-0.5 hover:border-[#ff6ff5] hover:bg-[#fff5fd] hover:text-[#b529aa] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 lg:size-11"
+      aria-label={isPrevious ? "Nhóm trước" : "Nhóm tiếp theo"}
+      disabled={disabled}
+    >
+      <Icon className="size-5" aria-hidden="true" />
+    </button>
+  );
+}
+
 export function PagedCarousel<TItem>({
   items,
   itemsPerPage = 6,
   autoPlayMs = 8000,
+  controlsVariant = "arrows",
+  controlsPosition = "footer",
   className,
   gridClassName = "grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing md:grid-cols-2 xl:grid-cols-3",
   header,
@@ -90,17 +120,18 @@ export function PagedCarousel<TItem>({
 }: PagedCarouselProps<TItem>) {
   const pageSize = Math.max(1, itemsPerPage);
   
-  const resolvedItems = useMemo(() => {
+  const resolvedItems = useMemo<Array<TItem | ReactNode>>(() => {
     if (children) {
       return Children.toArray(children);
     }
     return items || [];
   }, [items, children]);
 
-  const pages = useMemo(() => chunkArray(resolvedItems as any[], pageSize), [resolvedItems, pageSize]);
+  const pages = useMemo(() => chunkArray(resolvedItems, pageSize), [resolvedItems, pageSize]);
   const [activePage, setActivePage] = useState(0);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const currentItems = pages[activePage] ?? [];
+  const safeActivePage = Math.min(activePage, Math.max(0, pages.length - 1));
+  const currentItems = pages[safeActivePage] ?? [];
   const hasMultiplePages = pages.length > 1;
 
   function goToPreviousPage() {
@@ -157,10 +188,6 @@ export function PagedCarousel<TItem>({
   }
 
   useEffect(() => {
-    setActivePage((value) => Math.min(value, Math.max(0, pages.length - 1)));
-  }, [pages.length]);
-
-  useEffect(() => {
     if (!hasMultiplePages || autoPlayMs <= 0) {
       return undefined;
     }
@@ -176,54 +203,79 @@ export function PagedCarousel<TItem>({
     return null;
   }
 
+  const arrowControls = hasMultiplePages ? (
+    <div className="flex items-center gap-3">
+      {controlsVariant === "buttons" ? (
+        <CarouselIconButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
+      ) : (
+        <CarouselArrowButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
+      )}
+      {controlsVariant === "buttons" ? (
+        <CarouselIconButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
+      ) : (
+        <CarouselArrowButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
+      )}
+    </div>
+  ) : null;
+
+  const pagination = hasMultiplePages ? (
+    <div className="flex items-center gap-2" aria-label="Chọn nhóm hiển thị">
+      {pages.map((_page, pageIndex) => {
+        const isActive = pageIndex === safeActivePage;
+
+        return (
+          <button
+            key={pageIndex}
+            type="button"
+            onClick={() => goToPage(pageIndex)}
+            className={[
+              "h-1.5 rounded-full transition-all duration-300",
+              isActive ? "w-7 bg-[#b529aa]" : "w-1.5 bg-[#f2bee9] hover:bg-[#d94dce]",
+            ].join(" ")}
+            aria-label={`Hiển thị nhóm ${pageIndex + 1}`}
+            aria-current={isActive ? "true" : undefined}
+          />
+        );
+      })}
+    </div>
+  ) : null;
+
+  const footerControls = hasMultiplePages ? (
+    <div className="mt-7 flex items-center justify-center gap-4">
+      {controlsPosition === "footer" ? arrowControls : null}
+      {pagination}
+    </div>
+  ) : null;
+
   return (
     <div className={className}>
-      {(header || actions) ? (
+      {(header || actions || (controlsPosition === "header" && arrowControls)) ? (
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>{header}</div>
-          {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+          <div className="min-w-0 flex-1">{header}</div>
+          {(actions || controlsPosition === "header") ? (
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+              {actions}
+              {controlsPosition === "header" ? arrowControls : null}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       <div
-        key={activePage}
+        key={safeActivePage}
         className={gridClassName}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
         {children
-          ? currentItems
+          ? (currentItems as ReactNode[])
           : currentItems.map((item, index) =>
-              renderItem ? renderItem(item as TItem, index, activePage * pageSize + index) : null
+              renderItem ? renderItem(item as TItem, index, safeActivePage * pageSize + index) : null
             )}
       </div>
 
-      {hasMultiplePages ? (
-        <div className="mt-7 flex items-center justify-center gap-4">
-          <CarouselArrowButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
-          <div className="flex items-center gap-2" aria-label="Chọn nhóm hiển thị">
-            {pages.map((_page, pageIndex) => {
-              const isActive = pageIndex === activePage;
-
-              return (
-                <button
-                  key={pageIndex}
-                  type="button"
-                  onClick={() => goToPage(pageIndex)}
-                  className={[
-                    "h-1.5 rounded-full transition-all duration-300",
-                    isActive ? "w-7 bg-[#b529aa]" : "w-1.5 bg-[#f2bee9] hover:bg-[#d94dce]",
-                  ].join(" ")}
-                  aria-label={`Hiển thị nhóm ${pageIndex + 1}`}
-                  aria-current={isActive ? "true" : undefined}
-                />
-              );
-            })}
-          </div>
-          <CarouselArrowButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
-        </div>
-      ) : null}
+      {footerControls}
     </div>
   );
 }
