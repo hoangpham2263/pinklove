@@ -30,7 +30,6 @@ import {
 import { getManagedPagePath } from "@/lib/page-paths";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
-import { getCurrentUser } from "@/lib/auth";
 
 type ManagedSearchParams = Promise<Record<string, string | string[] | undefined>> | undefined;
 
@@ -269,7 +268,7 @@ function CatalogOrderingBar({
 const templateOfferingTabs: Array<{
   key: string;
   label: string;
-  templateEngine: "coded" | "builder";
+  templateEngine: "coded";
   description: string;
 }> = [
   {
@@ -277,12 +276,6 @@ const templateOfferingTabs: Array<{
     label: "Mẫu coded",
     templateEngine: "coded",
     description: "Mẫu code sẵn, cố định source trong code và chỉ seed/catalog từ hệ thống.",
-  },
-  {
-    key: "builder",
-    label: "Builder",
-    templateEngine: "builder",
-    description: "Mẫu kéo thả, có thể tạo từ admin builder hoặc seed sẵn bằng builder document.",
   },
 ];
 
@@ -293,7 +286,7 @@ function TemplateOfferingTabs({
 }: {
   activeKey: string;
   currentParams: Record<string, string | string[] | undefined>;
-  offeringsByType: Record<"coded" | "builder", Offering[]>;
+  offeringsByType: Record<"coded", Offering[]>;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -379,18 +372,10 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
         templateOfferingTabs.find((tab) => tab.key === requestedType) ?? templateOfferingTabs[0];
       const filters = getCatalogFilters(resolvedSearchParams);
       const priceFilter = getPriceFilter(filters.priceKey);
-      const [codedOfferings, builderOfferings, offerings, categories] = await Promise.all([
+      const [codedOfferings, offerings, categories] = await Promise.all([
         listPublishedOfferingsFiltered({
           offeringTypes: ["digital_template"],
           templateEngines: ["coded"],
-          categorySlug: filters.categorySlug,
-          minPrice: priceFilter.min,
-          maxPrice: priceFilter.max,
-          sort: filters.sortKey,
-        }),
-        listPublishedOfferingsFiltered({
-          offeringTypes: ["digital_template"],
-          templateEngines: ["builder"],
           categorySlug: filters.categorySlug,
           minPrice: priceFilter.min,
           maxPrice: priceFilter.max,
@@ -406,9 +391,8 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
         }),
         listAllOfferingCategories(),
       ]);
-      const offeringsByType: Record<"coded" | "builder", Offering[]> = {
+      const offeringsByType: Record<"coded", Offering[]> = {
         coded: codedOfferings,
-        builder: builderOfferings,
       };
 
       return (
@@ -438,6 +422,17 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
                 currentParams={resolvedSearchParams}
                 offeringsByType={offeringsByType}
               />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-100 bg-white px-5 py-4 shadow-sm">
+                <div>
+                  <h3 className="text-base font-semibold text-stone-950">Muốn tự tạo thiệp?</h3>
+                  <p className="mt-1 text-sm leading-6 text-stone-600">
+                    Vào khu vực khách hàng để tạo và quản lý thiệp trong dashboard riêng.
+                  </p>
+                </div>
+                <GuestLinkButton href={ROUTES.BUILDER} className="shrink-0">
+                  Tự tạo thiệp
+                </GuestLinkButton>
+              </div>
 
               <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
                 <CatalogFilterSidebar
@@ -547,72 +542,6 @@ export async function renderManagedPage(page: ManagedPage, searchParams?: Manage
             </section>
           </GuestShell>
         </section>
-      );
-    }
-    case "tu-tao-thiep": {
-      const resolvedSearchParams = (await searchParams) ?? {};
-      const filters = getCatalogFilters(resolvedSearchParams);
-      const priceFilter = getPriceFilter(filters.priceKey);
-      const [user, builderOfferings, categories] = await Promise.all([
-        getCurrentUser(),
-        listPublishedOfferingsFiltered({
-          offeringTypes: ["digital_template"],
-          templateEngines: ["builder"],
-          categorySlug: filters.categorySlug,
-          minPrice: priceFilter.min,
-          maxPrice: priceFilter.max,
-          sort: filters.sortKey,
-        }),
-        listAllOfferingCategories(),
-      ]);
-
-      return (
-        <GuestShell className="gap-10 py-12">
-          <PageStructuredData page={page} />
-          <div className="space-y-3">
-            <ManagedPageBreadcrumb page={page} />
-            <p className="text-sm uppercase tracking-[0.4em] text-stone-400">Tự tạo thiệp</p>
-            <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2xl:text-5xl">
-              {page.title || "Bắt đầu một mẫu thiệp cưới tùy biến"}
-            </h1>
-            <p className="max-w-3xl text-sm leading-8 text-stone-600 md:text-base lg:text-lg">
-              {page.excerpt || "Luồng này tạo một `wedding_site` kiểu builder. Hiện tại builder đang ở mức section-based foundation để chuẩn bị cho giao diện kéo-thả sau này."}
-            </p>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <CatalogFilterSidebar
-              basePath={ROUTES.BUILDER}
-              currentParams={resolvedSearchParams}
-              filters={filters}
-              categories={categories}
-            />
-
-            <div className="space-y-5">
-              <CatalogOrderingBar
-                basePath={ROUTES.BUILDER}
-                currentParams={resolvedSearchParams}
-                filters={filters}
-                total={builderOfferings.length}
-              />
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {builderOfferings.map((offering) => (
-                  <LoopOnlineInvitationCard
-                    key={offering.id}
-                    offering={offering}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {!user ? (
-            <div className="flex flex-wrap gap-3">
-              <GuestLinkButton href={ROUTES.AUTH.LOGIN}>Đăng nhập để bắt đầu</GuestLinkButton>
-              <GuestLinkButton href={ROUTES.AUTH.REGISTER} variant="secondary">Đăng ký tài khoản</GuestLinkButton>
-            </div>
-          ) : null}
-        </GuestShell>
       );
     }
     case "dich-vu":

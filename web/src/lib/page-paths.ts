@@ -37,7 +37,6 @@ const RESERVED_BRANCH_PREFIXES = [
   "/blog/",
   "/cong-cu/",
   "/mau-thiep/",
-  "/tu-tao-thiep/",
   "/thiep-giay/",
 ] as const;
 

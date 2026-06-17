@@ -1,147 +1,321 @@
-Ads & Provider Priority architecture
+Client Website IA & Page Section Roadmap
 
-Goal: build a clean monetization/visibility layer while keeping existing service bookings, provider marketplace, affiliate, and internal marketing campaigns separate.
+Goal: restructure the public/client-facing website into a clear wedding platform journey: inspire, choose invitations/products, find providers, plan the event, and convert to inquiry/checkout/account.
 
-Development constraint:
-- [x] DB/schema can be changed freely during develop. Prefer a clean final schema over backward-compatible compromises.
-- [x] Existing dev data does not need to be preserved if a better normalized structure requires migration/reset.
-- [x] Update docs/schema.md, docs/architecture.md, docs/admin.md, docs/provider.md, and docs/structure.md whenever routes, DB tables, roles, or workflows change.
+Research references checked:
+- Zola: wedding websites, vendors, invites, guest list, budget, seating chart, registry, expert help.
+- The Knot: invitations + wedding website, RSVP tracking, registry, vendor discovery, planning tools.
+- WeddingWire: vendor directory, checklist, budget, guest list, seating chart, cost guide, inspiration.
+- Minted Weddings: premium stationery, free wedding websites, timeline by wedding stage, sample kits, invitation finder, expert consultation.
 
-Product decisions:
-- [x] Keep `bookings` for customer service bookings only; do not reuse it for ads or priority placement.
-- [x] Keep `campaigns` for internal marketing/landing campaigns; do not overload it as paid external ad booking without a deliberate schema update.
-- [x] Do not add an `ADVERTISER` role yet. External advertisers are admin-managed business entities, not login accounts.
-- [x] Provider paid/top visibility stays under existing `PROVIDER` accounts.
-- [x] Separate two monetization surfaces:
-  - [x] External Banner Ads: outside businesses pay PinkLove/admin to place controlled banner creatives.
-  - [x] Provider Priority: provider/xưởng top or paid partners get priority/featured visibility in provider/offering listings.
+Core Project Snapshot:
+- Public pages mostly use managed pages rendered by `managed-page-renderer`.
+- Existing capabilities: offerings, digital templates, paper products, builder templates, public invitation sites, wishlist, checkout/orders, provider/service flow foundations, ads/provider priority, blog/content, tools, managed pages, media library, menus, SEO.
+- Current Home already has hero, ad banner, about, services, event planner, invitation gallery, shared invitations, and FAQ, but the journey/order needs to be clearer.
 
-DB/schema design:
-- [x] Audit current `campaigns`, `campaign_stats`, landing campaign tables, provider tables, and media tables before changing schema.
-- [x] Add normalized advertiser entity for external ad customers, for example `advertisers`.
-- [x] Add shared placement catalog for render locations, for example `ad_placements`.
-- [x] Add external ad order/campaign table for admin-managed banner ads, for example `ad_campaigns` or `ad_orders`.
-- [x] Add creative table for banner/media assets, for example `ad_creatives`.
-- [x] Add event/stat tables for impressions, clicks, CTR, leads, bookings, and revenue attribution.
-- [x] Add provider priority plan/table, for example `provider_promotion_plans`.
-- [x] Add provider promotion runtime table, for example `provider_promotions`.
-- [x] Add provider promotion stats/events table.
-- [x] Define statuses clearly: draft, pending, approved, active, paused, expired, rejected, archived.
-- [x] Define payment statuses clearly: unpaid, pending, paid, refunded, waived.
-- [x] Add indexes for active placement lookup: placement key, status, date range, provider/offering/category target.
-- [x] Add constraints for valid date ranges, non-negative price/budget, and valid placement/target types.
-- [x] Seed default placements for homepage, blog, provider directory, category top, search result top, offering detail, and footer/banner areas.
+Top-Level Principles:
+- [ ] Public website must speak in customer language, not admin/internal architecture.
+- [ ] Route language rule: public client-facing routes use Vietnamese slugs; admin/provider/customer protected routes and internal API routes use English slugs only.
+- [ ] First viewport must immediately explain PinkLove: wedding invitation/website + paper products + provider services + planning tools.
+- [ ] All public pages should share one visual system.
+- [ ] Use real template/product/provider media from DB whenever possible.
+- [ ] Repeated content can use cards; avoid decorative card-in-card wrappers.
+- [ ] Every major section must have a concrete CTA.
+- [ ] Sponsored/provider priority placements must be visibly labeled.
 
-Admin UX:
-- [x] Add Admin > Marketing > Ads hub or equivalent grouped page.
-- [x] Add Advertisers management page.
-- [x] Add Banner Ads management page for external ad orders/campaigns.
-- [x] Add Creative/Banner URL entry and approval controls.
-- [ ] Add direct Media Library upload/picker for ad creatives if needed.
-- [x] Add Placements management page.
-- [x] Add Sponsored Providers / Provider Priority management page.
-- [x] Add stats dashboard for impressions, clicks, CTR, leads, bookings, revenue.
-- [x] Keep admin UI using existing Admin shared section/card/form/table components.
+Existing Public Page Inventory & Needed Additions:
+- [ ] `/` Home
+  - Existing: managed page, hero, ad banner, about, services, event planner, invitation galleries, FAQ.
+  - Need: reorganize into platform journey, add quick path selector, trust strip, provider/service category entry, planning tools preview, real examples, stronger final CTA.
+- [ ] `/gioi-thieu` About
+  - Existing: managed page.
+  - Need: explain platform model, trust/quality process, provider approval, order/payment safety, ecosystem diagram, stats/testimonials.
+- [ ] `/dich-vu` Services
+  - Existing: managed page/service marketing page with provider priority showcase.
+  - Need: turn into provider marketplace hub with categories, provider cards, region/category filters, quote brief CTA.
+- [ ] `/lien-he` Contact
+  - Existing: managed page/contact content.
+  - Need: structured wedding brief form: date, city, guest count, needed services, budget, style, contact.
+- [ ] `/mau-thiep` Template listing
+  - Existing: public route and offering template detail routes.
+  - Need: stronger catalog filters, curated categories, live preview CTA, comparison with paper/full website, and one clear `Tự tạo thiệp` CTA that routes to customer login/invitations.
+- [ ] `/mau-thiep/[slug]` Template detail
+  - Existing: published coded template detail renderer.
+  - Need: richer gallery/preview, features, matching paper/service suggestions, CTA to customize/create.
+- [ ] Removed public builder route
+  - Existing: `/tu-tao-thiep` and `/tu-tao-thiep/[slug]` were public builder entry/detail routes.
+  - Need: remove completely; public CTAs should point directly to login/customer invitation management, not through redirect.
+- [ ] `/thiep-giay` Paper product listing
+  - Existing: public route for physical/paper offerings.
+  - Need: separate suites/categories, material/print options, sample kit CTA, matching digital invitation.
+- [ ] `/thiep-giay/[slug]` Paper product detail
+  - Existing: offering detail route.
+  - Need: variants, quantity pricing, production timeline, shipping, checkout, matching digital invitation.
+- [ ] `/wishlist`
+  - Existing: wishlist page.
+  - Need: group saved items by template/paper/service, add compare/action CTAs.
+- [ ] `/cong-cu` Tools hub
+  - Existing: tools route.
+  - Need: list tools as planning system, link tools to templates/services.
+- [ ] `/cong-cu/du-toan-cuoi` Wedding budget
+  - Existing: tool route.
+  - Need: save-to-account path, link budget categories to provider/service categories.
+- [ ] `/cong-cu/tao-ma-qr` QR builder
+  - Existing: tool route.
+  - Need: connect use cases to invitation RSVP, event map, payment/contact QR.
+- [ ] `/blog`
+  - Existing: blog hub.
+  - Need: group by planning, invitation etiquette, styles, provider tips, cost/budget, real weddings.
+- [ ] `/blog/[slug]`
+  - Existing: blog detail.
+  - Need: related templates/products/providers/tools inside content.
+- [ ] `/search`
+  - Existing: public search route.
+  - Need: aggregate templates, paper products, providers, blog, tools with tabs/filters.
+- [ ] `/checkout`, `/checkout/cart`, `/checkout/success/[orderNumber]`
+  - Existing: commerce checkout/cart/success.
+  - Need: ensure public flow matches invitation/paper product buying journey and has trust/support links.
+- [ ] `/payment/[orderNumber]`, `/payment/success`, `/payment/failed`
+  - Existing: payment routes.
+  - Need: consistent status UI, next steps, support CTA.
+- [ ] `/invitations/[slug]`
+  - Existing: public invitation site renderer.
+  - Need: verify RSVP, schedule, map, gallery, wishes/comments, QR/share sections are clear when enabled.
+- [ ] `/providers/apply`
+  - Existing: provider application route.
+  - Need: public provider value proposition, requirements, process, benefits, application form sections.
+- [ ] `/affiliates`
+  - Existing: affiliate application route.
+  - Need: explain affiliate program separately from provider/sponsored ads; commission, approval, terms, apply CTA.
+- [ ] `/landing/[slug]`
+  - Existing: landing page renderer.
+  - Need: keep for campaign-specific pages; define when to use landing instead of core public pages.
 
-Provider UX:
-- [x] Add Provider > Ưu tiên hiển thị menu/hub.
-- [x] Provider can view active/past promotions, placement, date range, status, and performance.
-- [ ] Provider can submit a request for priority/featured placement if self-service is enabled.
-- [x] Admin still controls final approval, placement, pricing, and publish state.
-- [x] Keep provider UI using existing Provider shared section/card/form/table components.
+Pages Missing / Recommended To Add:
+- [ ] Provider directory `/nha-cung-cap` or `/dich-vu/nha-cung-cap`
+  - Need: provider listing with category, region, rating/review, portfolio, sponsored labels.
+- [ ] Provider category page `/dich-vu/[category]`
+  - Need: category intro, top/sponsored providers, organic providers, guide content, FAQ.
+- [ ] Provider region/category page `/dich-vu/[category]/[region]` if SEO scope is approved
+  - Need: local provider SEO landing with filtered providers and quote CTA.
+- [ ] Provider profile page `/nha-cung-cap/[slug]`
+  - Need: profile, portfolio, services, pricing hints, availability, reviews, quote/booking CTA.
+- [ ] Wedding checklist/timeline `/cong-cu/checklist-cuoi` or `/ke-hoach-cuoi`
+  - Need: planning timeline by month/stage, account save path later.
+- [ ] Guest list/RSVP explainer page
+  - Need: explain how invitation website, RSVP, QR, guest tracking work together.
+- [ ] Cost guide pages
+  - Need: SEO content for budget categories and vendor/service cost education.
+- [ ] Real weddings / inspiration gallery
+  - Need: showcase real invitation sites, templates, providers, and blog case studies.
 
-Public rendering:
-- [x] Add server helpers to fetch active banner ads by placement key.
-- [x] Add server helpers to fetch active provider promotions by provider/offering/category/search context.
-- [x] Render external ads only when creative is approved, campaign is active, payment is valid, and date range is current.
-- [x] Apply provider priority ranking before organic ranking, but only within matching category/region/search context.
-- [x] Show clear labels such as `Được tài trợ`, `Nổi bật`, or `Đối tác ưu tiên` where appropriate.
-- [ ] Track impressions and clicks without blocking page render.
+Detailed Page Section Plan:
 
-Permissions and ownership:
-- [x] Add admin permissions for ads/placements/provider promotions if needed.
-- [x] External advertisers remain admin-owned records unless a future self-service advertiser portal is approved.
-- [x] Provider promotions must always reference a valid provider and optionally target provider profile, offering, category, or placement.
-- [x] Affiliate remains referral/commission only; do not mix affiliate with paid placement.
+Home `/`:
+- [ ] Hero: platform positioning, concise subcopy, template/service CTAs, real template/product/provider visual.
+- [ ] Quick path selector: `Tạo thiệp online`, `In thiệp giấy`, `Tìm dịch vụ cưới`, `Lập kế hoạch`, `Gửi brief`.
+- [ ] Trust/status strip: templates, providers, orders, regions, reviews or quality commitments.
+- [ ] Featured invitation templates: curated digital templates, preview/customize CTA.
+- [ ] Paper invitation/products highlight: suites/products, sample kit idea, checkout path.
+- [ ] Provider priority showcase: sponsored/top providers with visible labels.
+- [ ] Wedding service categories: photography, makeup, decor, planner, venue, catering, video, music, cakes, flowers, transport, gifts.
+- [ ] How it works: choose style, customize/brief, confirm provider/order, track in account.
+- [ ] Planning toolkit preview: budget, checklist, QR, RSVP/guest concept.
+- [ ] Real examples/inspiration: invitation sites, template styles, wedding cases or blog guides.
+- [ ] Controlled ad/offer placement.
+- [ ] Reviews/testimonials.
+- [ ] FAQ.
+- [ ] Final CTA.
+
+About `/gioi-thieu`:
+- [ ] Hero: what PinkLove is.
+- [ ] Platform ecosystem: customer, provider, admin, affiliate in public-friendly language.
+- [ ] Quality process: provider approval, creative review, order/payment safety, support.
+- [ ] Stats/trust strip.
+- [ ] Team/story section if content exists.
+- [ ] CTA to templates/services/contact.
+
+Services `/dich-vu`:
+- [ ] Hero: wedding services marketplace positioning.
+- [ ] Service category navigation.
+- [ ] Provider priority/sponsored rail.
+- [ ] Organic provider/service cards.
+- [ ] Region/category filters.
+- [ ] How quote/booking works.
+- [ ] Brief form CTA.
+- [ ] FAQ.
+
+Provider Directory / Category Pages:
+- [ ] Category/region hero.
+- [ ] Filter bar: category, city/region, budget, rating, availability.
+- [ ] Sponsored providers labeled.
+- [ ] Organic provider cards.
+- [ ] Education block for choosing a provider.
+- [ ] FAQ and quote CTA.
+
+Provider Profile:
+- [ ] Hero/profile summary: name, region, categories, rating/review, sponsored label if applicable.
+- [ ] Portfolio/gallery.
+- [ ] Services/pricing hints.
+- [ ] Availability/contact/quote CTA.
+- [ ] Reviews.
+- [ ] Similar providers.
+
+Templates `/mau-thiep`:
+- [ ] Hero/category intro.
+- [ ] Filters: style, color, format, animation, price, popularity, newest.
+- [ ] Featured/curated template rail.
+- [ ] Template grid.
+- [ ] Online vs paper vs full wedding website comparison.
+- [ ] CTA to services.
+- [ ] Single `Tự tạo thiệp` CTA that routes directly to customer invitation management/login-return flow.
+
+Template Detail `/mau-thiep/[slug]`:
+- [ ] Live preview/gallery.
+- [ ] Template features.
+- [ ] Customization options.
+- [ ] Matching paper products.
+- [ ] Related templates.
+- [ ] CTA to create/customize.
+
+Builder Entry:
+- [ ] No public `/tu-tao-thiep` route.
+- [ ] Public CTA buttons should link directly to `/login?returnTo=/customer/invitations` when auth-aware logic is available, or `/customer/invitations` where protected routing handles login.
+- [ ] Keep the button on Home and `/mau-thiep`; do not add a separate navigation item for builder.
+
+Paper Products `/thiep-giay`:
+- [ ] Hero: paper invitation/product positioning.
+- [ ] Category nav: invitation suites, save the date, menus, table numbers, signs, thank-you cards, accessories.
+- [ ] Product grid/rails.
+- [ ] Material/print process.
+- [ ] Sample kit or consultation CTA.
+- [ ] Matching digital invitation CTA.
+
+Paper Product Detail `/thiep-giay/[slug]`:
+- [ ] Product gallery.
+- [ ] Variants/options.
+- [ ] Quantity pricing.
+- [ ] Production/shipping timeline.
+- [ ] Checkout CTA.
+- [ ] Matching digital template and related products.
+
+Tools Hub `/cong-cu`:
+- [ ] Hero: planning tools.
+- [ ] Tool cards: budget, QR, checklist/timeline, guest/RSVP concept.
+- [ ] Recommended next action after each tool.
+- [ ] Blog guides linked to tools.
+
+Wedding Budget `/cong-cu/du-toan-cuoi`:
+- [ ] Budget calculator.
+- [ ] Category suggestions tied to provider/service categories.
+- [ ] Save/export path.
+- [ ] CTA to quote providers.
+
+QR Builder `/cong-cu/tao-ma-qr`:
+- [ ] QR generator.
+- [ ] Use case cards: invitation, RSVP, map, contact, payment.
+- [ ] CTA to create invitation website.
+
+Wedding Checklist / Planning Timeline:
+- [ ] Timeline by stage: 12 months, 7-8 months, 5-6 months, 3-4 months, 0-2 months.
+- [ ] Task groups mapped to PinkLove templates/products/providers/tools.
+- [ ] Save-to-account path later.
+
+Contact `/lien-he`:
+- [ ] Hero: request consultation/quote.
+- [ ] Structured wedding brief form.
+- [ ] Contact/support info secondary.
+- [ ] Provider/service category selector.
+- [ ] FAQ about response time and next steps.
+
+Blog `/blog`:
+- [ ] Hero/search/categories.
+- [ ] Category rails: planning, invitation etiquette, style inspiration, provider tips, budget, real weddings.
+- [ ] Featured guides.
+- [ ] Links back to relevant products/providers/tools.
+
+Blog Detail `/blog/[slug]`:
+- [ ] Article content.
+- [ ] Related templates/products/providers/tools.
+- [ ] Author/date/category.
+- [ ] CTA block.
+
+Search `/search`:
+- [ ] Unified search input.
+- [ ] Type tabs: templates, paper products, providers, blog, tools.
+- [ ] Filters per type.
+- [ ] Sponsored results separated/labeled.
+
+Wishlist `/wishlist`:
+- [ ] Group saved items by templates, paper products, services/providers.
+- [ ] Compare/remove actions.
+- [ ] CTA to checkout/customize/request quote.
+
+Checkout / Payment:
+- [ ] Consistent checkout steps.
+- [ ] Trust/support block.
+- [ ] Success page with next steps: view order, create invitation, contact support.
+- [ ] Failure page with retry/support CTA.
+
+Public Invitation `/invitations/[slug]`:
+- [ ] Verify sections for couple hero, event details, schedule, map, gallery, RSVP, wishes/comments, QR/share.
+- [ ] Ensure disabled features do not leave empty gaps.
+
+Provider Apply `/providers/apply`:
+- [ ] Hero: why join PinkLove.
+- [ ] Benefits.
+- [ ] Requirements/quality bar.
+- [ ] Application process.
+- [ ] Form.
+
+Affiliate Apply `/affiliates`:
+- [ ] Hero: affiliate program.
+- [ ] Commission/approval terms.
+- [ ] Difference from provider/sponsored placement.
+- [ ] Apply form.
+
+Navigation & Footer:
+- [ ] Header top intents: Templates, Paper, Services, Tools, Blog, Contact.
+- [ ] Separate provider entry: `For providers` / `Become a provider`.
+- [ ] Footer columns: product groups, planning tools, provider/affiliate, support, legal, SEO categories.
+- [ ] Mobile nav must keep primary actions visible.
+
+Managed Page / Admin Field Work:
+- [ ] Update Home managed page fields to match new section plan.
+- [ ] Add curated selectors for templates/products/providers/categories.
+- [ ] Add repeaters for quick paths, trust stats, how-it-works, milestones, testimonials, FAQ.
+- [ ] Add fields for About, Contact, Services, Tools if managed pages remain the source of truth.
+- [ ] Seed realistic public content and media for all major sections.
+
+Data / Backend Dependencies:
+- [ ] Confirm offering types cleanly cover digital templates, builder templates, paper products, and services.
+- [ ] Add provider public profile query helpers.
+- [ ] Add provider category/region listing helpers.
+- [ ] Add customer brief/quote endpoint if vendor leads are not enough.
+- [ ] Add public review/testimonial helpers.
+- [ ] Add search aggregation across offerings/providers/blog/tools.
+
+Shared Visual System:
+- [ ] Define `GuestSection`, `GuestSectionHeader`, `GuestFeatureGrid`, `GuestProductRail`, `GuestProviderCard`, `GuestTimeline`.
+- [ ] Reuse same carousel/rail controls across public pages.
+- [ ] Reduce one-off gradients/decorations; keep content scan-friendly.
+- [ ] Check mobile text wrapping, CTA stacking, card heights.
+
+Implementation Order:
+- [ ] Phase 1: finalize page inventory and Home IA.
+- [ ] Phase 2: build shared public section/card/rail primitives.
+- [ ] Phase 3: standardize reusable website seed, starting with Vietnamese Home content.
+- [ ] Phase 4: rebuild Home with new sections and seeded content.
+- [ ] Phase 5: rebuild `/dich-vu` and add provider directory/profile routes.
+- [ ] Phase 6: improve `/mau-thiep` and `/thiep-giay`; keep builder as customer-dashboard functionality only.
+- [ ] Phase 7: improve tools/checklist/budget flows.
+- [ ] Phase 8: polish About, Contact, Blog, Search, Header/Footer.
+- [ ] Phase 9: seed demo data and run smoke/mobile checks.
 
 Verification:
-- [x] Run schema audit after DB changes.
-- [x] Run TypeScript.
-- [ ] Run route/render smoke checks for admin ads pages, provider priority page, and public placements.
-- [x] Update task checklist as implementation progresses.
-
-Provider UI admin-style audit
-
-Goal: make provider workspace visually consistent with admin style while keeping customer workspace separate.
-
-Checklist:
-- [x] Provider navigation uses admin-style top-level groups.
-- [x] Provider hub item cards match AdminFeatureOverview item card classes.
-- [x] Replace provider pages that embed generic DatabasePage with provider/admin-style page sections.
-- [x] Replace visible raw form controls in protected provider workspace with ProviderField/Input/Select/Textarea/Button wrappers.
-- [x] Align provider create/edit/delete forms with admin form section/card spacing.
-- [x] Normalize provider page headers, section cards, tables, and empty states.
-- [x] Remove leftover one-off zinc/gradient/landing-style UI from protected provider workspace.
-- [x] Check provider auth/login/public entry separately from protected workspace.
-- [x] Verify TypeScript and route auth behavior for provider hub/detail routes.
-
-Pages to audit:
-- [x] /provider/dashboard
-- [x] /provider/work
-- [x] /provider/bookings
-- [x] /provider/orders
-- [x] /provider/orders/[id]
-- [x] /provider/leads
-- [x] /provider/services
-- [x] /provider/profile
-- [x] /provider/offerings
-- [x] /provider/offerings/new
-- [x] /provider/offerings/[id]
-- [x] /provider/portfolio
-- [x] /provider/pricing
-- [x] /provider/regions
-- [x] /provider/availability
-- [x] /provider/reviews
-- [x] /provider/sourcing
-- [x] /provider/available-templates
-- [x] /provider/supply-requests
-- [x] /provider/config
-- [x] /provider/config/account
-- [x] /provider/config/addresses
-- [x] /provider/config/addresses/new
-- [x] /provider/config/addresses/[id]
-- [x] /provider/config/addresses/[id]/edit
-- [x] /provider/organization
-- [x] /provider/messages
-
-Customer UI shared-style audit
-
-Goal: keep customer navigation separate, but make customer pages use shared role components and consistent project styling.
-
-Checklist:
-- [x] Customer navigation remains separate from admin/provider grouped menubar.
-- [x] Replace visible raw form controls in protected customer workspace with CustomerField/Input/Select/Textarea/Button wrappers.
-- [x] Align customer create/edit/action forms with shared section/card spacing.
-- [x] Normalize customer page headers, cards, tables, and empty states.
-- [x] Remove leftover one-off zinc/gradient/oversized styles from protected customer workspace.
-- [x] Verify TypeScript and route auth behavior for customer routes.
-
-Pages to audit:
-- [x] /customer/dashboard
-- [x] /customer/messages
-- [x] /customer/config
-- [x] /customer/config/profile
-- [x] /customer/config/addresses
-- [x] /customer/config/addresses/new
-- [x] /customer/config/addresses/[id]
-- [x] /customer/config/addresses/[id]/edit
-- [x] /customer/invitations
-- [x] /customer/invitations/[id]
-- [x] /customer/orders
-- [x] /customer/orders/[id]
-- [x] /customer/bookings
-- [x] /customer/vendor-leads
-- [x] /customer/wedding-planning
-- [x] /customer/affiliate
-- [x] /customer/affiliate/links
-- [x] /customer/provider
+- [ ] Run `npx tsc --noEmit`.
+- [ ] Run `npm run build`.
+- [ ] Smoke routes: `/`, `/dich-vu`, `/mau-thiep`, `/thiep-giay`, `/cong-cu`, `/blog`, `/search`, `/gioi-thieu`, `/lien-he`.
+- [ ] Check mobile and desktop screenshots for primary public pages.
+- [ ] Verify no decorative card-in-card layouts.
+- [ ] Verify sponsored placements track impression/click and have visible labels.

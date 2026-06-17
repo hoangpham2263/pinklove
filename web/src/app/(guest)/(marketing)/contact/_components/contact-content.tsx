@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/(guest)/_components/guest-marketing-background";
 import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcrumb";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
@@ -55,74 +56,9 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
   ];
 
   return (
-    <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <span className="contact-cloud-decor contact-cloud-decor-one opacity-85" />
-        <span className="contact-cloud-decor contact-cloud-decor-two opacity-85" />
-        <span className="contact-cloud-decor contact-cloud-decor-three opacity-65" />
-        <span className="contact-cloud-decor contact-cloud-decor-four opacity-65" />
-        <span className="contact-cloud-decor contact-cloud-decor-five opacity-55" />
-        <span className="contact-cloud-decor contact-cloud-decor-six opacity-55" />
-        <span className="contact-cloud-decor contact-cloud-decor-nine opacity-60" />
-        <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/5 blur-3xl" />
-        <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
-        <div className="absolute left-[16%] top-[48%] size-22 rounded-full bg-[#ffb8fb]/4 blur-3xl" />
-        <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
-        <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
-        <span
-          className="cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
-          style={{ animationDelay: "-0.2s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
-          style={{ animationDelay: "-0.7s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
-          style={{ animationDelay: "-1.7s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
-          style={{ animationDelay: "-1.4s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
-          style={{ animationDelay: "-2.4s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-22 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
-          style={{ animationDelay: "-1.8s" }}
-        >
-          ✦
-        </span>
-      </div>
+    <GuestMarketingPageShell ambientGlowDensity="compact">
       <section className="relative z-10 overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          <span className="contact-cloud-decor contact-banner-cloud-one" />
-          <span className="contact-cloud-decor contact-banner-cloud-two" />
-          <span
-            className="cta-sparkle-float absolute left-[7%] top-[33%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
-            style={{ animationDelay: "-0.45s" }}
-          >
-            ✦
-          </span>
-          <span
-            className="cta-sparkle-float absolute right-[10%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-75 drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
-            style={{ animationDelay: "-1.35s" }}
-          >
-            ✦
-          </span>
-        </div>
+        <GuestMarketingHeroDecor />
         <div className="container px-4 mx-auto relative z-10 pt-10 lg:pt-15 2xl:pt-20">
           <ManagedPageBreadcrumb
             page={page}
@@ -171,8 +107,8 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
       </section>
 
       {socialLinks.length > 0 ? (
-        <section className="container relative z-10 px-4 mx-auto pt-10 lg:pt-12.5 2xl:pt-15">
-          <div className="flex flex-wrap-reverse justify-center gap-4 lg:gap-7.5">
+        <section className="relative z-10 px-4 pt-10 lg:pt-12.5 2xl:pt-15">
+          <div className="container mx-auto flex flex-wrap-reverse justify-center gap-4 lg:gap-7.5">
             {socialLinks.map((item) => {
               const content = (
                 <div className="group w-full h-full flex flex-col items-center p-5 bg-white rounded-lg lg:rounded-2xl shadow-[0_18px_44px_rgba(35,31,39,0.1)] transition hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(58,81,114,0.16)]">
@@ -225,6 +161,6 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
           </div>
         </section>
       ) : null}
-    </main>
+    </GuestMarketingPageShell>
   );
 }

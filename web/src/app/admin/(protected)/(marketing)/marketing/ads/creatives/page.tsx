@@ -4,6 +4,7 @@ import { NativeForm } from "@/components/common/native-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AdminDialogCreateTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminField, AdminInput, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
+import { AdCreativeMediaField } from "@/features/ads/admin/ad-creative-media-field";
 import { AdminAdsPageShell } from "@/features/ads/admin/admin-ads-page-shell";
 import { listAdCreatives, listAdvertiserOptions } from "@/features/ads/server/service";
 import { requireAdmin } from "@/lib/auth";
@@ -26,10 +27,10 @@ export default async function AdminAdCreativesPage() {
       actions={
         <Dialog>
           <AdminDialogCreateTrigger>Tạo creative</AdminDialogCreateTrigger>
-          <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Tạo creative</DialogTitle>
-              <DialogDescription>Creative hiện dùng URL ảnh đã kiểm soát. Media picker/upload sẽ là bước riêng nếu cần.</DialogDescription>
+              <DialogDescription>Chọn ảnh từ Media Library hoặc upload trực tiếp khi tạo creative.</DialogDescription>
             </DialogHeader>
             <NativeForm action={ROUTES.API.ADMIN.MARKETING.ADS.CREATIVES} method="POST" className="grid gap-4 md:grid-cols-3">
             <AdminField label="Advertiser">
@@ -50,12 +51,8 @@ export default async function AdminAdCreativesPage() {
                 <option value="archived">archived</option>
               </AdminSelect>
             </AdminField>
-            <AdminField label="Image URL" required>
-              <AdminInput name="imageUrl" required />
-            </AdminField>
-            <AdminField label="Mobile image URL">
-              <AdminInput name="mobileImageUrl" />
-            </AdminField>
+            <AdCreativeMediaField name="imageUrl" label="Image" required />
+            <AdCreativeMediaField name="mobileImageUrl" label="Mobile image" />
             <AdminField label="Target URL">
               <AdminInput name="targetUrl" />
             </AdminField>

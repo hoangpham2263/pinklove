@@ -1,8 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
+import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/(guest)/_components/guest-marketing-background";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
-import { resolveMediaUrl } from "@/lib/media-resolver";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
 
@@ -39,7 +38,6 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
     ctaButtonLink?: string;
   }>(page);
 
-  const bannerImage = await resolveMediaUrl(fields.bannerImage);
   const introTitle = fields.introHeading?.trim() || page.title || "Giới thiệu về PinkLove";
   const introText =
     fields.introText?.trim() ||
@@ -106,119 +104,38 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
     "Trang giới thiệu không chỉ nói doanh nghiệp là ai. Nó cần cho khách hàng thấy lý do thương hiệu tồn tại, cách làm việc, giá trị cam kết và bước tiếp theo họ có thể thực hiện.";
 
   return (
-    <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <span className="contact-cloud-decor contact-cloud-decor-one opacity-80" />
-        <span className="contact-cloud-decor contact-cloud-decor-two opacity-75" />
-        <span className="contact-cloud-decor contact-cloud-decor-three opacity-55" />
-        <span className="contact-cloud-decor contact-cloud-decor-four opacity-55" />
-        <span className="contact-cloud-decor contact-cloud-decor-five opacity-45" />
-        <span className="contact-cloud-decor contact-cloud-decor-six opacity-45" />
-        <span className="contact-cloud-decor contact-cloud-decor-nine opacity-50" />
-        <div className="absolute left-[12%] top-[8%] size-24 rounded-full bg-[#ffb8fb]/5 blur-3xl" />
-        <div className="absolute right-[18%] top-[14%] size-28 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
-        <div className="absolute left-[16%] top-[48%] size-22 rounded-full bg-[#ffb8fb]/4 blur-3xl" />
-        <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
-        <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
-        <span
-          className="cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-55 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
-          style={{ animationDelay: "-0.2s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-50 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
-          style={{ animationDelay: "-0.7s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-55 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
-          style={{ animationDelay: "-1.7s" }}
-        >
-          ✦
-        </span>
-        <span
-          className="cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-45 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
-          style={{ animationDelay: "-1.4s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-22 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
-          style={{ animationDelay: "-2.4s" }}
-        >
-          ♥
-        </span>
-        <span
-          className="cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-20 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
-          style={{ animationDelay: "-1.8s" }}
-        >
-          ✦
-        </span>
-      </div>
+    <GuestMarketingPageShell ambientGlowDensity="extended">
+      <section className="relative z-10 overflow-hidden">
+        <GuestMarketingHeroDecor />
 
-      <section className="relative z-10 isolate overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 z-0 hidden lg:block">
-          <span className="contact-cloud-decor contact-banner-cloud-one" />
-          <span className="contact-cloud-decor contact-banner-cloud-two" />
-          <div className="absolute left-[8%] top-[20%] size-24 rounded-full bg-guest-primary/15 blur-3xl" />
-          <div className="absolute right-[12%] top-[28%] size-32 rounded-full bg-[#ffb8fb]/30 blur-3xl" />
-          <div className="absolute bottom-[16%] left-[38%] size-24 rounded-full bg-white/35 blur-3xl" />
-          <span className="cta-sparkle-float absolute left-[8%] top-[18%] text-4xl text-[#ff6ff5]/75 drop-shadow-[0_6px_16px_rgba(255,111,245,0.2)]">✦</span>
-          <span className="cta-heart-pop absolute left-[13%] bottom-[26%] text-3xl text-[#d94dce]/70 drop-shadow-[0_8px_18px_rgba(217,77,206,0.24)]">♥</span>
-          <span className="cta-sparkle-float absolute right-[8%] top-[46%] text-4xl text-[#ff6ff5]/70 drop-shadow-[0_8px_20px_rgba(255,111,245,0.35)]">✦</span>
-        </div>
+        <div className="container px-4 mx-auto relative z-10 pt-10 lg:pt-15 2xl:pt-20">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.35em] text-stone-700">
+            <span>Trang chủ</span>
+            <span className="mx-2 text-stone-500">/</span>
+            <span className="text-stone-900">Giới thiệu</span>
+          </p>
 
-        <div className="container relative z-10 mx-auto px-4 py-16 lg:py-24">
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
-            <div className="space-y-6 text-center lg:col-span-6 lg:text-left">
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">
-                <span>Trang chủ</span>
-                <span className="mx-2">/</span>
-                <span>Giới thiệu</span>
-              </p>
+          <h1 className="text-center mt-5 text-3xl font-semibold leading-tight sm:text-4xl lg:text-6xl">
+            {introTitle}
+          </h1>
 
-              <h1 className="text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl lg:text-6xl">
-                {introTitle}
-              </h1>
+          <p className="text-center mt-5 text-sm md:text-base lg:text-lg">
+            {introText}
+          </p>
 
-              <p className="text-sm font-medium leading-8 text-stone-700 md:text-base lg:text-lg">
-                {introText}
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-3 lg:justify-start">
-                <Link
-                  href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] px-6 text-sm font-semibold uppercase text-white transition hover:-translate-y-0.5"
-                >
-                  {fields.ctaButtonText?.trim() || "Liên hệ tư vấn"}
-                </Link>
-                <Link
-                  href={ROUTES.TEMPLATES}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-stone-300 bg-white/70 px-6 text-sm font-semibold uppercase text-stone-900 transition hover:-translate-y-0.5 hover:border-[#ff6ff5]"
-                >
-                  Xem mẫu thiệp
-                </Link>
-              </div>
-            </div>
-
-            <div className="lg:col-span-6">
-              <div className="relative min-h-[320px] overflow-hidden rounded-2xl border border-[#ffd8fc]/80 bg-white lg:min-h-[460px]">
-                {bannerImage ? (
-                  <Image src={bannerImage} alt={introTitle} fill className="object-cover" priority sizes="(min-width: 1024px) 50vw, 100vw" />
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,111,245,0.36),transparent_34%),linear-gradient(135deg,#ffffff_0%,#ffe8fb_42%,#dfe9ff_100%)]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/36 via-black/5 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white lg:p-8">
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/72">PinkLove</p>
-                  <p className="mt-3 max-w-md text-xl font-semibold leading-snug lg:text-3xl">
-                    Nơi ý tưởng cưới được biến thành trải nghiệm online chỉn chu.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href={fields.ctaButtonLink?.trim() || ROUTES.CONTACT}
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF95F8_0%,#FF6FF5_50%,#FF95F8_100%)] px-6 text-sm font-semibold uppercase text-white transition hover:-translate-y-0.5"
+            >
+              {fields.ctaButtonText?.trim() || "Liên hệ tư vấn"}
+            </Link>
+            <Link
+              href={ROUTES.TEMPLATES}
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-stone-300 bg-white/70 px-6 text-sm font-semibold uppercase text-stone-900 transition hover:-translate-y-0.5 hover:border-[#ff6ff5]"
+            >
+              Xem mẫu thiệp
+            </Link>
           </div>
         </div>
       </section>
@@ -320,6 +237,6 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
           </div>
         </div>
       </section>
-    </main>
+    </GuestMarketingPageShell>
   );
 }

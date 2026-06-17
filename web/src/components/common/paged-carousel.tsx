@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, Children, type PointerEvent, type ReactNode } from "react";
 
 type PagedCarouselProps<TItem> = {
-  items: TItem[];
+  items?: TItem[];
   itemsPerPage?: number;
   autoPlayMs?: number;
   className?: string;
+  gridClassName?: string;
   header?: ReactNode;
   actions?: ReactNode;
-  renderItem: (item: TItem, index: number, absoluteIndex: number) => ReactNode;
+  renderItem?: (item: TItem, index: number, absoluteIndex: number) => ReactNode;
+  children?: ReactNode;
 };
 
-function chunkItems<TItem>(items: TItem[], size: number) {
-  const chunks: TItem[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
+function chunkArray<T>(array: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < array.length; index += size) {
+    chunks.push(array.slice(index, index + size));
   }
   return chunks;
 }
@@ -80,12 +82,22 @@ export function PagedCarousel<TItem>({
   itemsPerPage = 6,
   autoPlayMs = 8000,
   className,
+  gridClassName = "grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing md:grid-cols-2 xl:grid-cols-3",
   header,
   actions,
   renderItem,
+  children,
 }: PagedCarouselProps<TItem>) {
   const pageSize = Math.max(1, itemsPerPage);
-  const pages = useMemo(() => chunkItems(items, pageSize), [items, pageSize]);
+  
+  const resolvedItems = useMemo(() => {
+    if (children) {
+      return Children.toArray(children);
+    }
+    return items || [];
+  }, [items, children]);
+
+  const pages = useMemo(() => chunkArray(resolvedItems as any[], pageSize), [resolvedItems, pageSize]);
   const [activePage, setActivePage] = useState(0);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const currentItems = pages[activePage] ?? [];
@@ -175,12 +187,16 @@ export function PagedCarousel<TItem>({
 
       <div
         key={activePage}
-        className="grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing md:grid-cols-2 xl:grid-cols-3"
+        className={gridClassName}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        {currentItems.map((item, index) => renderItem(item, index, activePage * pageSize + index))}
+        {children
+          ? currentItems
+          : currentItems.map((item, index) =>
+              renderItem ? renderItem(item as TItem, index, activePage * pageSize + index) : null
+            )}
       </div>
 
       {hasMultiplePages ? (

@@ -16,7 +16,7 @@ const quickTargets = [
   { label: "Trang chủ", value: "/" },
   { label: "Mẫu thiệp", value: "/mau-thiep" },
   { label: "Thiệp giấy", value: "/thiep-giay" },
-  { label: "Tự tạo thiệp", value: "/tu-tao-thiep" },
+  { label: "Tự tạo thiệp", value: "/customer/invitations" },
   { label: "Dịch vụ", value: "/dich-vu" },
 ];
 

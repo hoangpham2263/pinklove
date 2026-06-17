@@ -179,7 +179,7 @@ export default async function CustomerDashboardPage() {
             {providerActor ? (
               <CustomerActionLinkTile href={ROUTES.CUSTOMER.PROVIDER} label="Không gian provider" description="Theo dõi thông tin vận hành dành cho nhà cung cấp." showArrow />
             ) : null}
-            <CustomerActionLinkTile href={ROUTES.BUILDER} label="Tạo thiệp mới" description="Bắt đầu với builder hoặc template." showArrow />
+            <CustomerActionLinkTile href={ROUTES.CUSTOMER.INVITATIONS} label="Tạo thiệp mới" description="Bắt đầu trong khu quản lý thiệp." showArrow />
           </CardContent>
         </Card>
 

@@ -126,7 +126,7 @@ export function WishlistPageClient({
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>
-                <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Xem builder starter</GuestLinkButton>
+                <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Tự tạo thiệp</GuestLinkButton>
               </div>
             </GuestPanelBody>
           </GuestPanel>

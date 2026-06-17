@@ -115,17 +115,172 @@ async function seedManagedPages(client) {
   const pageSeeds = [
     {
       slug: "home",
-      title: "PinkLove | Thiệp cưới online và cổng quản lý đối tác",
-      excerpt: "Nền tảng thiệp cưới online, quản lý đơn hàng và portal riêng cho đối tác sản xuất.",
+      title: "PinkLove | Thiệp cưới online, sản phẩm cưới và dịch vụ cưới",
+      excerpt:
+        "Nền tảng giúp cặp đôi chọn mẫu thiệp, tạo website cưới, đặt sản phẩm cưới và kết nối provider trong một hành trình rõ ràng.",
       status: "published",
       customFields: {
-        heroTitle: "Thiệp cưới online, quản lý đơn hàng và cổng đối tác trong một nơi",
+        bannerTopLine: "PinkLove Wedding Platform",
+        bannerLine1Prefix: "Tạo",
+        bannerLine1Rotating: "thiệp cưới online\nwebsite cưới\nthiệp giấy đồng bộ\nbrief dịch vụ cưới",
+        bannerLine1Suffix: "cho ngày trọng đại cùng",
+        bannerLine2: "PinkLove",
+        bannerShortDescription: "Từ lời mời đầu tiên đến ngày cưới, mọi thứ được gom vào một hành trình dễ kiểm soát.",
+        bannerDescription:
+          "PinkLove giúp cặp đôi chọn mẫu thiệp, quản lý lời mời, đặt sản phẩm cưới và kết nối provider phù hợp. Nội dung seed này dùng để demo trang chủ bằng tiếng Việt và có thể chạy lại khi cần dựng môi trường mới.",
+        heroTitle: "Thiệp cưới online, sản phẩm cưới và dịch vụ cưới trong một nơi",
         heroDescription:
-          "PinkLove giúp bạn quản lý catalogue thiệp cưới, đơn hàng khách hàng và luồng phối hợp provider theo thời gian thực.",
+          "PinkLove giúp cặp đôi bắt đầu từ mẫu thiệp, mở rộng sang website cưới, sản phẩm cưới và các dịch vụ cần provider thực hiện.",
         heroButtonText: "Xem mẫu thiệp",
         heroButtonLink: "/mau-thiep",
-        secondaryButtonText: "Mở công cụ",
-        secondaryButtonLink: "/cong-cu",
+        aboutTitle: "Một nơi để bắt đầu toàn bộ hành trình cưới",
+        aboutDescription:
+          "Trang chủ PinkLove nên cho khách hiểu nhanh ba việc chính: chọn gu thẩm mỹ, tạo lời mời online và đặt các hạng mục cưới có thể triển khai thật. Seed Home này ưu tiên nội dung rõ, dễ chỉnh trong admin và bám đúng các field frontend đang render.",
+        aboutImage: "/uploads/seed-offerings/seed-red-wedding-web-01.png",
+        aboutText1:
+          "Cặp đôi không cần đi qua quá nhiều trang rời rạc để hiểu PinkLove làm gì. Trang chủ dẫn họ từ cảm hứng thiệp cưới đến các bước thực tế như RSVP, sản phẩm cưới, provider và công cụ chuẩn bị.",
+        aboutText2:
+          "Admin vẫn quản trị nội dung qua managed page. Các section quan trọng được seed sẵn để đội vận hành có mẫu chuẩn khi dựng lại dữ liệu demo hoặc setup môi trường mới.",
+        aboutText3:
+          "Định hướng nội dung là nền tảng cưới có commerce và provider, không chỉ là một thư viện mẫu thiệp đơn lẻ.",
+        aboutItems: [
+          {
+            label: "01",
+            content: "Chọn mẫu thiệp hoặc sản phẩm cưới theo phong cách, màu sắc và nhu cầu sử dụng.",
+          },
+          {
+            label: "02",
+            content: "Đưa khách vào luồng customer để quản lý thiệp, website cưới, lời mời và đơn hàng.",
+          },
+          {
+            label: "03",
+            content: "Kết nối provider, quảng cáo ưu tiên và các dịch vụ cưới khi dự án cần mở rộng.",
+          },
+        ],
+        servicesTitle: "Chọn nhanh theo nhu cầu chuẩn bị cưới",
+        servicesDescription:
+          "Các nhóm nội dung trên Home cần giúp khách nhận ra PinkLove có thể bắt đầu rất đơn giản, nhưng vẫn đủ nền để mở rộng thành marketplace cưới.",
+        serviceItems: [
+          {
+            headerImage: "/uploads/seed-offerings/seed-red-wedding-web-02.png",
+            title: "Thiệp online & website cưới",
+            description: "Tạo lời mời online, chia sẻ thông tin tiệc cưới và gom phản hồi khách mời về một nơi.",
+            descriptionItems: "Mẫu thiệp có thể chọn nhanh\nWebsite cưới dành cho từng cặp đôi\nRSVP, lời chúc, album và bản đồ",
+          },
+          {
+            headerImage: "/uploads/seed-offerings/general-offering-01.svg",
+            title: "Thiệp giấy & sản phẩm cưới",
+            description: "Mở rộng từ digital invitation sang thiệp in, quà cảm ơn và các sản phẩm cưới đồng bộ.",
+            descriptionItems: "Catalog offering có thể quản trị\nĐơn hàng và fulfillment rõ ràng\nPhù hợp để kết nối xưởng sản xuất",
+          },
+          {
+            headerImage: "/uploads/seed-offerings/general-offering-03.svg",
+            title: "Provider & dịch vụ cưới",
+            description: "Tạo nền cho provider, sourcing, booking và ưu tiên hiển thị đối tác trả phí hoặc đối tác nổi bật.",
+            descriptionItems: "Hồ sơ provider và dịch vụ\nLead, booking, báo giá theo luồng\nQuảng cáo và ưu tiên hiển thị",
+          },
+          {
+            headerImage: "/uploads/seed-offerings/mau-thiep-cuoi-blush-sonata.svg",
+            title: "Mẫu thiệp theo concept",
+            description: "Tạo nhiều nhóm mẫu để khách xem nhanh gu màu, bố cục và phong cách trước khi vào catalog.",
+            descriptionItems: "Có dữ liệu demo cho carousel\nPhân nhóm theo style cưới\nDễ thay bằng offering thật",
+          },
+          {
+            headerImage: "/uploads/seed-offerings/general-offering-05.svg",
+            title: "Quà tặng & phụ kiện",
+            description: "Bổ sung các item nhỏ như quà cảm ơn, tag, phong bì và phụ kiện để kiểm thử luồng commerce.",
+            descriptionItems: "Có giá và tồn kho mẫu\nPhù hợp đơn hàng số lượng\nCó thể gắn provider supply",
+          },
+          {
+            headerImage: "/uploads/seed-offerings/seed-red-wedding-web-03.png",
+            title: "Ảnh cưới & nội dung media",
+            description: "Demo nhóm dịch vụ ảnh cưới để carousel Home có nhiều loại card và hình ảnh khác nhau.",
+            descriptionItems: "Dịch vụ theo lịch hẹn\nẢnh dùng cho website cưới\nProvider xử lý fulfillment",
+          },
+        ],
+        eventPlannerEyebrow: "Bạn đang chuẩn bị",
+        eventPlannerTitle: "ngày cưới",
+        eventPlannerHighlight: "5",
+        eventPlannerSuffix: "việc cần gom lại",
+        eventPlannerProblems: [
+          {
+            image: "/uploads/seed-offerings/general-offering-04.svg",
+            title: "Khó nhìn tổng thể",
+            description: "Thiệp, danh sách khách, sản phẩm cưới và dịch vụ thường nằm ở nhiều nơi nên đội vận hành khó theo dõi.",
+          },
+          {
+            image: "/uploads/seed-offerings/general-offering-05.svg",
+            title: "Khó chọn đúng provider",
+            description: "Cặp đôi cần biết provider nào phù hợp, còn admin cần kiểm soát chất lượng và mức ưu tiên hiển thị.",
+          },
+          {
+            image: "/uploads/seed-offerings/general-offering-06.svg",
+            title: "Khó tái sử dụng dữ liệu",
+            description: "Seed chuẩn giúp môi trường demo, staging và local có cùng nội dung mẫu để test giao diện ổn định hơn.",
+          },
+        ],
+        eventPlannerSolutionTitle: "PinkLove gom mọi điểm chạm vào một hành trình",
+        eventPlannerHighlightText: "một hành trình",
+        eventPlannerSolutionDescription:
+          "Home không chỉ giới thiệu thương hiệu. Nó phải mở đường cho các trang chính: mẫu thiệp, thiệp giấy, dịch vụ, provider, công cụ, blog và customer dashboard.",
+        eventPlannerCtaText: "Bắt đầu từ mẫu thiệp",
+        eventPlannerCtaLink: "/mau-thiep",
+        eventPlannerFeatures: [
+          {
+            title: "Thiệp online có thể quản lý",
+            description: "Khách chọn mẫu trên web, sau đó đăng nhập để tiếp tục trong khu vực customer.",
+            accentImage: "/uploads/seed-offerings/seed-red-wedding-web-03.png",
+          },
+          {
+            title: "Catalog có thể bán thật",
+            description: "Offering được dùng cho thiệp giấy, sản phẩm cưới, dịch vụ và các luồng commerce sau này.",
+            accentImage: "/uploads/seed-offerings/general-offering-02.svg",
+          },
+          {
+            title: "Provider có vị trí rõ ràng",
+            description: "Nhà cung cấp có thể có dịch vụ, booking, lead và chương trình ưu tiên hiển thị riêng.",
+            accentImage: "/uploads/seed-offerings/general-offering-03.svg",
+          },
+          {
+            title: "Admin chỉnh nội dung linh hoạt",
+            description: "Các section Home lấy từ managed page để seed và admin có thể cùng dùng một cấu trúc.",
+            accentImage: "/uploads/seed-offerings/general-offering-04.svg",
+          },
+        ],
+        invitationGalleryBadge: "✨",
+        invitationGalleryTitle: "Mẫu thiệp và sản phẩm nổi bật",
+        invitationGalleryDescription:
+          "Hiển thị một số offering đang published để khách có điểm bắt đầu cụ thể. Giai đoạn sau có thể mở rộng seed thành nhiều mẫu thiệp online hơn.",
+        invitationGalleryCtaText: "Xem tất cả mẫu thiệp",
+        invitationGalleryCtaLink: "/mau-thiep",
+        invitationGalleryOfferingSlugs: [
+          "thiep-giay-bo-sen-trang",
+          "chup-anh-phong-su-cuoi",
+          "hop-qua-cam-on-khach-moi",
+          "thiep-giay-modern-blush",
+          "thiep-giay-golden-aisle",
+          "thiep-giay-floral-scroll",
+          "chup-anh-le-gia-tien",
+          "chup-anh-couple-session",
+          "set-qua-cam-on-premium",
+        ],
+        sharedInvitationsBadge: "♡",
+        sharedInvitationsTitle: "Bắt đầu từ một phong cách có sẵn",
+        sharedInvitationsDescription:
+          "Khách có thể xem mẫu trên website, sau đó đăng nhập để quản lý thiệp và nội dung cá nhân trong dashboard customer.",
+        sharedInvitationsCtaText: "Vào khu quản lý thiệp",
+        sharedInvitationsCtaLink: "/customer/invitations",
+        sharedInvitationsOfferingSlugs: [
+          "thiep-giay-floral-scroll",
+          "thiep-giay-golden-aisle",
+          "thiep-giay-modern-blush",
+          "thiep-giay-bo-sen-trang",
+          "set-qua-cam-on-premium",
+          "hop-qua-cam-on-khach-moi",
+          "chup-anh-couple-session",
+          "chup-anh-le-gia-tien",
+          "chup-anh-phong-su-cuoi",
+        ],
       },
     },
     {
@@ -183,7 +338,7 @@ async function seedManagedPages(client) {
             title: "Thiệp cưới online & website cưới",
             badge: "Digital",
             description: "Xây dựng thiệp online, landing page cưới và luồng chia sẻ khách mời trên một nền tảng thống nhất.",
-            detailItems: "Mẫu coded và builder\nRSVP, lời chúc, album, bản đồ\nTối ưu hiển thị mobile và SEO",
+            detailItems: "Mẫu coded và trình quản lý thiệp\nRSVP, lời chúc, album, bản đồ\nTối ưu hiển thị mobile và SEO",
             ctaText: "Xem mẫu thiệp",
             ctaLink: "/mau-thiep",
           },
@@ -1076,10 +1231,9 @@ async function main() {
       { label: "Trang chủ", type: "page", pageSlug: "home", position: 0 },
       { label: "Giới thiệu", type: "page", pageSlug: "gioi-thieu", position: 1 },
       { label: "Mẫu thiệp", type: "page", pageSlug: "mau-thiep", position: 2 },
-      { label: "Tự tạo thiệp", type: "page", pageSlug: "tu-tao-thiep", position: 3 },
-      { label: "Dịch vụ", type: "page", pageSlug: "dich-vu", position: 4 },
-      { label: "Blog", type: "page", pageSlug: "blog", position: 5 },
-      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 6 },
+      { label: "Dịch vụ", type: "page", pageSlug: "dich-vu", position: 3 },
+      { label: "Blog", type: "page", pageSlug: "blog", position: 4 },
+      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
     ]);
 
     await upsertMenu(client, "footer", "Footer Menu", [
@@ -1101,7 +1255,7 @@ async function main() {
             website: {
               home: withBaseUrl("/"),
               templates: withBaseUrl("/mau-thiep"),
-              builder: withBaseUrl("/tu-tao-thiep"),
+              invitations: withBaseUrl("/customer/invitations"),
               blog: withBaseUrl("/blog"),
               contact: withBaseUrl("/lien-he"),
             },
@@ -1371,7 +1525,7 @@ async function main() {
           website: {
             home: withBaseUrl("/"),
             templates: withBaseUrl("/mau-thiep"),
-            builder: withBaseUrl("/tu-tao-thiep"),
+            invitations: withBaseUrl("/customer/invitations"),
             blog: withBaseUrl("/blog"),
             contact: withBaseUrl("/lien-he"),
           },

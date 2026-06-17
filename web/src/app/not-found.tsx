@@ -32,8 +32,8 @@ type NotFoundFields = {
 
 const fallbackCards = [
   {
-    title: "Builder",
-    description: "Tự tạo thiệp cưới theo bố cục của bạn.",
+    title: "Thiệp của tôi",
+    description: "Đăng nhập để tự tạo và quản lý thiệp cưới.",
     href: ROUTES.BUILDER,
   },
   {

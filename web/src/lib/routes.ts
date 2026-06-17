@@ -8,7 +8,7 @@ export const ROUTES = {
   CONTACT: "/lien-he",
   TEMPLATES: "/mau-thiep",
   PAPER: "/thiep-giay",
-  BUILDER: "/tu-tao-thiep",
+  BUILDER: "/customer/invitations",
   WISHLIST: "/wishlist",
   SEARCH: "/search",
   SERVICES: "/dich-vu",
@@ -29,7 +29,7 @@ export const ROUTES = {
   },
   CATALOG: {
     TEMPLATE: (slug: string) => `/mau-thiep/${slug}`,
-    BUILDER: (slug: string) => `/tu-tao-thiep/${slug}`,
+    BUILDER: (slug: string) => `/customer/invitations?template=${encodeURIComponent(slug)}`,
     OFFERING: (slug: string) => `/thiep-giay/${slug}`,
   },
   LANDING_PAGE: (slug: string) => `/landing/${encodeURIComponent(slug)}`,

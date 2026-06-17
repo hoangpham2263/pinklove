@@ -9,6 +9,7 @@ import { GuestAdBanner } from "@/features/ads/components/guest-ads";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
 import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
+import { PagedCarousel } from "@/components/common/paged-carousel";
 import { SmoothScrollLink } from "@/app/(guest)/_components/smooth-scroll-link";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { resolveMediaUrl } from "@/lib/media-resolver";
@@ -411,43 +412,48 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               </p>
             ) : null}
           </div>
-          <div id="home-service-items" className="grid gap-8 md:grid-cols-3">
-            {resolvedServiceItems.map((feature, index) => (
-              <article
-                key={`${feature.title}-${index}`}
-                className="overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(35,31,39,0.08)]"
-              >
-                {feature.image ? (
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-stone-100">
-                    <Image
-                      src={feature.image}
-                      alt={feature.title || `Service ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                    />
+          <div id="home-service-items">
+            <PagedCarousel
+              itemsPerPage={3}
+              gridClassName="grid cursor-grab touch-pan-y select-none gap-8 active:cursor-grabbing md:grid-cols-3"
+            >
+              {resolvedServiceItems.map((feature, index) => (
+                <article
+                  key={`${feature.title}-${index}`}
+                  className="overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-[0_18px_40px_rgba(35,31,39,0.08)] transition hover:-translate-y-1 hover:border-[#ff6ff5] hover:shadow-[0_22px_48px_rgba(217,77,206,0.16)]"
+                >
+                  {feature.image ? (
+                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-stone-100">
+                      <Image
+                        src={feature.image}
+                        alt={feature.title || `Service ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="space-y-4 p-8">
+                    {feature.title ? (
+                      <h3 className="text-xl font-semibold text-stone-900">{feature.title}</h3>
+                    ) : null}
+                    {feature.description ? (
+                      <p className="text-sm md:text-base lg:text-lg text-stone-600">{feature.description}</p>
+                    ) : null}
+                    {feature.descriptionItems.length ? (
+                      <ul className="space-y-2 text-sm text-stone-600 md:text-base">
+                        {feature.descriptionItems.map((item) => (
+                          <li key={item} className="flex items-start gap-3">
+                            <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#FF6FF5]" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
-                ) : null}
-                <div className="space-y-4 p-8">
-                  {feature.title ? (
-                    <h3 className="text-xl font-semibold text-stone-900">{feature.title}</h3>
-                  ) : null}
-                  {feature.description ? (
-                    <p className="text-sm md:text-base lg:text-lg text-stone-600">{feature.description}</p>
-                  ) : null}
-                  {feature.descriptionItems.length ? (
-                    <ul className="space-y-2 text-sm text-stone-600 md:text-base">
-                      {feature.descriptionItems.map((item) => (
-                        <li key={item} className="flex items-start gap-3">
-                          <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#FF6FF5]" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </PagedCarousel>
           </div>
         </div>
       </section>
@@ -596,36 +602,26 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
               {invitationGalleryItems.length ? (
                 <div className="relative mt-10 lg:mt-14">
-                  <div className="pointer-events-none absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
-                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
-                      ‹
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
-                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
-                      ›
-                    </div>
-                  </div>
-
-                  <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex min-w-max gap-4 lg:gap-5">
-                      {invitationGalleryItems.map((offering) => (
-                        offering.offeringType === "digital_template" ? (
-                          <LoopOnlineInvitationCard
-                            key={offering.id}
-                            offering={offering}
-                            className="h-[24rem] w-[15rem] shrink-0"
-                          />
-                        ) : (
-                          <LoopOfferingCard
-                            key={offering.id}
-                            offering={offering}
-                            className="h-[24rem] w-[15rem] shrink-0"
-                          />
-                        )
-                      ))}
-                    </div>
-                  </div>
+                  <PagedCarousel
+                    itemsPerPage={5}
+                    gridClassName="grid cursor-grab touch-pan-y select-none gap-4 lg:gap-5 active:cursor-grabbing sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                  >
+                    {invitationGalleryItems.map((offering) => (
+                      offering.offeringType === "digital_template" ? (
+                        <LoopOnlineInvitationCard
+                          key={offering.id}
+                          offering={offering}
+                          className="w-full shrink-0"
+                        />
+                      ) : (
+                        <LoopOfferingCard
+                          key={offering.id}
+                          offering={offering}
+                          className="w-full shrink-0"
+                        />
+                      )
+                    ))}
+                  </PagedCarousel>
                 </div>
               ) : null}
 
@@ -669,36 +665,26 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
 
               {sharedInvitationsItems.length ? (
                 <div className="relative mt-10 lg:mt-14">
-                  <div className="pointer-events-none absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
-                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
-                      ‹
-                    </div>
-                  </div>
-                  <div className="pointer-events-none absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
-                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-2xl text-[#8e8b96] shadow-[0_12px_30px_rgba(35,31,39,0.12)]">
-                      ›
-                    </div>
-                  </div>
-
-                  <div className="-mx-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex min-w-max gap-4 lg:gap-5">
-                      {sharedInvitationsItems.map((offering) => (
-                        offering.offeringType === "digital_template" ? (
-                          <LoopOnlineInvitationCard
-                            key={offering.id}
-                            offering={offering}
-                            className="h-[24rem] w-[15rem] shrink-0"
-                          />
-                        ) : (
-                          <LoopOfferingCard
-                            key={offering.id}
-                            offering={offering}
-                            className="h-[24rem] w-[15rem] shrink-0"
-                          />
-                        )
-                      ))}
-                    </div>
-                  </div>
+                  <PagedCarousel
+                    itemsPerPage={5}
+                    gridClassName="grid cursor-grab touch-pan-y select-none gap-4 lg:gap-5 active:cursor-grabbing sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                  >
+                    {sharedInvitationsItems.map((offering) => (
+                      offering.offeringType === "digital_template" ? (
+                        <LoopOnlineInvitationCard
+                          key={offering.id}
+                          offering={offering}
+                          className="w-full shrink-0"
+                        />
+                      ) : (
+                        <LoopOfferingCard
+                          key={offering.id}
+                          offering={offering}
+                          className="w-full shrink-0"
+                        />
+                      )
+                    ))}
+                  </PagedCarousel>
                 </div>
               ) : null}
 

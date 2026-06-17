@@ -6,7 +6,6 @@ import { ROUTES } from "@/lib/routes";
 
 const BLOG_CATEGORY_BASE = "blog";
 const TEMPLATE_BASE = "mau-thiep";
-const BUILDER_BASE = "tu-tao-thiep";
 const OFFERING_BASE = "thiep-giay";
 const INVITATION_BASE = "invitations";
 
@@ -42,7 +41,7 @@ export function getTemplateOfferingPath(offering: Pick<Offering, "slug"> | strin
 
 export function getBuilderOfferingPath(offering: Pick<Offering, "slug"> | string) {
   const slug = typeof offering === "string" ? offering : offering.slug;
-  return normalizePath(`/${normalizeSegment(BUILDER_BASE)}/${slug}`);
+  return normalizePath(`${ROUTES.CUSTOMER.INVITATIONS}?template=${encodeURIComponent(slug)}`);
 }
 
 export function getGeneralOfferingPath(offering: Pick<Offering, "slug"> | string) {

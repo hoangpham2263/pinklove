@@ -26,11 +26,11 @@ export default async function CustomerOrdersPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Bạn chưa tạo đơn nào. Có thể bắt đầu từ template hoặc builder starter.
+              Bạn chưa tạo đơn nào. Có thể bắt đầu từ template hoặc khu tạo thiệp trong tài khoản.
             </p>
             <div className="flex flex-wrap gap-3">
               <CustomerLinkButton href={ROUTES.TEMPLATES}>Xem template</CustomerLinkButton>
-              <CustomerLinkButton href={ROUTES.BUILDER}>Xem builder</CustomerLinkButton>
+              <CustomerLinkButton href={ROUTES.CUSTOMER.INVITATIONS}>Tự tạo thiệp</CustomerLinkButton>
             </div>
           </CardContent>
         </Card>

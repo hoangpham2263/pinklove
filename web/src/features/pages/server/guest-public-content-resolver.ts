@@ -12,6 +12,10 @@ import {
   getTemplateOfferingPath,
 } from "@/lib/public-paths";
 
+const REMOVED_PUBLIC_PATHS = new Set([
+  "/tu-tao-thiep",
+]);
+
 export type ResolvedGuestPublicContent =
   | {
       type: "blog-post";
@@ -46,6 +50,10 @@ export function getResolvedGuestPathname(slug?: string[]) {
 }
 
 export async function resolveManagedPublicPage(pathname: string, preview: boolean): Promise<ManagedPage | null> {
+  if (REMOVED_PUBLIC_PATHS.has(pathname)) {
+    return null;
+  }
+
   const page = await getPageByPath(pathname);
 
   if (!page) {

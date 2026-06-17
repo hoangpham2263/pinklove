@@ -103,6 +103,138 @@
           "leadTimeNote": "2-4 ngày làm việc."
         }
       }
+    },
+    {
+      "categorySlug": "thiep-hien-dai",
+      "slug": "thiep-giay-modern-blush",
+      "name": "Thiệp giấy Modern Blush",
+      "excerpt": "Bộ thiệp cưới tông hồng hiện đại để kiểm thử carousel nhiều item trên trang chủ.",
+      "description": "Bộ thiệp giấy gồm thiệp chính, phong bì và thẻ thông tin phụ. Dùng cho dữ liệu demo Home swiper.",
+      "offeringType": "physical_product",
+      "templateKey": "physical_product",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-blush-sonata.svg",
+      "price": "960000",
+      "fulfillmentType": "physical",
+      "trackInventory": true,
+      "stockQuantity": 42,
+      "lowStockThreshold": 8,
+      "allowBackorder": false,
+      "config": {
+        "offeringDetails": {
+          "spec": "Bộ thiệp giấy tông hồng, phong bì đồng bộ và card dress code.",
+          "leadTimeNote": "5-7 ngày làm việc."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-sang-trong",
+      "slug": "thiep-giay-golden-aisle",
+      "name": "Thiệp giấy Golden Aisle",
+      "excerpt": "Bộ thiệp cưới phong cách sang trọng, phù hợp tiệc khách sạn và ballroom.",
+      "description": "Sản phẩm demo giúp Home gallery có nhiều card vật lý để trượt qua nhiều nhóm.",
+      "offeringType": "physical_product",
+      "templateKey": "physical_product",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-golden-aisle.svg",
+      "price": "1250000",
+      "fulfillmentType": "physical",
+      "trackInventory": true,
+      "stockQuantity": 25,
+      "lowStockThreshold": 5,
+      "allowBackorder": true,
+      "config": {
+        "offeringDetails": {
+          "spec": "Giấy mỹ thuật ánh ngọc, phong bì kem và tag vàng.",
+          "leadTimeNote": "7-10 ngày làm việc."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-hoa-la",
+      "slug": "thiep-giay-floral-scroll",
+      "name": "Thiệp giấy Floral Scroll",
+      "excerpt": "Mẫu thiệp giấy hoa lá mềm mại cho tiệc cưới ngoài trời hoặc garden wedding.",
+      "description": "Dữ liệu seed dùng để tạo thêm item có hình trong Home swiper và trang catalog.",
+      "offeringType": "physical_product",
+      "templateKey": "physical_product",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-floral-scroll.svg",
+      "price": "780000",
+      "fulfillmentType": "physical",
+      "trackInventory": true,
+      "stockQuantity": 58,
+      "lowStockThreshold": 10,
+      "allowBackorder": false,
+      "config": {
+        "offeringDetails": {
+          "spec": "Thiệp giấy botanical, phong bì xanh nhạt và thẻ timeline.",
+          "leadTimeNote": "4-6 ngày làm việc."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-co-dien",
+      "slug": "chup-anh-le-gia-tien",
+      "name": "Chụp ảnh lễ gia tiên",
+      "excerpt": "Gói chụp ảnh lễ gia tiên dùng để demo offering dịch vụ trên carousel Home.",
+      "description": "Provider chụp ảnh trong nghi thức gia tiên, bàn giao ảnh chỉnh màu cơ bản.",
+      "offeringType": "wedding_photo",
+      "templateKey": "wedding_photo",
+      "thumbnailUrl": "/uploads/seed-offerings/general-offering-04.svg",
+      "price": "4500000",
+      "fulfillmentType": "service",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "offeringDetails": {
+          "spec": "Chụp lễ gia tiên 3 giờ, bàn giao ảnh qua album online.",
+          "leadTimeNote": "Liên hệ để kiểm tra lịch trống."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-hien-dai",
+      "slug": "chup-anh-couple-session",
+      "name": "Chụp ảnh couple session",
+      "excerpt": "Buổi chụp couple nhẹ nhàng trước ngày cưới, phù hợp nội dung website cưới.",
+      "description": "Dịch vụ seed giúp kiểm thử Home swiper với nhiều nhóm offering service.",
+      "offeringType": "wedding_photo",
+      "templateKey": "wedding_photo",
+      "thumbnailUrl": "/uploads/seed-offerings/seed-red-wedding-web-02.png",
+      "price": "5900000",
+      "fulfillmentType": "service",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "offeringDetails": {
+          "spec": "Chụp 1 buổi, hỗ trợ chọn concept và ảnh dùng cho thiệp online.",
+          "leadTimeNote": "Nên đặt lịch trước 2 tuần."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-toi-gian",
+      "slug": "set-qua-cam-on-premium",
+      "name": "Set quà cảm ơn Premium",
+      "excerpt": "Set quà cảm ơn khách mời phiên bản cao cấp với nến thơm và tag cá nhân hóa.",
+      "description": "Sản phẩm quà cưới dùng để tạo thêm card trong Home carousel và catalog demo.",
+      "offeringType": "wedding_gift",
+      "templateKey": "wedding_gift",
+      "thumbnailUrl": "/uploads/seed-offerings/general-offering-05.svg",
+      "price": "620000",
+      "fulfillmentType": "physical",
+      "trackInventory": true,
+      "stockQuantity": 80,
+      "lowStockThreshold": 15,
+      "allowBackorder": false,
+      "config": {
+        "offeringDetails": {
+          "spec": "Nến thơm mini, thiệp cảm ơn và hộp giấy cá nhân hóa.",
+          "leadTimeNote": "3-5 ngày làm việc."
+        }
+      }
     }
   ]
 }

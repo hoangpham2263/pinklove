@@ -12,7 +12,6 @@ export const CONTENT_PAGE_SLUG_ALIASES: Record<string, string> = {
   contact: "lien-he",
   templates: "mau-thiep",
   paper: "thiep-giay",
-  builder: "tu-tao-thiep",
   services: "dich-vu",
   tools: "cong-cu",
   "tools/qr-builder": "cong-cu/tao-ma-qr",
@@ -333,12 +332,6 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     slug: "thiep-giay",
     name: "Thiệp giấy",
     label: "Trang thiệp giấy",
-    fields: [],
-  },
-  "tu-tao-thiep": {
-    slug: "tu-tao-thiep",
-    name: "Tự tạo thiệp",
-    label: "Trang builder",
     fields: [],
   },
   "dich-vu": {

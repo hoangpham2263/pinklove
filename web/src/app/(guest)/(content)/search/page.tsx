@@ -66,7 +66,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               type="search"
               name="q"
               defaultValue={query}
-              placeholder="Tim mau thiep, builder, blog..."
+              placeholder="Tim mau thiep, dich vu, blog..."
               className="h-12 w-full rounded-xl border border-stone-300 bg-white px-4 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-stone-950 lg:rounded-2xl"
             />
             <button
@@ -79,7 +79,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {!query ? (
             <div className="flex flex-wrap gap-3">
               <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>
-              <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Xem builder starter</GuestLinkButton>
+              <GuestLinkButton href={ROUTES.BUILDER} variant="secondary">Tự tạo thiệp</GuestLinkButton>
               <GuestLinkButton href={ROUTES.BLOG} variant="secondary">Doc blog cuoi</GuestLinkButton>
             </div>
           ) : null}
@@ -104,7 +104,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <section className="space-y-6">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-stone-400">Sản phẩm</p>
-            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl">Mẫu thiệp và builder</h2>
+            <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl">Mẫu thiệp</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {results.offerings.map((offering) => (

@@ -225,6 +225,7 @@ export async function listActiveAdsForPlacement(placementKey: string) {
       SELECT
         campaign.id,
         campaign.name,
+        campaign.placement_id,
         placement.key AS placement_key,
         creative.title AS creative_title,
         creative.image_url,
@@ -292,6 +293,40 @@ export async function listActiveProviderPromotions(input: {
     ]
   );
   return result.rows;
+}
+
+export async function createProviderPromotionRequestForUser(userId: string, formData: FormData) {
+  const providerResult = await query<{ id: string; display_name: string }>(
+    `
+      SELECT id, display_name
+      FROM providers
+      WHERE owner_user_id = $1
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `,
+    [userId]
+  );
+  const provider = providerResult.rows[0];
+  if (!provider) throw new Error("PROVIDER_NOT_FOUND");
+
+  const title = String(formData.get("title") ?? "").trim() || `Yêu cầu ưu tiên - ${provider.display_name}`;
+
+  await query(
+    `
+      INSERT INTO provider_promotions (
+        provider_id, plan_id, placement_id, target_type, target_id, title, status,
+        payment_status, priority_weight, price, admin_notes
+      )
+      VALUES ($1, $2, $3, 'provider', $1, $4, 'pending', 'unpaid', 0, 0, $5)
+    `,
+    [
+      provider.id,
+      toNullableString(formData.get("planId")),
+      toNullableString(formData.get("placementId")),
+      title,
+      toNullableString(formData.get("notes")),
+    ]
+  );
 }
 
 export async function trackAdEvent(input: {
