@@ -21,7 +21,9 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
         description: "Khối logo, tagline và thông tin liên hệ đầu footer.",
         fields: [
           { name: "footerBackgroundImage", label: "Ảnh nền footer", type: "media", width: 12 },
+          { name: "footerBackgroundAlt", label: "Alt ảnh nền footer", type: "text", width: 6 },
           { name: "footerBrandImage", label: "Logo footer", type: "media", width: 6 },
+          { name: "footerBrandAlt", label: "Alt logo footer", type: "text", width: 6 },
           { name: "footerBrandTagline", label: "Tagline ở footer", type: "text", width: 6 },
           {
             name: "footerIntroItems",
@@ -40,44 +42,13 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
       },
       {
         type: "section",
-        label: "Services Column",
-        description: "Danh sách link cột Dịch vụ.",
-        fields: [
-          {
-            name: "footerServiceLinks",
-            type: "repeater",
-            label: "Footer Service Links",
-            addLabel: "Thêm link dịch vụ",
-            fields: [
-              { name: "label", label: "Tên link", type: "text", width: 4 },
-              { name: "url", label: "Liên kết", type: "text", width: 8 },
-            ],
-          },
-        ],
-      },
-      {
-        type: "section",
-        label: "Providers Column",
-        description: "Danh sách link cột Provider.",
-        fields: [
-          {
-            name: "footerProviderLinks",
-            type: "repeater",
-            label: "Footer Provider Links",
-            addLabel: "Thêm link provider",
-            fields: [
-              { name: "label", label: "Tên link", type: "text", width: 4 },
-              { name: "url", label: "Liên kết", type: "text", width: 8 },
-            ],
-          },
-        ],
-      },
-      {
-        type: "section",
         label: "Footer Social",
         description: "Phần placeholder email và social hiển thị trong footer.",
         fields: [
+          { name: "footerContactTitle", label: "Tiêu đề cột liên hệ", type: "text", width: 12 },
           { name: "footerNewsletterPlaceholder", label: "Placeholder ô email", type: "text", width: 12 },
+          { name: "footerNewsletterAriaLabel", label: "Nhãn ô email", type: "text", width: 6 },
+          { name: "footerNewsletterSubmitLabel", label: "Nhãn nút gửi email", type: "text", width: 6 },
           {
             name: "footerSocialLinks",
             type: "repeater",
@@ -93,6 +64,7 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
         ],
       },
       { name: "footerCopyright", label: "Copyright footer", type: "text", width: 12 },
+      { name: "footerScrollTopLabel", label: "Nhãn nút quay lại đầu trang", type: "text", width: 12 },
     ],
   },
   {

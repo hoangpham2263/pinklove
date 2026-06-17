@@ -157,6 +157,12 @@ async function seedManagedPages(client) {
             content: "Kết nối provider, quảng cáo ưu tiên và các dịch vụ cưới khi dự án cần mở rộng.",
           },
         ],
+        homeStats: [
+          { label: "Khách hàng", value: "250+" },
+          { label: "Web hoàn thành", value: "250+" },
+          { label: "Năm kinh nghiệm", value: "6+" },
+          { label: "Web đã phân tích", value: "600+" },
+        ],
         servicesTitle: "Chọn đúng dịch vụ theo nhu cầu cưới",
         servicesDescription:
           "Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống.",
@@ -467,15 +473,25 @@ async function upsertMenu(client, menuName, label, items) {
 
   await client.query("DELETE FROM navigation_menu_items WHERE menu_id = $1", [menu.id]);
 
-  for (const item of items) {
-    await client.query(
-      `
-        INSERT INTO navigation_menu_items (menu_id, parent_id, label, type, page_slug, url, position)
-        VALUES ($1, NULL, $2, $3, $4, $5, $6)
-      `,
-      [menu.id, item.label, item.type, item.pageSlug ?? null, item.url ?? null, item.position]
-    );
+  async function insertItems(parentItems, parentId = null) {
+    for (const [index, item] of parentItems.entries()) {
+      const row = await fetchRow(
+        client,
+        `
+          INSERT INTO navigation_menu_items (menu_id, parent_id, label, type, page_slug, url, position)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING id
+        `,
+        [menu.id, parentId, item.label, item.type, item.pageSlug ?? null, item.url ?? null, item.position ?? index]
+      );
+
+      if (item.children?.length) {
+        await insertItems(item.children, row.id);
+      }
+    }
   }
+
+  await insertItems(items);
 }
 
 async function upsertAffiliateAccount(client, input) {
@@ -1200,6 +1216,22 @@ function sumItems(items) {
   return items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 }
 
+async function upsertGlobalFields(client, input) {
+  const row = await fetchRow(client, "SELECT global_fields_config FROM app_settings WHERE id = 'system'");
+  const current = row?.global_fields_config ?? {};
+  const next = { ...current, ...input };
+
+  await client.query(
+    `
+      UPDATE app_settings
+      SET global_fields_config = $1::jsonb,
+          updated_at = NOW()
+      WHERE id = 'system'
+    `,
+    [JSON.stringify(next)]
+  );
+}
+
 async function main() {
   const client = new Client({ connectionString: getDatabaseUrl() });
   await client.connect();
@@ -1241,13 +1273,64 @@ async function main() {
     ]);
 
     await upsertMenu(client, "footer", "Footer Menu", [
-      { label: "Trang chủ", type: "page", pageSlug: "home", position: 0 },
-      { label: "Công cụ", type: "page", pageSlug: "cong-cu", position: 1 },
-      { label: "QR Builder", type: "page", pageSlug: "cong-cu/tao-ma-qr", position: 2 },
-      { label: "Dự toán cưới", type: "page", pageSlug: "cong-cu/du-toan-cuoi", position: 3 },
-      { label: "Blog", type: "page", pageSlug: "blog", position: 4 },
-      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
+      {
+        label: "Sản phẩm",
+        type: "url",
+        url: "#",
+        children: [
+          { label: "Mẫu thiệp online", type: "page", pageSlug: "mau-thiep" },
+          { label: "Thiệp giấy in ấn", type: "page", pageSlug: "thiep-giay" },
+          { label: "Quà tặng cưới", type: "url", url: "/dich-vu" },
+        ],
+      },
+      {
+        label: "Dịch vụ",
+        type: "url",
+        url: "#",
+        children: [
+          { label: "Chụp ảnh cưới", type: "url", url: "/dich-vu#catalog" },
+          { label: "Makeup & Làm tóc", type: "url", url: "/dich-vu#catalog" },
+          { label: "Trang trí tiệc", type: "url", url: "/dich-vu#catalog" },
+        ],
+      },
+      {
+        label: "Hỗ trợ",
+        type: "url",
+        url: "#",
+        children: [
+          { label: "Về PinkLove", type: "page", pageSlug: "gioi-thieu" },
+          { label: "Blog cảm hứng", type: "page", pageSlug: "blog" },
+          { label: "Liên hệ hỗ trợ", type: "page", pageSlug: "lien-he" },
+        ],
+      },
     ]);
+
+    await upsertGlobalFields(client, {
+      footerBackgroundAlt: "",
+      footerBrandAlt: "PinkLove",
+      footerBrandTagline: "Nền tảng thiệp cưới online & dịch vụ cưới số 1 Việt Nam",
+      footerContactTitle: "Liên hệ",
+      footerNewsletterPlaceholder: "Nhập email của bạn...",
+      footerNewsletterAriaLabel: "Email liên hệ",
+      footerNewsletterSubmitLabel: "Gửi email",
+      footerCopyright: "© 2026 PinkLove Wedding Platform. All rights reserved.",
+      footerScrollTopLabel: "Quay lại đầu trang",
+      footerIntroItems: [
+        { label: "Hotline", value: "0909 000 999", href: "tel:0909000999" },
+        { label: "Email", value: "hello@change-me", href: "mailto:hello@change-me" },
+        { label: "Địa chỉ", value: "123 Demo Street, District 1, Ho Chi Minh City", href: "https://maps.google.com" },
+      ],
+      footerSocialLinks: [
+        { label: "Facebook", url: "https://facebook.com/pinklove", platform: "facebook" },
+        { label: "Instagram", url: "https://instagram.com/pinklove", platform: "instagram" },
+        { label: "Youtube", url: "https://youtube.com/pinklove", platform: "youtube" },
+      ],
+      pinkCloudMessages: [
+        { message: "Chào bạn! Mình là PinkCloud, trợ lý ảo của PinkLove." },
+        { message: "Bạn cần hỗ trợ chọn mẫu thiệp hay đặt dịch vụ cưới?" },
+        { message: "Hãy để lại lời nhắn, chúng mình sẽ phản hồi ngay nhé! ♡" },
+      ],
+    });
 
     if (SKIP_USERS) {
       await client.query("COMMIT");

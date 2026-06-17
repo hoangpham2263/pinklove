@@ -115,6 +115,7 @@ Home `/`:
 - [ ] Hero: platform positioning, concise subcopy, template/service CTAs, real template/product/provider visual.
 - [ ] Quick path selector: `Tạo thiệp online`, `In thiệp giấy`, `Tìm dịch vụ cưới`, `Lập kế hoạch`, `Gửi brief`.
 - [ ] Trust/status strip: templates, providers, orders, regions, reviews or quality commitments.
+- [ ] Animated stats strip: `Khách hàng`, `Web hoàn thành`, `Năm kinh nghiệm`, `Web đã phân tích` with count-up numbers when scrolled into view.
 - [ ] Featured invitation templates: curated digital templates, preview/customize CTA.
 - [ ] Paper invitation/products highlight: suites/products, sample kit idea, checkout path.
 - [ ] Provider priority showcase: sponsored/top providers with visible labels.

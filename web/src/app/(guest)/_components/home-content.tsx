@@ -6,6 +6,7 @@ import { GuestAnimatedCtaButton } from "@/app/(guest)/_components/guest-animated
 import { GuestMarketingPageDecor } from "@/app/(guest)/_components/guest-marketing-background";
 import { HeroAnimatedTitle } from "@/app/(guest)/_components/hero-animated-title";
 import { HeroInvitationOrb } from "@/app/(guest)/_components/hero-invitation-orb";
+import { HomeStatsSection, type HomeStatsItem } from "@/app/(guest)/_components/home-stats-section";
 import { normalizeServiceGroupItems, ServiceGroupSection, type ServiceGroupItemInput } from "@/app/(guest)/_components/service-group-section";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
@@ -76,6 +77,11 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
       label?: string;
       content?: string;
     }>;
+    homeStats?: Array<{
+      label?: string;
+      value?: string;
+      description?: string;
+    }>;
     servicesTitle?: string;
     servicesDescription?: string;
     serviceItems?: ServiceGroupItemInput[];
@@ -130,6 +136,13 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
   const aboutItems = (Array.isArray(fields.aboutItems) ? fields.aboutItems : []).filter(
     (item) => item.label?.trim() && item.content?.trim()
   );
+  const homeStats: HomeStatsItem[] = (Array.isArray(fields.homeStats) ? fields.homeStats : [])
+    .filter((item) => item.label?.trim() && item.value?.trim())
+    .map((item) => ({
+      label: item.label?.trim() || "",
+      value: item.value?.trim() || "",
+      description: item.description?.trim() || "",
+    }));
   const eventPlannerProblems = (Array.isArray(fields.eventPlannerProblems) ? fields.eventPlannerProblems : []).filter(
     (item) => item.title?.trim() && item.description?.trim()
   );
@@ -350,6 +363,8 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
         <GuestMarketingPageDecor ambientGlowDensity="regular" />
         <div className="relative z-10">
           <div className="space-y-14 py-10 lg:space-y-18 lg:py-16">
+        <HomeStatsSection items={homeStats} />
+
         {hasAboutContent ? (
           <section id="home-about" className="container mx-auto px-4">
               <div className="relative z-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">

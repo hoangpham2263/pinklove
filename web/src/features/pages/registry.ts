@@ -79,6 +79,24 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
       {
         type: "section",
+        label: "Thống kê",
+        description: "Dải số liệu nổi bật trên trang chủ. Số sẽ tự chạy khi khách scroll tới section.",
+        fields: [
+          {
+            name: "homeStats",
+            type: "repeater",
+            label: "Home Stats",
+            addLabel: "Thêm số liệu",
+            fields: [
+              { name: "label", label: "Nhãn", type: "text", width: 4 },
+              { name: "value", label: "Số liệu", type: "text", width: 3 },
+              { name: "description", label: "Mô tả", type: "textarea", width: 12 },
+            ],
+          },
+        ],
+      },
+      {
+        type: "section",
         label: "Services Intro",
         description: "Tiêu đề và mô tả phần dịch vụ trên trang chủ.",
         fields: [

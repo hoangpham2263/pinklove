@@ -20,7 +20,12 @@ type PagedCarouselProps<TItem> = {
 function chunkArray<T>(array: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < array.length; index += size) {
-    chunks.push(array.slice(index, index + size));
+    const chunk = array.slice(index, index + size);
+    if (chunk.length < size && array.length >= size) {
+      const padCount = size - chunk.length;
+      chunk.push(...array.slice(0, padCount));
+    }
+    chunks.push(chunk);
   }
   return chunks;
 }
@@ -203,18 +208,26 @@ export function PagedCarousel<TItem>({
     return null;
   }
 
+  const previousArrowControl = hasMultiplePages ? (
+    controlsVariant === "buttons" ? (
+      <CarouselIconButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
+    ) : (
+      <CarouselArrowButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
+    )
+  ) : null;
+
+  const nextArrowControl = hasMultiplePages ? (
+    controlsVariant === "buttons" ? (
+      <CarouselIconButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
+    ) : (
+      <CarouselArrowButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
+    )
+  ) : null;
+
   const arrowControls = hasMultiplePages ? (
     <div className="flex items-center gap-3">
-      {controlsVariant === "buttons" ? (
-        <CarouselIconButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
-      ) : (
-        <CarouselArrowButton direction="previous" onClick={goToPreviousPage} disabled={!hasMultiplePages} />
-      )}
-      {controlsVariant === "buttons" ? (
-        <CarouselIconButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
-      ) : (
-        <CarouselArrowButton direction="next" onClick={goToNextPage} disabled={!hasMultiplePages} />
-      )}
+      {previousArrowControl}
+      {nextArrowControl}
     </div>
   ) : null;
 
@@ -241,9 +254,16 @@ export function PagedCarousel<TItem>({
   ) : null;
 
   const footerControls = hasMultiplePages ? (
-    <div className="mt-7 flex items-center justify-center gap-4">
-      {controlsPosition === "footer" ? arrowControls : null}
-      {pagination}
+    <div className="mt-7 flex items-center justify-center">
+      {controlsPosition === "footer" ? (
+        <div className="grid w-full max-w-md grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <div className="justify-self-end">{previousArrowControl}</div>
+          <div className="justify-self-center">{pagination}</div>
+          <div className="justify-self-start">{nextArrowControl}</div>
+        </div>
+      ) : (
+        pagination
+      )}
     </div>
   ) : null;
 

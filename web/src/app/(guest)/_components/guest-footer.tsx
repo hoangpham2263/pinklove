@@ -34,13 +34,19 @@ type PinkCloudMessageItem = {
 
 type GuestFooterGlobalFields = {
   footerBackgroundImage?: string;
+  footerBackgroundAlt?: string;
   footerBrandImage?: string;
+  footerBrandAlt?: string;
   footerBrandTagline?: string;
+  footerContactTitle?: string;
   footerNewsletterPlaceholder?: string;
+  footerNewsletterAriaLabel?: string;
+  footerNewsletterSubmitLabel?: string;
   footerCopyright?: string;
   footerIntroItems?: FooterIntroItem[];
   footerSocialLinks?: FooterSocialLink[];
   pinkCloudMessages?: PinkCloudMessageItem[];
+  footerScrollTopLabel?: string;
 };
 
 type GuestFooterProps = {
@@ -123,12 +129,16 @@ function getSocialIcon(platformOrLabel: string) {
   return Send;
 }
 
-function ScrollToTopButton() {
+function ScrollToTopButton({ label }: { label?: string }) {
+  if (!label) {
+    return null;
+  }
+
   return (
     <a
       href="#top"
       className="flex h-12 w-12 items-center justify-center text-guest-primary transition hover:-translate-y-0.5"
-      aria-label="Quay lại đầu trang"
+      aria-label={label}
     >
       <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" className="h-6 w-6" viewBox="0 0 24 24" fill="none">
         <g stroke="currentColor" strokeWidth="1.5">
@@ -145,13 +155,19 @@ export async function GuestFooter({
   columns,
 }: GuestFooterProps) {
   const footerBackgroundImage = await resolveMediaUrl(globalFields.footerBackgroundImage);
+  const footerBackgroundAlt = globalFields.footerBackgroundAlt?.trim() || "";
   const footerBrandImage = await resolveMediaUrl(globalFields.footerBrandImage);
+  const footerBrandAlt = globalFields.footerBrandAlt?.trim() || "";
   const introItems = await normalizeIntroItems(globalFields.footerIntroItems);
   const socialLinks = normalizeSocialLinks(globalFields.footerSocialLinks);
   const brandTagline = globalFields.footerBrandTagline?.trim();
+  const contactTitle = globalFields.footerContactTitle?.trim();
   const newsletterPlaceholder = globalFields.footerNewsletterPlaceholder?.trim();
+  const newsletterAriaLabel = globalFields.footerNewsletterAriaLabel?.trim();
+  const newsletterSubmitLabel = globalFields.footerNewsletterSubmitLabel?.trim();
   const copyright = globalFields.footerCopyright?.trim();
   const pinkCloudMessages = normalizePinkCloudMessages(globalFields.pinkCloudMessages);
+  const scrollTopLabel = globalFields.footerScrollTopLabel?.trim();
 
   return (
     <>
@@ -160,13 +176,13 @@ export async function GuestFooter({
         {footerBackgroundImage ? (
           <img
             src={footerBackgroundImage}
-            alt="Footer background"
+            alt={footerBackgroundAlt}
             className="pointer-events-none absolute inset-0 z-10 h-full w-full object-cover"
           />
         ) : null}
         <div className="relative z-20 container mx-auto px-4 pt-10 lg:pt-15 2xl:pt-20 pb-5 lg:pb-7.5 2xl:pb-10">
           <div className="mx-auto space-y-2.5 lg:space-y-5 flex flex-col items-center">
-            {footerBrandImage ? <img src={footerBrandImage} alt="Footer logo" className="h-10 lg:h-12.5 w-auto object-contain" /> : null}
+            {footerBrandImage ? <img src={footerBrandImage} alt={footerBrandAlt} className="h-10 lg:h-12.5 w-auto object-contain" /> : null}
             {brandTagline ? <p className="text-sm lg:text-base">{brandTagline}</p> : null}
 
             {introItems.length > 0 ? (
@@ -207,24 +223,28 @@ export async function GuestFooter({
               ))}
 
               <div className="col-span-12 md:col-span-3 space-y-5">
-                <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
-                  Liên hệ
-                </h3>
-                <div className="flex items-center overflow-hidden rounded-full border border-guest-primary pl-5">
-                  <input
-                    type="email"
-                    placeholder={newsletterPlaceholder}
-                    className="h-12 flex-1 bg-transparent text-sm outline-none"
-                    aria-label="Email liên hệ"
-                  />
-                  <button
-                    type="button"
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-guest-primary transition hover:bg-guest-primary/80"
-                    aria-label="Gửi email"
-                  >
-                    <CircleArrowRight className="h-5 w-5" />
-                  </button>
-                </div>
+                {contactTitle ? (
+                  <h3 className="w-fit text-base md:text-lg lg:text-xl 2xl:text-2xl font-semibold bg-[linear-gradient(90deg,#3B2A33_0%,#B86A8A_50%,#4A2D38_100%)] bg-no-repeat bg-clip-text text-transparent">
+                    {contactTitle}
+                  </h3>
+                ) : null}
+                {(newsletterPlaceholder || newsletterAriaLabel || newsletterSubmitLabel) ? (
+                  <div className="flex items-center overflow-hidden rounded-full border border-guest-primary pl-5">
+                    <input
+                      type="email"
+                      placeholder={newsletterPlaceholder}
+                      className="h-12 flex-1 bg-transparent text-sm outline-none"
+                      aria-label={newsletterAriaLabel}
+                    />
+                    <button
+                      type="button"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-guest-primary transition hover:bg-guest-primary/80"
+                      aria-label={newsletterSubmitLabel}
+                    >
+                      <CircleArrowRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : null}
 
                 <div className="flex flex-wrap gap-3">
                   {socialLinks.map((item) => {
@@ -251,7 +271,7 @@ export async function GuestFooter({
       </footer>
 
       <div className="fixed right-4 bottom-10 z-40 flex flex-col items-center gap-2.5">
-        <ScrollToTopButton />
+        <ScrollToTopButton label={scrollTopLabel} />
         <GuestPinkCloud messages={pinkCloudMessages} />
       </div>
     </>
