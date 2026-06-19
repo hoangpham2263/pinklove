@@ -104,7 +104,7 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
         description: "Sản phẩm, dịch vụ, template và cấu trúc offering.",
         permissions: ["offerings.view"],
         items: [
-          item("offering-list", "Quản lý sản phẩm", "Tìm kiếm, chỉnh sửa và cập nhật catalog.", ROUTES.ADMIN.OFFERING_MANAGE, "boxes"),
+          item("offering-list", "Quản lý sản phẩm", "Tìm kiếm, chỉnh sửa và cập nhật catalog.", ROUTES.ADMIN.OFFERING_LIST, "boxes"),
           item("offering-types", "Offering Types", "Quản lý schema từng loại offering.", ROUTES.ADMIN.OFFERING_TYPES, "list-tree"),
           item("offering-templates", "Offering Templates", "Quản lý kho coded template.", ROUTES.ADMIN.OFFERING_TEMPLATES, "file-code-2"),
           item("offering-builder", "Offering Builder", "Tạo và quản lý template bằng builder.", ROUTES.ADMIN.OFFERING_BUILDER, "blocks"),
@@ -135,7 +135,7 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
     matchPrefixes: [
       ROUTES.ADMIN.BOOKING,
       ROUTES.ADMIN.BOOKINGS,
-      ROUTES.ADMIN.PLANNING,
+      ROUTES.ADMIN.BOOKING,
       ROUTES.ADMIN.WEDDING_PLANNING,
     ],
     sections: [
@@ -347,7 +347,6 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
       ROUTES.ADMIN.GLOBAL_FIELDS,
       ROUTES.ADMIN.MEDIA,
       ROUTES.ADMIN.HOOKS,
-      ROUTES.ADMIN.SEO_GUIDE,
       ROUTES.ADMIN.SEO_PAGES,
       ROUTES.ADMIN.SEO_SCHEMA,
       ROUTES.ADMIN.SEO_RULES,
@@ -372,7 +371,6 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
           item("seo-pages", "Page SEO", "Quản lý SEO cho từng trang.", ROUTES.ADMIN.SEO_PAGES, "search"),
           item("seo-rules", "SEO Rules", "Quản lý rule SEO và index.", ROUTES.ADMIN.SEO_RULES, "search"),
           item("seo-schema", "SEO Schema", "Quản lý structured data.", ROUTES.ADMIN.SEO_SCHEMA, "file-code-2"),
-          item("seo-guide", "SEO Guide", "Hướng dẫn vận hành SEO page.", ROUTES.ADMIN.SEO_GUIDE, "book-open-text"),
         ],
       },
       {

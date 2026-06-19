@@ -6,15 +6,9 @@ import { getManagedPagePath } from "@/lib/page-paths";
 import {
   getBlogCategoryPath,
   getBlogPostPath,
-  getBuilderOfferingPath,
-  getGeneralOfferingPath,
   getInvitationPath,
-  getTemplateOfferingPath,
+  getOfferingPath,
 } from "@/lib/public-paths";
-
-const REMOVED_PUBLIC_PATHS = new Set([
-  "/tu-tao-thiep",
-]);
 
 export type ResolvedGuestPublicContent =
   | {
@@ -50,10 +44,6 @@ export function getResolvedGuestPathname(slug?: string[]) {
 }
 
 export async function resolveManagedPublicPage(pathname: string, preview: boolean): Promise<ManagedPage | null> {
-  if (REMOVED_PUBLIC_PATHS.has(pathname)) {
-    return null;
-  }
-
   const page = await getPageByPath(pathname);
 
   if (!page) {
@@ -94,12 +84,12 @@ export async function resolveGuestPublicContent(
   }
 
   const templateOffering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
-  if (templateOffering && getTemplateOfferingPath(templateOffering) === pathname) {
+  if (templateOffering && getOfferingPath(templateOffering) === pathname) {
     return { type: "template-offering", offering: templateOffering };
   }
 
   const builderOffering = await getPublishedDigitalTemplateOfferingBySlug(slug, "builder");
-  if (builderOffering && getBuilderOfferingPath(builderOffering) === pathname) {
+  if (builderOffering && getOfferingPath(builderOffering) === pathname) {
     return { type: "builder-offering", offering: builderOffering };
   }
 
@@ -113,7 +103,7 @@ export async function resolveGuestPublicContent(
     "wedding_service",
     "wedding_gift",
   ]);
-  if (generalOffering && getGeneralOfferingPath(generalOffering) === pathname) {
+  if (generalOffering && getOfferingPath(generalOffering) === pathname) {
     return { type: "general-offering", offering: generalOffering };
   }
 

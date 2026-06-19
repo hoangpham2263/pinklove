@@ -1,5 +1,5 @@
 import { Package } from "lucide-react";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { requireAdmin } from "@/lib/auth";
 import { listAllOfferingCategories, listOfferingTypes } from "@/features/offerings/server/service";
@@ -21,11 +21,11 @@ export default async function AdminOfferingCreatePage({ searchParams }: AdminOff
   const query = (await searchParams) ?? {};
   const requestedType = getQueryValue(query.type);
   const returnTo = getQueryValue(query.returnTo) ?? (
-    requestedType === SYSTEM_TEMPLATE_ENGINES.BUILDER ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_MANAGE
+    requestedType === SYSTEM_TEMPLATE_ENGINES.BUILDER ? ROUTES.ADMIN.OFFERING_BUILDER : ROUTES.ADMIN.OFFERING_LIST
   );
 
   if (requestedType === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
-    redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`);
+    notFound();
   }
 
   const [categories, providers, offeringTypes] = await Promise.all([

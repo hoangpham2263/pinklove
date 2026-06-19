@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { JsonLd } from "@/components/common/json-ld";
+import { PagedCarousel } from "@/components/common/paged-carousel";
 import {
   GuestButton,
   GuestLinkButton,
@@ -11,16 +12,18 @@ import {
   GuestPanelTitle,
 } from "@/app/(guest)/_components/guest-ui";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
-import { CommentSection } from "@/features/comments/components/comment-section";
+import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
+import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
+import { OfferingReviewSection } from "@/features/comments/components/offering-review-section";
 import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
 import { getOfferingTypeLabel, type Offering } from "@/features/offerings/types";
+import { listRelatedTemplateOfferings } from "@/features/offerings/server/service";
 import { createWishlistOfferingSnapshot } from "@/features/offerings/wishlist";
 import { getCurrentUser } from "@/lib/auth";
 import { getInvitationTemplateDefaults, getInvitationTemplateLabel } from "@/features/invitations/templates/registry";
 import {
-  getBuilderOfferingPath,
-  getGeneralOfferingPath,
-  getTemplateOfferingPath,
+  getOfferingPath,
+  getTemplateOfferingCustomizePath,
 } from "@/lib/public-paths";
 import { formatVnd } from "@/lib/currency";
 import { ROUTES } from "@/lib/routes";
@@ -40,6 +43,12 @@ const detailLabels: Record<string, string> = {
   leadTimeNote: "Thời gian thực hiện",
   supplierName: "Nhà cung cấp",
 };
+
+const primaryOfferingActionClassName =
+  "flex min-h-11 w-full items-center justify-center rounded-sm bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 lg:rounded-sm lg:text-sm";
+
+const wishlistOfferingActionClassName =
+  "min-h-11 rounded-sm border-primary/25 text-sm font-semibold text-primary hover:border-primary hover:bg-primary/5 lg:rounded-sm";
 
 function formatDetailLabel(key: string) {
   return detailLabels[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (value) => value.toUpperCase());
@@ -117,8 +126,8 @@ function OfferingDetailLayout({
   children?: ReactNode;
 }) {
   return (
-    <section className="bg-stone-50 px-4 pb-8 pt-30">
-      <div className="mx-auto w-full max-w-7xl">
+    <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+      <div className="container mx-auto px-4">
         <div className="grid gap-6 bg-white lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-5">
             <div className="overflow-hidden rounded-sm border border-stone-200 bg-stone-50">
@@ -155,37 +164,110 @@ function OfferingDetailLayout({
           </div>
 
           <div className="min-w-0 lg:col-span-7">
+            <div className="flex h-full flex-col border border-stone-200 bg-white p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-sm bg-orange-600 px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+              <span className="rounded-sm bg-primary px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary-foreground">
                 {eyebrow}
               </span>
-              <span className="text-sm text-stone-500">{offeringLabel}</span>
+              <span className="rounded-sm border border-primary/15 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">{offeringLabel}</span>
             </div>
 
-            <h1 className="mt-3 text-2xl font-semibold leading-tight text-stone-950 md:text-3xl">{offering.name}</h1>
+            <h1 className="mt-4 text-2xl font-semibold leading-tight text-stone-950 md:text-3xl">{offering.name}</h1>
             <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{offering.description || offering.excerpt}</p>
 
-            <div className="mt-5 bg-stone-50 px-4 py-4">
-              <p className="text-sm text-stone-500">Giá</p>
-              <p className="mt-1 text-3xl font-semibold text-orange-600 md:text-4xl">{formatVnd(offering.price)}</p>
+            <div className="mt-5 border-y border-primary/10 bg-primary/5 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Giá</p>
+              <p className="mt-1 text-3xl font-semibold text-primary md:text-4xl">{formatVnd(offering.price)}</p>
             </div>
 
-            <div className="mt-5 divide-y divide-stone-100 text-sm">
+            <div className="mt-5 divide-y divide-stone-100 border-y border-stone-100 text-sm">
               {metaRows.map(([label, value]) => (
-                <div key={label} className="grid grid-cols-[120px_minmax(0,1fr)] gap-4 py-3">
-                  <span className="text-stone-500">{label}</span>
-                  <span className="min-w-0 text-stone-800">{value}</span>
+                <div key={label} className="grid grid-cols-12 gap-4 py-3">
+                  <span className="col-span-4 text-stone-500 sm:col-span-3">{label}</span>
+                  <span className="col-span-8 min-w-0 font-medium text-stone-900 sm:col-span-9">{value}</span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">{actions}</div>
+            <div className="mt-6 grid grid-cols-2 gap-3 [&>*]:min-h-11 [&>*]:w-full">{actions}</div>
 
             {children ? <div className="mt-6">{children}</div> : null}
+            </div>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function TemplateInfoSection() {
+  const items = [
+    ["Giao diện ổn định", "Mẫu thiệp được dựng sẵn, hiển thị đẹp trên điện thoại và máy tính."],
+    ["Dễ chỉnh nội dung", "Thay tên cô dâu chú rể, lời mời, thời gian, địa điểm và hình ảnh."],
+    ["Dùng làm thiệp online", "Tạo thiệp online từ mẫu và gửi link cho khách mời sau khi hoàn tất."],
+  ];
+
+  return (
+    <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+      <div className="container mx-auto px-4">
+        <div className="bg-white px-5 py-6">
+        <h2 className="text-xl font-semibold">Thông tin mẫu thiệp</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {items.map(([title, body]) => (
+            <div key={title} className="rounded-sm border p-4">
+              <p className="font-medium">{title}</p>
+              <p className="mt-2 text-sm leading-7">{body}</p>
+            </div>
+          ))}
+        </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RelatedTemplateSidebar({
+  relatedOfferings,
+}: {
+  relatedOfferings: Offering[];
+}) {
+  const promotions = [
+    ["PLWEDDING", "Giảm 10% khi tạo thiệp online trong hôm nay."],
+    ["LOVE2026", "Tặng gói chỉnh nội dung cơ bản cho mẫu thiệp này."],
+  ];
+
+  return (
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+      <div className="rounded-sm border bg-white p-5">
+        <p className="font-semibold">Mã ưu đãi</p>
+        <div className="mt-4 space-y-3">
+          {promotions.map(([code, body]) => (
+            <div key={code} className="rounded-sm border border-dashed p-3">
+              <p className="font-semibold">{code}</p>
+              <p className="mt-1 text-sm leading-6">{body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {relatedOfferings.slice(0, 4).map((item) => (
+        item.offeringType === "digital_template" ? (
+          <LoopOnlineInvitationCard
+            key={item.id}
+            offering={item}
+            className="w-full"
+            flat
+          />
+        ) : (
+          <LoopOfferingCard
+            key={item.id}
+            offering={item}
+            className="w-full"
+            flat
+          />
+        )
+      ))}
+    </aside>
   );
 }
 
@@ -202,7 +284,7 @@ export async function generateTemplateOfferingMetadata(offering: Offering | null
   return await createSeoMetadata({
     title: offering.name,
     description: offering.description || offering.excerpt || `Chi tiết mẫu thiệp cưới ${offering.name}.`,
-    path: getTemplateOfferingPath(offering),
+    path: getOfferingPath(offering),
     image: offering.thumbnailUrl,
     keywords: ["mẫu thiệp cưới", getInvitationTemplateLabel(offering.templateKey).toLowerCase(), offering.name.toLowerCase()],
   });
@@ -221,7 +303,7 @@ export async function generateGeneralOfferingMetadata(offering: Offering | null)
   return await createSeoMetadata({
     title: offering.name,
     description: offering.description || offering.excerpt || `Chi tiết sản phẩm ${offering.name}.`,
-    path: getGeneralOfferingPath(offering),
+    path: getOfferingPath(offering),
     image: offering.thumbnailUrl,
     keywords: ["san pham", offering.name.toLowerCase()],
   });
@@ -240,14 +322,15 @@ export async function generateBuilderOfferingMetadata(offering: Offering | null)
   return await createSeoMetadata({
     title: offering.name,
     description: offering.description || offering.excerpt || `Chi tiết starter builder ${offering.name}.`,
-    path: getBuilderOfferingPath(offering),
+    path: getOfferingPath(offering),
     image: offering.thumbnailUrl,
     keywords: ["builder thiệp cưới", getInvitationTemplateLabel(offering.templateKey).toLowerCase(), offering.name.toLowerCase()],
   });
 }
 
 export async function renderTemplateOfferingPage(offering: Offering) {
-  const offeringPath = getTemplateOfferingPath(offering);
+  const offeringPath = getOfferingPath(offering);
+  const relatedOfferings = await listRelatedTemplateOfferings(offering.id);
   const defaults = {
     ...getInvitationTemplateDefaults(offering.templateKey),
     ...((offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
@@ -282,51 +365,91 @@ export async function renderTemplateOfferingPage(offering: Offering) {
         ]}
         actions={
           <>
-            <GuestLinkButton href={`${getTemplateOfferingPath(offering)}/customize`} className="flex rounded-sm bg-orange-600 hover:bg-orange-700 sm:min-w-56">
-              Tạo thiệp từ mẫu này
-            </GuestLinkButton>
-            <WishlistToggleButton offering={createWishlistOfferingSnapshot(offering)} variant="button" />
-            <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex rounded-sm sm:min-w-44">
-              Lưu để mua sau
+            <WishlistToggleButton
+              offering={createWishlistOfferingSnapshot(offering)}
+              variant="button"
+              className={wishlistOfferingActionClassName}
+            />
+            <GuestLinkButton href={getTemplateOfferingCustomizePath(offering)} className={primaryOfferingActionClassName}>
+              Sử dụng mẫu
             </GuestLinkButton>
           </>
         }
-      >
-        <p className="rounded-sm bg-orange-50 px-4 py-3 text-sm leading-7 text-stone-700">
-          Tạo một bản nháp từ mẫu coded này để khách xem trước và chỉnh nội dung chính. Khi đã ưng ý, khách có thể lưu lại và mua theo luồng đơn hàng.
-        </p>
-      </OfferingDetailLayout>
+      />
 
-      <div className="mx-auto grid w-full max-w-7xl gap-4 bg-stone-50 px-4 pb-8 md:grid-cols-3">
-        {[
-          ["Ổn định", "Renderer nằm trong code, phù hợp để bán như template chuẩn."],
-          ["Chỉnh nội dung", "Khách thay thông tin, lời mời, địa điểm và hình ảnh."],
-          ["Tạo thiệp online", "Sau khi mua, template được dùng để tạo wedding site."],
-        ].map(([title, body]) => (
-          <div key={title} className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
-            <p className="font-medium text-stone-950">{title}</p>
-            <p className="mt-2 text-sm leading-7 text-stone-600">{body}</p>
+      <TemplateInfoSection />
+
+      <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+        <div className="container mx-auto grid grid-cols-12 gap-6 px-4">
+          <div className="col-span-12 space-y-6 lg:col-span-10">
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Mô tả mẫu thiệp</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-4 text-sm leading-7">
+                <p>
+                  {offering.description ||
+                    offering.excerpt ||
+                    "Mẫu thiệp online được thiết kế sẵn để tạo nhanh wedding site, phù hợp cho cặp đôi muốn có thiệp đẹp, dễ gửi và dễ chỉnh nội dung."}
+                </p>
+                <p>
+                  Sau khi chọn mẫu, bạn có thể thay thông tin cô dâu chú rể, lời mời, ngày giờ, địa điểm và hình ảnh trước khi gửi link cho khách mời.
+                </p>
+              </GuestPanelBody>
+            </GuestPanel>
+
+            <GuestPanel>
+              <GuestPanelHeader>
+                <GuestPanelTitle>Nội dung mặc định</GuestPanelTitle>
+              </GuestPanelHeader>
+              <DetailGrid items={defaults} />
+            </GuestPanel>
+
+            <OfferingReviewSection
+              target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }}
+              embedded
+            />
           </div>
-        ))}
-      </div>
-      <div className="bg-stone-50 px-4 pb-8">
-        <div className="mx-auto max-w-7xl">
-          <GuestPanel>
-            <GuestPanelHeader>
-              <GuestPanelTitle>Nội dung mặc định</GuestPanelTitle>
-            </GuestPanelHeader>
-            <DetailGrid items={defaults} />
-          </GuestPanel>
+
+          <div className="col-span-12 lg:col-span-2">
+            <RelatedTemplateSidebar relatedOfferings={relatedOfferings} />
+          </div>
         </div>
-      </div>
-      <CommentSection target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }} />
+      </section>
+
+      {relatedOfferings.length > 0 ? (
+        <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+          <div className="container mx-auto px-4">
+            <PagedCarousel
+              itemsPerPage={5}
+              controlsVariant="buttons"
+              controlsPosition="header"
+              gridClassName="grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-5 lg:gap-5"
+              header={(
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Gợi ý thêm</p>
+                  <h2 className="mt-2 text-2xl font-semibold">Mẫu thiệp liên quan</h2>
+                </div>
+              )}
+            >
+              {relatedOfferings.map((item) => (
+                item.offeringType === "digital_template" ? (
+                  <LoopOnlineInvitationCard key={item.id} offering={item} className="w-full shrink-0" flat />
+                ) : (
+                  <LoopOfferingCard key={item.id} offering={item} className="w-full shrink-0" flat />
+                )
+              ))}
+            </PagedCarousel>
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }
 
 export async function renderBuilderOfferingPage(offering: Offering) {
   const user = await getCurrentUser();
-  const offeringPath = getBuilderOfferingPath(offering);
+  const offeringPath = getOfferingPath(offering);
   const defaults = {
     ...getInvitationTemplateDefaults(offering.templateKey),
     ...((offering.config.siteDefaults as Record<string, unknown> | undefined) ?? {}),
@@ -361,22 +484,23 @@ export async function renderBuilderOfferingPage(offering: Offering) {
         ]}
         actions={
           <>
+            <WishlistToggleButton
+              offering={createWishlistOfferingSnapshot(offering)}
+              variant="button"
+              className={wishlistOfferingActionClassName}
+            />
             {user ? (
-              <form action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} method="POST" className="sm:min-w-56">
+              <form action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} method="POST">
                 <input type="hidden" name="offeringSlug" value={offering.slug} />
-                <GuestButton type="submit" className="w-full rounded-sm bg-orange-600 hover:bg-orange-700">
-                  Chỉnh từ mẫu này
+                <GuestButton type="submit" className={primaryOfferingActionClassName}>
+                  Sử dụng mẫu
                 </GuestButton>
               </form>
             ) : (
-              <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getBuilderOfferingPath(offering))}`} className="flex rounded-sm bg-orange-600 hover:bg-orange-700 sm:min-w-56">
-                Đăng nhập để chỉnh mẫu
+              <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
+                Sử dụng mẫu
               </GuestLinkButton>
             )}
-            <WishlistToggleButton offering={createWishlistOfferingSnapshot(offering)} variant="button" />
-            <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex rounded-sm sm:min-w-44">
-              Lưu để mua sau
-            </GuestLinkButton>
           </>
         }
       >
@@ -385,23 +509,23 @@ export async function renderBuilderOfferingPage(offering: Offering) {
         </p>
       </OfferingDetailLayout>
 
-      <div className="bg-stone-50 px-4 pb-8">
-        <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
+      <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+        <div className="container mx-auto grid gap-4 px-4 md:grid-cols-3">
           {[
             ["Kéo thả", "Chỉnh section sau khi tạo thiệp."],
             ["Clone starter", "Dùng mẫu này làm bản nháp ban đầu."],
             ["Xuất bản sau", "Hoàn thiện trong editor rồi public."],
           ].map(([title, body]) => (
-            <div key={title} className="rounded-sm border border-stone-200 bg-white p-5 shadow-sm">
+            <div key={title} className="rounded-sm border border-stone-200 bg-white p-5">
               <p className="font-medium text-stone-950">{title}</p>
               <p className="mt-2 text-sm leading-7 text-stone-600">{body}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="bg-stone-50 px-4 pb-8">
-        <div className="mx-auto max-w-7xl">
+      <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+        <div className="container mx-auto px-4">
           <GuestPanel>
             <GuestPanelHeader>
               <GuestPanelTitle>Cấu hình starter</GuestPanelTitle>
@@ -409,15 +533,16 @@ export async function renderBuilderOfferingPage(offering: Offering) {
             <DetailGrid items={defaults} />
           </GuestPanel>
         </div>
-      </div>
-      <CommentSection target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }} />
+      </section>
+      <OfferingReviewSection target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }} />
     </>
   );
 }
 
 export async function renderGeneralOfferingPage(offering: Offering) {
   const user = await getCurrentUser();
-  const offeringPath = getGeneralOfferingPath(offering);
+  const offeringPath = getOfferingPath(offering);
+  const relatedOfferings = await listRelatedTemplateOfferings(offering.id);
   const details =
     typeof offering.config.offeringDetails === "object" && offering.config.offeringDetails
       ? (offering.config.offeringDetails as Record<string, unknown>)
@@ -452,60 +577,82 @@ export async function renderGeneralOfferingPage(offering: Offering) {
         ]}
         actions={
           <>
+            <WishlistToggleButton
+              offering={createWishlistOfferingSnapshot(offering)}
+              variant="button"
+              className={wishlistOfferingActionClassName}
+            />
             {offering.fulfillmentType === "service" ? (
               user ? (
-                <form action={ROUTES.API.CUSTOMER.BOOKINGS_CREATE} method="POST" className="sm:min-w-56">
+                <form action={ROUTES.API.CUSTOMER.BOOKINGS_CREATE} method="POST">
                   <input type="hidden" name="offeringId" value={offering.id} />
                   <input type="hidden" name="providerId" value={offering.ownerProviderId ?? ""} />
                   <input type="hidden" name="providerType" value={offering.ownerProviderType ?? ""} />
                   <input type="hidden" name="quantity" value="1" />
                   <input type="hidden" name="returnTo" value={ROUTES.CUSTOMER.BOOKINGS} />
-                  <GuestButton type="submit" className="w-full rounded-sm bg-orange-600 hover:bg-orange-700">
+                  <GuestButton type="submit" className={primaryOfferingActionClassName}>
                     Đặt trực tiếp
                   </GuestButton>
                 </form>
               ) : (
-                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getGeneralOfferingPath(offering))}`} className="flex rounded-sm bg-orange-600 hover:bg-orange-700 sm:min-w-56">
-                  Đăng nhập để đặt
+                <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
+                  Đặt trực tiếp
                 </GuestLinkButton>
               )
-            ) : null}
-            {user ? (
-              <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST" className="sm:min-w-56">
+            ) : user ? (
+              <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST">
                 <input type="hidden" name="intent" value="add" />
                 <input type="hidden" name="offeringId" value={offering.id} />
                 <input type="hidden" name="returnTo" value={ROUTES.WISHLIST} />
-                <GuestButton type="submit" className="w-full rounded-sm bg-orange-600 hover:bg-orange-700">
-                  Thêm vào giỏ yêu thích
+                <GuestButton type="submit" className={primaryOfferingActionClassName}>
+                  Mua ngay
                 </GuestButton>
               </form>
             ) : (
-              <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getGeneralOfferingPath(offering))}`} className="flex rounded-sm bg-orange-600 hover:bg-orange-700 sm:min-w-56">
-                Đăng nhập để mua
+              <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
+                Mua ngay
               </GuestLinkButton>
             )}
-            <WishlistToggleButton offering={createWishlistOfferingSnapshot(offering)} variant="button" />
-            <GuestLinkButton href={ROUTES.WISHLIST} variant="secondary" className="flex rounded-sm sm:min-w-44">
-              Mua từ yêu thích
-            </GuestLinkButton>
           </>
         }
       />
 
-      {Object.keys(details).length > 0 ? (
-        <div className="bg-stone-50 px-4 pb-8">
-          <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-stone-400">Thông số</p>
-              <h2 className="mt-3 text-2xl font-semibold text-stone-950">Chi tiết sản phẩm</h2>
-            </div>
+      <section className="bg-stone-50 pt-10 lg:pt-15 2xl:pt-20">
+        <div className="container mx-auto grid grid-cols-12 gap-6 px-4">
+          <div className="col-span-12 space-y-6 lg:col-span-10">
             <GuestPanel>
-              <DetailGrid items={details} />
+              <GuestPanelHeader>
+                <GuestPanelTitle>Mô tả sản phẩm</GuestPanelTitle>
+              </GuestPanelHeader>
+              <GuestPanelBody className="space-y-4 text-sm leading-7">
+                <p>
+                  {offering.description ||
+                    offering.excerpt ||
+                    "Sản phẩm được PinkLove chọn lọc cho nhu cầu chuẩn bị cưới, dễ lưu lại và tiếp tục thanh toán khi cần."}
+                </p>
+              </GuestPanelBody>
             </GuestPanel>
+
+            {Object.keys(details).length > 0 ? (
+              <GuestPanel>
+                <GuestPanelHeader>
+                  <GuestPanelTitle>Chi tiết sản phẩm</GuestPanelTitle>
+                </GuestPanelHeader>
+                <DetailGrid items={details} />
+              </GuestPanel>
+            ) : null}
+
+            <OfferingReviewSection
+              target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }}
+              embedded
+            />
+          </div>
+
+          <div className="col-span-12 lg:col-span-2">
+            <RelatedTemplateSidebar relatedOfferings={relatedOfferings} />
           </div>
         </div>
-      ) : null}
-      <CommentSection target={{ type: "offering", id: offering.id, slug: offering.slug, title: offering.name, url: offeringPath }} />
+      </section>
     </>
   );
 }

@@ -30,6 +30,16 @@ function chunkArray<T>(array: T[], size: number) {
   return chunks;
 }
 
+function isInteractiveElement(target: EventTarget | null) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  return Boolean(
+    target.closest("a, button, input, select, textarea, summary, [role='button'], [data-carousel-interactive]")
+  );
+}
+
 function CarouselArrowButton({
   direction,
   onClick,
@@ -159,6 +169,9 @@ export function PagedCarousel<TItem>({
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     if (!hasMultiplePages) {
+      return;
+    }
+    if (isInteractiveElement(event.target)) {
       return;
     }
     dragStartRef.current = { x: event.clientX, y: event.clientY };

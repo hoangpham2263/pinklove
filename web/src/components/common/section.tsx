@@ -6,7 +6,7 @@ type SectionProps = {
 };
 
 export function Section({ children, className }: SectionProps) {
- return <section className={cn("pt-10 lg:pt-15 2 xl:pt-20", className)}>{children}</section>;
+ return <section className={cn("pt-10 lg:pt-15 2xl:pt-20", className)}>{children}</section>;
 }
 
 export function SectionContainer({ children, className }: SectionProps) {

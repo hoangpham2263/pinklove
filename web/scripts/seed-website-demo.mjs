@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
+import { PUBLIC_SITE_ROUTES } from "../src/lib/public-route-config.mjs";
 
 const PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "12313";
 const BASE_URL = process.env.SEED_BASE_URL ?? "";
@@ -131,8 +132,10 @@ async function seedManagedPages(client) {
         heroTitle: "Thiệp cưới online, sản phẩm cưới và dịch vụ cưới trong một nơi",
         heroDescription:
           "PinkLove giúp cặp đôi bắt đầu từ mẫu thiệp, mở rộng sang website cưới, sản phẩm cưới và các dịch vụ cần provider thực hiện.",
+        scrollDownText: "cuộn xuống",
         heroButtonText: "Xem mẫu thiệp",
-        heroButtonLink: "/mau-thiep",
+        heroButtonLink: PUBLIC_SITE_ROUTES.TEMPLATES,
+        aboutEyebrow: "Giới thiệu",
         aboutTitle: "Một nơi để bắt đầu toàn bộ hành trình cưới",
         aboutDescription:
           "Trang chủ PinkLove nên cho khách hiểu nhanh ba việc chính: chọn gu thẩm mỹ, tạo lời mời online và đặt các hạng mục cưới có thể triển khai thật. Seed Home này ưu tiên nội dung rõ, dễ chỉnh trong admin và bám đúng các field frontend đang render.",
@@ -166,6 +169,8 @@ async function seedManagedPages(client) {
         servicesTitle: "Chọn đúng dịch vụ theo nhu cầu cưới",
         servicesDescription:
           "Mỗi nhóm dịch vụ có thể mở rộng thành offering, provider, đơn hàng và lịch triển khai riêng trong hệ thống.",
+        servicesCtaText: "Xem toàn bộ dịch vụ",
+        servicesCtaLink: PUBLIC_SITE_ROUTES.SERVICES,
         serviceItems: [
           {
             title: "Thiệp cưới online & website cưới",
@@ -173,7 +178,7 @@ async function seedManagedPages(client) {
             description: "Xây dựng thiệp online, landing page cưới và luồng chia sẻ khách mời trên một nền tảng thống nhất.",
             detailItems: "Mẫu coded và builder\nRSVP, lời chúc, album, bản đồ\nTối ưu hiển thị mobile và SEO",
             ctaText: "Xem mẫu thiệp",
-            ctaLink: "/mau-thiep",
+            ctaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
           },
           {
             title: "Thiệp giấy & sản phẩm cưới",
@@ -181,7 +186,7 @@ async function seedManagedPages(client) {
             description: "Kết nối nhu cầu in ấn, quà cưới và sản phẩm vật lý với quy trình đặt hàng, thanh toán, fulfillment.",
             detailItems: "Thiệp giấy, phụ kiện, quà tặng\nQuản lý đơn hàng và thanh toán\nSẵn sàng mở provider supply",
             ctaText: "Khám phá thiệp giấy",
-            ctaLink: "/thiep-giay",
+            ctaLink: PUBLIC_SITE_ROUTES.PAPER,
           },
           {
             title: "Dịch vụ cưới từ provider",
@@ -197,7 +202,7 @@ async function seedManagedPages(client) {
             description: "Gom các mẫu thiệp theo màu sắc, bố cục và phong cách để cặp đôi chọn hướng thẩm mỹ nhanh hơn.",
             detailItems: "Phân nhóm theo style cưới\nDễ mở thành offering thật\nPhù hợp cho gallery và campaign",
             ctaText: "Xem concept",
-            ctaLink: "/mau-thiep",
+            ctaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
           },
           {
             title: "Quà tặng & phụ kiện",
@@ -205,13 +210,13 @@ async function seedManagedPages(client) {
             description: "Bổ sung quà cảm ơn, tag, phong bì và phụ kiện để hoàn thiện trải nghiệm sau khi chọn thiệp.",
             detailItems: "Có giá và tồn kho mẫu\nPhù hợp đơn hàng số lượng\nCó thể gắn provider supply",
             ctaText: "Xem phụ kiện",
-            ctaLink: "/thiep-giay",
+            ctaLink: PUBLIC_SITE_ROUTES.PAPER,
           },
         ],
-        eventPlannerEyebrow: "Bạn đang chuẩn bị",
-        eventPlannerTitle: "ngày cưới",
-        eventPlannerHighlight: "5",
-        eventPlannerSuffix: "việc cần gom lại",
+        eventPlannerEyebrow: "Bạn đang có kế hoạch",
+        eventPlannerTitle: "mời tiệc",
+        eventPlannerHighlight: "100+",
+        eventPlannerSuffix: "khách",
         eventPlannerProblems: [
           {
             image: "/uploads/seed-offerings/general-offering-04.svg",
@@ -234,7 +239,7 @@ async function seedManagedPages(client) {
         eventPlannerSolutionDescription:
           "Home không chỉ giới thiệu thương hiệu. Nó phải mở đường cho các trang chính: mẫu thiệp, thiệp giấy, dịch vụ, provider, công cụ, blog và customer dashboard.",
         eventPlannerCtaText: "Bắt đầu từ mẫu thiệp",
-        eventPlannerCtaLink: "/mau-thiep",
+        eventPlannerCtaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
         eventPlannerFeatures: [
           {
             title: "Thiệp online có thể quản lý",
@@ -257,39 +262,159 @@ async function seedManagedPages(client) {
             accentImage: "/uploads/seed-offerings/general-offering-04.svg",
           },
         ],
-        invitationGalleryBadge: "✨",
-        invitationGalleryTitle: "Mẫu thiệp và sản phẩm nổi bật",
-        invitationGalleryDescription:
-          "Hiển thị một số offering đang published để khách có điểm bắt đầu cụ thể. Giai đoạn sau có thể mở rộng seed thành nhiều mẫu thiệp online hơn.",
-        invitationGalleryCtaText: "Xem tất cả mẫu thiệp",
-        invitationGalleryCtaLink: "/mau-thiep",
-        invitationGalleryOfferingSlugs: [
-          "thiep-giay-bo-sen-trang",
-          "chup-anh-phong-su-cuoi",
-          "hop-qua-cam-on-khach-moi",
-          "thiep-giay-modern-blush",
-          "thiep-giay-golden-aisle",
-          "thiep-giay-floral-scroll",
-          "chup-anh-le-gia-tien",
-          "chup-anh-couple-session",
-          "set-qua-cam-on-premium",
+        testimonialsEyebrow: "Cảm nhận khách hàng",
+        testimonialsTitle: "Khách hàng nói gì về PinkLove",
+        testimonialsDescription:
+          "Những phản hồi mẫu giúp section Home thể hiện rõ trải nghiệm sau khi cặp đôi dùng PinkLove để chuẩn bị thiệp, website cưới và các hạng mục liên quan.",
+        testimonials: [
+          {
+            quote:
+              "PinkLove giúp tụi mình gom thiệp online, RSVP và thông tin lễ cưới vào một nơi. Khách mời mở trên điện thoại rất dễ, đội nhà cũng cập nhật nội dung nhanh hơn.",
+            name: "Minh Anh",
+            role: "Cô dâu tại TP.HCM",
+            rating: 5,
+          },
+          {
+            quote:
+              "Phần mẫu thiệp có sẵn giúp hai bên gia đình chọn phong cách nhanh. Sau đó team có thể mở rộng thêm album, bản đồ và lời chúc mà không phải làm lại từ đầu.",
+            name: "Hoàng Nam",
+            role: "Chú rể tại Đà Nẵng",
+            rating: 5,
+          },
+          {
+            quote:
+              "Điểm mình thích là mọi nội dung đều có cấu trúc rõ. Khi cần chỉnh lại giờ tiệc hoặc thêm thông tin di chuyển, admin thao tác rất gọn.",
+            name: "Linh Chi",
+            role: "Wedding planner",
+            rating: 5,
+          },
+          {
+            quote:
+              "Gia đình hai bên xem thiệp online trước rồi mới chốt bản in nên tụi mình tiết kiệm được khá nhiều vòng chỉnh sửa. Link gửi cho khách cũng rất chỉn chu.",
+            name: "Tuấn Khang",
+            role: "Chú rể tại Hà Nội",
+            rating: 5,
+          },
+          {
+            quote:
+              "Mình dùng PinkLove để gom thông tin lễ gia tiên, tiệc tối, bản đồ và dress code. Khách mời chỉ cần mở một link là nắm đủ lịch trình.",
+            name: "Ngọc Hân",
+            role: "Cô dâu tại Cần Thơ",
+            rating: 5,
+          },
+          {
+            quote:
+              "Phần RSVP giúp tụi mình theo dõi số lượng khách nhanh hơn so với nhắn tin thủ công. Danh sách phản hồi rõ nên việc sắp bàn cũng nhẹ hơn.",
+            name: "Quốc Bảo",
+            role: "Chú rể tại Nha Trang",
+            rating: 5,
+          },
+          {
+            quote:
+              "Team PinkLove hỗ trợ chuyển concept màu cưới thành thiệp online rất đồng bộ. Khi cần thêm album và lời chúc, giao diện vẫn giữ cùng phong cách.",
+            name: "Thanh Vy",
+            role: "Cô dâu tại Biên Hòa",
+            rating: 5,
+          },
+          {
+            quote:
+              "Với planner, mình thích cách mỗi hạng mục có nội dung riêng nhưng vẫn nằm trong một hành trình. Khách dễ duyệt, team dễ kiểm tra trước ngày cưới.",
+            name: "Mai Phương",
+            role: "Wedding planner tại TP.HCM",
+            rating: 5,
+          },
+          {
+            quote:
+              "Sau khi chọn mẫu, tụi mình chỉnh text, ảnh và thông tin địa điểm khá nhanh. Bản xem trên điện thoại đẹp nên gửi cho bạn bè rất tự tin.",
+            name: "Đức Anh",
+            role: "Chú rể tại Hải Phòng",
+            rating: 5,
+          },
+          {
+            quote:
+              "Mình thích cách PinkLove giữ được cảm giác trang trọng nhưng vẫn trẻ trung. Thiệp online nhìn đẹp trên điện thoại, còn phần thông tin tiệc rất dễ đọc.",
+            name: "Bảo Trâm",
+            role: "Cô dâu tại Huế",
+            rating: 5,
+          },
+          {
+            quote:
+              "Hai bên gia đình cần thay đổi giờ đón khách sát ngày cưới, tụi mình cập nhật trên website rất nhanh. Không phải gửi lại từng file ảnh như trước.",
+            name: "Hữu Phúc",
+            role: "Chú rể tại Bình Dương",
+            rating: 5,
+          },
+          {
+            quote:
+              "Phần lời chúc và album làm khách mời tương tác nhiều hơn. Sau tiệc, tụi mình vẫn giữ link như một kỷ niệm gọn gàng.",
+            name: "Khánh Linh",
+            role: "Cô dâu tại Vũng Tàu",
+            rating: 5,
+          },
+          {
+            quote:
+              "Với nhóm khách lớn tuổi, thông tin địa điểm và bản đồ rõ ràng là điểm cộng lớn. Mọi người mở link là biết đi đâu, giờ nào.",
+            name: "Minh Quân",
+            role: "Chú rể tại Quảng Ninh",
+            rating: 5,
+          },
+          {
+            quote:
+              "PinkLove giúp mình demo nhiều concept cho khách trong cùng một buổi tư vấn. Khi khách chốt phong cách, team triển khai nội dung nhanh hơn.",
+            name: "An Nhiên",
+            role: "Wedding planner tại Hà Nội",
+            rating: 5,
+          },
+          {
+            quote:
+              "Mình không rành kỹ thuật nhưng vẫn theo được từng bước. Mẫu có sẵn đẹp, phần chỉnh nội dung rõ nên không bị rối.",
+            name: "Phương Uyên",
+            role: "Cô dâu tại Đà Lạt",
+            rating: 5,
+          },
+          {
+            quote:
+              "Điểm tiện nhất là cùng một nơi có thiệp, RSVP, ảnh và thông tin tiệc. Đỡ phải dùng nhiều công cụ rời nhau.",
+            name: "Gia Huy",
+            role: "Chú rể tại Long An",
+            rating: 5,
+          },
+          {
+            quote:
+              "Khách phản hồi tham dự khá nhanh vì form đơn giản. Tụi mình xem danh sách trên điện thoại và cập nhật lại số bàn dễ hơn.",
+            name: "Thu Hà",
+            role: "Cô dâu tại Bắc Ninh",
+            rating: 5,
+          },
+          {
+            quote:
+              "Các section trên website cưới được sắp xếp hợp lý, không quá màu mè. Bố mẹ xem cũng hiểu ngay thông tin chính.",
+            name: "Nhật Minh",
+            role: "Chú rể tại Cần Thơ",
+            rating: 5,
+          },
         ],
-        sharedInvitationsBadge: "♡",
-        sharedInvitationsTitle: "Bắt đầu từ một phong cách có sẵn",
-        sharedInvitationsDescription:
-          "Khách có thể xem mẫu trên website, sau đó đăng nhập để quản lý thiệp và nội dung cá nhân trong dashboard customer.",
-        sharedInvitationsCtaText: "Vào khu quản lý thiệp",
-        sharedInvitationsCtaLink: "/customer/invitations",
-        sharedInvitationsOfferingSlugs: [
-          "thiep-giay-floral-scroll",
-          "thiep-giay-golden-aisle",
-          "thiep-giay-modern-blush",
-          "thiep-giay-bo-sen-trang",
-          "set-qua-cam-on-premium",
-          "hop-qua-cam-on-khach-moi",
-          "chup-anh-couple-session",
-          "chup-anh-le-gia-tien",
-          "chup-anh-phong-su-cuoi",
+        partnersEyebrow: "Đối tác",
+        partnersTitle: "Đối tác đồng hành cùng PinkLove",
+        partnersDescription:
+          "PinkLove có thể kết nối các nhóm provider, studio, in ấn và wedding planner để hoàn thiện hành trình cưới từ online đến triển khai thực tế.",
+        partners: [
+          {
+            name: "Bloom Studio",
+            description: "Ảnh cưới & phóng sự",
+          },
+          {
+            name: "Lumi Print",
+            description: "In ấn thiệp cưới",
+          },
+          {
+            name: "Aster Decor",
+            description: "Trang trí tiệc cưới",
+          },
+          {
+            name: "Mia Planner",
+            description: "Wedding planner",
+          },
         ],
       },
     },
@@ -338,7 +463,7 @@ async function seedManagedPages(client) {
         primaryCtaText: "Tư vấn dịch vụ",
         primaryCtaLink: "/lien-he",
         secondaryCtaText: "Xem mẫu thiệp",
-        secondaryCtaLink: "/mau-thiep",
+        secondaryCtaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
         servicesEyebrow: "Nhóm dịch vụ",
         servicesTitle: "Chọn đúng dịch vụ theo nhu cầu cưới",
         servicesDescription:
@@ -350,7 +475,7 @@ async function seedManagedPages(client) {
             description: "Xây dựng thiệp online, landing page cưới và luồng chia sẻ khách mời trên một nền tảng thống nhất.",
             detailItems: "Mẫu coded và trình quản lý thiệp\nRSVP, lời chúc, album, bản đồ\nTối ưu hiển thị mobile và SEO",
             ctaText: "Xem mẫu thiệp",
-            ctaLink: "/mau-thiep",
+            ctaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
           },
           {
             title: "Thiệp giấy & sản phẩm cưới",
@@ -358,7 +483,7 @@ async function seedManagedPages(client) {
             description: "Kết nối nhu cầu in ấn, quà cưới và sản phẩm vật lý với quy trình đặt hàng, thanh toán, fulfillment.",
             detailItems: "Thiệp giấy, phụ kiện, quà tặng\nQuản lý đơn hàng và thanh toán\nSẵn sàng mở provider supply",
             ctaText: "Khám phá thiệp giấy",
-            ctaLink: "/thiep-giay",
+            ctaLink: PUBLIC_SITE_ROUTES.PAPER,
           },
           {
             title: "Dịch vụ cưới từ provider",
@@ -368,6 +493,40 @@ async function seedManagedPages(client) {
             ctaText: "Trao đổi nhu cầu",
             ctaLink: "/lien-he",
           },
+        ],
+        invitationGalleryBadge: "✨",
+        invitationGalleryTitle: "Mẫu thiệp và sản phẩm nổi bật",
+        invitationGalleryDescription:
+          "Hiển thị một số offering đang published để khách có điểm bắt đầu cụ thể. Giai đoạn sau có thể mở rộng seed thành nhiều mẫu thiệp online hơn.",
+        invitationGalleryCtaText: "Xem tất cả mẫu thiệp",
+        invitationGalleryCtaLink: PUBLIC_SITE_ROUTES.TEMPLATES,
+        invitationGalleryOfferingSlugs: [
+          "thiep-giay-bo-sen-trang",
+          "chup-anh-phong-su-cuoi",
+          "hop-qua-cam-on-khach-moi",
+          "thiep-giay-modern-blush",
+          "thiep-giay-golden-aisle",
+          "thiep-giay-floral-scroll",
+          "chup-anh-le-gia-tien",
+          "chup-anh-couple-session",
+          "set-qua-cam-on-premium",
+        ],
+        sharedInvitationsBadge: "♡",
+        sharedInvitationsTitle: "Bắt đầu từ một phong cách có sẵn",
+        sharedInvitationsDescription:
+          "Khách có thể xem mẫu trên website, sau đó đăng nhập để quản lý thiệp và nội dung cá nhân trong dashboard customer.",
+        sharedInvitationsCtaText: "Vào khu quản lý thiệp",
+        sharedInvitationsCtaLink: PUBLIC_SITE_ROUTES.BUILDER,
+        sharedInvitationsOfferingSlugs: [
+          "thiep-giay-floral-scroll",
+          "thiep-giay-golden-aisle",
+          "thiep-giay-modern-blush",
+          "thiep-giay-bo-sen-trang",
+          "set-qua-cam-on-premium",
+          "hop-qua-cam-on-khach-moi",
+          "chup-anh-couple-session",
+          "chup-anh-le-gia-tien",
+          "chup-anh-phong-su-cuoi",
         ],
         catalogEyebrow: "Catalog đang mở",
         catalogTitle: "Dịch vụ đã được xuất bản trong hệ thống",
@@ -1275,27 +1434,27 @@ async function main() {
     await upsertMenu(client, "footer", "Footer Menu", [
       {
         label: "Sản phẩm",
-        type: "url",
+        type: "custom",
         url: "#",
         children: [
           { label: "Mẫu thiệp online", type: "page", pageSlug: "mau-thiep" },
           { label: "Thiệp giấy in ấn", type: "page", pageSlug: "thiep-giay" },
-          { label: "Quà tặng cưới", type: "url", url: "/dich-vu" },
+          { label: "Quà tặng cưới", type: "custom", url: PUBLIC_SITE_ROUTES.SERVICES },
         ],
       },
       {
         label: "Dịch vụ",
-        type: "url",
+        type: "custom",
         url: "#",
         children: [
-          { label: "Chụp ảnh cưới", type: "url", url: "/dich-vu#catalog" },
-          { label: "Makeup & Làm tóc", type: "url", url: "/dich-vu#catalog" },
-          { label: "Trang trí tiệc", type: "url", url: "/dich-vu#catalog" },
+          { label: "Chụp ảnh cưới", type: "custom", url: `${PUBLIC_SITE_ROUTES.SERVICES}#catalog` },
+          { label: "Makeup & Làm tóc", type: "custom", url: `${PUBLIC_SITE_ROUTES.SERVICES}#catalog` },
+          { label: "Trang trí tiệc", type: "custom", url: `${PUBLIC_SITE_ROUTES.SERVICES}#catalog` },
         ],
       },
       {
         label: "Hỗ trợ",
-        type: "url",
+        type: "custom",
         url: "#",
         children: [
           { label: "Về PinkLove", type: "page", pageSlug: "gioi-thieu" },
@@ -1306,7 +1465,6 @@ async function main() {
     ]);
 
     await upsertGlobalFields(client, {
-      footerBackgroundAlt: "",
       footerBrandAlt: "PinkLove",
       footerBrandTagline: "Nền tảng thiệp cưới online & dịch vụ cưới số 1 Việt Nam",
       footerContactTitle: "Liên hệ",
@@ -1341,8 +1499,8 @@ async function main() {
             skipped: ["users", "user_profiles", "affiliate_accounts", "orders", "provider_assignments"],
             website: {
               home: withBaseUrl("/"),
-              templates: withBaseUrl("/mau-thiep"),
-              invitations: withBaseUrl("/customer/invitations"),
+              templates: withBaseUrl(PUBLIC_SITE_ROUTES.TEMPLATES),
+              invitations: withBaseUrl(PUBLIC_SITE_ROUTES.BUILDER),
               blog: withBaseUrl("/blog"),
               contact: withBaseUrl("/lien-he"),
             },
@@ -1424,7 +1582,7 @@ async function main() {
       approvedAt: "2026-04-08T08:30:00.000Z",
       clicks: [
         { landingPath: "/", referrer: "https://facebook.com", visitorToken: "seed-visitor-001", userAgent: "SeedAgent/1.0" },
-        { landingPath: "/mau-thiep", referrer: "https://instagram.com", visitorToken: "seed-visitor-002", userAgent: "SeedAgent/1.0" },
+        { landingPath: PUBLIC_SITE_ROUTES.TEMPLATES, referrer: "https://instagram.com", visitorToken: "seed-visitor-002", userAgent: "SeedAgent/1.0" },
       ],
       conversions: [
         {
@@ -1611,8 +1769,8 @@ async function main() {
           password: PASSWORD,
           website: {
             home: withBaseUrl("/"),
-            templates: withBaseUrl("/mau-thiep"),
-            invitations: withBaseUrl("/customer/invitations"),
+            templates: withBaseUrl(PUBLIC_SITE_ROUTES.TEMPLATES),
+            invitations: withBaseUrl(PUBLIC_SITE_ROUTES.BUILDER),
             blog: withBaseUrl("/blog"),
             contact: withBaseUrl("/lien-he"),
           },

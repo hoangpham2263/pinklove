@@ -97,7 +97,7 @@ export function WishlistPageClient({
 
         <div className="container relative z-10 mx-auto px-4 pb-10 pt-16 lg:pb-12 lg:pt-24">
           <div className="mx-auto max-w-4xl space-y-6 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">Wishlist PinkLove</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">Yêu thích PinkLove</p>
             <h1 className="text-3xl font-semibold leading-tight text-stone-950 sm:text-4xl lg:text-6xl">
               Danh sách yêu thích
             </h1>
@@ -117,11 +117,11 @@ export function WishlistPageClient({
                 <Heart className="size-8" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-stone-950">Wishlist dang trong</h2>
+                <h2 className="text-xl font-semibold text-stone-950">Danh sách yêu thích đang trống</h2>
                 <p className="max-w-2xl text-sm leading-7 text-stone-600 md:text-base">
                   {count > 0
-                    ? "Cac san pham da luu hien khong con kha dung cong khai. Ban co the quay lai catalog de luu lai mau khac."
-                    : "Khi thay tim o the san pham hoac trang chi tiet, danh sach yeu thich se hien o day."}
+                    ? "Các sản phẩm đã lưu hiện không còn khả dụng công khai. Bạn có thể quay lại catalog để lưu mẫu khác."
+                    : "Khi thả tim ở thẻ sản phẩm hoặc trang chi tiết, danh sách yêu thích sẽ hiển thị ở đây."}
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
@@ -203,7 +203,7 @@ export function WishlistPageClient({
                                 {item.name}
                               </Link>
                               <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-600">
-                                {item.excerpt || "Sản phẩm này đã được lưu vào wishlist của bạn."}
+                                {item.excerpt || "Sản phẩm này đã được lưu vào Yêu thích của bạn."}
                               </p>
                             </div>
                           </div>
@@ -217,13 +217,13 @@ export function WishlistPageClient({
                             <button
                               type="button"
                               className="inline-flex size-10 items-center justify-center rounded-md border border-stone-200 text-stone-500 transition hover:border-rose-200 hover:text-rose-500"
-                              aria-label={`Xóa ${item.name} khỏi wishlist`}
+                              aria-label={`Xóa ${item.name} khỏi Yêu thích`}
                               onClick={async (event) => {
                                 event.stopPropagation();
                                 const result = await removeOffering(item);
                                 if (result?.removed) {
                                   setSelectedOfferingIds((current) => current.filter((id) => id !== item.id));
-                                  toast.success("Da xoa khỏi wishlist.");
+                                  toast.success("Đã xóa khỏi Yêu thích.");
                                 }
                               }}
                             >

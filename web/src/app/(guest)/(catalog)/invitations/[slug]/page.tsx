@@ -1,8 +1,7 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getPublicInvitationBySlug } from "@/features/invitations/server/service";
 import { renderInvitationSite } from "@/features/invitations/templates/renderers";
-import { getInvitationPath } from "@/lib/public-paths";
 
 type InvitationSitePublicPageProps = {
   params: Promise<{ slug: string }>;
@@ -15,11 +14,6 @@ export default async function InvitationSitePublicPage({ params, searchParams }:
   const site = await getPublicInvitationBySlug(slug);
   if (!site) {
     notFound();
-  }
-
-  const targetPath = getInvitationPath(site);
-  if (targetPath !== `/invitations/${site.slug}`) {
-    redirect(targetPath);
   }
 
   if (site.status !== "published") {

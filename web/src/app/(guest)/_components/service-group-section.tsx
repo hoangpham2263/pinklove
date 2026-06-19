@@ -75,6 +75,71 @@ export function normalizeServiceGroupItems(items: ServiceGroupItemInput[] | unde
     }));
 }
 
+export function ServiceGroupItemCard({
+  item,
+  index,
+  theme = "rose",
+}: {
+  item: ServiceGroupItem;
+  index: number;
+  theme?: "rose" | "home";
+}) {
+  const isHome = theme === "home";
+  const cardClassName = isHome
+    ? "border-[#f8d8f4] hover:border-[#ff6ff5] hover:shadow-[0_18px_44px_rgba(217,77,206,0.12)]"
+    : "border-rose-100 hover:border-rose-200";
+  const iconClassName = isHome ? "bg-[#fff5fd] text-[#b529aa]" : "bg-rose-50 text-rose-700";
+  const badgeClassName = isHome ? "bg-[#fff5fd] text-[#b529aa]" : "bg-stone-100 text-stone-600";
+  const ctaClassName = isHome ? "text-[#b529aa] hover:text-stone-950" : "text-rose-700 hover:text-stone-950";
+  const Icon = serviceIcons[index % serviceIcons.length];
+
+  return (
+    <article className={`flex h-full flex-col rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 ${cardClassName}`}>
+      <div className="flex items-start justify-between gap-4">
+        <span className={`flex size-11 items-center justify-center rounded-xl ${iconClassName}`}>
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${badgeClassName}`}>
+          {item.badge}
+        </span>
+      </div>
+      <h3 className="mt-5 text-lg font-semibold text-stone-950">{item.title}</h3>
+      <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{item.description}</p>
+      {item.details.length ? (
+        <ul className="mt-5 space-y-3 text-sm text-stone-700">
+          {item.details.map((detail) => (
+            <li key={detail} className="flex gap-3">
+              <Check className="mt-1 size-4 shrink-0 text-emerald-600" aria-hidden="true" />
+              <span>{detail}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <Link href={item.ctaLink} className={`mt-auto inline-flex pt-6 text-sm font-semibold ${ctaClassName}`}>
+        {item.ctaText}
+      </Link>
+    </article>
+  );
+}
+
+export function ServiceGroupItemsGrid({
+  items,
+  theme = "rose",
+  gridClassName = "grid gap-5 lg:grid-cols-3",
+}: {
+  items: ServiceGroupItem[];
+  theme?: "rose" | "home";
+  gridClassName?: string;
+}) {
+  return (
+    <div className={gridClassName}>
+      {items.map((item, index) => (
+        <ServiceGroupItemCard key={item.title} item={item} index={index} theme={theme} />
+      ))}
+    </div>
+  );
+}
+
 export function ServiceGroupSection({
   eyebrow,
   title,
@@ -94,12 +159,6 @@ export function ServiceGroupSection({
 }) {
   const isHome = theme === "home";
   const eyebrowClassName = isHome ? "text-[#b529aa]" : "text-rose-600";
-  const cardClassName = isHome
-    ? "border-[#f8d8f4] hover:border-[#ff6ff5] hover:shadow-[0_18px_44px_rgba(217,77,206,0.12)]"
-    : "border-rose-100 hover:border-rose-200";
-  const iconClassName = isHome ? "bg-[#fff5fd] text-[#b529aa]" : "bg-rose-50 text-rose-700";
-  const badgeClassName = isHome ? "bg-[#fff5fd] text-[#b529aa]" : "bg-stone-100 text-stone-600";
-  const ctaClassName = isHome ? "text-[#b529aa] hover:text-stone-950" : "text-rose-700 hover:text-stone-950";
 
   return (
     <div>
@@ -122,39 +181,7 @@ export function ServiceGroupSection({
         {action ? <div className="flex shrink-0 justify-start lg:justify-end">{action}</div> : null}
       </div>
 
-      <div className={gridClassName}>
-        {items.map((item, index) => {
-          const Icon = serviceIcons[index % serviceIcons.length];
-
-          return (
-            <article key={item.title} className={`flex h-full flex-col rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 ${cardClassName}`}>
-              <div className="flex items-start justify-between gap-4">
-                <span className={`flex size-11 items-center justify-center rounded-xl ${iconClassName}`}>
-                  <Icon className="size-5" aria-hidden="true" />
-                </span>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${badgeClassName}`}>
-                  {item.badge}
-                </span>
-              </div>
-              <h3 className="mt-5 text-lg font-semibold text-stone-950">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{item.description}</p>
-              {item.details.length ? (
-                <ul className="mt-5 space-y-3 text-sm text-stone-700">
-                  {item.details.map((detail) => (
-                    <li key={detail} className="flex gap-3">
-                      <Check className="mt-1 size-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                      <span>{detail}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <Link href={item.ctaLink} className={`mt-auto inline-flex pt-6 text-sm font-semibold ${ctaClassName}`}>
-                {item.ctaText}
-              </Link>
-            </article>
-          );
-        })}
-      </div>
+      <ServiceGroupItemsGrid items={items} theme={theme} gridClassName={gridClassName} />
     </div>
   );
 }

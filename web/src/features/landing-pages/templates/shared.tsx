@@ -8,7 +8,7 @@ import type {
   LandingPageSection,
 } from "@/features/landing-pages/types";
 import { formatVnd } from "@/lib/currency";
-import { getGeneralOfferingPath } from "@/lib/public-paths";
+import { getOfferingPath } from "@/lib/public-paths";
 
 export type LandingPageTemplateProps = {
   offering: Offering;
@@ -48,7 +48,7 @@ export function LandingPageCta({
 }) {
   return (
     <Link
-      href={`${getGeneralOfferingPath(offering)}#checkout`}
+      href={`${getOfferingPath(offering)}#checkout`}
       className={`inline-flex h-12 items-center justify-center px-6 text-sm font-semibold transition ${className}`}
     >
       {label}
@@ -131,7 +131,7 @@ function LandingHeader({
   const brandLabel = getThemeText(content, "brandLabel", "PinkLove");
   const brandHref = getThemeText(content, "brandHref", "/");
   const ctaLabel = getThemeText(content, "ctaLabel");
-  const ctaHref = getThemeText(content, "ctaHref", `${getGeneralOfferingPath(offering)}#checkout`);
+  const ctaHref = getThemeText(content, "ctaHref", `${getOfferingPath(offering)}#checkout`);
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4">

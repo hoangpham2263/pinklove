@@ -14,6 +14,6 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const page = await loadManagedPageForRoute("home", "/", searchParams);
+  const page = await loadManagedPageForRoute("home", searchParams);
   return renderManagedPage(page);
 }

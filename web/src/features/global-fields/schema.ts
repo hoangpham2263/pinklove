@@ -20,8 +20,6 @@ export const GLOBAL_FIELDS_SCHEMA: FieldSchema[] = [
         label: "Brand & Contact",
         description: "Khối logo, tagline và thông tin liên hệ đầu footer.",
         fields: [
-          { name: "footerBackgroundImage", label: "Ảnh nền footer", type: "media", width: 12 },
-          { name: "footerBackgroundAlt", label: "Alt ảnh nền footer", type: "text", width: 6 },
           { name: "footerBrandImage", label: "Logo footer", type: "media", width: 6 },
           { name: "footerBrandAlt", label: "Alt logo footer", type: "text", width: 6 },
           { name: "footerBrandTagline", label: "Tagline ở footer", type: "text", width: 6 },

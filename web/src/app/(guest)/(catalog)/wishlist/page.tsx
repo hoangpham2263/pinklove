@@ -9,8 +9,8 @@ import { getSystemSettings } from "@/lib/system-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   return createSeoMetadata({
-    title: "Wishlist",
-    description: "Danh sach san pham yeu thich tren PinkLove.",
+    title: "Yêu thích",
+    description: "Danh sách sản phẩm yêu thích trên PinkLove.",
     path: ROUTES.WISHLIST,
   });
 }

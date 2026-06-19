@@ -7,22 +7,10 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   await requireAdmin();
-
-  const formData = await request.formData();
-  const id = String(formData.get("id") ?? "").trim();
-
+  const id = String((await request.formData()).get("id") ?? "").trim();
   if (!id) {
-    return respondError(request, {
-      status: 400,
-      error: "MISSING_ID",
-      message: "Thiếu redirect id.",
-    });
+    return respondError(request, { status: 400, error: "MISSING_ID", message: "Thiếu redirect id." });
   }
-
   await deleteSeoRedirectRule(id);
-
-  return respondSuccess(request, {
-    message: "Đã xóa redirect.",
-    location: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS,
-  });
+  return respondSuccess(request, { location: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS, message: "Đã xóa redirect." });
 }

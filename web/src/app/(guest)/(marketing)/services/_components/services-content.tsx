@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PagedCarousel } from "@/components/common/paged-carousel";
 import {
   ArrowRight,
   CalendarClock,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import { normalizeServiceGroupItems, ServiceGroupSection, type ServiceGroupItemInput } from "@/app/(guest)/_components/service-group-section";
 import { GuestPromotedProviders } from "@/features/ads/components/guest-ads";
+import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
+import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";
@@ -85,6 +88,34 @@ const fallbackFaqs: ServiceFaqItem[] = [
 const workflowIcons = [Search, ClipboardCheck, CalendarClock];
 const platformIcons = [Sparkles, UsersRound, MapPin, Check];
 
+function ServicesPanelHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+}) {
+  if (!eyebrow && !title && !description) {
+    return null;
+  }
+
+  return (
+    <div className="max-w-3xl">
+      {eyebrow ? (
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-600">{eyebrow}</p>
+      ) : null}
+      {title ? (
+        <h2 className="mt-3 text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl">{title}</h2>
+      ) : null}
+      {description ? (
+        <p className="mt-4 text-sm leading-8 text-stone-600 md:text-base">{description}</p>
+      ) : null}
+    </div>
+  );
+}
+
 function normalizeServiceExcerpt(value?: string) {
   return value?.replace(/\bGói\s+/gi, "Dịch vụ ").trim();
 }
@@ -137,6 +168,18 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
     platformTitle?: string;
     platformDescription?: string;
     platformItems?: PlatformItem[];
+    invitationGalleryBadge?: string;
+    invitationGalleryTitle?: string;
+    invitationGalleryDescription?: string;
+    invitationGalleryCtaText?: string;
+    invitationGalleryCtaLink?: string;
+    invitationGalleryOfferingSlugs?: string[];
+    sharedInvitationsBadge?: string;
+    sharedInvitationsTitle?: string;
+    sharedInvitationsDescription?: string;
+    sharedInvitationsCtaText?: string;
+    sharedInvitationsCtaLink?: string;
+    sharedInvitationsOfferingSlugs?: string[];
     faqEyebrow?: string;
     faqTitle?: string;
     faqDescription?: string;
@@ -147,9 +190,25 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
     ctaButtonLink?: string;
   }>(page);
 
-  const publishedServices = (await listPublishedOfferings())
+  const publishedOfferings = await listPublishedOfferings();
+  const publishedServices = publishedOfferings
     .filter((offering) => offering.fulfillmentType === "service")
     .slice(0, 6);
+  const publishedOfferingMap = new Map(publishedOfferings.map((item) => [item.slug, item] as const));
+  const invitationGalleryOfferingSlugs = Array.isArray(fields.invitationGalleryOfferingSlugs)
+    ? fields.invitationGalleryOfferingSlugs.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const invitationGalleryItems = invitationGalleryOfferingSlugs
+    .map((slug) => publishedOfferingMap.get(slug))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item) => item.thumbnailUrl?.trim());
+  const sharedInvitationsOfferingSlugs = Array.isArray(fields.sharedInvitationsOfferingSlugs)
+    ? fields.sharedInvitationsOfferingSlugs.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+  const sharedInvitationsItems = sharedInvitationsOfferingSlugs
+    .map((slug) => publishedOfferingMap.get(slug))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item) => item.thumbnailUrl?.trim());
   const serviceItems = normalizeServiceGroupItems(fields.serviceItems);
   const workflowItems = normalizeWorkflowItems(fields.workflowItems);
   const platformItems = normalizePlatformItems(fields.platformItems);
@@ -162,6 +221,30 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
   const heroDescription =
     fields.heroDescription?.trim() ||
     "PinkLove không chỉ là bảng gói đăng ký. Nền tảng gom digital invitation, sản phẩm cưới, provider service, booking và vận hành đơn hàng vào một trải nghiệm dịch vụ liền mạch.";
+  const invitationGalleryBadge = fields.invitationGalleryBadge?.trim();
+  const invitationGalleryTitle = fields.invitationGalleryTitle?.trim();
+  const invitationGalleryDescription = fields.invitationGalleryDescription?.trim();
+  const invitationGalleryCtaText = fields.invitationGalleryCtaText?.trim();
+  const invitationGalleryCtaLink = fields.invitationGalleryCtaLink?.trim();
+  const sharedInvitationsBadge = fields.sharedInvitationsBadge?.trim();
+  const sharedInvitationsTitle = fields.sharedInvitationsTitle?.trim();
+  const sharedInvitationsDescription = fields.sharedInvitationsDescription?.trim();
+  const sharedInvitationsCtaText = fields.sharedInvitationsCtaText?.trim();
+  const sharedInvitationsCtaLink = fields.sharedInvitationsCtaLink?.trim();
+  const hasInvitationGallerySection = Boolean(
+    invitationGalleryBadge ||
+    invitationGalleryTitle ||
+    invitationGalleryDescription ||
+    invitationGalleryCtaText ||
+    invitationGalleryItems.length
+  );
+  const hasSharedInvitationsSection = Boolean(
+    sharedInvitationsBadge ||
+    sharedInvitationsTitle ||
+    sharedInvitationsDescription ||
+    sharedInvitationsCtaText ||
+    sharedInvitationsItems.length
+  );
 
   return (
     <main className="guest-soft-top-bg contact-wave-bg relative isolate min-h-screen overflow-hidden pt-[74px]">
@@ -225,6 +308,86 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
           />
         </div>
       </section>
+
+      {hasInvitationGallerySection ? (
+        <section id="services-invitation-gallery" className="relative z-10 px-4 py-12 lg:py-16">
+          <div className="container mx-auto">
+            <PagedCarousel
+              itemsPerPage={4}
+              controlsVariant="buttons"
+              controlsPosition="header"
+              gridClassName="grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+              header={(
+                <ServicesPanelHeader
+                  eyebrow={invitationGalleryBadge}
+                  title={invitationGalleryTitle}
+                  description={invitationGalleryDescription}
+                />
+              )}
+              actions={invitationGalleryCtaText ? (
+                <Link href={invitationGalleryCtaLink || ROUTES.TEMPLATES} className="hidden rounded-full border border-rose-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-700 sm:inline-flex">
+                  {invitationGalleryCtaText}
+                </Link>
+              ) : null}
+            >
+              {invitationGalleryItems.map((offering) => (
+                offering.offeringType === "digital_template" ? (
+                  <LoopOnlineInvitationCard key={offering.id} offering={offering} className="w-full shrink-0" />
+                ) : (
+                  <LoopOfferingCard key={offering.id} offering={offering} className="w-full shrink-0" />
+                )
+              ))}
+            </PagedCarousel>
+            {invitationGalleryCtaText ? (
+              <div className="mt-7 flex justify-center sm:hidden">
+                <Link href={invitationGalleryCtaLink || ROUTES.TEMPLATES} className="inline-flex rounded-full border border-rose-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900">
+                  {invitationGalleryCtaText}
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {hasSharedInvitationsSection ? (
+        <section id="services-shared-invitations" className="relative z-10 px-4 py-12 lg:py-16">
+          <div className="container mx-auto">
+            <PagedCarousel
+              itemsPerPage={4}
+              controlsVariant="buttons"
+              controlsPosition="header"
+              gridClassName="grid cursor-grab touch-pan-y select-none gap-4 active:cursor-grabbing sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+              header={(
+                <ServicesPanelHeader
+                  eyebrow={sharedInvitationsBadge}
+                  title={sharedInvitationsTitle}
+                  description={sharedInvitationsDescription}
+                />
+              )}
+              actions={sharedInvitationsCtaText ? (
+                <Link href={sharedInvitationsCtaLink || ROUTES.TEMPLATES} className="hidden rounded-full border border-rose-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 hover:border-rose-300 hover:text-rose-700 sm:inline-flex">
+                  {sharedInvitationsCtaText}
+                </Link>
+              ) : null}
+            >
+              {sharedInvitationsItems.map((offering) => (
+                offering.offeringType === "digital_template" ? (
+                  <LoopOnlineInvitationCard key={offering.id} offering={offering} className="w-full shrink-0" />
+                ) : (
+                  <LoopOfferingCard key={offering.id} offering={offering} className="w-full shrink-0" />
+                )
+              ))}
+            </PagedCarousel>
+            {sharedInvitationsCtaText ? (
+              <div className="mt-7 flex justify-center sm:hidden">
+                <Link href={sharedInvitationsCtaLink || ROUTES.TEMPLATES} className="inline-flex rounded-full border border-rose-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900">
+                  {sharedInvitationsCtaText}
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <GuestPromotedProviders placementKey="provider_directory_top" limit={17} className="relative z-10 py-10 lg:py-14" />
 

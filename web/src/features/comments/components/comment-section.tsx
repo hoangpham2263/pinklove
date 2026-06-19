@@ -46,8 +46,8 @@ export async function CommentSection({ target }: CommentSectionProps) {
   return (
     <section className="bg-stone-50 px-4 pb-10">
       <CommentSubmissionToast />
-      <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-        <div>
+      <div className="mx-auto grid max-w-7xl grid-cols-12 gap-5">
+        <div className="col-span-12 lg:col-span-5">
           <div className="flex items-center gap-2 text-sm uppercase tracking-[0.24em] text-stone-400">
             <MessageSquare className="h-4 w-4" />
             Comments
@@ -58,7 +58,7 @@ export async function CommentSection({ target }: CommentSectionProps) {
           </p>
         </div>
 
-        <div className="space-y-5">
+        <div className="col-span-12 space-y-5 lg:col-span-7">
           <form action={ROUTES.API.COMMENTS.CREATE} method="POST" className="rounded-sm border border-stone-200 bg-white p-5">
             <input type="hidden" name="targetType" value={target.type} />
             <input type="hidden" name="targetId" value={target.id} />

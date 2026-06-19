@@ -11,7 +11,7 @@ const rules: PermissionRule[] = [
   { prefixes: ["/admin/providers", "/api/admin/providers"], permission: "marketplace.view" },
   { prefixes: ["/admin/booking", "/admin/bookings", "/api/admin/bookings"], permission: "bookings.view" },
   { prefixes: ["/admin/marketing", "/admin/landing-pages", "/api/admin/marketing", "/api/admin/landing-pages"], permission: "marketing.view" },
-  { prefixes: ["/admin/planning", "/admin/wedding-planning"], permission: "planning.view" },
+  { prefixes: ["/admin/wedding-planning"], permission: "planning.view" },
   { prefixes: ["/admin/commerce", "/admin/orders", "/admin/payments", "/admin/shipments", "/api/admin/orders", "/api/admin/payments", "/api/admin/shipments"], permission: "commerce.view" },
   { prefixes: ["/admin/pages", "/admin/menus", "/admin/blog", "/api/admin/pages", "/api/admin/menus", "/api/admin/blog"], permission: "content.view" },
   { prefixes: ["/admin/affiliates", "/api/admin/affiliates"], permission: "affiliates.view" },

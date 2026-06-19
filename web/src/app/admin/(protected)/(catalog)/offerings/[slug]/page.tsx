@@ -1,9 +1,9 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
-import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
+import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
 import { listLandingPagesBySourceOfferingId } from "@/features/landing-pages/server/service";
 import { listProviders } from "@/features/providers/server/service";
 import { getOfferingPath } from "@/lib/public-paths";
@@ -32,14 +32,10 @@ export default async function AdminOfferingEditorPage({
     notFound();
   }
 
-  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_MANAGE;
+  const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_LIST;
 
-  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER) {
-    redirect(`${ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
-  }
-
-  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED) {
-    redirect(`${ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)}?returnTo=${encodeURIComponent(ROUTES.ADMIN.OFFERING_TEMPLATES)}`);
+  if (offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) {
+    notFound();
   }
 
   const publicHref = getOfferingPath(offering);

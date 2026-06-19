@@ -21,6 +21,11 @@ export type ContentComment = {
   authorEmail: string;
   authorUserId: string | null;
   content: string;
+  rating: number;
+  hasImage: boolean;
+  hasVideo: boolean;
+  replyCount: number;
+  likedCount: number;
   status: CommentStatus;
   adminNote: string;
   approvedAt: string | null;
@@ -35,4 +40,7 @@ export type CreateCommentInput = {
   authorEmail: string;
   authorUserId?: string | null;
   content: string;
+  rating?: number;
+  hasImage?: boolean;
+  hasVideo?: boolean;
 };

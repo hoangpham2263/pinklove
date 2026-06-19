@@ -3,10 +3,9 @@ import {
   getContentPageFields,
   isContentPageSlug,
   listContentPageSlugs,
-  resolveContentPageSlugAlias,
 } from "@/features/pages/registry";
 
-export { getAuthPageFields, getContentPageFields, isAuthPageSlug, isContentPageSlug, listContentPageSlugs, resolveContentPageSlugAlias };
+export { getAuthPageFields, getContentPageFields, isAuthPageSlug, isContentPageSlug, listContentPageSlugs };
 
 export function isManagedSitePageSlug(slug: string): boolean {
   return isAuthPageSlug(slug) || isContentPageSlug(slug);

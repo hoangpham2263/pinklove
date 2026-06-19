@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
@@ -28,11 +28,7 @@ export default async function AdminBuilderEditorPage({
   }
 
   if (!(offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && offering.templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER)) {
-    const fallbackHref =
-      offering.offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
-        ? ROUTES.ADMIN.OFFERING_TEMPLATE(offering.slug)
-        : ROUTES.ADMIN.OFFERING(offering.slug);
-    redirect(`${fallbackHref}${query.returnTo ? `?returnTo=${encodeURIComponent(getQueryValue(query.returnTo) ?? "")}` : ""}`);
+    notFound();
   }
 
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_BUILDER;

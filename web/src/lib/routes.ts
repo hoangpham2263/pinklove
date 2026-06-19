@@ -2,20 +2,32 @@
  * Centralized routing configuration.
  * All internal links and redirect paths should reference this object.
  */
+import {
+  PUBLIC_ROUTE_BASES,
+  PUBLIC_SITE_ROUTES,
+  buildBlogPath,
+  buildInvitationPath,
+  buildLandingPagePath,
+  buildOfferingCustomizePath,
+  buildOfferingPath,
+} from "@/lib/public-route-config.mjs";
+
+export { PUBLIC_ROUTE_BASES, PUBLIC_SITE_ROUTES };
+
 export const ROUTES = {
-  HOME: "/",
-  ABOUT: "/gioi-thieu",
-  CONTACT: "/lien-he",
-  TEMPLATES: "/mau-thiep",
-  PAPER: "/thiep-giay",
-  BUILDER: "/customer/invitations",
-  WISHLIST: "/wishlist",
-  SEARCH: "/search",
-  SERVICES: "/dich-vu",
-  AFFILIATE_APPLY: "/affiliates",
-  TOOLS: "/cong-cu",
-  BLOG: "/blog",
-  LANDING_PAGES: "/landing",
+  HOME: PUBLIC_SITE_ROUTES.HOME,
+  ABOUT: PUBLIC_SITE_ROUTES.ABOUT,
+  CONTACT: PUBLIC_SITE_ROUTES.CONTACT,
+  TEMPLATES: PUBLIC_SITE_ROUTES.TEMPLATES,
+  PAPER: PUBLIC_SITE_ROUTES.PAPER,
+  BUILDER: PUBLIC_SITE_ROUTES.BUILDER,
+  WISHLIST: PUBLIC_SITE_ROUTES.WISHLIST,
+  SEARCH: PUBLIC_SITE_ROUTES.SEARCH,
+  SERVICES: PUBLIC_SITE_ROUTES.SERVICES,
+  AFFILIATE_APPLY: PUBLIC_SITE_ROUTES.AFFILIATE_APPLY,
+  TOOLS: PUBLIC_SITE_ROUTES.TOOLS,
+  BLOG: PUBLIC_SITE_ROUTES.BLOG,
+  LANDING_PAGES: PUBLIC_SITE_ROUTES.LANDING_PAGES,
   SITEMAP_XML: "/sitemap.xml",
   ROBOTS_TXT: "/robots.txt",
   SITEMAP: {
@@ -28,14 +40,15 @@ export const ROUTES = {
     INVITATIONS: "/sitemap-invitations.xml",
   },
   CATALOG: {
-    TEMPLATE: (slug: string) => `/mau-thiep/${slug}`,
-    BUILDER: (slug: string) => `/customer/invitations?template=${encodeURIComponent(slug)}`,
-    OFFERING: (slug: string) => `/thiep-giay/${slug}`,
+    DETAIL: buildOfferingPath,
+    CUSTOMIZE: buildOfferingCustomizePath,
   },
-  LANDING_PAGE: (slug: string) => `/landing/${encodeURIComponent(slug)}`,
+  BLOG_CATEGORY: buildBlogPath,
+  BLOG_POST: buildBlogPath,
+  LANDING_PAGE: buildLandingPagePath,
   INVITATIONS: {
-    PUBLIC: (slug: string) => `/invitations/${slug}`,
-    DASHBOARD: "/customer/invitations",
+    PUBLIC: buildInvitationPath,
+    DASHBOARD: PUBLIC_SITE_ROUTES.BUILDER,
     EDITOR: (id: string) => `/customer/invitations/${id}`,
     API: {
       RSVP: "/api/invitations/rsvp",
@@ -78,7 +91,7 @@ export const ROUTES = {
     WEDDING_PLANNING: "/customer/wedding-planning",
     VENDOR_LEADS: "/customer/vendor-leads",
     BOOKINGS: "/customer/bookings",
-    INVITATIONS: "/customer/invitations",
+    INVITATIONS: PUBLIC_SITE_ROUTES.BUILDER,
     ORDERS: "/customer/orders",
     ORDER: (id: string) => `/customer/orders/${id}`,
     DESIGN: (id: string) => `/customer/design/${id}`,
@@ -92,7 +105,6 @@ export const ROUTES = {
     SERVICES: "/provider/services",
     PROFILE: "/provider/profile",
     PRIORITY: "/provider/priority",
-    SOURCING: "/provider/sourcing",
     ORDERS: "/provider/orders",
     MESSAGES: "/provider/messages",
     PORTAL: () => "/provider",
@@ -125,7 +137,6 @@ export const ROUTES = {
     COMMERCE: "/admin/commerce",
     BOOKING: "/admin/booking",
     MARKETING: "/admin/marketing",
-    PLANNING: "/admin/planning",
     ACCOUNTS: "/admin/accounts",
     COMMUNICATION: "/admin/communication",
     GLOBAL_FIELDS: "/admin/global-fields",
@@ -137,7 +148,6 @@ export const ROUTES = {
     BLOG_CATEGORY: (slug: string) => `/admin/blog/categories/${slug}`,
     MENUS: "/admin/menus",
     MENU: (name: string) => `/admin/menus/${encodeURIComponent(name)}`,
-    SEO_GUIDE: "/admin/seo-guide",
     SEO_PAGES: "/admin/seo/pages",
     SEO_SCHEMA: "/admin/seo/schema",
     SEO_RULES: "/admin/seo/rules",
@@ -154,7 +164,6 @@ export const ROUTES = {
     CONFIG_BRANDING: "/admin/config/branding",
     CONFIG_BREADCRUMBS: "/admin/config/breadcrumbs",
     CONFIG_OPENGRAPH: "/admin/config/opengraph",
-    CONFIG_FAVICON: "/admin/config/favicon",
     CONFIG_SITEMAP_INDEX: "/admin/config/sitemap-index",
     CONFIG_SITEMAP_SETTINGS: "/admin/config/sitemap-settings",
     CONFIG_SEO_REDIRECTS: "/admin/config/seo-redirects",
@@ -165,8 +174,7 @@ export const ROUTES = {
     CONFIG_THIRD_PARTY: "/admin/config/third-party",
     CONFIG_BACKUPS: "/admin/config/backups",
     OFFERINGS: "/admin/offerings/new",
-    OFFERING_LIST: "/admin/offerings",
-    OFFERING_MANAGE: "/admin/offerings/list",
+    OFFERING_LIST: "/admin/offerings/list",
     OFFERING_TEMPLATES: "/admin/offerings/templates",
     OFFERING_TEMPLATE: (slug: string) => `/admin/offerings/templates/${slug}`,
     OFFERING_BUILDER: "/admin/offerings/builder",
@@ -242,6 +250,7 @@ export const ROUTES = {
   API: {
     COMMENTS: {
       CREATE: "/api/comments/create",
+      INTEREST: "/api/comments/interest",
     },
     INVITATIONS: {
       RSVP: "/api/invitations/rsvp",

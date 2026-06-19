@@ -371,6 +371,7 @@ async function main() {
     `);
     const expectedSystemOfferingTypes = [
       "bridal_makeup",
+      "digital_template",
       "physical_product",
       "wedding_decoration",
       "wedding_gift",
@@ -393,6 +394,7 @@ async function main() {
     `);
     const expectedDefaultOfferingTypes = [
       "bridal_makeup",
+      "digital_template",
       "physical_product",
       "wedding_decoration",
       "wedding_gift",

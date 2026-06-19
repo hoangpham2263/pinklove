@@ -4,7 +4,6 @@ import {
   loadManagedPageForRoute,
   renderManagedPage,
 } from "@/features/pages/server/managed-page-renderer";
-import { ROUTES } from "@/lib/routes";
 
 type BlogPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -15,6 +14,6 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const page = await loadManagedPageForRoute("blog", ROUTES.BLOG, searchParams);
+  const page = await loadManagedPageForRoute("blog", searchParams);
   return renderManagedPage(page);
 }

@@ -22,7 +22,7 @@ export function GuestPanel({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] lg:rounded-2xl",
+        "overflow-hidden rounded-xl border border-stone-200 bg-white lg:rounded-2xl",
         className
       )}
     >

@@ -1,7 +1,7 @@
 import"server-only";
 
 import { Pool, type PoolClient, type QueryResultRow } from"pg";
-import { CONTENT_PAGE_SLUG_ALIASES, CONTENT_PAGES } from "@/features/pages/registry";
+import { CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 import { REGISTERED_OFFERING_TYPES } from "@/features/offerings/type-registry";
 import offeringSeedCatalog from "@/lib/offering-seed-data.json";
@@ -735,7 +735,6 @@ async function ensureAppSettingsMigration() {
     ALTER TABLE app_settings
     ADD COLUMN IF NOT EXISTS seo_breadcrumb JSONB,
     ADD COLUMN IF NOT EXISTS seo_sitemap JSONB,
-    ADD COLUMN IF NOT EXISTS seo_redirects JSONB,
     ADD COLUMN IF NOT EXISTS seo_indexing JSONB,
     ADD COLUMN IF NOT EXISTS seo_branding JSONB,
     ADD COLUMN IF NOT EXISTS seo_opengraph JSONB,
@@ -749,7 +748,8 @@ async function ensureAppSettingsMigration() {
 
   await pool.query(`
     ALTER TABLE app_settings
-    DROP COLUMN IF EXISTS seo_permalink;
+    DROP COLUMN IF EXISTS seo_permalink,
+    DROP COLUMN IF EXISTS seo_redirects;
   `);
 
   await pool.query(`
@@ -3837,29 +3837,8 @@ async function ensureFinalArchitectureCleanupMigration() {
       metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT seo_redirects_status_code_check CHECK (status_code IN (301, 302, 307, 308))
+      CONSTRAINT seo_redirects_status_code_check CHECK (status_code IN (301, 302))
     );
-  `);
-  await pool.query(`
-    INSERT INTO seo_redirects (id, source_path, target_path, status_code, is_active, metadata)
-    SELECT
-      COALESCE(NULLIF(BTRIM(rule->>'id'), ''), app_random_id()),
-      rule->>'sourcePath',
-      rule->>'targetPath',
-      CASE WHEN rule->>'statusCode' = '302' THEN 302 ELSE 301 END,
-      CASE WHEN jsonb_typeof(rule->'enabled') = 'boolean' THEN (rule->>'enabled')::boolean ELSE TRUE END,
-      jsonb_build_object('label', COALESCE(rule->>'label', ''))
-    FROM app_settings
-    CROSS JOIN LATERAL jsonb_array_elements(COALESCE(seo_redirects->'rules', '[]'::jsonb)) AS rule
-    WHERE id = 'system'
-      AND NULLIF(BTRIM(rule->>'sourcePath'), '') IS NOT NULL
-      AND NULLIF(BTRIM(rule->>'targetPath'), '') IS NOT NULL
-    ON CONFLICT (source_path) DO UPDATE
-    SET target_path = EXCLUDED.target_path,
-        status_code = EXCLUDED.status_code,
-        is_active = EXCLUDED.is_active,
-        metadata = EXCLUDED.metadata,
-        updated_at = NOW();
   `);
 }
 
@@ -4738,6 +4717,30 @@ async function ensureContentCommentsMigration() {
  `);
 
  await pool.query(`
+  ALTER TABLE content_comments
+  ADD COLUMN IF NOT EXISTS rating INT NOT NULL DEFAULT 5,
+  ADD COLUMN IF NOT EXISTS has_image BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS has_video BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS reply_count INT NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS liked_count INT NOT NULL DEFAULT 0
+ `);
+
+ await pool.query(`
+  DO $$
+  BEGIN
+   IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'content_comments_rating_check'
+   ) THEN
+    ALTER TABLE content_comments
+    ADD CONSTRAINT content_comments_rating_check CHECK (rating BETWEEN 1 AND 5);
+   END IF;
+  END
+  $$;
+ `);
+
+ await pool.query(`
   CREATE INDEX IF NOT EXISTS content_comments_target_status_idx
   ON content_comments(target_type, target_id, status, created_at DESC);
  `);
@@ -5241,60 +5244,6 @@ export async function ensureOfferingCatalogReady() {
 
 async function ensureManagedPagesSeed() {
   const pool = getPool();
-
-  for (const [legacySlug, nextSlug] of Object.entries(CONTENT_PAGE_SLUG_ALIASES)) {
-    await pool.query(
-      `
-      UPDATE managed_pages
-      SET
-        slug = $2,
-        updated_at = NOW()
-      WHERE slug = $1
-        AND NOT EXISTS (
-          SELECT 1
-          FROM managed_pages existing
-          WHERE existing.slug = $2
-        )
-      `,
-      [legacySlug, nextSlug]
-    );
-
-    await pool.query(
-      `
-      UPDATE managed_pages
-      SET breadcrumb_parent_slug = $2,
-          updated_at = NOW()
-      WHERE breadcrumb_parent_slug = $1
-      `,
-      [legacySlug, nextSlug]
-    );
-
-    try {
-      await pool.query(
-        `
-        UPDATE navigation_menu_items
-        SET page_slug = $2
-        WHERE page_slug = $1
-        `,
-        [legacySlug, nextSlug]
-      );
-    } catch {
-      // Ignore legacy table absence during transitional menu storage migrations.
-    }
-
-    try {
-      await pool.query(
-        `
-        UPDATE cms_menu_items
-        SET page_slug = $2
-        WHERE page_slug = $1
-        `,
-        [legacySlug, nextSlug]
-      );
-    } catch {
-      // Ignore legacy table absence during transitional menu storage migrations.
-    }
-  }
 
   for (const [slug, config] of Object.entries(AUTH_PAGES)) {
     await pool.query(

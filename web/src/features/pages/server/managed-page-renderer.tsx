@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AboutContent } from "@/app/(guest)/(marketing)/about/_components/about-content";
 import { ServicesContent } from "@/app/(guest)/(marketing)/services/_components/services-content";
 import {
@@ -57,7 +57,6 @@ export async function generateManagedPageMetadata(slug: string, searchParams?: M
 
 export async function loadManagedPageForRoute(
   slug: string,
-  requestPath: string,
   searchParams?: ManagedSearchParams
 ): Promise<ManagedPage> {
   const preview = await isPreviewRequest(searchParams);
@@ -65,12 +64,6 @@ export async function loadManagedPageForRoute(
 
   if (!page) {
     notFound();
-  }
-
-  const targetPath = getManagedPagePath(page);
-
-  if (!preview && targetPath !== requestPath) {
-    redirect(targetPath);
   }
 
   return page;

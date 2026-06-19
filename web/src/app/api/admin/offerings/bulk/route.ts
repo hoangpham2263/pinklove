@@ -45,7 +45,19 @@ export async function POST(request: Request) {
     return respondSuccess(request, { location: returnTo, message: `${count} sản phẩm đã bị xóa.`, data: { count, bulk: "deleted" } });
   }
 
-  const count = await updateOfferingsStatus(slugs, action === "publish" ? "published" : "draft");
+  let count = 0;
+  try {
+    count = await updateOfferingsStatus(slugs, action === "publish" ? "published" : "draft");
+  } catch (error) {
+    if (error instanceof Error && error.message === "OFFERING_CATEGORY_REQUIRED") {
+      return respondError(request, {
+        error: "offering_category_required",
+        message: "Mỗi sản phẩm phải có danh mục trước khi xuất bản.",
+        location: `${returnTo}?error=offering_category_required`,
+      });
+    }
+    throw error;
+  }
   return respondSuccess(request, {
     location: returnTo,
     message: `${count} sản phẩm đã chuyển sang ${action === "publish" ? "Published" : "Draft"}.`,

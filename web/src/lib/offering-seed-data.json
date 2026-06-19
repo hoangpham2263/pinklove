@@ -35,11 +35,187 @@
       "name": "Thiệp truyền thống",
       "description": "Mẫu thiệp cưới mang tinh thần truyền thống Việt, phù hợp lễ gia tiên, ăn hỏi và nghi thức cưới hỏi.",
       "status": "published"
+    },
+    {
+      "slug": "thiep-giay",
+      "name": "Thiệp giấy",
+      "description": "Sản phẩm thiệp cưới in ấn, bộ thiệp giấy, phong bì và phụ kiện in kèm.",
+      "status": "published"
+    },
+    {
+      "slug": "qua-cuoi",
+      "name": "Quà cưới",
+      "description": "Quà tặng, hộp quà cảm ơn khách mời và phụ kiện cưới dạng sản phẩm vật lý.",
+      "status": "published"
+    },
+    {
+      "slug": "chup-anh-cuoi",
+      "name": "Chụp ảnh cưới",
+      "description": "Dịch vụ chụp ảnh cưới, phóng sự cưới, lễ gia tiên và couple session.",
+      "status": "published"
     }
   ],
   "offerings": [
     {
-      "categorySlug": "thiep-truyen-thong",
+      "categorySlug": "thiep-sang-trong",
+      "slug": "mau-thiep-cuoi-aurora-veil",
+      "name": "Mẫu thiệp cưới Aurora Veil",
+      "excerpt": "Mẫu thiệp online coded với bố cục thanh lịch, phù hợp lễ cưới trang trọng và dễ chỉnh nội dung.",
+      "description": "Template thiệp cưới online gồm hero, câu chuyện, ngày cưới, địa điểm và gallery. Dùng để kiểm thử luồng xem mẫu, tùy chỉnh và tạo thiệp từ offering.",
+      "offeringType": "digital_template",
+      "templateKey": "aurora_veil",
+      "templateEngine": "coded",
+      "templateMode": "fixed",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-aurora-veil.svg",
+      "price": "490000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {
+          "brideName": "Lan",
+          "groomName": "Minh",
+          "heroSubtitle": "Trân trọng kính mời bạn đến chung vui trong ngày trọng đại của chúng tôi.",
+          "eventDate": "15.12.2026",
+          "venue": "White Palace, TP.HCM",
+          "storyTitle": "Ngày mình chọn nhau",
+          "storyBody": "Một khởi đầu dịu dàng, một lời mời chân thành và một ngày cưới thật ấm áp đang chờ phía trước."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-sang-trong",
+      "slug": "mau-thiep-cuoi-golden-aisle",
+      "name": "Mẫu thiệp cưới Golden Aisle",
+      "excerpt": "Mẫu thiệp online phong cách sang trọng, phù hợp tiệc cưới khách sạn hoặc ballroom.",
+      "description": "Template coded tông vàng kem, tập trung vào cảm giác premium và phần thông tin lễ cưới rõ ràng trên điện thoại.",
+      "offeringType": "digital_template",
+      "templateKey": "golden_aisle",
+      "templateEngine": "coded",
+      "templateMode": "fixed",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-golden-aisle.svg",
+      "price": "590000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {
+          "brideName": "Thảo",
+          "groomName": "Minh",
+          "heroSubtitle": "Cảm ơn bạn đã chung vui cùng gia đình chúng tôi.",
+          "eventDate": "26.04.2026",
+          "venue": "Gem Center, TP.HCM",
+          "storyTitle": "Lối đi dẫn đến ngày hạnh phúc",
+          "storyBody": "Mọi chi tiết được sắp đặt để kể lại hành trình yêu thương theo phong cách trang nhã và sang trọng."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-hien-dai",
+      "slug": "mau-thiep-cuoi-blush-sonata",
+      "name": "Mẫu thiệp cưới Blush Sonata",
+      "excerpt": "Mẫu thiệp online tông hồng hiện đại, nhẹ nhàng và dễ dùng cho cặp đôi trẻ.",
+      "description": "Template coded có bố cục mềm mại, phù hợp chia sẻ link mời khách, RSVP và thông tin tiệc.",
+      "offeringType": "digital_template",
+      "templateKey": "blush_sonata",
+      "templateEngine": "coded",
+      "templateMode": "fixed",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-blush-sonata.svg",
+      "price": "450000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {
+          "brideName": "An",
+          "groomName": "Khoa",
+          "heroSubtitle": "Một lời mời nhỏ cho ngày vui lớn của chúng mình.",
+          "eventDate": "20.10.2026",
+          "venue": "The Reverie Saigon",
+          "storyTitle": "Khúc nhạc màu hồng",
+          "storyBody": "Một bản phối nhẹ nhàng giữa kỷ niệm, hình ảnh và lời mời dành cho những người thân yêu nhất."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-hoa-la",
+      "slug": "mau-thiep-cuoi-moonlight-garden",
+      "name": "Mẫu thiệp cưới Moonlight Garden",
+      "excerpt": "Mẫu thiệp online phong cách garden wedding, có cảm giác lãng mạn và mềm mại.",
+      "description": "Template coded dành cho lễ cưới ngoài trời hoặc tiệc tối, dễ dùng để demo gallery và câu chuyện cặp đôi.",
+      "offeringType": "digital_template",
+      "templateKey": "moonlight_garden",
+      "templateEngine": "coded",
+      "templateMode": "fixed",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-moonlight-garden.svg",
+      "price": "520000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {
+          "brideName": "Mai",
+          "groomName": "Huy",
+          "heroSubtitle": "Mời bạn ghé khu vườn nhỏ trong ngày tụi mình nên duyên.",
+          "eventDate": "09.11.2026",
+          "venue": "Garden Villa, Đà Lạt",
+          "storyTitle": "Dạ tiệc dưới ánh trăng",
+          "storyBody": "Phù hợp cho những lễ cưới buổi tối, nhiều cảm xúc và muốn nhấn mạnh không khí lãng mạn."
+        }
+      }
+    },
+    {
+      "categorySlug": "thiep-hien-dai",
+      "slug": "mau-thiep-builder-editorial-story",
+      "name": "Mẫu thiệp builder Editorial Story",
+      "excerpt": "Mẫu thiệp builder có thể chỉnh canvas, phù hợp thử luồng tự thiết kế.",
+      "description": "Template builder dùng trình kéo thả để chỉnh nội dung, hình ảnh và bố cục trước khi xuất bản.",
+      "offeringType": "digital_template",
+      "templateKey": "editorial_story_builder",
+      "templateEngine": "builder",
+      "templateMode": "editable",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-editorial-story.svg",
+      "price": "690000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {}
+      }
+    },
+    {
+      "categorySlug": "thiep-toi-gian",
+      "slug": "mau-thiep-builder-minimal-portrait",
+      "name": "Mẫu thiệp builder Minimal Portrait",
+      "excerpt": "Mẫu thiệp builder tối giản, tập trung vào ảnh chân dung và thông tin chính.",
+      "description": "Template builder phù hợp kiểm thử tạo thiệp từ offering và chỉnh sửa bằng workspace thiết kế.",
+      "offeringType": "digital_template",
+      "templateKey": "minimal_portrait_builder",
+      "templateEngine": "builder",
+      "templateMode": "editable",
+      "thumbnailUrl": "/uploads/seed-offerings/mau-thiep-cuoi-minimal-portrait.svg",
+      "price": "650000",
+      "fulfillmentType": "digital",
+      "trackInventory": false,
+      "stockQuantity": 0,
+      "lowStockThreshold": 0,
+      "allowBackorder": false,
+      "config": {
+        "siteDefaults": {}
+      }
+    },
+    {
+      "categorySlug": "thiep-giay",
       "slug": "thiep-giay-bo-sen-trang",
       "name": "Thiệp giấy bộ Sen Trắng",
       "excerpt": "Bộ thiệp cưới in giấy mỹ thuật, phù hợp đơn hàng cần sản xuất và giao tận nơi.",
@@ -61,7 +237,7 @@
       }
     },
     {
-      "categorySlug": "thiep-co-dien",
+      "categorySlug": "chup-anh-cuoi",
       "slug": "chup-anh-phong-su-cuoi",
       "name": "Chụp ảnh phóng sự cưới",
       "excerpt": "Gói chụp ảnh phóng sự trong ngày cưới do provider thực hiện.",
@@ -83,7 +259,7 @@
       }
     },
     {
-      "categorySlug": "thiep-toi-gian",
+      "categorySlug": "qua-cuoi",
       "slug": "hop-qua-cam-on-khach-moi",
       "name": "Hộp quà cảm ơn khách mời",
       "excerpt": "Hộp quà cưới nhỏ có thể đặt số lượng và giao theo đơn hàng.",
@@ -105,7 +281,7 @@
       }
     },
     {
-      "categorySlug": "thiep-hien-dai",
+      "categorySlug": "thiep-giay",
       "slug": "thiep-giay-modern-blush",
       "name": "Thiệp giấy Modern Blush",
       "excerpt": "Bộ thiệp cưới tông hồng hiện đại để kiểm thử carousel nhiều item trên trang chủ.",
@@ -127,7 +303,7 @@
       }
     },
     {
-      "categorySlug": "thiep-sang-trong",
+      "categorySlug": "thiep-giay",
       "slug": "thiep-giay-golden-aisle",
       "name": "Thiệp giấy Golden Aisle",
       "excerpt": "Bộ thiệp cưới phong cách sang trọng, phù hợp tiệc khách sạn và ballroom.",
@@ -149,7 +325,7 @@
       }
     },
     {
-      "categorySlug": "thiep-hoa-la",
+      "categorySlug": "thiep-giay",
       "slug": "thiep-giay-floral-scroll",
       "name": "Thiệp giấy Floral Scroll",
       "excerpt": "Mẫu thiệp giấy hoa lá mềm mại cho tiệc cưới ngoài trời hoặc garden wedding.",
@@ -171,7 +347,7 @@
       }
     },
     {
-      "categorySlug": "thiep-co-dien",
+      "categorySlug": "chup-anh-cuoi",
       "slug": "chup-anh-le-gia-tien",
       "name": "Chụp ảnh lễ gia tiên",
       "excerpt": "Gói chụp ảnh lễ gia tiên dùng để demo offering dịch vụ trên carousel Home.",
@@ -193,7 +369,7 @@
       }
     },
     {
-      "categorySlug": "thiep-hien-dai",
+      "categorySlug": "chup-anh-cuoi",
       "slug": "chup-anh-couple-session",
       "name": "Chụp ảnh couple session",
       "excerpt": "Buổi chụp couple nhẹ nhàng trước ngày cưới, phù hợp nội dung website cưới.",
@@ -215,7 +391,7 @@
       }
     },
     {
-      "categorySlug": "thiep-toi-gian",
+      "categorySlug": "qua-cuoi",
       "slug": "set-qua-cam-on-premium",
       "name": "Set quà cảm ơn Premium",
       "excerpt": "Set quà cảm ơn khách mời phiên bản cao cấp với nến thơm và tag cá nhân hóa.",

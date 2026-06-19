@@ -18,8 +18,6 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_OFFERINGS)) return "Duyệt yêu cầu dịch vụ/sản phẩm provider";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_CATEGORIES)) return "Offering Categories";
   if (pathname === ROUTES.ADMIN.OFFERINGS) return "Create Offering";
-  if (pathname === ROUTES.ADMIN.OFFERING_MANAGE) return "Offering";
-  if (pathname.startsWith(`${ROUTES.ADMIN.OFFERING_LIST}/`)) return "Edit Offering";
   if (pathname === ROUTES.ADMIN.OFFERING_LIST) return "Offerings Overview";
   if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
   if (pathname.startsWith(ROUTES.ADMIN.BOOKINGS)) return "Bookings";
@@ -49,14 +47,13 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.SEO_PAGES)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
-  if (pathname.startsWith(ROUTES.ADMIN.SEO_GUIDE)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_PAYMENT_METHODS)) return "Payment Methods";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SHIPPING)) return "Shipping";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_THIRD_PARTY)) return "Đăng nhập bên thứ 3";
-  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS)) return "Sitemap Settings";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_INDEX)) return "Sitemap Index";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEARCH_DOCUMENTS)) return "Search Documents";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_TEMPLATE_ATTRIBUTES)) return "Template Attributes";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_OFFERINGS)) return "API Import Sản phẩm";

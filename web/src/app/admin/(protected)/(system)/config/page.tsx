@@ -61,7 +61,7 @@ const CONFIG_SECTIONS = [
       },
       {
         title: "SEO Redirects",
-        description: "Chuyển các URL sai, URL cũ hoặc link 404 về trang đích cần dùng.",
+        description: "Quản lý chuyển hướng SEO có chủ đích, độc lập với route và slug trong source code.",
         href: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS,
       },
     ],

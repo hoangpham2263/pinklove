@@ -4,10 +4,7 @@ import type { LandingPage } from "@/features/landing-pages/types";
 import type { Offering } from "@/features/offerings/types";
 import { ROUTES } from "@/lib/routes";
 
-const BLOG_CATEGORY_BASE = "blog";
-const TEMPLATE_BASE = "mau-thiep";
-const OFFERING_BASE = "thiep-giay";
-const INVITATION_BASE = "invitations";
+type CategorizedSlugInput = Pick<Offering, "slug" | "categorySlug">;
 
 function normalizeSegment(input: string) {
   return input
@@ -25,43 +22,38 @@ function normalizePath(path: string) {
   return normalized;
 }
 
+function getRequiredCategorySlug(offering: CategorizedSlugInput) {
+  const categorySlug = offering.categorySlug?.trim();
+  if (!categorySlug) {
+    throw new Error(`Offering "${offering.slug}" is missing categorySlug`);
+  }
+  return normalizeSegment(categorySlug);
+}
+
 export function getBlogCategoryPath(category: Pick<BlogCategory, "slug"> | string) {
   const slug = typeof category === "string" ? category : category.slug;
-  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${slug}`);
+  return normalizePath(ROUTES.BLOG_CATEGORY(normalizeSegment(slug)));
 }
 
 export function getBlogPostPath(post: Pick<BlogPost, "slug">) {
-  return normalizePath(`/${normalizeSegment(BLOG_CATEGORY_BASE)}/${post.slug}`);
+  return normalizePath(ROUTES.BLOG_POST(normalizeSegment(post.slug)));
 }
 
-export function getTemplateOfferingPath(offering: Pick<Offering, "slug"> | string) {
-  const slug = typeof offering === "string" ? offering : offering.slug;
-  return normalizePath(`/${normalizeSegment(TEMPLATE_BASE)}/${slug}`);
+export function getTemplateOfferingCustomizePath(offering: CategorizedSlugInput) {
+  return normalizePath(
+    ROUTES.CATALOG.CUSTOMIZE(normalizeSegment(offering.slug), getRequiredCategorySlug(offering))
+  );
 }
 
-export function getBuilderOfferingPath(offering: Pick<Offering, "slug"> | string) {
-  const slug = typeof offering === "string" ? offering : offering.slug;
-  return normalizePath(`${ROUTES.CUSTOMER.INVITATIONS}?template=${encodeURIComponent(slug)}`);
-}
-
-export function getGeneralOfferingPath(offering: Pick<Offering, "slug"> | string) {
-  const slug = typeof offering === "string" ? offering : offering.slug;
-  return normalizePath(`/${normalizeSegment(OFFERING_BASE)}/${slug}`);
-}
-
-export function getOfferingPath(offering: Pick<Offering, "slug" | "offeringType" | "templateEngine">) {
-  if (offering.offeringType === "digital_template" && offering.templateEngine === "builder") {
-    return getBuilderOfferingPath(offering);
-  }
-  if (offering.offeringType === "digital_template") {
-    return getTemplateOfferingPath(offering);
-  }
-  return getGeneralOfferingPath(offering);
+export function getOfferingPath(offering: CategorizedSlugInput) {
+  return normalizePath(
+    ROUTES.CATALOG.DETAIL(normalizeSegment(offering.slug), getRequiredCategorySlug(offering))
+  );
 }
 
 export function getInvitationPath(site: Pick<InvitationSite, "slug"> | string) {
   const slug = typeof site === "string" ? site : site.slug;
-  return normalizePath(`/${normalizeSegment(INVITATION_BASE)}/${slug}`);
+  return normalizePath(ROUTES.INVITATIONS.PUBLIC(normalizeSegment(slug)));
 }
 
 export function getLandingPagePath(page: Pick<LandingPage, "slug"> | string) {

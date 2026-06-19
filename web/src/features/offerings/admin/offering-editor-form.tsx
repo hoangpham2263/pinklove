@@ -270,8 +270,9 @@ export function OfferingEditorForm({
                   <AdminSelect
                     name="categoryId"
                     defaultValue={offering.categoryId ?? ""}
+                    required
                   >
-                    <option value="">Không chọn danh mục</option>
+                    <option value="" disabled>Chọn danh mục</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -363,8 +364,9 @@ export function OfferingEditorForm({
                 <AdminSelect
                   name="categoryId"
                   defaultValue={offering.categoryId ?? ""}
+                  required
                 >
-                  <option value="">Không chọn danh mục</option>
+                  <option value="" disabled>Chọn danh mục</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}

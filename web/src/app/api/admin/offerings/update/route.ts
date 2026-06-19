@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!originalSlug || !slug || !name || !templateKey) {
+  if (!originalSlug || !slug || !name || !templateKey || !categoryId) {
     return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để lưu sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=missing_fields` });
   }
 

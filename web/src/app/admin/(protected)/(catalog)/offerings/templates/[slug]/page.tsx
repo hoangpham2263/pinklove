@@ -1,9 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { requireAdmin } from "@/lib/auth";
 import { getOfferingBySlug, getOfferingTypeByKey, listAllOfferingCategories, listAllOfferings } from "@/features/offerings/server/service";
 import { OfferingEditorForm } from "@/features/offerings/admin/offering-editor-form";
 import { SYSTEM_OFFERING_TYPES, SYSTEM_TEMPLATE_ENGINES } from "@/features/offerings/types";
 import { listProviders } from "@/features/providers/server/service";
+import { getOfferingPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
 
 type AdminOfferingTemplateEditorPageProps = {
@@ -32,7 +34,7 @@ export default async function AdminOfferingTemplateEditorPage({
   const returnTo = getQueryValue(query.returnTo) ?? ROUTES.ADMIN.OFFERING_TEMPLATES;
 
   if (offering.offeringType !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE || offering.templateEngine !== SYSTEM_TEMPLATE_ENGINES.CODED) {
-    redirect(`${ROUTES.ADMIN.OFFERING(offering.slug)}?returnTo=${encodeURIComponent(returnTo)}`);
+    notFound();
   }
 
   return (
@@ -41,6 +43,7 @@ export default async function AdminOfferingTemplateEditorPage({
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">Edit Coded Template: {offering.name}</h1>
         </div>
+        <AdminTableActionButton action="external" href={getOfferingPath(offering)} target="_blank" label="Xem nhanh" />
       </div>
       <OfferingEditorForm
         offering={offering}

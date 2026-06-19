@@ -17,6 +17,7 @@ type LoopOnlineInvitationCardProps = {
   imageClassName?: string;
   wishlistCount?: number;
   viewCount?: number;
+  flat?: boolean;
 };
 
 function formatMetricValue(value?: number) {
@@ -93,6 +94,7 @@ export function LoopOnlineInvitationCard({
   imageClassName,
   wishlistCount,
   viewCount,
+  flat = false,
 }: LoopOnlineInvitationCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const wishlistOffering = createWishlistOfferingSnapshot(offering);
@@ -102,6 +104,7 @@ export function LoopOnlineInvitationCard({
     <article
       className={cn(
         "group relative aspect-2/3 overflow-hidden rounded-md border border-[#efe8ea] bg-white shadow-[0_18px_40px_rgba(35,31,39,0.08)] transition-transform duration-300 ease-out hover:-translate-y-1",
+        flat && "shadow-none hover:translate-y-0",
         className
       )}
       onPointerEnter={() => setIsHovered(true)}

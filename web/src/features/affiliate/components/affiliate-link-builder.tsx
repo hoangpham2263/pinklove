@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ROUTES } from "@/lib/routes";
 
 type AffiliateLinkBuilderProps = {
   code: string;
@@ -13,11 +14,11 @@ type AffiliateLinkBuilderProps = {
 };
 
 const quickTargets = [
-  { label: "Trang chủ", value: "/" },
-  { label: "Mẫu thiệp", value: "/mau-thiep" },
-  { label: "Thiệp giấy", value: "/thiep-giay" },
-  { label: "Tự tạo thiệp", value: "/customer/invitations" },
-  { label: "Dịch vụ", value: "/dich-vu" },
+  { label: "Trang chủ", value: ROUTES.HOME },
+  { label: "Mẫu thiệp", value: ROUTES.TEMPLATES },
+  { label: "Thiệp giấy", value: ROUTES.PAPER },
+  { label: "Tự tạo thiệp", value: ROUTES.CUSTOMER.INVITATIONS },
+  { label: "Dịch vụ", value: ROUTES.SERVICES },
 ];
 
 function normalizeInternalTarget(input: string, origin: string) {
@@ -92,7 +93,7 @@ export function AffiliateLinkBuilder({ code, origin }: AffiliateLinkBuilderProps
           id="affiliateTargetUrl"
           value={target}
           onChange={(event) => setTarget(event.target.value)}
-          placeholder="/mau-thiep, mau-thiep hoặc https://domain.com/mau-thiep"
+          placeholder={`${ROUTES.TEMPLATES}, ${ROUTES.TEMPLATES.slice(1)} hoặc https://domain.com${ROUTES.TEMPLATES}`}
         />
           <Button type="button" variant="outline" onClick={() => setTarget("/")}>
             <RotateCcw className="h-4 w-4" />

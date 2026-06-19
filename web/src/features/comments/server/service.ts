@@ -12,6 +12,11 @@ type CommentRow = {
   author_email: string;
   author_user_id: string | null;
   content: string;
+  rating: number;
+  has_image: boolean;
+  has_video: boolean;
+  reply_count: number;
+  liked_count: number;
   status: CommentStatus;
   admin_note: string;
   approved_at: string | null;
@@ -35,6 +40,11 @@ function mapComment(row: CommentRow): ContentComment {
     authorEmail: row.author_email,
     authorUserId: row.author_user_id,
     content: row.content,
+    rating: row.rating,
+    hasImage: row.has_image,
+    hasVideo: row.has_video,
+    replyCount: row.reply_count,
+    likedCount: row.liked_count,
     status: row.status,
     adminNote: row.admin_note,
     approvedAt: row.approved_at,
@@ -58,6 +68,11 @@ function cleanText(value: string, maxLength: number) {
 
 function cleanContent(value: string) {
   return value.replace(/\r\n/g, "\n").replace(/\n{4,}/g, "\n\n\n").trim().slice(0, 2000);
+}
+
+function normalizeRating(value: unknown) {
+  const rating = Math.round(Number(value) || 5);
+  return Math.max(1, Math.min(5, rating));
 }
 
 export function parseCommentTargetFromForm(formData: FormData): CommentTarget {
@@ -99,9 +114,12 @@ export async function createPendingComment(input: CreateCommentInput) {
         author_email,
         author_user_id,
         content,
+        rating,
+        has_image,
+        has_video,
         status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending')
       RETURNING *
     `,
     [
@@ -114,27 +132,38 @@ export async function createPendingComment(input: CreateCommentInput) {
       authorEmail,
       input.authorUserId || null,
       content,
+      normalizeRating(input.rating),
+      Boolean(input.hasImage),
+      Boolean(input.hasVideo),
     ]
   );
 
   return mapComment(result.rows[0]);
 }
 
-export async function listApprovedCommentsForTarget(target: Pick<CommentTarget, "type" | "id">) {
+export async function listApprovedCommentsForTarget(target: Pick<CommentTarget, "type" | "id"> & { slug?: string }) {
+  const targetSlug = cleanText(target.slug ?? "", 200);
   const result = await query<CommentRow>(
     `
       SELECT *
       FROM content_comments
       WHERE target_type = $1
-        AND target_id = $2
+        AND (
+          target_id = $2
+          OR ($3 <> '' AND target_slug = $3)
+        )
         AND status = 'approved'
       ORDER BY created_at DESC
       LIMIT 50
     `,
-    [target.type, target.id]
+    [target.type, target.id, targetSlug]
   );
 
   return result.rows.map(mapComment);
+}
+
+export async function listApprovedOfferingReviews(target: Pick<CommentTarget, "type" | "id"> & { slug?: string }) {
+  return listApprovedCommentsForTarget(target);
 }
 
 export async function listAdminComments(options: { status?: string; keyword?: string } = {}) {
@@ -188,6 +217,22 @@ export async function updateCommentStatus(commentId: string, status: CommentStat
       RETURNING *
     `,
     [commentId, normalizedStatus, cleanText(adminNote, 500), adminUserId]
+  );
+
+  return result.rows[0] ? mapComment(result.rows[0]) : null;
+}
+
+export async function updateCommentLikedCount(commentId: string, delta: 1 | -1) {
+  const result = await query<CommentRow>(
+    `
+      UPDATE content_comments
+      SET liked_count = GREATEST(0, liked_count + $2),
+          updated_at = NOW()
+      WHERE id = $1
+        AND status = 'approved'
+      RETURNING *
+    `,
+    [commentId, delta]
   );
 
   return result.rows[0] ? mapComment(result.rows[0]) : null;

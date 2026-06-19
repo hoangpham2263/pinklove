@@ -6,29 +6,48 @@ import {
   getInvitationTemplateDefaults,
   getInvitationTemplateFields,
 } from "@/features/invitations/templates/registry";
-import { getTemplateOfferingPath } from "@/lib/public-paths";
+import { getTemplateOfferingCustomizePath } from "@/lib/public-paths";
+import { ROUTES } from "@/lib/routes";
 import { createSeoMetadata } from "@/lib/seo";
 
 type CodedTemplateCustomizePageProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ categorySlug: string; offeringSlug: string }>;
 };
 
+async function getOffering(params: CodedTemplateCustomizePageProps["params"]) {
+  const { categorySlug, offeringSlug } = await params;
+  const offering = await getPublishedDigitalTemplateOfferingBySlug(offeringSlug, "coded");
+
+  if (!offering?.categorySlug || offering.categorySlug !== categorySlug) {
+    return null;
+  }
+
+  return offering as typeof offering & { categorySlug: string };
+}
+
 export async function generateMetadata({ params }: CodedTemplateCustomizePageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const offering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
+  const offering = await getOffering(params);
+
+  if (!offering) {
+    return createSeoMetadata({
+      title: "Xem trước mẫu thiệp",
+      description: "Mẫu thiệp không tồn tại.",
+      path: ROUTES.HOME,
+      noindex: true,
+    });
+  }
 
   return createSeoMetadata({
-    title: offering ? `Xem trước ${offering.name}` : "Xem trước mẫu thiệp",
-    description: offering?.excerpt || "Nhập thông tin để xem trước mẫu thiệp.",
-    path: `${getTemplateOfferingPath(slug)}/customize`,
-    image: offering?.thumbnailUrl,
+    title: `Xem trước ${offering.name}`,
+    description: offering.excerpt || "Nhập thông tin để xem trước mẫu thiệp.",
+    path: getTemplateOfferingCustomizePath(offering),
+    image: offering.thumbnailUrl,
     noindex: true,
   });
 }
 
 export default async function CodedTemplateCustomizePage({ params }: CodedTemplateCustomizePageProps) {
-  const { slug } = await params;
-  const offering = await getPublishedDigitalTemplateOfferingBySlug(slug, "coded");
+  const offering = await getOffering(params);
   if (!offering) {
     notFound();
   }

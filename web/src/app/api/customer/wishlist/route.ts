@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return respondError(request, {
       status: 401,
       error: "unauthorized",
-      message: "Please login first.",
+      message: "Vui lòng đăng nhập trước.",
       location: loginHref,
     });
   }
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   if (!offeringId) {
     return respondError(request, {
       error: "missing_offering",
-      message: "Thiếu sản phẩm để cập nhật wishlist.",
+      message: "Thiếu sản phẩm để cập nhật Yêu thích.",
       location: returnTo,
     });
   }
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     await syncCartWithWishlist(user.id);
     return respondSuccess(request, {
       location: returnTo,
-      message: result.removed ? "Đã xóa sản phẩm khỏi wishlist." : "Wishlist không thay đổi.",
+      message: result.removed ? "Đã xóa sản phẩm khỏi Yêu thích." : "Yêu thích không thay đổi.",
       data: {
         removed: result.removed,
         offeringIds: result.offeringIds,
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
   return respondSuccess(request, {
     location: returnTo,
-    message: result.added ? "Đã thêm sản phẩm vào wishlist." : intent === "add" ? "Sản phẩm đã có trong wishlist." : "Đã xóa sản phẩm khỏi wishlist.",
+    message: result.added ? "Đã thêm sản phẩm vào Yêu thích." : intent === "add" ? "Sản phẩm đã có trong Yêu thích." : "Đã xóa sản phẩm khỏi Yêu thích.",
     data: {
       added: result.added,
       offeringIds: result.offeringIds,

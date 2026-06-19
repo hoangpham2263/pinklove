@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
+import { PUBLIC_SITE_ROUTES } from "../src/lib/public-route-config.mjs";
 
 const PASSWORD = process.env.SEED_PROVIDER_PASSWORD ?? "12313";
 const BASE_URL = process.env.SEED_BASE_URL ?? "";
@@ -796,18 +797,18 @@ async function seedAdsAndProviderPriority(client, { customer, marketplaceAlpha, 
 
   const extraCampaignIds = [];
   const campaignSeeds = [
-    ["Seed Homepage Sponsor A", placements.homeHero, heroCreative, "/services", 2100000],
-    ["Seed Homepage Sponsor B", placements.homeHero, categoryCreative, "/services", 1900000],
+    ["Seed Homepage Sponsor A", placements.homeHero, heroCreative, PUBLIC_SITE_ROUTES.SERVICES, 2100000],
+    ["Seed Homepage Sponsor B", placements.homeHero, categoryCreative, PUBLIC_SITE_ROUTES.SERVICES, 1900000],
     ["Seed Blog Sponsor A", placements.blogSidebar, blogCreative, "/blog", 800000],
     ["Seed Blog Sponsor B", placements.blogSidebar, searchCreative, "/blog", 700000],
-    ["Seed Category Sponsor A", placements.categoryTop, categoryCreative, "/services", 1300000],
-    ["Seed Category Sponsor B", placements.categoryTop, heroCreative, "/services", 1250000],
+    ["Seed Category Sponsor A", placements.categoryTop, categoryCreative, PUBLIC_SITE_ROUTES.SERVICES, 1300000],
+    ["Seed Category Sponsor B", placements.categoryTop, heroCreative, PUBLIC_SITE_ROUTES.SERVICES, 1250000],
     ["Seed Search Sponsor A", placements.searchTop, searchCreative, "/search", 650000],
     ["Seed Search Sponsor B", placements.searchTop, blogCreative, "/search", 620000],
-    ["Seed Footer Awareness A", placements.blogSidebar, categoryCreative, "/contact", 580000],
-    ["Seed Provider Directory A", placements.providerTop, heroCreative, "/services", 1100000],
-    ["Seed Provider Directory B", placements.providerTop, searchCreative, "/services", 980000],
-    ["Seed Offering Detail A", placements.categoryTop, blogCreative, "/mau-thiep", 760000],
+    ["Seed Footer Awareness A", placements.blogSidebar, categoryCreative, PUBLIC_SITE_ROUTES.CONTACT, 580000],
+    ["Seed Provider Directory A", placements.providerTop, heroCreative, PUBLIC_SITE_ROUTES.SERVICES, 1100000],
+    ["Seed Provider Directory B", placements.providerTop, searchCreative, PUBLIC_SITE_ROUTES.SERVICES, 980000],
+    ["Seed Offering Detail A", placements.categoryTop, blogCreative, PUBLIC_SITE_ROUTES.TEMPLATES, 760000],
     ["Seed Search Retarget A", placements.searchTop, categoryCreative, "/search", 540000],
   ];
 

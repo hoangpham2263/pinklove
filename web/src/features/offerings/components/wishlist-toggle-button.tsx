@@ -25,7 +25,7 @@ export function WishlistToggleButton({
   return (
     <button
       type="button"
-      aria-label={wished ? `Bỏ ${offering.name} khỏi wishlist` : `Thêm ${offering.name} vào wishlist`}
+      aria-label={wished ? `Bỏ ${offering.name} khỏi Yêu thích` : `Thêm ${offering.name} vào Yêu thích`}
       aria-pressed={wished}
       disabled={isSubmitting}
       className={cn(
@@ -56,9 +56,9 @@ export function WishlistToggleButton({
             return;
           }
 
-          toast.success(result.added ? "Da them vao wishlist." : "Da xoa khoi wishlist.");
+          toast.success(result.added ? "Đã thêm vào Yêu thích." : "Đã xóa khỏi Yêu thích.");
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Khong the cap nhat wishlist.");
+          toast.error(error instanceof Error ? error.message : "Không thể cập nhật Yêu thích.");
         } finally {
           setIsSubmitting(false);
         }
@@ -66,7 +66,7 @@ export function WishlistToggleButton({
     >
       <Heart className={cn("size-5", wished && "fill-current")} />
       {variant === "button" ? (
-        <span>{wished ? "Da luu yeu thich" : "Them vao wishlist"}</span>
+        <span>{wished ? "Đã lưu yêu thích" : "Thêm vào yêu thích"}</span>
       ) : null}
     </button>
   );

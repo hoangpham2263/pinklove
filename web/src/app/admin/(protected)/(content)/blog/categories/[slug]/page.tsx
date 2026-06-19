@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { BlogCategoryEditorForm } from "@/features/blog/admin/blog-category-editor-form";
 import { requireAdmin } from "@/lib/auth";
 import { getBlogCategoryBySlug } from "@/features/blog/server/service";
+import { getBlogCategoryPath } from "@/lib/public-paths";
 
 export default async function AdminBlogCategoryEditorPage({ params }: { params: Promise<{ slug: string }> }) {
   await requireAdmin();
@@ -14,8 +16,11 @@ export default async function AdminBlogCategoryEditorPage({ params }: { params: 
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">Edit Blog Category: {category.name}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Edit Blog Category: {category.name}</h1>
+        </div>
+        <AdminTableActionButton action="external" href={getBlogCategoryPath(category)} target="_blank" label="Xem nhanh" />
       </div>
       <BlogCategoryEditorForm category={category} />
     </section>

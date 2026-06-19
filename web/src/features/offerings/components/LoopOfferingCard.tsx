@@ -16,6 +16,7 @@ type LoopOfferingCardProps = {
   imageClassName?: string;
   wishlistCount?: number;
   viewCount?: number;
+  flat?: boolean;
 };
 
 function formatMetricValue(value?: number) {
@@ -64,6 +65,7 @@ export function LoopOfferingCard({
   imageClassName,
   wishlistCount,
   viewCount,
+  flat = false,
 }: LoopOfferingCardProps) {
   const wishlistOffering = createWishlistOfferingSnapshot(offering);
   const href = getOfferingPath(offering);
@@ -76,6 +78,7 @@ export function LoopOfferingCard({
     <article
       className={cn(
         "group relative flex min-h-full flex-col overflow-hidden rounded-[26px] border border-[#efe3ea] bg-white shadow-[0_14px_34px_rgba(35,31,39,0.07)] transition duration-300 ease-out hover:-translate-y-1 hover:border-[#ff6ff5] hover:shadow-[0_24px_54px_rgba(217,77,206,0.15)]",
+        flat && "shadow-none hover:translate-y-0 hover:shadow-none",
         className
       )}
     >

@@ -28,21 +28,6 @@ export type SitemapSettings = {
   includePublicSites: boolean;
 };
 
-export type SeoRedirectRule = {
-  id: string;
-  sourcePath: string;
-  targetPath: string;
-  statusCode: 301 | 302;
-  enabled: boolean;
-  label: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type SeoRedirectSettings = {
-  rules: SeoRedirectRule[];
-};
-
 export type IndexingSettings = {
   siteIndexingEnabled: boolean;
   includeSitemapInRobots: boolean;
@@ -169,7 +154,6 @@ export type ThirdPartySettings = {
 export type SystemSettings = {
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
-  redirects: SeoRedirectSettings;
   indexing: IndexingSettings;
   branding: BrandingSettings;
   opengraph: OpenGraphSettings;
@@ -185,7 +169,6 @@ type BrandingStorageSettings = BrandingSettings & FaviconSettings;
 type SettingRow = {
   seo_breadcrumb: Record<string, unknown> | null;
   seo_sitemap: Record<string, unknown> | null;
-  seo_redirects?: Record<string, unknown> | null;
   seo_indexing?: Record<string, unknown> | null;
   seo_branding?: Record<string, unknown> | null;
   seo_opengraph?: Record<string, unknown> | null;
@@ -218,9 +201,6 @@ const DEFAULT_SETTINGS: SystemSettings = {
     includeBlogPosts: true,
     includeOfferings: true,
     includePublicSites: true,
-  },
-  redirects: {
-    rules: [],
   },
   indexing: {
     siteIndexingEnabled: true,
@@ -405,43 +385,6 @@ function parseSitemapSettings(value: Record<string, unknown> | null | undefined)
     includeBlogPosts: Boolean(merged.includeBlogPosts),
     includeOfferings: Boolean(merged.includeOfferings),
     includePublicSites: Boolean(includePublicSites),
-  };
-}
-
-function normalizeRedirectPath(input: string) {
-  const trimmed = input.trim();
-  if (!trimmed) return "";
-  const pathOnly = trimmed.split("#")[0]?.split("?")[0] ?? trimmed;
-  const collapsed = pathOnly.replace(/\/{2,}/g, "/");
-  const normalized = collapsed.startsWith("/") ? collapsed : `/${collapsed}`;
-  return normalized.length > 1 ? normalized.replace(/\/+$/g, "") : normalized;
-}
-
-function parseSeoRedirectSettings(value: Record<string, unknown> | null | undefined): SeoRedirectSettings {
-  const rawRules = Array.isArray(value?.rules) ? value.rules : [];
-  const now = new Date().toISOString();
-
-  return {
-    rules: rawRules
-      .map((item): SeoRedirectRule | null => {
-        if (!item || typeof item !== "object") return null;
-        const record = item as Record<string, unknown>;
-        const sourcePath = normalizeRedirectPath(String(record.sourcePath ?? ""));
-        const targetPath = String(record.targetPath ?? "").trim();
-        if (!sourcePath || !targetPath || sourcePath === targetPath) return null;
-
-        return {
-          id: String(record.id || crypto.randomUUID()),
-          sourcePath,
-          targetPath,
-          statusCode: Number(record.statusCode) === 302 ? 302 : 301,
-          enabled: record.enabled === undefined ? true : Boolean(record.enabled),
-          label: String(record.label ?? "").trim(),
-          createdAt: String(record.createdAt || now),
-          updatedAt: String(record.updatedAt || now),
-        };
-      })
-      .filter((item): item is SeoRedirectRule => Boolean(item)),
   };
 }
 
@@ -735,7 +678,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   try {
     const result = await query<SettingRow>(`
-      SELECT seo_breadcrumb, seo_sitemap, seo_redirects, seo_indexing, seo_branding, seo_opengraph, commerce_config
+      SELECT seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
       , internal_api_config, email_config, third_party_config
       FROM app_settings
       WHERE id = 'system'
@@ -751,7 +694,6 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   return {
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
-    redirects: parseSeoRedirectSettings(row?.seo_redirects),
     indexing: parseIndexingSettings(row?.seo_indexing),
     branding: {
       siteName: brandingSettings.siteName,
@@ -797,23 +739,6 @@ export async function updateSitemapSettings(input: Partial<SitemapSettings>) {
     `
     UPDATE app_settings
     SET seo_sitemap = $1::jsonb,
-        updated_at = NOW()
-    WHERE id = 'system'
-    `,
-    [JSON.stringify(next)]
-  );
-
-  return next;
-}
-
-export async function updateSeoRedirectSettings(input: Partial<SeoRedirectSettings>) {
-  const current = await getSystemSettings();
-  const next = { ...current.redirects, ...input };
-
-  await query(
-    `
-    UPDATE app_settings
-    SET seo_redirects = $1::jsonb,
         updated_at = NOW()
     WHERE id = 'system'
     `,

@@ -65,6 +65,91 @@ function getOfferingConfig(offering) {
   return config;
 }
 
+function humanizeSlug(value) {
+  return String(value || "")
+    .split(/[-_]+/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function deriveOfferingTypes(seedCatalog) {
+  const categoriesBySlug = new Map(seedCatalog.categories.map((category) => [category.slug, category]));
+  const byKey = new Map();
+
+  for (const offering of seedCatalog.offerings) {
+    const category = categoriesBySlug.get(offering.categorySlug);
+    const current = byKey.get(offering.offeringType);
+    const supportsInventory = Boolean(offering.trackInventory || current?.supportsInventory);
+    const supportsProviderSupply = Boolean(current?.supportsProviderSupply || offering.fulfillmentType === "service" || supportsInventory);
+    const label =
+      offering.offeringType === "digital_template"
+        ? "Thiệp online"
+        : current?.label || category?.name || humanizeSlug(offering.offeringType);
+
+    byKey.set(offering.offeringType, {
+      key: offering.offeringType,
+      label,
+      description: current?.description || category?.description || `${label} trên PinkLove.`,
+      fulfillmentType: current?.fulfillmentType || offering.fulfillmentType || "digital",
+      templateKey: current?.templateKey || (offering.offeringType === "digital_template" ? offering.offeringType : offering.templateKey || offering.offeringType),
+      templateEngine: current?.templateEngine || (offering.offeringType === "digital_template" ? "" : offering.templateEngine || ""),
+      templateMode: current?.templateMode || (offering.offeringType === "digital_template" ? "" : offering.templateMode || ""),
+      supportsInventory,
+      supportsProviderSupply,
+    });
+  }
+
+  return Array.from(byKey.values());
+}
+
+async function syncOfferingTypes(client) {
+  for (const type of deriveOfferingTypes(seedCatalog)) {
+    await client.query(
+      `
+        INSERT INTO offering_types (
+          key,
+          label,
+          description,
+          fulfillment_type,
+          template_key,
+          template_engine,
+          template_mode,
+          supports_inventory,
+          supports_provider_supply,
+          is_system,
+          is_default
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, TRUE)
+        ON CONFLICT (key) DO UPDATE
+        SET
+          label = EXCLUDED.label,
+          description = EXCLUDED.description,
+          fulfillment_type = EXCLUDED.fulfillment_type,
+          template_key = EXCLUDED.template_key,
+          template_engine = EXCLUDED.template_engine,
+          template_mode = EXCLUDED.template_mode,
+          supports_inventory = EXCLUDED.supports_inventory,
+          supports_provider_supply = EXCLUDED.supports_provider_supply,
+          is_system = TRUE,
+          is_default = TRUE,
+          updated_at = NOW()
+      `,
+      [
+        type.key,
+        type.label,
+        type.description,
+        type.fulfillmentType,
+        type.templateKey,
+        type.templateEngine,
+        type.templateMode,
+        type.supportsInventory,
+        type.supportsProviderSupply,
+      ]
+    );
+  }
+}
+
 async function syncOfferingTypeDetails(client, offeringId, offering) {
   await client.query("DELETE FROM digital_template_offerings WHERE offering_id = $1", [offeringId]);
   await client.query("DELETE FROM physical_offerings WHERE offering_id = $1", [offeringId]);
@@ -126,14 +211,19 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    const deletedOfferings = await client.query("DELETE FROM offerings");
-    const deletedCategories = await client.query("DELETE FROM offering_categories");
+    await syncOfferingTypes(client);
 
     for (const category of seedCatalog.categories) {
       await client.query(
         `
           INSERT INTO offering_categories (slug, name, description, status)
           VALUES ($1, $2, $3, $4)
+          ON CONFLICT (slug) DO UPDATE
+          SET
+            name = EXCLUDED.name,
+            description = EXCLUDED.description,
+            status = EXCLUDED.status,
+            updated_at = NOW()
         `,
         [category.slug, category.name, category.description, category.status]
       );
@@ -142,7 +232,7 @@ async function main() {
     for (const offering of seedCatalog.offerings) {
       const templateEngine = offering.templateEngine || "";
       const templateMode = offering.templateMode || (templateEngine === "builder" ? "editable" : "fixed");
-      const created = await client.query(
+      const saved = await client.query(
         `
           INSERT INTO offerings (
             slug,
@@ -185,6 +275,26 @@ async function main() {
             $16::jsonb
           FROM offering_categories categories
           WHERE categories.slug = $17
+          ON CONFLICT (slug) DO UPDATE
+          SET
+            category_id = EXCLUDED.category_id,
+            name = EXCLUDED.name,
+            excerpt = EXCLUDED.excerpt,
+            description = EXCLUDED.description,
+            status = EXCLUDED.status,
+            offering_type = EXCLUDED.offering_type,
+            template_key = EXCLUDED.template_key,
+            template_engine = EXCLUDED.template_engine,
+            template_mode = EXCLUDED.template_mode,
+            thumbnail_url = EXCLUDED.thumbnail_url,
+            price = EXCLUDED.price,
+            fulfillment_type = EXCLUDED.fulfillment_type,
+            track_inventory = EXCLUDED.track_inventory,
+            stock_quantity = EXCLUDED.stock_quantity,
+            low_stock_threshold = EXCLUDED.low_stock_threshold,
+            allow_backorder = EXCLUDED.allow_backorder,
+            config = EXCLUDED.config,
+            updated_at = NOW()
           RETURNING id
         `,
         [
@@ -208,7 +318,7 @@ async function main() {
         ]
       );
 
-      const offeringId = created.rows[0]?.id;
+      const offeringId = saved.rows[0]?.id;
       if (!offeringId) {
         throw new Error(`Failed to seed offering ${offering.slug}`);
       }
@@ -258,9 +368,7 @@ async function main() {
     await client.query("COMMIT");
 
     console.log(
-      `Re-seeded offering catalog. Deleted ${deletedOfferings.rowCount ?? 0} offerings and ${
-        deletedCategories.rowCount ?? 0
-      } categories, then created ${seedCatalog.offerings.length} offerings in ${seedCatalog.categories.length} categories.`
+      `Synced offering catalog. Upserted ${seedCatalog.offerings.length} offerings in ${seedCatalog.categories.length} categories.`
     );
   } catch (error) {
     await client.query("ROLLBACK");

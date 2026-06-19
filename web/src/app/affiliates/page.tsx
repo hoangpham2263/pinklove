@@ -4,7 +4,6 @@ import {
   loadManagedPageForRoute,
 } from "@/features/pages/server/managed-page-renderer";
 import { AffiliateApplicationSection } from "@/features/affiliate-applications/components/affiliate-application-section";
-import { ROUTES } from "@/lib/routes";
 
 type AffiliateApplyPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -20,7 +19,7 @@ function getSingleParam(value: string | string[] | undefined) {
 
 export default async function AffiliateApplyPage({ searchParams }: AffiliateApplyPageProps) {
   const query = (await searchParams) ?? {};
-  const page = await loadManagedPageForRoute("affiliates", ROUTES.AFFILIATE_APPLY, searchParams);
+  const page = await loadManagedPageForRoute("affiliates", searchParams);
   const submitted = getSingleParam(query.submitted) === "1";
   const error = getSingleParam(query.error);
 

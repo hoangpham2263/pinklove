@@ -98,7 +98,7 @@ export default async function GuestLayout({
           siteName={settings.branding.siteName}
           siteLogo={settings.branding.brandLogo || undefined}
         />
-        <main>
+        <main className="guest-soft-top-bg contact-wave-bg relative isolate overflow-hidden">
           {children}
         </main>
         <GuestFooter

@@ -1,16 +1,17 @@
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 import { listContentPageSlugs } from "@/features/pages/registry";
+import { ROUTES } from "@/lib/routes";
 
 export type PagePathLike = {
   slug: string;
 };
 
 const FIXED_PAGE_PATHS: Record<string, string> = {
-  home: "/",
-  login: "/login",
-  register: "/register",
-  "providers/apply": "/providers/apply",
-  affiliates: "/affiliates",
+  home: ROUTES.HOME,
+  login: ROUTES.AUTH.LOGIN,
+  register: ROUTES.AUTH.REGISTER,
+  "providers/apply": ROUTES.PROVIDER.APPLY,
+  affiliates: ROUTES.AFFILIATE_APPLY,
 };
 const RESERVED_EXACT_PATHS = new Set([
   "/admin",
@@ -34,10 +35,10 @@ const RESERVED_PREFIXES = [
   "/invitations",
 ] as const;
 const RESERVED_BRANCH_PREFIXES = [
-  "/blog/",
-  "/cong-cu/",
-  "/mau-thiep/",
-  "/thiep-giay/",
+  `${ROUTES.BLOG}/`,
+  `${ROUTES.TOOLS}/`,
+  `${ROUTES.TEMPLATES}/`,
+  `${ROUTES.PAPER}/`,
 ] as const;
 
 export function getDefaultPagePath(slug: string): string {

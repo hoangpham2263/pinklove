@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
 import { BlogPostEditorForm } from "@/features/blog/admin/blog-post-editor-form";
 import { requireAdmin } from "@/lib/auth";
 import { getBlogPostBySlug, listAllBlogCategories } from "@/features/blog/server/service";
+import { getBlogPostPath } from "@/lib/public-paths";
 
 type AdminBlogPostEditorPageProps = {
   params: Promise<{ slug: string }>;
@@ -23,6 +25,7 @@ export default async function AdminBlogPostEditorPage({ params }: AdminBlogPostE
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">Edit Blog Post: {post.title}</h1>
         </div>
+        <AdminTableActionButton action="external" href={getBlogPostPath(post)} target="_blank" label="Xem nhanh" />
       </div>
       <BlogPostEditorForm post={post} categories={categories} />
     </section>

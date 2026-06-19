@@ -6,6 +6,7 @@ import { BadgePercent, Sparkles, Star } from "lucide-react";
 import { PagedCarousel } from "@/components/common/paged-carousel";
 import { GuestMarketingSoftGlow } from "@/app/(guest)/_components/guest-marketing-background";
 import { AdEventTracker } from "@/features/ads/components/ad-event-tracker";
+import { ROUTES } from "@/lib/routes";
 
 type PromotedProviderItem = {
   id: string;
@@ -52,13 +53,13 @@ export function GuestPromotedProvidersShowcase({ promotions }: GuestPromotedProv
               <h2 className="mt-2 max-w-3xl text-2xl font-semibold text-stone-950 lg:text-4xl">
                 Mỗi lượt hiển thị 6 đối tác nổi bật
               </h2>
-              <Link href="/contact" className="mt-3 inline-flex text-sm font-semibold text-[#b529aa] underline-offset-4 hover:underline sm:hidden">
+              <Link href={ROUTES.CONTACT} className="mt-3 inline-flex text-sm font-semibold text-[#b529aa] underline-offset-4 hover:underline sm:hidden">
                 Yêu cầu tư vấn
               </Link>
             </>
           )}
           actions={(
-            <Link href="/contact" className="mr-2 hidden text-sm font-semibold text-[#b529aa] underline-offset-4 hover:underline sm:inline-flex">
+            <Link href={ROUTES.CONTACT} className="mr-2 hidden text-sm font-semibold text-[#b529aa] underline-offset-4 hover:underline sm:inline-flex">
               Yêu cầu tư vấn
             </Link>
           )}

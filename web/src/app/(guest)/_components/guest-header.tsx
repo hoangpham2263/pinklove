@@ -189,7 +189,7 @@ export function GuestHeader({
           )}
           <Link
             href={ROUTES.WISHLIST}
-            aria-label={`Wishlist (${count})`}
+            aria-label={`Yêu thích (${count})`}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-900 transition hover:border-rose-200 hover:text-rose-500"
             onClick={(event) => {
               if (user) {
@@ -289,7 +289,7 @@ export function GuestHeader({
                     Thiệp của tôi
                   </Link>
                   <Link href={ROUTES.WISHLIST} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
-                    Yeu thich cua toi
+                    Yêu thích của tôi
                   </Link>
                   <Link href={ROUTES.CUSTOMER.ORDERS} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl">
                     Đơn hàng của tôi

@@ -21,6 +21,18 @@ export type RegisteredOfferingType = {
 
 export const REGISTERED_OFFERING_TYPES: RegisteredOfferingType[] = [
   {
+    key: SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE,
+    label: "Thiệp online",
+    description: "Mẫu thiệp cưới online coded hoặc builder, dùng để tạo wedding site từ template.",
+    rendererKey: "physical-product",
+    fulfillmentType: "digital",
+    templateKey: SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE,
+    templateEngine: "coded",
+    templateMode: "fixed",
+    supportsInventory: false,
+    supportsProviderSupply: false,
+  },
+  {
     key: SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT,
     label: "Thiệp giấy",
     description: "Thiệp cưới in ấn, bộ thiệp giấy và sản phẩm hữu hình liên quan.",

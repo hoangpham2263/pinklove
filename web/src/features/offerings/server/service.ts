@@ -844,6 +844,41 @@ export async function listPublishedOfferings(): Promise<Offering[]> {
   return mapOfferingRows(result.rows);
 }
 
+export async function listRelatedTemplateOfferings(currentOfferingId: string, limit?: number): Promise<Offering[]> {
+  const shouldLimit = typeof limit === "number" && Number.isFinite(limit) && limit > 0;
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingRow>(
+      `
+        ${OFFERING_SELECT}
+        WHERE offerings.status = 'published'
+          AND (
+            offerings.offering_type = 'digital_template'
+            OR LOWER(offerings.slug) LIKE '%thiep%'
+            OR LOWER(offerings.name) LIKE '%thiệp%'
+          )
+          AND offerings.id <> $1
+        ORDER BY
+          (
+            SELECT COALESCE(SUM(items.quantity), 0)
+            FROM commerce_order_items items
+            INNER JOIN commerce_orders orders ON orders.id = items.order_id
+            WHERE items.offering_id = offerings.id
+              AND (
+                orders.payment_status = 'paid'
+                OR orders.status IN ('paid', 'processing', 'ready_to_ship', 'shipped', 'completed')
+              )
+          ) DESC,
+          offerings.updated_at DESC,
+          offerings.name ASC
+        ${shouldLimit ? "LIMIT $2" : ""}
+      `,
+      shouldLimit ? [currentOfferingId, limit] : [currentOfferingId]
+    )
+  );
+
+  return mapOfferingRows(result.rows);
+}
+
 export async function listPublishedOfferingsFiltered(input: OfferingCatalogFilterInput): Promise<Offering[]> {
   if (input.offeringTypes.length === 0) {
     return [];
@@ -1235,6 +1270,10 @@ export async function listPublishedOfferingsByIds(ids: string[]): Promise<Offeri
 }
 
 export async function createOffering(input: OfferingInput): Promise<Offering> {
+  if (!input.categoryId) {
+    throw new Error("OFFERING_CATEGORY_REQUIRED");
+  }
+
   const safeConfig = sanitizeOfferingConfig(input.config);
   const ownerProvider = await resolveProviderOwner(input);
   const offeringTypeDefinition = await getOfferingTypeByKey(input.offeringType);
@@ -1413,6 +1452,10 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
   const nextOfferingType = input.offeringType ?? existing.offeringType;
   const nextTemplateEngine = input.templateEngine ?? existing.templateEngine;
   const nextTemplateMode = input.templateMode ?? existing.templateMode;
+  const nextCategoryId = input.categoryId ?? existing.categoryId;
+  if (!nextCategoryId) {
+    throw new Error("OFFERING_CATEGORY_REQUIRED");
+  }
   const offeringTypeDefinition = await getOfferingTypeByKey(nextOfferingType);
   const shouldStorePhysicalDetails = shouldStorePhysicalOfferingDetails({
     offeringType: nextOfferingType,
@@ -1481,7 +1524,7 @@ export async function updateOffering(slug: string, input: Partial<OfferingInput>
         `,
         [
           input.slug,
-          input.categoryId !== undefined ? input.categoryId : existing.categoryId ?? null,
+          nextCategoryId,
           input.name,
           input.excerpt !== undefined ? input.excerpt : existing.excerpt ?? null,
           input.description !== undefined ? input.description : existing.description ?? null,
@@ -1687,6 +1730,25 @@ export async function updateOfferingsStatus(
 ): Promise<number> {
   if (slugs.length === 0) {
     return 0;
+  }
+
+  if (status === "published") {
+    const missingCategory = await withOfferingCatalogRetry(() =>
+      query<{ exists: boolean }>(
+        `
+          SELECT EXISTS (
+            SELECT 1
+            FROM offerings
+            WHERE slug = ANY($1::text[])
+              AND category_id IS NULL
+          ) AS exists
+        `,
+        [slugs]
+      )
+    );
+    if (missingCategory.rows[0]?.exists) {
+      throw new Error("OFFERING_CATEGORY_REQUIRED");
+    }
   }
 
   const result = await withOfferingCatalogRetry(() =>

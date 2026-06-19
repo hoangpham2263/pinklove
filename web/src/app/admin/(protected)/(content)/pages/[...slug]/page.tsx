@@ -5,7 +5,7 @@ import { listAllOfferings } from "@/features/offerings/server/service";
 import { getPageBySlug, normalizeSlug } from "@/lib/managed-pages";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { PageEditorForm } from "@/features/pages/admin/page-editor-form";
-import { isAuthPageSlug, isContentPageSlug, resolveContentPageSlugAlias } from "@/features/pages/config/managed-pages";
+import { isAuthPageSlug, isContentPageSlug } from "@/features/pages/config/managed-pages";
 
 type AdminPageEditorProps = {
   params: Promise<{ slug?: string[] }>;
@@ -18,7 +18,7 @@ function getPreviewHref(path: string) {
 export default async function AdminPageEditor({ params }: AdminPageEditorProps) {
   await requireAdmin();
   const { slug: rawSlug } = await params;
-  const slug = resolveContentPageSlugAlias(normalizeSlug(rawSlug));
+  const slug = normalizeSlug(rawSlug);
 
   if (!isAuthPageSlug(slug) && !isContentPageSlug(slug)) {
     notFound();
@@ -51,7 +51,7 @@ export default async function AdminPageEditor({ params }: AdminPageEditorProps) 
           <h1 className="text-2xl font-bold tracking-tight">Edit Page: {page.name}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <AdminTableActionButton action="external" href={previewHref} target="_blank" label="Xem trang" />
+          <AdminTableActionButton action="external" href={previewHref} target="_blank" label="Xem nhanh" />
         </div>
       </div>
       <PageEditorForm page={page} offeringOptions={offeringOptions} />

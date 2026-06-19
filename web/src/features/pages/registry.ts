@@ -7,17 +7,6 @@ export type ContentPageConfig = {
   fields: FieldSchema[];
 };
 
-export const CONTENT_PAGE_SLUG_ALIASES: Record<string, string> = {
-  "about-us": "gioi-thieu",
-  contact: "lien-he",
-  templates: "mau-thiep",
-  paper: "thiep-giay",
-  services: "dich-vu",
-  tools: "cong-cu",
-  "tools/qr-builder": "cong-cu/tao-ma-qr",
-  "tools/wedding-budget": "cong-cu/du-toan-cuoi",
-};
-
 export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   home: {
     slug: "home",
@@ -47,6 +36,7 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
           },
           { name: "bannerShortDescription", label: "Mô tả ngắn", type: "text", width: 12 },
           { name: "bannerDescription", label: "Mô tả", type: "wysiwyg", width: 12 },
+          { name: "scrollDownText", label: "Nhãn cuộn xuống", type: "text", width: 6 },
           { name: "heroButtonText", label: "Nhãn nút chính", type: "text", width: 6 },
           { name: "heroButtonLink", label: "Liên kết nút chính", type: "text", width: 6 },
         ],
@@ -57,6 +47,8 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
         description: "Tiêu đề phần dịch vụ trên trang chủ.",
         fields: [
           { name: "servicesTitle", label: "Tiêu đề phần dịch vụ", type: "text", width: 12 },
+          { name: "servicesCtaText", label: "Nhãn CTA dịch vụ", type: "text", width: 4 },
+          { name: "servicesCtaLink", label: "Link CTA dịch vụ", type: "text", width: 8 },
           {
             name: "serviceItems",
             type: "repeater",
@@ -80,6 +72,7 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
         description: "Nội dung phần giới thiệu trên trang chủ.",
         layout: "two-columns",
         fields: [
+          { name: "aboutEyebrow", label: "Nhãn nhỏ", type: "text", column: "left", width: 12 },
           { name: "aboutTitle", label: "Tiêu đề", type: "text", column: "left", width: 12 },
           { name: "aboutDescription", label: "Mô tả", type: "wysiwyg", column: "left", width: 12 },
           { name: "aboutImage", label: "Hình ảnh", type: "media", column: "left", width: 12 },
@@ -162,41 +155,48 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
       {
         type: "section",
-        label: "Invitation Gallery",
-        description: "Khối chọn mẫu và tạo thiệp ở cuối trang home.",
+        label: "Khách hàng nói gì",
+        description: "Đánh giá của khách hàng hiển thị trên trang chủ.",
         fields: [
-          { name: "invitationGalleryBadge", label: "Icon/Ký hiệu đầu tiêu đề", type: "text", width: 3 },
-          { name: "invitationGalleryTitle", label: "Tiêu đề", type: "text", width: 9 },
-          { name: "invitationGalleryDescription", label: "Mô tả", type: "textarea", width: 12 },
-          { name: "invitationGalleryCtaText", label: "Nhãn CTA", type: "text", width: 6 },
-          { name: "invitationGalleryCtaLink", label: "Liên kết CTA", type: "text", width: 6 },
+          { name: "testimonialsEyebrow", label: "Nhãn nhỏ", type: "text", width: 4 },
+          { name: "testimonialsTitle", label: "Tiêu đề", type: "text", width: 8 },
+          { name: "testimonialsDescription", label: "Mô tả", type: "textarea", width: 12 },
           {
-            name: "invitationGalleryOfferingSlugs",
-            label: "Sản phẩm hiển thị",
-            description: "Chọn các mẫu thiệp muốn hiển thị trong section này.",
-            type: "offering-select",
-            multiple: true,
+            name: "testimonials",
+            type: "repeater",
+            label: "Đánh giá",
+            addLabel: "Thêm đánh giá",
             width: 12,
+            fields: [
+              { name: "quote", label: "Nội dung đánh giá", type: "textarea", width: 12 },
+              { name: "name", label: "Tên khách hàng", type: "text", width: 4 },
+              { name: "role", label: "Mô tả khách hàng", type: "text", width: 4 },
+              { name: "rating", label: "Số sao", type: "text", width: 2 },
+              { name: "avatar", label: "Ảnh đại diện", type: "media", width: 2 },
+            ],
           },
         ],
       },
       {
         type: "section",
-        label: "Shared Invitations",
-        description: "Khối các mẫu thiệp đã chia sẻ thành công trên trang home.",
+        label: "Đối tác",
+        description: "Danh sách đối tác hiển thị trên trang chủ.",
         fields: [
-          { name: "sharedInvitationsBadge", label: "Icon/Ký hiệu đầu tiêu đề", type: "text", width: 3 },
-          { name: "sharedInvitationsTitle", label: "Tiêu đề", type: "text", width: 9 },
-          { name: "sharedInvitationsDescription", label: "Mô tả", type: "textarea", width: 12 },
-          { name: "sharedInvitationsCtaText", label: "Nhãn CTA", type: "text", width: 6 },
-          { name: "sharedInvitationsCtaLink", label: "Liên kết CTA", type: "text", width: 6 },
+          { name: "partnersEyebrow", label: "Nhãn nhỏ", type: "text", width: 4 },
+          { name: "partnersTitle", label: "Tiêu đề", type: "text", width: 8 },
+          { name: "partnersDescription", label: "Mô tả", type: "textarea", width: 12 },
           {
-            name: "sharedInvitationsOfferingSlugs",
-            label: "Sản phẩm hiển thị",
-            description: "Chọn các mẫu thiệp muốn hiển thị trong section này.",
-            type: "offering-select",
-            multiple: true,
+            name: "partners",
+            type: "repeater",
+            label: "Đối tác",
+            addLabel: "Thêm đối tác",
             width: 12,
+            fields: [
+              { name: "name", label: "Tên đối tác", type: "text", width: 4 },
+              { name: "description", label: "Mô tả ngắn", type: "text", width: 4 },
+              { name: "logo", label: "Logo", type: "media", width: 2 },
+              { name: "url", label: "Liên kết", type: "text", width: 2 },
+            ],
           },
         ],
       },
@@ -403,6 +403,46 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
       {
         type: "section",
+        label: "Mẫu thiệp và sản phẩm nổi bật",
+        description: "Carousel mẫu thiệp/sản phẩm hiển thị trong trang dịch vụ.",
+        fields: [
+          { name: "invitationGalleryBadge", label: "Icon/Ký hiệu đầu tiêu đề", type: "text", width: 3 },
+          { name: "invitationGalleryTitle", label: "Tiêu đề", type: "text", width: 9 },
+          { name: "invitationGalleryDescription", label: "Mô tả", type: "textarea", width: 12 },
+          { name: "invitationGalleryCtaText", label: "Nhãn CTA", type: "text", width: 6 },
+          { name: "invitationGalleryCtaLink", label: "Liên kết CTA", type: "text", width: 6 },
+          {
+            name: "invitationGalleryOfferingSlugs",
+            label: "Sản phẩm hiển thị",
+            description: "Chọn các mẫu thiệp/sản phẩm muốn hiển thị trong section này.",
+            type: "offering-select",
+            multiple: true,
+            width: 12,
+          },
+        ],
+      },
+      {
+        type: "section",
+        label: "Bắt đầu từ phong cách có sẵn",
+        description: "Carousel mẫu gợi ý theo phong cách trong trang dịch vụ.",
+        fields: [
+          { name: "sharedInvitationsBadge", label: "Icon/Ký hiệu đầu tiêu đề", type: "text", width: 3 },
+          { name: "sharedInvitationsTitle", label: "Tiêu đề", type: "text", width: 9 },
+          { name: "sharedInvitationsDescription", label: "Mô tả", type: "textarea", width: 12 },
+          { name: "sharedInvitationsCtaText", label: "Nhãn CTA", type: "text", width: 6 },
+          { name: "sharedInvitationsCtaLink", label: "Liên kết CTA", type: "text", width: 6 },
+          {
+            name: "sharedInvitationsOfferingSlugs",
+            label: "Sản phẩm hiển thị",
+            description: "Chọn các mẫu thiệp/sản phẩm muốn hiển thị trong section này.",
+            type: "offering-select",
+            multiple: true,
+            width: 12,
+          },
+        ],
+      },
+      {
+        type: "section",
         label: "Catalog dịch vụ",
         fields: [
           { name: "catalogEyebrow", label: "Nhãn nhỏ", type: "text", width: 4 },
@@ -545,20 +585,16 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
   },
 };
 
-export function resolveContentPageSlugAlias(slug: string): string {
-  return CONTENT_PAGE_SLUG_ALIASES[slug] ?? slug;
-}
-
 export function isContentPageSlug(slug: string): boolean {
-  return resolveContentPageSlugAlias(slug) in CONTENT_PAGES;
+  return slug in CONTENT_PAGES;
 }
 
 export function getContentPageFields(slug: string): FieldSchema[] {
-  return CONTENT_PAGES[resolveContentPageSlugAlias(slug)]?.fields ?? [];
+  return CONTENT_PAGES[slug]?.fields ?? [];
 }
 
 export function getContentPageLabel(slug: string): string {
-  return CONTENT_PAGES[resolveContentPageSlugAlias(slug)]?.label ?? slug;
+  return CONTENT_PAGES[slug]?.label ?? slug;
 }
 
 export function listContentPageConfigs(): ContentPageConfig[] {
