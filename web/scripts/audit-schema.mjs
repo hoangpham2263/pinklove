@@ -475,6 +475,21 @@ async function main() {
       assert(pagesPageTypeConstraint.includes(pageType), `pages_page_type_check is missing ${pageType}`);
     }
 
+    const adPlacementsTypeConstraint = String(
+      await scalar(
+        client,
+        `
+        SELECT pg_get_constraintdef(oid)
+        FROM pg_constraint
+        WHERE conname = 'ad_placements_type_check'
+          AND conrelid = 'ad_placements'::regclass
+        `
+      ) ?? ""
+    );
+    for (const placementType of ["banner", "provider_listing", "offering_listing", "mixed", "popup", "floating", "announcement"]) {
+      assert(adPlacementsTypeConstraint.includes(placementType), `ad_placements_type_check is missing ${placementType}`);
+    }
+
     const pageSectionColumns = await client.query(`
       SELECT column_name
       FROM information_schema.columns

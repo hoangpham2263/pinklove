@@ -1,18 +1,15 @@
 import { Image } from "lucide-react";
 
-import { NativeForm } from "@/components/common/native-form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AdminDialogCreateTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
-import { AdminField, AdminInput, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
-import { AdCreativeMediaField } from "@/features/ads/admin/ad-creative-media-field";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminAdsPageShell } from "@/features/ads/admin/admin-ads-page-shell";
-import { listAdCreatives, listAdvertiserOptions } from "@/features/ads/server/service";
+import { CreativeRowActions } from "@/features/ads/admin/ads-row-actions";
+import { listAdCreatives } from "@/features/ads/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 export default async function AdminAdCreativesPage() {
   await requireAdmin();
-  const [rows, advertisers] = await Promise.all([listAdCreatives(), listAdvertiserOptions()]);
+  const rows = await listAdCreatives();
 
   return (
     <AdminAdsPageShell
@@ -24,68 +21,17 @@ export default async function AdminAdCreativesPage() {
         { title: "Pending", value: rows.filter((row) => row.status === "pending").length },
         { title: "Draft / khác", value: rows.filter((row) => row.status !== "approved" && row.status !== "pending").length },
       ]}
-      actions={
-        <Dialog>
-          <AdminDialogCreateTrigger>Tạo creative</AdminDialogCreateTrigger>
-            <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Tạo creative</DialogTitle>
-              <DialogDescription>Chọn ảnh từ Media Library hoặc upload trực tiếp khi tạo creative.</DialogDescription>
-            </DialogHeader>
-            <NativeForm action={ROUTES.API.ADMIN.MARKETING.ADS.CREATIVES} method="POST" className="grid gap-4 md:grid-cols-3">
-            <AdminField label="Advertiser">
-              <AdminSelect name="advertiserId">
-                <option value="">PinkLove / nội bộ</option>
-                {advertisers.map((advertiser) => <option key={advertiser.id} value={advertiser.id}>{advertiser.label}</option>)}
-              </AdminSelect>
-            </AdminField>
-            <AdminField label="Tên creative" required>
-              <AdminInput name="title" required />
-            </AdminField>
-            <AdminField label="Status">
-              <AdminSelect name="status" defaultValue="draft">
-                <option value="draft">draft</option>
-                <option value="pending">pending</option>
-                <option value="approved">approved</option>
-                <option value="rejected">rejected</option>
-                <option value="archived">archived</option>
-              </AdminSelect>
-            </AdminField>
-            <AdCreativeMediaField name="imageUrl" label="Image" required />
-            <AdCreativeMediaField name="mobileImageUrl" label="Mobile image" />
-            <AdminField label="Target URL">
-              <AdminInput name="targetUrl" />
-            </AdminField>
-            <AdminField label="Alt text">
-              <AdminInput name="altText" />
-            </AdminField>
-            <AdminField label="Headline">
-              <AdminInput name="headline" />
-            </AdminField>
-            <AdminField label="CTA">
-              <AdminInput name="ctaLabel" />
-            </AdminField>
-            <AdminField label="Body" className="md:col-span-3">
-              <AdminTextarea name="body" rows={3} />
-            </AdminField>
-            <div className="md:col-span-3">
-              <AdminSubmitButton>Tạo creative</AdminSubmitButton>
-            </div>
-            </NativeForm>
-          </DialogContent>
-        </Dialog>
-      }
+      actions={<AdminCreateLinkButton href={ROUTES.ADMIN.MARKETING_AD_CREATIVE_NEW}>Tạo creative</AdminCreateLinkButton>}
       tableTitle="Danh sách creative"
       tableDescription="Danh sách banner/creative đã tạo."
       rows={rows}
       columns={[
         { key: "title", label: "Creative" },
         { key: "advertiser", label: "Advertiser" },
-        { key: "creative_type", label: "Type" },
         { key: "status", label: "Status" },
-        { key: "image_url", label: "Image" },
-        { key: "target_url", label: "Target" },
+        { key: "badge_label", label: "Badge" },
       ]}
+      rowActions={(row) => <CreativeRowActions row={row} />}
     />
   );
 }

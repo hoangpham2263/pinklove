@@ -8,8 +8,10 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   await requireAdmin();
   try {
-    await createAdCreative(await request.formData());
-    return respondSuccess(request, { location: ROUTES.ADMIN.MARKETING_AD_CREATIVES, message: "Đã tạo creative." });
+    const formData = await request.formData();
+    const intent = String(formData.get("intent") ?? "create");
+    await createAdCreative(formData);
+    return respondSuccess(request, { location: ROUTES.ADMIN.MARKETING_AD_CREATIVES, message: intent === "archive" ? "Đã archive creative." : "Đã lưu creative." });
   } catch {
     return respondError(request, { error: "creative_invalid", message: "Tên creative và image URL là bắt buộc.", location: ROUTES.ADMIN.MARKETING_AD_CREATIVES });
   }

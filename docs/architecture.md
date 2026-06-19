@@ -180,6 +180,10 @@ old template-version tables.
   External advertisers are business records controlled by Admin, not login
   roles. Provider priority/sponsored listings reference existing `PROVIDER`
   accounts and are used only for visibility/ranking.
+- Popup, floating, and announcement bar rendering is centralized in the public
+  guest layout ads host. Public pages must not import overlay ad renderers
+  directly; the host checks page/path targeting rules and renders nothing when
+  the current route is not eligible.
 
 ### Explicitly Not In Scope
 

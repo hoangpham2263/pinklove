@@ -1,10 +1,8 @@
 import { BriefcaseBusiness } from "lucide-react";
 
-import { NativeForm } from "@/components/common/native-form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AdminDialogCreateTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
-import { AdminField, AdminInput, AdminSelect, AdminTextarea } from "@/features/admin/components/admin-form";
+import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminAdsPageShell } from "@/features/ads/admin/admin-ads-page-shell";
+import { AdvertiserRowActions } from "@/features/ads/admin/ads-row-actions";
 import { listAdvertisers } from "@/features/ads/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
@@ -24,45 +22,7 @@ export default async function AdminAdvertisersPage() {
         { title: "Archived", value: rows.filter((row) => row.status === "archived").length },
       ]}
       actions={
-        <Dialog>
-          <AdminDialogCreateTrigger>Tạo advertiser</AdminDialogCreateTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Tạo advertiser</DialogTitle>
-              <DialogDescription>Advertiser là entity nghiệp vụ do admin quản lý, không tạo role đăng nhập.</DialogDescription>
-            </DialogHeader>
-            <NativeForm action={ROUTES.API.ADMIN.MARKETING.ADS.ADVERTISERS} method="POST" className="grid gap-4 md:grid-cols-3">
-            <AdminField label="Tên advertiser" required>
-              <AdminInput name="name" required />
-            </AdminField>
-            <AdminField label="Người liên hệ">
-              <AdminInput name="contactName" />
-            </AdminField>
-            <AdminField label="Email">
-              <AdminInput name="contactEmail" type="email" />
-            </AdminField>
-            <AdminField label="Phone">
-              <AdminInput name="contactPhone" />
-            </AdminField>
-            <AdminField label="Website">
-              <AdminInput name="websiteUrl" />
-            </AdminField>
-            <AdminField label="Status">
-              <AdminSelect name="status" defaultValue="active">
-                <option value="active">active</option>
-                <option value="inactive">inactive</option>
-                <option value="archived">archived</option>
-              </AdminSelect>
-            </AdminField>
-            <AdminField label="Ghi chú" className="md:col-span-3">
-              <AdminTextarea name="notes" rows={3} />
-            </AdminField>
-            <div className="md:col-span-3">
-              <AdminSubmitButton>Tạo advertiser</AdminSubmitButton>
-            </div>
-            </NativeForm>
-          </DialogContent>
-        </Dialog>
+        <AdminCreateLinkButton href={ROUTES.ADMIN.MARKETING_ADVERTISER_NEW}>Tạo advertiser</AdminCreateLinkButton>
       }
       tableTitle="Danh sách advertiser"
       tableDescription="Hồ sơ đơn vị thuê đặt quảng cáo do admin kiểm soát."
@@ -71,10 +31,9 @@ export default async function AdminAdvertisersPage() {
         { key: "name", label: "Advertiser" },
         { key: "contact_name", label: "Contact" },
         { key: "contact_email", label: "Email" },
-        { key: "contact_phone", label: "Phone" },
-        { key: "website_url", label: "Website" },
         { key: "status", label: "Status" },
       ]}
+      rowActions={(row) => <AdvertiserRowActions row={row} />}
     />
   );
 }

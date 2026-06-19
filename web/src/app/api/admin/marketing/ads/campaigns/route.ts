@@ -8,8 +8,10 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   await requireAdmin();
   try {
-    await createAdCampaign(await request.formData());
-    return respondSuccess(request, { location: ROUTES.ADMIN.MARKETING_BANNER_ADS, message: "Đã tạo banner ad." });
+    const formData = await request.formData();
+    const intent = String(formData.get("intent") ?? "create");
+    await createAdCampaign(formData);
+    return respondSuccess(request, { location: ROUTES.ADMIN.MARKETING_BANNER_ADS, message: intent === "archive" ? "Đã archive campaign." : "Đã lưu campaign." });
   } catch {
     return respondError(request, { error: "ad_campaign_invalid", message: "Tên campaign, advertiser và placement là bắt buộc.", location: ROUTES.ADMIN.MARKETING_BANNER_ADS });
   }

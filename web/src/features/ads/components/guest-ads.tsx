@@ -3,9 +3,11 @@ import { BadgePercent, Megaphone } from "lucide-react";
 
 import {
   listActiveAdsForPlacement,
+  listActiveAdsForPlacements,
   listActiveProviderPromotions,
 } from "@/features/ads/server/service";
 import { AdEventTracker } from "@/features/ads/components/ad-event-tracker";
+import { GuestAdDisplayHostClient, type GuestDisplayAd } from "@/features/ads/components/guest-ad-display-host-client";
 import { GuestPromotedProvidersShowcase } from "@/features/ads/components/guest-promoted-providers-showcase";
 
 type GuestAdBannerProps = {
@@ -21,6 +23,40 @@ type GuestPromotedProvidersProps = {
 
 function getText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function getMetadata(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function mapDisplayAd(row: Record<string, unknown>): GuestDisplayAd {
+  return {
+    id: String(row.id ?? ""),
+    name: getText(row.name),
+    placementId: String(row.placement_id ?? ""),
+    placementKey: getText(row.placement_key),
+    placementType: getText(row.placement_type),
+    placementMetadata: getMetadata(row.placement_metadata),
+    campaignMetadata: getMetadata(row.campaign_metadata),
+    creativeMetadata: getMetadata(row.creative_metadata),
+    imageUrl: getText(row.image_url),
+    mobileImageUrl: getText(row.mobile_image_url),
+    targetUrl: getText(row.target_url),
+    altText: getText(row.alt_text),
+    headline: getText(row.headline),
+    body: getText(row.body),
+    ctaLabel: getText(row.cta_label),
+  };
+}
+
+export async function GuestAdDisplayHost() {
+  const ads = await listActiveAdsForPlacements(["global_top_bar", "targeted_popup", "targeted_floating", "footer_banner"]);
+
+  if (!ads.length) {
+    return null;
+  }
+
+  return <GuestAdDisplayHostClient ads={ads.map(mapDisplayAd)} />;
 }
 
 export async function GuestAdBanner({ placementKey, className }: GuestAdBannerProps) {

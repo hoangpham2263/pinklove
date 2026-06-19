@@ -39,6 +39,13 @@ This file covers the admin area and admin-controlled workflows.
 - `Admin > Marketing` owns landing pages, campaigns, A/B experiments, Ads,
   external advertisers, placements, banner creatives, and sponsored provider
   priority. Ads must stay separate from service bookings.
+- Admin Ads overlay/display is a centralized Marketing feature. Popup,
+  floating, and global bar rendering must be wired once through the public
+  guest layout host near the footer, then matched by target page/path rules.
+  Individual public pages should not import popup/floating/global bar renderers.
+- Popup and floating ads require explicit target pages or include route rules
+  before they render. They do not have global display mode; if a route does not
+  match, the host renders nothing.
 - `Admin > Website` owns managed pages, navigation, SEO, media, and shared
   website data.
 - Admin `Pages` edits only managed content and system pages already registered in code.

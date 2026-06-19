@@ -1,322 +1,267 @@
-Client Website IA & Page Section Roadmap
+Task: Flexible Ads / Announcement Display System
 
-Goal: restructure the public/client-facing website into a clear wedding platform journey: inspire, choose invitations/products, find providers, plan the event, and convert to inquiry/checkout/account.
+Goal:
+- Build an admin-controlled public display system for ads, hot news, promotions, and announcements.
+- Admin can choose where items appear, how many appear, when they are active, and whether each placement/campaign is enabled.
+- Admin can choose exact public pages/routes where a popup should appear; if the current page does not match the configured target pages, the popup must not render.
+- When a visitor closes a popup/floating ad, the site remembers that dismissal for the configured time so it does not keep bothering the user.
 
-Research references checked:
-- Zola: wedding websites, vendors, invites, guest list, budget, seating chart, registry, expert help.
-- The Knot: invitations + wedding website, RSVP tracking, registry, vendor discovery, planning tools.
-- WeddingWire: vendor directory, checklist, budget, guest list, seating chart, cost guide, inspiration.
-- Minted Weddings: premium stationery, free wedding websites, timeline by wedding stage, sample kits, invitation finder, expert consultation.
+Current Project Context:
+- Ads already belong to the Marketing bounded context.
+- Existing DB/source tables:
+  - `advertisers`
+  - `ad_placements`
+  - `ad_creatives`
+  - `ad_campaigns`
+  - `ad_events`
+  - `provider_promotion_plans`
+  - `provider_promotions`
+  - `provider_promotion_events`
+- Existing Admin routes:
+  - `/admin/marketing/ads`
+  - `/admin/marketing/ads/advertisers`
+  - `/admin/marketing/ads/placements`
+  - `/admin/marketing/ads/creatives`
+  - `/admin/marketing/ads/banner-ads`
+  - `/admin/marketing/ads/provider-priority`
+- Existing public/rendering code:
+  - `web/src/features/ads/server/service.ts`
+  - `web/src/features/ads/components/guest-ads.tsx`
+  - `web/src/features/ads/components/ad-event-tracker.tsx`
+  - `web/src/app/api/ads/events/route.ts`
+- Docs status:
+  - `docs/architecture.md`, `docs/admin.md`, and `docs/schema.md` already document admin-managed ads under Marketing.
+  - Any schema change must update `web/src/lib/database.ts`, `docs/schema.md`, and `web/scripts/audit-schema.mjs` together.
 
-Core Project Snapshot:
-- Public pages mostly use managed pages rendered by `managed-page-renderer`.
-- Existing capabilities: offerings, digital templates, paper products, builder templates, public invitation sites, wishlist, checkout/orders, provider/service flow foundations, ads/provider priority, blog/content, tools, managed pages, media library, menus, SEO.
-- Current Home already has hero, ad banner, about, services, event planner, invitation gallery, shared invitations, and FAQ, but the journey/order needs to be clearer.
+Implementation Principle:
+- Extend the existing Ads module. Do not create a separate `announcements` or `popups` domain unless the current ads model cannot support it.
+- Treat this as an isolated Marketing Ads feature. It must not change checkout, offering, booking, provider, auth, customer, or admin workflows.
+- Popup, floating, and global bar rendering must use one centralized host imported once in the public guest layout, not ad-hoc imports in individual pages.
+- Public pages must keep working normally when there is no ad config, invalid ad metadata, no matching target page, or an ads API/server error.
+- Overlay ads must be fail-closed: when uncertain, render nothing instead of interrupting the page.
+- Use `ad_placements.metadata`, `ad_creatives.metadata`, and `ad_campaigns.metadata` for UI/display rules that are not heavily queried.
+- Add relational columns only for fields that must be filtered/sorted often.
+- Keep provider priority separate from generic site ads.
+- Keep all anonymous dismissal state client-side. Do not write popup dismissal into users, orders, bookings, providers, or customer profiles.
 
-Top-Level Principles:
-- [ ] Public website must speak in customer language, not admin/internal architecture.
-- [ ] Route language rule: public client-facing routes use Vietnamese slugs; admin/provider/customer protected routes and internal API routes use English slugs only.
-- [ ] First viewport must immediately explain PinkLove: wedding invitation/website + paper products + provider services + planning tools.
-- [ ] All public pages should share one visual system.
-- [ ] Use real template/product/provider media from DB whenever possible.
-- [ ] Repeated content can use cards; avoid decorative card-in-card wrappers.
-- [ ] Every major section must have a concrete CTA.
-- [ ] Sponsored/provider priority placements must be visibly labeled.
+Feature Scope:
+- Banner ads in fixed page sections.
+- Floating ad widgets.
+- Modal popup announcements.
+- Top/bottom announcement bars.
+- Configurable page targeting and suppression after close.
+- Page-specific popup targeting: show only on selected pages, route patterns, or page groups.
 
-Existing Public Page Inventory & Needed Additions:
-- [ ] `/` Home
-  - Existing: managed page, hero, ad banner, about, services, event planner, invitation galleries, FAQ.
-  - Need: reorganize into platform journey, add quick path selector, trust strip, provider/service category entry, planning tools preview, real examples, stronger final CTA.
-- [ ] `/gioi-thieu` About
-  - Existing: managed page.
-  - Need: explain platform model, trust/quality process, provider approval, order/payment safety, ecosystem diagram, stats/testimonials.
-- [ ] `/dich-vu` Services
-  - Existing: managed page/service marketing page with provider priority showcase.
-  - Need: turn into provider marketplace hub with categories, provider cards, region/category filters, quote brief CTA.
-- [ ] `/lien-he` Contact
-  - Existing: managed page/contact content.
-  - Need: structured wedding brief form: date, city, guest count, needed services, budget, style, contact.
-- [ ] `/mau-thiep` Template listing
-  - Existing: public route and offering template detail routes.
-  - Need: stronger catalog filters, curated categories, live preview CTA, comparison with paper/full website, and one clear `Tự tạo thiệp` CTA that routes to customer login/invitations.
-- [ ] `/mau-thiep/[slug]` Template detail
-  - Existing: published coded template detail renderer.
-  - Need: richer gallery/preview, features, matching paper/service suggestions, CTA to customize/create.
-- [ ] Removed public builder route
-  - Existing: `/tu-tao-thiep` and `/tu-tao-thiep/[slug]` were public builder entry/detail routes.
-  - Need: remove completely; public CTAs should point directly to login/customer invitation management, not through redirect.
-- [ ] `/thiep-giay` Paper product listing
-  - Existing: public route for physical/paper offerings.
-  - Need: separate suites/categories, material/print options, sample kit CTA, matching digital invitation.
-- [ ] `/thiep-giay/[slug]` Paper product detail
-  - Existing: offering detail route.
-  - Need: variants, quantity pricing, production timeline, shipping, checkout, matching digital invitation.
-- [ ] `/wishlist`
-  - Existing: wishlist page.
-  - Need: group saved items by template/paper/service, add compare/action CTAs.
-- [ ] `/cong-cu` Tools hub
-  - Existing: tools route.
-  - Need: list tools as planning system, link tools to templates/services.
-- [ ] `/cong-cu/du-toan-cuoi` Wedding budget
-  - Existing: tool route.
-  - Need: save-to-account path, link budget categories to provider/service categories.
-- [ ] `/cong-cu/tao-ma-qr` QR builder
-  - Existing: tool route.
-  - Need: connect use cases to invitation RSVP, event map, payment/contact QR.
-- [ ] `/blog`
-  - Existing: blog hub.
-  - Need: group by planning, invitation etiquette, styles, provider tips, cost/budget, real weddings.
-- [ ] `/blog/[slug]`
-  - Existing: blog detail.
-  - Need: related templates/products/providers/tools inside content.
-- [ ] `/search`
-  - Existing: public search route.
-  - Need: aggregate templates, paper products, providers, blog, tools with tabs/filters.
-- [ ] `/checkout`, `/checkout/cart`, `/checkout/success/[orderNumber]`
-  - Existing: commerce checkout/cart/success.
-  - Need: ensure public flow matches invitation/paper product buying journey and has trust/support links.
-- [ ] `/payment/[orderNumber]`, `/payment/success`, `/payment/failed`
-  - Existing: payment routes.
-  - Need: consistent status UI, next steps, support CTA.
-- [ ] `/invitations/[slug]`
-  - Existing: public invitation site renderer.
-  - Need: verify RSVP, schedule, map, gallery, wishes/comments, QR/share sections are clear when enabled.
-- [ ] `/providers/apply`
-  - Existing: provider application route.
-  - Need: public provider value proposition, requirements, process, benefits, application form sections.
-- [ ] `/affiliates`
-  - Existing: affiliate application route.
-  - Need: explain affiliate program separately from provider/sponsored ads; commission, approval, terms, apply CTA.
-- [ ] `/landing/[slug]`
-  - Existing: landing page renderer.
-  - Need: keep for campaign-specific pages; define when to use landing instead of core public pages.
+Recommended Data Model:
+- Reuse `ad_placements` for render slots.
+- Extend placement behavior through metadata:
+  - `displayMode`: `inline_banner`, `modal`, `floating`, `top_bar`, `bottom_bar`
+  - `position`: `top`, `bottom`, `left`, `right`, `center`, `bottom_right`, `bottom_left`
+  - `maxItems`: already exists as relational `max_items`
+  - `rotation`: `priority` or `latest`
+  - `globalEnabled`: allowed only for non-intrusive modes such as top/bottom bars and footer/inline banners
+  - `showDelayMs`
+  - `dismissMode`: `session`, `hours`, `days`, `forever`
+  - `dismissTtlHours`
+  - `frequency`: `once_until_dismissed` for MVP
+  - `pageRules`: include/exclude route patterns; intrusive overlays must show only when current pathname matches an include rule and does not match any exclude rule
+  - `targetPages`: selected managed pages/public routes from Admin UI
+  - `defaultPageBehavior`: `none` for intrusive modes, so popup/floating never appear globally
+  - `deviceRules`: `all`, `desktop`, `mobile`
+- Extend campaign behavior through metadata:
+  - `priority`
+  - `isDismissible`
+  - `showCloseButton`
+  - `theme`
+  - `isSponsored`
+- Extend creative behavior through metadata:
+  - `layout`: `image_only`, `image_text`, `text_card`, `html`
+  - `badgeLabel`
 
-Pages Missing / Recommended To Add:
-- [ ] Provider directory `/nha-cung-cap` or `/dich-vu/nha-cung-cap`
-  - Need: provider listing with category, region, rating/review, portfolio, sponsored labels.
-- [ ] Provider category page `/dich-vu/[category]`
-  - Need: category intro, top/sponsored providers, organic providers, guide content, FAQ.
-- [ ] Provider region/category page `/dich-vu/[category]/[region]` if SEO scope is approved
-  - Need: local provider SEO landing with filtered providers and quote CTA.
-- [ ] Provider profile page `/nha-cung-cap/[slug]`
-  - Need: profile, portfolio, services, pricing hints, availability, reviews, quote/booking CTA.
-- [ ] Wedding checklist/timeline `/cong-cu/checklist-cuoi` or `/ke-hoach-cuoi`
-  - Need: planning timeline by month/stage, account save path later.
-- [ ] Guest list/RSVP explainer page
-  - Need: explain how invitation website, RSVP, QR, guest tracking work together.
-- [ ] Cost guide pages
-  - Need: SEO content for budget categories and vendor/service cost education.
-- [ ] Real weddings / inspiration gallery
-  - Need: showcase real invitation sites, templates, providers, and blog case studies.
+Schema Tasks:
+- [ ] Add `popup`, `floating`, `bar`, or `announcement` placement support without duplicating tables if possible.
+- [ ] Consider expanding `ad_placements.placement_type` check from `banner/provider_listing/offering_listing/mixed` to include `popup`, `floating`, and `announcement`.
+- [ ] Consider expanding `ad_placements.surface` only if current surfaces are too narrow for global/page-level targeting.
+- [ ] Keep dismissal state client-side; do not create DB rows per anonymous visitor.
+- [ ] Add indexes only if new relational fields are introduced.
+- [ ] Update `web/scripts/audit-schema.mjs` expected table/constraint checks if schema changes.
+- [ ] Update `docs/schema.md` after schema changes and refresh the table count/date.
 
-Detailed Page Section Plan:
+Admin UX Tasks:
+- [ ] Admin ads CRUD layout should follow the existing offering CRUD style:
+  - dense management table
+  - top summary/action area
+  - create/edit form with grouped fields
+  - consistent admin inputs/selects/switches/buttons
+  - status/date/priority fields near the main campaign controls
+  - preview and metrics as secondary panels
+- [ ] Upgrade `/admin/marketing/ads/placements` form:
+  - placement key
+  - label
+  - placement type/display mode
+  - surface
+  - position
+  - max items
+  - active toggle
+  - global enabled toggle for non-intrusive placements only
+  - target page selector
+  - page include/exclude route rules
+  - device rules
+  - show delay
+  - dismiss policy
+- [ ] Admin target page selector should support:
+  - managed pages such as Home, About, Services, Contact
+  - fixed public routes such as `/`, `/mau-thiep`, `/thiep-giay`, `/dich-vu`, `/blog`, `/checkout/cart`
+  - route pattern rules such as `/blog/*`, `/mau-thiep/*`, `/landing/*`
+  - exclude rules that always win over include rules
+- [ ] Intrusive display modes (`modal`, `floating`) must require at least one target page/include rule before they can render.
+- [ ] Intrusive display modes must not have global display mode.
+- [ ] Add an admin preview/check tool:
+  - choose a route/pathname
+  - show whether this placement/campaign would render
+  - show the matching include rule or blocking exclude rule
+  - show dismissal reason when blocked
+- [ ] Upgrade `/admin/marketing/ads/creatives` form:
+  - title
+  - image URL / mobile image URL
+  - headline
+  - body
+  - CTA label
+  - target URL
+  - badge label
+  - approved/draft status
+  - preview block
+- [ ] Upgrade `/admin/marketing/ads/banner-ads` campaign form:
+  - campaign status active/paused/draft
+  - payment status paid/waived for internal ads
+  - start/end date
+  - priority
+  - sponsored/internal toggle
+  - dismissible toggle
+  - placement selection filtered by active placements
+- [ ] If multiple overlay campaigns match one page, Admin priority decides which one can show first.
+- [ ] Add a clear admin preview for each display mode before saving.
+- [ ] Add table columns for active dates, placement mode, impressions, clicks, and CTR.
+- [ ] Keep Admin UI dense and consistent with existing admin tables/dialogs.
 
-Home `/`:
-- [ ] Hero: platform positioning, concise subcopy, template/service CTAs, real template/product/provider visual.
-- [ ] Quick path selector: `Tạo thiệp online`, `In thiệp giấy`, `Tìm dịch vụ cưới`, `Lập kế hoạch`, `Gửi brief`.
-- [ ] Trust/status strip: templates, providers, orders, regions, reviews or quality commitments.
-- [ ] Animated stats strip: `Khách hàng`, `Web hoàn thành`, `Năm kinh nghiệm`, `Web đã phân tích` with count-up numbers when scrolled into view.
-- [ ] Featured invitation templates: curated digital templates, preview/customize CTA.
-- [ ] Paper invitation/products highlight: suites/products, sample kit idea, checkout path.
-- [ ] Provider priority showcase: sponsored/top providers with visible labels.
-- [ ] Wedding service categories: photography, makeup, decor, planner, venue, catering, video, music, cakes, flowers, transport, gifts.
-- [ ] How it works: choose style, customize/brief, confirm provider/order, track in account.
-- [ ] Planning toolkit preview: budget, checklist, QR, RSVP/guest concept.
-- [ ] Real examples/inspiration: invitation sites, template styles, wedding cases or blog guides.
-- [ ] Controlled ad/offer placement.
-- [ ] Reviews/testimonials.
-- [ ] FAQ.
-- [ ] Final CTA.
+Public Rendering Tasks:
+- [ ] Add a global guest ads host in `web/src/app/(guest)/layout.tsx` near the footer/end of layout.
+- [ ] Import `GuestAdDisplayHost` only once in `web/src/app/(guest)/layout.tsx`.
+- [ ] Do not import or render popup/floating/global bar components directly inside individual public pages.
+- [ ] The host should be mounted on every public guest page, then check the current pathname/rules before doing anything visible.
+- [ ] Recommended placement in layout:
+  - after `<main>{children}</main>` and before or near `<GuestFooter />`
+  - or directly after `<GuestFooter />` if overlay z-index and accessibility still work correctly
+- [ ] The host must return `null` on pages that do not match target rules, so mounting it globally does not affect unrelated pages.
+- [ ] Server-load active campaigns by placement keys needed globally:
+  - `global_top_bar`
+  - `targeted_popup`
+  - `targeted_floating`
+  - `footer_banner`
+- [ ] Keep section-specific ads available through `GuestAdBanner` and `GuestPromotedProviders`.
+- [ ] Keep page-level inline banners separate from overlay behavior; inline section banners may still be used by specific pages, but popup/floating/global bars must go through the centralized host.
+- [ ] Keep the display host isolated:
+  - no changes to checkout/order creation
+  - no changes to offering queries
+  - no changes to booking/provider/customer workflows
+  - no render in protected admin/customer/provider layouts
+- [ ] Add a client component, for example `GuestAdDisplayHost`, to render:
+  - modal popup
+  - floating bottom-right/bottom-left widget
+  - top/bottom bar
+  - inline banner list
+- [ ] Enforce `max_items` per placement.
+- [ ] Apply route include/exclude rules on the client using current pathname.
+- [ ] Do not render popup/floating ads unless the current pathname matches the configured target pages or include patterns.
+- [ ] Exclude rules must override include rules.
+- [ ] Treat empty target pages as:
+  - no render for modal/floating
+  - allowed only for explicitly global placements like top bar/footer banner when Admin marks them global
+- [ ] Apply device rules with responsive checks.
+- [ ] Ensure sponsored/advertisement label is visible for paid ads.
+- [ ] Show only one intrusive overlay at a time, chosen by campaign priority and eligibility.
+- [ ] Ensure popup is accessible:
+  - close button
+  - escape key closes modal
+  - focus handling for modal
+  - no layout shift for bars
+- [ ] Intrusive ads can appear on checkout/payment/auth pages only if Admin explicitly selects those exact routes or matching include patterns.
+- [ ] Add a shared helper, for example `matchesAdPageRules(pathname, pageRules)`, and cover it with focused tests or simple route matching cases.
+- [ ] Add a shared helper, for example `selectEligibleOverlayCampaign(campaigns, context)`, that returns at most one campaign.
+- [ ] If metadata parsing fails, route matching fails, or tracking fails, the component must return `null` or continue rendering the page without throwing.
 
-About `/gioi-thieu`:
-- [ ] Hero: what PinkLove is.
-- [ ] Platform ecosystem: customer, provider, admin, affiliate in public-friendly language.
-- [ ] Quality process: provider approval, creative review, order/payment safety, support.
-- [ ] Stats/trust strip.
-- [ ] Team/story section if content exists.
-- [ ] CTA to templates/services/contact.
+Dismissal / Cookie Tasks:
+- [ ] Use cookie for dismissal state so it survives page reloads and server/client boundaries if needed.
+- [ ] Also keep an in-memory/sessionStorage guard to avoid duplicate popup during the same SPA session.
+- [ ] Cookie key format:
+  - `pinklove_ad_dismissed_{campaignId}`
+  - optional placement-level key: `pinklove_ad_dismissed_placement_{placementKey}`
+- [ ] Cookie value:
+  - JSON or compact string containing `dismissedAt`, `campaignId`, `placementKey`, and `mode`.
+- [ ] Respect TTL:
+  - `session`: no persistent cookie, use `sessionStorage`
+  - `hours/days`: cookie with `max-age`
+  - `forever`: cookie with long max-age, for example 180 days
+- [ ] When visitor clicks CTA, optionally suppress again using `until_clicked` behavior.
+- [ ] Do not store sensitive personal data in dismissal cookies.
+- [ ] Dismissal keys must be scoped to ads, for example `pinklove_ad_*`.
 
-Services `/dich-vu`:
-- [ ] Hero: wedding services marketplace positioning.
-- [ ] Service category navigation.
-- [ ] Provider priority/sponsored rail.
-- [ ] Organic provider/service cards.
-- [ ] Region/category filters.
-- [ ] How quote/booking works.
-- [ ] Brief form CTA.
-- [ ] FAQ.
+Tracking Tasks:
+- [ ] Reuse `/api/ads/events` for impression/click tracking.
+- [ ] Track impression only after the ad is actually rendered and not suppressed.
+- [ ] Track click through existing `AdEventTracker` or shared helper.
+- [ ] Add metadata to events:
+  - placement key
+  - display mode
+  - pathname
+  - device type
+  - suppression policy
+- [ ] Avoid tracking duplicate impressions for the same visible campaign in the same session.
+- [ ] Tracking failures must never block navigation, checkout, forms, or page rendering.
+- [ ] Keep ad tracking in `ad_events`; do not write to commerce, booking, provider, or user profile tables.
 
-Provider Directory / Category Pages:
-- [ ] Category/region hero.
-- [ ] Filter bar: category, city/region, budget, rating, availability.
-- [ ] Sponsored providers labeled.
-- [ ] Organic provider cards.
-- [ ] Education block for choosing a provider.
-- [ ] FAQ and quote CTA.
+Suggested Placement Seeds:
+- [ ] Add or upsert placements:
+  - `global_top_bar`: announcement bar at top of public site
+  - `targeted_popup`: modal popup for hot/new campaigns on selected pages only
+  - `targeted_floating`: floating bottom-right campaign widget on selected pages only
+  - `home_inline_banner`: inline homepage promotion
+  - `checkout_support_banner`: non-intrusive checkout support/offer banner
+- [ ] Keep existing placements:
+  - `home_hero_banner`
+  - `blog_sidebar`
+  - `provider_directory_top`
+  - `category_top`
+  - `search_result_top`
+  - `offering_detail_related`
+  - `footer_banner`
 
-Provider Profile:
-- [ ] Hero/profile summary: name, region, categories, rating/review, sponsored label if applicable.
-- [ ] Portfolio/gallery.
-- [ ] Services/pricing hints.
-- [ ] Availability/contact/quote CTA.
-- [ ] Reviews.
-- [ ] Similar providers.
-
-Templates `/mau-thiep`:
-- [ ] Hero/category intro.
-- [ ] Filters: style, color, format, animation, price, popularity, newest.
-- [ ] Featured/curated template rail.
-- [ ] Template grid.
-- [ ] Online vs paper vs full wedding website comparison.
-- [ ] CTA to services.
-- [ ] Single `Tự tạo thiệp` CTA that routes directly to customer invitation management/login-return flow.
-
-Template Detail `/mau-thiep/[slug]`:
-- [ ] Live preview/gallery.
-- [ ] Template features.
-- [ ] Customization options.
-- [ ] Matching paper products.
-- [ ] Related templates.
-- [ ] CTA to create/customize.
-
-Builder Entry:
-- [ ] No public `/tu-tao-thiep` route.
-- [ ] Public CTA buttons should link directly to `/login?returnTo=/customer/invitations` when auth-aware logic is available, or `/customer/invitations` where protected routing handles login.
-- [ ] Keep the button on Home and `/mau-thiep`; do not add a separate navigation item for builder.
-
-Paper Products `/thiep-giay`:
-- [ ] Hero: paper invitation/product positioning.
-- [ ] Category nav: invitation suites, save the date, menus, table numbers, signs, thank-you cards, accessories.
-- [ ] Product grid/rails.
-- [ ] Material/print process.
-- [ ] Sample kit or consultation CTA.
-- [ ] Matching digital invitation CTA.
-
-Paper Product Detail `/thiep-giay/[slug]`:
-- [ ] Product gallery.
-- [ ] Variants/options.
-- [ ] Quantity pricing.
-- [ ] Production/shipping timeline.
-- [ ] Checkout CTA.
-- [ ] Matching digital template and related products.
-
-Tools Hub `/cong-cu`:
-- [ ] Hero: planning tools.
-- [ ] Tool cards: budget, QR, checklist/timeline, guest/RSVP concept.
-- [ ] Recommended next action after each tool.
-- [ ] Blog guides linked to tools.
-
-Wedding Budget `/cong-cu/du-toan-cuoi`:
-- [ ] Budget calculator.
-- [ ] Category suggestions tied to provider/service categories.
-- [ ] Save/export path.
-- [ ] CTA to quote providers.
-
-QR Builder `/cong-cu/tao-ma-qr`:
-- [ ] QR generator.
-- [ ] Use case cards: invitation, RSVP, map, contact, payment.
-- [ ] CTA to create invitation website.
-
-Wedding Checklist / Planning Timeline:
-- [ ] Timeline by stage: 12 months, 7-8 months, 5-6 months, 3-4 months, 0-2 months.
-- [ ] Task groups mapped to PinkLove templates/products/providers/tools.
-- [ ] Save-to-account path later.
-
-Contact `/lien-he`:
-- [ ] Hero: request consultation/quote.
-- [ ] Structured wedding brief form.
-- [ ] Contact/support info secondary.
-- [ ] Provider/service category selector.
-- [ ] FAQ about response time and next steps.
-
-Blog `/blog`:
-- [ ] Hero/search/categories.
-- [ ] Category rails: planning, invitation etiquette, style inspiration, provider tips, budget, real weddings.
-- [ ] Featured guides.
-- [ ] Links back to relevant products/providers/tools.
-
-Blog Detail `/blog/[slug]`:
-- [ ] Article content.
-- [ ] Related templates/products/providers/tools.
-- [ ] Author/date/category.
-- [ ] CTA block.
-
-Search `/search`:
-- [ ] Unified search input.
-- [ ] Type tabs: templates, paper products, providers, blog, tools.
-- [ ] Filters per type.
-- [ ] Sponsored results separated/labeled.
-
-Wishlist `/wishlist`:
-- [ ] Group saved items by templates, paper products, services/providers.
-- [ ] Compare/remove actions.
-- [ ] CTA to checkout/customize/request quote.
-
-Checkout / Payment:
-- [ ] Consistent checkout steps.
-- [ ] Trust/support block.
-- [ ] Success page with next steps: view order, create invitation, contact support.
-- [ ] Failure page with retry/support CTA.
-
-Public Invitation `/invitations/[slug]`:
-- [ ] Verify sections for couple hero, event details, schedule, map, gallery, RSVP, wishes/comments, QR/share.
-- [ ] Ensure disabled features do not leave empty gaps.
-
-Provider Apply `/providers/apply`:
-- [ ] Hero: why join PinkLove.
-- [ ] Benefits.
-- [ ] Requirements/quality bar.
-- [ ] Application process.
-- [ ] Form.
-
-Affiliate Apply `/affiliates`:
-- [ ] Hero: affiliate program.
-- [ ] Commission/approval terms.
-- [ ] Difference from provider/sponsored placement.
-- [ ] Apply form.
-
-Navigation & Footer:
-- [ ] Header top intents: Templates, Paper, Services, Tools, Blog, Contact.
-- [ ] Separate provider entry: `For providers` / `Become a provider`.
-- [ ] Footer columns: product groups, planning tools, provider/affiliate, support, legal, SEO categories.
-- [ ] Mobile nav must keep primary actions visible.
-
-Managed Page / Admin Field Work:
-- [ ] Update Home managed page fields to match new section plan.
-- [ ] Add curated selectors for templates/products/providers/categories.
-- [ ] Add repeaters for quick paths, trust stats, how-it-works, milestones, testimonials, FAQ.
-- [ ] Add fields for About, Contact, Services, Tools if managed pages remain the source of truth.
-- [ ] Seed realistic public content and media for all major sections.
-
-Data / Backend Dependencies:
-- [ ] Confirm offering types cleanly cover digital templates, builder templates, paper products, and services.
-- [ ] Add provider public profile query helpers.
-- [ ] Add provider category/region listing helpers.
-- [ ] Add customer brief/quote endpoint if vendor leads are not enough.
-- [ ] Add public review/testimonial helpers.
-- [ ] Add search aggregation across offerings/providers/blog/tools.
-
-Shared Visual System:
-- [ ] Define `GuestSection`, `GuestSectionHeader`, `GuestFeatureGrid`, `GuestProductRail`, `GuestProviderCard`, `GuestTimeline`.
-- [ ] Reuse same carousel/rail controls across public pages.
-- [ ] Reduce one-off gradients/decorations; keep content scan-friendly.
-- [ ] Check mobile text wrapping, CTA stacking, card heights.
+Acceptance Criteria:
+- [ ] Admin can create/update a placement with display mode, position, max items, active toggle, targeting, and dismiss policy.
+- [ ] Admin can create an approved creative and attach it to an active campaign.
+- [ ] Public layout shows active top bar/popup/floating ad only when targeting rules match.
+- [ ] A popup configured for `/mau-thiep` does not show on `/`, `/blog`, `/checkout/cart`, or any other non-matching page.
+- [ ] A popup configured for `/blog/*` shows on `/blog/example-post` but not on `/mau-thiep`.
+- [ ] A popup with no selected pages/include rules does not show anywhere.
+- [ ] Closing a popup/floating/bar ad prevents it from showing again according to the configured dismissal policy.
+- [ ] If ad metadata is invalid, public pages still render normally and no popup appears.
+- [ ] If the ads event API fails, clicks/navigation still work normally.
+- [ ] Only one intrusive popup/floating ad appears at a time.
+- [ ] No protected admin/customer/provider layout renders the public ads host.
+- [ ] Inline ads and provider priority still work as before.
+- [ ] Impression and click events are recorded only for ads that were eligible and visible.
+- [ ] Mobile layout has no overlapping text or controls.
+- [ ] Checkout/payment/auth pages receive intrusive ads only when explicitly targeted by Admin.
+- [ ] `npm run build` passes.
+- [ ] `npm run audit:schema` passes if schema changed.
 
 Implementation Order:
-- [ ] Phase 1: finalize page inventory and Home IA.
-- [ ] Phase 2: build shared public section/card/rail primitives.
-- [ ] Phase 3: standardize reusable website seed, starting with Vietnamese Home content.
-- [ ] Phase 4: rebuild Home with new sections and seeded content.
-- [ ] Phase 5: rebuild `/dich-vu` and add provider directory/profile routes.
-- [ ] Phase 6: improve `/mau-thiep` and `/thiep-giay`; keep builder as customer-dashboard functionality only.
-- [ ] Phase 7: improve tools/checklist/budget flows.
-- [ ] Phase 8: polish About, Contact, Blog, Search, Header/Footer.
-- [ ] Phase 9: seed demo data and run smoke/mobile checks.
-
-Verification:
-- [ ] Run `npx tsc --noEmit`.
-- [ ] Run `npm run build`.
-- [ ] Smoke routes: `/`, `/dich-vu`, `/mau-thiep`, `/thiep-giay`, `/cong-cu`, `/blog`, `/search`, `/gioi-thieu`, `/lien-he`.
-- [ ] Check mobile and desktop screenshots for primary public pages.
-- [ ] Verify no decorative card-in-card layouts.
-- [ ] Verify sponsored placements track impression/click and have visible labels.
+- [ ] 1. Confirm exact metadata contract and display modes.
+- [ ] 2. Extend DB constraints/seeds only where needed.
+- [ ] 3. Update ads service read/write mapping for placement/campaign/creative metadata.
+- [ ] 4. Upgrade Admin placement/campaign/creative forms.
+- [ ] 5. Build `GuestAdDisplayHost` client renderer and dismissal helper.
+- [ ] 6. Wire global host into guest layout.
+- [ ] 7. Add tracking metadata and duplicate-impression guard.
+- [ ] 8. Test desktop/mobile popup, bar, floating, and inline placements.
+- [ ] 9. Update docs after implementation.

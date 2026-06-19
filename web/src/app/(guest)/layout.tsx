@@ -1,5 +1,6 @@
 import { GuestFooter } from "@/app/(guest)/_components/guest-footer";
 import { GuestHeader, type GuestHeaderLink, type GuestHeaderNode } from "@/app/(guest)/_components/guest-header";
+import { GuestAdDisplayHost } from "@/features/ads/components/guest-ads";
 import { WishlistProvider } from "@/features/offerings/components/wishlist-provider";
 import { getUserWishlistOfferingIds } from "@/features/offerings/server/wishlist-service";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
@@ -105,6 +106,7 @@ export default async function GuestLayout({
           globalFields={globalFields}
           columns={footerColumns}
         />
+        <GuestAdDisplayHost />
       </WishlistProvider>
     </div>
   );

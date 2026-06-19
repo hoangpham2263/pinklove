@@ -4796,6 +4796,13 @@ async function ensureAdsTablesMigration() {
   `);
 
   await pool.query(`
+    ALTER TABLE ad_placements DROP CONSTRAINT IF EXISTS ad_placements_type_check;
+    ALTER TABLE ad_placements
+    ADD CONSTRAINT ad_placements_type_check
+    CHECK (placement_type IN ('banner', 'provider_listing', 'offering_listing', 'mixed', 'popup', 'floating', 'announcement'));
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS ad_creatives (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
       advertiser_id TEXT REFERENCES advertisers(id) ON DELETE SET NULL,
@@ -4936,6 +4943,9 @@ async function ensureAdsTablesMigration() {
     INSERT INTO ad_placements (key, label, placement_type, surface, description, max_items)
     VALUES
       ('home_hero_banner', 'Homepage hero banner', 'banner', 'website', 'Banner lớn ở trang chủ.', 1),
+      ('global_top_bar', 'Global top announcement bar', 'announcement', 'website', 'Thanh thông báo toàn site, chỉ hiện khi placement được bật global.', 1),
+      ('targeted_popup', 'Targeted popup', 'popup', 'website', 'Popup chỉ hiện trên trang được admin chỉ định.', 1),
+      ('targeted_floating', 'Targeted floating widget', 'floating', 'website', 'Floating widget chỉ hiện trên trang được admin chỉ định.', 1),
       ('blog_sidebar', 'Blog sidebar', 'banner', 'blog', 'Banner cạnh bài viết/blog.', 2),
       ('provider_directory_top', 'Provider directory top', 'provider_listing', 'provider_directory', 'Nhà cung cấp ưu tiên ở đầu danh sách.', 6),
       ('category_top', 'Category top', 'mixed', 'category', 'Vị trí đầu trang category.', 4),

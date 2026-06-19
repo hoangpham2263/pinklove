@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +11,7 @@ export type DatabaseTableProps = {
   columns: DatabaseColumn[];
   rows: Array<Record<string, unknown>>;
   emptyMessage?: string;
+  rowActions?: (row: Record<string, unknown>) => ReactNode;
 };
 
 export type DatabasePageProps = {
@@ -28,7 +30,7 @@ function formatValue(value: unknown) {
   return String(value);
 }
 
-export function DatabaseTable({ columns, rows, emptyMessage = "Không có dữ liệu." }: DatabaseTableProps) {
+export function DatabaseTable({ columns, rows, emptyMessage = "Không có dữ liệu.", rowActions }: DatabaseTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -37,6 +39,7 @@ export function DatabaseTable({ columns, rows, emptyMessage = "Không có dữ l
             {columns.map((column) => (
               <TableHead key={column.key}>{column.label}</TableHead>
             ))}
+            {rowActions ? <TableHead className="text-right">Actions</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -52,10 +55,11 @@ export function DatabaseTable({ columns, rows, emptyMessage = "Không có dữ l
                   </TableCell>
                 );
               })}
+              {rowActions ? <TableCell className="align-top text-right">{rowActions(row)}</TableCell> : null}
             </TableRow>
           )) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={columns.length + (rowActions ? 1 : 0)} className="h-24 text-center text-muted-foreground">
                 {emptyMessage}
               </TableCell>
             </TableRow>

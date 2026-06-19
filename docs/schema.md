@@ -62,6 +62,11 @@ required architecture columns, foreign-key integrity, and forbidden legacy
 tables. A migration is complete only when the audit passes against both the
 current database and a newly created empty database.
 
+Ads placement types include `banner`, `provider_listing`, `offering_listing`,
+`mixed`, `popup`, `floating`, and `announcement`. Popup/floating/announcement
+display rules live in ads metadata and are rendered through one centralized
+public guest ads host.
+
 Admin access is intentionally minimal:
 
 - `users.role = 'ADMIN'` selects the Admin portal.

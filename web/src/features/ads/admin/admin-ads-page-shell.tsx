@@ -1,7 +1,8 @@
 import type { ComponentType, ReactNode } from "react";
 
-import { DatabaseTable } from "@/components/common/database-table";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type AdminAdsMetric = {
   title: ReactNode;
@@ -26,7 +27,15 @@ type AdminAdsPageShellProps = {
   columns: AdminAdsColumn[];
   emptyMessage?: string;
   children?: ReactNode;
+  rowActions?: (row: Record<string, unknown>) => ReactNode;
 };
+
+function formatValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
 
 export function AdminAdsPageShell({
   title,
@@ -39,6 +48,7 @@ export function AdminAdsPageShell({
   columns,
   emptyMessage,
   children,
+  rowActions,
 }: AdminAdsPageShellProps) {
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -67,7 +77,41 @@ export function AdminAdsPageShell({
           <h2 className="text-xl font-semibold tracking-tight">{tableTitle}</h2>
           {tableDescription ? <p className="text-sm text-muted-foreground">{tableDescription}</p> : null}
         </div>
-        <DatabaseTable columns={columns} rows={rows} emptyMessage={emptyMessage} />
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableHead key={column.key}>{column.label}</TableHead>
+                ))}
+                {rowActions ? <TableHead className="text-right">Actions</TableHead> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.length ? rows.map((row, index) => (
+                <TableRow key={String(row.id ?? index)}>
+                  {columns.map((column) => {
+                    const value = row[column.key];
+                    const text = formatValue(value);
+                    const isStatus = column.key.endsWith("status") || column.key === "status";
+                    return (
+                      <TableCell key={column.key} className="max-w-96 align-top text-sm">
+                        {isStatus && text !== "—" ? <Badge>{text}</Badge> : <span className="break-words">{text}</span>}
+                      </TableCell>
+                    );
+                  })}
+                  {rowActions ? <TableCell className="align-top text-right">{rowActions(row)}</TableCell> : null}
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length + (rowActions ? 1 : 0)} className="h-24 text-center text-muted-foreground">
+                    {emptyMessage ?? "Không có dữ liệu."}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {children}

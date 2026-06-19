@@ -29,6 +29,7 @@ export async function listCampaigns() {
     `
       SELECT
         campaign.id,
+        campaign.landing_page_id,
         campaign.name,
         campaign.channel,
         campaign.status,
@@ -46,6 +47,11 @@ export async function listCampaigns() {
     `
   );
   return result.rows;
+}
+
+export async function getCampaignById(id: string) {
+  const rows = await listCampaigns();
+  return rows.find((row) => String(row.id) === id) ?? null;
 }
 
 export async function listAbExperiments() {
@@ -91,12 +97,39 @@ export async function listConversionGoals() {
 }
 
 export async function saveCampaign(input: {
+  id?: string;
+  intent?: string;
   name: string;
   channel: string;
   landingPageId: string;
   status?: string;
   budget?: number;
 }) {
+  if (input.intent === "archive" && input.id) {
+    await query("UPDATE campaigns SET status = 'archived', updated_at = NOW() WHERE id = $1", [input.id]);
+    return input.id;
+  }
+
+  if (input.intent === "update" && input.id) {
+    await query(
+      `
+        UPDATE campaigns
+        SET name = $2, channel = $3, landing_page_id = $4, status = $5,
+            budget = $6, updated_at = NOW()
+        WHERE id = $1
+      `,
+      [
+        input.id,
+        input.name,
+        input.channel,
+        input.landingPageId,
+        input.status ?? "draft",
+        Math.max(0, input.budget ?? 0),
+      ]
+    );
+    return input.id;
+  }
+
   const result = await query<{ id: string }>(
     `
       INSERT INTO campaigns (name, channel, landing_page_id, status, budget)

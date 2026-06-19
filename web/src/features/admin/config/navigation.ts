@@ -318,14 +318,13 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
       {
         key: "ads",
         title: "Ads & Priority",
-        description: "Banner thuê ngoài, placement và ưu tiên hiển thị provider.",
+        description: "Popup, floating, announcement bar, banner và ưu tiên hiển thị provider.",
         permissions: ["marketing.view"],
         items: [
-          item("ads", "Ads Overview", "Tổng quan quảng cáo và ưu tiên hiển thị.", ROUTES.ADMIN.MARKETING_ADS, "panels-top-left"),
-          item("advertisers", "Advertisers", "Hồ sơ bên ngoài thuê đặt quảng cáo.", ROUTES.ADMIN.MARKETING_ADVERTISERS, "briefcase-business"),
-          item("placements", "Placements", "Vị trí render banner và priority listing.", ROUTES.ADMIN.MARKETING_AD_PLACEMENTS, "panels-top-left"),
-          item("banner-ads", "Banner Ads", "Quản lý campaign/banner thuê ngoài.", ROUTES.ADMIN.MARKETING_BANNER_ADS, "image"),
+          item("placements", "Placements", "Vị trí render banner, popup, floating và bar.", ROUTES.ADMIN.MARKETING_AD_PLACEMENTS, "panels-top-left"),
           item("ad-creatives", "Creatives", "Quản lý hình ảnh, CTA và link đích.", ROUTES.ADMIN.MARKETING_AD_CREATIVES, "image"),
+          item("ads-campaigns", "Ads & Announcements", "Quản lý campaign banner, popup và thông báo nội bộ.", ROUTES.ADMIN.MARKETING_BANNER_ADS, "image"),
+          item("advertisers", "Advertisers", "Hồ sơ bên ngoài thuê đặt quảng cáo.", ROUTES.ADMIN.MARKETING_ADVERTISERS, "briefcase-business"),
           item("provider-priority", "Sponsored Providers", "Ưu tiên hiển thị provider/xưởng top.", ROUTES.ADMIN.MARKETING_PROVIDER_PRIORITY, "store"),
         ],
       },
