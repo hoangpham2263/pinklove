@@ -2,11 +2,15 @@ import"server-only";
 import { query, type DbExecutor } from"@/lib/database";
 
 export type MenuItemType ="page" |"custom";
+export type MegaMenuSpan = "full" | "half" | "third";
 
 export type MenuItem = { id:string;
  menuId:string;
  parentId:string | null;
  label:string;
+ description:string | null;
+ imageUrl:string | null;
+ megaMenuSpan:MegaMenuSpan | null;
  type:MenuItemType;
  pageSlug:string | null;
  url:string | null;
@@ -73,15 +77,25 @@ export async function getMenus(): Promise<Omit<Menu,"items">[]> {
 }
 
 async function loadMenuItems(storage: MenuStorage, id: string): Promise<MenuItem[]> {
+ await query(`
+  ALTER TABLE ${storage.itemsTable}
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS image_url TEXT,
+  ADD COLUMN IF NOT EXISTS mega_menu_span TEXT
+ `);
+
  const itemsResult = await query<{ id:string;
  menu_id:string;
  parent_id:string | null;
  label:string;
+ description:string | null;
+ image_url:string | null;
+ mega_menu_span:MegaMenuSpan | null;
  type:MenuItemType;
  page_slug:string | null;
  url:string | null;
  position:number; }>(
- `SELECT id::text AS id, menu_id::text AS menu_id, parent_id, label, type, page_slug, url, position 
+ `SELECT id::text AS id, menu_id::text AS menu_id, parent_id, label, description, image_url, mega_menu_span, type, page_slug, url, position
   FROM ${storage.itemsTable}
   WHERE menu_id = $1 
   ORDER BY position ASC`,
@@ -92,6 +106,9 @@ async function loadMenuItems(storage: MenuStorage, id: string): Promise<MenuItem
  menuId:row.menu_id,
  parentId:row.parent_id,
  label:row.label,
+ description:row.description,
+ imageUrl:row.image_url,
+ megaMenuSpan:row.mega_menu_span,
  type:row.type,
  pageSlug:row.page_slug,
  url:row.url,
@@ -141,6 +158,9 @@ export async function updateMenu(id:string, label:string, execute:DbExecutor = q
 
 export type MenuItemInput = { id?: string;
  label:string;
+ description?: string | null;
+ imageUrl?: string | null;
+ megaMenuSpan?: MegaMenuSpan | null;
  type:MenuItemType;
  parentId ?: string | null;
  pageSlug ?: string | null;
@@ -170,6 +190,14 @@ export async function updateMenuItems(menuId:string, items:MenuItemInput[], exec
   return {
    ...item,
    label: normalizedLabel,
+   description: item.description?.trim() || null,
+   imageUrl: item.imageUrl?.trim() || null,
+   megaMenuSpan:
+    item.megaMenuSpan === "full" || item.megaMenuSpan === "third"
+     ? item.megaMenuSpan
+     : item.megaMenuSpan === "half"
+      ? "half"
+      : null,
    type: normalizedType,
    pageSlug: normalizedPageSlug,
    url: normalizedUrl,
@@ -221,14 +249,17 @@ export async function updateMenuItems(menuId:string, items:MenuItemInput[], exec
 
    const insertResult = item.existingDbId
     ? await execute<{ id:string }>(
-       `INSERT INTO ${storage.itemsTable} (id, menu_id, parent_id, label, type, page_slug, url, position)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       `INSERT INTO ${storage.itemsTable} (id, menu_id, parent_id, label, description, image_url, mega_menu_span, type, page_slug, url, position)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id::text AS id`,
        [
         item.existingDbId,
         menuId,
         resolvedParentId || null,
         item.label,
+        item.description,
+        item.imageUrl,
+        item.megaMenuSpan,
         item.type,
         item.pageSlug || null,
         item.url || null,
@@ -236,13 +267,16 @@ export async function updateMenuItems(menuId:string, items:MenuItemInput[], exec
        ]
       )
     : await execute<{ id:string }>(
-       `INSERT INTO ${storage.itemsTable} (menu_id, parent_id, label, type, page_slug, url, position)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       `INSERT INTO ${storage.itemsTable} (menu_id, parent_id, label, description, image_url, mega_menu_span, type, page_slug, url, position)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id::text AS id`,
        [
         menuId,
         resolvedParentId || null,
         item.label,
+        item.description,
+        item.imageUrl,
+        item.megaMenuSpan,
         item.type,
         item.pageSlug || null,
         item.url || null,

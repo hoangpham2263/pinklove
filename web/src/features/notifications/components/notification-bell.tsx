@@ -15,11 +15,12 @@ import { cn } from "@/lib/utils";
 type NotificationBellProps = {
   listHref?: string;
   triggerClassName?: string;
+  dropdownClassName?: string;
 };
 
 type NotificationPayload = Awaited<ReturnType<typeof customerApi.fetchNotifications>>;
 
-export function NotificationBell({ listHref, triggerClassName }: NotificationBellProps) {
+export function NotificationBell({ listHref, triggerClassName, dropdownClassName }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -177,7 +178,7 @@ export function NotificationBell({ listHref, triggerClassName }: NotificationBel
           onDismissAll={dismissAllNotifications}
           onMarkRead={markNotificationRead}
           onDismiss={dismissNotification}
-          className="top-10"
+          className={cn("top-10", dropdownClassName)}
         />
       ) : null}
     </div>

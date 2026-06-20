@@ -22,6 +22,9 @@ function mapMenuLinks(
     | Array<{
       id: string;
       label: string;
+      description: string | null;
+      imageUrl: string | null;
+      megaMenuSpan: "full" | "half" | "third" | null;
       pageSlug: string | null;
       url: string | null;
       parentId?: string | null;
@@ -34,6 +37,9 @@ function mapMenuLinks(
   return items.map((item) => ({
     id: item.id,
     label: item.label,
+    description: item.description,
+    imageUrl: item.imageUrl,
+    megaMenuSpan: item.megaMenuSpan,
     href: resolveMenuHref(item.pageSlug, item.url, pagePathMap),
     parentId: item.parentId,
   }));

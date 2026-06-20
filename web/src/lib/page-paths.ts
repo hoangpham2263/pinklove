@@ -10,7 +10,7 @@ const FIXED_PAGE_PATHS: Record<string, string> = {
   home: ROUTES.HOME,
   login: ROUTES.AUTH.LOGIN,
   register: ROUTES.AUTH.REGISTER,
-  "providers/apply": ROUTES.PROVIDER.APPLY,
+  providers: ROUTES.PROVIDER.APPLY,
   affiliates: ROUTES.AFFILIATE_APPLY,
 };
 const RESERVED_EXACT_PATHS = new Set([
@@ -36,7 +36,6 @@ const RESERVED_PREFIXES = [
 ] as const;
 const RESERVED_BRANCH_PREFIXES = [
   `${ROUTES.BLOG}/`,
-  `${ROUTES.TOOLS}/`,
   `${ROUTES.TEMPLATES}/`,
   `${ROUTES.PAPER}/`,
 ] as const;

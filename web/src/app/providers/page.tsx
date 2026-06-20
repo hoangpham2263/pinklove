@@ -10,7 +10,7 @@ type ProviderApplyPageProps = {
 };
 
 export async function generateMetadata({ searchParams }: ProviderApplyPageProps): Promise<Metadata> {
-  return generateManagedPageMetadata("providers/apply", searchParams);
+  return generateManagedPageMetadata("providers", searchParams);
 }
 
 function getSingleParam(value: string | string[] | undefined) {
@@ -19,7 +19,7 @@ function getSingleParam(value: string | string[] | undefined) {
 
 export default async function ProviderApplyPage({ searchParams }: ProviderApplyPageProps) {
   const query = (await searchParams) ?? {};
-  const page = await loadManagedPageForRoute("providers/apply", searchParams);
+  const page = await loadManagedPageForRoute("providers", searchParams);
   const submitted = getSingleParam(query.submitted) === "1";
   const error = getSingleParam(query.error);
 

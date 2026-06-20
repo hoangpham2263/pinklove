@@ -13,6 +13,7 @@ const DISMISSED_STORAGE_KEY = "pinklove:guest-notification-dismissed-ids";
 
 type GuestNotificationBellProps = {
   triggerClassName?: string;
+  dropdownClassName?: string;
 };
 
 function readStoredIds(storageKey = STORAGE_KEY) {
@@ -33,7 +34,7 @@ function writeStoredIds(ids: Set<string>, storageKey = STORAGE_KEY) {
   window.localStorage.setItem(storageKey, JSON.stringify(Array.from(ids).slice(-200)));
 }
 
-export function GuestNotificationBell({ triggerClassName }: GuestNotificationBellProps) {
+export function GuestNotificationBell({ triggerClassName, dropdownClassName }: GuestNotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => readStoredIds());
@@ -144,7 +145,10 @@ export function GuestNotificationBell({ triggerClassName }: GuestNotificationBel
           onDismissAll={dismissAll}
           onMarkRead={markOneRead}
           onDismiss={(item) => dismissOne(item.id)}
-          className="rounded-xl border-stone-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)] lg:rounded-2xl"
+          className={cn(
+            "rounded-xl border-stone-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)] lg:rounded-2xl",
+            dropdownClassName
+          )}
         />
       ) : null}
     </div>

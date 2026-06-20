@@ -37,9 +37,9 @@ const fallbackCards = [
     href: ROUTES.BUILDER,
   },
   {
-    title: "Công cụ",
-    description: "QR mừng cưới, bảng chi phí cưới và các tool hỗ trợ.",
-    href: ROUTES.TOOLS,
+    title: "Tạo mã QR",
+    description: "Tạo mã QR mừng cưới để dùng trên thiệp hoặc website cưới.",
+    href: ROUTES.TOOLS_PAGES.QR_BUILDER,
   },
   {
     title: "Blog",

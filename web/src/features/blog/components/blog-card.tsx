@@ -21,38 +21,41 @@ export function BlogCard({
   categoryHref?: string;
 }) {
   return (
-    <article className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] lg:rounded-2xl">
-      {post.coverImage ? (
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          width={1600}
-          height={1000}
-          className="aspect-[16/10] w-full object-cover"
-        />
-      ) : (
-        <div className="aspect-[16/10] bg-[linear-gradient(135deg,#f5eee8_0%,#efe3d8_100%)]" />
-      )}
-      <div className="space-y-4 px-6 py-6">
-        <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-stone-400">
+    <article className="group overflow-hidden rounded-[22px] border border-[#f0deee] bg-white shadow-[0_14px_44px_rgba(85,38,82,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_55px_rgba(181,41,170,0.12)]">
+      <Link href={postHref} className="relative block aspect-[16/10] overflow-hidden bg-[linear-gradient(135deg,#fff2fd_0%,#f1dcf8_100%)]">
+        {post.coverImage ? (
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover transition duration-500 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,.9),transparent_32%),linear-gradient(135deg,#ffcef7,#ead8ff)]" />
+        )}
+      </Link>
+      <div className="space-y-3 px-5 py-5">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-400">
           <Link href={categoryHref} className="hover:text-stone-900">
             {post.categoryName}
           </Link>
+          <span className="size-1 rounded-full bg-[#ff6ff5]" />
           <span>{formatDate(post.createdAt)}</span>
         </div>
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-stone-950 sm:text-2xl lg:text-3xl 2 xl:text-4xl">
-            <Link href={postHref} className="hover:text-stone-700">
+        <div className="space-y-2">
+          <h3 className="text-lg font-black leading-snug text-stone-950 lg:text-xl">
+            <Link href={postHref} className="transition hover:text-[#b529aa]">
               {post.title}
             </Link>
-          </h2>
-          <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{post.excerpt}</p>
+          </h3>
+          {post.excerpt ? <p className="line-clamp-2 text-sm leading-6 text-stone-500">{post.excerpt}</p> : null}
         </div>
         <Link
           href={postHref}
-          className="inline-flex min-h-12 items-center justify-center rounded-xl border border-stone-300 bg-white px-6 text-sm font-semibold text-stone-900 transition hover:bg-stone-50 lg:rounded-2xl"
+          className="inline-flex items-center text-sm font-bold text-[#b529aa] transition hover:text-stone-950"
         >
-          Xem bài viết
+          Xem bài viết&nbsp; →
         </Link>
       </div>
     </article>

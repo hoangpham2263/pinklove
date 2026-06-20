@@ -25,7 +25,6 @@ export const ROUTES = {
   SEARCH: PUBLIC_SITE_ROUTES.SEARCH,
   SERVICES: PUBLIC_SITE_ROUTES.SERVICES,
   AFFILIATE_APPLY: PUBLIC_SITE_ROUTES.AFFILIATE_APPLY,
-  TOOLS: PUBLIC_SITE_ROUTES.TOOLS,
   BLOG: PUBLIC_SITE_ROUTES.BLOG,
   LANDING_PAGES: PUBLIC_SITE_ROUTES.LANDING_PAGES,
   SITEMAP_XML: "/sitemap.xml",
@@ -58,8 +57,8 @@ export const ROUTES = {
     },
   },
   TOOLS_PAGES: {
-    QR_BUILDER: "/cong-cu/tao-ma-qr",
-    WEDDING_BUDGET: "/cong-cu/du-toan-cuoi",
+    QR_BUILDER: "/tao-ma-qr",
+    WEDDING_BUDGET: "/du-toan-cuoi",
   },
   AUTH: {
     LOGIN: "/login",
@@ -98,7 +97,7 @@ export const ROUTES = {
   },
   PROVIDER: {
     ROOT: "/provider",
-    APPLY: "/providers/apply",
+    APPLY: "/providers",
     LOGIN: "/provider/login",
     DASHBOARD: "/provider/dashboard",
     WORK: "/provider/work",

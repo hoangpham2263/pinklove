@@ -22,19 +22,19 @@ export function AdminHeaderMenu({ permissionKeys }: { permissionKeys?: string[] 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <AdminIconButton
-        className="rounded-full md:hidden"
+        className="h-10 w-10 rounded-full md:hidden"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
       >
-        <Menu className="h-4 w-4" />
+        <Menu className="h-5 w-5" />
       </AdminIconButton>
 
-      <SheetContent side="left" className="w-[min(22rem,calc(100vw-2rem))] rounded-r-2xl p-0 md:hidden">
+      <SheetContent side="left" className="w-[min(24rem,calc(100vw-2rem))] rounded-r-2xl p-0 md:hidden">
         <SheetHeader className="border-b px-4 py-4">
           <SheetTitle className="text-base">Menu</SheetTitle>
         </SheetHeader>
 
-        <div className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto px-3 py-3">
+        <div className="flex max-h-[calc(100vh-5rem)] flex-col gap-1 overflow-y-auto p-3">
           {visibleFeatures.map((feature) => {
             const Icon = ADMIN_NAV_ICON_MAP[feature.iconName];
             return (

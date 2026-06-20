@@ -113,6 +113,31 @@ async function upsertUser(client, input) {
 }
 
 async function seedManagedPages(client) {
+  await client.query(`
+    UPDATE navigation_menu_items
+    SET page_slug = CASE page_slug
+      WHEN 'cong-cu/tao-ma-qr' THEN 'tao-ma-qr'
+      WHEN 'cong-cu/du-toan-cuoi' THEN 'du-toan-cuoi'
+    END
+    WHERE page_slug IN ('cong-cu/tao-ma-qr', 'cong-cu/du-toan-cuoi');
+
+    DELETE FROM navigation_menu_items
+    WHERE page_slug = 'cong-cu';
+
+    UPDATE managed_pages
+    SET slug = 'tao-ma-qr', updated_at = NOW()
+    WHERE slug = 'cong-cu/tao-ma-qr'
+      AND NOT EXISTS (SELECT 1 FROM managed_pages WHERE slug = 'tao-ma-qr');
+
+    UPDATE managed_pages
+    SET slug = 'du-toan-cuoi', updated_at = NOW()
+    WHERE slug = 'cong-cu/du-toan-cuoi'
+      AND NOT EXISTS (SELECT 1 FROM managed_pages WHERE slug = 'du-toan-cuoi');
+
+    DELETE FROM managed_pages
+    WHERE slug IN ('cong-cu', 'cong-cu/tao-ma-qr', 'cong-cu/du-toan-cuoi');
+  `);
+
   const pageSeeds = [
     {
       slug: "home",
@@ -583,9 +608,16 @@ async function seedManagedPages(client) {
       },
     },
     {
-      slug: "cong-cu",
-      title: "Công cụ cưới",
-      excerpt: "Bộ công cụ hỗ trợ QR và dự toán cưới.",
+      slug: "tao-ma-qr",
+      title: "Tạo mã QR",
+      excerpt: "Tạo mã QR nhận quà cưới để sử dụng trên thiệp hoặc website cưới.",
+      status: "published",
+      customFields: {},
+    },
+    {
+      slug: "du-toan-cuoi",
+      title: "Dự toán cưới",
+      excerpt: "Lập dự toán và phân bổ ngân sách cho các hạng mục cưới.",
       status: "published",
       customFields: {},
     },
@@ -615,6 +647,99 @@ async function seedManagedPages(client) {
   }
 }
 
+function buildHeaderMenuItems(pages) {
+  const pageBySlug = new Map(pages.map((page) => [page.slug, page]));
+  const usedSlugs = new Set();
+
+  function toMenuItem(slug, children = []) {
+    const page = pageBySlug.get(slug);
+    if (!page) {
+      return null;
+    }
+
+    usedSlugs.add(slug);
+
+    return {
+      label: page.name || page.title || slug,
+      description:
+        page.excerpt?.trim()
+        || `Đi tới trang ${page.title || page.name || slug}.`,
+      type: "page",
+      pageSlug: slug,
+      children,
+    };
+  }
+
+  function takePages(slugs) {
+    return slugs
+      .map((slug) => toMenuItem(slug))
+      .filter(Boolean);
+  }
+
+  function section(label, children, megaMenuSpan = "half") {
+    return {
+      label,
+      megaMenuSpan,
+      type: "custom",
+      url: "#",
+      children,
+    };
+  }
+
+  const home = toMenuItem("home");
+  const toolSlugs = ["tao-ma-qr", "du-toan-cuoi"].filter((slug) => pageBySlug.has(slug));
+
+  const products = [
+    section("Thiệp online", takePages(["mau-thiep", "tu-tao-thiep"]), "half"),
+    section("Sản phẩm cưới", takePages(["thiep-giay"]), "half"),
+  ];
+  const services = [
+    section("Giải pháp", takePages(["dich-vu"]), "full"),
+    section("Hợp tác", takePages(["providers", "affiliates"]), "half"),
+  ];
+  const resources = [
+    section("Khám phá", takePages(["blog"]), "third"),
+    section("Công cụ", takePages(toolSlugs), "third"),
+  ];
+  const company = [
+    section("Doanh nghiệp", takePages(["gioi-thieu", "lien-he"]), "full"),
+  ];
+  const account = [
+    section("Tài khoản", takePages(["login", "register"]), "half"),
+  ];
+  const systemPages = takePages(["not-found"]);
+
+  const uncategorized = pages
+    .filter((page) => !usedSlugs.has(page.slug))
+    .sort((left, right) => left.name.localeCompare(right.name, "vi"))
+    .map((page) => toMenuItem(page.slug))
+    .filter(Boolean);
+
+  const groups = [
+    { label: "Sản phẩm", description: "Mẫu thiệp, sản phẩm cưới và công cụ tự thiết kế.", children: products },
+    { label: "Dịch vụ", description: "Dịch vụ cưới, provider và chương trình cộng tác.", children: services },
+    { label: "Tài nguyên", description: "Blog và các công cụ hỗ trợ chuẩn bị đám cưới.", children: resources },
+    { label: "Về PinkLove", description: "Thông tin doanh nghiệp và các kênh liên hệ.", children: company },
+    { label: "Tài khoản", description: "Các luồng đăng nhập và đăng ký tài khoản.", children: account },
+    {
+      label: "Hệ thống",
+      description: "Các trang hệ thống dùng để kiểm thử giao diện.",
+      children: [section("Kiểm thử", [...systemPages, ...uncategorized])],
+    },
+  ].filter((group) => group.children.some((child) => child.children.length > 0));
+
+  return [
+    ...(home ? [home] : []),
+    ...groups.map((group) => ({
+      label: group.label,
+      description: group.description,
+      type: "custom",
+      url: "#",
+      children: group.children,
+    })),
+  ];
+}
+
 async function upsertMenu(client, menuName, label, items) {
   const menu = await fetchRow(
     client,
@@ -637,11 +762,21 @@ async function upsertMenu(client, menuName, label, items) {
       const row = await fetchRow(
         client,
         `
-          INSERT INTO navigation_menu_items (menu_id, parent_id, label, type, page_slug, url, position)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          INSERT INTO navigation_menu_items (menu_id, parent_id, label, description, mega_menu_span, type, page_slug, url, position)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id
         `,
-        [menu.id, parentId, item.label, item.type, item.pageSlug ?? null, item.url ?? null, item.position ?? index]
+        [
+          menu.id,
+          parentId,
+          item.label,
+          item.description ?? null,
+          item.megaMenuSpan ?? null,
+          item.type,
+          item.pageSlug ?? null,
+          item.url ?? null,
+          item.position ?? index,
+        ]
       );
 
       if (item.children?.length) {
@@ -1422,14 +1557,24 @@ async function main() {
 
     await seedManagedPages(client);
 
-    await upsertMenu(client, "header", "Header Menu", [
-      { label: "Trang chủ", type: "page", pageSlug: "home", position: 0 },
-      { label: "Giới thiệu", type: "page", pageSlug: "gioi-thieu", position: 1 },
-      { label: "Mẫu thiệp", type: "page", pageSlug: "mau-thiep", position: 2 },
-      { label: "Dịch vụ", type: "page", pageSlug: "dich-vu", position: 3 },
-      { label: "Blog", type: "page", pageSlug: "blog", position: 4 },
-      { label: "Liên hệ", type: "page", pageSlug: "lien-he", position: 5 },
-    ]);
+    await client.query(`
+      ALTER TABLE navigation_menu_items
+      ADD COLUMN IF NOT EXISTS description TEXT,
+      ADD COLUMN IF NOT EXISTS image_url TEXT,
+      ADD COLUMN IF NOT EXISTS mega_menu_span TEXT
+    `);
+
+    const publishedPages = await fetchRows(
+      client,
+      `
+        SELECT slug, name, title, excerpt
+        FROM managed_pages
+        WHERE status = 'published'
+        ORDER BY name ASC, slug ASC
+      `
+    );
+
+    await upsertMenu(client, "header", "Header Menu", buildHeaderMenuItems(publishedPages));
 
     await upsertMenu(client, "footer", "Footer Menu", [
       {

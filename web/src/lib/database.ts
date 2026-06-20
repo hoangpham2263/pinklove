@@ -999,6 +999,9 @@ async function ensureMenuTablesMigration() {
       menu_id TEXT NOT NULL REFERENCES navigation_menus(id) ON DELETE CASCADE,
       parent_id TEXT,
       label TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      mega_menu_span TEXT,
       type TEXT NOT NULL,
       page_slug TEXT,
       url TEXT,
@@ -1012,6 +1015,21 @@ async function ensureMenuTablesMigration() {
   await pool.query(`
     ALTER TABLE navigation_menu_items
     ADD COLUMN IF NOT EXISTS parent_id TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE navigation_menu_items
+    ADD COLUMN IF NOT EXISTS description TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE navigation_menu_items
+    ADD COLUMN IF NOT EXISTS image_url TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE navigation_menu_items
+    ADD COLUMN IF NOT EXISTS mega_menu_span TEXT;
   `);
 
   await ensureTextForeignKeyColumn({
@@ -5255,6 +5273,31 @@ export async function ensureOfferingCatalogReady() {
 async function ensureManagedPagesSeed() {
   const pool = getPool();
 
+  await pool.query(`
+    UPDATE navigation_menu_items
+    SET page_slug = CASE page_slug
+      WHEN 'cong-cu/tao-ma-qr' THEN 'tao-ma-qr'
+      WHEN 'cong-cu/du-toan-cuoi' THEN 'du-toan-cuoi'
+    END
+    WHERE page_slug IN ('cong-cu/tao-ma-qr', 'cong-cu/du-toan-cuoi');
+
+    DELETE FROM navigation_menu_items
+    WHERE page_slug = 'cong-cu';
+
+    UPDATE managed_pages
+    SET slug = 'tao-ma-qr', updated_at = NOW()
+    WHERE slug = 'cong-cu/tao-ma-qr'
+      AND NOT EXISTS (SELECT 1 FROM managed_pages WHERE slug = 'tao-ma-qr');
+
+    UPDATE managed_pages
+    SET slug = 'du-toan-cuoi', updated_at = NOW()
+    WHERE slug = 'cong-cu/du-toan-cuoi'
+      AND NOT EXISTS (SELECT 1 FROM managed_pages WHERE slug = 'du-toan-cuoi');
+
+    DELETE FROM managed_pages
+    WHERE slug IN ('cong-cu', 'cong-cu/tao-ma-qr', 'cong-cu/du-toan-cuoi');
+  `);
+
   for (const [slug, config] of Object.entries(AUTH_PAGES)) {
     await pool.query(
       `
@@ -5271,7 +5314,14 @@ async function ensureManagedPagesSeed() {
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
-    const defaultStatus = slug === "providers/apply" || slug === "affiliates" || slug === "thiep-giay" ? "published" : "draft";
+    const defaultStatus =
+      slug === "providers"
+      || slug === "affiliates"
+      || slug === "thiep-giay"
+      || slug === "tao-ma-qr"
+      || slug === "du-toan-cuoi"
+        ? "published"
+        : "draft";
     await pool.query(
       `
       INSERT INTO managed_pages (slug, name, title, status, custom_fields)

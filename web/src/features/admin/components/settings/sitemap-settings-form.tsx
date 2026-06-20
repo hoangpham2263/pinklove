@@ -11,7 +11,7 @@ import { finishMutation } from "@/lib/client-mutation";
 import type { SitemapSettings } from "@/lib/system-settings";
 
 const OPTIONS: Array<{ key: keyof SitemapSettings; title: string; description: string }> = [
-  { key: "includeManagedPages", title: "Pages", description: "Bao gồm managed pages như home, gioi-thieu, dich-vu, cong-cu, blog landing..." },
+  { key: "includeManagedPages", title: "Pages", description: "Bao gồm managed pages như home, gioi-thieu, dich-vu, tao-ma-qr, du-toan-cuoi, blog landing..." },
   { key: "includeBlogCategories", title: "Blog Categories", description: "Bao gồm trang category của blog trong sitemap.xml." },
   { key: "includeBlogPosts", title: "Blog Posts", description: "Bao gồm bài viết blog đã publish." },
   { key: "includeOfferings", title: "Offerings", description: "Bao gồm template coded và builder offerings đã publish." },

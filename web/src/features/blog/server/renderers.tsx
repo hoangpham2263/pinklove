@@ -204,10 +204,10 @@ export function renderBlogPostPage({
                 Xem danh mục {post.categoryName}
               </Link>
               <Link
-                href={ROUTES.TOOLS}
+                href={ROUTES.TOOLS_PAGES.WEDDING_BUDGET}
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-stone-950 px-5 text-sm font-semibold text-white transition hover:bg-stone-800 lg:rounded-2xl"
               >
-                Xem công cụ hỗ trợ cưới
+                Dự toán chi phí cưới
               </Link>
             </GuestPanelBody>
           </GuestPanel>

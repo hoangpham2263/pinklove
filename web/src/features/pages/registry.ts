@@ -519,8 +519,8 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
       },
     ],
   },
-  "providers/apply": {
-    slug: "providers/apply",
+  providers: {
+    slug: "providers",
     name: "Nhà cung cấp",
     label: "Trang nhà cung cấp",
     fields: [],
@@ -531,20 +531,14 @@ export const CONTENT_PAGES: Record<string, ContentPageConfig> = {
     label: "Trang affiliate",
     fields: [],
   },
-  "cong-cu": {
-    slug: "cong-cu",
-    name: "Công cụ",
-    label: "Trang công cụ",
-    fields: [],
-  },
-  "cong-cu/tao-ma-qr": {
-    slug: "cong-cu/tao-ma-qr",
+  "tao-ma-qr": {
+    slug: "tao-ma-qr",
     name: "Tạo mã QR",
     label: "Trang công cụ QR",
     fields: [],
   },
-  "cong-cu/du-toan-cuoi": {
-    slug: "cong-cu/du-toan-cuoi",
+  "du-toan-cuoi": {
+    slug: "du-toan-cuoi",
     name: "Dự toán cưới",
     label: "Trang công cụ chi phí cưới",
     fields: [],

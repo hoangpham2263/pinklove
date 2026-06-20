@@ -9,7 +9,6 @@ export const PUBLIC_SITE_ROUTES = Object.freeze({
   SEARCH: "/search",
   SERVICES: "/dich-vu",
   AFFILIATE_APPLY: "/affiliates",
-  TOOLS: "/cong-cu",
   BLOG: "/blog",
   LANDING_PAGES: "/landing",
 });

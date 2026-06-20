@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { AdminCreateButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton } from "@/features/admin/components/admin-table-actions";
+import { MediaSelector } from "@/features/media/components/media-selector";
 import { adminApi } from "@/lib/api-client.admin";
 import { Menu, MenuItemType } from "@/lib/menu";
 import { ManagedPage } from "@/lib/managed-pages";
@@ -40,6 +41,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [newLabel, setNewLabel] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [newMegaMenuSpan, setNewMegaMenuSpan] = useState<"full" | "half" | "third">("half");
   const [newType, setNewType] = useState<MenuItemType>("page");
   const [newPageSlug, setNewPageSlug] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -129,6 +133,7 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
   };
 
   const parentOptions = buildParentOptions(items);
+  const selectedNewParent = parentOptions.find((item) => item.id === newParentId);
   const { items: orderedItems, depths: itemDepths } = flattenItems(items);
   const parentOptionsByItemId = Object.fromEntries(
     orderedItems.map((item) => [item.id, buildParentOptions(items, item.id)])
@@ -197,6 +202,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
         parentId: newParentId || null,
         type: newType,
         label: newLabel,
+        description: newDescription.trim() || null,
+        imageUrl: newImageUrl.trim() || null,
+        megaMenuSpan: selectedNewParent?.depth === 0 ? newMegaMenuSpan : null,
         pageSlug: newType === "page" ? newPageSlug : null,
         url: newType === "custom" ? newUrl : null,
         position: items.length,
@@ -204,6 +212,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
     ]);
 
     setNewLabel("");
+    setNewDescription("");
+    setNewImageUrl("");
+    setNewMegaMenuSpan("half");
     setNewPageSlug("");
     setNewUrl("");
     setNewParentId("");
@@ -224,6 +235,9 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
       normalizedItems.map((item, i) => ({
         id: item.id,
         label: item.label,
+        description: item.description,
+        imageUrl: item.imageUrl,
+        megaMenuSpan: item.megaMenuSpan,
         type: item.type,
         parentId: item.parentId,
         pageSlug: item.pageSlug,
@@ -299,6 +313,20 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
             </div>
 
             <div className="space-y-2">
+              <label>Mô tả</label>
+              <Input
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Mô tả ngắn hiển thị trong menu hover"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label>Ảnh menu</label>
+              <MediaSelector value={newImageUrl} onChange={setNewImageUrl} compact />
+            </div>
+
+            <div className="space-y-2">
               <label>Menu Level</label>
               <select
                 value={newParentId}
@@ -313,6 +341,21 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                 ))}
               </select>
             </div>
+
+            {selectedNewParent?.depth === 0 ? (
+              <div className="space-y-2">
+                <label>Độ rộng nhóm</label>
+                <select
+                  value={newMegaMenuSpan}
+                  onChange={(event) => setNewMegaMenuSpan(event.target.value as "full" | "half" | "third")}
+                  className="h-10 w-full"
+                >
+                  <option value="full">Full width</option>
+                  <option value="half">1/2 chiều rộng</option>
+                  <option value="third">1/3 chiều rộng</option>
+                </select>
+              </div>
+            ) : null}
 
             {newType === "page" ? (
               <div className="space-y-2">
@@ -462,6 +505,44 @@ export function MenuEditor({ menu, availablePages }: MenuEditorProps) {
                         onChange={(event) => updateItemFields(editingItem.id, { label: event.target.value })}
                       />
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Mô tả</label>
+                      <Input
+                        value={editingItem.description ?? ""}
+                        onChange={(event) => updateItemFields(editingItem.id, { description: event.target.value })}
+                        placeholder="Mô tả ngắn hiển thị trong menu hover"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Ảnh menu</label>
+                      <MediaSelector
+                        value={editingItem.imageUrl ?? ""}
+                        onChange={(url) => updateItemFields(editingItem.id, { imageUrl: url })}
+                        compact
+                      />
+                    </div>
+
+                    {(itemDepths[editingItem.id] ?? 0) === 1 ? (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Độ rộng nhóm trong mega menu</label>
+                        <select
+                          value={editingItem.megaMenuSpan ?? "half"}
+                          onChange={(event) => updateItemFields(editingItem.id, {
+                            megaMenuSpan: event.target.value as "full" | "half" | "third",
+                          })}
+                          className="h-10 w-full rounded-md border px-3"
+                        >
+                          <option value="full">Full width</option>
+                          <option value="half">1/2 chiều rộng</option>
+                          <option value="third">1/3 chiều rộng</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground">
+                          Áp dụng cho nhóm cấp 2. Item có mô tả sẽ tự hiển thị mô tả.
+                        </p>
+                      </div>
+                    ) : null}
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Loại link</label>
