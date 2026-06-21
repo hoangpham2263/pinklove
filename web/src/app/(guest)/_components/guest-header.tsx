@@ -301,7 +301,42 @@ export function GuestHeader({
             : "bg-white/40",
         ].join(" ")}
       >
-        <Link href={ROUTES.HOME} className="min-w-0 shrink-0">
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-full">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 1648 90"
+            preserveAspectRatio="none"
+            className="h-full w-full text-guest-primary"
+          >
+            <defs>
+              <mask id="guest-header-stripes-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1648" height="90">
+                <rect width="1648" height="90" rx="45" fill="white" />
+              </mask>
+            </defs>
+            <g mask="url(#guest-header-stripes-mask)">
+              <g opacity="0.05">
+                {Array.from({ length: 28 }).map((_, index) => (
+                  <path
+                    key={`guest-header-stripe-left-${index}`}
+                    d={`M${-195.204 + index * 12.308} 258.353L${552.647 + index * 12.308} -494.294L${-200 + index * 12.308} 253.557L${-195.204 + index * 12.308} 258.353Z`}
+                    fill="currentColor"
+                  />
+                ))}
+              </g>
+              <g opacity="0.08">
+                {Array.from({ length: 28 }).map((_, index) => (
+                  <path
+                    key={`guest-header-stripe-right-${index}`}
+                    d={`M${2002.2 - index * 12.308} -291.387L${1254.35 - index * 12.308} 461.26L${2007 - index * 12.308} -286.591L${2002.2 - index * 12.308} -291.387Z`}
+                    fill="currentColor"
+                  />
+                ))}
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <Link href={ROUTES.HOME} className="relative z-10 min-w-0 shrink-0">
           {siteLogo ? (
             <img src={siteLogo} alt={siteName} className="h-5 max-w-[6.5rem] object-contain pointer-events-none sm:max-w-[11rem] 2xl:h-7.5" />
           ) : (
@@ -309,7 +344,7 @@ export function GuestHeader({
           )}
         </Link>
 
-        <nav className="hidden items-center justify-center gap-4 lg:flex">
+        <nav className="relative z-10 hidden items-center justify-center gap-4 lg:flex">
           {headerTree.map((item) =>
             item.children.length > 0 ? (
               <NavDropdown key={item.id} item={item} />
@@ -321,7 +356,7 @@ export function GuestHeader({
           )}
         </nav>
 
-        <div className="flex items-center justify-end gap-x-2 sm:gap-x-3 lg:gap-x-5">
+        <div className="relative z-10 flex items-center justify-end gap-x-2 sm:gap-x-3 lg:gap-x-5">
           {user ? (
             <NotificationBell
               triggerClassName={headerIconButtonClassName}

@@ -1,7 +1,14 @@
 @theme inline {
   --color-guest-primary: #ff6ff5;
   --color-guest-secondary: #ffffff;
+  --color-guest-text: #212529;
+  --color-guest-border: #efd8ec;
+  --color-guest-placeholder: #a8a0aa;
   --shadow-default: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+body:has([data-guest-header]) {
+  color: var(--color-guest-text);
 }
 
 @keyframes phone-ring {
