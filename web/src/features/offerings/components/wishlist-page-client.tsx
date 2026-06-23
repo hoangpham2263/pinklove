@@ -10,6 +10,7 @@ import {
   GuestPanelBody,
   GuestShell,
 } from "@/app/(guest)/_components/guest-ui";
+import { NativeForm } from "@/components/common/native-form";
 import {
   Table,
   TableBody,
@@ -131,7 +132,7 @@ export function WishlistPageClient({
             </GuestPanelBody>
           </GuestPanel>
         ) : (
-          <form action={ROUTES.CHECKOUT.INDEX} method="GET" className="grid gap-5 lg:grid-cols-12">
+          <NativeForm action={ROUTES.CHECKOUT.INDEX} method="GET" className="grid gap-5 lg:grid-cols-12">
             {visibleSelectedIds.map((id) => (
               <input key={id} type="hidden" name="selectedOfferingIds" value={id} />
             ))}
@@ -271,7 +272,7 @@ export function WishlistPageClient({
                 </button>
               </GuestPanelBody>
             </GuestPanel>
-          </form>
+          </NativeForm>
         )}
         </div>
       </GuestShell>

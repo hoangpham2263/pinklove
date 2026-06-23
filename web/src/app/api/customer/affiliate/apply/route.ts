@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try {
     await applyForAffiliate({
       userId: user.id,
-      username: user.username,
+      accountName: user.accountName,
       preferredCode,
     });
     return respondSuccess(request, {

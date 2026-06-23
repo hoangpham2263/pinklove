@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, BookHeart, Mail, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { BlogCard } from "@/features/blog/components/blog-card";
@@ -37,6 +38,7 @@ function PostImage({ post, className }: { post: BlogPost; className?: string }) 
 }
 
 export function BlogTabs({ categories, posts, title, excerpt }: BlogTabsProps) {
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState("");
   const featuredPost = posts[0];
   const featuredSidePosts = posts.slice(1, 4);
@@ -78,7 +80,7 @@ export function BlogTabs({ categories, posts, title, excerpt }: BlogTabsProps) {
       url.searchParams.delete("category");
     }
 
-    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    router.push(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
     setActiveCategory(categorySlug);
   }
 
@@ -297,7 +299,7 @@ export function BlogTabs({ categories, posts, title, excerpt }: BlogTabsProps) {
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-[#b529aa]">Đăng ký nhận bản tin</p>
             <h2 className="text-3xl font-black tracking-[-0.03em] sm:text-4xl lg:text-5xl">Cảm hứng mới cho ngày trọng đại.</h2>
             <p className="mx-auto mt-4 max-w-xl leading-7 text-stone-600">Nhận các bài viết chọn lọc, checklist và ý tưởng cưới mới nhất từ PinkLove.</p>
-            <form className="mx-auto mt-8 flex max-w-lg flex-col gap-3 sm:flex-row">
+            <form className="mx-auto mt-8 flex max-w-lg flex-col gap-3 sm:flex-row" onSubmit={(event) => event.preventDefault()}>
               <input type="email" aria-label="Email nhận bản tin" placeholder="Email của bạn" className="h-13 flex-1 rounded-full border border-white bg-white/85 px-6 text-sm outline-none ring-[#ff6ff5]/25 transition focus:ring-4" />
               <button type="submit" className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-stone-950 px-7 text-sm font-bold text-white transition hover:bg-[#b529aa]">
                 Đăng ký <ArrowRight className="size-4" />

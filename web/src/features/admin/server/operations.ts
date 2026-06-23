@@ -10,7 +10,7 @@ export async function listAuditLogs() {
         log.target_type,
         log.target_id,
         log.field_key,
-        COALESCE(profile.display_name, account.username, log.actor_id, 'System') AS actor,
+        COALESCE(profile.display_name, account.account_name, log.actor_id, 'System') AS actor,
         log.old_value::text,
         log.new_value::text,
         log.created_at::text

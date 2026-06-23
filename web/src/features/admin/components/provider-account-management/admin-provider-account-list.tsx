@@ -59,7 +59,7 @@ type AdminProviderAccountListProps = {
 };
 
 function getProviderName(provider: AccountUser) {
-  return provider.displayName || provider.fullName || provider.username;
+  return provider.displayName || provider.fullName || provider.accountName;
 }
 
 function getAccountStatusLabel(status: AccountStatus) {
@@ -202,7 +202,7 @@ function PortalCopyRow({
 }
 
 function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow }) {
-  const [copiedField, setCopiedField] = useState<"portal" | "username" | "all" | null>(null);
+  const [copiedField, setCopiedField] = useState<"portal" | "email" | "all" | null>(null);
 
   if (!provider.providerPortalSlug) {
     return (
@@ -213,9 +213,9 @@ function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow
   }
 
   const portalUrl = getPortalUrl(ROUTES.PROVIDER.ROOT);
-  const allText = `Portal: ${portalUrl}\nUsername: ${provider.username}`;
+  const allText = `Portal: ${portalUrl}\nEmail: ${provider.email}`;
 
-  async function handleCopy(value: string, field: "portal" | "username" | "all", message: string) {
+  async function handleCopy(value: string, field: "portal" | "email" | "all", message: string) {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
     toast(message);
@@ -232,10 +232,10 @@ function ProviderPortalPreview({ provider }: { provider: AdminProviderAccountRow
           onCopy={() => handleCopy(portalUrl, "portal", "Đã copy link portal đối tác.")}
         />
         <PortalCopyRow
-          label="Username"
-          value={provider.username}
-          copied={copiedField === "username"}
-          onCopy={() => handleCopy(provider.username, "username", "Đã copy username đối tác.")}
+          label="Email"
+          value={provider.email}
+          copied={copiedField === "email"}
+          onCopy={() => handleCopy(provider.email, "email", "Đã copy email đối tác.")}
         />
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           Không hiển thị mật khẩu cũ. Reset mật khẩu trong màn hình sửa tài khoản nếu cần gửi password mới.
@@ -394,7 +394,7 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
 
       const provider = row.original;
       return [
-        provider.username,
+        provider.accountName,
         provider.fullName,
         provider.displayName,
         provider.phone,
@@ -434,7 +434,7 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
         <AdminTableSearch
           value={globalFilter}
           onChange={setGlobalFilter}
-          placeholder="Tìm provider, username, portal, loại..."
+          placeholder="Tìm provider, accountName, portal, loại..."
         />
         <AdminTableSelect
           value={statusFilterValue}
@@ -527,13 +527,13 @@ export function AdminProviderAccountList({ providerAccounts }: AdminProviderAcco
             <div className="space-y-6">
               <DialogHeader>
                 <DialogTitle>{getProviderName(previewProvider)}</DialogTitle>
-                <DialogDescription>@{previewProvider.username}</DialogDescription>
+                <DialogDescription>@{previewProvider.accountName}</DialogDescription>
               </DialogHeader>
 
               <PreviewSection title="Tài khoản">
                 <div className="grid gap-3 md:grid-cols-2">
                   <PreviewField label="ID" value={<span className="break-all">{previewProvider.id}</span>} />
-                  <PreviewField label="Username" value={previewProvider.username} />
+                  <PreviewField label="Account name" value={previewProvider.accountName} />
                   <PreviewField label="Tên hiển thị" value={previewProvider.displayName || "—"} />
                   <PreviewField label="Họ tên" value={previewProvider.fullName || "—"} />
                   <PreviewField label="Điện thoại" value={previewProvider.phone || "—"} />

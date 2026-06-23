@@ -39,7 +39,7 @@ export default async function CustomerConfigPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const [profile, addresses] = await Promise.all([getUserProfile(user.id), listUserAddresses(user.id)]);
   const totalItems = CONFIG_SECTIONS.reduce((sum, section) => sum + section.items.length, 0);
-  const displayName = profile.displayName || profile.fullName || user.username;
+  const displayName = profile.displayName || profile.fullName || user.accountName;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">

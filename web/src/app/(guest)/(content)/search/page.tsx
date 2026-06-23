@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NativeForm } from "@/components/common/native-form";
 import {
   GuestLinkButton,
   GuestPanel,
@@ -61,7 +62,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
       <GuestPanel>
         <GuestPanelBody className="space-y-4">
-          <form action={ROUTES.SEARCH} method="GET" className="flex flex-col gap-3 md:flex-row">
+          <NativeForm action={ROUTES.SEARCH} method="GET" className="flex flex-col gap-3 md:flex-row">
             <input
               type="search"
               name="q"
@@ -75,7 +76,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             >
               Tim kiem
             </button>
-          </form>
+          </NativeForm>
           {!query ? (
             <div className="flex flex-wrap gap-3">
               <GuestLinkButton href={ROUTES.TEMPLATES}>Xem thiệp mẫu sẵn</GuestLinkButton>

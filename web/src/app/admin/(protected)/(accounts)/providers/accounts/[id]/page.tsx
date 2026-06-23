@@ -44,7 +44,7 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight">
-          Chỉnh sửa provider: {provider.displayName || provider.fullName || provider.username}
+          Chỉnh sửa provider: {provider.displayName || provider.fullName || provider.accountName}
         </h1>
       </div>
 
@@ -53,7 +53,7 @@ export default async function AdminProviderAccountDetailPage({ params }: AdminPr
           <ProviderAccountEditForm provider={provider} />
 
           {providerPortalSlug ? (
-            <ProviderPortalInfoCard path={ROUTES.PROVIDER.ROOT} username={provider.username} />
+            <ProviderPortalInfoCard path={ROUTES.PROVIDER.ROOT} email={provider.email} />
           ) : null}
 
           <Card className="min-w-0 overflow-visible rounded-lg gap-0">

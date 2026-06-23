@@ -37,7 +37,7 @@ export default async function CustomerProviderPage() {
   const user = await requireAppUser(ROUTES.AUTH.LOGIN);
   const profile = await getUserProfile(user.id);
   const isProvider = isProviderRole(user.role);
-  const displayName = profile.displayName || profile.fullName || user.username;
+  const displayName = profile.displayName || profile.fullName || user.accountName;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -80,7 +80,7 @@ export default async function CustomerProviderPage() {
               </div>
             </CardHeader>
             <CardContent className="grid gap-4 p-5 md:grid-cols-2">
-              <SummaryBox label="Tên đăng nhập" value={user.username} />
+              <SummaryBox label="Tên tài khoản" value={user.accountName} />
               <SummaryBox label="Tên hiển thị" value={displayName} />
               <SummaryBox label="Điện thoại" value={profile.phone || "Chưa cập nhật"} />
               <SummaryBox label="Vai trò" value={isProvider ? "PROVIDER" : user.role} />

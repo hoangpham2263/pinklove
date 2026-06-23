@@ -6,6 +6,7 @@ export type GoogleUserInfo = {
  sub: string;
  email: string;
  name?: string;
+ email_verified?: boolean;
 };
 
 async function getGoogleConfig() {

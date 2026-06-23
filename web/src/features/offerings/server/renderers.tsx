@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { JsonLd } from "@/components/common/json-ld";
+import { NativeForm } from "@/components/common/native-form";
 import { PagedCarousel } from "@/components/common/paged-carousel";
 import {
   GuestButton,
@@ -490,12 +491,12 @@ export async function renderBuilderOfferingPage(offering: Offering) {
               className={wishlistOfferingActionClassName}
             />
             {user ? (
-              <form action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} method="POST">
+              <NativeForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_BUILDER} method="POST">
                 <input type="hidden" name="offeringSlug" value={offering.slug} />
                 <GuestButton type="submit" className={primaryOfferingActionClassName}>
                   Sử dụng mẫu
                 </GuestButton>
-              </form>
+              </NativeForm>
             ) : (
               <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
                 Sử dụng mẫu
@@ -584,7 +585,7 @@ export async function renderGeneralOfferingPage(offering: Offering) {
             />
             {offering.fulfillmentType === "service" ? (
               user ? (
-                <form action={ROUTES.API.CUSTOMER.BOOKINGS_CREATE} method="POST">
+                <NativeForm action={ROUTES.API.CUSTOMER.BOOKINGS_CREATE} method="POST">
                   <input type="hidden" name="offeringId" value={offering.id} />
                   <input type="hidden" name="providerId" value={offering.ownerProviderId ?? ""} />
                   <input type="hidden" name="providerType" value={offering.ownerProviderType ?? ""} />
@@ -593,21 +594,21 @@ export async function renderGeneralOfferingPage(offering: Offering) {
                   <GuestButton type="submit" className={primaryOfferingActionClassName}>
                     Đặt trực tiếp
                   </GuestButton>
-                </form>
+                </NativeForm>
               ) : (
                 <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
                   Đặt trực tiếp
                 </GuestLinkButton>
               )
             ) : user ? (
-              <form action={ROUTES.API.CUSTOMER.WISHLIST} method="POST">
+              <NativeForm action={ROUTES.API.CUSTOMER.WISHLIST} method="POST">
                 <input type="hidden" name="intent" value="add" />
                 <input type="hidden" name="offeringId" value={offering.id} />
                 <input type="hidden" name="returnTo" value={ROUTES.WISHLIST} />
                 <GuestButton type="submit" className={primaryOfferingActionClassName}>
                   Mua ngay
                 </GuestButton>
-              </form>
+              </NativeForm>
             ) : (
               <GuestLinkButton href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(getOfferingPath(offering))}`} className={primaryOfferingActionClassName}>
                 Mua ngay

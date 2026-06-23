@@ -124,7 +124,7 @@ export function UserManagement({
         cell: ({ row }) => (
           <input
             type="checkbox"
-            aria-label={`Select ${row.original.username}`}
+            aria-label={`Select ${row.original.accountName}`}
             className="h-4 w-4 rounded border border-input"
             checked={row.getIsSelected()}
             disabled={row.original.id === actor.id}
@@ -133,19 +133,28 @@ export function UserManagement({
         ),
       },
       {
-        accessorKey: "username",
+        accessorKey: "accountName",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-            Tên đăng nhập</AdminTableSortButton>
+            Tên tài khoản</AdminTableSortButton>
         ),
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.username}
+            {row.original.accountName}
             {row.original.id === actor.id ? (
               <span className="ml-2 text-xs italic text-muted-foreground">(bạn)</span>
             ) : null}
           </div>
         ),
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Email
+          </AdminTableSortButton>
+        ),
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.email}</span>,
       },
       {
         accessorKey: "role",
@@ -196,7 +205,7 @@ export function UserManagement({
                   <ProviderPortalCopyButton
                     label="Xem thông tin"
                     path={ROUTES.PROVIDER.ROOT}
-                    username={user.username}
+                    email={user.email}
                   />
                   <AdminLinkButton href={ROUTES.PROVIDER.ROOT}>Portal Link</AdminLinkButton>
                   <AdminLinkButton href={ROUTES.ADMIN.PROVIDER_ACCOUNT(user.id)}>Quản lý đơn riêng</AdminLinkButton>
@@ -229,7 +238,7 @@ export function UserManagement({
                 className="inline-block"
                 onSubmit={async (event) => {
                   event.preventDefault();
-                  if (!confirm(`Bạn có chắc chắn muốn xóa người dùng: ${user.username}?`)) {
+                  if (!confirm(`Bạn có chắc chắn muốn xóa người dùng: ${user.accountName}?`)) {
                     return;
                   }
 
@@ -272,7 +281,7 @@ export function UserManagement({
       if (!keyword) return true;
 
       const user = row.original;
-      return [user.username, user.role, getAccountRoleLabel(user)]
+      return [user.accountName, user.email, user.role, getAccountRoleLabel(user)]
         .concat(user.accountStatus, getAccountStatusLabel(user.accountStatus), user.accountStatusReason)
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
@@ -294,7 +303,7 @@ export function UserManagement({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <AdminTableToolbar>
-          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tên đăng nhập hoặc vai trò..." />
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tên tài khoản, email hoặc vai trò..." />
           <AdminTableSelect
             value={roleFilterValue}
             label="Lọc vai trò"
@@ -417,8 +426,12 @@ export function UserManagement({
                   <p className="break-all text-sm text-muted-foreground">{previewUser.id}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm">Tên đăng nhập</p>
-                  <p className="text-sm text-muted-foreground">{previewUser.username}</p>
+                  <p className="text-sm">Tên tài khoản</p>
+                  <p className="text-sm text-muted-foreground">{previewUser.accountName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm">Email</p>
+                  <p className="break-all text-sm text-muted-foreground">{previewUser.email}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Vai trò</p>

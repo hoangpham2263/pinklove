@@ -155,7 +155,7 @@ const bookingListSelect = `
   SELECT
     booking.id,
     booking.booking_number,
-    COALESCE(profile.display_name, account.username, 'Guest') AS customer,
+    COALESCE(profile.display_name, account.account_name, 'Guest') AS customer,
     booking.status,
     booking.scheduled_at::text,
     booking.total_amount::text,
@@ -195,7 +195,7 @@ export async function listBookingsForAdmin() {
   const result = await query<BookingListRow>(
     `
       ${bookingListSelect}
-      GROUP BY booking.id, profile.display_name, account.username
+      GROUP BY booking.id, profile.display_name, account.account_name
       ORDER BY booking.created_at DESC
     `
   );
@@ -207,7 +207,7 @@ export async function listBookingsForCustomer(userId: string) {
     `
       ${bookingListSelect}
       WHERE booking.user_id = $1
-      GROUP BY booking.id, profile.display_name, account.username
+      GROUP BY booking.id, profile.display_name, account.account_name
       ORDER BY booking.created_at DESC
     `,
     [userId]
@@ -225,7 +225,7 @@ export async function listBookingsForProvider(providerId: string) {
         WHERE provider_item.booking_id = booking.id
           AND provider_item.provider_id = $1
       )
-      GROUP BY booking.id, profile.display_name, account.username
+      GROUP BY booking.id, profile.display_name, account.account_name
       ORDER BY booking.created_at DESC
     `,
     [providerId]

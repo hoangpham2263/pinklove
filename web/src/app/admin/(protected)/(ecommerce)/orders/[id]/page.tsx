@@ -49,7 +49,7 @@ export default async function AdminOrderDetailPage({
       ? approvedSupplierOptions
       : providerAccounts.map((provider) => ({
           id: provider.id,
-          label: provider.displayName || provider.fullName || provider.username,
+          label: provider.displayName || provider.fullName || provider.accountName,
         }));
 
   return (

@@ -150,7 +150,7 @@ export default async function CustomerLayout({
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
         <CustomerTopHeader
-          username={user.username}
+          accountName={user.accountName}
           breadcrumbEnabled={settings.breadcrumb.customerEnabled}
           breadcrumbSeparator={settings.breadcrumb.customerSeparator}
         />

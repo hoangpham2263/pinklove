@@ -69,19 +69,20 @@ async function fetchRows(client, sql, params = []) {
   return result.rows;
 }
 
-async function upsertUser(client, { username, role, displayName, fullName, phone, providerPortalSlug, bio }) {
+async function upsertUser(client, { accountName, role, displayName, fullName, phone, providerPortalSlug, bio }) {
   const user = await fetchRow(
     client,
     `
-      INSERT INTO users (username, password_hash, role)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (username)
+      INSERT INTO users (email, account_name, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (LOWER(BTRIM(email)))
       DO UPDATE SET
+        account_name = EXCLUDED.account_name,
         password_hash = EXCLUDED.password_hash,
         role = EXCLUDED.role
-      RETURNING id, username, role
+      RETURNING id, email, account_name AS "accountName", role
     `,
-    [username, hashPassword(PASSWORD), role]
+    [`${accountName}@example.local`, accountName, hashPassword(PASSWORD), role]
   );
 
   await client.query(
@@ -454,7 +455,7 @@ async function seedLeadQuoteBookingFlow(client, { customer, provider, offering, 
         SELECT id FROM bookings WHERE metadata ->> 'seedKey' = $1
       )
     `,
-    [`lead-${customer.username}-${provider.slug}-${status}`]
+    [`lead-${customer.accountName}-${provider.slug}-${status}`]
   );
   await client.query(
     `
@@ -463,9 +464,9 @@ async function seedLeadQuoteBookingFlow(client, { customer, provider, offering, 
         SELECT id FROM bookings WHERE metadata ->> 'seedKey' = $1
       )
     `,
-    [`lead-${customer.username}-${provider.slug}-${status}`]
+    [`lead-${customer.accountName}-${provider.slug}-${status}`]
   );
-  await client.query("DELETE FROM bookings WHERE metadata ->> 'seedKey' = $1", [`lead-${customer.username}-${provider.slug}-${status}`]);
+  await client.query("DELETE FROM bookings WHERE metadata ->> 'seedKey' = $1", [`lead-${customer.accountName}-${provider.slug}-${status}`]);
   await client.query("DELETE FROM vendor_leads WHERE message = $1 AND user_id = $2 AND provider_id = $3", [message, customer.id, provider.id]);
 
   const lead = await fetchRow(
@@ -513,7 +514,7 @@ async function seedLeadQuoteBookingFlow(client, { customer, provider, offering, 
       (Number(offering.base_price ?? 0) || 1200000) + 300000,
       JSON.stringify({
         source: "seed_provider_portal_fixtures",
-        seedKey: `lead-${customer.username}-${provider.slug}-${status}`,
+        seedKey: `lead-${customer.accountName}-${provider.slug}-${status}`,
         vendorLeadId: lead.id,
         vendorQuoteId: quote.id,
         providerTimeSlotId: slot.id,
@@ -1078,7 +1079,7 @@ async function main() {
     const [offeringA, offeringB = offerings[0], offeringC = offerings[0]] = offerings;
 
     const admin = await upsertUser(client, {
-      username: "admin_seed",
+      accountName: "admin_seed",
       role: "ADMIN",
       displayName: "Admin Seed",
       fullName: "Admin Seed",
@@ -1087,7 +1088,7 @@ async function main() {
     });
 
     const providerAlpha = await upsertUser(client, {
-      username: "provider_alpha",
+      accountName: "provider_alpha",
       role: "PROVIDER",
       displayName: "Xuong In Alpha",
       fullName: "Xuong In Alpha",
@@ -1097,7 +1098,7 @@ async function main() {
     });
 
     const providerBeta = await upsertUser(client, {
-      username: "provider_beta",
+      accountName: "provider_beta",
       role: "PROVIDER",
       displayName: "Xuong In Beta",
       fullName: "Xuong In Beta",
@@ -1107,7 +1108,7 @@ async function main() {
     });
 
     const customerOne = await upsertUser(client, {
-      username: "customer_one",
+      accountName: "customer_one",
       role: "CUSTOMER",
       displayName: "Nguyen Lan",
       fullName: "Nguyen Lan",
@@ -1116,7 +1117,7 @@ async function main() {
     });
 
     const customerTwo = await upsertUser(client, {
-      username: "customer_two",
+      accountName: "customer_two",
       role: "CUSTOMER",
       displayName: "Tran Minh",
       fullName: "Tran Minh",
@@ -1389,7 +1390,7 @@ async function main() {
       seededOrders.push({
         orderNumber: scenario.orderNumber,
         assignmentId: assignment.id,
-        providerUsername: scenario.provider.username,
+        providerUsername: scenario.provider.accountName,
         orderDetailLink: formatLink(`/provider/orders/${assignment.id}`),
         portalLink: formatLink(`/provider`),
       });
@@ -1402,27 +1403,27 @@ async function main() {
         {
           password: PASSWORD,
           admin: {
-            username: admin.username,
+            accountName: admin.accountName,
             loginLink: formatLink("/admin/login"),
           },
           providers: [
             {
-              username: providerAlpha.username,
+              accountName: providerAlpha.accountName,
               portalSlug: "xuong-in-alpha",
               portalLink: formatLink("/provider"),
             },
             {
-              username: providerBeta.username,
+              accountName: providerBeta.accountName,
               portalSlug: "xuong-in-beta",
               portalLink: formatLink("/provider"),
             },
           ],
           customers: [
             {
-              username: customerOne.username,
+              accountName: customerOne.accountName,
             },
             {
-              username: customerTwo.username,
+              accountName: customerTwo.accountName,
             },
           ],
           marketplace: {

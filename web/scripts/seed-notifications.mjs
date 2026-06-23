@@ -86,12 +86,14 @@ async function ensureSchema(client) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
-      username TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
+      email TEXT NOT NULL,
+      account_name TEXT NOT NULL,
+      password_hash TEXT,
       role TEXT NOT NULL DEFAULT 'CUSTOMER',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+  await client.query("CREATE UNIQUE INDEX IF NOT EXISTS users_email_normalized_uidx ON users (LOWER(BTRIM(email)))");
 
   await client.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT");
   await client.query(`
@@ -177,16 +179,16 @@ async function ensureSchema(client) {
   `);
 }
 
-async function upsertUser(client, { username, role }) {
+async function upsertUser(client, { email, accountName, role }) {
   const result = await client.query(
     `
-      INSERT INTO users (username, password_hash, role)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (username)
-      DO UPDATE SET role = EXCLUDED.role
-      RETURNING id, username, role
+      INSERT INTO users (email, account_name, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (LOWER(BTRIM(email)))
+      DO UPDATE SET account_name = EXCLUDED.account_name, role = EXCLUDED.role
+      RETURNING id, account_name AS "accountName", role
     `,
-    [username, hashPassword(PASSWORD), role]
+    [email, accountName, hashPassword(PASSWORD), role]
   );
 
   return result.rows[0];
@@ -250,10 +252,10 @@ async function main() {
     await client.query("BEGIN");
     await ensureSchema(client);
 
-    const admin = await upsertUser(client, { username: "seed-admin", role: "ADMIN" });
-    const customer = await upsertUser(client, { username: "seed-customer", role: "CUSTOMER" });
-    const affiliate = await upsertUser(client, { username: "seed-affiliate", role: "AFFILIATE" });
-    const provider = await upsertUser(client, { username: "seed-provider", role: "PROVIDER" });
+    const admin = await upsertUser(client, { email: "seed-admin@example.local", accountName: "Seed Admin", role: "ADMIN" });
+    const customer = await upsertUser(client, { email: "seed-customer@example.local", accountName: "Seed Customer", role: "CUSTOMER" });
+    const affiliate = await upsertUser(client, { email: "seed-affiliate@example.local", accountName: "Seed Affiliate", role: "AFFILIATE" });
+    const provider = await upsertUser(client, { email: "seed-provider@example.local", accountName: "Seed Provider", role: "PROVIDER" });
 
     await client.query(
       `

@@ -91,7 +91,7 @@ export default async function ProviderDashboardPage() {
       [provider.id],
     ),
   ]);
-  const providerName = profile.displayName || profile.fullName || provider.username;
+  const providerName = profile.displayName || profile.fullName || provider.accountName;
   const portalHref = ROUTES.PROVIDER.ROOT;
   const revenueSummary = revenueSummaryResult.rows[0];
   const paidRevenue30d = asNumber(revenueSummary?.paid_revenue_30d);

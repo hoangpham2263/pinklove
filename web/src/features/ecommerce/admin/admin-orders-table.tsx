@@ -13,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -66,7 +67,7 @@ function OrderEditDialog({ order }: { order: AdminOrderRow }) {
           <DialogTitle>Cập nhật đơn hàng</DialogTitle>
           <DialogDescription>Thay đổi trạng thái đơn hàng, thanh toán và fulfillment.</DialogDescription>
         </DialogHeader>
-        <form action={ROUTES.API.ADMIN.ORDERS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
+        <NativeForm action={ROUTES.API.ADMIN.ORDERS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
           <input type="hidden" name="orderId" value={order.id} />
           <div className="space-y-2">
             <label className="text-sm">Mã đơn</label>
@@ -113,7 +114,7 @@ function OrderEditDialog({ order }: { order: AdminOrderRow }) {
           <div className="md:col-span-2">
             <AdminSubmitButton>Lưu</AdminSubmitButton>
           </div>
-        </form>
+        </NativeForm>
       </DialogContent>
     </Dialog>
   );

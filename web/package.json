@@ -44,6 +44,7 @@
     "clsx": "^2.1.1",
     "dvhcvn": "^1.2.20250301",
     "konva": "^10.2.3",
+    "libphonenumber-js": "^1.13.7",
     "lightningcss-linux-arm64-gnu": "^1.32.0",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",

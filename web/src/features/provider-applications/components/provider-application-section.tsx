@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Factory, ShieldCheck, Truck } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
@@ -104,7 +105,7 @@ export function ProviderApplicationSection({
               </div>
             ) : null}
 
-            <form action={ROUTES.API.APPLICATIONS.PROVIDER} method="POST" className="space-y-4">
+            <NativeForm action={ROUTES.API.APPLICATIONS.PROVIDER} method="POST" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-900">Tên doanh nghiệp / xưởng in</label>
@@ -157,7 +158,7 @@ export function ProviderApplicationSection({
                 <Button type="submit" className="rounded-full px-6">Gửi hồ sơ đăng ký</Button>
                 <Button type="button" variant="outline" className="rounded-full px-6" render={<Link href={ROUTES.CONTACT}>Liên hệ trước với đội ngũ</Link>} />
               </div>
-            </form>
+            </NativeForm>
           </div>
         </div>
       </div>

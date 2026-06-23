@@ -64,8 +64,11 @@ export function UserCreateForm({
           </CardHeader>
           <CardContent className="space-y-5 pt-5">
             <div className="grid gap-5 md:grid-cols-2">
-              <AdminField label="Tên đăng nhập">
-                <AdminInput name="username" required />
+              <AdminField label="Email">
+                <AdminInput name="email" type="email" required />
+              </AdminField>
+              <AdminField label="Tên tài khoản">
+                <AdminInput name="accountName" required />
               </AdminField>
               <AdminField label="Mật khẩu">
                 <PasswordInput

@@ -1,6 +1,7 @@
 "use client";
 
 import { PackageCheck, Truck } from "lucide-react";
+import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { AdminCreateLinkButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
@@ -96,7 +97,7 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                     <TableCell>{formatVnd(connection.flatShippingFee)}</TableCell>
                     <TableCell>{formatVnd(connection.freeShippingThreshold)}</TableCell>
                     <TableCell>
-                      <form
+                      <NativeForm
                         id={`shipping-toggle-${connection.code}`}
                         action={ROUTES.API.ADMIN.CONFIG.SHIPPING_SAVE}
                         method="POST"
@@ -113,14 +114,14 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                             form?.requestSubmit();
                           }}
                         />
-                      </form>
+                      </NativeForm>
                     </TableCell>
                     <TableCell>
                       <AdminTableActions>
                         <Badge variant="secondary">{connection.pickupAddressId ? "Pickup mapped" : "No pickup"}</Badge>
                         <AdminTableActionButton action="view" label="Xem nhanh" onClick={() => setPreviewCode(connection.code)} />
                         <AdminTableActionButton action="edit" label="Sửa shipping" href={ROUTES.ADMIN.CONFIG_SHIPPING_CONNECTION(connection.code)} />
-                        <form
+                        <NativeForm
                           action={ROUTES.API.ADMIN.CONFIG.SHIPPING_DELETE}
                           method="POST"
                           onSubmit={(event) => {
@@ -131,7 +132,7 @@ export function ShippingConnectionsTable({ connections }: ShippingConnectionsTab
                         >
                           <input type="hidden" name="code" value={connection.code} />
                           <AdminTableActionButton action="delete" label="Xóa shipping" type="submit" />
-                        </form>
+                        </NativeForm>
                       </AdminTableActions>
                     </TableCell>
                   </TableRow>

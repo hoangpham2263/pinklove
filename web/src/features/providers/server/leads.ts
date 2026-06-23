@@ -27,7 +27,7 @@ export async function listVendorLeadsForAdmin() {
       SELECT
         lead.id,
         provider.display_name AS provider,
-        COALESCE(profile.display_name, account.username) AS customer,
+        COALESCE(profile.display_name, account.account_name) AS customer,
         offering.name AS offering,
         lead.budget::text,
         lead.event_date::text,
@@ -161,7 +161,7 @@ export async function listVendorLeadsForProvider(providerId: string) {
     `
       SELECT
         lead.*,
-        COALESCE(profile.display_name, users.username) AS customer_name,
+        COALESCE(profile.display_name, users.account_name) AS customer_name,
         offering.name AS offering_name,
         quote.id AS quote_id,
         quote.amount::text AS quote_amount,

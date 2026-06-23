@@ -73,7 +73,7 @@ export async function listProviderReviews(providerId: string) {
     `
       SELECT
         review.id,
-        COALESCE(profile.display_name, account.username, 'Customer') AS customer,
+        COALESCE(profile.display_name, account.account_name, 'Customer') AS customer,
         review.rating,
         review.status,
         review.content,
@@ -96,7 +96,7 @@ export async function listAllProviderReviews() {
       SELECT
         review.id,
         provider.display_name AS provider,
-        COALESCE(profile.display_name, account.username, 'Customer') AS customer,
+        COALESCE(profile.display_name, account.account_name, 'Customer') AS customer,
         review.rating,
         review.status,
         review.content,

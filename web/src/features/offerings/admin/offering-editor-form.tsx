@@ -39,7 +39,7 @@ type ProviderOption = {
   display_name?: string;
   displayName?: string;
   fullName?: string;
-  username?: string;
+  accountName?: string;
 };
 
 type OfferingEditorFormProps = {
@@ -607,7 +607,7 @@ export function OfferingEditorForm({
                           <option value="">Chọn provider</option>
                           {providers.map((provider) => (
                             <option key={provider.id} value={provider.id}>
-                              {provider.displayName || provider.display_name || provider.fullName || provider.username}
+                              {provider.displayName || provider.display_name || provider.fullName || provider.accountName}
                             </option>
                           ))}
                         </AdminSelect>

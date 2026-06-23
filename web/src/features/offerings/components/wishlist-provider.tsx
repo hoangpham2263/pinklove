@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { customerApi } from "@/lib/api-client.customer";
 import { WishlistContext } from "@/features/offerings/use-wishlist";
 import type { WishlistOfferingInput } from "@/features/offerings/wishlist";
@@ -26,6 +27,7 @@ export function WishlistProvider({
   initialOfferingIds,
   children,
 }: WishlistProviderProps) {
+  const router = useRouter();
   const [offeringIds, setOfferingIds] = useState(initialOfferingIds);
 
   const isWishlisted = useCallback(
@@ -35,7 +37,7 @@ export function WishlistProvider({
 
   const toggleOffering = useCallback(async (offering: WishlistOfferingInput) => {
     if (!authenticated) {
-      window.location.href = buildLoginHref();
+      router.push(buildLoginHref());
       return null;
     }
 
@@ -58,17 +60,17 @@ export function WishlistProvider({
       };
     } catch (error) {
       if (error instanceof Error && /Please login first/i.test(error.message)) {
-        window.location.href = buildLoginHref();
+        router.push(buildLoginHref());
         return null;
       }
 
       throw error;
     }
-  }, [authenticated]);
+  }, [authenticated, router]);
 
   const removeOffering = useCallback(async (offering: WishlistOfferingInput) => {
     if (!authenticated) {
-      window.location.href = buildLoginHref();
+      router.push(buildLoginHref());
       return null;
     }
 
@@ -90,13 +92,13 @@ export function WishlistProvider({
       };
     } catch (error) {
       if (error instanceof Error && /Please login first/i.test(error.message)) {
-        window.location.href = buildLoginHref();
+        router.push(buildLoginHref());
         return null;
       }
 
       throw error;
     }
-  }, [authenticated]);
+  }, [authenticated, router]);
 
   const value = useMemo(() => ({
     authenticated,

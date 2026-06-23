@@ -1,4 +1,5 @@
 import { FileText, PackageCheck, ShoppingCart, Truck } from "lucide-react";
+import { NativeForm } from "@/components/common/native-form";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
         <AdminOverviewCard title="Shipping" value={settings.ecommerce.shippingAccounts.filter((account) => account.enabled).length} icon={PackageCheck} />
       </AdminOverviewGrid>
 
-      <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
+      <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
         <input type="hidden" name="section" value="ecommerce" />
 
         <Card className="rounded-lg">
@@ -113,7 +114,7 @@ export function EcommerceSettingsForm({ settings }: EcommerceSettingsFormProps) 
         <div className="flex justify-end">
           <AdminSubmitButton>Lưu cấu hình checkout</AdminSubmitButton>
         </div>
-      </form>
+      </NativeForm>
     </>
   );
 }

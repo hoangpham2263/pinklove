@@ -116,7 +116,7 @@ function ReviewCard({ review }: { review: ContentComment }) {
 export async function OfferingReviewSection({ target, embedded = false }: OfferingReviewSectionProps) {
   const [user, reviews] = await Promise.all([getCurrentUser(), listApprovedOfferingReviews(target)]);
   const profile = user ? await getUserProfile(user.id) : null;
-  const reviewAuthorName = profile?.displayName || profile?.fullName || user?.username || "";
+  const reviewAuthorName = profile?.displayName || profile?.fullName || user?.accountName || "";
   const averageRating = getAverageRating(reviews);
   const distribution = getRatingDistribution(reviews);
   const maxCount = Math.max(1, ...distribution.map((item) => item.count));

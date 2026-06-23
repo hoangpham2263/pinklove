@@ -74,7 +74,7 @@ export default async function ProviderWorkspaceLayout({
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
         <ProviderWorkspaceTopHeader
-          username={provider.username}
+          accountName={provider.accountName}
           portalHref={portalHref}
           breadcrumbEnabled={settings.breadcrumb.providerEnabled}
           breadcrumbSeparator={settings.breadcrumb.providerSeparator}

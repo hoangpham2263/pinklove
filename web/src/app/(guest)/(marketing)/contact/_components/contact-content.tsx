@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/(guest)/_components/guest-marketing-background";
 import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcrumb";
 import type { ManagedPage } from "@/lib/managed-pages";
@@ -126,7 +127,15 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
                 </div>
               );
 
-              return (
+              return item.href.startsWith("/") && !item.href.startsWith("//") ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="block w-[calc((100%-16px)/2)] lg:w-[calc((100%-90px)/4)]"
+                >
+                  {content}
+                </Link>
+              ) : (
                 <a
                   key={item.label}
                   href={item.href}

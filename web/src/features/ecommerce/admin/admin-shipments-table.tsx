@@ -13,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -59,7 +60,7 @@ function ShipmentEditDialog({ shipment }: { shipment: EcommerceShipment }) {
           <DialogTitle>Cập nhật shipment</DialogTitle>
           <DialogDescription>Thay đổi trạng thái, đơn vị vận chuyển và mã tracking.</DialogDescription>
         </DialogHeader>
-        <form action={ROUTES.API.ADMIN.SHIPMENTS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
+        <NativeForm action={ROUTES.API.ADMIN.SHIPMENTS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
           <input type="hidden" name="orderId" value={shipment.orderId} />
           <div className="space-y-2">
             <label className="text-sm">Order ID</label>
@@ -90,7 +91,7 @@ function ShipmentEditDialog({ shipment }: { shipment: EcommerceShipment }) {
           <div className="md:col-span-2">
             <AdminSubmitButton>Lưu</AdminSubmitButton>
           </div>
-        </form>
+        </NativeForm>
       </DialogContent>
     </Dialog>
   );

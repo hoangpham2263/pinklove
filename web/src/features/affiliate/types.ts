@@ -5,7 +5,7 @@ export type AffiliateApplicationReviewStatus = "pending_review" | "contacted" | 
 
 export type AffiliateAccount = {
   userId: string;
-  username: string;
+  accountName: string;
   code: string;
   status: AffiliateStatus;
   commissionType: AffiliateCommissionType;
@@ -34,7 +34,7 @@ export type AffiliateClick = {
 export type AffiliateConversion = {
   id: string;
   affiliateUserId: string;
-  username?: string;
+  accountName?: string;
   affiliateCode: string;
   externalOrderRef?: string;
   orderValue: number;

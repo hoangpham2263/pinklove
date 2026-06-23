@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -18,8 +19,19 @@ export function Pay2SCheckoutButton({
   className,
   children = "Thanh toán Pay2S",
 }: Pay2SCheckoutButtonProps) {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+
+  function navigateTo(location: string) {
+    const target = new URL(location, window.location.href);
+    if (target.origin === window.location.origin) {
+      router.push(`${target.pathname}${target.search}${target.hash}`);
+      return;
+    }
+
+    window.location.assign(location);
+  }
 
   const createPayment = async () => {
     setPending(true);
@@ -38,7 +50,7 @@ export function Pay2SCheckoutButton({
       const location = payload?.paymentUrl || payload?.location;
 
       if (response.ok && location) {
-        window.location.assign(location);
+        navigateTo(location);
         return;
       }
 

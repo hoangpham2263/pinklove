@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Eye, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
@@ -94,7 +95,7 @@ export function AddressBookManager({
                 }
               />
               {!address.isDefault ? (
-                <form action={actionUrl} method="POST">
+                <NativeForm action={actionUrl} method="POST">
                   <input type="hidden" name="action" value="setDefault" />
                   <input type="hidden" name="addressId" value={address.id} />
                   {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
@@ -102,9 +103,9 @@ export function AddressBookManager({
                     <Star className="h-3.5 w-3.5" />
                     Mặc định
                   </Button>
-                </form>
+                </NativeForm>
               ) : null}
-              <form action={actionUrl} method="POST">
+              <NativeForm action={actionUrl} method="POST">
                 <input type="hidden" name="action" value="delete" />
                 <input type="hidden" name="addressId" value={address.id} />
                 {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
@@ -112,7 +113,7 @@ export function AddressBookManager({
                   <Trash2 className="h-3.5 w-3.5" />
                   Xóa
                 </Button>
-              </form>
+              </NativeForm>
             </div>
           </div>
         ))}

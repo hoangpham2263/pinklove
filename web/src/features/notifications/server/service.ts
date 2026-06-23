@@ -36,7 +36,7 @@ type AdminNotificationRow = {
   updated_at: string;
   scheduled_at: string | null;
   roles: UserRole[] | null;
-  target_users: Array<{ id: string; username: string; role: UserRole }> | null;
+  target_users: Array<{ id: string; accountName: string; role: UserRole }> | null;
 };
 
 function mapUserNotification(row: NotificationRow): UserNotification {
@@ -467,7 +467,7 @@ export async function listAdminNotifications(limit = 30): Promise<AdminNotificat
         n.link_url,
         n.audience_type,
         n.status,
-        creator.username AS created_by_username,
+        creator.account_name AS created_by_username,
         n.created_at::text AS created_at,
         n.updated_at::text AS updated_at,
         n.scheduled_at::text AS scheduled_at,
@@ -476,7 +476,7 @@ export async function listAdminNotifications(limit = 30): Promise<AdminNotificat
           ARRAY[]::text[]
         ) AS roles,
         COALESCE(
-          JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', u.id, 'username', u.username, 'role', u.role))
+          JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', u.id, 'accountName', u.account_name, 'role', u.role))
             FILTER (WHERE u.id IS NOT NULL),
           '[]'::jsonb
         ) AS target_users
@@ -485,7 +485,7 @@ export async function listAdminNotifications(limit = 30): Promise<AdminNotificat
       LEFT JOIN notification_target_roles r ON r.notification_id = n.id
       LEFT JOIN notification_target_users tu ON tu.notification_id = n.id
       LEFT JOIN users u ON u.id = tu.user_id
-      GROUP BY n.id, creator.username
+      GROUP BY n.id, creator.account_name
       ORDER BY n.created_at DESC, n.id DESC
       LIMIT $1
     `,
@@ -517,7 +517,7 @@ export async function updateAdminNotification(
         n.link_url,
         n.audience_type,
         n.status,
-        creator.username AS created_by_username,
+        creator.account_name AS created_by_username,
         n.created_at::text AS created_at,
         n.updated_at::text AS updated_at,
         n.scheduled_at::text AS scheduled_at,
@@ -526,7 +526,7 @@ export async function updateAdminNotification(
           ARRAY[]::text[]
         ) AS roles,
         COALESCE(
-          JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', u.id, 'username', u.username, 'role', u.role))
+          JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', u.id, 'accountName', u.account_name, 'role', u.role))
             FILTER (WHERE u.id IS NOT NULL),
           '[]'::jsonb
         ) AS target_users
@@ -536,7 +536,7 @@ export async function updateAdminNotification(
       LEFT JOIN notification_target_users tu ON tu.notification_id = n.id
       LEFT JOIN users u ON u.id = tu.user_id
       WHERE n.id = $1
-      GROUP BY n.id, creator.username
+      GROUP BY n.id, creator.account_name
       LIMIT 1
     `,
     [notificationId]

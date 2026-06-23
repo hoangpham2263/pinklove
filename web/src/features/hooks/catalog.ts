@@ -46,7 +46,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route đăng ký public đang tồn tại và được dùng bởi website.",
     triggerSource: "POST /api/auth/register",
-    payloadKeys: ["user.id", "user.username", "user.role", "user.createdAt"],
+    payloadKeys: ["user.id", "user.accountName", "user.role", "user.createdAt"],
   }),
   createHook({
     key: "auth.user_logged_in",
@@ -58,7 +58,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route login public đang hoạt động.",
     triggerSource: "POST /api/auth/login",
-    payloadKeys: ["user.id", "user.username", "user.role", "session.token"],
+    payloadKeys: ["user.id", "user.accountName", "user.role", "session.token"],
   }),
   createHook({
     key: "auth.user_logged_out",
@@ -106,7 +106,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route login admin đang tồn tại.",
     triggerSource: "POST /api/admin/auth/login",
-    payloadKeys: ["admin.id", "admin.username", "session.token", "loggedInAt"],
+    payloadKeys: ["admin.id", "admin.accountName", "session.token", "loggedInAt"],
   }),
   createHook({
     key: "users.profile_updated",
@@ -130,7 +130,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route tạo user admin đang tồn tại.",
     triggerSource: "POST /api/admin/users/create",
-    payloadKeys: ["user.id", "user.username", "user.role", "user.createdAt"],
+    payloadKeys: ["user.id", "user.accountName", "user.role", "user.createdAt"],
   }),
   createHook({
     key: "users.account_updated",
@@ -142,7 +142,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route cập nhật user admin đang tồn tại.",
     triggerSource: "POST /api/admin/users/update",
-    payloadKeys: ["user.id", "user.username", "user.role", "user.updatedAt"],
+    payloadKeys: ["user.id", "user.accountName", "user.role", "user.updatedAt"],
   }),
   createHook({
     key: "users.account_deleted",
@@ -178,7 +178,7 @@ export const WEBSITE_HOOKS: WebsiteHook[] = [
     statusLabel: "Active",
     statusReason: "Route save internal account đang tồn tại.",
     triggerSource: "POST /api/admin/internal-accounts/save",
-    payloadKeys: ["account.id", "account.username", "account.role", "savedAt"],
+    payloadKeys: ["account.id", "account.accountName", "account.role", "savedAt"],
   }),
   createHook({
     key: "internal_accounts.deleted",

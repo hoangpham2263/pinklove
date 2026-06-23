@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
@@ -234,9 +235,15 @@ function TrackedAdLink({ ad, children, className }: { ad: GuestDisplayAd; childr
       impression={{ kind: "ad", id: ad.id, targetType: "placement", targetId: ad.placementKey, metadata: { pathname, displayMode: mode } }}
       click={{ kind: "ad", id: ad.id, targetType: "placement", targetId: ad.placementKey, metadata: { pathname, displayMode: mode } }}
     >
-      <a href={href} className="block">
-        {children}
-      </a>
+      {href.startsWith("/") && !href.startsWith("//") ? (
+        <Link href={href} className="block">
+          {children}
+        </Link>
+      ) : (
+        <a href={href} target="_blank" rel="noreferrer" className="block">
+          {children}
+        </a>
+      )}
     </AdEventTracker>
   );
 }

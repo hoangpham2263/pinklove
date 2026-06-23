@@ -74,6 +74,137 @@ wait_for_service() {
   exit 1
 }
 
+port_is_listening() {
+  local port="$1"
+
+  if ! command -v lsof >/dev/null 2>&1; then
+    return 1
+  fi
+
+  lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+}
+
+find_available_port() {
+  local base_port="$1"
+  local port="$base_port"
+  local max_port=$((base_port + 100))
+
+  while port_is_listening "$port"; do
+    port=$((port + 1))
+    if [ "$port" -gt "$max_port" ]; then
+      echo "No free migration port found between ${base_port} and ${max_port}."
+      exit 1
+    fi
+  done
+
+  echo "$port"
+}
+
+reset_database() {
+  require_docker
+  stop_prod_if_running
+  docker compose "${COMPOSE_DEV[@]}" up -d --remove-orphans db
+  wait_for_service db
+
+  local db_user="${POSTGRES_USER:-app}"
+  local db_name="${POSTGRES_DB:-app}"
+  local requested_migration_port="${MIGRATION_PORT:-3099}"
+  local migration_port
+  migration_port="$(find_available_port "$requested_migration_port")"
+  RESET_DB_MIGRATION_PORT="$migration_port"
+  RESET_DB_MIGRATION_DIST_DIR="$ROOT_DIR/web/.next-reset-db"
+  local migration_log="/tmp/pinklove-reset-db.log"
+  RESET_DB_MIGRATION_PID=""
+
+  cleanup_migration_server() {
+    if [ -n "${RESET_DB_MIGRATION_PID:-}" ] && kill -0 "$RESET_DB_MIGRATION_PID" 2>/dev/null; then
+      kill "$RESET_DB_MIGRATION_PID" 2>/dev/null || true
+      wait "$RESET_DB_MIGRATION_PID" 2>/dev/null || true
+    fi
+    if [ -n "${RESET_DB_MIGRATION_PORT:-}" ] && command -v lsof >/dev/null 2>&1; then
+      local listener_pids
+      listener_pids="$(lsof -tiTCP:"$RESET_DB_MIGRATION_PORT" -sTCP:LISTEN 2>/dev/null || true)"
+      if [ -n "$listener_pids" ]; then
+        kill $listener_pids 2>/dev/null || true
+      fi
+    fi
+    if [ -n "${RESET_DB_MIGRATION_DIST_DIR:-}" ]; then
+      rm -rf "$RESET_DB_MIGRATION_DIST_DIR"
+    fi
+  }
+  trap cleanup_migration_server EXIT
+
+  echo "Dropping and recreating the public schema..."
+  docker compose "${COMPOSE_DEV[@]}" exec -T db \
+    psql -v ON_ERROR_STOP=1 -U "$db_user" -d "$db_name" \
+    -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+  rm -rf "$RESET_DB_MIGRATION_DIST_DIR"
+  : > "$migration_log"
+
+  if [ "$migration_port" != "$requested_migration_port" ]; then
+    echo "Migration port ${requested_migration_port} is busy; using ${migration_port} instead."
+  fi
+  echo "Running all database migrations on port ${migration_port}..."
+  (
+    cd "$ROOT_DIR/web"
+    NEXT_DIST_DIR=".next-reset-db" npm run dev -- --port "$migration_port"
+  ) >"$migration_log" 2>&1 &
+  RESET_DB_MIGRATION_PID="$!"
+
+  local table_count="0"
+  for _ in $(seq 1 90); do
+    curl -sS "http://127.0.0.1:${migration_port}/" >/dev/null 2>&1 || true
+    table_count="$(
+      docker compose "${COMPOSE_DEV[@]}" exec -T db \
+        psql -U "$db_user" -d "$db_name" -Atc \
+        "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';" \
+        2>/dev/null | tr -d '[:space:]'
+    )"
+    if [ "${table_count:-0}" -gt 0 ] 2>/dev/null; then
+      break
+    fi
+    if ! kill -0 "$RESET_DB_MIGRATION_PID" 2>/dev/null; then
+      echo "Migration server stopped unexpectedly:"
+      tail -80 "$migration_log"
+      exit 1
+    fi
+    sleep 1
+  done
+
+  if [ "${table_count:-0}" -eq 0 ] 2>/dev/null; then
+    echo "Migration did not create any tables:"
+    tail -80 "$migration_log"
+    exit 1
+  fi
+
+  local unpublished_pages
+  unpublished_pages="$(
+    docker compose "${COMPOSE_DEV[@]}" exec -T db \
+      psql -U "$db_user" -d "$db_name" -Atc \
+      "SELECT count(*) FROM managed_pages WHERE status <> 'published';" |
+      tr -d '[:space:]'
+  )"
+
+  if [ "${unpublished_pages:-1}" -ne 0 ] 2>/dev/null; then
+    echo "Database reset verification failed: ${unpublished_pages} default pages are not published."
+    exit 1
+  fi
+
+  local page_count
+  page_count="$(
+    docker compose "${COMPOSE_DEV[@]}" exec -T db \
+      psql -U "$db_user" -d "$db_name" -Atc \
+      "SELECT count(*) FROM managed_pages;" |
+      tr -d '[:space:]'
+  )"
+
+  cleanup_migration_server
+  trap - EXIT
+
+  echo "Database reset complete: ${table_count} tables, ${page_count} published default pages, no demo data."
+}
+
 print_dev_url() {
   POSTGRES_PORT_VALUE="$(grep -E '^POSTGRES_PORT=' "$ROOT_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
   POSTGRES_PORT_VALUE="${POSTGRES_PORT_VALUE:-5433}"
@@ -102,6 +233,7 @@ Usage: ${SETUP_ENTRY} [command]
 Commands:
   up         Start PostgreSQL and pgAdmin
   down       Stop PostgreSQL and pgAdmin
+  reset-db   Drop all database objects and migrate a clean schema with published default pages
   logs       Stream database and pgAdmin logs
   help       Show this help
 EOF
@@ -110,6 +242,7 @@ EOF
 case "${1:-help}" in
   up) run_up ;;
   down) run_down ;;
+  reset-db) reset_database ;;
   logs) run_logs ;;
   help|-h|--help) show_help ;;
   *) show_help; exit 1 ;;

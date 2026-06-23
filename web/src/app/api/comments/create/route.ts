@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     await createPendingComment({
       target: parseCommentTargetFromForm(formData),
-      authorName: String(formData.get("authorName") ?? user?.username ?? ""),
+      authorName: String(formData.get("authorName") ?? user?.accountName ?? ""),
       authorEmail: String(formData.get("authorEmail") ?? ""),
       authorUserId: user?.id ?? null,
       content: String(formData.get("content") ?? ""),

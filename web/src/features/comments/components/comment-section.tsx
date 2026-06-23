@@ -1,4 +1,5 @@
 import { MessageSquare } from "lucide-react";
+import { NativeForm } from "@/components/common/native-form";
 import { getCurrentUser } from "@/lib/auth";
 import { listApprovedCommentsForTarget } from "@/features/comments/server/service";
 import type { CommentTarget, ContentComment } from "@/features/comments/types";
@@ -59,7 +60,7 @@ export async function CommentSection({ target }: CommentSectionProps) {
         </div>
 
         <div className="col-span-12 space-y-5 lg:col-span-7">
-          <form action={ROUTES.API.COMMENTS.CREATE} method="POST" className="rounded-sm border border-stone-200 bg-white p-5">
+          <NativeForm action={ROUTES.API.COMMENTS.CREATE} method="POST" className="rounded-sm border border-stone-200 bg-white p-5">
             <input type="hidden" name="targetType" value={target.type} />
             <input type="hidden" name="targetId" value={target.id} />
             <input type="hidden" name="targetSlug" value={target.slug} />
@@ -75,7 +76,7 @@ export async function CommentSection({ target }: CommentSectionProps) {
                   name="authorName"
                   required
                   maxLength={120}
-                  defaultValue={user?.username ?? ""}
+                  defaultValue={user?.accountName ?? ""}
                   className="h-10 w-full rounded-sm border border-stone-200 bg-white px-3 text-sm outline-none focus:border-stone-400"
                 />
               </label>
@@ -106,7 +107,7 @@ export async function CommentSection({ target }: CommentSectionProps) {
                 Gửi bình luận
               </button>
             </div>
-          </form>
+          </NativeForm>
 
           <CommentList comments={comments} />
         </div>

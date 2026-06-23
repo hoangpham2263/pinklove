@@ -212,7 +212,7 @@ const SUBMISSION_SELECT = `
   SELECT
     s.id,
     s.provider_user_id,
-    provider.username AS provider_username,
+    provider.account_name AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     s.linked_offering_id,
     linked.slug AS linked_offering_slug,
@@ -241,7 +241,7 @@ const SUBMISSION_SELECT = `
     s.submitted_at::text,
     s.reviewed_at::text,
     s.reviewed_by::text,
-    reviewer.username AS reviewed_by_username,
+    reviewer.account_name AS reviewed_by_username,
     s.created_at::text,
     s.updated_at::text
   FROM provider_offering_submissions s
@@ -261,7 +261,7 @@ const SUPPLIER_SELECT = `
     offering.thumbnail_url AS offering_thumbnail_url,
     offering.price::text AS offering_price,
     supplier.provider_user_id,
-    provider.username AS provider_username,
+    provider.account_name AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     supplier.status,
     supplier.source,
@@ -290,7 +290,7 @@ const SUPPLIER_REQUEST_SELECT = `
     offering.thumbnail_url AS offering_thumbnail_url,
     offering.price::text AS offering_price,
     request.provider_user_id,
-    provider.username AS provider_username,
+    provider.account_name AS provider_username,
     COALESCE(NULLIF(BTRIM(provider_profile.display_name), ''), NULLIF(BTRIM(provider_profile.full_name), '')) AS provider_display_name,
     request.review_status,
     request.purchase_cost::text,
@@ -458,7 +458,7 @@ async function getSubmissionEvents(submissionId: string): Promise<ProviderOfferi
         e.id,
         e.submission_id,
         e.actor_user_id,
-        actor.username AS actor_username,
+        actor.account_name AS actor_username,
         e.actor_type,
         e.event_type,
         e.message,
@@ -814,7 +814,7 @@ export async function listApprovedSupplierOptionsForOfferings(offeringIds: strin
     `
       SELECT
         supplier.provider_user_id AS id,
-        COALESCE(NULLIF(BTRIM(profile.display_name), ''), NULLIF(BTRIM(profile.full_name), ''), provider.username) AS label
+        COALESCE(NULLIF(BTRIM(profile.display_name), ''), NULLIF(BTRIM(profile.full_name), ''), provider.account_name) AS label
       FROM offering_provider_suppliers supplier
       JOIN users provider ON provider.id = supplier.provider_user_id
       LEFT JOIN user_profiles profile ON profile.user_id = provider.id

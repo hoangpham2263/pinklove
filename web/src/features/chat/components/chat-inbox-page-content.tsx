@@ -12,7 +12,7 @@ import { getSystemSettings } from "@/lib/system-settings";
 type ChatInboxPageContentProps = {
   currentUser: {
     id: string;
-    username: string;
+    accountName: string;
     role: UserRole;
   };
   mode: "admin" | "customer";

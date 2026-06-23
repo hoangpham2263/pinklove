@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminDialogPrimaryTrigger, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
@@ -159,7 +160,7 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
                 <DialogTitle>Thông báo provider nhận cung ứng</DialogTitle>
                 <DialogDescription>Gửi yêu cầu kiểm tra giá nhập, năng lực và điều kiện cung ứng cho một dịch vụ/sản phẩm.</DialogDescription>
               </DialogHeader>
-              <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SOURCING_ANNOUNCE} method="POST" className="space-y-4">
+              <NativeForm action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.SOURCING_ANNOUNCE} method="POST" className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Dịch vụ/sản phẩm cần provider</label>
                   <select name="offeringId" required className="h-10 w-full rounded-md border bg-background px-3 text-sm">
@@ -180,7 +181,7 @@ export function ProviderSourcingList({ supplierRequests, suppliers, sourcingOffe
                   />
                 </div>
                 <AdminSubmitButton type="submit">Gửi thông báo</AdminSubmitButton>
-              </form>
+              </NativeForm>
             </DialogContent>
           </Dialog>
         </div>

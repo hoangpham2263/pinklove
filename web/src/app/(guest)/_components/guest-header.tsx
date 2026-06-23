@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, ChevronDown, Heart, Menu, Search, UserRound, X } from "lucide-react";
+import { NativeForm } from "@/components/common/native-form";
 import { GuestNotificationBell } from "@/features/notifications/components/guest-notification-bell";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { useWishlist } from "@/features/offerings/use-wishlist";
@@ -28,7 +29,7 @@ export type GuestHeaderNode = GuestHeaderLink & {
 
 type GuestHeaderProps = {
   user: {
-    username: string;
+    accountName: string;
     role: UserRole;
     avatarUrl?: string | null;
   } | null;
@@ -187,7 +188,7 @@ export function GuestHeader({
   siteLogo,
 }: GuestHeaderProps) {
   const router = useRouter();
-  const userInitial = user?.username?.trim().charAt(0).toUpperCase() || "U";
+  const userInitial = user?.accountName?.trim().charAt(0).toUpperCase() || "U";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -378,7 +379,7 @@ export function GuestHeader({
               }
 
               event.preventDefault();
-              window.location.href = `${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`;
+              router.push(`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`);
             }}
           >
             <Heart className={cn("size-5", count > 0 && "fill-current")} />
@@ -454,7 +455,7 @@ export function GuestHeader({
                     {user.avatarUrl ? (
                       <Image
                         src={user.avatarUrl}
-                        alt={user.username}
+                        alt={user.accountName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -477,7 +478,7 @@ export function GuestHeader({
               {user ? (
                 <div className="flex flex-col gap-1">
                   <div className="border-b border-stone-100 px-3 py-2">
-                    <p>{user.username}</p>
+                    <p>{user.accountName}</p>
                     <p className="text-sm">{getRoleLabel(user.role)}</p>
                   </div>
                   <Link href={dashboardHref} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl" onClick={closeAccountMenu}>
@@ -495,14 +496,14 @@ export function GuestHeader({
                   <Link href={settingsHref} className="rounded-xl px-3 py-2 text-sm hover:bg-stone-100 lg:rounded-2xl" onClick={closeAccountMenu}>
                     Cài đặt tài khoản
                   </Link>
-                  <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+                  <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST" onSubmit={closeAccountMenu}>
                     <button
                       type="submit"
                       className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-stone-100 lg:rounded-2xl"
                     >
                       Đăng xuất
                     </button>
-                  </form>
+                  </NativeForm>
                 </div>
               ) : (
                 <div className="flex flex-col gap-1">
@@ -571,7 +572,7 @@ export function GuestHeader({
               {user ? (
                 <div className="space-y-1">
                   <div className="border-b border-stone-100 px-3 pb-3 pt-1">
-                    <p>{user.username}</p>
+                    <p>{user.accountName}</p>
                     <p className="text-sm">{getRoleLabel(user.role)}</p>
                   </div>
                   <Link href={dashboardHref} className="flex min-h-11 items-center rounded-xl px-3 text-sm hover:bg-stone-100" onClick={closeAccountMenu}>
@@ -589,14 +590,14 @@ export function GuestHeader({
                   <Link href={settingsHref} className="flex min-h-11 items-center rounded-xl px-3 text-sm hover:bg-stone-100" onClick={closeAccountMenu}>
                     Cài đặt tài khoản
                   </Link>
-                  <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="border-t border-stone-100 pt-2">
+                  <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST" className="border-t border-stone-100 pt-2" onSubmit={closeAccountMenu}>
                     <button
                       type="submit"
                       className="flex min-h-11 w-full items-center rounded-xl px-3 text-left text-sm hover:bg-stone-100"
                     >
                       Đăng xuất
                     </button>
-                  </form>
+                  </NativeForm>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">

@@ -86,7 +86,7 @@ export default async function AdminLayout({
 
       <main className="min-h-screen min-w-0 bg-muted/30 md:col-span-9">
         <AdminTopHeader
-          username={user.username}
+          accountName={user.accountName}
           permissionKeys={permissionKeys}
           breadcrumbEnabled={settings.breadcrumb.adminEnabled}
           breadcrumbSeparator={settings.breadcrumb.adminSeparator}

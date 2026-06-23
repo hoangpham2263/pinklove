@@ -98,7 +98,7 @@ export default async function GuestLayout({
     <div id="top" className="min-h-full w-full">
       <WishlistProvider authenticated={Boolean(user)} initialOfferingIds={wishlistOfferingIds}>
         <GuestHeader
-          user={user ? { username: user.username, role: user.role } : null}
+          user={user ? { accountName: user.accountName, role: user.role } : null}
           headerTree={headerTree}
           dashboardHref={dashboardHref}
           settingsHref={settingsHref}

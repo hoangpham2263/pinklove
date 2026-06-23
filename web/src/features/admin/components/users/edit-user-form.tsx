@@ -51,7 +51,7 @@ export function EditUserForm({ actor, user, profile, returnTo, adminRoles }: Edi
   async function handleDelete() {
     const isConfirmed = await confirm({
       title: "Xóa người dùng",
-      description: `Bạn có chắc chắn muốn xóa người dùng: ${user.username}? Hành động này không thể hoàn tác.`,
+      description: `Bạn có chắc chắn muốn xóa người dùng: ${user.accountName}? Hành động này không thể hoàn tác.`,
       confirmText: "Xóa",
       cancelText: "Hủy",
       variant: "destructive",
@@ -96,8 +96,12 @@ export function EditUserForm({ actor, user, profile, returnTo, adminRoles }: Edi
           <CardContent className="space-y-5 pt-5">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tên đăng nhập</label>
-                <Input name="username" defaultValue={user.username} required />
+                <label className="text-sm font-medium">Email</label>
+                <Input name="email" type="email" defaultValue={user.email} required />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tên tài khoản</label>
+                <Input name="accountName" defaultValue={user.accountName} required />
               </div>
 
               <div className="space-y-2">

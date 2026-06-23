@@ -69,7 +69,7 @@ export function AdminAffiliateConversionsTable({ conversions }: AdminAffiliateCo
                   <TableRow key={conversion.id}>
                     <TableCell>
                       <div className="space-y-1">
-                        <p className="font-medium">{conversion.username ?? conversion.affiliateUserId}</p>
+                        <p className="font-medium">{conversion.accountName ?? conversion.affiliateUserId}</p>
                         <code className="text-xs text-muted-foreground">{conversion.affiliateCode}</code>
                       </div>
                     </TableCell>

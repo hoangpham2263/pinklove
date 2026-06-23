@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { NativeForm } from "@/components/common/native-form";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { BuilderInvitationTemplate } from "@/features/invitations/builder/renderer";
 import { listPublicWeddingTimeline } from "@/features/wedding-planning/server/service";
@@ -21,7 +22,7 @@ function RsvpForm({ site }: { site: InvitationSite }) {
     <section id="rsvp" className="mx-auto max-w-5xl px-6 pb-24">
       <div className="rounded-2xl border bg-background/95 p-8">
         <h2 className="text-2xl font-semibold">RSVP</h2>
-        <form action={ROUTES.API.INVITATIONS.RSVP} method="POST" className="mt-5 grid gap-3 md:grid-cols-2">
+        <NativeForm action={ROUTES.API.INVITATIONS.RSVP} method="POST" className="mt-5 grid gap-3 md:grid-cols-2">
           <input type="hidden" name="weddingSiteId" value={site.id} />
           <input type="hidden" name="returnTo" value={ROUTES.INVITATIONS.PUBLIC(site.slug)} />
           <input name="attendeeName" placeholder="Tên của bạn" className="h-11 rounded-md border bg-background px-3 text-sm" required />
@@ -34,7 +35,7 @@ function RsvpForm({ site }: { site: InvitationSite }) {
           <input name="mealChoice" placeholder="Lựa chọn món ăn" className="h-11 rounded-md border bg-background px-3 text-sm" />
           <textarea name="specialRequests" placeholder="Lời nhắn hoặc yêu cầu đặc biệt" className="min-h-24 rounded-md border bg-background px-3 py-2 text-sm md:col-span-2" />
           <button className="h-11 rounded-md bg-stone-950 px-5 text-sm font-medium text-white md:col-span-2">Gửi RSVP</button>
-        </form>
+        </NativeForm>
       </div>
     </section>
   );

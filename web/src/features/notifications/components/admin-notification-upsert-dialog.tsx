@@ -23,7 +23,7 @@ import type { UserRole } from "@/lib/roles";
 
 type AccountOption = {
   id: string;
-  username: string;
+  accountName: string;
   role: UserRole;
 };
 
@@ -294,7 +294,7 @@ export function AdminNotificationUpsertDialog({
               >
                 {accounts.map((account) => (
                   <option key={account.id} value={account.id}>
-                    {account.username} - {getRoleLabel(account.role)}
+                    {account.accountName} - {getRoleLabel(account.role)}
                   </option>
                 ))}
               </select>

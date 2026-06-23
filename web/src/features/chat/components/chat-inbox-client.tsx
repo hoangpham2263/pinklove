@@ -102,7 +102,7 @@ const SUPPORT_REQUEST_OPTIONS: Array<{
 type ChatInboxClientProps = {
   currentUser: {
     id: string;
-    username: string;
+    accountName: string;
     role: UserRole;
   };
   initialConversations: ChatConversationSummary[];
@@ -400,8 +400,8 @@ function getPriorityClassName(priority: ChatConversationUserPriority) {
   }
 }
 
-function getParticipantDisplayName(participant: { displayName: string; username: string }) {
-  return participant.displayName || participant.username;
+function getParticipantDisplayName(participant: { displayName: string; accountName: string }) {
+  return participant.displayName || participant.accountName;
 }
 
 function getConversationUserLabel(conversation: ChatConversationSummary, currentUserId: string, isAdmin: boolean) {
@@ -673,8 +673,8 @@ export function ChatInboxClient({
       id: `optimistic-${createdAt}`,
       conversationId: input.conversationId,
       senderUserId: currentUser.id,
-      senderUsername: currentUser.username,
-      senderDisplayName: currentUser.username,
+      senderUsername: currentUser.accountName,
+      senderDisplayName: currentUser.accountName,
       body: input.body,
       visibility: input.visibility,
       attachmentUrl: input.attachmentUrl,
@@ -1267,7 +1267,7 @@ export function ChatInboxClient({
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {currentParticipants.map((participant) => participant.displayName || participant.username).join(", ")}
+                    {currentParticipants.map((participant) => participant.displayName || participant.accountName).join(", ")}
                   </p>
                   {activeTypingNames.length > 0 ? (
                     <p className="mt-1 text-xs text-emerald-700">{activeTypingNames.join(", ")} đang nhập...</p>
@@ -1757,9 +1757,9 @@ export function ChatInboxClient({
                           className="mt-1"
                         />
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium">{account.displayName || account.username}</span>
+                          <span className="block truncate text-sm font-medium">{account.displayName || account.accountName}</span>
                           <span className="block text-xs text-muted-foreground">
-                            @{account.username} - {getRoleLabel(account.role)}
+                            @{account.accountName} - {getRoleLabel(account.role)}
                           </span>
                         </span>
                       </label>
@@ -1834,9 +1834,9 @@ export function ChatInboxClient({
                         <div className="max-h-36 space-y-2 overflow-y-auto rounded-md border p-2">
                           {currentParticipants.map((participant) => (
                             <div key={participant.id} className="rounded-md bg-muted/60 p-2 text-sm">
-                              <p className="font-medium">{participant.displayName || participant.username}</p>
+                              <p className="font-medium">{participant.displayName || participant.accountName}</p>
                               <p className="text-xs text-muted-foreground">
-                                @{participant.username} - {getRoleLabel(participant.role)}
+                                @{participant.accountName} - {getRoleLabel(participant.role)}
                               </p>
                             </div>
                           ))}
@@ -1859,9 +1859,9 @@ export function ChatInboxClient({
                                     className="mt-1"
                                   />
                                   <span className="min-w-0">
-                                    <span className="block truncate text-sm font-medium">{account.displayName || account.username}</span>
+                                    <span className="block truncate text-sm font-medium">{account.displayName || account.accountName}</span>
                                     <span className="block text-xs text-muted-foreground">
-                                      @{account.username} - {getRoleLabel(account.role)}
+                                      @{account.accountName} - {getRoleLabel(account.role)}
                                     </span>
                                   </span>
                                 </label>
@@ -1891,7 +1891,7 @@ export function ChatInboxClient({
                             <option value="">Chưa giao</option>
                             {currentParticipants.map((participant) => (
                               <option key={participant.id} value={participant.id}>
-                                {participant.displayName || participant.username}
+                                {participant.displayName || participant.accountName}
                               </option>
                             ))}
                           </select>
@@ -2046,7 +2046,7 @@ export function ChatInboxClient({
                           placeholder="admin"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Danh sách username admin sẽ tự động được thêm vào hội thoại hỗ trợ mới. Nhập mỗi dòng một username; để trống sẽ dùng admin đầu tiên.
+                          Danh sách accountName admin sẽ tự động được thêm vào hội thoại hỗ trợ mới. Nhập mỗi dòng một accountName; để trống sẽ dùng admin đầu tiên.
                         </p>
                       </div>
 

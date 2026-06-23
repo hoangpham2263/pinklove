@@ -152,37 +152,37 @@ export function GuestMarketingPageDecor({ ambientGlowDensity = "regular" }: { am
       <div className="absolute right-[17%] top-[66%] size-24 rounded-full bg-[#ff6ff5]/4 blur-3xl" />
       <div className="absolute bottom-[10%] left-[42%] size-20 rounded-full bg-white/45 blur-3xl" />
       <span
-        className="cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+        className="guest-decor-sparkle-muted cta-sparkle-float absolute left-[22%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent"
         style={{ animationDelay: "-0.2s" }}
       >
         ✦
       </span>
       <span
-        className="cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.18)]"
+        className="guest-decor-heart-muted cta-heart-pop absolute left-[12%] top-[40%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent"
         style={{ animationDelay: "-0.7s" }}
       >
         ♥
       </span>
       <span
-        className="cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-60 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+        className="guest-decor-sparkle-muted cta-sparkle-float absolute right-[24%] top-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent"
         style={{ animationDelay: "-1.7s" }}
       >
         ✦
       </span>
       <span
-        className="cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-55 drop-shadow-[0_8px_18px_rgba(217,77,206,0.16)]"
+        className="guest-decor-heart-muted cta-heart-pop absolute right-[10%] top-[44%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent"
         style={{ animationDelay: "-1.4s" }}
       >
         ♥
       </span>
       <span
-        className="cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent opacity-25 drop-shadow-[0_8px_18px_rgba(217,77,206,0.1)]"
+        className="guest-decor-heart-muted cta-heart-pop absolute right-[34%] top-[76%] bg-[linear-gradient(180deg,#ffd8fc_0%,#ff8be8_45%,#d94dce_100%)] bg-clip-text text-2xl text-transparent"
         style={{ animationDelay: "-2.4s" }}
       >
         ♥
       </span>
       <span
-        className="cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-22 drop-shadow-[0_8px_20px_rgba(255,111,245,0.08)]"
+        className="guest-decor-sparkle-muted cta-sparkle-float absolute left-[52%] bottom-[12%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent"
         style={{ animationDelay: "-1.8s" }}
       >
         ✦
@@ -233,13 +233,13 @@ export function GuestMarketingHeroDecor() {
       <span className="contact-cloud-decor contact-banner-cloud-one" />
       <span className="contact-cloud-decor contact-banner-cloud-two" />
       <span
-        className="cta-sparkle-float absolute left-[7%] top-[33%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent opacity-80 drop-shadow-[0_6px_16px_rgba(255,111,245,0.16)]"
+        className="guest-decor-sparkle-muted cta-sparkle-float absolute left-[7%] top-[33%] bg-[linear-gradient(180deg,#ffffff_0%,#ffb8fb_42%,#ff6ff5_100%)] bg-clip-text text-3xl text-transparent"
         style={{ animationDelay: "-0.45s" }}
       >
         ✦
       </span>
       <span
-        className="cta-sparkle-float absolute right-[10%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent opacity-75 drop-shadow-[0_6px_14px_rgba(255,184,251,0.14)]"
+        className="guest-decor-sparkle-muted cta-sparkle-float absolute right-[10%] top-[18%] bg-[linear-gradient(180deg,#ffffff_0%,#ffd8fc_48%,#ff95f8_100%)] bg-clip-text text-2xl text-transparent"
         style={{ animationDelay: "-1.35s" }}
       >
         ✦

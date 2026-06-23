@@ -58,11 +58,11 @@ async function main() {
     const provider = await fetchRow(
       client,
       `
-        INSERT INTO users (username, password_hash, role)
-        VALUES ($1, $2, 'PROVIDER')
-        RETURNING id, username
+        INSERT INTO users (email, account_name, password_hash, role)
+        VALUES ($1, $2, $3, 'PROVIDER')
+        RETURNING id, email, account_name AS "accountName"
       `,
-      [providerUsername, hashPassword(PASSWORD)]
+      [`${providerUsername}@example.local`, providerUsername, hashPassword(PASSWORD)]
     );
 
     await client.query(
@@ -91,11 +91,11 @@ async function main() {
     const customer = await fetchRow(
       client,
       `
-        INSERT INTO users (username, password_hash, role)
-        VALUES ($1, $2, 'CUSTOMER')
-        RETURNING id, username
+        INSERT INTO users (email, account_name, password_hash, role)
+        VALUES ($1, $2, $3, 'CUSTOMER')
+        RETURNING id, email, account_name AS "accountName"
       `,
-      [customerUsername, hashPassword(PASSWORD)]
+      [`${customerUsername}@example.local`, customerUsername, hashPassword(PASSWORD)]
     );
 
     await client.query(
@@ -229,13 +229,13 @@ async function main() {
 
     console.log(JSON.stringify({
       provider: {
-        username: providerUsername,
+        accountName: providerUsername,
         password: PASSWORD,
         portalSlug: providerSlug,
         portalLink: `/provider`,
       },
       customer: {
-        username: customerUsername,
+        accountName: customerUsername,
         password: PASSWORD,
       },
       order: {

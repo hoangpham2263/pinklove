@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ImagePlus, Star, Video } from "lucide-react";
+import { NativeForm } from "@/components/common/native-form";
 import {
   Dialog,
   DialogContent,
@@ -56,16 +58,16 @@ export function OfferingReviewDialog({
                 >
                   Đóng
                 </button>
-                <a
+                <Link
                   href={`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(target.url)}`}
                   className="inline-flex rounded-sm bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
                 >
                   Đăng nhập để đánh giá
-                </a>
+                </Link>
               </div>
             </div>
           ) : (
-          <form action={ROUTES.API.COMMENTS.CREATE} method="POST" encType="multipart/form-data" className="space-y-4">
+          <NativeForm action={ROUTES.API.COMMENTS.CREATE} method="POST" encType="multipart/form-data" className="space-y-4">
             <input type="hidden" name="targetType" value={target.type} />
             <input type="hidden" name="targetId" value={target.id} />
             <input type="hidden" name="targetSlug" value={target.slug} />
@@ -159,7 +161,7 @@ export function OfferingReviewDialog({
                 Gửi đánh giá
               </button>
             </div>
-          </form>
+          </NativeForm>
           )}
         </DialogContent>
       </Dialog>

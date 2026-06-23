@@ -85,8 +85,8 @@ function normalizePinkCloudMessages(items: PinkCloudMessageItem[] | undefined) {
     .filter(Boolean);
 }
 
-function isExternalHref(href: string) {
-  return /^https?:\/\//.test(href);
+function isInternalHref(href: string) {
+  return href.startsWith("/") && !href.startsWith("//");
 }
 
 function normalizeActionUrl(href: string) {
@@ -98,9 +98,15 @@ function normalizeActionUrl(href: string) {
 }
 
 function renderFooterLink(item: { label: string; url: string }, className: string) {
-  if (isExternalHref(item.url)) {
+  if (!isInternalHref(item.url)) {
     return (
-      <a key={`${item.label}-${item.url}`} href={item.url} target="_blank" rel="noreferrer" className={className}>
+      <a
+        key={`${item.label}-${item.url}`}
+        href={item.url}
+        target={/^https?:\/\//.test(item.url) ? "_blank" : undefined}
+        rel={/^https?:\/\//.test(item.url) ? "noreferrer" : undefined}
+        className={className}
+      >
         {item.label}
       </a>
     );
@@ -448,7 +454,20 @@ export async function GuestFooter({
                       <p className="text-sm md:text-base">
                         <span className="font-semibold">{item.label}:</span>{" "}
                         {item.href ? (
-                          <a href={item.href} className="hover:text-guest-primary transition">{item.value}</a>
+                          isInternalHref(item.href) ? (
+                            <Link href={item.href} className="hover:text-guest-primary transition">
+                              {item.value}
+                            </Link>
+                          ) : (
+                            <a
+                              href={item.href}
+                              target={/^https?:\/\//.test(item.href) ? "_blank" : undefined}
+                              rel={/^https?:\/\//.test(item.href) ? "noreferrer" : undefined}
+                              className="hover:text-guest-primary transition"
+                            >
+                              {item.value}
+                            </a>
+                          )
                         ) : (
                           <span>{item.value}</span>
                         )}

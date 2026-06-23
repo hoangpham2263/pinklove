@@ -17,7 +17,8 @@ export async function POST(request: Request) {
 
  const formData = await request.formData();
  const userIdRaw = String(formData.get("userId") ??"");
- const username = String(formData.get("username") ??"").trim();
+ const email = String(formData.get("email") ??"").trim().toLowerCase();
+ const accountName = String(formData.get("accountName") ??"").trim();
  const password = String(formData.get("password") ??"");
  const accessRole = String(formData.get("accessRole") ?? "").trim();
  const returnTo = String(formData.get("returnTo") ?? `${ROUTES.ADMIN.USERS}/${userIdRaw}`).trim();
@@ -37,8 +38,9 @@ export async function POST(request: Request) {
  }
  const returnLocation = returnTo || `${ROUTES.ADMIN.USERS}/${userId}`;
 
- const data: { username?: string; password?: string; role?: UserRole } = {};
- if (username) data.username = username;
+ const data: { email?: string; accountName?: string; password?: string; role?: UserRole } = {};
+ if (email) data.email = email;
+ if (accountName) data.accountName = accountName;
  if (password) data.password = password;
  if (accessRole) {
   data.role = adminRoleId ? "ADMIN" : parseUserRole(accessRole.replace(/^portal:/, ""));

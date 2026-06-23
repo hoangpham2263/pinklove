@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
@@ -110,12 +111,12 @@ export function CustomerOrderDetail({ order, ecommerceSettings }: CustomerOrderD
                 </div>
 
                 {canUseOffering ? (
-                  <form action={createAction} method="POST" className="mt-4">
+                  <NativeForm action={createAction} method="POST" className="mt-4">
                     <input type="hidden" name="offeringSlug" value={item.offeringSlug} />
                     <Button type="submit">
                       {isBuilderOfferingType(item.offeringType) ? "Tạo thiệp builder" : "Tạo thiệp từ template"}
                     </Button>
-                  </form>
+                  </NativeForm>
                 ) : (
                   <p className="mt-4 text-muted-foreground">
                     {item.fulfillmentType === "digital" && isInvitationOfferingType(item.offeringType)

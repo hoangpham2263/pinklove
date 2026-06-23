@@ -6,14 +6,14 @@ import { NotificationBell } from "@/features/notifications/components/notificati
 import { ROUTES } from "@/lib/routes";
 
 type AdminTopHeaderProps = {
-  username: string;
+  accountName: string;
   breadcrumbEnabled?: boolean;
   breadcrumbSeparator?: string;
   permissionKeys?: string[];
 };
 
 export function AdminTopHeader({
-  username,
+  accountName,
   breadcrumbEnabled = true,
   breadcrumbSeparator,
   permissionKeys,
@@ -40,7 +40,7 @@ export function AdminTopHeader({
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell listHref={ROUTES.ADMIN.NOTIFICATIONS} />
-          <span>{username}</span>
+          <span>{accountName}</span>
           <AdminHeaderMenu permissionKeys={permissionKeys} />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
-  authenticateUser,
+  authenticateUserByEmail,
   createSession,
   getSessionCookieOptions,
   isProviderRole,
@@ -19,17 +19,17 @@ function sanitizeProviderReturnTo(value: string): string {
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const username = String(formData.get("username") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const returnToInput = String(formData.get("returnTo") ?? "").trim();
   const returnTo = returnToInput ? sanitizeProviderReturnTo(returnToInput) : ROUTES.PROVIDER.ROOT;
   const loginPage = ROUTES.PROVIDER.LOGIN;
 
-  if (!username || !password) {
+  if (!email || !password) {
     return new NextResponse(null, { status: 303, headers: { Location: `${loginPage}?error=missing_fields` } });
   }
 
-  const user = await authenticateUser(username, password);
+  const user = await authenticateUserByEmail(email, password);
   if (!user || !isProviderRole(user.role)) {
     return new NextResponse(null, { status: 303, headers: { Location: `${loginPage}?error=invalid_credentials` } });
   }

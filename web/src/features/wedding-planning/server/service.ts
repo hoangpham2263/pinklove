@@ -34,7 +34,7 @@ export async function listWeddingPlanningForAdmin() {
         site.id,
         site.title,
         site.slug,
-        COALESCE(profile.display_name, account.username) AS customer,
+        COALESCE(profile.display_name, account.account_name) AS customer,
         site.project_status,
         site.budget::text,
         site.event_date::text,
@@ -53,7 +53,7 @@ export async function listWeddingPlanningForAdmin() {
       LEFT JOIN wedding_tables wedding_table ON wedding_table.wedding_site_id = site.id
       LEFT JOIN wedding_tasks task ON task.wedding_site_id = site.id
       LEFT JOIN wedding_timeline_items timeline ON timeline.wedding_site_id = site.id
-      GROUP BY site.id, profile.display_name, account.username
+      GROUP BY site.id, profile.display_name, account.account_name
       ORDER BY site.updated_at DESC
     `
   );
@@ -67,7 +67,7 @@ export async function getWeddingPlanningDetailForAdmin(weddingSiteId: string) {
         site.id,
         site.title,
         site.slug,
-        COALESCE(profile.display_name, account.username) AS customer,
+        COALESCE(profile.display_name, account.account_name) AS customer,
         site.project_status,
         site.budget::text,
         site.event_date::text,

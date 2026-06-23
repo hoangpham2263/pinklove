@@ -26,7 +26,7 @@ export default async function EditUserPage({ params, searchParams }: EditUserPag
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight">Chỉnh sửa người dùng: {user.username}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Chỉnh sửa người dùng: {user.accountName}</h1>
       </div>
       <EditUserForm actor={actor} user={user} profile={profile} returnTo={returnTo} adminRoles={adminRoles} />
     </section>

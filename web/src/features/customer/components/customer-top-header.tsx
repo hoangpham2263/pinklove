@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeForm } from "@/components/common/native-form";
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 import { CustomerHeaderMenu } from "@/features/customer/components/customer-header-menu";
 import { CustomerNavSubmitButton } from "@/features/customer/ui/customer-buttons";
@@ -7,13 +8,13 @@ import { NotificationBell } from "@/features/notifications/components/notificati
 import { ROUTES } from "@/lib/routes";
 
 type CustomerTopHeaderProps = {
-  username: string;
+  accountName: string;
   breadcrumbEnabled?: boolean;
   breadcrumbSeparator?: string;
 };
 
 export function CustomerTopHeader({
-  username,
+  accountName,
   breadcrumbEnabled = true,
   breadcrumbSeparator,
 }: CustomerTopHeaderProps) {
@@ -39,10 +40,10 @@ export function CustomerTopHeader({
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell />
-          <span>{username}</span>
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
+          <span>{accountName}</span>
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
             <CustomerNavSubmitButton className="px-0 py-0 hover:bg-transparent hover:underline">Logout</CustomerNavSubmitButton>
-          </form>
+          </NativeForm>
           <CustomerHeaderMenu />
         </div>
       </div>

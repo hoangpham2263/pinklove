@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BadgePercent, CircleDollarSign, Megaphone, UserPlus } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
@@ -108,7 +109,7 @@ export function AffiliateApplicationSection({
               </div>
             ) : null}
 
-            <form action={ROUTES.API.APPLICATIONS.AFFILIATE} method="POST" className="space-y-4">
+            <NativeForm action={ROUTES.API.APPLICATIONS.AFFILIATE} method="POST" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-900">Họ và tên</label>
@@ -156,7 +157,7 @@ export function AffiliateApplicationSection({
                 <Button type="submit" className="rounded-full px-6">Gửi yêu cầu affiliate</Button>
                 <Button type="button" variant="outline" className="rounded-full px-6" render={<Link href={ROUTES.AUTH.LOGIN}>Đã có tài khoản? Đăng nhập</Link>} />
               </div>
-            </form>
+            </NativeForm>
           </div>
         </div>
       </div>

@@ -48,8 +48,12 @@ export function ProviderAccountEditForm({ provider }: ProviderAccountEditFormPro
         <CardContent className="space-y-5 pt-5">
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
-              <label htmlFor="provider-username" className="text-sm font-medium">Username</label>
-              <Input id="provider-username" name="username" defaultValue={provider.username} required />
+              <label htmlFor="provider-email" className="text-sm font-medium">Email</label>
+              <Input id="provider-email" name="email" type="email" defaultValue={provider.email} required />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="provider-accountName" className="text-sm font-medium">Tên tài khoản</label>
+              <Input id="provider-accountName" name="accountName" defaultValue={provider.accountName} required />
             </div>
             <div className="space-y-2">
               <label htmlFor="provider-password" className="text-sm font-medium">Mật khẩu mới</label>

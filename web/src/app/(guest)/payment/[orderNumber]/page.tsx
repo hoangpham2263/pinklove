@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentMethodGuide } from "@/features/ecommerce/components/payment-method-guide";
@@ -83,16 +84,16 @@ export default async function OrderPaymentPage({
             Sau khi chuyển khoản hoặc hoàn tất thanh toán theo hướng dẫn, chọn đã thanh toán để theo dõi trạng thái đơn.
           </p>
           <div className="flex flex-col gap-3">
-            <form action="/api/customer/payments/manual" method="POST">
+            <NativeForm action="/api/customer/payments/manual" method="POST">
               <input type="hidden" name="orderNumber" value={order.orderNumber} />
               <input type="hidden" name="action" value="confirm" />
               <Button type="submit" className="w-full">Tôi đã thanh toán</Button>
-            </form>
-            <form action="/api/customer/payments/manual" method="POST">
+            </NativeForm>
+            <NativeForm action="/api/customer/payments/manual" method="POST">
               <input type="hidden" name="orderNumber" value={order.orderNumber} />
               <input type="hidden" name="action" value="cancel" />
               <Button type="submit" variant="outline" className="w-full">Hủy thanh toán</Button>
-            </form>
+            </NativeForm>
             <Button variant="outline" render={<Link href={ROUTES.CUSTOMER.ORDER(order.id)}>Xem chi tiết đơn</Link>} />
           </div>
         </CardContent>

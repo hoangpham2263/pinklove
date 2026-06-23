@@ -46,7 +46,7 @@ import type { UserRole } from "@/lib/roles";
 
 type AccountOption = {
   id: string;
-  username: string;
+  accountName: string;
   role: UserRole;
 };
 
@@ -315,7 +315,7 @@ export function AdminNotificationsTable({
         notification.audienceType,
         notification.createdByUsername,
         ...notification.roles,
-        ...notification.targetUsers.map((user) => user.username),
+        ...notification.targetUsers.map((user) => user.accountName),
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
@@ -341,7 +341,7 @@ export function AdminNotificationsTable({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <AdminTableToolbar>
-          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tiêu đề, người tạo, role, username..." />
+          <AdminTableSearch value={globalFilter} onChange={setGlobalFilter} placeholder="Tìm theo tiêu đề, người tạo, role, accountName..." />
           {hideStatusFilter ? null : (
             <AdminTableSelect
               value={statusFilterValue}
@@ -548,7 +548,7 @@ export function AdminNotificationsTable({
                     <Badge key={role} variant="secondary">{getRoleLabel(role)}</Badge>
                   ))}
                   {previewNotification.targetUsers.map((user) => (
-                    <Badge key={user.id} variant="secondary">{user.username}</Badge>
+                    <Badge key={user.id} variant="secondary">{user.accountName}</Badge>
                   ))}
                 </div>
               </div>

@@ -13,6 +13,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { AdminLinkButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -64,7 +65,7 @@ function PaymentEditDialog({ payment }: { payment: AdminPaymentRow }) {
           <DialogTitle>Cập nhật payment</DialogTitle>
           <DialogDescription>Thay đổi trạng thái thanh toán và mã tham chiếu ngoài.</DialogDescription>
         </DialogHeader>
-        <form action={ROUTES.API.ADMIN.PAYMENTS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
+        <NativeForm action={ROUTES.API.ADMIN.PAYMENTS.UPDATE} method="POST" className="grid gap-4 md:grid-cols-2">
           <input type="hidden" name="paymentId" value={payment.id} />
           <div className="space-y-2">
             <label className="text-sm">Payment ID</label>
@@ -95,7 +96,7 @@ function PaymentEditDialog({ payment }: { payment: AdminPaymentRow }) {
           <div className="md:col-span-2">
             <AdminSubmitButton>Lưu</AdminSubmitButton>
           </div>
-        </form>
+        </NativeForm>
       </DialogContent>
     </Dialog>
   );

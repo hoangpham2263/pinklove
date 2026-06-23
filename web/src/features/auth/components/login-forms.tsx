@@ -4,8 +4,9 @@ import { NativeForm } from "@/components/common/native-form";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CalendarCheck, ChevronDown, HeartHandshake, ReceiptText, Search, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { ArrowRight, CalendarCheck, Check, ChevronDown, HeartHandshake, ReceiptText, Search, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 import { PasswordInput } from "@/components/common/password-input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,10 @@ import {
   type PhoneCountry,
   type PhoneCountryCode,
 } from "@/features/auth/phone-countries";
+import {
+  formatPhoneNumberAsYouType,
+  normalizePhoneNumber,
+} from "@/features/auth/phone-number";
 
 export type AuthFormProps = {
   heading?: string;
@@ -43,14 +48,14 @@ type CustomerAuthMode = "login" | "register";
 function getErrorMessage(error: string | null): string | null {
   if (!error) return null;
 
-  if (error === "missing_fields") return "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
+  if (error === "missing_fields") return "Vui lòng nhập đầy đủ email và mật khẩu.";
   if (
     error === "invalid_credentials" ||
     error === "not_admin" ||
     error === "use_admin_login" ||
     error === "not_user"
   ) {
-    return "Tên đăng nhập hoặc mật khẩu không chính xác.";
+    return "Email hoặc mật khẩu không chính xác.";
   }
   if (error === "google_not_configured") return "Đăng nhập Google chưa được cấu hình.";
   if (error === "google_callback_invalid") return "Phản hồi từ Google không hợp lệ.";
@@ -58,9 +63,10 @@ function getErrorMessage(error: string | null): string | null {
   if (error === "google_login_failed") return "Đăng nhập Google thất bại. Vui lòng thử lại.";
   if (error === "weak_password") return `Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`;
   if (error === "invalid_email") return "Vui lòng nhập địa chỉ email hợp lệ.";
+  if (error === "invalid_phone") return "Vui lòng nhập số điện thoại hợp lệ.";
   if (error === "terms_required") return "Vui lòng đồng ý điều khoản sử dụng và chính sách bảo mật.";
-  if (error === "username_taken") return "Tên đăng nhập đã tồn tại.";
-  if (error === "register_failed") return "Không thể tạo tài khoản. Vui lòng thử tên khác.";
+  if (error === "email_taken") return "Email này đã được sử dụng.";
+  if (error === "register_failed") return "Không thể tạo tài khoản. Vui lòng thử lại.";
   return "Xác thực không thành công.";
 }
 
@@ -75,8 +81,8 @@ function CustomerAuthShell({
   visualAlt,
 }: CustomerAuthShellProps) {
   return (
-    <section className="grid min-h-screen grid-cols-12 overflow-hidden bg-white">
-      <div className="guest-soft-top-bg contact-wave-bg relative isolate hidden min-h-screen overflow-hidden px-10 py-12 lg:col-span-7 lg:flex lg:flex-col lg:justify-between xl:px-16">
+    <section data-guest-auth className="grid min-h-screen grid-cols-12 overflow-x-hidden bg-white lg:h-screen lg:overflow-hidden">
+      <div className="guest-soft-top-bg contact-wave-bg relative isolate col-span-12 flex lg:min-h-screen flex-col justify-between overflow-hidden px-4 py-10 sm:px-7.5 lg:col-span-7 lg:h-screen lg:px-15">
         <div
           className="pointer-events-none absolute inset-0 z-0"
           style={{
@@ -85,41 +91,43 @@ function CustomerAuthShell({
           }}
         />
         <GuestMarketingPageDecor ambientGlowDensity="compact" />
-        {sideImage ? (
-          <Image
-            src={sideImage}
-            alt={visualAlt}
-            fill
-            className="z-0 object-cover opacity-55 mix-blend-soft-light"
-            priority
-          />
-        ) : null}
-        <div className="relative z-10 flex items-center gap-3 text-stone-950">
-          <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-white/75 text-guest-primary shadow-sm">
-            <Sparkles className="h-5 w-5" />
-          </span>
+        <div className="relative z-10 flex items-center gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-lg font-semibold">PinkLove</span>
-            <span className="h-5 w-px bg-stone-300" />
-            <span className="text-sm font-medium text-stone-500">Customer Platform</span>
+            {sideImage ? (
+              <Image
+                src={sideImage}
+                alt={visualAlt}
+                width={216}
+                height={56}
+                className="h-9 lg:h-10 2xl:h-11 w-auto object-contain"
+                priority
+              />
+            ) : (
+              <svg className="h-9 lg:h-10 2xl:h-11 w-auto" width="216" height="56" viewBox="0 0 216 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.6674 0.977212C27.403 -0.850478 34.5786 -0.0968353 40.7875 3.09049C46.9964 6.27784 51.791 11.6692 54.2318 18.2077C56.6727 24.7462 56.5833 31.9609 53.9818 38.4372C51.3803 44.9134 46.454 50.1843 40.1684 53.2174C33.8827 56.2506 26.6908 56.8271 20.0024 54.8337L20.0063 54.8219H20.0004V28.0006C20.0004 23.5824 23.5821 20.0006 28.0004 20.0006C32.4185 20.0009 36.0004 23.5825 36.0004 28.0006C36.0002 32.4186 32.4183 36.0004 28.0004 36.0006V45.359C30.5918 45.3589 33.1722 44.78 35.5443 43.6354C39.4414 41.7549 42.4959 38.4865 44.1088 34.4714C45.7217 30.4562 45.7772 25.9831 44.2641 21.9294C42.7508 17.8755 39.7777 14.5325 35.9281 12.5563C32.0786 10.5802 27.6296 10.1126 23.4535 11.2458C19.2775 12.379 15.6755 15.0314 13.3529 18.6823C11.4658 21.6488 10.534 25.101 10.6498 28.5778V49.9743C5.24647 45.708 1.6004 39.5995 0.416419 32.8112C-0.782687 25.9357 0.629301 18.8601 4.3754 12.9714C8.12151 7.08267 13.9317 2.80496 20.6674 0.977212Z" fill="url(#paint0_linear_113_1711)" />
+              <path d="M66.592 41V14.36H77.104C79.24 14.36 81.016 14.792 82.432 15.656C83.848 16.496 84.904 17.6 85.6 18.968C86.32 20.312 86.68 21.716 86.68 23.18C86.68 24.644 86.32 26.06 85.6 27.428C84.904 28.772 83.848 29.876 82.432 30.74C81.016 31.604 79.24 32.036 77.104 32.036H71.488V41H66.592ZM77.068 18.608H71.488V27.788H77.068C78.124 27.788 79 27.572 79.696 27.14C80.392 26.684 80.908 26.108 81.244 25.412C81.604 24.692 81.784 23.96 81.784 23.216C81.784 22.448 81.604 21.716 81.244 21.02C80.908 20.324 80.392 19.748 79.696 19.292C79 18.836 78.124 18.608 77.068 18.608ZM93.1237 18.968C92.2837 18.968 91.5877 18.692 91.0357 18.14C90.5077 17.588 90.2437 16.928 90.2437 16.16C90.2437 15.392 90.5077 14.732 91.0357 14.18C91.5877 13.628 92.2837 13.352 93.1237 13.352C93.9637 13.352 94.6597 13.628 95.2117 14.18C95.7637 14.732 96.0397 15.392 96.0397 16.16C96.0397 16.928 95.7637 17.588 95.2117 18.14C94.6597 18.692 93.9637 18.968 93.1237 18.968ZM90.7477 41V21.92H95.5357V41H90.7477ZM100.509 41V21.92H105.297V24.656H105.513C105.705 24.32 106.005 23.912 106.413 23.432C106.821 22.928 107.385 22.496 108.105 22.136C108.825 21.752 109.737 21.56 110.841 21.56C112.305 21.56 113.505 21.896 114.441 22.568C115.401 23.216 116.109 24.08 116.565 25.16C117.045 26.24 117.285 27.404 117.285 28.652V41H112.497V29.3C112.497 28.268 112.209 27.38 111.633 26.636C111.057 25.892 110.193 25.52 109.041 25.52C108.153 25.52 107.433 25.748 106.881 26.204C106.329 26.636 105.921 27.2 105.657 27.896C105.417 28.592 105.297 29.324 105.297 30.092V41H100.509ZM122.104 41V13.64H126.892V29.48L133.624 21.92H139.276L131.356 30.632L139.528 41H133.804L126.892 32.216V41H122.104ZM143.127 41L143.163 13.64H147.915V41H143.127ZM162.115 41.36C160.027 41.36 158.251 40.892 156.787 39.956C155.323 39.02 154.207 37.808 153.439 36.32C152.695 34.808 152.323 33.188 152.323 31.46C152.323 29.732 152.695 28.124 153.439 26.636C154.207 25.124 155.323 23.9 156.787 22.964C158.251 22.028 160.027 21.56 162.115 21.56C164.227 21.56 166.003 22.028 167.443 22.964C168.907 23.9 170.011 25.124 170.755 26.636C171.523 28.124 171.907 29.732 171.907 31.46C171.907 33.188 171.523 34.808 170.755 36.32C170.011 37.808 168.907 39.02 167.443 39.956C166.003 40.892 164.227 41.36 162.115 41.36ZM162.115 37.364C163.195 37.364 164.095 37.088 164.815 36.536C165.559 35.984 166.123 35.264 166.507 34.376C166.891 33.464 167.083 32.492 167.083 31.46C167.083 30.404 166.891 29.432 166.507 28.544C166.123 27.656 165.559 26.936 164.815 26.384C164.095 25.832 163.195 25.556 162.115 25.556C161.059 25.556 160.159 25.832 159.415 26.384C158.671 26.936 158.107 27.656 157.723 28.544C157.339 29.432 157.147 30.404 157.147 31.46C157.147 32.492 157.339 33.464 157.723 34.376C158.107 35.264 158.671 35.984 159.415 36.536C160.159 37.088 161.059 37.364 162.115 37.364ZM181.048 41L173.956 21.92H178.816L183.604 35.528L188.32 21.92H193.18L186.052 41H181.048ZM204.718 41.36C203.086 41.36 201.67 41.084 200.47 40.532C199.294 39.956 198.31 39.2 197.518 38.264C196.75 37.304 196.174 36.236 195.79 35.06C195.406 33.884 195.214 32.684 195.214 31.46C195.214 30.236 195.394 29.048 195.754 27.896C196.138 26.72 196.702 25.652 197.446 24.692C198.214 23.732 199.186 22.976 200.362 22.424C201.538 21.848 202.93 21.56 204.538 21.56C206.266 21.56 207.79 21.944 209.11 22.712C210.43 23.48 211.462 24.608 212.206 26.096C212.95 27.56 213.322 29.384 213.322 31.568V32.792H200.038C200.11 34.088 200.554 35.216 201.37 36.176C202.186 37.112 203.302 37.58 204.718 37.58C205.534 37.58 206.206 37.448 206.734 37.184C207.262 36.92 207.67 36.62 207.958 36.284C208.246 35.924 208.45 35.624 208.57 35.384C208.69 35.12 208.75 34.988 208.75 34.988H213.178C213.178 34.988 213.118 35.204 212.998 35.636C212.878 36.044 212.65 36.572 212.314 37.22C212.002 37.844 211.534 38.48 210.91 39.128C210.286 39.752 209.47 40.28 208.462 40.712C207.454 41.144 206.206 41.36 204.718 41.36ZM200.038 29.66H208.714C208.642 28.172 208.198 27.068 207.382 26.348C206.566 25.628 205.606 25.268 204.502 25.268C203.278 25.268 202.258 25.664 201.442 26.456C200.626 27.224 200.158 28.292 200.038 29.66Z" fill="black" />
+              <defs>
+                <linearGradient id="paint0_linear_113_1711" x1="10.0004" y1="5.49952" x2="45.5005" y2="51.4991" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#E81C90" />
+                  <stop offset="1" stopColor="#FF7A76" stopOpacity="0.8" />
+                </linearGradient>
+              </defs>
+              </svg>
+            )}
+            <span className="h-6 w-px bg-stone-300"></span>
+            <span className="text-base 2xl:text-lg text-stone-500">Platform</span>
           </div>
         </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-4 py-2 text-sm text-guest-primary shadow-sm backdrop-blur">
-            <Sparkles className="h-4 w-4" />
-            {eyebrow}
+        <div className="relative z-10 mt-5 flex-1 flex flex-col justify-center">
+          <p className="w-fit inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/50 px-4 lg:px-6 py-2 text-sm text-guest-primary shadow-default">
+            <Sparkles className="h-4 w-4" />{eyebrow}
           </p>
-          <h1 className="mt-7.5 text-5xl lg:text-5xl font-semibold leading-tight">
-            {heading || "Nền tảng cưới toàn diện cho khách hàng PinkLove"}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600">
-            {subheading}
-          </p>
-        </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-7 text-stone-700">
+          <h1 className="mt-5 text-2xl lg:text-4xl 2xl:text-5xl font-extrabold leading-snug">{heading ? (heading) : (<>#1 Nền tảng toàn diện cho{" "}<span className="bg-[linear-gradient(90deg,#E81C90_0%,#FF7A76_100%)] bg-clip-text text-transparent">Lên kế hoạch & Mời cưới</span></>)}</h1>
+          <p className="mt-4 lg:mt-6 text-sm lg:text-base 2xl:text-lg text-stone-500">{subheading}</p>
+
+          <div className="hidden mt-7.5 2xl:mt-10 lg:grid grid-cols-2 gap-3 lg:gap-x-6 lg:gap-y-4">
             {[
               {
                 title: "Thiệp cưới",
@@ -143,29 +151,31 @@ function CustomerAuthShell({
               },
             ].map(({ title, description, Icon }) => (
               <div key={title} className="flex min-w-0 gap-4">
-                <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl border border-white/45 bg-white/35 text-guest-primary shadow-sm backdrop-blur">
-                  <Icon className="h-5 w-5" />
+                <span className="size-10 2xl:size-12.5 shrink-0 inline-flex items-center justify-center rounded-md border border-white/50 bg-white/50 text-guest-primary shadow-default">
+                  <Icon className="size-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="font-semibold text-stone-950">{title}</p>
-                  <p className="mt-1 text-sm leading-5 text-stone-500">{description}</p>
+                  <p className="text-base 2xl:text-lg font-semibold">{title}</p>
+                  <p className="mt-1 text-sm 2xl:text-base leading-5 text-stone-500">{description}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-10">
-            <p className="text-xs font-medium uppercase tracking-widest text-stone-400">PinkLove trong những con số</p>
-            <div className="mt-4 grid grid-cols-4 gap-6">
+          <div className="mt-7.5 2xl:mt-10 hidden lg:block">
+            <p className="text-xs 2xl:text-base font-medium uppercase tracking-widest text-stone-500">PinkLove trong những con số</p>
+            <div className="mt-4 2xl:mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {[
-                ["10.000+", "khách hàng tin dùng"],
-                ["2.500+", "thiệp cưới đã tạo"],
-                ["500+", "dịch vụ cưới kết nối"],
-                ["99,9%", "thời gian hoạt động"],
-              ].map(([value, label]) => (
+                ["10.000", "+", "khách hàng tin dùng"],
+                ["2.500", "+", "thiệp cưới đã tạo"],
+                ["500", "+", "dịch vụ cưới kết nối"],
+                ["10", "×", "tốc độ cập nhật"],
+              ].map(([value, suffix, label]) => (
                 <div key={label} className="min-w-0">
-                  <p className="text-3xl font-semibold leading-none text-stone-950">{value}</p>
-                  <p className="mt-2 text-sm leading-5 text-stone-500">{label}</p>
+                  <p className="text-2xl 2xl:text-3xl font-semibold">
+                    {value}<span className="text-guest-primary">{suffix}</span>
+                  </p>
+                  <p className="mt-2 text-sm lg:text-base text-stone-500">{label}</p>
                 </div>
               ))}
             </div>
@@ -173,25 +183,15 @@ function CustomerAuthShell({
         </div>
       </div>
 
-      <div className="col-span-12 flex min-h-screen items-center justify-center px-5 py-8 sm:px-8 lg:col-span-5 lg:px-12">
+      <div className="col-span-12 flex lg:min-h-screen items-center justify-center bg-white px-4 py-7.5 sm:px-7.5 lg:col-span-5 lg:px-10">
         <div className="w-full max-w-md">
-          <div className="mb-10">
-            <h2 className="text-3xl font-semibold leading-tight text-stone-950">{panelTitle}</h2>
-            <p className="mt-3 text-base leading-7 text-stone-500">{panelDescription}</p>
-          </div>
-
+          <h2 className="text-xl lg:text-2xl 2xl:text-3xl font-semibold">{panelTitle}</h2>
+          <p className="mt-2 lg:mt-3 2xl:mt-4 text-sm 2xl:text-base text-stone-500">{panelDescription}</p>
           {children}
-
-          <p className="mt-14 text-center text-xs text-stone-400">© 2026 PinkLove. All rights reserved.</p>
         </div>
       </div>
     </section>
   );
-}
-
-function updateCustomerAuthUrl(mode: CustomerAuthMode) {
-  const href = mode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER;
-  window.history.pushState({ authMode: mode }, "", href);
 }
 
 function CustomerAuthSwitchLink({
@@ -206,18 +206,16 @@ function CustomerAuthSwitchLink({
   const href = mode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER;
 
   return (
-    <Link
+    <a
       href={href}
-      prefetch
       className="text-guest-primary hover:underline"
       onClick={(event) => {
         event.preventDefault();
-        updateCustomerAuthUrl(mode);
         onSwitch(mode);
       }}
     >
       {children}
-    </Link>
+    </a>
   );
 }
 
@@ -231,14 +229,35 @@ function CountryFlagSvg({ code }: { code: PhoneCountryCode }) {
 }
 
 function PhoneRegionInput() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [selectedCountry, setSelectedCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [phone, setPhone] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
 
   useEffect(() => {
-    setSelectedCountry(detectCurrentPhoneCountry());
+    const timeoutId = window.setTimeout(() => {
+      setSelectedCountry(detectCurrentPhoneCountry());
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || containerRef.current?.contains(target)) return;
+
+      setIsOpen(false);
+      setQuery("");
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isOpen]);
 
   const countries = useMemo(() => {
     return PHONE_COUNTRIES
@@ -251,12 +270,15 @@ function PhoneRegionInput() {
   }, [normalizedQuery]);
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <input type="hidden" name="phoneCountry" value={selectedCountry.code} />
       <div className="flex h-11 overflow-hidden rounded border border-guest-border bg-white focus-within:border-guest-primary">
         <button
           type="button"
-          className="inline-flex h-full shrink-0 items-center gap-2 border-r border-guest-border px-3 text-sm transition-colors hover:bg-guest-primary/8 focus-visible:bg-guest-primary/10 focus-visible:outline-none"
+          className={[
+            "inline-flex h-full shrink-0 items-center gap-2 border-r border-guest-border px-3 text-sm transition-colors hover:bg-guest-primary/8 focus-visible:bg-guest-primary/10 focus-visible:outline-none",
+            isOpen ? "bg-guest-primary/8" : "",
+          ].join(" ")}
           aria-label="Chọn mã quốc gia"
           aria-expanded={isOpen}
           onClick={() => setIsOpen((value) => !value)}
@@ -264,16 +286,34 @@ function PhoneRegionInput() {
           <span className="inline-flex h-3.5 w-5 overflow-hidden">
             <CountryFlagSvg code={selectedCountry.code as PhoneCountryCode} />
           </span>
-          <ChevronDown className="h-3.5 w-3.5 text-stone-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-stone-500" />
         </button>
-        <span className="inline-flex h-full shrink-0 items-center px-3 text-sm text-stone-500">
+        <span
+          className={[
+            "inline-flex h-full shrink-0 items-center px-3 text-sm transition-colors",
+            phone.length > 0 ? "text-guest-text" : "text-guest-placeholder",
+          ].join(" ")}
+        >
           {selectedCountry.dialCode}
         </span>
         <input
           id="customer-register-phone"
           name="phone"
           type="tel"
+          value={phone}
+          onChange={(event) => {
+            setPhone(formatPhoneNumberAsYouType(event.target.value, selectedCountry.code));
+          }}
+          onBlur={() => {
+            const normalized = normalizePhoneNumber(
+              phone,
+              selectedCountry.code,
+              selectedCountry.dialCode
+            );
+            if (normalized) setPhone(normalized.national);
+          }}
           placeholder="Số điện thoại"
+          inputMode="tel"
           autoComplete="tel-national"
           required
           className="h-full min-w-0 flex-1 border-0 bg-transparent px-2 shadow-none outline-none placeholder:text-guest-placeholder"
@@ -282,7 +322,7 @@ function PhoneRegionInput() {
       {isOpen ? (
         <div className="absolute left-0 top-14 z-50 w-full overflow-hidden rounded-lg border border-guest-border bg-white shadow-default">
           <div className="flex h-11 items-center gap-2 border-b border-guest-border px-3">
-            <Search className="h-4 w-4 text-stone-400" />
+            <Search className="h-4 w-4 text-stone-500" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -290,17 +330,18 @@ function PhoneRegionInput() {
               className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm shadow-none outline-none placeholder:text-guest-placeholder"
             />
           </div>
-          <div className="max-h-72 overflow-y-auto py-1">
+          <div className="max-h-50 overflow-y-auto py-1">
             {countries.map((country) => (
               <button
                 key={`${country.code}-${country.dialCode}`}
                 type="button"
                 className={[
                   "flex h-9 w-full items-center gap-3 px-3 text-left text-sm transition-colors",
-                  country.code === selectedCountry.code ? "bg-guest-primary/10 text-stone-950" : "hover:bg-guest-primary/8",
+                  country.code === selectedCountry.code ? "bg-guest-primary/10" : "hover:bg-guest-primary/8",
                 ].join(" ")}
                 onClick={() => {
                   setSelectedCountry(country);
+                  setPhone((current) => formatPhoneNumberAsYouType(current, country.code));
                   setIsOpen(false);
                   setQuery("");
                 }}
@@ -309,7 +350,7 @@ function PhoneRegionInput() {
                   <CountryFlagSvg code={country.code} />
                 </span>
                 <span className="min-w-0 flex-1 truncate">{country.name}</span>
-                <span className="shrink-0 text-stone-400">{country.dialCode}</span>
+                <span className="shrink-0 text-stone-500">{country.dialCode}</span>
               </button>
             ))}
           </div>
@@ -389,6 +430,15 @@ function CustomerAuthView({
   const activeHeading = mode === initialMode ? heading : undefined;
   const activeSubheading = mode === initialMode ? subheading : undefined;
 
+  function switchMode(nextMode: CustomerAuthMode) {
+    setMode(nextMode);
+
+    const url = new URL(window.location.href);
+    url.pathname = nextMode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER;
+    url.searchParams.delete("error");
+    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
   useEffect(() => {
     function handlePopState() {
       setMode(window.location.pathname === ROUTES.AUTH.REGISTER ? "register" : "login");
@@ -397,6 +447,14 @@ function CustomerAuthView({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  function handleRegisterSubmit(event: FormEvent<HTMLFormElement>) {
+    const formData = new FormData(event.currentTarget);
+    if (formData.get("termsAccepted") === "accepted") return;
+
+    event.preventDefault();
+    toast.error("Vui lòng đồng ý Điều khoản sử dụng và Chính sách bảo mật.");
+  }
 
   return (
     <CustomerAuthShell
@@ -415,118 +473,134 @@ function CustomerAuthView({
           : "Đăng ký để bắt đầu quản lý hành trình cưới của bạn"
       }
       sideImage={sideImage}
-      visualAlt={isLogin ? "PinkLove customer login visual" : "PinkLove customer register visual"}
+      visualAlt="PinkLove"
     >
       {isLogin ? (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mt-4 lg:mt-5 2xl:mt-6 grid grid-cols-2 gap-3 lg:gap-4">
             <Link href={ROUTES.API.AUTH.GOOGLE_LOGIN} className="block">
-              <span className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-guest-border bg-white text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50">
+              <span className="inline-flex h-11 w-full items-center justify-center rounded border border-guest-border bg-white text-sm 2xl:text-base font-medium transition hover:border-guest-primary hover:bg-guest-primary/8 hover:text-guest-primary">
                 <GoogleIcon />
                 <span className="ml-2">Google</span>
               </span>
             </Link>
-            <button type="button" className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-guest-border bg-white text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="button" className="inline-flex h-11 w-full items-center justify-center rounded border border-guest-border bg-white text-sm 2xl:text-base font-medium transition hover:border-guest-primary hover:bg-guest-primary/8 hover:text-guest-primary disabled:cursor-not-allowed disabled:opacity-60">
               <FacebookIcon />
               <span className="ml-2">Facebook</span>
             </button>
           </div>
-          <div className="my-6 flex items-center gap-4 text-xs font-medium text-stone-400">
+          <div className="my-5 2xl:my-7.5 flex items-center gap-4 text-xs 2xl:text-sm font-medium text-stone-500">
             <span className="h-px flex-1 bg-stone-200" />
             <span>hoặc đăng nhập bằng tài khoản</span>
             <span className="h-px flex-1 bg-stone-200" />
           </div>
-          <form
+          <NativeForm
             action={ROUTES.API.AUTH.LOGIN}
             method="POST"
-            className="space-y-4"
+            className="space-y-3.5 2xl:space-y-4"
           >
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             <div className="space-y-2">
-              <label htmlFor="customer-login-username" className="text-sm font-semibold text-stone-700">
-                Tên đăng nhập
+              <label htmlFor="customer-login-email" className="text-sm 2xl:text-base font-medium">
+                Email
               </label>
-              <input id="customer-login-username" name="username" placeholder="Tên đăng nhập" autoComplete="username" className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+              <input id="customer-login-email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
             </div>
             <div className="space-y-2">
-              <label htmlFor="customer-login-password" className="text-sm font-semibold text-stone-700">
+              <label htmlFor="customer-login-password" className="text-sm 2xl:text-base font-medium">
                 Mật khẩu
               </label>
-              <input id="customer-login-password" name="password" type="password" placeholder="Mật khẩu" autoComplete="current-password" className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+              <PasswordInput
+                id="customer-login-password"
+                name="password"
+                placeholder="Mật khẩu"
+                autoComplete="current-password"
+                required
+                className="h-11 rounded border-guest-border bg-white px-4 shadow-none placeholder:text-guest-placeholder focus-visible:border-guest-primary focus-visible:ring-0"
+              />
             </div>
-            <button type="submit" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-guest-primary text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="submit" className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60">
               Đăng nhập
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
-          </form>
+          </NativeForm>
           {error ? <p className="mt-4 text-center text-sm text-destructive">{error}</p> : null}
-          <p className="pt-5 text-center text-sm">
+          <p className="mt-5 2xl:mt-7.5 text-center text-sm 2xl:text-base">
             Chưa có tài khoản?{" "}
-            <CustomerAuthSwitchLink mode="register" onSwitch={setMode}>
+            <CustomerAuthSwitchLink mode="register" onSwitch={switchMode}>
               Tạo tài khoản
             </CustomerAuthSwitchLink>
+          </p>
+          <p className="mt-14 text-center text-xs text-stone-500">
+            © 2026 Pinklove. All rights reserved.
           </p>
         </>
       ) : (
         <>
-          <form
+          <NativeForm
             action={ROUTES.API.AUTH.REGISTER}
             method="POST"
-            className="space-y-3.5"
+            className="mt-7.5 2xl:mt-10 space-y-3.5 2xl:space-y-4"
+            onSubmit={handleRegisterSubmit}
           >
             <div className="space-y-2">
-              <label htmlFor="customer-register-username" className="text-sm font-semibold text-stone-700">
-                Tên đăng nhập
-              </label>
-              <input id="customer-register-username" name="username" placeholder="Tên đăng nhập mới" autoComplete="username" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+              <label htmlFor="customer-register-accountName" className="text-sm 2xl:text-base font-medium">Tên tài khoản</label>
+              <input id="customer-register-accountName" name="accountName" placeholder="Tên hiển thị của bạn" autoComplete="nickname" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
             </div>
             <div className="space-y-2">
-              <label htmlFor="customer-register-phone" className="text-sm font-semibold text-stone-700">
-                Số điện thoại
-              </label>
+              <label htmlFor="customer-register-email" className="text-sm 2xl:text-base font-medium">Email</label>
+              <input id="customer-register-email" name="email" type="email" placeholder="your@pinklove.vn" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="customer-register-phone" className="text-sm 2xl:text-base font-medium">Số điện thoại</label>
               <PhoneRegionInput />
             </div>
             <div className="space-y-2">
-              <label htmlFor="customer-register-email" className="text-sm font-semibold text-stone-700">
-                Gmail
-              </label>
-              <input id="customer-register-email" name="email" type="email" placeholder="your@gmail.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="customer-register-password" className="text-sm font-semibold text-stone-700">
-                Mật khẩu
-              </label>
-              <input
+              <label htmlFor="customer-register-password" className="text-sm 2xl:text-base font-medium">Mật khẩu</label>
+              <PasswordInput
                 id="customer-register-password"
                 name="password"
-                type="password"
                 placeholder={`Mật khẩu tối thiểu ${MIN_PASSWORD_LENGTH} ký tự`}
                 autoComplete="new-password"
                 required
-                className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary"
+                allowGenerate
+                className="h-11 rounded border-guest-border bg-white px-4 shadow-none placeholder:text-guest-placeholder focus-visible:border-guest-primary focus-visible:ring-0"
               />
             </div>
-            <label className="flex gap-3 rounded-lg border border-guest-border bg-white px-3 py-3 text-sm leading-5 text-stone-600">
-              <input
-                name="termsAccepted"
-                type="checkbox"
-                value="accepted"
-                required
-                className="mt-0.5 size-4 shrink-0 rounded border-guest-border accent-guest-primary"
-              />
+            <label className="flex gap-3 text-xs 2xl:text-sm leading-5 text-stone-500">
+              <span className="relative mt-0.5 2xl:mt-1 size-4 shrink-0">
+                <input
+                  name="termsAccepted"
+                  type="checkbox"
+                  value="accepted"
+                  className="peer size-4 appearance-none rounded border border-guest-border bg-white transition-colors checked:border-guest-primary checked:bg-guest-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-guest-primary/30"
+                />
+                <Check className="pointer-events-none absolute left-0.5 top-0.5 hidden size-3 stroke-[3] text-white peer-checked:block" />
+              </span>
               <span>
-                Tôi đã xem và đồng ý Điều khoản sử dụng & Chính sách bảo mật của LadiPage.
+                Đồng ý với{" "}
+                <button type="button" className="inline p-0 font-medium text-guest-primary hover:underline">
+                  Điều khoản sử dụng
+                </button>{" "}
+                &{" "}
+                <button type="button" className="inline p-0 font-medium text-guest-primary hover:underline">
+                  Chính sách bảo mật
+                </button>{" "}
+                của PinkLove.
               </span>
             </label>
-            <button type="submit" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-guest-primary text-sm font-semibold text-white shadow-lg transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60">
+            <button
+              type="submit"
+              className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60"
+            >
               Đăng ký tài khoản
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
-          </form>
+          </NativeForm>
           {error ? <p className="mt-4 text-center text-sm text-destructive">{error}</p> : null}
-          <p className="pt-5 text-center text-sm">
+          <p className="mt-5 2xl:mt-7.5 text-center text-sm 2xl:text-base">
             Đã có tài khoản?{" "}
-            <CustomerAuthSwitchLink mode="login" onSwitch={setMode}>
+            <CustomerAuthSwitchLink mode="login" onSwitch={switchMode}>
               Đăng nhập
             </CustomerAuthSwitchLink>
           </p>
@@ -541,7 +615,7 @@ export function AdminLoginForm() {
   const error = getErrorMessage(searchParams.get("error"));
 
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-1 items-center justify-center p-6 md:p-10">
+    <section className="container px-4 mx-auto flex w-full flex-1 items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-md space-y-5">
         <div className="space-y-2 text-center">
           <h1 className="text-4xl font-semibold tracking-tight md:text-5xl text-primary">PinkLove Admin</h1>
@@ -558,9 +632,21 @@ export function AdminLoginForm() {
               method="POST"
               className="space-y-3"
             >
-              <Input name="username" placeholder="Tên đăng nhập" autoComplete="username" />
-              <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
-              <Button type="submit" className="w-full" variant="default">
+              <Input
+                name="email"
+                type="email"
+                placeholder="Email"
+                autoComplete="email"
+                required
+                className="rounded"
+              />
+              <PasswordInput
+                name="password"
+                placeholder="Mật khẩu"
+                autoComplete="current-password"
+                className="rounded"
+              />
+              <Button type="submit" className="h-10 w-full rounded" variant="default">
                 Login to Dashboard
               </Button>
             </NativeForm>
@@ -618,7 +704,7 @@ export function ProviderLoginForm({
         <CardContent className="space-y-3">
           <NativeForm action={ROUTES.API.PROVIDER.AUTH.LOGIN} method="POST" className="space-y-3">
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
-            <Input name="username" placeholder="Tên đăng nhập provider" autoComplete="username" />
+            <Input name="email" type="email" placeholder="Email provider" autoComplete="email" required />
             <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
             <Button type="submit" className="w-full">
               Vào provider portal

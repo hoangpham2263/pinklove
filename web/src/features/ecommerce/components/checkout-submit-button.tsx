@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type CheckoutSubmitButtonProps = {
@@ -8,8 +9,19 @@ type CheckoutSubmitButtonProps = {
 };
 
 export function CheckoutSubmitButton({ formId, disabled }: CheckoutSubmitButtonProps) {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+
+  function navigateTo(location: string) {
+    const target = new URL(location, window.location.href);
+    if (target.origin === window.location.origin) {
+      router.push(`${target.pathname}${target.search}${target.hash}`);
+      return;
+    }
+
+    window.location.assign(location);
+  }
 
   const handleClick = async () => {
     const form = document.getElementById(formId) as HTMLFormElement | null;
@@ -34,14 +46,14 @@ export function CheckoutSubmitButton({ formId, disabled }: CheckoutSubmitButtonP
       const payload = await response.json().catch(() => null) as { location?: string; message?: string } | null;
 
       if (response.ok && payload?.location) {
-        window.location.assign(payload.location);
+        navigateTo(payload.location);
         return;
       }
 
       setMessage(payload?.message || "Không thể thanh toán. Vui lòng thử lại.");
 
       if (payload?.location) {
-        window.location.assign(payload.location);
+        navigateTo(payload.location);
       }
     } catch {
       setMessage("Không thể kết nối checkout. Vui lòng thử lại.");

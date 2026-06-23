@@ -12,6 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -60,12 +61,12 @@ function statusAction(comment: ContentComment, status: CommentStatus, label: str
   const action = status === "approved" ? "approve" : status === "spam" ? "spam" : "reject";
 
   return (
-    <form action={ROUTES.API.ADMIN.COMMENTS.UPDATE_STATUS} method="POST" className="inline-block">
+    <NativeForm action={ROUTES.API.ADMIN.COMMENTS.UPDATE_STATUS} method="POST" className="inline-block">
       <input type="hidden" name="id" value={comment.id} />
       <input type="hidden" name="status" value={status} />
       <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
       <AdminTableActionButton action={action} label={label} type="submit" />
-    </form>
+    </NativeForm>
   );
 }
 
@@ -149,7 +150,7 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
               {comment.status !== "spam"
                 ? statusAction(comment, "spam", "Mark spam")
                 : null}
-              <form action={ROUTES.API.ADMIN.COMMENTS.DELETE} method="POST" className="inline-block">
+              <NativeForm action={ROUTES.API.ADMIN.COMMENTS.DELETE} method="POST" className="inline-block">
                 <input type="hidden" name="id" value={comment.id} />
                 <input type="hidden" name="returnTo" value={ROUTES.ADMIN.COMMENTS} />
                 <AdminTableActionButton
@@ -162,7 +163,7 @@ export function AdminCommentsTable({ comments, status, keyword }: AdminCommentsT
                     }
                   }}
                 />
-              </form>
+              </NativeForm>
             </AdminTableActions>
           );
         },

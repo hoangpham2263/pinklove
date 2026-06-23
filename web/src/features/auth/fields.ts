@@ -9,5 +9,5 @@ export type AuthPageFields = {
 export const AUTH_PAGE_FIELDS: FieldSchema[] = [
   { name: "heading", label: "Tiêu đề chính", type: "text" },
   { name: "subheading", label: "Tiêu đề phụ", type: "text" },
-  { name: "sideImage", label: "Ảnh bên cạnh", type: "media" },
+  { name: "sideImage", label: "Logo trang xác thực", type: "media" },
 ];

@@ -75,15 +75,16 @@ async function upsertUser(client, input) {
   const user = await fetchRow(
     client,
     `
-      INSERT INTO users (username, password_hash, role)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (username)
+      INSERT INTO users (email, account_name, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (LOWER(BTRIM(email)))
       DO UPDATE SET
+        account_name = EXCLUDED.account_name,
         password_hash = EXCLUDED.password_hash,
         role = EXCLUDED.role
-      RETURNING id, username, role
+      RETURNING id, email, account_name AS "accountName", role
     `,
-    [input.username, hashPassword(PASSWORD), input.role]
+    [input.email ?? `${input.accountName}@example.local`, input.accountName, hashPassword(PASSWORD), input.role]
   );
 
   await client.query(
@@ -1662,7 +1663,7 @@ async function main() {
     }
 
     const providerAlpha = await upsertUser(client, {
-      username: "provider_alpha",
+      accountName: "provider_alpha",
       role: "PROVIDER",
       displayName: "Xuong In Alpha",
       fullName: "Xuong In Alpha",
@@ -1672,7 +1673,7 @@ async function main() {
     });
 
     const providerBeta = await upsertUser(client, {
-      username: "provider_beta",
+      accountName: "provider_beta",
       role: "PROVIDER",
       displayName: "Xuong In Beta",
       fullName: "Xuong In Beta",
@@ -1682,7 +1683,7 @@ async function main() {
     });
 
     const customerOne = await upsertUser(client, {
-      username: "customer_one",
+      accountName: "customer_one",
       role: "CUSTOMER",
       displayName: "Nguyen Lan",
       fullName: "Nguyen Lan",
@@ -1691,7 +1692,7 @@ async function main() {
     });
 
     const customerTwo = await upsertUser(client, {
-      username: "customer_two",
+      accountName: "customer_two",
       role: "CUSTOMER",
       displayName: "Tran Minh",
       fullName: "Tran Minh",
@@ -1700,7 +1701,7 @@ async function main() {
     });
 
     const affiliateRose = await upsertUser(client, {
-      username: "affiliate_rose",
+      accountName: "affiliate_rose",
       role: "AFFILIATE",
       displayName: "Rose Provider",
       fullName: "Rose Provider",
@@ -1709,7 +1710,7 @@ async function main() {
     });
 
     const affiliateNova = await upsertUser(client, {
-      username: "affiliate_nova",
+      accountName: "affiliate_nova",
       role: "AFFILIATE",
       displayName: "Nova Provider",
       fullName: "Nova Provider",
@@ -1900,7 +1901,7 @@ async function main() {
       seededOrders.push({
         orderNumber: scenario.orderNumber,
         assignmentId: assignment.id,
-        provider: scenario.provider.username,
+        provider: scenario.provider.accountName,
         orderDetailLink: withBaseUrl(`/provider/orders/${assignment.id}`),
         portalLink: withBaseUrl(`/provider`),
       });
@@ -1921,21 +1922,21 @@ async function main() {
           },
           providers: [
             {
-              username: providerAlpha.username,
+              accountName: providerAlpha.accountName,
               portalLink: withBaseUrl("/provider"),
             },
             {
-              username: providerBeta.username,
+              accountName: providerBeta.accountName,
               portalLink: withBaseUrl("/provider"),
             },
           ],
           customers: [
-            { username: customerOne.username, loginLink: withBaseUrl("/customer/login") },
-            { username: customerTwo.username, loginLink: withBaseUrl("/customer/login") },
+            { accountName: customerOne.accountName, loginLink: withBaseUrl("/customer/login") },
+            { accountName: customerTwo.accountName, loginLink: withBaseUrl("/customer/login") },
           ],
           affiliates: [
-            { username: affiliateRose.username, code: "rose-love" },
-            { username: affiliateNova.username, code: "nova-plan" },
+            { accountName: affiliateRose.accountName, code: "rose-love" },
+            { accountName: affiliateNova.accountName, code: "nova-plan" },
           ],
           weddingPlanning: seededWeddingPlanning,
           orders: seededOrders,

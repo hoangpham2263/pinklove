@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { CurrencyInput } from "@/components/common/currency-input";
+import { NativeForm } from "@/components/common/native-form";
 import { AdminDeleteButton, AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminCheckbox, AdminField, AdminTextarea } from "@/features/admin/components/admin-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,22 +155,22 @@ export default async function AdminProviderOfferingDetailPage({
               <CardTitle>Thao tác duyệt</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
-              <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
+              <NativeForm action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="under_review" />
                 <AdminOutlineButton type="submit" className="w-full">Đánh dấu đang duyệt</AdminOutlineButton>
-              </form>
+              </NativeForm>
 
-              <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
+              <NativeForm action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="changes_requested" />
                 <AdminTextarea name="reviewNote" className="min-h-24" placeholder="Nêu rõ provider cần chỉnh gì" />
                 <AdminOutlineButton type="submit" className="w-full">Yêu cầu chỉnh sửa</AdminOutlineButton>
-              </form>
+              </NativeForm>
 
-              <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
+              <NativeForm action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.REVIEW(detail.id)} method="POST" className="space-y-3">
                 <input type="hidden" name="nextStatus" value="rejected" />
                 <AdminTextarea name="reviewNote" className="min-h-24" placeholder="Lý do từ chối" />
                 <AdminDeleteButton type="submit" className="w-full">Từ chối hồ sơ</AdminDeleteButton>
-              </form>
+              </NativeForm>
             </CardContent>
           </Card>
 
@@ -178,7 +179,7 @@ export default async function AdminProviderOfferingDetailPage({
               <CardTitle>Duyệt và áp dụng</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <form action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.APPROVE(detail.id)} method="POST" className="space-y-3">
+              <NativeForm action={ROUTES.API.ADMIN.PROVIDER_OFFERINGS.APPROVE(detail.id)} method="POST" className="space-y-3">
                 <AdminField label="Giá bán admin">
                   <CurrencyInput
                     name="adminSellPrice"
@@ -215,7 +216,7 @@ export default async function AdminProviderOfferingDetailPage({
                 <AdminSubmitButton className="w-full" disabled={!canApply}>
                   {applyLabel}
                 </AdminSubmitButton>
-              </form>
+              </NativeForm>
             </CardContent>
           </Card>
         </div>

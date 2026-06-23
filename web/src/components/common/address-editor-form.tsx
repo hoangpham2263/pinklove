@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
@@ -102,7 +103,7 @@ export function AddressEditorForm({
   submitLabel = address ? "Lưu địa chỉ" : "Thêm địa chỉ",
 }: AddressEditorFormProps) {
   return (
-    <form action={actionUrl} method="POST" className="grid gap-6 lg:grid-cols-12">
+    <NativeForm action={actionUrl} method="POST" className="grid gap-6 lg:grid-cols-12">
       <input type="hidden" name="action" value="save" />
       {address ? <input type="hidden" name="addressId" value={address.id} /> : null}
       <input type="hidden" name="returnTo" value={returnTo} />
@@ -143,7 +144,7 @@ export function AddressEditorForm({
           </CardContent>
         </Card>
       </div>
-    </form>
+    </NativeForm>
   );
 }
 

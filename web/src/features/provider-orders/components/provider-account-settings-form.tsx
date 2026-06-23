@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Building2, MapPin, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -60,6 +61,7 @@ export function ProviderAccountSettingsForm({
   addresses,
   portalHref,
 }: ProviderAccountSettingsFormProps) {
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatarUrl);
   const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
@@ -83,7 +85,7 @@ export function ProviderAccountSettingsForm({
         providerApi.updateShippingProfile(formData),
       ]);
       toast.success("Đã cập nhật hồ sơ provider.");
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Save failed");
     } finally {

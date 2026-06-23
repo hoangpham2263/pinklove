@@ -2,7 +2,7 @@ import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
 
 import {
- authenticateUser,
+ authenticateUserByEmail,
  createSession,
  isAdminRole,
  SESSION_COOKIE_NAME,
@@ -13,14 +13,14 @@ export const runtime ="nodejs";
 
 export async function POST(request: Request) {
  const formData = await request.formData();
- const username = String(formData.get("username") ??"").trim();
+ const email = String(formData.get("email") ??"").trim();
  const password = String(formData.get("password") ??"");
 
- if (!username || !password) {
+ if (!email || !password) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.LOGIN}?error=missing_fields` } });
  }
 
- const user = await authenticateUser(username, password);
+ const user = await authenticateUserByEmail(email, password);
  if (!user) {
  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.ADMIN.LOGIN}?error=invalid_credentials` } });
  }

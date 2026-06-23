@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminCancelButton, AdminCreateButton } from "@/features/admin/components/admin-buttons";
 import { LANDING_PAGE_TEMPLATES } from "@/features/landing-pages/templates";
@@ -16,7 +17,7 @@ function getOfferingLabel(offering: Pick<Offering, "name" | "status">) {
 
 export function LandingPageCreateForm({ offerings, selectedSourceOfferingId }: LandingPageCreateFormProps) {
   return (
-    <form action={ROUTES.API.ADMIN.LANDING_PAGES.CREATE} method="POST" className="grid gap-5 lg:grid-cols-12">
+    <NativeForm action={ROUTES.API.ADMIN.LANDING_PAGES.CREATE} method="POST" className="grid gap-5 lg:grid-cols-12">
       <Card className="lg:col-span-9">
         <CardHeader className="border-b gap-0 pb-0">
           <CardTitle>Mẫu</CardTitle>
@@ -99,6 +100,6 @@ export function LandingPageCreateForm({ offerings, selectedSourceOfferingId }: L
           <AdminCreateButton type="submit">Tạo landing page</AdminCreateButton>
         </div>
       </div>
-    </form>
+    </NativeForm>
   );
 }

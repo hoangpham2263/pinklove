@@ -3,7 +3,6 @@
 import { type ChangeEvent, type ComponentProps, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { generateSecurePassword } from "@/lib/password";
 import { cn } from "@/lib/utils";
@@ -74,27 +73,23 @@ export function PasswordInput({
         onChange={handleChange}
       />
       {allowGenerate ? (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="absolute right-8 top-1/2 -translate-y-1/2"
+          className="absolute inset-y-0 right-8 my-auto inline-flex size-7 items-center justify-center rounded-lg transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           aria-label="Tạo mật khẩu mạnh"
           onClick={handleGenerate}
         >
           <Sparkles className="h-4 w-4" />
-        </Button>
+        </button>
       ) : null}
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="icon-sm"
-        className="absolute right-1.5 top-1/2 -translate-y-1/2"
+        className="absolute inset-y-0 right-1.5 my-auto inline-flex size-7 items-center justify-center rounded-lg transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
         onClick={() => setShowPassword((current) => !current)}
       >
         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-      </Button>
+      </button>
     </div>
   );
 }

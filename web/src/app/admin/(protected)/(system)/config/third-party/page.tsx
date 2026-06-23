@@ -1,3 +1,4 @@
+import { NativeForm } from "@/components/common/native-form";
 import { PasswordInput } from "@/components/common/password-input";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ export default async function AdminThirdPartyConfigPage() {
           <CardTitle className="text-base">Google OAuth</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
+          <NativeForm action={ROUTES.API.ADMIN.CONFIG.UPDATE} method="POST" className="space-y-5">
             <input type="hidden" name="section" value="third_party" />
 
             <label className="flex items-start gap-3 rounded-md border p-4">
@@ -74,7 +75,7 @@ export default async function AdminThirdPartyConfigPage() {
             </div>
 
             <AdminSubmitButton>Lưu cấu hình</AdminSubmitButton>
-          </form>
+          </NativeForm>
         </CardContent>
       </Card>
     </section>

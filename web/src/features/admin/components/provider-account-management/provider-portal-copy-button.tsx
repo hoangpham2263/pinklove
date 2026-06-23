@@ -10,18 +10,18 @@ import { Input } from "@/components/ui/input";
 
 type ProviderPortalCopyButtonProps = {
   path: string;
-  username: string;
+  email: string;
   label?: string;
   className?: string;
 };
 
 export function ProviderPortalCopyButton({
   path,
-  username,
+  email,
   label = "Thông tin đối tác",
   className,
 }: ProviderPortalCopyButtonProps) {
-  const [copiedField, setCopiedField] = useState<"portal" | "username" | "all" | null>(null);
+  const [copiedField, setCopiedField] = useState<"portal" | "email" | "all" | null>(null);
 
   const portalUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -31,9 +31,9 @@ export function ProviderPortalCopyButton({
     return path.startsWith("/") ? `${window.location.origin}${path}` : path;
   }, [path]);
 
-  const allText = `Portal: ${portalUrl}\nUsername: ${username}`;
+  const allText = `Portal: ${portalUrl}\nEmail: ${email}`;
 
-  async function handleCopy(value: string, field: "portal" | "username" | "all", message: string) {
+  async function handleCopy(value: string, field: "portal" | "email" | "all", message: string) {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
     toast(message);
@@ -51,7 +51,7 @@ export function ProviderPortalCopyButton({
           <DialogHeader>
             <DialogTitle>Thông tin gửi đối tác</DialogTitle>
             <DialogDescription>
-              Copy link portal và username để gửi cho đối tác. Mật khẩu không thể xem lại sau khi đã hash; nếu cần gửi mật khẩu mới, hãy đặt lại trong màn hình sửa tài khoản.
+              Copy link portal và email để gửi cho đối tác. Mật khẩu không thể xem lại sau khi đã hash; nếu cần gửi mật khẩu mới, hãy đặt lại trong màn hình sửa tài khoản.
             </DialogDescription>
           </DialogHeader>
 
@@ -70,14 +70,14 @@ export function ProviderPortalCopyButton({
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Username</p>
+              <p className="text-sm font-medium">Email</p>
               <div className="flex items-center gap-2">
-                <Input value={username} readOnly />
+                <Input value={email} readOnly />
                 <AdminIconButton
-                  aria-label="Copy username"
-                  onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}
+                  aria-label="Copy email"
+                  onClick={() => handleCopy(email, "email", "Đã copy email đối tác.")}
                 >
-                  {copiedField === "username" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedField === "email" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </AdminIconButton>
               </div>
             </div>

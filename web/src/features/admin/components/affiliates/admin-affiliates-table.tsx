@@ -142,7 +142,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
         cell: ({ row }) => (
           <input
             type="checkbox"
-            aria-label={`Select ${row.original.username}`}
+            aria-label={`Select ${row.original.accountName}`}
             className="h-4 w-4 rounded border border-input"
             checked={row.getIsSelected()}
             onChange={(event) => row.toggleSelected(event.target.checked)}
@@ -150,12 +150,12 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
         ),
       },
       {
-        accessorKey: "username",
+        accessorKey: "accountName",
         header: ({ column }) => (
           <AdminTableSortButton onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
             Tài khoản</AdminTableSortButton>
         ),
-        cell: ({ row }) => <span>{row.original.username}</span>,
+        cell: ({ row }) => <span>{row.original.accountName}</span>,
       },
       {
         accessorKey: "code",
@@ -299,7 +299,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
 
       const account = row.original;
       return [
-        account.username,
+        account.accountName,
         account.code,
         account.status,
         getAffiliateStatusLabel(account.status),
@@ -441,7 +441,7 @@ export function AdminAffiliatesTable({ accounts }: AdminAffiliatesTableProps) {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1">
                   <p className="text-sm">Tài khoản</p>
-                  <p className="text-sm text-muted-foreground">{previewAccount.username}</p>
+                  <p className="text-sm text-muted-foreground">{previewAccount.accountName}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm">Mã</p>

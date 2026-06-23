@@ -28,7 +28,7 @@ export type AdminNotification = {
   audienceType: NotificationAudienceType;
   status: NotificationStatus;
   roles: UserRole[];
-  targetUsers: Array<{ id: string; username: string; role: UserRole }>;
+  targetUsers: Array<{ id: string; accountName: string; role: UserRole }>;
   createdByUsername: string;
   createdAt: string;
   scheduledAt: string;

@@ -6,6 +6,7 @@ import {
  canAccessUserPortal,
  createSession,
  getSessionCookieOptions,
+ isAdminRole,
  SESSION_COOKIE_NAME,
 } from"@/lib/auth";
 import { exchangeCodeForGoogleUser } from"@/lib/google-oauth";
@@ -35,14 +36,15 @@ export async function GET(request: Request) {
   providerUserId: googleUser.sub,
   email: googleUser.email,
   name: googleUser.name,
+  emailVerified: googleUser.email_verified,
  });
 
- if (!canAccessUserPortal(appUser.role)) {
+ if (!isAdminRole(appUser.role) && !canAccessUserPortal(appUser.role)) {
   return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.LOGIN}?error=invalid_credentials` } });
  }
 
  const token = await createSession(appUser.id);
- const target =ROUTES.CUSTOMER.DASHBOARD;
+ const target = isAdminRole(appUser.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE,"", {

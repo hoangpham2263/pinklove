@@ -2,7 +2,7 @@ import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
 
 import {
- authenticateUser,
+ authenticateUserByEmail,
  canAccessUserPortal,
  createSession,
  SESSION_COOKIE_NAME,
@@ -27,16 +27,16 @@ function buildLoginLocation(error: string, returnTo?: string) {
 
 export async function POST(request: Request) {
  const formData = await request.formData();
- const username = String(formData.get("username") ??"").trim();
+ const email = String(formData.get("email") ??"").trim();
  const password = String(formData.get("password") ??"");
  const returnToInput = String(formData.get("returnTo") ?? "").trim();
  const returnTo = returnToInput ? sanitizeReturnTo(returnToInput) : ROUTES.CUSTOMER.DASHBOARD;
 
- if (!username || !password) {
+ if (!email || !password) {
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("missing_fields", returnToInput || undefined) } });
  }
 
- const user = await authenticateUser(username, password);
+ const user = await authenticateUserByEmail(email, password);
  if (!user) {
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { LogOut, Menu } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { AdminIconButton, AdminNavSubmitButton } from "@/features/admin/components/admin-buttons";
 import {
   ADMIN_FEATURES,
@@ -72,12 +73,12 @@ export function AdminHeaderMenu({ permissionKeys }: { permissionKeys?: string[] 
 
           <div className="my-1 border-t" />
 
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST">
             <AdminNavSubmitButton>
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </AdminNavSubmitButton>
-          </form>
+          </NativeForm>
         </div>
       </SheetContent>
     </Sheet>

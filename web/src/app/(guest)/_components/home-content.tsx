@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { EventPlannerTitleAccent } from "@/app/(guest)/_components/event-planner-title-accent";
 import { GlobalFaqSection } from "@/app/(guest)/_components/global-faq-section";
@@ -592,9 +593,21 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
                       );
 
                       return item.url ? (
-                        <a key={`${rowIndex}-${item.name}-${index}`} href={item.url} className="block shrink-0">
-                          {content}
-                        </a>
+                        item.url.startsWith("/") && !item.url.startsWith("//") ? (
+                          <Link key={`${rowIndex}-${item.name}-${index}`} href={item.url} className="block shrink-0">
+                            {content}
+                          </Link>
+                        ) : (
+                          <a
+                            key={`${rowIndex}-${item.name}-${index}`}
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block shrink-0"
+                          >
+                            {content}
+                          </a>
+                        )
                       ) : (
                         <div key={`${rowIndex}-${item.name}-${index}`} className="shrink-0">
                           {content}

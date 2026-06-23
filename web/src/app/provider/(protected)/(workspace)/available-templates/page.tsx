@@ -1,4 +1,5 @@
 import { CurrencyInput } from "@/components/common/currency-input";
+import { NativeForm } from "@/components/common/native-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOfferingProviderSupplierStatusLabel, getProviderOfferingSupplierRequestStatusLabel } from "@/features/provider-offering-submissions/labels";
 import { listAvailableOfferingsForProviderSupply } from "@/features/provider-offering-submissions/server/service";
@@ -50,7 +51,7 @@ export default async function ProviderAvailableTemplatesPage() {
                 </div>
 
                 {!locked ? (
-                  <form action={ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
+                  <NativeForm action={ROUTES.API.PROVIDER.OFFERINGS.SUPPLY_REQUESTS} method="POST" className="grid gap-3 md:grid-cols-2">
                     <input type="hidden" name="offeringId" value={offering.id} />
                     <CurrencyInput name="purchaseCost" placeholder="Giá nhập/gia công" className="rounded-md bg-background px-3 text-sm" />
                     <ProviderInput name="providerSku" placeholder="Mã SKU của bạn" />
@@ -62,7 +63,7 @@ export default async function ProviderAvailableTemplatesPage() {
                     <ProviderTextarea name="qualityNote" placeholder="Cam kết chất lượng/đóng gói" className="min-h-20 md:col-span-2" />
                     <ProviderTextarea name="providerNote" placeholder="Ghi chú thêm cho admin" className="min-h-20 md:col-span-2" />
                     <ProviderSubmitButton type="submit" className="md:col-span-2">{submitLabel}</ProviderSubmitButton>
-                  </form>
+                  </NativeForm>
                 ) : null}
               </CardContent>
             </Card>

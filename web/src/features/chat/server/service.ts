@@ -62,7 +62,7 @@ type ConversationRow = {
 type ParticipantRow = {
   conversation_id: string;
   id: string;
-  username: string;
+  accountName: string;
   role: UserRole;
   display_name: string | null;
 };
@@ -88,7 +88,7 @@ type MessageRow = {
 
 type LastSeenRow = {
   display_name: string | null;
-  username: string;
+  accountName: string;
 };
 
 type ChatViewerContext = {
@@ -197,9 +197,9 @@ function presentTeamLabel(
 function mapParticipant(row: ParticipantRow): ChatParticipant {
   return {
     id: row.id,
-    username: row.username,
+    accountName: row.accountName,
     role: row.role,
-    displayName: row.display_name ?? row.username,
+    displayName: row.display_name ?? row.accountName,
   };
 }
 
@@ -307,7 +307,7 @@ function summarizeConversationTitle(
     if (context.viewerRole === USER_ROLES.ADMIN) {
       const customers = participants.filter((participant) => participant.role === USER_ROLES.CUSTOMER);
       const customerNames = Array.from(
-        new Set(customers.map((participant) => participant.displayName || participant.username).filter(Boolean))
+        new Set(customers.map((participant) => participant.displayName || participant.accountName).filter(Boolean))
       );
       if (customerNames.length > 0) {
         return customerNames.join(", ");
@@ -319,7 +319,7 @@ function summarizeConversationTitle(
   const others = participants.filter((participant) => participant.id !== currentUserId);
   if (others.length === 0) return "Ghi chú cá nhân";
   return Array.from(
-    new Set(others.map((participant) => participant.displayName || participant.username).filter(Boolean))
+    new Set(others.map((participant) => participant.displayName || participant.accountName).filter(Boolean))
   ).join(", ");
 }
 
@@ -403,7 +403,7 @@ async function listParticipantsForConversations(conversationIds: string[]): Prom
       SELECT
         p.conversation_id,
         u.id,
-        u.username,
+        u.account_name AS "accountName",
         u.role,
         COALESCE(NULLIF(BTRIM(up.display_name), ''), NULLIF(BTRIM(up.full_name), '')) AS display_name
       FROM chat_conversation_participants p
@@ -444,7 +444,7 @@ async function resolveSupportRecipientIds(execute: DbExecutor, configuredUsernam
         SELECT id::text AS id
         FROM users
         WHERE role = $1
-          AND username = ANY($2::text[])
+          AND account_name = ANY($2::text[])
         ORDER BY created_at ASC
       `,
       [USER_ROLES.ADMIN, configuredUsernames]
@@ -478,7 +478,7 @@ async function listLastSeenBy(
     `
       SELECT
         COALESCE(NULLIF(BTRIM(up.display_name), ''), NULLIF(BTRIM(up.full_name), '')) AS display_name,
-        u.username
+        u.account_name AS "accountName"
       FROM chat_conversation_participants p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN user_profiles up ON up.user_id = u.id
@@ -490,7 +490,7 @@ async function listLastSeenBy(
     [conversationId, senderUserId, messageCreatedAt]
   );
 
-  return result.rows.map((row) => row.display_name ?? row.username);
+  return result.rows.map((row) => row.display_name ?? row.accountName);
 }
 
 function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRole) {
@@ -506,10 +506,10 @@ function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRo
       c.created_at::text AS created_at,
       c.updated_at::text AS updated_at,
       c.owner_user_id::text AS owner_user_id,
-      owner.username AS owner_username,
+      owner.account_name AS owner_username,
       COALESCE(NULLIF(BTRIM(owner_profile.display_name), ''), NULLIF(BTRIM(owner_profile.full_name), '')) AS owner_display_name,
       c.requester_user_id::text AS requester_user_id,
-      requester.username AS requester_username,
+      requester.account_name AS requester_username,
       COALESCE(NULLIF(BTRIM(requester_profile.display_name), ''), NULLIF(BTRIM(requester_profile.full_name), '')) AS requester_display_name,
       c.is_legacy,
       c.tags,
@@ -533,7 +533,7 @@ function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRo
       last_message.id AS last_message_id,
       last_message.conversation_id AS last_message_conversation_id,
       last_message.sender_user_id AS last_message_sender_user_id,
-      sender.username AS last_message_sender_username,
+      sender.account_name AS last_message_sender_username,
       COALESCE(NULLIF(BTRIM(sender_profile.display_name), ''), NULLIF(BTRIM(sender_profile.full_name), '')) AS last_message_sender_display_name,
       last_message.body AS last_message_body,
       last_message.created_at::text AS last_message_created_at,
@@ -542,7 +542,7 @@ function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRo
       last_message.attachment_kind AS last_message_attachment_kind,
       (
         SELECT ARRAY_AGG(
-          COALESCE(NULLIF(BTRIM(typing_profile.display_name), ''), NULLIF(BTRIM(typing_profile.full_name), ''), typing_user.username)
+          COALESCE(NULLIF(BTRIM(typing_profile.display_name), ''), NULLIF(BTRIM(typing_profile.full_name), ''), typing_user.account_name)
           ORDER BY typing.updated_at DESC
         )
         FROM chat_typing_states typing
@@ -578,29 +578,29 @@ function buildConversationSelectSql(userIdParamIndex: number, viewerRole: UserRo
 export async function listChatAssignableAccounts(actorUserId: string): Promise<ChatAssignableAccount[]> {
   const result = await query<{
     id: string;
-    username: string;
+    accountName: string;
     role: UserRole;
     display_name: string | null;
   }>(
     `
       SELECT
         u.id,
-        u.username,
+        u.account_name AS "accountName",
         u.role,
         COALESCE(NULLIF(BTRIM(p.display_name), ''), NULLIF(BTRIM(p.full_name), '')) AS display_name
       FROM users u
       LEFT JOIN user_profiles p ON p.user_id = u.id
       WHERE u.id <> $1
-      ORDER BY u.role ASC, u.username ASC
+      ORDER BY u.role ASC, u.account_name ASC
     `,
     [actorUserId]
   );
 
   return result.rows.map((row) => ({
     id: row.id,
-    username: row.username,
+    accountName: row.accountName,
     role: row.role,
-    displayName: row.display_name ?? row.username,
+    displayName: row.display_name ?? row.accountName,
   }));
 }
 
@@ -659,7 +659,7 @@ export async function getChatConversationDetailForViewer(
           m.id,
           m.conversation_id,
           m.sender_user_id,
-          u.username AS sender_username,
+          u.account_name AS sender_username,
           COALESCE(NULLIF(BTRIM(p.display_name), ''), NULLIF(BTRIM(p.full_name), '')) AS sender_display_name,
           m.body,
           m.visibility,
@@ -669,7 +669,7 @@ export async function getChatConversationDetailForViewer(
           m.reply_to_message_id,
           reply.body AS reply_to_body,
           reply.sender_user_id AS reply_to_sender_user_id,
-          reply_sender.username AS reply_to_sender_username,
+          reply_sender.account_name AS reply_to_sender_username,
           COALESCE(NULLIF(BTRIM(reply_sender_profile.display_name), ''), NULLIF(BTRIM(reply_sender_profile.full_name), '')) AS reply_to_sender_display_name,
           m.created_at::text AS created_at
         FROM chat_messages m

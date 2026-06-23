@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -178,12 +179,12 @@ export function CustomerHeaderMenu() {
             <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
           ))}
 
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST">
             <CustomerNavSubmitButton>
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </CustomerNavSubmitButton>
-          </form>
+          </NativeForm>
         </div>
       </SheetContent>
     </Sheet>

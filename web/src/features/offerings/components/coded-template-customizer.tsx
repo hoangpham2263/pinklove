@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { GuestButton, GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
+import { NativeForm } from "@/components/common/native-form";
 import type { FieldSchema, TextFieldSchema } from "@/features/pages/schema";
 import type { Offering } from "@/features/offerings/types";
 import { getOfferingPath } from "@/lib/public-paths";
@@ -146,7 +147,7 @@ export function CodedTemplateCustomizer({ offering, fields, initialValues }: Cod
   return (
     <section className="px-4 pb-10 pt-30">
       <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-12">
-        <form action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_OFFERING} method="POST" className="min-w-0 rounded-md border bg-background lg:col-span-8">
+        <NativeForm action={ROUTES.API.CUSTOMER.INVITATIONS.CREATE_FROM_OFFERING} method="POST" className="min-w-0 rounded-md border bg-background lg:col-span-8">
           <input type="hidden" name="offeringSlug" value={offering.slug} />
           {renderHiddenInputs(values)}
           <div className="space-y-2 border-b px-5 py-5 md:px-6">
@@ -173,7 +174,7 @@ export function CodedTemplateCustomizer({ offering, fields, initialValues }: Cod
               Quay lại mẫu
             </GuestLinkButton>
           </div>
-        </form>
+        </NativeForm>
 
         <div className="min-w-0 lg:col-span-4">
           <div className="sticky top-24 overflow-hidden rounded-sm bg-white shadow-sm">

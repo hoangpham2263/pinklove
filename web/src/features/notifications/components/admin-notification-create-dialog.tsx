@@ -3,7 +3,7 @@ import { AdminNotificationUpsertDialog } from "@/features/notifications/componen
 
 type AccountOption = {
   id: string;
-  username: string;
+  accountName: string;
   role: UserRole;
 };
 

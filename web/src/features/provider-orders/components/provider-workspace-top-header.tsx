@@ -1,5 +1,6 @@
 "use client";
 
+import { NativeForm } from "@/components/common/native-form";
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
 
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
@@ -8,14 +9,14 @@ import { ProviderWorkspaceHeaderMenu } from "@/features/provider-orders/componen
 import { ROUTES } from "@/lib/routes";
 
 type ProviderWorkspaceTopHeaderProps = {
-  username: string;
+  accountName: string;
   portalHref: string;
   breadcrumbEnabled?: boolean;
   breadcrumbSeparator?: string;
 };
 
 export function ProviderWorkspaceTopHeader({
-  username,
+  accountName,
   portalHref,
   breadcrumbEnabled = true,
   breadcrumbSeparator,
@@ -41,10 +42,10 @@ export function ProviderWorkspaceTopHeader({
 
         <div className="flex items-center gap-3">
           <NotificationBell listHref={portalHref} />
-          <span className="hidden text-sm md:inline">{username}</span>
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
+          <span className="hidden text-sm md:inline">{accountName}</span>
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
             <ProviderNavSubmitButton className="px-0 py-0 hover:bg-transparent hover:underline">Đăng xuất</ProviderNavSubmitButton>
-          </form>
+          </NativeForm>
           <ProviderWorkspaceHeaderMenu />
         </div>
       </div>

@@ -261,14 +261,22 @@ async function initSchema() {
  await pool.query(`
  CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY DEFAULT app_random_id(),
-  username TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  email TEXT NOT NULL,
+  account_name TEXT NOT NULL,
+  password_hash TEXT,
+  email_verified_at TIMESTAMPTZ,
   account_status TEXT NOT NULL DEFAULT 'active',
   account_status_reason TEXT,
   account_status_updated_at TIMESTAMPTZ,
   account_status_updated_by TEXT REFERENCES users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
  );
+ `);
+
+ await pool.query(`
+ CREATE UNIQUE INDEX IF NOT EXISTS users_email_normalized_uidx
+ ON users (LOWER(BTRIM(email)));
  `);
 
  await pool.query(`
@@ -829,7 +837,7 @@ async function ensureManagedPagesMigration() {
       title TEXT,
       excerpt TEXT,
       body TEXT,
-      status TEXT NOT NULL DEFAULT 'draft',
+      status TEXT NOT NULL DEFAULT 'published',
       template TEXT NOT NULL DEFAULT 'default',
       seo_title TEXT,
       seo_description TEXT,
@@ -854,7 +862,7 @@ async function ensureManagedPagesMigration() {
     ADD COLUMN IF NOT EXISTS title TEXT,
     ADD COLUMN IF NOT EXISTS excerpt TEXT,
     ADD COLUMN IF NOT EXISTS body TEXT,
-    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft',
+    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'published',
     ADD COLUMN IF NOT EXISTS template TEXT DEFAULT 'default',
     ADD COLUMN IF NOT EXISTS seo_title TEXT,
     ADD COLUMN IF NOT EXISTS seo_description TEXT,
@@ -876,7 +884,7 @@ async function ensureManagedPagesMigration() {
   await client.query(`
 	    UPDATE managed_pages
 	    SET
-	      status = COALESCE(status, 'draft'),
+	      status = COALESCE(status, 'published'),
 	      template = COALESCE(template, 'default'),
 	      noindex = COALESCE(noindex, false),
 	      nofollow = COALESCE(nofollow, false),
@@ -904,7 +912,7 @@ async function ensureManagedPagesMigration() {
 
   await client.query(`
     ALTER TABLE managed_pages
-    ALTER COLUMN status SET DEFAULT 'draft',
+    ALTER COLUMN status SET DEFAULT 'published',
     ALTER COLUMN template SET DEFAULT 'default',
     ALTER COLUMN noindex SET DEFAULT false,
     ALTER COLUMN nofollow SET DEFAULT false,
@@ -2834,7 +2842,7 @@ async function ensureCoreDatabaseRefactorMigration() {
     SELECT
       users.id,
       COALESCE(NULLIF(user_profiles.provider_portal_slug, ''), 'provider-' || users.id::text),
-      COALESCE(NULLIF(user_profiles.store_name, ''), NULLIF(user_profiles.business_name, ''), NULLIF(user_profiles.display_name, ''), users.username),
+      COALESCE(NULLIF(user_profiles.store_name, ''), NULLIF(user_profiles.business_name, ''), NULLIF(user_profiles.display_name, ''), users.account_name),
       'supplier',
       'published'
     FROM users
@@ -5266,7 +5274,6 @@ export async function ensureOfferingCatalogReady() {
   await ensureDb();
   await ensureOfferingTablesMigration();
   await ensureOfferingProviderPaperTypeMigration();
-  await ensureOfferingSeed();
   await ensureOfferingTemplateKeyUniqueness();
 }
 
@@ -5314,24 +5321,17 @@ async function ensureManagedPagesSeed() {
   }
 
   for (const [slug, config] of Object.entries(CONTENT_PAGES)) {
-    const defaultStatus =
-      slug === "providers"
-      || slug === "affiliates"
-      || slug === "thiep-giay"
-      || slug === "tao-ma-qr"
-      || slug === "du-toan-cuoi"
-        ? "published"
-        : "draft";
     await pool.query(
       `
       INSERT INTO managed_pages (slug, name, title, status, custom_fields)
-      VALUES ($1, $2, $3, $4, '{}'::jsonb)
+      VALUES ($1, $2, $3, 'published', '{}'::jsonb)
       ON CONFLICT (slug) DO UPDATE
       SET
         name = EXCLUDED.name,
+        status = EXCLUDED.status,
         updated_at = NOW()
       `,
-      [slug, config.name, config.name, defaultStatus]
+      [slug, config.name, config.name]
     );
   }
 }
@@ -5584,15 +5584,6 @@ export async function ensureDb() {
         globalForDb.managedPagesSeedSignature = managedPagesSeedSignature;
       }
 
-      if (!globalForDb.offeringSeedDone) {
-        await ensureOfferingSeed();
-        globalForDb.offeringSeedDone = true;
-      }
-
-      if (!globalForDb.blogSeedDone) {
-        await ensureBlogSeed();
-        globalForDb.blogSeedDone = true;
-      }
     })().catch((error) => {
       globalForDb.ensurePromise = undefined;
       throw error;

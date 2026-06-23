@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatUserAddress, type UserAddress } from "@/features/account/address";
@@ -75,7 +76,7 @@ export function CheckoutPageView({
         </div>
 
         <div className="space-y-5">
-          <form id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-5">
+          <NativeForm id="checkout-form" action={ROUTES.API.CUSTOMER.CHECKOUT} method="POST" className="space-y-5">
             {items.map((item) => (
               <input key={item.offeringId} type="hidden" name="selectedOfferingIds" value={item.offeringId} />
             ))}
@@ -184,7 +185,7 @@ export function CheckoutPageView({
             </Card>
 
             {settings.ecommerce.enableVatInvoiceRequest ? <VatInvoiceRequestCard /> : null}
-          </form>
+          </NativeForm>
         </div>
 
         <div className="space-y-5 lg:sticky lg:top-24 lg:h-fit">

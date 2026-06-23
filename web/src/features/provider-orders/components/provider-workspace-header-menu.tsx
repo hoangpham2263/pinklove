@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LogOut, Menu as MenuIcon } from "lucide-react";
 
+import { NativeForm } from "@/components/common/native-form";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ProviderIconButton, ProviderNavSubmitButton } from "@/features/provider-orders/components/provider-buttons";
 import { ProviderWorkspaceNavLink } from "@/features/provider-orders/components/provider-workspace-nav-link";
@@ -73,12 +74,12 @@ export function ProviderWorkspaceHeaderMenu() {
             <StandaloneItem key={item.href} item={item} onNavigate={closeMenu} />
           ))}
 
-          <form action={ROUTES.AUTH.LOGOUT_API} method="POST">
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST">
             <ProviderNavSubmitButton>
               <LogOut className="h-4 w-4" />
               <span>Đăng xuất</span>
             </ProviderNavSubmitButton>
-          </form>
+          </NativeForm>
         </div>
       </SheetContent>
     </Sheet>

@@ -1,3 +1,4 @@
+import { NativeForm } from "@/components/common/native-form";
 import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 import { CurrencyInput } from "@/components/common/currency-input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ export function ShippingConnectionEditorForm({ connection }: ShippingConnectionE
   const isEditing = Boolean(connection);
 
   return (
-    <form action={ROUTES.API.ADMIN.CONFIG.SHIPPING_SAVE} method="POST" className="space-y-5">
+    <NativeForm action={ROUTES.API.ADMIN.CONFIG.SHIPPING_SAVE} method="POST" className="space-y-5">
       <input type="hidden" name="originalCode" value={connection?.code ?? ""} />
 
       <Card className="rounded-lg">
@@ -109,6 +110,6 @@ export function ShippingConnectionEditorForm({ connection }: ShippingConnectionE
       <div className="flex justify-end gap-2">
         <AdminSubmitButton>{isEditing ? "Lưu kết nối" : "Thêm kết nối"}</AdminSubmitButton>
       </div>
-    </form>
+    </NativeForm>
   );
 }

@@ -31,9 +31,9 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   return (
     <CheckoutPageView
       items={items}
-      customerName={profile.displayName || profile.fullName || user.username}
+      customerName={profile.displayName || profile.fullName || user.accountName}
       customerPhone={profile.phone}
-      customerEmail={`${user.username}@pinklove.local`}
+      customerEmail={user.email}
       addresses={addresses}
       settings={settings}
     />

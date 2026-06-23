@@ -11,11 +11,11 @@ import { AdminIconButton, AdminSubmitButton } from "@/features/admin/components/
 
 type ProviderPortalInfoCardProps = {
   path: string;
-  username: string;
+  email: string;
 };
 
-export function ProviderPortalInfoCard({ path, username }: ProviderPortalInfoCardProps) {
-  const [copiedField, setCopiedField] = useState<"portal" | "username" | "all" | null>(null);
+export function ProviderPortalInfoCard({ path, email }: ProviderPortalInfoCardProps) {
+  const [copiedField, setCopiedField] = useState<"portal" | "email" | "all" | null>(null);
   const [password, setPassword] = useState("");
   const portalUrl = useMemo(() => {
     if (typeof window === "undefined") {
@@ -24,9 +24,9 @@ export function ProviderPortalInfoCard({ path, username }: ProviderPortalInfoCar
 
     return path.startsWith("/") ? `${window.location.origin}${path}` : path;
   }, [path]);
-  const allText = `Portal: ${portalUrl}\nUsername: ${username}${password ? `\nPassword: ${password}` : ""}`;
+  const allText = `Portal: ${portalUrl}\nEmail: ${email}${password ? `\nPassword: ${password}` : ""}`;
 
-  async function handleCopy(value: string, field: "portal" | "username" | "all", message: string) {
+  async function handleCopy(value: string, field: "portal" | "email" | "all", message: string) {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
     toast(message);
@@ -53,14 +53,14 @@ export function ProviderPortalInfoCard({ path, username }: ProviderPortalInfoCar
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Username</p>
+          <p className="text-sm font-medium">Email</p>
           <div className="flex items-center gap-2">
-            <Input value={username} readOnly />
+            <Input value={email} readOnly />
             <AdminIconButton
-              aria-label="Copy username"
-              onClick={() => handleCopy(username, "username", "Đã copy username đối tác.")}
+              aria-label="Copy email"
+              onClick={() => handleCopy(email, "email", "Đã copy email đối tác.")}
             >
-              {copiedField === "username" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedField === "email" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </AdminIconButton>
           </div>
         </div>

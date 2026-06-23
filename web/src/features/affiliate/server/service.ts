@@ -19,7 +19,7 @@ export const AFFILIATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 type AffiliateAccountRow = {
   user_id: string;
-  username: string;
+  accountName: string;
   code: string;
   status: AffiliateStatus;
   commission_type: AffiliateCommissionType;
@@ -48,7 +48,7 @@ type AffiliateClickRow = {
 type AffiliateConversionRow = {
   id: string;
   affiliate_user_id: string;
-  username?: string | null;
+  accountName?: string | null;
   affiliate_code: string;
   external_order_ref: string | null;
   order_value: string;
@@ -78,7 +78,7 @@ type AffiliateApplicationRow = {
 function mapAffiliateAccountRow(row: AffiliateAccountRow): AffiliateAccount {
   return {
     userId: row.user_id,
-    username: row.username,
+    accountName: row.accountName,
     code: row.code,
     status: row.status,
     commissionType: row.commission_type,
@@ -111,7 +111,7 @@ function mapAffiliateConversionRow(row: AffiliateConversionRow): AffiliateConver
   return {
     id: row.id,
     affiliateUserId: row.affiliate_user_id,
-    username: row.username ?? undefined,
+    accountName: row.accountName ?? undefined,
     affiliateCode: row.affiliate_code,
     externalOrderRef: row.external_order_ref ?? undefined,
     orderValue: Number(row.order_value ?? "0"),
@@ -171,13 +171,13 @@ function getAffiliateAccountBaseQuery() {
   return `
     SELECT
       aa.user_id,
-      u.username,
+      u.account_name AS "accountName",
       aa.code,
       aa.status,
       aa.commission_type,
       aa.commission_value::text,
       aa.notes,
-      approver.username AS approved_by_username,
+      approver.account_name AS approved_by_username,
       aa.approved_at,
       aa.created_at,
       aa.updated_at,
@@ -375,7 +375,7 @@ export async function adminUpdateAffiliateApplication(input: {
 
 export async function applyForAffiliate(input: {
   userId: string;
-  username: string;
+  accountName: string;
   preferredCode?: string;
 }): Promise<AffiliateAccount> {
   const existing = await getAffiliateAccountForUser(input.userId);
@@ -395,7 +395,7 @@ export async function applyForAffiliate(input: {
       throw new Error("AFFILIATE_CODE_TAKEN");
     }
   } else {
-    code = await generateUniqueAffiliateCode(input.username);
+    code = await generateUniqueAffiliateCode(input.accountName);
   }
 
   if (!code || code.length < 3) {
@@ -514,7 +514,7 @@ export async function listAffiliateConversions(limit = 100): Promise<AffiliateCo
       SELECT
         conv.id,
         conv.affiliate_user_id,
-        u.username,
+        u.account_name AS "accountName",
         conv.affiliate_code,
         conv.external_order_ref,
         conv.order_value::text,

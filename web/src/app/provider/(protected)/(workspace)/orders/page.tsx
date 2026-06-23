@@ -23,7 +23,7 @@ export default async function ProviderOrdersPage() {
     countProviderAssignmentsForProvider(provider.id),
     listProviderOrderSummariesForProvider(provider.id),
   ]);
-  const providerName = profile.displayName || profile.fullName || provider.username;
+  const providerName = profile.displayName || profile.fullName || provider.accountName;
 
   return (
     <ProviderPage>

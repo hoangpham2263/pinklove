@@ -17,7 +17,7 @@ export type ChatConversationUserPriority = "none" | "low" | "normal" | "high" | 
 
 export type ChatParticipant = {
   id: string;
-  username: string;
+  accountName: string;
   role: UserRole;
   displayName: string;
 };

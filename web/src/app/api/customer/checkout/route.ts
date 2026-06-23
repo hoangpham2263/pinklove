@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     const order = await createOrderFromCart({
       userId: user.id,
       customerName: String(formData.get("customerName") ?? "").trim(),
-      customerEmail: String(formData.get("customerEmail") ?? "").trim() || `${user.username}@pinklove.local`,
+      customerEmail: String(formData.get("customerEmail") ?? "").trim() || user.email,
       customerPhone: savedAddress?.phone || String(formData.get("customerPhone") ?? "").trim(),
       paymentMethod: selectedPaymentMethod.code,
       paymentProvider: selectedPaymentMethod.provider,

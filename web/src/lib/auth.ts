@@ -4,7 +4,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-import { query } from "@/lib/database";
+import { query, withTransaction, type DbExecutor } from "@/lib/database";
 import { getAdminPathPermission } from "@/features/access/config/permissions";
 import { getAdminAccessContext, hasAdminPermission } from "@/features/access/server/service";
 import { canAccessUserPortal, isAdminRole, isProviderRole, type UserRole, USER_ROLES } from "@/lib/roles";
@@ -17,9 +17,11 @@ export type AccountStatus = "active" | "blocked" | "banned" | "deleted";
 
 export type AuthUser = {
   id: string;
-  username: string;
+  email: string;
+  accountName: string;
   role: UserRole;
   accountStatus: AccountStatus;
+  emailVerifiedAt: string | null;
 };
 
 export type UserProfile = {
@@ -52,7 +54,8 @@ export type UserShippingProfile = {
 
 export type AccountUser = {
   id: string;
-  username: string;
+  email: string;
+  accountName: string;
   role: UserRole;
   accountStatus: AccountStatus;
   accountStatusReason: string;
@@ -68,10 +71,12 @@ export type AccountUser = {
 
 type UserRow = {
   id: string;
-  username: string;
-  password_hash: string;
+  email: string;
+  account_name: string;
+  password_hash: string | null;
   role: UserRole;
   account_status: AccountStatus;
+  email_verified_at: string | null;
 };
 
 type OAuthAccountRow = {
@@ -103,6 +108,10 @@ function verifyPassword(password: string, stored: string): boolean {
  const original = Buffer.from(hash,"hex");
  if (attempt.byteLength !== original.byteLength) return false;
  return timingSafeEqual(attempt, original);
+}
+
+export function normalizeEmail(email: string): string {
+ return email.trim().toLowerCase();
 }
 
 function hashSessionToken(token: string): string {
@@ -178,40 +187,63 @@ export async function countUsers(): Promise<number> {
  return Number(result.rows[0]?.count ??"0");
 }
 
-export async function registerUser(
- username: string,
- password: string,
- role: UserRole
-): Promise<AuthUser> {
- const passwordHash = hashPassword(password);
- const result = await query<UserRow>(
+export async function getPublicRegistrationRole(execute: DbExecutor): Promise<UserRole> {
+ await execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE");
+ const result = await execute<{ count: string }>("SELECT COUNT(*)::text AS count FROM users WHERE role = 'ADMIN'");
+ return Number(result.rows[0]?.count ?? "0") === 0 ? USER_ROLES.ADMIN : USER_ROLES.CUSTOMER;
+}
+
+async function getSuperAdminRoleId(execute: DbExecutor): Promise<string> {
+ const result = await execute<{ id: string }>("SELECT id FROM admin_roles WHERE key = 'super_admin' LIMIT 1");
+ const roleId = result.rows[0]?.id;
+ if (!roleId) {
+  throw new Error("SUPER_ADMIN_ROLE_NOT_FOUND");
+ }
+ return roleId;
+}
+
+export async function registerUser(input: {
+ email: string;
+ accountName: string;
+ password?: string;
+ role: UserRole;
+ emailVerifiedAt?: string | null;
+}, execute: DbExecutor = query): Promise<AuthUser> {
+ const email = normalizeEmail(input.email);
+ const accountName = input.accountName.trim();
+ const passwordHash = input.password ? hashPassword(input.password) : null;
+ const adminRoleId = isAdminRole(input.role) ? await getSuperAdminRoleId(execute) : null;
+ const result = await execute<UserRow>(
  `
-  INSERT INTO users (username, password_hash, role)
-  VALUES ($1, $2, $3)
-  RETURNING id, username, password_hash, role, account_status
+  INSERT INTO users (email, account_name, password_hash, role, email_verified_at, admin_role_id)
+  VALUES ($1, $2, $3, $4, $5, $6)
+  RETURNING id, email, account_name, password_hash, role, account_status, email_verified_at
  `,
- [username, passwordHash, role]
+ [email, accountName, passwordHash, input.role, input.emailVerifiedAt ?? null, adminRoleId]
  );
 
  return {
  id: result.rows[0].id,
- username: result.rows[0].username,
+ email: result.rows[0].email,
+ accountName: result.rows[0].account_name,
  role: result.rows[0].role,
  accountStatus: result.rows[0].account_status,
+ emailVerifiedAt: result.rows[0].email_verified_at,
  };
 }
 
-export async function authenticateUser(
- username: string,
+export async function authenticateUserByEmail(
+ email: string,
  password: string
 ): Promise<AuthUser | null> {
  const result = await query<UserRow>(
-"SELECT id, username, password_hash, role, account_status FROM users WHERE username = $1 LIMIT 1",
- [username]
+"SELECT id, email, account_name, password_hash, role, account_status, email_verified_at FROM users WHERE LOWER(BTRIM(email)) = $1 LIMIT 1",
+ [normalizeEmail(email)]
  );
  const user = result.rows[0];
  if (!user) return null;
  if (user.account_status !== "active") return null;
+ if (!user.password_hash) return null;
 
  if (!verifyPassword(password, user.password_hash)) {
  return null;
@@ -219,78 +251,86 @@ export async function authenticateUser(
 
  return {
  id: user.id,
- username: user.username,
+ email: user.email,
+ accountName: user.account_name,
  role: user.role,
  accountStatus: user.account_status,
+ emailVerifiedAt: user.email_verified_at,
  };
-}
-
-async function generateUniqueUsername(base: string): Promise<string> {
- const normalized = base
- .toLowerCase()
- .replace(/[^a-z0-9_]/g,"_")
- .replace(/_+/g,"_")
- .replace(/^_+|_+$/g,"");
- const root = normalized.length >= 3 ? normalized :"customer";
-
- for (let i = 0; i < 1000; i += 1) {
- const candidate = i === 0 ? root : `${root}_${i}`;
- const exists = await query<{ id: string }>(
-"SELECT id FROM users WHERE username = $1 LIMIT 1",
-  [candidate]
- );
- if (!exists.rows[0]) {
-  return candidate;
- }
- }
-
- return `customer_${Date.now()}`;
 }
 
 export async function authenticateGoogleUser(input: {
  providerUserId: string;
  email: string;
  name?: string;
+ emailVerified?: boolean;
 }): Promise<AuthUser> {
- const linked = await query<OAuthAccountRow>(
- `
-  SELECT user_id
-  FROM user_oauth_accounts
-  WHERE provider = 'google' AND provider_user_id = $1
-  LIMIT 1
- `,
- [input.providerUserId]
- );
+ const email = normalizeEmail(input.email);
 
- if (linked.rows[0]) {
- const user = await query<{ id: string; username: string; role: UserRole; account_status: AccountStatus }>(
-"SELECT id, username, role, account_status FROM users WHERE id = $1 LIMIT 1",
-  [linked.rows[0].user_id]
- );
-  const row = user.rows[0];
- if (row) {
-  return { id: row.id, username: row.username, role: row.role, accountStatus: row.account_status };
- }
- }
+ return withTransaction(async (execute) => {
+  const linked = await execute<OAuthAccountRow>(
+   `
+    SELECT user_id
+    FROM user_oauth_accounts
+    WHERE provider = 'google' AND provider_user_id = $1
+    LIMIT 1
+   `,
+   [input.providerUserId]
+  );
 
- const emailBase = input.email.split("@")[0] ??"";
- const nameBase = input.name?.trim().split(/\s+/).join("_") ??"";
- const username = await generateUniqueUsername(nameBase || emailBase ||"customer");
- const totalUsers = await countUsers();
- const role: UserRole = totalUsers === 0 ? USER_ROLES.ADMIN : USER_ROLES.CUSTOMER;
- const created = await registerUser(username, randomBytes(24).toString("hex"), role);
+  let user: UserRow | undefined;
+  if (linked.rows[0]) {
+   const result = await execute<UserRow>(
+    "SELECT id, email, account_name, password_hash, role, account_status, email_verified_at FROM users WHERE id = $1 LIMIT 1",
+    [linked.rows[0].user_id]
+   );
+   user = result.rows[0];
+  } else {
+   const existing = await execute<UserRow>(
+    "SELECT id, email, account_name, password_hash, role, account_status, email_verified_at FROM users WHERE LOWER(BTRIM(email)) = $1 LIMIT 1",
+    [email]
+   );
+   user = existing.rows[0];
 
- await query(
- `
-  INSERT INTO user_oauth_accounts (user_id, provider, provider_user_id, email)
-  VALUES ($1, 'google', $2, $3)
-  ON CONFLICT (provider, provider_user_id)
-  DO NOTHING
- `,
- [created.id, input.providerUserId, input.email]
- );
+   if (!user) {
+    const accountName = input.name?.trim() || email.split("@")[0] || "PinkLove User";
+    const role = await getPublicRegistrationRole(execute);
+    const adminRoleId = isAdminRole(role) ? await getSuperAdminRoleId(execute) : null;
+    const created = await execute<UserRow>(
+     `
+      INSERT INTO users (email, account_name, password_hash, role, email_verified_at, admin_role_id)
+      VALUES ($1, $2, NULL, $3, $4, $5)
+      RETURNING id, email, account_name, password_hash, role, account_status, email_verified_at
+     `,
+     [email, accountName, role, input.emailVerified ? new Date().toISOString() : null, adminRoleId]
+    );
+    user = created.rows[0];
+   }
 
- return created;
+   await execute(
+    `
+     INSERT INTO user_oauth_accounts (user_id, provider, provider_user_id, email)
+     VALUES ($1, 'google', $2, $3)
+     ON CONFLICT (provider, provider_user_id)
+     DO UPDATE SET user_id = EXCLUDED.user_id, email = EXCLUDED.email
+    `,
+    [user.id, input.providerUserId, email]
+   );
+  }
+
+  if (!user || user.account_status !== "active") {
+   throw new Error("GOOGLE_ACCOUNT_UNAVAILABLE");
+  }
+
+  return {
+   id: user.id,
+   email: user.email,
+   accountName: user.account_name,
+   role: user.role,
+   accountStatus: user.account_status,
+   emailVerifiedAt: user.email_verified_at,
+  };
+ });
 }
 
 export async function createSession(userId: string): Promise<string> {
@@ -318,9 +358,16 @@ export async function invalidateSession(token: string): Promise<void> {
 async function getUserByToken(token: string): Promise<AuthUser | null> {
  const tokenHash = hashSessionToken(token);
 
- const result = await query<{ id: string; username: string; role: UserRole; account_status: AccountStatus }>(
+ const result = await query<{
+  id: string;
+  email: string;
+  account_name: string;
+  role: UserRole;
+  account_status: AccountStatus;
+  email_verified_at: string | null;
+ }>(
  `
-  SELECT u.id, u.username, u.role, u.account_status
+  SELECT u.id, u.email, u.account_name, u.role, u.account_status, u.email_verified_at
   FROM user_sessions s
   JOIN users u ON u.id = s.user_id
   WHERE s.token_hash = $1
@@ -336,9 +383,11 @@ async function getUserByToken(token: string): Promise<AuthUser | null> {
 
  return {
  id: row.id,
- username: row.username,
+ email: row.email,
+ accountName: row.account_name,
  role: row.role,
  accountStatus: row.account_status,
+ emailVerifiedAt: row.email_verified_at,
  };
 }
 
@@ -660,7 +709,8 @@ export async function setUserShippingProfile(
 export async function listAccounts(): Promise<AccountUser[]> {
  const result = await query<{
  id: string;
- username: string;
+ email: string;
+ account_name: string;
  role: UserRole;
  account_status: AccountStatus;
  account_status_reason: string | null;
@@ -676,7 +726,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
  `
   SELECT
    u.id,
-   u.username,
+   u.email,
+   u.account_name,
    u.role,
    u.account_status,
    u.account_status_reason,
@@ -697,7 +748,8 @@ export async function listAccounts(): Promise<AccountUser[]> {
 
  return result.rows.map((row) => ({
  id: row.id,
- username: row.username,
+ email: row.email,
+ accountName: row.account_name,
  role: row.role,
  accountStatus: row.account_status,
  accountStatusReason: row.account_status_reason ?? "",
@@ -720,7 +772,8 @@ export async function listAccountsByRole(role: UserRole): Promise<AccountUser[]>
 export async function getUserAccount(id: string): Promise<AccountUser | null> {
  const result = await query<{
  id: string;
- username: string;
+ email: string;
+ account_name: string;
  role: UserRole;
  account_status: AccountStatus;
  account_status_reason: string | null;
@@ -736,7 +789,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  `
   SELECT
    u.id,
-   u.username,
+   u.email,
+   u.account_name,
    u.role,
    u.account_status,
    u.account_status_reason,
@@ -761,7 +815,8 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
  if (!row) return null;
  return {
  id: row.id,
- username: row.username,
+ email: row.email,
+ accountName: row.account_name,
  role: row.role,
  accountStatus: row.account_status,
  accountStatusReason: row.account_status_reason ?? "",
@@ -778,13 +833,13 @@ export async function getUserAccount(id: string): Promise<AccountUser | null> {
 
 export async function ensureProviderPortalSlug(userId: string): Promise<string | null> {
  const result = await query<{
- username: string;
+ account_name: string;
  role: UserRole;
  account_status: AccountStatus;
  provider_portal_slug: string | null;
  }>(
  `
-  SELECT u.username, u.role, u.account_status, p.provider_portal_slug
+  SELECT u.account_name, u.role, u.account_status, p.provider_portal_slug
   FROM users u
   LEFT JOIN user_profiles p ON p.user_id = u.id
   WHERE u.id = $1
@@ -802,7 +857,7 @@ export async function ensureProviderPortalSlug(userId: string): Promise<string |
   return row.provider_portal_slug;
  }
 
- const slug = await createUniqueProviderPortalSlug(row.username, userId);
+ const slug = await createUniqueProviderPortalSlug(row.account_name, userId);
  await query(
  `
   INSERT INTO user_profiles (user_id, provider_portal_slug)
@@ -822,7 +877,8 @@ export async function getProviderPortalAccountBySlug(slug: string): Promise<Acco
  const normalizedSlug = normalizeProviderPortalSlug(slug);
  const result = await query<{
  id: string;
- username: string;
+ email: string;
+ account_name: string;
  role: UserRole;
  account_status: AccountStatus;
  account_status_reason: string | null;
@@ -836,7 +892,8 @@ export async function getProviderPortalAccountBySlug(slug: string): Promise<Acco
  `
   SELECT
    u.id,
-   u.username,
+   u.email,
+   u.account_name,
    u.role,
    u.account_status,
    u.account_status_reason,
@@ -861,7 +918,8 @@ export async function getProviderPortalAccountBySlug(slug: string): Promise<Acco
 
  return {
  id: row.id,
- username: row.username,
+ email: row.email,
+ accountName: row.account_name,
  role: row.role,
  accountStatus: row.account_status,
  accountStatusReason: row.account_status_reason ?? "",
@@ -889,11 +947,12 @@ export async function countAdmins(): Promise<number> {
 }
 
 export async function adminCreateAccount(
- username: string,
+ email: string,
+ accountName: string,
  password: string,
  role: UserRole
 ): Promise<AuthUser> {
- return registerUser(username, password, role);
+ return registerUser({ email, accountName, password, role });
 }
 
 export async function adminUpdateRole(
@@ -921,13 +980,27 @@ export async function adminUpdateRole(
  }
  }
 
- await query("UPDATE users SET role = $1 WHERE id = $2", [nextRole, targetUserId]);
+ if (isAdminRole(nextRole)) {
+  await query(
+   `
+    UPDATE users
+    SET role = $1,
+        admin_role_id = COALESCE(admin_role_id, (SELECT id FROM admin_roles WHERE key = 'super_admin')),
+        updated_at = NOW()
+    WHERE id = $2
+   `,
+   [nextRole, targetUserId]
+  );
+  return;
+ }
+
+ await query("UPDATE users SET role = $1, admin_role_id = NULL, updated_at = NOW() WHERE id = $2", [nextRole, targetUserId]);
 }
 
 export async function adminUpdateAccount(
  actorId: string,
  targetUserId: string,
- data: { username?: string; password?: string; role?: UserRole }
+ data: { email?: string; accountName?: string; password?: string; role?: UserRole }
 ): Promise<void> {
  if (data.role) {
  await adminUpdateRole(actorId, targetUserId, data.role);
@@ -937,9 +1010,14 @@ export async function adminUpdateAccount(
  const params: unknown[] = [];
  let paramIdx = 1;
 
- if (data.username) {
- updates.push(`username = $${paramIdx++}`);
- params.push(data.username);
+ if (data.email) {
+ updates.push(`email = $${paramIdx++}`);
+ params.push(normalizeEmail(data.email));
+ }
+
+ if (data.accountName) {
+ updates.push(`account_name = $${paramIdx++}`);
+ params.push(data.accountName);
  }
  
  if (data.password) {
@@ -949,7 +1027,7 @@ export async function adminUpdateAccount(
 
  if (updates.length > 0) {
  params.push(targetUserId);
- await query(`UPDATE users SET ${updates.join(",")} WHERE id = $${paramIdx}`, params);
+ await query(`UPDATE users SET ${updates.join(",")}, updated_at = NOW() WHERE id = $${paramIdx}`, params);
  }
 }
 

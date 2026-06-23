@@ -17,7 +17,8 @@ export async function POST(request: Request) {
  }
 
  const formData = await request.formData();
- const username = String(formData.get("username") ??"").trim();
+ const email = String(formData.get("email") ??"").trim().toLowerCase();
+ const accountName = String(formData.get("accountName") ??"").trim();
  const password = String(formData.get("password") ??"");
  const accessRole = String(formData.get("accessRole") ?? `portal:${USER_ROLES.CUSTOMER}`).trim();
  const returnTo = String(formData.get("returnTo") ?? ROUTES.ADMIN.USERS).trim() || ROUTES.ADMIN.USERS;
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
  const phone = String(formData.get("phone") ?? "").trim();
  const bio = String(formData.get("bio") ?? "").trim();
 
- if (!username || !password) {
+ if (!email || !accountName || !password) {
  return respondError(request, { error: "missing_fields", message: "Thiếu thông tin bắt buộc để tạo tài khoản.", location: `${returnTo}?error=missing_fields` });
  }
  if (password.length < MIN_PASSWORD_LENGTH) {
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
  }
 
  try {
- const created = await adminCreateAccount(username, password, role);
+ const created = await adminCreateAccount(email, accountName, password, role);
  if (role === USER_ROLES.ADMIN) {
   await assignAdminRole(created.id, adminRoleId, actor.id);
  }
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
  return respondSuccess(request, { location: returnTo, message: "Đã tạo tài khoản mới." });
  } catch (error) {
  const message = error instanceof Error ? error.message :"";
- if (message.includes("duplicate key value")) {
-  return respondError(request, { error: "username_taken", message: "Tên đăng nhập đã tồn tại.", location: `${returnTo}?error=username_taken` });
+ if (message.includes("users_email_normalized_uidx")) {
+  return respondError(request, { error: "email_taken", message: "Email đã tồn tại.", location: `${returnTo}?error=email_taken` });
  }
  return respondError(request, { error: "create_failed", message: "Không thể tạo tài khoản.", location: `${returnTo}?error=create_failed` });
  }
