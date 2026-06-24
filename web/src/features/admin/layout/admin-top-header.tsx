@@ -1,9 +1,12 @@
 "use client";
 
 import { RouteBreadcrumbs } from "@/components/common/route-breadcrumbs";
+import { NativeForm } from "@/components/common/native-form";
+import { AdminNavSubmitButton } from "@/features/admin/components/admin-buttons";
 import { AdminHeaderMenu } from "@/features/admin/layout/admin-header-menu";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ROUTES } from "@/lib/routes";
+import { LogOut } from "lucide-react";
 
 type AdminTopHeaderProps = {
   accountName: string;
@@ -41,6 +44,12 @@ export function AdminTopHeader({
         <div className="flex items-center gap-3">
           <NotificationBell listHref={ROUTES.ADMIN.NOTIFICATIONS} />
           <span>{accountName}</span>
+          <NativeForm action={ROUTES.AUTH.LOGOUT_API} method="POST" className="hidden md:block">
+            <AdminNavSubmitButton title="Đăng xuất">
+              <LogOut className="h-4 w-4" />
+              <span>Đăng xuất</span>
+            </AdminNavSubmitButton>
+          </NativeForm>
           <AdminHeaderMenu permissionKeys={permissionKeys} />
         </div>
       </div>

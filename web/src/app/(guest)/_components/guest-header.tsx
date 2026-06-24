@@ -200,6 +200,9 @@ export function GuestHeader({
   const searchParams = useSearchParams();
   const activeSearchQuery = searchParams.get("q")?.trim() ?? "";
   const { count } = useWishlist();
+  const wishlistHref = user
+    ? ROUTES.WISHLIST
+    : `${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -370,17 +373,9 @@ export function GuestHeader({
             />
           )}
           <Link
-            href={ROUTES.WISHLIST}
+            href={wishlistHref}
             aria-label={`Yêu thích (${count})`}
             className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-white transition hover:border-rose-200 sm:inline-flex"
-            onClick={(event) => {
-              if (user) {
-                return;
-              }
-
-              event.preventDefault();
-              router.push(`${ROUTES.AUTH.LOGIN}?returnTo=${encodeURIComponent(ROUTES.WISHLIST)}`);
-            }}
           >
             <Heart className={cn("size-5", count > 0 && "fill-current")} />
             {count > 0 ? (

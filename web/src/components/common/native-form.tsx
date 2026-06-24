@@ -18,6 +18,7 @@ export function NativeForm({ onSubmit, action, method = "GET", ...props }: Nativ
     const target = new URL(location, window.location.href);
     if (target.origin === window.location.origin) {
       router.push(`${target.pathname}${target.search}${target.hash}`);
+      router.refresh();
       return;
     }
 

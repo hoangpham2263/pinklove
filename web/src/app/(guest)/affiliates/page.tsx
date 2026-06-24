@@ -13,15 +13,8 @@ export async function generateMetadata({ searchParams }: AffiliateApplyPageProps
   return generateManagedPageMetadata("affiliates", searchParams);
 }
 
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export default async function AffiliateApplyPage({ searchParams }: AffiliateApplyPageProps) {
-  const query = (await searchParams) ?? {};
   const page = await loadManagedPageForRoute("affiliates", searchParams);
-  const submitted = getSingleParam(query.submitted) === "1";
-  const error = getSingleParam(query.error);
 
-  return <AffiliateApplicationSection page={page} submitted={submitted} error={error} />;
+  return <AffiliateApplicationSection page={page} />;
 }

@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { CheckCircle2, Factory, ShieldCheck, Truck } from "lucide-react";
+import { Boxes, CheckCircle2, Factory, ReceiptText, ShieldCheck, Truck } from "lucide-react";
 
-import { NativeForm } from "@/components/common/native-form";
-import { Button } from "@/components/ui/button";
+import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/(guest)/_components/guest-marketing-background";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";
@@ -10,20 +9,44 @@ import { cn } from "@/lib/utils";
 
 type ProviderApplicationSectionProps = {
   page: ManagedPage;
-  submitted?: boolean;
-  error?: string;
 };
 
 export function ProviderApplicationSection({
   page,
-  submitted = false,
-  error,
 }: ProviderApplicationSectionProps) {
+  const benefits = [
+    {
+      title: "Nhận lead và đơn phù hợp",
+      value: "Kết nối đúng nhu cầu",
+      description: "Đưa dịch vụ hoặc nguồn cung của bạn vào hệ sinh thái cưới hỏi, nơi khách đang tìm thiệp, quà tặng và dịch vụ cưới.",
+      Icon: Truck,
+    },
+    {
+      title: "Quản lý dịch vụ riêng",
+      value: "Có dashboard provider",
+      description: "Theo dõi hồ sơ, dịch vụ, yêu cầu khách hàng, đơn được phân công và trạng thái xử lý trong một khu vực riêng.",
+      Icon: ReceiptText,
+    },
+    {
+      title: "Duyệt chất lượng",
+      value: "Tăng độ tin cậy",
+      description: "Provider được kiểm tra thông tin trước khi hiển thị, giúp khách hàng yên tâm hơn khi lựa chọn đối tác.",
+      Icon: ShieldCheck,
+    },
+  ];
+  const steps = [
+    ["01", "Tạo tài khoản", "Đăng ký tài khoản PinkLove hoặc đăng nhập nếu bạn đã có tài khoản."],
+    ["02", "Hoàn tất hồ sơ provider", "Cập nhật thông tin doanh nghiệp, khu vực phục vụ, nhóm dịch vụ và năng lực xử lý."],
+    ["03", "Chờ duyệt và bắt đầu nhận việc", "Sau khi hồ sơ phù hợp, admin sẽ mở quyền provider để bạn quản lý dịch vụ và lead."],
+  ];
+
   return (
-    <section className="relative overflow-hidden bg-[radial-gradient(circle_at_top,#fff2dd_0%,#fff9f1_34%,#ffffff_72%)]">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+    <GuestMarketingPageShell ambientGlowDensity="compact">
+      <section className="relative z-10 overflow-hidden">
+        <GuestMarketingHeroDecor />
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-white/90 px-4 py-2 text-sm text-amber-900">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#ff6ff5]/16 bg-white/72 px-4 py-2 text-sm font-semibold text-primary">
             <Factory className="h-4 w-4" />
             Chương trình đối tác cung ứng
           </div>
@@ -32,8 +55,22 @@ export function ProviderApplicationSection({
               {page.title || page.name}
             </h1>
             <p className="text-base leading-7 text-zinc-600 md:text-lg">
-              {page.excerpt || "Gửi hồ sơ để đội ngũ quản trị review trước khi mở quyền provider cho đối tác cung ứng."}
+              {page.excerpt || "Dành cho studio, xưởng in, đơn vị cung ứng và nhà cung cấp dịch vụ cưới muốn tham gia hệ sinh thái PinkLove."}
             </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href={ROUTES.AUTH.REGISTER}
+                className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition hover:opacity-90"
+              >
+                Đăng ký tài khoản
+              </Link>
+              <Link
+                href={ROUTES.AUTH.LOGIN}
+                className="inline-flex h-11 items-center justify-center rounded-full border border-guest-border bg-white px-6 text-sm font-medium text-stone-900 transition hover:border-guest-primary hover:text-guest-primary"
+              >
+                Đăng nhập để tiếp tục
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -46,122 +83,57 @@ export function ProviderApplicationSection({
           </div>
         ) : null}
 
-        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-5">
-                <ShieldCheck className="h-5 w-5 text-amber-700" />
-                <p className="mt-3 font-medium text-zinc-950">Duyệt trước khi mở quyền</p>
-                <p className="mt-2 text-sm leading-6 text-zinc-600">Admin review hồ sơ năng lực trước khi cho vào hệ thống provider.</p>
-              </div>
-              <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-5">
-                <Truck className="h-5 w-5 text-amber-700" />
-                <p className="mt-3 font-medium text-zinc-950">Giao hàng trực tiếp</p>
-                <p className="mt-2 text-sm leading-6 text-zinc-600">Phù hợp mô hình đối tác giao hàng trực tiếp theo luồng dropshipping.</p>
-              </div>
-              <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-5">
-                <CheckCircle2 className="h-5 w-5 text-amber-700" />
-                <p className="mt-3 font-medium text-zinc-950">Quản lý riêng theo supplier</p>
-                <p className="mt-2 text-sm leading-6 text-zinc-600">Sản phẩm và trạng thái đối tác có thể được block hoặc duyệt theo supplier.</p>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6">
-              <p className="text-sm font-medium text-zinc-950">Hồ sơ nên có gì?</p>
-              <div className="mt-3 grid gap-3 text-sm text-zinc-600 md:grid-cols-2">
-                <p>Tên doanh nghiệp hoặc xưởng in</p>
-                <p>Người liên hệ chính</p>
-                <p>Số điện thoại và email làm việc</p>
-                <p>Nhóm sản phẩm có thể cung ứng</p>
-                <p>Khu vực hoạt động / kho hàng</p>
-                <p>Kinh nghiệm và năng lực giao đơn</p>
-              </div>
-            </div>
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-3">
+            {benefits.map(({ title, value, description, Icon }) => (
+              <article key={title} className="rounded-3xl border border-zinc-200/80 bg-white/92 p-6 shadow-[0_18px_48px_rgba(35,31,39,0.06)]">
+                <Icon className="h-5 w-5 text-primary" />
+                <p className="mt-4 text-sm font-semibold uppercase tracking-[0.22em] text-primary/60">{title}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-zinc-950">{value}</h2>
+                <p className="mt-3 text-sm leading-7 text-zinc-600">{description}</p>
+              </article>
+            ))}
           </div>
 
           <div className="rounded-[2rem] border border-zinc-200/80 bg-white/95 p-6 shadow-[0_20px_80px_rgba(32,24,8,0.08)]">
-            <div className="mb-5">
-              <h2 className="text-2xl font-semibold text-zinc-950">Gửi hồ sơ đối tác</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Hồ sơ sẽ vào hàng chờ review. Nếu phù hợp, đội ngũ quản trị sẽ liên hệ và mở quyền provider.
-              </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-primary/70">Quy trình tham gia</p>
+            <h2 className="mt-3 text-2xl font-semibold text-zinc-950 md:text-4xl">Trở thành provider trong 3 bước</h2>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {steps.map(([number, title, description]) => (
+                <div key={number} className="rounded-2xl border border-zinc-200/80 bg-white p-5">
+                  <p className="text-sm font-semibold text-primary">{number}</p>
+                  <h3 className="mt-3 text-lg font-semibold text-zinc-950">{title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-zinc-600">{description}</p>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {submitted ? (
-              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                Hồ sơ đã được gửi thành công. Đội ngũ quản trị sẽ review và liên hệ lại.
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-[2rem] border border-zinc-200/80 bg-white/92 p-6">
+              <Boxes className="h-5 w-5 text-primary" />
+              <h2 className="mt-4 text-2xl font-semibold text-zinc-950">Nhóm đối tác phù hợp</h2>
+              <div className="mt-4 grid gap-3 text-sm leading-7 text-zinc-600 sm:grid-cols-2">
+                <p>Xưởng in thiệp, quà tặng</p>
+                <p>Studio ảnh/video cưới</p>
+                <p>Wedding planner, decorator</p>
+                <p>Dịch vụ cưới địa phương</p>
               </div>
-            ) : null}
-
-            {error ? (
-              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
-                {error === "MISSING_REQUIRED_FIELDS"
-                  ? "Vui lòng điền đủ các trường bắt buộc."
-                  : error === "INVALID_EMAIL"
-                    ? "Email chưa đúng định dạng."
-                    : error === "APPLICATION_ALREADY_EXISTS"
-                      ? "Email này đã có hồ sơ đang chờ xử lý."
-                      : "Không thể gửi hồ sơ lúc này."}
+            </div>
+            <div className="rounded-[2rem] border border-zinc-200/80 bg-white/92 p-6">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <h2 className="mt-4 text-2xl font-semibold text-zinc-950">Hồ sơ nên chuẩn bị</h2>
+              <div className="mt-4 grid gap-3 text-sm leading-7 text-zinc-600 sm:grid-cols-2">
+                <p>Tên doanh nghiệp và người liên hệ</p>
+                <p>Số điện thoại, email làm việc</p>
+                <p>Nhóm dịch vụ/sản phẩm cung ứng</p>
+                <p>Khu vực phục vụ và năng lực xử lý</p>
               </div>
-            ) : null}
-
-            <NativeForm action={ROUTES.API.APPLICATIONS.PROVIDER} method="POST" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Tên doanh nghiệp / xưởng in</label>
-                  <input name="companyName" required className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Người liên hệ</label>
-                  <input name="contactName" required className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Số điện thoại</label>
-                  <input name="phone" required className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Email làm việc</label>
-                  <input name="email" type="email" required className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Thành phố / khu vực</label>
-                  <input name="city" className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Website / Fanpage</label>
-                  <input name="website" className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-900">Nhóm sản phẩm có thể cung ứng</label>
-                <input name="categories" placeholder="Ví dụ: thiệp cưới, in ấn, hộp quà, phụ kiện..." className="h-11 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm outline-none transition focus:border-zinc-400" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-900">Kinh nghiệm / năng lực xử lý đơn</label>
-                <textarea name="experience" rows={4} className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-zinc-400" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-900">Ghi chú thêm</label>
-                <textarea name="notes" rows={4} className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-zinc-400" />
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button type="submit" className="rounded-full px-6">Gửi hồ sơ đăng ký</Button>
-                <Button type="button" variant="outline" className="rounded-full px-6" render={<Link href={ROUTES.CONTACT}>Liên hệ trước với đội ngũ</Link>} />
-              </div>
-            </NativeForm>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </GuestMarketingPageShell>
   );
 }

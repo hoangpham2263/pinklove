@@ -13,15 +13,8 @@ export async function generateMetadata({ searchParams }: ProviderApplyPageProps)
   return generateManagedPageMetadata("providers", searchParams);
 }
 
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export default async function ProviderApplyPage({ searchParams }: ProviderApplyPageProps) {
-  const query = (await searchParams) ?? {};
   const page = await loadManagedPageForRoute("providers", searchParams);
-  const submitted = getSingleParam(query.submitted) === "1";
-  const error = getSingleParam(query.error);
 
-  return <ProviderApplicationSection page={page} submitted={submitted} error={error} />;
+  return <ProviderApplicationSection page={page} />;
 }

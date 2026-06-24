@@ -3,6 +3,15 @@ import "server-only";
 import type { OfferingType } from "@/features/offerings/types";
 import { query } from "@/lib/database";
 
+const SYSTEM_SETTINGS_CACHE_TTL_MS = 30_000;
+
+const globalForSystemSettings = globalThis as unknown as {
+  systemSettingsCache?: {
+    value: SystemSettings;
+    expiresAt: number;
+  };
+};
+
 export type BreadcrumbSettings = {
   enabled: boolean;
   showOnPage: boolean;
@@ -674,6 +683,11 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     return DEFAULT_SETTINGS;
   }
 
+  const cached = globalForSystemSettings.systemSettingsCache;
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
   let row: SettingRow | undefined;
 
   try {
@@ -691,7 +705,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
 
   const brandingSettings = parseBrandingStorageSettings(row?.seo_branding);
 
-  return {
+  const settings = {
     breadcrumb: parseBreadcrumbSettings(row?.seo_breadcrumb),
     sitemap: parseSitemapSettings(row?.seo_sitemap),
     indexing: parseIndexingSettings(row?.seo_indexing),
@@ -712,6 +726,17 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     email: parseEmailSettings(row?.email_config),
     thirdParty: parseThirdPartySettings(row?.third_party_config),
   };
+
+  globalForSystemSettings.systemSettingsCache = {
+    value: settings,
+    expiresAt: Date.now() + SYSTEM_SETTINGS_CACHE_TTL_MS,
+  };
+
+  return settings;
+}
+
+function invalidateSystemSettingsCache() {
+  globalForSystemSettings.systemSettingsCache = undefined;
 }
 
 export async function updateBreadcrumbSettings(input: Partial<BreadcrumbSettings>) {
@@ -728,6 +753,7 @@ export async function updateBreadcrumbSettings(input: Partial<BreadcrumbSettings
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -745,6 +771,7 @@ export async function updateSitemapSettings(input: Partial<SitemapSettings>) {
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -762,6 +789,7 @@ export async function updateIndexingSettings(input: Partial<IndexingSettings>) {
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -787,6 +815,7 @@ async function updateBrandingStorageSettings(input: Partial<BrandingStorageSetti
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -808,6 +837,7 @@ export async function updateOpenGraphSettings(input: Partial<OpenGraphSettings>)
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -833,6 +863,7 @@ export async function updateEcommerceSettings(input: Partial<EcommerceSettings>)
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -856,6 +887,7 @@ export async function updateInternalOfferingImportApiSettings(input: Partial<Int
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next.offeringsImport;
 }
 
@@ -873,6 +905,7 @@ export async function updateEmailSettings(input: Partial<EmailSettings>) {
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }
 
@@ -897,5 +930,6 @@ export async function updateThirdPartySettings(input: Partial<ThirdPartySettings
     [JSON.stringify(next)]
   );
 
+  invalidateSystemSettingsCache();
   return next;
 }

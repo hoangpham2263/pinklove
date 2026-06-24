@@ -5,6 +5,7 @@ import { CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 import { REGISTERED_OFFERING_TYPES } from "@/features/offerings/type-registry";
 import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
+import { REGISTERED_NAVIGATION_MENUS } from "@/lib/navigation-menu-registry";
 import offeringSeedCatalog from "@/lib/offering-seed-data.json";
 
 const globalForDb = globalThis as unknown as {
@@ -1086,6 +1087,19 @@ async function ensureMenuTablesMigration() {
     CREATE INDEX IF NOT EXISTS navigation_menu_items_parent_id_idx
     ON navigation_menu_items(parent_id);
   `);
+
+  for (const menu of REGISTERED_NAVIGATION_MENUS) {
+    await pool.query(
+      `
+      INSERT INTO navigation_menus (name, label)
+      VALUES ($1, $2)
+      ON CONFLICT (name) DO UPDATE
+      SET label = EXCLUDED.label,
+          updated_at = NOW()
+      `,
+      [menu.name, menu.label]
+    );
+  }
 }
 
 async function ensureAffiliateTablesMigration() {
