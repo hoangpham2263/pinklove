@@ -4,6 +4,7 @@ import { Pool, type PoolClient, type QueryResultRow } from"pg";
 import { CONTENT_PAGES } from "@/features/pages/registry";
 import { AUTH_PAGES } from "@/features/auth/page-registry";
 import { REGISTERED_OFFERING_TYPES } from "@/features/offerings/type-registry";
+import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
 import offeringSeedCatalog from "@/lib/offering-seed-data.json";
 
 const globalForDb = globalThis as unknown as {
@@ -1351,9 +1352,13 @@ async function ensureOfferingTablesMigration() {
   }
 
   const registeredOfferingTypeKeys = REGISTERED_OFFERING_TYPES.map((type) => type.key);
+  const allowedOfferingRowTypes = [
+    ...registeredOfferingTypeKeys,
+    SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE,
+  ];
   await pool.query(
     "DELETE FROM offerings WHERE NOT (offering_type = ANY($1::text[]))",
-    [registeredOfferingTypeKeys]
+    [allowedOfferingRowTypes]
   );
   await pool.query(
     "DELETE FROM offering_types WHERE NOT (key = ANY($1::text[]))",

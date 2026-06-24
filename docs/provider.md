@@ -117,7 +117,7 @@ Use this file for the dedicated provider portal.
 - Provider service/product submissions are the required entry point before provider scheduling. A provider cannot create availability for a service until admin has approved/given that provider a service.
 - Service submissions must capture service detail up front:
   - `fulfillment_type = service`
-  - `service_kind` (`makeup`, `photography`, `videography`, `decoration`, `planning`, `venue`, `consultation`, `handoff`, `other`)
+  - `service_kind` (`photography`, `videography`, `decoration`, `planning`, `venue`, `consultation`, `handoff`, `other`)
   - `duration_minutes`
   - `service_area`
 - When admin approves a provider `create` or `update` submission into the catalog, the runtime must resolve `provider_user_id` to the provider ecosystem entity in `providers.id`.

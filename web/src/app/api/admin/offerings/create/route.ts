@@ -35,8 +35,9 @@ export async function POST(request: Request) {
   const requestedOfferingType = String(formData.get("offeringType") ?? SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT) as OfferingType;
   const templateEngineInput = String(formData.get("templateEngine") ?? "").trim() as OfferingTemplateEngine | "";
   const offeringType = requestedOfferingType;
+  const isDigitalTemplate = offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const templateEngine: OfferingTemplateEngine | undefined =
-    offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? templateEngineInput || SYSTEM_TEMPLATE_ENGINES.CODED : undefined;
+    isDigitalTemplate ? templateEngineInput || SYSTEM_TEMPLATE_ENGINES.CODED : undefined;
   const templateMode: OfferingTemplateMode | undefined =
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? SYSTEM_TEMPLATE_MODES.EDITABLE
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
   const price = Number(formData.get("price") ?? "0");
   const fulfillmentType = String(formData.get("fulfillmentType") ?? "digital") as OfferingFulfillmentType;
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
-  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
-  const supportsProviderSupply = offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsInventory = isDigitalTemplate ? false : offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsProviderSupply = isDigitalTemplate ? false : offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
   const supportsSupplyDetails = supportsInventory || supportsProviderSupply;
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
   }).toString();
   const createLocation = `${createBaseLocation}${createQuery ? `?${createQuery}` : ""}`;
 
-  if (!offeringTypeDefinition) {
+  if (!offeringTypeDefinition && !isDigitalTemplate) {
     return respondError(request, {
       error: "invalid_offering_type",
       message: "Luồng tạo sản phẩm không hợp lệ.",
@@ -93,17 +94,19 @@ export async function POST(request: Request) {
   const resolvedTemplateKey =
     offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT
       ? PHYSICAL_PRODUCT_TEMPLATE_KEY
-      : offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
+      : isDigitalTemplate
         ? templateKey
-        : offeringTypeDefinition.templateKey || offeringType;
+        : offeringTypeDefinition?.templateKey || offeringType;
   const customFieldsRaw = String(formData.get("customFields") ?? "{}");
   let customFields: Record<string, unknown> = {};
   try {
     customFields = JSON.parse(customFieldsRaw) as Record<string, unknown>;
-    customFields = await validateOfferingCustomFields({
-      offeringTypeDefinition,
-      values: customFields,
-    });
+    customFields = offeringTypeDefinition
+      ? await validateOfferingCustomFields({
+          offeringTypeDefinition,
+          values: customFields,
+        })
+      : {};
   } catch {
     return respondError(request, {
       error: "invalid_custom_fields",
@@ -158,7 +161,7 @@ export async function POST(request: Request) {
       ownerProviderId: ownerType === "provider" ? ownerProviderId : undefined,
       config: {
         customFields,
-        ...(!supportsInventory && offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
+        ...(!supportsInventory && isDigitalTemplate
           ? {
               siteDefaults: {
                 ...getInvitationTemplateDefaults(templateKey),

@@ -33,8 +33,9 @@ export async function POST(request: Request) {
   const requestedOfferingType = String(formData.get("offeringType") ?? SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE) as OfferingType;
   const templateEngineInput = String(formData.get("templateEngine") ?? "").trim() as OfferingTemplateEngine | "";
   const offeringType = requestedOfferingType;
+  const isDigitalTemplate = offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE;
   const templateEngine: OfferingTemplateEngine | undefined =
-    offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? templateEngineInput || SYSTEM_TEMPLATE_ENGINES.CODED : undefined;
+    isDigitalTemplate ? templateEngineInput || SYSTEM_TEMPLATE_ENGINES.CODED : undefined;
   const templateMode: OfferingTemplateMode | undefined =
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? SYSTEM_TEMPLATE_MODES.EDITABLE
@@ -47,8 +48,8 @@ export async function POST(request: Request) {
   const thumbnailUrl = String(formData.get("thumbnailUrl") ?? "").trim();
   const price = Number(formData.get("price") ?? "0");
   const offeringTypeDefinition = await getOfferingTypeByKey(offeringType);
-  const supportsInventory = offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
-  const supportsProviderSupply = offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsInventory = isDigitalTemplate ? false : offeringTypeDefinition?.supportsInventory ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
+  const supportsProviderSupply = isDigitalTemplate ? false : offeringTypeDefinition?.supportsProviderSupply ?? offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT;
   const supportsSupplyDetails = supportsInventory || supportsProviderSupply;
   const trackInventory = supportsInventory && formData.get("trackInventory") === "on";
   const stockQuantity = supportsInventory ? Math.max(0, Number(formData.get("stockQuantity") ?? "0")) : 0;
@@ -64,12 +65,12 @@ export async function POST(request: Request) {
   const editorBaseLocation =
     templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? ROUTES.ADMIN.OFFERING_BUILDER_EDITOR(originalSlug)
-      : offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
+      : isDigitalTemplate
         ? ROUTES.ADMIN.OFFERING_TEMPLATE(originalSlug)
       : ROUTES.ADMIN.OFFERING(originalSlug);
   const editorLocation = `${editorBaseLocation}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`;
 
-  if (!offeringTypeDefinition) {
+  if (!offeringTypeDefinition && !isDigitalTemplate) {
     return respondError(request, {
       error: "invalid_offering_type",
       message: "Luồng sửa sản phẩm không hợp lệ.",
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
     return respondError(request, { error: "invalid_template", message: "Template không khớp với loại sản phẩm.", location: `${editorLocation}${editorLocation.includes("?") ? "&" : "?"}error=invalid_template` });
   }
 
-  if (offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && existingOffering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED && templateKey !== existingOffering.templateKey) {
+  if (isDigitalTemplate && existingOffering.templateEngine === SYSTEM_TEMPLATE_ENGINES.CODED && templateKey !== existingOffering.templateKey) {
     return respondError(request, {
       error: "template_source_locked",
       message: "Template source của bản mẫu chuẩn đã bị khóa, chỉ cho phép chỉnh nội dung và trạng thái.",
@@ -107,7 +108,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE && fulfillmentType !== existingOffering.fulfillmentType) {
+  if (isDigitalTemplate && fulfillmentType !== existingOffering.fulfillmentType) {
     return respondError(request, {
       error: "fulfillment_locked",
       message: "Hình thức bàn giao của mẫu chuẩn đã bị khóa.",
@@ -161,18 +162,20 @@ export async function POST(request: Request) {
   const resolvedTemplateKey =
     offeringType === SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT
       ? PHYSICAL_PRODUCT_TEMPLATE_KEY
-      : offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
+      : isDigitalTemplate
         ? templateKey
-        : offeringTypeDefinition.templateKey || offeringType;
+        : offeringTypeDefinition?.templateKey || offeringType;
   const customFieldsRaw = String(formData.get("customFields") ?? JSON.stringify(existingOffering.config.customFields ?? {}));
   let customFields: Record<string, unknown> = {};
   try {
     customFields = JSON.parse(customFieldsRaw) as Record<string, unknown>;
-    customFields = await validateOfferingCustomFields({
-      offeringTypeDefinition,
-      values: customFields,
-      excludeOfferingId: existingOffering.id,
-    });
+    customFields = offeringTypeDefinition
+      ? await validateOfferingCustomFields({
+          offeringTypeDefinition,
+          values: customFields,
+          excludeOfferingId: existingOffering.id,
+        })
+      : {};
   } catch {
     return respondError(request, {
       error: "invalid_custom_fields",
@@ -209,7 +212,7 @@ export async function POST(request: Request) {
       actorId: admin.id,
       config: {
         customFields,
-        ...(!supportsInventory && offeringType === SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE ? { siteDefaults: normalizedSiteDefaults } : {}),
+        ...(!supportsInventory && isDigitalTemplate ? { siteDefaults: normalizedSiteDefaults } : {}),
       },
       crossSells,
       upsells,

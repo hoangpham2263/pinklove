@@ -1,12 +1,15 @@
 import { AdminOverviewCard } from "@/features/admin/components/admin-overview-card";
 import { listOfferingTypes } from "@/features/offerings/server/service";
+import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
 import { requireAdmin } from "@/lib/auth";
 import { Boxes, Camera, Database, Package } from "lucide-react";
 import { AdminOfferingTypesTable } from "./admin-offering-types-table";
 
 export default async function AdminOfferingTypesPage() {
   await requireAdmin();
-  const offeringTypes = await listOfferingTypes();
+  const offeringTypes = (await listOfferingTypes()).filter(
+    (type) => type.key !== SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE
+  );
   const physicalCount = offeringTypes.filter((type) => type.fulfillmentType === "physical").length;
   const serviceCount = offeringTypes.filter((type) => type.fulfillmentType === "service").length;
   const fieldCount = offeringTypes.reduce((sum, type) => sum + type.fieldSchema.length, 0);

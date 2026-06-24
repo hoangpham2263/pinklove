@@ -1,10 +1,8 @@
 export const PROVIDER_SERVICE_KIND_OPTIONS = [
-  { value: "makeup", label: "Makeup" },
   { value: "photography", label: "Chụp ảnh" },
   { value: "videography", label: "Quay phim" },
   { value: "decoration", label: "Trang trí" },
   { value: "planning", label: "Wedding planner" },
-  { value: "website_design", label: "Thiết kế website" },
   { value: "venue", label: "Địa điểm/studio" },
   { value: "consultation", label: "Tư vấn" },
   { value: "handoff", label: "Bàn giao/nhận hàng" },
@@ -19,8 +17,6 @@ export function getProviderServiceKindLabel(value: string | null | undefined) {
 
 export function getProviderServiceOfferingTypeKey(value: string | null | undefined) {
   switch (value) {
-    case "makeup":
-      return "bridal_makeup";
     case "photography":
       return "wedding_photo";
     case "videography":
@@ -29,8 +25,6 @@ export function getProviderServiceOfferingTypeKey(value: string | null | undefin
       return "wedding_decoration";
     case "planning":
       return "wedding_planner";
-    case "website_design":
-      return "website_design";
     case "venue":
     case "consultation":
     case "handoff":

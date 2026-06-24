@@ -21,18 +21,6 @@ export type RegisteredOfferingType = {
 
 export const REGISTERED_OFFERING_TYPES: RegisteredOfferingType[] = [
   {
-    key: SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE,
-    label: "Thiệp online",
-    description: "Mẫu thiệp cưới online coded hoặc builder, dùng để tạo wedding site từ template.",
-    rendererKey: "physical-product",
-    fulfillmentType: "digital",
-    templateKey: SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE,
-    templateEngine: "coded",
-    templateMode: "fixed",
-    supportsInventory: false,
-    supportsProviderSupply: false,
-  },
-  {
     key: SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT,
     label: "Thiệp giấy",
     description: "Thiệp cưới in ấn, bộ thiệp giấy và sản phẩm hữu hình liên quan.",
@@ -63,16 +51,6 @@ export const REGISTERED_OFFERING_TYPES: RegisteredOfferingType[] = [
     supportsProviderSupply: true,
   },
   {
-    key: SYSTEM_OFFERING_TYPES.BRIDAL_MAKEUP,
-    label: "Makeup cô dâu",
-    description: "Dịch vụ makeup, thử layout, làm tóc và chăm sóc hình ảnh cô dâu.",
-    rendererKey: "service",
-    fulfillmentType: "service",
-    templateKey: SYSTEM_OFFERING_TYPES.BRIDAL_MAKEUP,
-    supportsInventory: false,
-    supportsProviderSupply: true,
-  },
-  {
     key: SYSTEM_OFFERING_TYPES.WEDDING_DECORATION,
     label: "Trang trí tiệc cưới",
     description: "Dịch vụ trang trí gia tiên, sân khấu, backdrop, hoa cưới và không gian tiệc.",
@@ -99,16 +77,6 @@ export const REGISTERED_OFFERING_TYPES: RegisteredOfferingType[] = [
     rendererKey: "service",
     fulfillmentType: "service",
     templateKey: SYSTEM_OFFERING_TYPES.WEDDING_SERVICE,
-    supportsInventory: false,
-    supportsProviderSupply: true,
-  },
-  {
-    key: SYSTEM_OFFERING_TYPES.WEBSITE_DESIGN,
-    label: "Thiết kế website",
-    description: "Dịch vụ thiết kế website, landing page và website cưới cho khách hàng hoặc provider.",
-    rendererKey: "service",
-    fulfillmentType: "service",
-    templateKey: SYSTEM_OFFERING_TYPES.WEBSITE_DESIGN,
     supportsInventory: false,
     supportsProviderSupply: true,
   },

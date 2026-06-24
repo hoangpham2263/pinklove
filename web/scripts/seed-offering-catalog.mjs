@@ -78,23 +78,24 @@ function deriveOfferingTypes(seedCatalog) {
   const byKey = new Map();
 
   for (const offering of seedCatalog.offerings) {
+    if (offering.offeringType === "digital_template") {
+      continue;
+    }
+
     const category = categoriesBySlug.get(offering.categorySlug);
     const current = byKey.get(offering.offeringType);
     const supportsInventory = Boolean(offering.trackInventory || current?.supportsInventory);
     const supportsProviderSupply = Boolean(current?.supportsProviderSupply || offering.fulfillmentType === "service" || supportsInventory);
-    const label =
-      offering.offeringType === "digital_template"
-        ? "Thiệp online"
-        : current?.label || category?.name || humanizeSlug(offering.offeringType);
+    const label = current?.label || category?.name || humanizeSlug(offering.offeringType);
 
     byKey.set(offering.offeringType, {
       key: offering.offeringType,
       label,
       description: current?.description || category?.description || `${label} trên PinkLove.`,
       fulfillmentType: current?.fulfillmentType || offering.fulfillmentType || "digital",
-      templateKey: current?.templateKey || (offering.offeringType === "digital_template" ? offering.offeringType : offering.templateKey || offering.offeringType),
-      templateEngine: current?.templateEngine || (offering.offeringType === "digital_template" ? "" : offering.templateEngine || ""),
-      templateMode: current?.templateMode || (offering.offeringType === "digital_template" ? "" : offering.templateMode || ""),
+      templateKey: current?.templateKey || offering.templateKey || offering.offeringType,
+      templateEngine: current?.templateEngine || offering.templateEngine || "",
+      templateMode: current?.templateMode || offering.templateMode || "",
       supportsInventory,
       supportsProviderSupply,
     });

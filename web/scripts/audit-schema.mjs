@@ -371,10 +371,7 @@ async function main() {
       ORDER BY key
     `);
     const expectedSystemOfferingTypes = [
-      "bridal_makeup",
-      "digital_template",
       "physical_product",
-      "website_design",
       "wedding_decoration",
       "wedding_gift",
       "wedding_photo",
@@ -395,10 +392,7 @@ async function main() {
       ORDER BY key
     `);
     const expectedDefaultOfferingTypes = [
-      "bridal_makeup",
-      "digital_template",
       "physical_product",
-      "website_design",
       "wedding_decoration",
       "wedding_gift",
       "wedding_photo",

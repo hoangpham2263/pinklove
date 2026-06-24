@@ -10,11 +10,9 @@ export const SYSTEM_OFFERING_TYPES = {
   PHYSICAL_PRODUCT: "physical_product",
   WEDDING_VIDEO: "wedding_video",
   WEDDING_PHOTO: "wedding_photo",
-  BRIDAL_MAKEUP: "bridal_makeup",
   WEDDING_DECORATION: "wedding_decoration",
   WEDDING_PLANNER: "wedding_planner",
   WEDDING_SERVICE: "wedding_service",
-  WEBSITE_DESIGN: "website_design",
   WEDDING_GIFT: "wedding_gift",
 } as const;
 
@@ -218,16 +216,12 @@ export function getOfferingTypeLabel(offeringType: OfferingType) {
       return "Làm video cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_PHOTO:
       return "Chụp ảnh cưới";
-    case SYSTEM_OFFERING_TYPES.BRIDAL_MAKEUP:
-      return "Makeup cô dâu";
     case SYSTEM_OFFERING_TYPES.WEDDING_DECORATION:
       return "Trang trí tiệc cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_PLANNER:
       return "Wedding planner";
     case SYSTEM_OFFERING_TYPES.WEDDING_SERVICE:
       return "Dịch vụ cưới";
-    case SYSTEM_OFFERING_TYPES.WEBSITE_DESIGN:
-      return "Thiết kế website";
     case SYSTEM_OFFERING_TYPES.WEDDING_GIFT:
       return "Quà cưới";
     default:

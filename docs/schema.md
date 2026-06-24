@@ -118,10 +118,8 @@ Current domain tables:
 
 Current system offering type keys:
 
-- `bridal_makeup`
 - `digital_template`
 - `physical_product`
-- `website_design`
 - `wedding_decoration`
 - `wedding_gift`
 - `wedding_photo`
@@ -152,11 +150,9 @@ Current runtime seed data:
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Provider supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
 | `physical_product` | Thiệp giấy | active | physical | `physical_product` | yes | yes | yes | 0 |
-| `website_design` | Thiết kế website | active | service | `website_design` | no | yes | yes | 0 |
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
 | `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
-| `bridal_makeup` | Makeup cô dâu | active | service | `bridal_makeup` | no | yes | yes | 0 |
 | `wedding_decoration` | Trang trí tiệc cưới | active | service | `wedding_decoration` | no | yes | yes | 0 |
 | `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
 | `wedding_service` | Dịch vụ cưới | active | service | `wedding_service` | no | yes | yes | 0 |
@@ -169,7 +165,6 @@ Current runtime offering data:
 | `wedding_photo` | none | 1 |
 | `wedding_gift` | none | 1 |
 | `wedding_video` | none | 1 |
-| `bridal_makeup` | none | 1 |
 | `wedding_decoration` | none | 1 |
 | `wedding_planner` | none | 1 |
 | `wedding_service` | none | 1 |
