@@ -7,6 +7,7 @@ import {
  getPhoneCountryByCode,
 } from "@/features/auth/phone-countries";
 import { normalizePhoneNumber } from "@/features/auth/phone-number";
+import { AuthRateLimitError, getRequestIp, recordAuthRateLimit } from "@/lib/auth-rate-limit";
 
 import {
  createSession,
@@ -21,6 +22,20 @@ export const runtime ="nodejs";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function redirectRegisterError(error: string) {
+ const response = new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=${error}` } });
+ const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+ response.headers.append(
+  "Set-Cookie",
+  `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT${secure}`
+ );
+ return response;
+}
+
+function isAccountUniquenessError(message: string) {
+ return message.includes("users_email_normalized_uidx") || message.includes("user_profiles_phone_normalized_uidx");
+}
+
 export async function POST(request: Request) {
  const formData = await request.formData();
  const accountName = String(formData.get("accountName") ??"").trim();
@@ -34,26 +49,30 @@ export async function POST(request: Request) {
  const normalizedPhone = normalizePhoneNumber(phone, phoneCountry.code, phoneCountry.dialCode);
 
  if (!accountName || !password || !phone || !email) {
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=missing_fields` } });
+ return redirectRegisterError("missing_fields");
  }
 
  if (!EMAIL_PATTERN.test(email)) {
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=invalid_email` } });
+ return redirectRegisterError("invalid_email");
  }
 
  if (!normalizedPhone) {
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=invalid_phone` } });
+ return redirectRegisterError("invalid_phone");
  }
 
  if (password.length < MIN_PASSWORD_LENGTH) {
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=weak_password` } });
+ return redirectRegisterError("weak_password");
  }
 
  if (!termsAccepted) {
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=terms_required` } });
+ return redirectRegisterError("terms_required");
  }
 
  try {
+ await recordAuthRateLimit("register:ip", getRequestIp(request));
+ await recordAuthRateLimit("register:email", email);
+ await recordAuthRateLimit("register:phone", normalizedPhone.e164);
+
  const user = await withTransaction(async (execute) => {
   const role = await getPublicRegistrationRole(execute);
   const created = await registerUser({
@@ -84,11 +103,15 @@ export async function POST(request: Request) {
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
  } catch (error) {
- const message = error instanceof Error ? error.message :"";
- if (message.includes("users_email_normalized_uidx")) {
-  return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=email_taken` } });
+ if (error instanceof AuthRateLimitError) {
+  return redirectRegisterError("rate_limited");
  }
 
- return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=register_failed` } });
+ const message = error instanceof Error ? error.message :"";
+ if (isAccountUniquenessError(message)) {
+  return redirectRegisterError("account_exists");
+ }
+
+ return redirectRegisterError("register_failed");
 }
 }

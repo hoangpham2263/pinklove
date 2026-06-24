@@ -119,7 +119,9 @@ Current domain tables:
 Current system offering type keys:
 
 - `bridal_makeup`
+- `digital_template`
 - `physical_product`
+- `website_design`
 - `wedding_decoration`
 - `wedding_gift`
 - `wedding_photo`
@@ -127,9 +129,8 @@ Current system offering type keys:
 - `wedding_service`
 - `wedding_video`
 
-Legacy digital template rendering support remains in code, but the clean catalog
-contains only the three code-registered types above. Database bootstrap upserts
-their metadata and deletes unregistered types and corresponding offerings.
+Database bootstrap upserts code-registered offering type metadata and deletes
+unregistered types and corresponding offerings.
 
 Field definitions are relational `offering_type_fields` rows grouped by
 `offering_type_field_groups`. Admin offering create/edit forms read these rows
@@ -151,6 +152,7 @@ Current runtime seed data:
 | Type key | Label | Status | Fulfillment | Template key | Inventory | Provider supply | System | Fields |
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: |
 | `physical_product` | Thiệp giấy | active | physical | `physical_product` | yes | yes | yes | 0 |
+| `website_design` | Thiết kế website | active | service | `website_design` | no | yes | yes | 0 |
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
 | `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |

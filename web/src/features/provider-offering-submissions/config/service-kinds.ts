@@ -4,6 +4,7 @@ export const PROVIDER_SERVICE_KIND_OPTIONS = [
   { value: "videography", label: "Quay phim" },
   { value: "decoration", label: "Trang trí" },
   { value: "planning", label: "Wedding planner" },
+  { value: "website_design", label: "Thiết kế website" },
   { value: "venue", label: "Địa điểm/studio" },
   { value: "consultation", label: "Tư vấn" },
   { value: "handoff", label: "Bàn giao/nhận hàng" },
@@ -28,6 +29,8 @@ export function getProviderServiceOfferingTypeKey(value: string | null | undefin
       return "wedding_decoration";
     case "planning":
       return "wedding_planner";
+    case "website_design":
+      return "website_design";
     case "venue":
     case "consultation":
     case "handoff":

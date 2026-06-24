@@ -1,5 +1,6 @@
 import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
+import { AuthRateLimitError, getRequestIp, recordAuthRateLimit, resetAuthRateLimit } from "@/lib/auth-rate-limit";
 
 import {
  authenticateUserByEmail,
@@ -36,18 +37,32 @@ export async function POST(request: Request) {
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("missing_fields", returnToInput || undefined) } });
  }
 
+ try {
  const user = await authenticateUserByEmail(email, password);
  if (!user) {
+ await recordAuthRateLimit("login:ip", getRequestIp(request));
+ await recordAuthRateLimit("login:email", email);
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  if (!canAccessUserPortal(user.role)) {
+ await recordAuthRateLimit("login:ip", getRequestIp(request));
+ await recordAuthRateLimit("login:email", email);
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
+
+ await resetAuthRateLimit("login:email", email);
 
  const token = await createSession(user.id);
  const target = returnTo;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
+ } catch (error) {
+ if (error instanceof AuthRateLimitError) {
+  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("rate_limited", returnToInput || undefined) } });
+ }
+
+ throw error;
+ }
 }

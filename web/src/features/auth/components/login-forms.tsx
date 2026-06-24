@@ -65,7 +65,10 @@ function getErrorMessage(error: string | null): string | null {
   if (error === "invalid_email") return "Vui lòng nhập địa chỉ email hợp lệ.";
   if (error === "invalid_phone") return "Vui lòng nhập số điện thoại hợp lệ.";
   if (error === "terms_required") return "Vui lòng đồng ý điều khoản sử dụng và chính sách bảo mật.";
-  if (error === "email_taken") return "Email này đã được sử dụng.";
+  if (error === "account_exists" || error === "email_taken" || error === "phone_taken") {
+    return "Không thể tạo tài khoản mới với thông tin này. Vui lòng đăng nhập nếu bạn đã có tài khoản.";
+  }
+  if (error === "rate_limited") return "Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc rồi thử lại.";
   if (error === "register_failed") return "Không thể tạo tài khoản. Vui lòng thử lại.";
   return "Xác thực không thành công.";
 }

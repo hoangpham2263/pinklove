@@ -70,6 +70,7 @@ const expectedPublicTables = [
   "ad_placements",
   "advertisers",
   "app_settings",
+  "auth_rate_limits",
   "blog_categories",
   "blog_posts",
   "booking_calendars",
@@ -373,6 +374,7 @@ async function main() {
       "bridal_makeup",
       "digital_template",
       "physical_product",
+      "website_design",
       "wedding_decoration",
       "wedding_gift",
       "wedding_photo",
@@ -396,6 +398,7 @@ async function main() {
       "bridal_makeup",
       "digital_template",
       "physical_product",
+      "website_design",
       "wedding_decoration",
       "wedding_gift",
       "wedding_photo",
@@ -731,6 +734,21 @@ async function main() {
       WHERE table_schema='public' AND table_name='users' AND column_name='admin_role_id'
     `);
     assert(adminRoleColumn.rowCount === 1, "users.admin_role_id is required");
+
+    const normalizedEmailIndexCount = Number(
+      await scalar(client, "SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public' AND tablename='users' AND indexname='users_email_normalized_uidx'")
+    );
+    assert(normalizedEmailIndexCount === 1, "users.email must be unique after normalization");
+
+    const normalizedPhoneIndexCount = Number(
+      await scalar(client, "SELECT COUNT(*) FROM pg_indexes WHERE schemaname='public' AND tablename='user_profiles' AND indexname='user_profiles_phone_normalized_uidx'")
+    );
+    assert(normalizedPhoneIndexCount === 1, "user_profiles.phone must be unique after normalization");
+
+    const authRateLimitsTableCount = Number(
+      await scalar(client, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name='auth_rate_limits'")
+    );
+    assert(authRateLimitsTableCount === 1, "auth_rate_limits table is required");
 
     const adminRoleForeignKey = String(
       await scalar(

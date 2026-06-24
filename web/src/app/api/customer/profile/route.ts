@@ -23,7 +23,18 @@ export async function POST(request: Request) {
  const bio = String(formData.get("bio") ??"");
  const avatarUrl = String(formData.get("avatarUrl") ?? "");
 
- await setUserProfile(user.id, { fullName, displayName, phone, providerPortalSlug, bio, avatarUrl });
+ try {
+  await setUserProfile(user.id, { fullName, displayName, phone, providerPortalSlug, bio, avatarUrl });
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("user_profiles_phone_normalized_uidx")) {
+   if (wantsJson) {
+    return NextResponse.json({ error: "Số điện thoại này đã được sử dụng." }, { status: 409 });
+   }
+   return new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.CUSTOMER.CONFIG_PROFILE}?error=phone_taken` } });
+  }
+  throw error;
+ }
  if (wantsJson) {
  return NextResponse.json({ success: true });
  }

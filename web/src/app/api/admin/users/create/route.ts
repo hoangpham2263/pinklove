@@ -53,6 +53,9 @@ export async function POST(request: Request) {
  if (message.includes("users_email_normalized_uidx")) {
   return respondError(request, { error: "email_taken", message: "Email đã tồn tại.", location: `${returnTo}?error=email_taken` });
  }
+ if (message.includes("user_profiles_phone_normalized_uidx")) {
+  return respondError(request, { error: "phone_taken", message: "Số điện thoại đã tồn tại.", location: `${returnTo}?error=phone_taken` });
+ }
  return respondError(request, { error: "create_failed", message: "Không thể tạo tài khoản.", location: `${returnTo}?error=create_failed` });
  }
 }

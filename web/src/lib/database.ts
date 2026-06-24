@@ -36,7 +36,8 @@ const globalForDb = globalThis as unknown as {
   chatTablesMigrationDone?: boolean;
   notificationTablesMigrationDone?: boolean;
   adsTablesMigrationDone?: boolean;
-	  contentCommentsMigrationDone?: boolean;
+  contentCommentsMigrationDone?: boolean;
+  authRateLimitsMigrationDone?: boolean;
 	  mediaTablesMigrationDone?: boolean;
 	  managedPagesMigrationDone?: boolean;
 	  managedPagesMigrationPromise?: Promise<void>;
@@ -600,6 +601,33 @@ async function ensureUserProfilesMigration() {
   ON user_profiles (LOWER(provider_portal_slug))
   WHERE provider_portal_slug IS NOT NULL;
   `);
+
+  await pool.query(`
+  CREATE UNIQUE INDEX IF NOT EXISTS user_profiles_phone_normalized_uidx
+  ON user_profiles (regexp_replace(BTRIM(phone), '[^0-9+]+', '', 'g'))
+  WHERE phone IS NOT NULL AND BTRIM(phone) <> '';
+  `);
+}
+
+async function ensureAuthRateLimitsMigration() {
+ const pool = getPool();
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS auth_rate_limits (
+  scope TEXT NOT NULL,
+  rate_key TEXT NOT NULL,
+  window_start TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  attempts INT NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (scope, rate_key)
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS auth_rate_limits_expires_at_idx
+ ON auth_rate_limits(expires_at);
+ `);
 }
 
 async function ensureUserShippingProfilesMigration() {
@@ -5455,6 +5483,11 @@ export async function ensureDb() {
       if (!globalForDb.userProfilesMigrationDone) {
         await ensureUserProfilesMigration();
         globalForDb.userProfilesMigrationDone = true;
+      }
+
+      if (!globalForDb.authRateLimitsMigrationDone) {
+        await ensureAuthRateLimitsMigration();
+        globalForDb.authRateLimitsMigrationDone = true;
       }
 
       if (!globalForDb.userAddressesMigrationDone) {

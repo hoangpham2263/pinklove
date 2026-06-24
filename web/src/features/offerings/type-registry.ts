@@ -103,6 +103,16 @@ export const REGISTERED_OFFERING_TYPES: RegisteredOfferingType[] = [
     supportsProviderSupply: true,
   },
   {
+    key: SYSTEM_OFFERING_TYPES.WEBSITE_DESIGN,
+    label: "Thiết kế website",
+    description: "Dịch vụ thiết kế website, landing page và website cưới cho khách hàng hoặc provider.",
+    rendererKey: "service",
+    fulfillmentType: "service",
+    templateKey: SYSTEM_OFFERING_TYPES.WEBSITE_DESIGN,
+    supportsInventory: false,
+    supportsProviderSupply: true,
+  },
+  {
     key: SYSTEM_OFFERING_TYPES.WEDDING_GIFT,
     label: "Quà cưới",
     description: "Quà tặng, hộp quà và phụ kiện cưới dạng sản phẩm vật lý.",

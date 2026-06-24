@@ -95,6 +95,7 @@ export async function resolveGuestPublicContent(
 
   const generalOffering = await getPublishedOfferingBySlugAndType(slug, [
     "physical_product",
+    "website_design",
     "wedding_video",
     "wedding_photo",
     "bridal_makeup",

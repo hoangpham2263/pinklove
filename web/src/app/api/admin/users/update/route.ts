@@ -87,6 +87,12 @@ export async function POST(request: Request) {
  if (message === "LAST_SUPER_ADMIN") {
   return respondError(request, { error: "last_super_admin", message: "Không thể hạ quyền Super Admin cuối cùng.", location: `${returnLocation}?error=last_super_admin` });
  }
+ if (message.includes("users_email_normalized_uidx")) {
+  return respondError(request, { error: "email_taken", message: "Email đã tồn tại.", location: `${returnLocation}?error=email_taken` });
+ }
+ if (message.includes("user_profiles_phone_normalized_uidx")) {
+  return respondError(request, { error: "phone_taken", message: "Số điện thoại đã tồn tại.", location: `${returnLocation}?error=phone_taken` });
+ }
  return respondError(request, { error: "update_failed", message: "Không thể cập nhật người dùng.", location: `${returnLocation}?error=update_failed` });
 }
 }
