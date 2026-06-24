@@ -120,15 +120,15 @@ Current system offering type keys:
 
 - `digital_template`
 - `physical_product`
-- `wedding_decoration`
 - `wedding_gift`
 - `wedding_photo`
-- `wedding_planner`
 - `wedding_service`
 - `wedding_video`
 
-Database bootstrap upserts code-registered offering type metadata and deletes
-unregistered types and corresponding offerings.
+`web/src/features/offerings/registered-offering-types.mjs` is the source of
+truth for code-registered system offering type metadata. Database bootstrap and
+seed scripts upsert that registry into `offering_types` and delete unregistered
+types and corresponding offerings.
 
 Field definitions are relational `offering_type_fields` rows grouped by
 `offering_type_field_groups`. Admin offering create/edit forms read these rows
@@ -153,8 +153,6 @@ Current runtime seed data:
 | `wedding_gift` | Quà cưới | active | physical | `wedding_gift` | yes | yes | yes | 0 |
 | `wedding_photo` | Chụp ảnh cưới | active | service | `wedding_photo` | no | yes | yes | 0 |
 | `wedding_video` | Làm video cưới | active | service | `wedding_video` | no | yes | yes | 0 |
-| `wedding_decoration` | Trang trí tiệc cưới | active | service | `wedding_decoration` | no | yes | yes | 0 |
-| `wedding_planner` | Wedding planner | active | service | `wedding_planner` | no | yes | yes | 0 |
 | `wedding_service` | Dịch vụ cưới | active | service | `wedding_service` | no | yes | yes | 0 |
 
 Current runtime offering data:
@@ -165,8 +163,6 @@ Current runtime offering data:
 | `wedding_photo` | none | 1 |
 | `wedding_gift` | none | 1 |
 | `wedding_video` | none | 1 |
-| `wedding_decoration` | none | 1 |
-| `wedding_planner` | none | 1 |
 | `wedding_service` | none | 1 |
 
 ## Final Cleanup Runtime Contracts

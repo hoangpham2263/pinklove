@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
+import { REGISTERED_OFFERING_TYPES as registeredOfferingTypes } from "../src/features/offerings/registered-offering-types.mjs";
 
 const rootDir = path.resolve(process.cwd(), "..");
 const seedDataPath = path.join(process.cwd(), "src/lib/offering-seed-data.json");
@@ -75,11 +76,15 @@ function humanizeSlug(value) {
 
 function deriveOfferingTypes(seedCatalog) {
   const categoriesBySlug = new Map(seedCatalog.categories.map((category) => [category.slug, category]));
-  const byKey = new Map();
+  const byKey = new Map(registeredOfferingTypes.map((type) => [type.key, type]));
+  const registeredTypeKeys = new Set(byKey.keys());
 
   for (const offering of seedCatalog.offerings) {
     if (offering.offeringType === "digital_template") {
       continue;
+    }
+    if (!registeredTypeKeys.has(offering.offeringType)) {
+      throw new Error(`Seed offering ${offering.slug} uses unregistered offering type ${offering.offeringType}`);
     }
 
     const category = categoriesBySlug.get(offering.categorySlug);
@@ -105,7 +110,9 @@ function deriveOfferingTypes(seedCatalog) {
 }
 
 async function syncOfferingTypes(client) {
-  for (const type of deriveOfferingTypes(seedCatalog)) {
+  const offeringTypes = deriveOfferingTypes(seedCatalog);
+
+  for (const type of offeringTypes) {
     await client.query(
       `
         INSERT INTO offering_types (
@@ -142,13 +149,23 @@ async function syncOfferingTypes(client) {
         type.description,
         type.fulfillmentType,
         type.templateKey,
-        type.templateEngine,
-        type.templateMode,
+        type.templateEngine ?? "",
+        type.templateMode ?? "",
         type.supportsInventory,
         type.supportsProviderSupply,
       ]
     );
   }
+
+  const offeringTypeKeys = offeringTypes.map((type) => type.key);
+  await client.query(
+    "DELETE FROM offerings WHERE offering_type <> 'digital_template' AND NOT (offering_type = ANY($1::text[]))",
+    [offeringTypeKeys]
+  );
+  await client.query(
+    "DELETE FROM offering_types WHERE NOT (key = ANY($1::text[]))",
+    [offeringTypeKeys]
+  );
 }
 
 async function syncOfferingTypeDetails(client, offeringId, offering) {

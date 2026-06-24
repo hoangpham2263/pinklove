@@ -97,8 +97,6 @@ export async function resolveGuestPublicContent(
     "physical_product",
     "wedding_video",
     "wedding_photo",
-    "wedding_decoration",
-    "wedding_planner",
     "wedding_service",
     "wedding_gift",
   ]);

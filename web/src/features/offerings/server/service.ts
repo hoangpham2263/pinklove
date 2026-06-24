@@ -15,8 +15,10 @@ import {
   type OfferingTypeDefinition,
   type OfferingTypeField,
   type OfferingTypeFieldGroup,
+  type OfferingTypeRegistryDiff,
+  type OfferingTypeRegistrySyncStatus,
 } from "@/features/offerings/types";
-import { getRegisteredOfferingType } from "@/features/offerings/type-registry";
+import { getRegisteredOfferingType, REGISTERED_OFFERING_TYPES, type RegisteredOfferingType } from "@/features/offerings/type-registry";
 import { ensureOfferingCatalogReady, query, withTransaction, type DbExecutor } from "@/lib/database";
 import { resolveMediaUrl } from "@/lib/media-resolver";
 import { recordDomainEvent } from "@/features/platform/server/domain-events";
@@ -84,6 +86,19 @@ type OfferingTypeRow = {
   is_default: boolean;
   created_at: string;
   updated_at: string;
+};
+
+type OfferingTypeRegistryMetadata = {
+  label: string;
+  description: string;
+  fulfillmentType: OfferingFulfillmentType;
+  templateKey: string;
+  templateEngine: string;
+  templateMode: string;
+  supportsInventory: boolean;
+  supportsProviderSupply: boolean;
+  isSystem: boolean;
+  isDefault: boolean;
 };
 
 function shouldStorePhysicalOfferingDetails({
@@ -963,6 +978,167 @@ export async function listOfferingTypes(): Promise<OfferingTypeDefinition[]> {
   return result.rows.map((row) =>
     mapOfferingTypeRow(row, fieldsByTypeId.get(row.id) ?? [], groupsByTypeId.get(row.id) ?? [])
   );
+}
+
+function normalizeRegisteredOfferingType(type: RegisteredOfferingType): OfferingTypeRegistryMetadata {
+  return {
+    label: type.label,
+    description: type.description,
+    fulfillmentType: type.fulfillmentType,
+    templateKey: type.templateKey,
+    templateEngine: type.templateEngine ?? "",
+    templateMode: type.templateMode ?? "",
+    supportsInventory: type.supportsInventory,
+    supportsProviderSupply: type.supportsProviderSupply,
+    isSystem: true,
+    isDefault: true,
+  };
+}
+
+function normalizeOfferingTypeRowForRegistry(row: OfferingTypeRow): OfferingTypeRegistryMetadata {
+  return {
+    label: row.label,
+    description: row.description ?? "",
+    fulfillmentType: row.fulfillment_type,
+    templateKey: row.template_key,
+    templateEngine: row.template_engine ?? "",
+    templateMode: row.template_mode ?? "",
+    supportsInventory: row.supports_inventory,
+    supportsProviderSupply: row.supports_provider_supply,
+    isSystem: row.is_system,
+    isDefault: row.is_default,
+  };
+}
+
+function getRegistryMetadataDiffs(
+  codeByKey: Map<string, OfferingTypeRegistryMetadata>,
+  dbByKey: Map<string, OfferingTypeRegistryMetadata>
+) {
+  const diffs: OfferingTypeRegistryDiff[] = [];
+
+  for (const [key, codeType] of codeByKey.entries()) {
+    const dbType = dbByKey.get(key);
+    if (!dbType) {
+      continue;
+    }
+
+    for (const field of Object.keys(codeType) as Array<keyof OfferingTypeRegistryMetadata>) {
+      if (codeType[field] !== dbType[field]) {
+        diffs.push({
+          key,
+          field,
+          codeValue: codeType[field],
+          dbValue: dbType[field],
+        });
+      }
+    }
+  }
+
+  return diffs;
+}
+
+export async function getOfferingTypeRegistrySyncStatus(): Promise<OfferingTypeRegistrySyncStatus> {
+  const result = await withOfferingCatalogRetry(() =>
+    query<OfferingTypeRow>(
+      `
+        SELECT
+          id,
+          key,
+          label,
+          description,
+          fulfillment_type,
+          template_key,
+          template_engine,
+          template_mode,
+          supports_inventory,
+          supports_provider_supply,
+          is_system,
+          is_default,
+          created_at,
+          updated_at
+        FROM offering_types
+        ORDER BY key ASC
+      `
+    )
+  );
+
+  const codeByKey = new Map(REGISTERED_OFFERING_TYPES.map((type) => [type.key, normalizeRegisteredOfferingType(type)]));
+  const dbByKey = new Map(result.rows.map((row) => [row.key, normalizeOfferingTypeRowForRegistry(row)]));
+  const codeKeys = Array.from(codeByKey.keys()).sort();
+  const dbKeys = Array.from(dbByKey.keys()).sort();
+  const missingInDb = codeKeys.filter((key) => !dbByKey.has(key));
+  const extraInDb = dbKeys.filter((key) => !codeByKey.has(key));
+  const metadataDiffs = getRegistryMetadataDiffs(codeByKey, dbByKey);
+
+  return {
+    isSynced: missingInDb.length === 0 && extraInDb.length === 0 && metadataDiffs.length === 0,
+    codeKeys,
+    dbKeys,
+    missingInDb,
+    extraInDb,
+    metadataDiffs,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+export async function syncOfferingTypesFromRegistry(): Promise<OfferingTypeRegistrySyncStatus> {
+  await withOfferingCatalogRetry(() =>
+    withTransaction(async (execute) => {
+      for (const type of REGISTERED_OFFERING_TYPES) {
+        await execute(
+          `
+            INSERT INTO offering_types (
+              key,
+              label,
+              description,
+              fulfillment_type,
+              template_key,
+              template_engine,
+              template_mode,
+              supports_inventory,
+              supports_provider_supply,
+              is_system,
+              is_default
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE, TRUE)
+            ON CONFLICT (key) DO UPDATE
+            SET
+              label = EXCLUDED.label,
+              description = EXCLUDED.description,
+              fulfillment_type = EXCLUDED.fulfillment_type,
+              template_key = EXCLUDED.template_key,
+              template_engine = EXCLUDED.template_engine,
+              template_mode = EXCLUDED.template_mode,
+              supports_inventory = EXCLUDED.supports_inventory,
+              supports_provider_supply = EXCLUDED.supports_provider_supply,
+              is_system = TRUE,
+              is_default = TRUE,
+              updated_at = NOW()
+          `,
+          [
+            type.key,
+            type.label,
+            type.description,
+            type.fulfillmentType,
+            type.templateKey,
+            type.templateEngine ?? "",
+            type.templateMode ?? "",
+            type.supportsInventory,
+            type.supportsProviderSupply,
+          ]
+        );
+      }
+
+      const registeredKeys = REGISTERED_OFFERING_TYPES.map((type) => type.key);
+      await execute(
+        "DELETE FROM offerings WHERE offering_type <> $1 AND NOT (offering_type = ANY($2::text[]))",
+        [SYSTEM_OFFERING_TYPES.DIGITAL_TEMPLATE, registeredKeys]
+      );
+      await execute("DELETE FROM offering_types WHERE NOT (key = ANY($1::text[]))", [registeredKeys]);
+    })
+  );
+
+  return getOfferingTypeRegistrySyncStatus();
 }
 
 export async function getOfferingTypeByKey(key: string): Promise<OfferingTypeDefinition | null> {

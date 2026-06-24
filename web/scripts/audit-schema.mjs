@@ -1,8 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { Client } from "pg";
+import { REGISTERED_OFFERING_TYPES } from "../src/features/offerings/registered-offering-types.mjs";
 
 const rootDir = path.resolve(process.cwd(), "..");
+const registeredOfferingTypeKeys = REGISTERED_OFFERING_TYPES
+  .map((type) => type.key)
+  .sort();
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) {
@@ -370,15 +374,7 @@ async function main() {
       WHERE is_system = TRUE
       ORDER BY key
     `);
-    const expectedSystemOfferingTypes = [
-      "physical_product",
-      "wedding_decoration",
-      "wedding_gift",
-      "wedding_photo",
-      "wedding_planner",
-      "wedding_service",
-      "wedding_video",
-    ];
+    const expectedSystemOfferingTypes = registeredOfferingTypeKeys;
     const actualSystemOfferingTypes = systemOfferingTypes.rows.map((row) => row.key);
     assert(
       JSON.stringify(actualSystemOfferingTypes) === JSON.stringify(expectedSystemOfferingTypes),
@@ -391,15 +387,7 @@ async function main() {
       WHERE is_default = TRUE
       ORDER BY key
     `);
-    const expectedDefaultOfferingTypes = [
-      "physical_product",
-      "wedding_decoration",
-      "wedding_gift",
-      "wedding_photo",
-      "wedding_planner",
-      "wedding_service",
-      "wedding_video",
-    ];
+    const expectedDefaultOfferingTypes = registeredOfferingTypeKeys;
     const actualDefaultOfferingTypes = defaultOfferingTypes.rows.map((row) => row.key);
     assert(
       JSON.stringify(actualDefaultOfferingTypes) === JSON.stringify(expectedDefaultOfferingTypes),

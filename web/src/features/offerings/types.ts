@@ -10,8 +10,6 @@ export const SYSTEM_OFFERING_TYPES = {
   PHYSICAL_PRODUCT: "physical_product",
   WEDDING_VIDEO: "wedding_video",
   WEDDING_PHOTO: "wedding_photo",
-  WEDDING_DECORATION: "wedding_decoration",
-  WEDDING_PLANNER: "wedding_planner",
   WEDDING_SERVICE: "wedding_service",
   WEDDING_GIFT: "wedding_gift",
 } as const;
@@ -138,6 +136,23 @@ export type OfferingTypeDefinition = {
   updatedAt: string;
 };
 
+export type OfferingTypeRegistryDiff = {
+  key: string;
+  field: string;
+  codeValue: string | number | boolean | null;
+  dbValue: string | number | boolean | null;
+};
+
+export type OfferingTypeRegistrySyncStatus = {
+  isSynced: boolean;
+  codeKeys: string[];
+  dbKeys: string[];
+  missingInDb: string[];
+  extraInDb: string[];
+  metadataDiffs: OfferingTypeRegistryDiff[];
+  checkedAt: string;
+};
+
 export type OfferingTypeFieldGroup = {
   id?: string;
   key: string;
@@ -216,10 +231,6 @@ export function getOfferingTypeLabel(offeringType: OfferingType) {
       return "Làm video cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_PHOTO:
       return "Chụp ảnh cưới";
-    case SYSTEM_OFFERING_TYPES.WEDDING_DECORATION:
-      return "Trang trí tiệc cưới";
-    case SYSTEM_OFFERING_TYPES.WEDDING_PLANNER:
-      return "Wedding planner";
     case SYSTEM_OFFERING_TYPES.WEDDING_SERVICE:
       return "Dịch vụ cưới";
     case SYSTEM_OFFERING_TYPES.WEDDING_GIFT:

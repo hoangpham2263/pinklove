@@ -80,8 +80,8 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
         ),
         cell: ({ row }) => (
           <div>
-            <div className="font-medium">{row.original.label}</div>
-            <div className="font-mono text-xs text-muted-foreground">{row.original.key}</div>
+            <div>{row.original.label}</div>
+            <div className="text-xs text-muted-foreground">{row.original.key}</div>
           </div>
         ),
       },
@@ -181,6 +181,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
             <AdminTableSelect
               value={fulfillmentFilterValue}
               label="Lọc fulfillment"
+              className="md:w-72 lg:w-80"
               onChange={(value) => table.getColumn("fulfillmentType")?.setFilterValue(value)}
               options={[
                 { value: "", label: "Tất cả fulfillment" },
@@ -266,7 +267,7 @@ export function AdminOfferingTypesTable({ offeringTypes }: AdminOfferingTypesTab
                   {previewType.fieldSchema.length ? (
                     previewType.fieldSchema.map((field) => (
                       <TableRow key={field.key}>
-                        <TableCell className="font-mono text-xs">{field.key}</TableCell>
+                        <TableCell className="text-xs">{field.key}</TableCell>
                         <TableCell>{field.label}</TableCell>
                         <TableCell>{field.type}</TableCell>
                         <TableCell>{field.required ? "Yes" : "No"}</TableCell>

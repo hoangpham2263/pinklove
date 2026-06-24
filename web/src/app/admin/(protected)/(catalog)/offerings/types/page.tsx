@@ -1,9 +1,10 @@
 import { AdminOverviewCard } from "@/features/admin/components/admin-overview-card";
-import { listOfferingTypes } from "@/features/offerings/server/service";
+import { getOfferingTypeRegistrySyncStatus, listOfferingTypes } from "@/features/offerings/server/service";
 import { SYSTEM_OFFERING_TYPES } from "@/features/offerings/types";
 import { requireAdmin } from "@/lib/auth";
 import { Boxes, Camera, Database, Package } from "lucide-react";
 import { AdminOfferingTypesTable } from "./admin-offering-types-table";
+import { OfferingTypeRegistrySyncCard } from "./offering-type-registry-sync-card";
 
 export default async function AdminOfferingTypesPage() {
   await requireAdmin();
@@ -13,6 +14,7 @@ export default async function AdminOfferingTypesPage() {
   const physicalCount = offeringTypes.filter((type) => type.fulfillmentType === "physical").length;
   const serviceCount = offeringTypes.filter((type) => type.fulfillmentType === "service").length;
   const fieldCount = offeringTypes.reduce((sum, type) => sum + type.fieldSchema.length, 0);
+  const registrySyncStatus = await getOfferingTypeRegistrySyncStatus();
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -29,6 +31,8 @@ export default async function AdminOfferingTypesPage() {
         <AdminOverviewCard title="Dịch vụ" value={serviceCount} icon={Camera} />
         <AdminOverviewCard title="Fields" value={fieldCount} icon={Database} />
       </div>
+
+      <OfferingTypeRegistrySyncCard initialStatus={registrySyncStatus} />
 
       <AdminOfferingTypesTable offeringTypes={offeringTypes} />
     </section>

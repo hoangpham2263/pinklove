@@ -22,9 +22,9 @@ export function getProviderServiceOfferingTypeKey(value: string | null | undefin
     case "videography":
       return "wedding_video";
     case "decoration":
-      return "wedding_decoration";
+      return "wedding_service";
     case "planning":
-      return "wedding_planner";
+      return "wedding_service";
     case "venue":
     case "consultation":
     case "handoff":
