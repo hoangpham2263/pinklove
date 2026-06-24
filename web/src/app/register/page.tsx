@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
 import { RegisterForm } from "@/features/auth/components/login-forms";
-import { loadAuthPage } from "@/features/auth/auth-page-loader";
+import {
+  generateManagedPageMetadata,
+  loadManagedPageForRoute,
+} from "@/features/pages/server/managed-page-renderer";
+import { getPageFields } from "@/lib/page-fields";
 
-export const metadata: Metadata = {
-  title: "Đăng ký",
-  description: "Tạo tài khoản PinkLove để lưu mẫu yêu thích, đặt dịch vụ và quản lý hành trình cưới.",
+type RegisterPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function RegisterPage() {
-  const authPage = await loadAuthPage("register");
+export async function generateMetadata({ searchParams }: RegisterPageProps): Promise<Metadata> {
+  return generateManagedPageMetadata("register", searchParams);
+}
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const page = await loadManagedPageForRoute("register", searchParams);
+  const fields = getPageFields<{
+    heading?: string;
+    subheading?: string;
+    sideImage?: string;
+  }>(page);
 
   return (
     <RegisterForm
-      heading={authPage.heading}
-      subheading={authPage.subheading}
-      sideImage={authPage.sideImage}
+      heading={fields.heading}
+      subheading={fields.subheading}
+      sideImage={fields.sideImage}
     />
   );
 }

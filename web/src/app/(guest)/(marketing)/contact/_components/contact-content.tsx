@@ -46,10 +46,10 @@ export async function ContactContent({ page }: { page: ManagedPage }) {
     (item) => item.question?.trim() && item.answer?.trim()
   );
 
-  const introTitle = page.title;
+  const introTitle = "Liên hệ với chúng tôi";
   const heroTitleText = fields.heroTitleText?.trim() || "";
   const heroTitleKeyword = fields.heroTitleKeyword?.trim() || "";
-  const introDescription = fields.supportDescription?.trim() || page.excerpt || "";
+  const introDescription = fields.supportDescription?.trim() || "Chúng tôi luôn sẵn sàng lắng nghe. Hãy cho chúng tôi biết bạn cần gì.";
   const responseChips = [
     { label: "Phản hồi", value: fields.responseTime?.trim() || "Trong vòng 2 giờ làm việc" },
     { label: "Hỗ trợ", value: fields.officeHours?.trim() || "08:30 - 18:00, Thứ 2 - Thứ 7" },

@@ -24,7 +24,8 @@ Use this file as the entrypoint for project documentation.
 5. [fields](./fields.md)
 6. [realtime](./realtime.md)
 7. [account-role-map](./account-role-map.md)
-8. Area docs as needed:
+8. [security](./security.md)
+9. Area docs as needed:
    - [guest](./guest.md)
    - [customer](./customer.md)
    - [admin](./admin.md)
@@ -49,6 +50,8 @@ Use this file as the entrypoint for project documentation.
   Shared realtime architecture, SSE/event contracts, client/server core rules, and scale path for transport upgrades.
 - `docs/account-role-map.md`
   Account, customer workspace, provider account, and provider marketplace entity relationship map.
+- `docs/security.md`
+  Trusted proxy/IP header configuration and deploy security notes.
 - `docs/guest.md`
   Public site conventions, guest typography/layout rules, and guest route expectations.
 - `docs/customer.md`
@@ -103,6 +106,7 @@ Use this file as the entrypoint for project documentation.
   - admin area: `admin.md`
   - checkout/payment/order workflow: `ecommerce.md`
   - provider area: `provider.md`
+  - trusted proxy/IP headers and deploy security: `security.md`
 - If code and docs conflict, update docs in the same task.
 - Keep new files in `docs/` lowercase.
 

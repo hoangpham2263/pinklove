@@ -174,7 +174,7 @@ function OfferingDetailLayout({
             </div>
 
             <h1 className="mt-4 text-2xl font-semibold leading-tight text-stone-950 md:text-3xl">{offering.name}</h1>
-            <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{offering.description || offering.excerpt}</p>
+            <p className="mt-3 text-sm leading-7 text-stone-600 md:text-base">{offering.description || offering.excerpt || "Chưa có mô tả cho sản phẩm/dịch vụ này."}</p>
 
             <div className="mt-5 border-y border-primary/10 bg-primary/5 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Giá</p>

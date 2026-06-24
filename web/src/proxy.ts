@@ -1,8 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { INTERNAL_API_KEY_HEADER, INTERNAL_API_SECRET_COOKIE_NAME } from "./lib/api";
+import {
+  buildSecurityHeaders,
+  DEFAULT_SECURITY_HEADERS,
+  normalizeSecurityHeadersSettings,
+  type SecurityHeadersSettings,
+} from "./lib/security-headers";
 
 const API_PREFIX = "/api/";
+const SECURITY_HEADERS_CONFIG_PATH = "/api/internal/security-headers";
+const SECURITY_HEADERS_CACHE_TTL_MS = 30_000;
+const globalForSecurityHeaders = globalThis as unknown as {
+  securityHeadersCache?: {
+    value: SecurityHeadersSettings;
+    expiresAt: number;
+  };
+};
 
 function getInternalApiSecret() {
   return process.env.INTERNAL_API_SECRET?.trim() ?? "";
@@ -25,11 +39,68 @@ function isSecureRequest(request: NextRequest) {
   return forwardedProto === "https" || request.nextUrl.protocol === "https:";
 }
 
-function unauthorized() {
-  return NextResponse.json(
+async function unauthorized(request: NextRequest) {
+  return applyRuntimeSecurityHeaders(request, NextResponse.json(
     { error: "forbidden", message: "API request is not allowed." },
     { status: 403 }
-  );
+  ));
+}
+
+function shouldApplyRuntimeSecurityHeaders() {
+  return process.env.NODE_ENV === "production" || process.env.SECURITY_HEADERS_FORCE === "true";
+}
+
+async function getRuntimeSecurityHeadersSettings(request: NextRequest) {
+  const cached = globalForSecurityHeaders.securityHeadersCache;
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  const secret = getInternalApiSecret();
+  if (!secret || request.nextUrl.pathname === SECURITY_HEADERS_CONFIG_PATH) {
+    return DEFAULT_SECURITY_HEADERS;
+  }
+
+  try {
+    const configUrl = new URL(SECURITY_HEADERS_CONFIG_PATH, request.url);
+    const response = await fetch(configUrl, {
+      headers: {
+        [INTERNAL_API_KEY_HEADER]: secret,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return DEFAULT_SECURITY_HEADERS;
+    }
+
+    const payload = (await response.json()) as Partial<SecurityHeadersSettings>;
+    const value = normalizeSecurityHeadersSettings(payload);
+    globalForSecurityHeaders.securityHeadersCache = {
+      value,
+      expiresAt: Date.now() + SECURITY_HEADERS_CACHE_TTL_MS,
+    };
+    return value;
+  } catch {
+    return DEFAULT_SECURITY_HEADERS;
+  }
+}
+
+async function applyRuntimeSecurityHeaders(request: NextRequest, response: NextResponse) {
+  if (!shouldApplyRuntimeSecurityHeaders()) {
+    return response;
+  }
+
+  const settings = await getRuntimeSecurityHeadersSettings(request);
+  const headers = buildSecurityHeaders(settings, {
+    includeHsts: true,
+  });
+
+  for (const [key, value] of headers) {
+    response.headers.set(key, value);
+  }
+
+  return response;
 }
 
 export function proxy(request: NextRequest) {
@@ -48,18 +119,18 @@ export function proxy(request: NextRequest) {
       });
     }
 
-    return response;
+    return applyRuntimeSecurityHeaders(request, response);
   }
 
   if (request.method === "OPTIONS") {
-    return unauthorized();
+    return unauthorized(request);
   }
 
   if (hasInternalSecret(request)) {
-    return NextResponse.next();
+    return applyRuntimeSecurityHeaders(request, NextResponse.next());
   }
 
-  return unauthorized();
+  return unauthorized(request);
 }
 
 export const config = {

@@ -1,6 +1,7 @@
 import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
-import { AuthRateLimitError, getRequestIp, recordAuthRateLimit, resetAuthRateLimit } from "@/lib/auth-rate-limit";
+import { AuthCsrfError, verifyAuthCsrfToken } from "@/lib/auth-csrf";
+import { AuthRateLimitError, checkAuthRateLimit, getRequestIp, recordAuthRateLimit, resetAuthRateLimit } from "@/lib/auth-rate-limit";
 
 import {
  authenticateUserByEmail,
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
  const formData = await request.formData();
  const email = String(formData.get("email") ??"").trim();
  const password = String(formData.get("password") ??"");
+ const csrfToken = String(formData.get("csrfToken") ?? "");
  const returnToInput = String(formData.get("returnTo") ?? "").trim();
  const returnTo = returnToInput ? sanitizeReturnTo(returnToInput) : ROUTES.CUSTOMER.DASHBOARD;
 
@@ -38,20 +40,27 @@ export async function POST(request: Request) {
  }
 
  try {
+ await verifyAuthCsrfToken("login", csrfToken);
+
+ const requestIp = getRequestIp(request);
+ await checkAuthRateLimit("login:ip", requestIp);
+ await checkAuthRateLimit("login:email", email);
+
  const user = await authenticateUserByEmail(email, password);
  if (!user) {
- await recordAuthRateLimit("login:ip", getRequestIp(request));
+ await recordAuthRateLimit("login:ip", requestIp);
  await recordAuthRateLimit("login:email", email);
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  if (!canAccessUserPortal(user.role)) {
- await recordAuthRateLimit("login:ip", getRequestIp(request));
+ await recordAuthRateLimit("login:ip", requestIp);
  await recordAuthRateLimit("login:email", email);
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  await resetAuthRateLimit("login:email", email);
+ await resetAuthRateLimit("login:ip", requestIp);
 
  const token = await createSession(user.id);
  const target = returnTo;
@@ -59,6 +68,10 @@ export async function POST(request: Request) {
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
  } catch (error) {
+ if (error instanceof AuthCsrfError) {
+  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
+ }
+
  if (error instanceof AuthRateLimitError) {
   return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("rate_limited", returnToInput || undefined) } });
  }

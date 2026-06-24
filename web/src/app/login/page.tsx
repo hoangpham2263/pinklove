@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth/components/login-forms";
-import { loadAuthPage } from "@/features/auth/auth-page-loader";
+import {
+  generateManagedPageMetadata,
+  loadManagedPageForRoute,
+} from "@/features/pages/server/managed-page-renderer";
+import { getPageFields } from "@/lib/page-fields";
 
-export const metadata: Metadata = {
-  title: "Đăng nhập",
-  description: "Đăng nhập vào tài khoản PinkLove để quản lý thiệp cưới, đơn hàng và kế hoạch cưới.",
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function LoginPage() {
-  const authPage = await loadAuthPage("login");
+export async function generateMetadata({ searchParams }: LoginPageProps): Promise<Metadata> {
+  return generateManagedPageMetadata("login", searchParams);
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const page = await loadManagedPageForRoute("login", searchParams);
+  const fields = getPageFields<{
+    heading?: string;
+    subheading?: string;
+    sideImage?: string;
+  }>(page);
 
   return (
     <LoginForm
-      heading={authPage.heading}
-      subheading={authPage.subheading}
-      sideImage={authPage.sideImage}
+      heading={fields.heading}
+      subheading={fields.subheading}
+      sideImage={fields.sideImage}
     />
   );
 }

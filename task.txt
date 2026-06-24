@@ -2,60 +2,60 @@ quên mật khẩu, luồng account
 
 Auth/login/register security checklist cần làm tiếp:
 
-1. [ ] Thêm pre-check rate-limit trước khi verify password ở login để chặn sớm brute-force, tránh tốn chi phí hash mật khẩu.
-   1.1. [ ] Tách hàm checkAuthRateLimit(scope, key) để kiểm tra attempts trước khi chạy authenticateUserByEmail.
-   1.2. [ ] Nếu đã quá limit thì redirect rate_limited ngay, không chạy password hash.
-   1.3. [ ] Vẫn record attempt khi login sai.
-   1.4. [ ] Login thành công thì reset email rate-limit, cân nhắc reset IP rate-limit nếu IP không còn bị spam.
-   1.5. [ ] Cho phép chỉnh ngưỡng public login rate-limit trong trang admin security config, không hard-code cố định.
+1. [x] Thêm pre-check rate-limit trước khi verify password ở login để chặn sớm brute-force, tránh tốn chi phí hash mật khẩu.
+   1.1. [x] Tách hàm checkAuthRateLimit(scope, key) để kiểm tra attempts trước khi chạy authenticateUserByEmail.
+   1.2. [x] Nếu đã quá limit thì redirect rate_limited ngay, không chạy password hash.
+   1.3. [x] Vẫn record attempt khi login sai.
+   1.4. [x] Login thành công thì reset email rate-limit, cân nhắc reset IP rate-limit nếu IP không còn bị spam.
+   1.5. [x] Cho phép chỉnh ngưỡng public login rate-limit trong trang admin security config, không hard-code cố định.
 
-2. [ ] Áp dụng rate-limit cho các route login riêng: /api/admin/auth/login và /api/provider/auth/login.
-   2.1. [ ] Dùng cùng bảng auth_rate_limits để deploy nhiều instance vẫn đồng bộ.
-   2.2. [ ] Thêm scope riêng nếu cần: admin_login:ip, admin_login:email, provider_login:ip, provider_login:email.
-   2.3. [ ] Admin/provider login nên limit chặt hơn public login.
-   2.4. [ ] UI lỗi vẫn trả thông báo chung, không tiết lộ email tồn tại hay quyền sai.
-   2.5. [ ] Cho phép chỉnh riêng ngưỡng admin/provider login rate-limit trong trang admin security config.
+2. [x] Áp dụng rate-limit cho các route login riêng: /api/admin/auth/login và /api/provider/auth/login.
+   2.1. [x] Dùng cùng bảng auth_rate_limits để deploy nhiều instance vẫn đồng bộ.
+   2.2. [x] Thêm scope riêng nếu cần: admin_login:ip, admin_login:email, provider_login:ip, provider_login:email.
+   2.3. [x] Admin/provider login nên limit chặt hơn public login.
+   2.4. [x] UI lỗi vẫn trả thông báo chung, không tiết lộ email tồn tại hay quyền sai.
+   2.5. [x] Cho phép chỉnh riêng ngưỡng admin/provider login rate-limit trong trang admin security config.
 
-3. [ ] Kiểm tra cấu hình reverse proxy/CDN khi deploy để x-forwarded-for/x-real-ip chỉ đến từ proxy tin cậy, tránh client spoof IP rate-limit.
-   3.1. [ ] Chỉ tin cf-connecting-ip nếu thật sự chạy sau Cloudflare.
-   3.2. [ ] Chỉ tin x-forwarded-for/x-real-ip nếu request đi qua reverse proxy do mình kiểm soát.
-   3.3. [ ] Nếu không có trusted proxy thì dùng remote address ở tầng server/proxy.
-   3.4. [ ] Ghi rõ cấu hình deploy vào docs/env example.
-   3.5. [ ] Làm tab/trang dưới admin/config hiển thị cấu hình IP/proxy hiện tại: trusted headers, Cloudflare on/off, trusted proxy mode, cảnh báo nếu cấu hình chưa an toàn.
+3. [x] Kiểm tra cấu hình reverse proxy/CDN khi deploy để x-forwarded-for/x-real-ip chỉ đến từ proxy tin cậy, tránh client spoof IP rate-limit.
+   3.1. [x] Chỉ tin cf-connecting-ip nếu thật sự chạy sau Cloudflare.
+   3.2. [x] Chỉ tin x-forwarded-for/x-real-ip nếu request đi qua reverse proxy do mình kiểm soát.
+   3.3. [x] Nếu không có trusted proxy thì dùng remote address ở tầng server/proxy.
+   3.4. [x] Ghi rõ cấu hình deploy vào docs/env example.
+   3.5. [x] Làm tab/trang dưới admin/config hiển thị cấu hình IP/proxy hiện tại: trusted headers, Cloudflare on/off, trusted proxy mode, cảnh báo nếu cấu hình chưa an toàn.
 
-4. [ ] Thêm CSRF token riêng cho các auth form nhạy cảm: login, register, admin login, provider login.
-   4.1. [ ] Sinh CSRF token server-side, lưu hash hoặc token trong cookie/session tạm.
-   4.2. [ ] Form POST phải gửi hidden csrfToken.
-   4.3. [ ] API POST verify token bằng timing-safe compare.
-   4.4. [ ] Token hết hạn ngắn và rotate sau khi dùng thành công.
-   4.5. [ ] Lỗi CSRF trả thông báo chung, không lộ chi tiết kỹ thuật.
-   4.6. [ ] Làm tab/trang dưới admin/config xem trạng thái CSRF protection và bật/tắt theo môi trường nếu cần, mặc định production phải bật.
+4. [x] Thêm CSRF token riêng cho các auth form nhạy cảm: login, register, admin login, provider login.
+   4.1. [x] Sinh CSRF token server-side, lưu hash hoặc token trong cookie/session tạm.
+   4.2. [x] Form POST phải gửi hidden csrfToken.
+   4.3. [x] API POST verify token bằng timing-safe compare.
+   4.4. [x] Token hết hạn ngắn và rotate sau khi dùng thành công.
+   4.5. [x] Lỗi CSRF trả thông báo chung, không lộ chi tiết kỹ thuật.
+   4.6. [x] Làm tab/trang dưới admin/config xem trạng thái CSRF protection và bật/tắt theo môi trường nếu cần, mặc định production phải bật.
 
-5. [ ] Thêm security headers production: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options/frame-ancestors, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
-   5.1. [ ] Content-Security-Policy giới hạn script/style/img/connect/font/frame theo domain thật đang dùng.
-   5.2. [ ] CSP cần hỗ trợ Next.js, ảnh upload, payment gateway, analytics nếu có.
-   5.3. [ ] Strict-Transport-Security chỉ bật production HTTPS: max-age cao, includeSubDomains sau khi chắc domain/subdomain đều HTTPS.
-   5.4. [ ] frame-ancestors 'none' hoặc chỉ cho domain cần nhúng; tránh clickjacking.
-   5.5. [ ] X-Content-Type-Options: nosniff.
-   5.6. [ ] Referrer-Policy: strict-origin-when-cross-origin hoặc stricter nếu không ảnh hưởng tracking.
-   5.7. [ ] Permissions-Policy: tắt camera/microphone/geolocation/payment nếu không dùng.
-   5.8. [ ] Test kỹ checkout/payment/OAuth sau khi bật headers.
-   5.9. [ ] Làm tab/trang dưới admin/config quản lý security headers: bật/tắt từng header, chỉnh domain allowlist CSP, preview header sẽ trả về.
-   5.10. [ ] Trang config phải cảnh báo khi tắt header quan trọng hoặc thêm domain wildcard nguy hiểm.
+5. [x] Thêm security headers production: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options/frame-ancestors, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
+   5.1. [x] Content-Security-Policy giới hạn script/style/img/connect/font/frame theo domain thật đang dùng.
+   5.2. [x] CSP cần hỗ trợ Next.js, ảnh upload, payment gateway, analytics nếu có.
+   5.3. [x] Strict-Transport-Security chỉ bật production HTTPS: max-age cao, includeSubDomains sau khi chắc domain/subdomain đều HTTPS.
+   5.4. [x] frame-ancestors 'none' hoặc chỉ cho domain cần nhúng; tránh clickjacking.
+   5.5. [x] X-Content-Type-Options: nosniff.
+   5.6. [x] Referrer-Policy: strict-origin-when-cross-origin hoặc stricter nếu không ảnh hưởng tracking.
+   5.7. [x] Permissions-Policy: tắt camera/microphone/geolocation/payment nếu không dùng.
+   5.8. [x] Test kỹ checkout/payment/OAuth sau khi bật headers.
+   5.9. [x] Làm tab/trang dưới admin/config quản lý security headers: bật/tắt từng header, chỉnh domain allowlist CSP, preview header sẽ trả về.
+   5.10. [x] Trang config phải cảnh báo khi tắt header quan trọng hoặc thêm domain wildcard nguy hiểm.
 
-6. [ ] Xem xét cleanup định kỳ bảng auth_rate_limits theo expires_at để DB không phình lâu dài.
-   6.1. [ ] Thêm job hoặc endpoint admin cron xóa record expires_at < NOW() - interval an toàn.
-   6.2. [ ] Có index expires_at để xóa nhanh.
-   6.3. [ ] Không xóa record đang active.
-   6.4. [ ] Làm tab/trang dưới admin/config cho cleanup auth_rate_limits: bật/tắt cleanup, retention days, nút chạy cleanup thủ công, hiển thị lần chạy gần nhất.
+6. [x] Xem xét cleanup định kỳ bảng auth_rate_limits theo expires_at để DB không phình lâu dài.
+   6.1. [x] Thêm job hoặc endpoint admin cron xóa record expires_at < NOW() - interval an toàn.
+   6.2. [x] Có index expires_at để xóa nhanh.
+   6.3. [x] Không xóa record đang active.
+   6.4. [x] Làm tab/trang dưới admin/config cho cleanup auth_rate_limits: bật/tắt cleanup, retention days, nút chạy cleanup thủ công, hiển thị lần chạy gần nhất.
 
-7. [ ] Làm tab/trang dưới admin/config để quản lý auth rate-limit: xem danh sách scope/key bị limit, lọc theo login/register/IP/email/phone, xem attempts/expires_at, và mở khóa thủ công cho người quen/tester khi cần.
-   7.1. [ ] Trang nằm trong admin/config/security hoặc nhóm Bảo mật của admin/config hiện có.
-   7.2. [ ] Bảng gồm scope, attempts, window_start, expires_at, updated_at, trạng thái active/expired.
-   7.3. [ ] Vì rate_key đang hash, cần hiển thị hash rút gọn và metadata an toàn nếu có.
-   7.4. [ ] Cho tìm theo email/phone/IP bằng cách hash input rồi đối chiếu, không lưu raw key.
-   7.5. [ ] Action mở khóa từng dòng, mở khóa theo scope, clear expired.
-   7.6. [ ] Mọi action phải ghi audit log admin.
+7. [x] Làm tab/trang dưới admin/config để quản lý auth rate-limit: xem danh sách scope/key bị limit, lọc theo login/register/IP/email/phone, xem attempts/expires_at, và mở khóa thủ công cho người quen/tester khi cần.
+   7.1. [x] Trang nằm trong admin/config/security hoặc nhóm Bảo mật của admin/config hiện có.
+   7.2. [x] Bảng gồm scope, attempts, window_start, expires_at, updated_at, trạng thái active/expired.
+   7.3. [x] Vì rate_key đang hash, cần hiển thị hash rút gọn và metadata an toàn nếu có.
+   7.4. [x] Cho tìm theo email/phone/IP bằng cách hash input rồi đối chiếu, không lưu raw key.
+   7.5. [x] Action mở khóa từng dòng, mở khóa theo scope, clear expired.
+   7.6. [x] Mọi action phải ghi audit log admin.
 
 8. [ ] Làm trang admin security logs để theo dõi dấu hiệu tấn công: IP, user agent, path, method, status, số lần request, login fail, register fail, rate-limit hit, thời gian đầu/cuối, quốc gia/ASN nếu có nguồn dữ liệu.
    8.1. [ ] Tạo bảng security_events hoặc request_security_events.

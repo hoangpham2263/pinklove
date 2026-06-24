@@ -14,18 +14,11 @@ type NotFoundFields = {
   primaryButtonLink?: string;
   secondaryButtonText?: string;
   secondaryButtonLink?: string;
-  card1Title?: string;
-  card1Description?: string;
-  card1Link?: string;
-  card2Title?: string;
-  card2Description?: string;
-  card2Link?: string;
-  card3Title?: string;
-  card3Description?: string;
-  card3Link?: string;
-  card4Title?: string;
-  card4Description?: string;
-  card4Link?: string;
+  cards?: {
+    title: string;
+    description: string;
+    href: string;
+  }[];
   backLinkText?: string;
   backLink?: string;
 };
@@ -61,28 +54,7 @@ export default async function NotFoundPage() {
   const resolvedPage = canUseDraft ? page : null;
   const fields = getPageFields<NotFoundFields>(resolvedPage);
 
-  const cards = [
-    {
-      title: fields.card1Title || fallbackCards[0].title,
-      description: fields.card1Description || fallbackCards[0].description,
-      href: fields.card1Link || fallbackCards[0].href,
-    },
-    {
-      title: fields.card2Title || fallbackCards[1].title,
-      description: fields.card2Description || fallbackCards[1].description,
-      href: fields.card2Link || fallbackCards[1].href,
-    },
-    {
-      title: fields.card3Title || fallbackCards[2].title,
-      description: fields.card3Description || fallbackCards[2].description,
-      href: fields.card3Link || fallbackCards[2].href,
-    },
-    {
-      title: fields.card4Title || fallbackCards[3].title,
-      description: fields.card4Description || fallbackCards[3].description,
-      href: fields.card4Link || fallbackCards[3].href,
-    },
-  ];
+  const cards = fields.cards || fallbackCards;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_38%),linear-gradient(180deg,_#fff7fb_0%,_#ffffff_48%,_#fffaf2_100%)]">

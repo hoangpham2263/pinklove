@@ -44,6 +44,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
   const [text, setText] = useState(DEFAULT_TEXT);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [lastResult, setLastResult] = useState<string | null>(null);
 
   const rendered = renderEmailTemplateSet(
     {
@@ -71,8 +72,18 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
     try {
       const formData = new FormData(event.currentTarget);
       const result = await adminApi.sendTestEmail(formData);
+      const data = result.data as { transport?: string; accepted?: string[] } | undefined;
+      const accepted = data?.accepted?.join(", ");
+      setLastResult(
+        data?.transport === "log"
+          ? "Email demo đã được ghi vào server log."
+          : accepted
+            ? `Email demo đã gửi tới ${accepted}.`
+            : "Email demo đã gửi."
+      );
       toast.success(result.message ?? "Đã chạy demo email.");
     } catch (error) {
+      setLastResult(error instanceof Error ? error.message : "Không thể chạy demo email.");
       toast.error(error instanceof Error ? error.message : "Không thể chạy demo email.");
     } finally {
       setIsSending(false);
@@ -92,7 +103,7 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
           type="email"
           value={recipient}
           onChange={(event) => setRecipient(event.target.value)}
-          placeholder="name@example.com"
+          placeholder="your@example.com"
           className="h-9"
         />
       </div>
@@ -165,6 +176,11 @@ export function EmailDemoForm({ defaultRecipient, siteName, supportEmail }: Emai
         <Send className="h-4 w-4" />
         {isSending ? "Đang gửi..." : "Gửi demo"}
       </AdminSubmitButton>
+      {lastResult ? (
+        <p className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+          {lastResult}
+        </p>
+      ) : null}
     </NativeForm>
 
     <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>

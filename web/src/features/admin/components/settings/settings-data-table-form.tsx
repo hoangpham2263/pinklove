@@ -52,7 +52,7 @@ type SettingsRow = {
 };
 
 type SettingsDataTableFormProps = {
-  section: "breadcrumb" | "sitemap" | "indexing" | "branding" | "opengraph" | "favicon" | "ecommerce" | "email";
+  section: "breadcrumb" | "sitemap" | "indexing" | "branding" | "opengraph" | "favicon" | "ecommerce" | "email" | "security" | "security_cleanup" | "security_headers";
   title: string;
   rows: SettingsRow[];
   saveMessage: string;

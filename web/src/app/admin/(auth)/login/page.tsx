@@ -11,7 +11,6 @@ export default async function AdminLoginPage() {
  const target = isAdminRole(user.role) ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
  redirect(target);
  }
-
  return (
   <Suspense fallback={null}>
    <AdminLoginForm />

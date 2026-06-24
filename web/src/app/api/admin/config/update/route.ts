@@ -12,8 +12,9 @@ import {
   updateOpenGraphSettings,
   updateSitemapSettings,
   updateThirdPartySettings,
+  updateSecuritySettings,
 } from "@/lib/system-settings";
-import type { BreadcrumbSettings, IndexingSettings, ShippingAccountSettings, SitemapSettings } from "@/lib/system-settings";
+import type { BreadcrumbSettings, IndexingSettings, SecuritySettings, ShippingAccountSettings, SitemapSettings } from "@/lib/system-settings";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,12 @@ function isChecked(formData: FormData, key: string) {
 
 function getIndexedValues(formData: FormData, key: string) {
   return formData.getAll(key).map((value) => String(value ?? ""));
+}
+
+function parsePositiveInt(formData: FormData, key: string, fallback: number) {
+  const value = Number(formData.get(key) ?? fallback);
+  if (!Number.isFinite(value)) return fallback;
+  return Math.max(1, Math.floor(value));
 }
 
 export async function POST(request: Request) {
@@ -266,6 +273,95 @@ export async function POST(request: Request) {
       });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình bên thứ 3." });
+    }
+
+    if (section === "security") {
+      const securityInput: Partial<SecuritySettings> = {
+        authRateLimits: {
+          publicLoginIp: {
+            limit: parsePositiveInt(formData, "publicLoginIpLimit", 120),
+            windowMinutes: parsePositiveInt(formData, "publicLoginIpWindowMinutes", 15),
+          },
+          publicLoginEmail: {
+            limit: parsePositiveInt(formData, "publicLoginEmailLimit", 10),
+            windowMinutes: parsePositiveInt(formData, "publicLoginEmailWindowMinutes", 15),
+          },
+          adminLoginIp: {
+            limit: parsePositiveInt(formData, "adminLoginIpLimit", 30),
+            windowMinutes: parsePositiveInt(formData, "adminLoginIpWindowMinutes", 15),
+          },
+          adminLoginEmail: {
+            limit: parsePositiveInt(formData, "adminLoginEmailLimit", 5),
+            windowMinutes: parsePositiveInt(formData, "adminLoginEmailWindowMinutes", 15),
+          },
+          providerLoginIp: {
+            limit: parsePositiveInt(formData, "providerLoginIpLimit", 60),
+            windowMinutes: parsePositiveInt(formData, "providerLoginIpWindowMinutes", 15),
+          },
+          providerLoginEmail: {
+            limit: parsePositiveInt(formData, "providerLoginEmailLimit", 6),
+            windowMinutes: parsePositiveInt(formData, "providerLoginEmailWindowMinutes", 15),
+          },
+        },
+      };
+
+      await updateSecuritySettings(securityInput);
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình bảo mật đăng nhập." });
+    }
+
+    if (section === "security_cleanup") {
+      await updateSecuritySettings({
+        authRateLimitCleanup: {
+          enabled: isChecked(formData, "authRateLimitCleanupEnabled"),
+          retentionDays: parsePositiveInt(formData, "authRateLimitCleanupRetentionDays", 7),
+        } as SecuritySettings["authRateLimitCleanup"],
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình cleanup auth rate-limit." });
+    }
+
+    if (section === "security_headers") {
+      const securityInput: Partial<SecuritySettings> = {
+        headers: {
+          enabled: isChecked(formData, "headersEnabled"),
+          contentSecurityPolicy: {
+            enabled: isChecked(formData, "cspEnabled"),
+            reportOnly: isChecked(formData, "cspReportOnly"),
+            defaultSrc: String(formData.get("cspDefaultSrc") ?? "").trim(),
+            scriptSrc: String(formData.get("cspScriptSrc") ?? "").trim(),
+            styleSrc: String(formData.get("cspStyleSrc") ?? "").trim(),
+            imgSrc: String(formData.get("cspImgSrc") ?? "").trim(),
+            connectSrc: String(formData.get("cspConnectSrc") ?? "").trim(),
+            fontSrc: String(formData.get("cspFontSrc") ?? "").trim(),
+            frameSrc: String(formData.get("cspFrameSrc") ?? "").trim(),
+            frameAncestors: String(formData.get("cspFrameAncestors") ?? "").trim(),
+          },
+          strictTransportSecurity: {
+            enabled: isChecked(formData, "hstsEnabled"),
+            maxAge: parsePositiveInt(formData, "hstsMaxAge", 31536000),
+            includeSubDomains: isChecked(formData, "hstsIncludeSubDomains"),
+            preload: isChecked(formData, "hstsPreload"),
+          },
+          xFrameOptions: {
+            enabled: isChecked(formData, "xFrameOptionsEnabled"),
+            value: formData.get("xFrameOptionsValue") === "SAMEORIGIN" ? "SAMEORIGIN" : "DENY",
+          },
+          xContentTypeOptions: isChecked(formData, "xContentTypeOptions"),
+          referrerPolicy: {
+            enabled: isChecked(formData, "referrerPolicyEnabled"),
+            value: String(formData.get("referrerPolicyValue") ?? "").trim(),
+          },
+          permissionsPolicy: {
+            enabled: isChecked(formData, "permissionsPolicyEnabled"),
+            value: String(formData.get("permissionsPolicyValue") ?? "").trim(),
+          },
+        },
+      };
+
+      await updateSecuritySettings(securityInput);
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình security headers." });
     }
 
     if (section === "internal_api_offerings") {

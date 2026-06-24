@@ -217,20 +217,20 @@ export async function ServicesContent({ page }: { page: ManagedPage }) {
   );
 
   const heroEyebrow = fields.heroEyebrow?.trim() || "Dịch vụ cưới trên nền tảng PinkLove";
-  const heroTitle = fields.heroTitle?.trim() || page.title || "Dịch vụ cưới được tổ chức như một platform";
+  const heroTitle = fields.heroTitle?.trim() || "Dịch vụ cưới được tổ chức như một platform";
   const heroDescription =
     fields.heroDescription?.trim() ||
     "PinkLove không chỉ là bảng gói đăng ký. Nền tảng gom digital invitation, sản phẩm cưới, provider service, booking và vận hành đơn hàng vào một trải nghiệm dịch vụ liền mạch.";
-  const invitationGalleryBadge = fields.invitationGalleryBadge?.trim();
-  const invitationGalleryTitle = fields.invitationGalleryTitle?.trim();
-  const invitationGalleryDescription = fields.invitationGalleryDescription?.trim();
-  const invitationGalleryCtaText = fields.invitationGalleryCtaText?.trim();
-  const invitationGalleryCtaLink = fields.invitationGalleryCtaLink?.trim();
-  const sharedInvitationsBadge = fields.sharedInvitationsBadge?.trim();
-  const sharedInvitationsTitle = fields.sharedInvitationsTitle?.trim();
-  const sharedInvitationsDescription = fields.sharedInvitationsDescription?.trim();
-  const sharedInvitationsCtaText = fields.sharedInvitationsCtaText?.trim();
-  const sharedInvitationsCtaLink = fields.sharedInvitationsCtaLink?.trim();
+  const invitationGalleryBadge = fields.invitationGalleryBadge?.trim() ?? "Thư viện thiệp";
+  const invitationGalleryTitle = fields.invitationGalleryTitle?.trim() ?? "Khám phá các mẫu thiệp cưới";
+  const invitationGalleryDescription = fields.invitationGalleryDescription?.trim() ?? "Chọn một mẫu thiệp để bắt đầu hành trình của bạn.";
+  const invitationGalleryCtaText = fields.invitationGalleryCtaText?.trim() ?? "Xem tất cả thiệp";
+  const invitationGalleryCtaLink = fields.invitationGalleryCtaLink?.trim() ?? ROUTES.TEMPLATES;
+  const sharedInvitationsBadge = fields.sharedInvitationsBadge?.trim() ?? "Thiệp được chia sẻ";
+  const sharedInvitationsTitle = fields.sharedInvitationsTitle?.trim() ?? "Những mẫu thiệp được yêu thích";
+  const sharedInvitationsDescription = fields.sharedInvitationsDescription?.trim() ?? "Xem những mẫu thiệp đang được các cặp đôi khác lựa chọn.";
+  const sharedInvitationsCtaText = fields.sharedInvitationsCtaText?.trim() ?? "Xem tất cả thiệp";
+  const sharedInvitationsCtaLink = fields.sharedInvitationsCtaLink?.trim() ?? ROUTES.TEMPLATES;
   const hasInvitationGallerySection = Boolean(
     invitationGalleryBadge ||
     invitationGalleryTitle ||

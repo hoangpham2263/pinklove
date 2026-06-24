@@ -63,6 +63,8 @@ export const ROUTES = {
   AUTH: {
     LOGIN: "/login",
     REGISTER: "/register",
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password",
     LOGOUT_API: "/api/auth/logout",
   },
   CHECKOUT: {
@@ -156,6 +158,7 @@ export const ROUTES = {
     CONFIG_SHIPPING_NEW: "/admin/config/shipping/new",
     CONFIG_SHIPPING_CONNECTION: (code: string) => `/admin/config/shipping/${encodeURIComponent(code)}`,
     CONFIG_EMAIL: "/admin/config/email",
+    CONFIG_SECURITY: "/admin/config/security",
     CONFIG_PAYMENT_METHODS: "/admin/config/payment-methods",
     CONFIG_PAYMENT_METHOD_NEW: "/admin/config/payment-methods/new",
     CONFIG_PAYMENT_METHOD: (code: string) => `/admin/config/payment-methods/${encodeURIComponent(code)}`,
@@ -280,6 +283,7 @@ export const ROUTES = {
       IPN: "/api/pay2s/ipn",
     },
     AUTH: {
+      CSRF: "/api/auth/csrf",
       LOGIN: "/api/auth/login",
       REGISTER: "/api/auth/register",
       GOOGLE_LOGIN: "/api/auth/google/login",
@@ -332,6 +336,8 @@ export const ROUTES = {
       },
       CONFIG: {
         UPDATE: "/api/admin/config/update",
+        AUTH_RATE_LIMIT_CLEANUP: "/api/admin/security/auth-rate-limits/cleanup",
+        AUTH_RATE_LIMIT_ACTION: "/api/admin/security/auth-rate-limits/action",
         REDIRECTS_SAVE: "/api/admin/config/redirects/save",
         REDIRECTS_DELETE: "/api/admin/config/redirects/delete",
         SHIPPING_SAVE: "/api/admin/config/shipping/save",

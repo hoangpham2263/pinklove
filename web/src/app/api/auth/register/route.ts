@@ -7,6 +7,7 @@ import {
  getPhoneCountryByCode,
 } from "@/features/auth/phone-countries";
 import { normalizePhoneNumber } from "@/features/auth/phone-number";
+import { AuthCsrfError, verifyAuthCsrfToken } from "@/lib/auth-csrf";
 import { AuthRateLimitError, getRequestIp, recordAuthRateLimit } from "@/lib/auth-rate-limit";
 
 import {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
  const accountName = String(formData.get("accountName") ??"").trim();
  const password = String(formData.get("password") ??"");
  const phone = String(formData.get("phone") ??"").trim();
+ const csrfToken = String(formData.get("csrfToken") ?? "");
  const phoneCountry =
   getPhoneCountryByCode(String(formData.get("phoneCountry") ??"")) ??
   DEFAULT_PHONE_COUNTRY;
@@ -69,6 +71,8 @@ export async function POST(request: Request) {
  }
 
  try {
+ await verifyAuthCsrfToken("register", csrfToken);
+
  await recordAuthRateLimit("register:ip", getRequestIp(request));
  await recordAuthRateLimit("register:email", email);
  await recordAuthRateLimit("register:phone", normalizedPhone.e164);
@@ -103,6 +107,10 @@ export async function POST(request: Request) {
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;
  } catch (error) {
+ if (error instanceof AuthCsrfError) {
+  return redirectRegisterError("register_failed");
+ }
+
  if (error instanceof AuthRateLimitError) {
   return redirectRegisterError("rate_limited");
  }

@@ -164,7 +164,7 @@ export function renderBlogPostPage({
           </Link>
         </p>
         <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl lg:text-4xl 2 xl:text-5xl">{post.title}</h1>
-        <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{post.excerpt}</p>
+        <p className="text-sm leading-8 text-stone-600 md:text-base lg:text-lg">{post.excerpt || ""}</p>
         <p className="text-xs uppercase tracking-[0.25em] text-stone-400">{formatDate(post.createdAt)}</p>
       </div>
 

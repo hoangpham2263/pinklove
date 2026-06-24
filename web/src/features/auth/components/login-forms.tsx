@@ -33,6 +33,8 @@ export type AuthFormProps = {
   heading?: string;
   subheading?: string;
   sideImage?: string;
+  loginCsrfToken?: string;
+  registerCsrfToken?: string;
 };
 
 type CustomerAuthShellProps = AuthFormProps & {
@@ -44,6 +46,44 @@ type CustomerAuthShellProps = AuthFormProps & {
 };
 
 type CustomerAuthMode = "login" | "register";
+type AuthCsrfScope = "login" | "register" | "admin_login" | "provider_login";
+
+function useAuthCsrfToken(scope: AuthCsrfScope, initialToken = "") {
+  const [token, setToken] = useState(initialToken);
+  const [ready, setReady] = useState(Boolean(initialToken));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadToken() {
+      setReady(Boolean(initialToken));
+
+      try {
+        const response = await fetch(`${ROUTES.API.AUTH.CSRF}?scope=${encodeURIComponent(scope)}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const payload = (await response.json()) as { token?: string };
+        if (!cancelled && response.ok) {
+          setToken(payload.token ?? "");
+          setReady(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setReady(false);
+        }
+      }
+    }
+
+    loadToken();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialToken, scope]);
+
+  return { token, ready };
+}
 
 function getErrorMessage(error: string | null): string | null {
   if (!error) return null;
@@ -71,6 +111,11 @@ function getErrorMessage(error: string | null): string | null {
   if (error === "rate_limited") return "Bạn đã thử quá nhiều lần. Vui lòng đợi một lúc rồi thử lại.";
   if (error === "register_failed") return "Không thể tạo tài khoản. Vui lòng thử lại.";
   return "Xác thực không thành công.";
+}
+
+function getStatusMessage(status: string | null): string | null {
+  if (status === "password_reset") return "Mật khẩu đã được cập nhật. Vui lòng đăng nhập lại.";
+  return null;
 }
 
 function CustomerAuthShell({
@@ -424,14 +469,19 @@ function CustomerAuthView({
   heading,
   subheading,
   sideImage,
+  loginCsrfToken,
+  registerCsrfToken,
 }: AuthFormProps & { initialMode: CustomerAuthMode }) {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<CustomerAuthMode>(initialMode);
   const error = mode === initialMode ? getErrorMessage(searchParams.get("error")) : null;
+  const status = mode === initialMode ? getStatusMessage(searchParams.get("status")) : null;
   const returnTo = searchParams.get("returnTo");
   const isLogin = mode === "login";
   const activeHeading = mode === initialMode ? heading : undefined;
   const activeSubheading = mode === initialMode ? subheading : undefined;
+  const loginCsrf = useAuthCsrfToken("login", loginCsrfToken);
+  const registerCsrf = useAuthCsrfToken("register", registerCsrfToken);
 
   function switchMode(nextMode: CustomerAuthMode) {
     setMode(nextMode);
@@ -502,17 +552,23 @@ function CustomerAuthView({
             method="POST"
             className="space-y-3.5 2xl:space-y-4"
           >
+            <input type="hidden" name="csrfToken" value={loginCsrf.token} />
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             <div className="space-y-2">
               <label htmlFor="customer-login-email" className="text-sm 2xl:text-base font-medium">
                 Email
               </label>
-              <input id="customer-login-email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+              <input id="customer-login-email" name="email" type="email" placeholder="your@example.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
             </div>
             <div className="space-y-2">
-              <label htmlFor="customer-login-password" className="text-sm 2xl:text-base font-medium">
-                Mật khẩu
-              </label>
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor="customer-login-password" className="text-sm 2xl:text-base font-medium">
+                  Mật khẩu
+                </label>
+                <Link href={ROUTES.AUTH.FORGOT_PASSWORD} className="text-xs font-medium text-guest-primary hover:underline">
+                  Quên mật khẩu?
+                </Link>
+              </div>
               <PasswordInput
                 id="customer-login-password"
                 name="password"
@@ -522,11 +578,12 @@ function CustomerAuthView({
                 className="h-11 rounded border-guest-border bg-white px-4 shadow-none placeholder:text-guest-placeholder focus-visible:border-guest-primary focus-visible:ring-0"
               />
             </div>
-            <button type="submit" className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60">
+            <button type="submit" disabled={!loginCsrf.ready} className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60">
               Đăng nhập
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
           </NativeForm>
+          {status ? <p className="mt-4 text-center text-sm text-emerald-700">{status}</p> : null}
           {error ? <p className="mt-4 text-center text-sm text-destructive">{error}</p> : null}
           <p className="mt-5 2xl:mt-7.5 text-center text-sm 2xl:text-base">
             Chưa có tài khoản?{" "}
@@ -546,13 +603,14 @@ function CustomerAuthView({
             className="mt-7.5 2xl:mt-10 space-y-3.5 2xl:space-y-4"
             onSubmit={handleRegisterSubmit}
           >
+            <input type="hidden" name="csrfToken" value={registerCsrf.token} />
             <div className="space-y-2">
               <label htmlFor="customer-register-accountName" className="text-sm 2xl:text-base font-medium">Tên tài khoản</label>
               <input id="customer-register-accountName" name="accountName" placeholder="Tên hiển thị của bạn" autoComplete="nickname" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
             </div>
             <div className="space-y-2">
               <label htmlFor="customer-register-email" className="text-sm 2xl:text-base font-medium">Email</label>
-              <input id="customer-register-email" name="email" type="email" placeholder="your@pinklove.vn" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
+              <input id="customer-register-email" name="email" type="email" placeholder="your@example.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
             </div>
             <div className="space-y-2">
               <label htmlFor="customer-register-phone" className="text-sm 2xl:text-base font-medium">Số điện thoại</label>
@@ -594,6 +652,7 @@ function CustomerAuthView({
             </label>
             <button
               type="submit"
+              disabled={!registerCsrf.ready}
               className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Đăng ký tài khoản
@@ -613,9 +672,10 @@ function CustomerAuthView({
   );
 }
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ csrfToken }: { csrfToken?: string } = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
+  const csrf = useAuthCsrfToken("admin_login", csrfToken);
 
   return (
     <section className="container px-4 mx-auto flex w-full flex-1 items-center justify-center p-6 md:p-10">
@@ -635,6 +695,7 @@ export function AdminLoginForm() {
               method="POST"
               className="space-y-3"
             >
+              <input type="hidden" name="csrfToken" value={csrf.token} />
               <Input
                 name="email"
                 type="email"
@@ -649,7 +710,7 @@ export function AdminLoginForm() {
                 autoComplete="current-password"
                 className="rounded"
               />
-              <Button type="submit" className="h-10 w-full rounded" variant="default">
+              <Button type="submit" disabled={!csrf.ready} className="h-10 w-full rounded" variant="default">
                 Login to Dashboard
               </Button>
             </NativeForm>
@@ -666,13 +727,21 @@ export function AdminLoginForm() {
   );
 }
 
-export function LoginForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
+export function LoginForm({
+  heading,
+  subheading,
+  sideImage,
+  loginCsrfToken,
+  registerCsrfToken,
+}: AuthFormProps = {}) {
   return (
     <CustomerAuthView
       initialMode="login"
       heading={heading}
       subheading={subheading}
       sideImage={sideImage}
+      loginCsrfToken={loginCsrfToken}
+      registerCsrfToken={registerCsrfToken}
     />
   );
 }
@@ -682,6 +751,7 @@ type ProviderLoginFormProps = {
   description?: string;
   returnTo?: string;
   embedded?: boolean;
+  csrfToken?: string;
 };
 
 export function ProviderLoginForm({
@@ -689,9 +759,11 @@ export function ProviderLoginForm({
   description = "Đăng nhập bằng tài khoản provider để quản lý các đơn được phân công.",
   returnTo,
   embedded = false,
+  csrfToken,
 }: ProviderLoginFormProps = {}) {
   const searchParams = useSearchParams();
   const error = getErrorMessage(searchParams.get("error"));
+  const csrf = useAuthCsrfToken("provider_login", csrfToken);
 
   const loginCard = (
     <div className={embedded ? "w-full space-y-5" : "mx-auto w-full max-w-md space-y-5"}>
@@ -706,10 +778,11 @@ export function ProviderLoginForm({
         </CardHeader>
         <CardContent className="space-y-3">
           <NativeForm action={ROUTES.API.PROVIDER.AUTH.LOGIN} method="POST" className="space-y-3">
+            <input type="hidden" name="csrfToken" value={csrf.token} />
             {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
             <Input name="email" type="email" placeholder="Email provider" autoComplete="email" required />
             <PasswordInput name="password" placeholder="Mật khẩu" autoComplete="current-password" />
-            <Button type="submit" className="w-full">
+            <Button type="submit" disabled={!csrf.ready} className="w-full">
               Vào provider portal
             </Button>
           </NativeForm>
@@ -750,13 +823,21 @@ export function ProviderLoginForm({
   );
 }
 
-export function RegisterForm({ heading, subheading, sideImage }: AuthFormProps = {}) {
+export function RegisterForm({
+  heading,
+  subheading,
+  sideImage,
+  loginCsrfToken,
+  registerCsrfToken,
+}: AuthFormProps = {}) {
   return (
     <CustomerAuthView
       initialMode="register"
       heading={heading}
       subheading={subheading}
       sideImage={sideImage}
+      loginCsrfToken={loginCsrfToken}
+      registerCsrfToken={registerCsrfToken}
     />
   );
 }

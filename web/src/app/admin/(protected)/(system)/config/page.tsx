@@ -33,6 +33,11 @@ const CONFIG_SECTIONS = [
         description: "Cấu hình OAuth và các nhà cung cấp đăng nhập ngoài như Google.",
         href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
       },
+      {
+        title: "Bảo mật đăng nhập",
+        description: "Cấu hình rate-limit cho public login để chặn brute-force trước khi verify mật khẩu.",
+        href: ROUTES.ADMIN.CONFIG_SECURITY,
+      },
     ],
   },
   {

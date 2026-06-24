@@ -38,10 +38,9 @@ export async function AboutContent({ page }: { page: ManagedPage }) {
     ctaButtonLink?: string;
   }>(page);
 
-  const introTitle = fields.introHeading?.trim() || page.title || "Giới thiệu về PinkLove";
+  const introTitle = fields.introHeading?.trim() || "Giới thiệu về PinkLove";
   const introText =
     fields.introText?.trim() ||
-    page.excerpt ||
     "PinkLove đồng hành cùng các cặp đôi và doanh nghiệp dịch vụ cưới bằng trải nghiệm thiệp cưới online hiện đại, dễ dùng và đủ linh hoạt để mở rộng theo từng nhu cầu.";
 
   const stats = (Array.isArray(fields.stats) ? fields.stats : []).filter(

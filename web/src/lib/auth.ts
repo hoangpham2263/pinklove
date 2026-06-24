@@ -12,6 +12,7 @@ import { ROUTES } from "@/lib/routes";
 
 export const SESSION_COOKIE_NAME = "pinklove_session";
 const SESSION_DURATION_DAYS = 7;
+const PASSWORD_RESET_TOKEN_MINUTES = 60;
 
 export type AccountStatus = "active" | "blocked" | "banned" | "deleted";
 
@@ -115,6 +116,10 @@ export function normalizeEmail(email: string): string {
 }
 
 function hashSessionToken(token: string): string {
+ return createHash("sha256").update(token).digest("hex");
+}
+
+function hashPasswordResetToken(token: string): string {
  return createHash("sha256").update(token).digest("hex");
 }
 
@@ -257,6 +262,80 @@ export async function authenticateUserByEmail(
  accountStatus: user.account_status,
  emailVerifiedAt: user.email_verified_at,
  };
+}
+
+export async function createPasswordResetTokenForEmail(emailInput: string): Promise<{
+ email: string;
+ token: string;
+ expiresAt: Date;
+} | null> {
+ const email = normalizeEmail(emailInput);
+ const result = await query<{ id: string; email: string; account_status: AccountStatus }>(
+  `
+   SELECT id, email, account_status
+   FROM users
+   WHERE LOWER(BTRIM(email)) = $1
+   LIMIT 1
+  `,
+  [email]
+ );
+ const user = result.rows[0];
+ if (!user || user.account_status !== "active") return null;
+
+ const token = randomBytes(32).toString("hex");
+ const tokenHash = hashPasswordResetToken(token);
+ const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_MINUTES * 60 * 1000);
+
+ await withTransaction(async (execute) => {
+  await execute(
+   `
+    UPDATE password_reset_tokens
+    SET used_at = NOW()
+    WHERE user_id = $1 AND used_at IS NULL
+   `,
+   [user.id]
+  );
+  await execute(
+   `
+    INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+    VALUES ($1, $2, $3)
+   `,
+   [user.id, tokenHash, expiresAt.toISOString()]
+  );
+ });
+
+ return { email: user.email, token, expiresAt };
+}
+
+export async function resetPasswordWithToken(token: string, password: string): Promise<boolean> {
+ const tokenValue = token.trim();
+ if (!tokenValue) return false;
+
+ const tokenHash = hashPasswordResetToken(tokenValue);
+ const passwordHash = hashPassword(password);
+
+ return withTransaction(async (execute) => {
+  const result = await execute<{ id: string; user_id: string }>(
+   `
+    SELECT reset.id, reset.user_id
+    FROM password_reset_tokens reset
+    INNER JOIN users account ON account.id = reset.user_id
+    WHERE reset.token_hash = $1
+      AND reset.used_at IS NULL
+      AND reset.expires_at > NOW()
+      AND account.account_status = 'active'
+    LIMIT 1
+   `,
+   [tokenHash]
+  );
+  const row = result.rows[0];
+  if (!row) return false;
+
+  await execute("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2", [passwordHash, row.user_id]);
+  await execute("UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1", [row.id]);
+  await execute("DELETE FROM user_sessions WHERE user_id = $1", [row.user_id]);
+  return true;
+ });
 }
 
 export async function authenticateGoogleUser(input: {

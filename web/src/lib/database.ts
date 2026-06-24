@@ -297,6 +297,27 @@ async function initSchema() {
  ON user_sessions(token_hash);
  `);
 
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS password_reset_tokens_token_hash_idx
+ ON password_reset_tokens(token_hash);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS password_reset_tokens_user_id_idx
+ ON password_reset_tokens(user_id);
+ `);
+
 }
 
 async function ensureUsersRoleMigration() {
@@ -781,7 +802,8 @@ async function ensureAppSettingsMigration() {
     ADD COLUMN IF NOT EXISTS commerce_config JSONB,
     ADD COLUMN IF NOT EXISTS internal_api_config JSONB,
     ADD COLUMN IF NOT EXISTS email_config JSONB,
-    ADD COLUMN IF NOT EXISTS third_party_config JSONB;
+    ADD COLUMN IF NOT EXISTS third_party_config JSONB,
+    ADD COLUMN IF NOT EXISTS security_config JSONB;
   `);
 
   await pool.query(`

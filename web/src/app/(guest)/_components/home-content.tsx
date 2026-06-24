@@ -131,19 +131,25 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     }>;
   }>(page);
 
+  const bannerTopLine = fields.bannerTopLine ?? "Chào mừng đến với";
+  const bannerLine1Prefix = fields.bannerLine1Prefix ?? "Nền tảng cho";
+  const bannerLine1Rotating = fields.bannerLine1Rotating ?? "Đám cưới, Sự kiện, Lễ kỷ niệm";
+  const bannerLine1Suffix = fields.bannerLine1Suffix ?? "hoàn hảo của bạn";
+  const bannerLine2 = fields.bannerLine2 ?? "Pinklove";
+
   const serviceItems = (Array.isArray(fields.serviceItems) ? fields.serviceItems : []).filter(
     (item) => item.title?.trim() || item.description?.trim() || item.descriptionItems?.trim() || item.headerImage?.trim()
   );
 
   const resolvedServiceItems = normalizeServiceGroupItems(serviceItems, 5);
 
-  const bannerTitle = fields.heroTitle || page.title || "";
-  const bannerShortDescription = fields.bannerShortDescription || page.excerpt;
-  const bannerDescription = fields.bannerDescription || fields.heroDescription;
-  const scrollDownText = fields.scrollDownText?.trim();
-  const heroButtonText = fields.heroButtonText?.trim();
-  const heroButtonLink = fields.heroButtonLink?.trim();
-  const aboutEyebrow = fields.aboutEyebrow?.trim();
+  const bannerTitle = fields.heroTitle || "";
+  const bannerShortDescription = fields.bannerShortDescription || "Nền tảng tổ chức sự kiện và đám cưới hàng đầu Việt Nam.";
+  const bannerDescription = fields.bannerDescription || fields.heroDescription || "Từ việc tìm kiếm nhà cung cấp, quản lý ngân sách, đến việc gửi thiệp mời, chúng tôi lo tất cả để ngày trọng đại của bạn thật hoàn hảo.";
+  const scrollDownText = fields.scrollDownText?.trim() ?? "Cuộn xuống";
+  const heroButtonText = fields.heroButtonText?.trim() ?? "Bắt đầu ngay";
+  const heroButtonLink = fields.heroButtonLink?.trim() ?? "/";
+  const aboutEyebrow = fields.aboutEyebrow?.trim() ?? "Về chúng tôi";
   const aboutImage = await resolveMediaUrl(fields.aboutImage);
   const hasAboutTexts = Boolean(
     fields.aboutText1?.trim() ||
@@ -212,23 +218,23 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
     hasAboutTexts ||
     aboutItems.length
   );
-  const eventPlannerEyebrow = fields.eventPlannerEyebrow?.trim();
-  const eventPlannerTitle = fields.eventPlannerTitle?.trim();
-  const eventPlannerHighlight = fields.eventPlannerHighlight?.trim();
-  const eventPlannerSuffix = fields.eventPlannerSuffix?.trim();
-  const eventPlannerSolutionTitle = fields.eventPlannerSolutionTitle?.trim();
-  const eventPlannerSolutionDescription = fields.eventPlannerSolutionDescription?.trim();
-  const eventPlannerHighlightText = fields.eventPlannerHighlightText?.trim();
-  const eventPlannerCtaText = fields.eventPlannerCtaText?.trim();
-  const eventPlannerCtaLink = fields.eventPlannerCtaLink?.trim();
-  const servicesTitle = fields.servicesTitle?.trim();
-  const servicesCtaText = fields.servicesCtaText?.trim();
-  const servicesCtaLink = fields.servicesCtaLink?.trim();
-  const testimonialsEyebrow = fields.testimonialsEyebrow?.trim();
-  const testimonialsTitle = fields.testimonialsTitle?.trim();
-  const testimonialsDescription = fields.testimonialsDescription?.trim();
-  const partnersEyebrow = fields.partnersEyebrow?.trim();
-  const partnersTitle = fields.partnersTitle?.trim();
+  const eventPlannerEyebrow = fields.eventPlannerEyebrow?.trim() ?? "BẠN LÀ NHÀ TỔ CHỨC SỰ KIỆN?";
+  const eventPlannerTitle = fields.eventPlannerTitle?.trim() ?? "CẢM THẤY";
+  const eventPlannerHighlight = fields.eventPlannerHighlight?.trim() ?? "Stress?";
+  const eventPlannerSuffix = fields.eventPlannerSuffix?.trim() ?? "CHÚNG TÔI GIÚP ĐƯỢC";
+  const eventPlannerSolutionTitle = fields.eventPlannerSolutionTitle?.trim() ?? "Nền tảng tất cả trong một giúp bạn quản lý sự kiện dễ dàng";
+  const eventPlannerSolutionDescription = fields.eventPlannerSolutionDescription?.trim() ?? "Mô tả giải pháp.";
+  const eventPlannerHighlightText = fields.eventPlannerHighlightText?.trim() ?? "tất cả trong một";
+  const eventPlannerCtaText = fields.eventPlannerCtaText?.trim() ?? "Khám phá ngay";
+  const eventPlannerCtaLink = fields.eventPlannerCtaLink?.trim() ?? "/";
+  const servicesTitle = fields.servicesTitle?.trim() ?? "Dịch vụ của chúng tôi";
+  const servicesCtaText = fields.servicesCtaText?.trim() ?? "Xem tất cả dịch vụ";
+  const servicesCtaLink = fields.servicesCtaLink?.trim() ?? "/services";
+  const testimonialsEyebrow = fields.testimonialsEyebrow?.trim() ?? "Khách hàng nói gì";
+  const testimonialsTitle = fields.testimonialsTitle?.trim() ?? "Đánh giá từ khách hàng";
+  const testimonialsDescription = fields.testimonialsDescription?.trim() ?? "Đây là những gì khách hàng của chúng tôi nói về chúng tôi.";
+  const partnersEyebrow = fields.partnersEyebrow?.trim() ?? "Đối tác của chúng tôi";
+  const partnersTitle = fields.partnersTitle?.trim() ?? "Những người đồng hành cùng chúng tôi";
   const eventPlannerTitleParts = eventPlannerSolutionTitle && eventPlannerHighlightText
     ? eventPlannerSolutionTitle.split(eventPlannerHighlightText)
     : [];
@@ -290,11 +296,11 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
           <div className="relative grid w-full grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center lg:gap-10 lg:pl-20">
             <div className="flex flex-col justify-center space-y-5 text-center lg:col-span-6 lg:text-left">
               <HeroAnimatedTitle
-                topLine={fields.bannerTopLine}
-                lineOnePrefix={fields.bannerLine1Prefix}
-                lineOneRotating={fields.bannerLine1Rotating}
-                lineOneSuffix={fields.bannerLine1Suffix}
-                lineTwo={fields.bannerLine2}
+                topLine={bannerTopLine}
+                lineOnePrefix={bannerLine1Prefix}
+                lineOneRotating={bannerLine1Rotating}
+                lineOneSuffix={bannerLine1Suffix}
+                lineTwo={bannerLine2}
                 fallbackTitle={bannerTitle}
                 className="inline-block text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-semibold"
               />
@@ -397,7 +403,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               <div>
                 {aboutImage ? (
                   <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] border border-[#f8d8f4] bg-[#fff5fd] shadow-[0_14px_34px_rgba(35,31,39,0.07)]">
-                    <Image src={aboutImage} alt={fields.aboutTitle || page.title || ""} fill className="object-cover" sizes="(min-width: 1024px) 42vw, 100vw" />
+                    <Image src={aboutImage} alt={fields.aboutTitle || "Tiêu đề Giới thiệu"} fill className="object-cover" sizes="(min-width: 1024px) 42vw, 100vw" />
                   </div>
                 ) : null}
               </div>
@@ -405,7 +411,7 @@ export async function HomeContent({ page }: { page: ManagedPage }) {
               <div className="space-y-5">
                 <HomePanelHeader
                   eyebrow={aboutEyebrow}
-                  title={fields.aboutTitle}
+                  title={fields.aboutTitle || "Tiêu đề Giới thiệu"}
                   description={fields.aboutDescription ? undefined : fields.aboutText1}
                 />
                 {fields.aboutDescription ? (

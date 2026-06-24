@@ -2,7 +2,7 @@ import { AtSign, MailCheck, Send, ServerCog, UserRoundCheck } from "lucide-react
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import { EmailDemoForm } from "@/features/admin/components/settings/email-demo-form";
-import { SettingsDataTableForm } from "@/features/admin/components/settings/settings-data-table-form";
+import { EmailSettingsForm } from "@/features/admin/components/settings/email-settings-form";
 import { requireAdmin } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/system-settings";
 
@@ -10,6 +10,8 @@ export default async function AdminEmailSettingsPage() {
   await requireAdmin();
   const settings = await getSystemSettings();
   const email = settings.email;
+  const missingSender = !email.fromEmail;
+  const missingSmtp = email.transport === "smtp" && !email.smtpHost;
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
@@ -31,106 +33,21 @@ export default async function AdminEmailSettingsPage() {
         </AdminOverviewCard>
       </AdminOverviewGrid>
 
+      {missingSender || missingSmtp ? (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {missingSender ? "Cần cấu hình From Email để gửi mail. " : null}
+          {missingSmtp ? "Transport SMTP đang bật nhưng chưa có SMTP Host." : null}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-12 gap-4">
         <Card className="col-span-12 rounded-lg xl:col-span-7">
           <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-sm font-medium">Email Transport</CardTitle>
+            <CardTitle className="text-sm font-medium">Email Configuration</CardTitle>
             <ServerCog className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <SettingsDataTableForm
-              section="email"
-              title="Email"
-              saveMessage="Đã lưu cấu hình email."
-              columnWidths={{
-                label: "w-[18%]",
-                description: "w-[42%]",
-                value: "w-[40%]",
-              }}
-              rows={[
-                {
-                  id: "enabled",
-                  label: "Enabled",
-                  description: "Bật gửi email thật qua core `sendEmail`. Khi tắt, các workflow sẽ dừng trước khi gửi.",
-                  type: "boolean",
-                  value: email.enabled,
-                },
-                {
-                  id: "transport",
-                  label: "Transport",
-                  description: "`log` dùng cho demo/local. `smtp` gửi qua SMTP host đã cấu hình.",
-                  type: "select",
-                  value: email.transport,
-                  options: [
-                    { label: "Log", value: "log" },
-                    { label: "SMTP", value: "smtp" },
-                  ],
-                },
-                {
-                  id: "fromName",
-                  label: "From Name",
-                  description: "Tên người gửi mặc định hiển thị trong inbox.",
-                  type: "text",
-                  value: email.fromName,
-                },
-                {
-                  id: "fromEmail",
-                  label: "From Email",
-                  description: "Địa chỉ sender mặc định. Bắt buộc khi gửi demo hoặc gửi email thật.",
-                  type: "text",
-                  value: email.fromEmail,
-                },
-                {
-                  id: "replyTo",
-                  label: "Reply-To",
-                  description: "Địa chỉ nhận phản hồi nếu khác sender.",
-                  type: "text",
-                  value: email.replyTo,
-                },
-                {
-                  id: "smtpHost",
-                  label: "SMTP Host",
-                  description: "Hostname SMTP provider. Chỉ dùng khi transport là SMTP.",
-                  type: "text",
-                  value: email.smtpHost,
-                },
-                {
-                  id: "smtpPort",
-                  label: "SMTP Port",
-                  description: "Port SMTP, thường là 587 hoặc 465.",
-                  type: "text",
-                  value: String(email.smtpPort),
-                },
-                {
-                  id: "smtpSecure",
-                  label: "SMTP Secure",
-                  description: "Bật TLS ngay khi kết nối, thường dùng với port 465.",
-                  type: "boolean",
-                  value: email.smtpSecure,
-                },
-                {
-                  id: "smtpUsername",
-                  label: "SMTP Username",
-                  description: "Username đăng nhập SMTP nếu provider yêu cầu.",
-                  type: "text",
-                  value: email.smtpUsername,
-                },
-                {
-                  id: "smtpPassword",
-                  label: "SMTP Password",
-                  description: "Mật khẩu hoặc app password SMTP. Hiện lưu trong cấu hình hệ thống.",
-                  type: "password",
-                  value: email.smtpPassword,
-                },
-                {
-                  id: "demoRecipient",
-                  label: "Demo Recipient",
-                  description: "Email nhận demo mặc định cho card kiểm tra bên cạnh.",
-                  type: "text",
-                  value: email.demoRecipient,
-                },
-              ]}
-            />
+            <EmailSettingsForm email={email} />
           </CardContent>
         </Card>
 

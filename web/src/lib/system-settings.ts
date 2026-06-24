@@ -2,6 +2,11 @@ import "server-only";
 
 import type { OfferingType } from "@/features/offerings/types";
 import { query } from "@/lib/database";
+import {
+  DEFAULT_SECURITY_HEADERS,
+  normalizeSecurityHeadersSettings,
+  type SecurityHeadersSettings,
+} from "@/lib/security-headers";
 
 const SYSTEM_SETTINGS_CACHE_TTL_MS = 30_000;
 
@@ -160,6 +165,29 @@ export type ThirdPartySettings = {
   };
 };
 
+export type AuthRateLimitRuleSettings = {
+  limit: number;
+  windowMinutes: number;
+};
+
+export type SecuritySettings = {
+  authRateLimits: {
+    publicLoginIp: AuthRateLimitRuleSettings;
+    publicLoginEmail: AuthRateLimitRuleSettings;
+    adminLoginIp: AuthRateLimitRuleSettings;
+    adminLoginEmail: AuthRateLimitRuleSettings;
+    providerLoginIp: AuthRateLimitRuleSettings;
+    providerLoginEmail: AuthRateLimitRuleSettings;
+  };
+  authRateLimitCleanup: {
+    enabled: boolean;
+    retentionDays: number;
+    lastRunAt: string;
+    lastDeletedCount: number;
+  };
+  headers: SecurityHeadersSettings;
+};
+
 export type SystemSettings = {
   breadcrumb: BreadcrumbSettings;
   sitemap: SitemapSettings;
@@ -171,6 +199,7 @@ export type SystemSettings = {
   internalApis: InternalApisSettings;
   email: EmailSettings;
   thirdParty: ThirdPartySettings;
+  security: SecuritySettings;
 };
 
 type BrandingStorageSettings = BrandingSettings & FaviconSettings;
@@ -185,6 +214,7 @@ type SettingRow = {
   internal_api_config?: Record<string, unknown> | null;
   email_config?: Record<string, unknown> | null;
   third_party_config?: Record<string, unknown> | null;
+  security_config?: Record<string, unknown> | null;
 };
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -349,6 +379,41 @@ const DEFAULT_SETTINGS: SystemSettings = {
       clientSecret: "",
       redirectUri: "http://localhost:3000/api/auth/google/callback",
     },
+  },
+  security: {
+    authRateLimits: {
+      publicLoginIp: {
+        limit: 120,
+        windowMinutes: 15,
+      },
+      publicLoginEmail: {
+        limit: 10,
+        windowMinutes: 15,
+      },
+      adminLoginIp: {
+        limit: 30,
+        windowMinutes: 15,
+      },
+      adminLoginEmail: {
+        limit: 5,
+        windowMinutes: 15,
+      },
+      providerLoginIp: {
+        limit: 60,
+        windowMinutes: 15,
+      },
+      providerLoginEmail: {
+        limit: 6,
+        windowMinutes: 15,
+      },
+    },
+    authRateLimitCleanup: {
+      enabled: true,
+      retentionDays: 7,
+      lastRunAt: "",
+      lastDeletedCount: 0,
+    },
+    headers: DEFAULT_SECURITY_HEADERS,
   },
 };
 
@@ -678,6 +743,83 @@ function parseThirdPartySettings(value: Record<string, unknown> | null | undefin
   };
 }
 
+function parsePositiveInteger(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(parsed)));
+}
+
+function parseAuthRateLimitRuleSettings(
+  value: unknown,
+  fallback: AuthRateLimitRuleSettings
+): AuthRateLimitRuleSettings {
+  const input = typeof value === "object" && value ? (value as Record<string, unknown>) : {};
+  return {
+    limit: parsePositiveInteger(input.limit, fallback.limit, 1, 10_000),
+    windowMinutes: parsePositiveInteger(input.windowMinutes, fallback.windowMinutes, 1, 24 * 60),
+  };
+}
+
+function parseSecuritySettings(value: Record<string, unknown> | null | undefined): SecuritySettings {
+  const merged = mergeRecord(DEFAULT_SETTINGS.security as unknown as Record<string, unknown>, value);
+  const authRateLimitsInput =
+    typeof merged.authRateLimits === "object" && merged.authRateLimits
+      ? (merged.authRateLimits as Record<string, unknown>)
+      : {};
+  const headersInput =
+    typeof merged.headers === "object" && merged.headers
+      ? (merged.headers as Partial<SecurityHeadersSettings>)
+      : {};
+  const cleanupInput =
+    typeof merged.authRateLimitCleanup === "object" && merged.authRateLimitCleanup
+      ? (merged.authRateLimitCleanup as Record<string, unknown>)
+      : {};
+
+  return {
+    authRateLimits: {
+      publicLoginIp: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.publicLoginIp,
+        DEFAULT_SETTINGS.security.authRateLimits.publicLoginIp
+      ),
+      publicLoginEmail: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.publicLoginEmail,
+        DEFAULT_SETTINGS.security.authRateLimits.publicLoginEmail
+      ),
+      adminLoginIp: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.adminLoginIp,
+        DEFAULT_SETTINGS.security.authRateLimits.adminLoginIp
+      ),
+      adminLoginEmail: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.adminLoginEmail,
+        DEFAULT_SETTINGS.security.authRateLimits.adminLoginEmail
+      ),
+      providerLoginIp: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.providerLoginIp,
+        DEFAULT_SETTINGS.security.authRateLimits.providerLoginIp
+      ),
+      providerLoginEmail: parseAuthRateLimitRuleSettings(
+        authRateLimitsInput.providerLoginEmail,
+        DEFAULT_SETTINGS.security.authRateLimits.providerLoginEmail
+      ),
+    },
+    authRateLimitCleanup: {
+      enabled:
+        cleanupInput.enabled === undefined
+          ? DEFAULT_SETTINGS.security.authRateLimitCleanup.enabled
+          : Boolean(cleanupInput.enabled),
+      retentionDays: parsePositiveInteger(
+        cleanupInput.retentionDays,
+        DEFAULT_SETTINGS.security.authRateLimitCleanup.retentionDays,
+        1,
+        365
+      ),
+      lastRunAt: String(cleanupInput.lastRunAt ?? ""),
+      lastDeletedCount: parsePositiveInteger(cleanupInput.lastDeletedCount, 0, 0, 1_000_000),
+    },
+    headers: normalizeSecurityHeadersSettings(headersInput),
+  };
+}
+
 export async function getSystemSettings(): Promise<SystemSettings> {
   if (!process.env.DATABASE_URL) {
     return DEFAULT_SETTINGS;
@@ -693,7 +835,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
   try {
     const result = await query<SettingRow>(`
       SELECT seo_breadcrumb, seo_sitemap, seo_indexing, seo_branding, seo_opengraph, commerce_config
-      , internal_api_config, email_config, third_party_config
+      , internal_api_config, email_config, third_party_config, security_config
       FROM app_settings
       WHERE id = 'system'
       LIMIT 1
@@ -725,6 +867,7 @@ export async function getSystemSettings(): Promise<SystemSettings> {
     internalApis: parseInternalApisSettings(row?.internal_api_config),
     email: parseEmailSettings(row?.email_config),
     thirdParty: parseThirdPartySettings(row?.third_party_config),
+    security: parseSecuritySettings(row?.security_config),
   };
 
   globalForSystemSettings.systemSettingsCache = {
@@ -932,4 +1075,58 @@ export async function updateThirdPartySettings(input: Partial<ThirdPartySettings
 
   invalidateSystemSettingsCache();
   return next;
+}
+
+export async function updateSecuritySettings(input: Partial<SecuritySettings>) {
+  const current = await getSystemSettings();
+  const next: SecuritySettings = {
+    ...current.security,
+    ...input,
+    authRateLimits: {
+      ...current.security.authRateLimits,
+      ...input.authRateLimits,
+    },
+    authRateLimitCleanup: {
+      ...current.security.authRateLimitCleanup,
+      ...input.authRateLimitCleanup,
+    },
+    headers: normalizeSecurityHeadersSettings({
+      ...current.security.headers,
+      ...input.headers,
+      contentSecurityPolicy: {
+        ...current.security.headers.contentSecurityPolicy,
+        ...input.headers?.contentSecurityPolicy,
+      },
+      strictTransportSecurity: {
+        ...current.security.headers.strictTransportSecurity,
+        ...input.headers?.strictTransportSecurity,
+      },
+      xFrameOptions: {
+        ...current.security.headers.xFrameOptions,
+        ...input.headers?.xFrameOptions,
+      },
+      referrerPolicy: {
+        ...current.security.headers.referrerPolicy,
+        ...input.headers?.referrerPolicy,
+      },
+      permissionsPolicy: {
+        ...current.security.headers.permissionsPolicy,
+        ...input.headers?.permissionsPolicy,
+      },
+    }),
+  };
+  const parsed = parseSecuritySettings(next as unknown as Record<string, unknown>);
+
+  await query(
+    `
+    UPDATE app_settings
+    SET security_config = $1::jsonb,
+        updated_at = NOW()
+    WHERE id = 'system'
+    `,
+    [JSON.stringify(parsed)]
+  );
+
+  invalidateSystemSettingsCache();
+  return parsed;
 }
