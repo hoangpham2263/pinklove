@@ -14,11 +14,6 @@ const CONFIG_SECTIONS = [
         description: "Manage the site name, logo, and identity icons shown across the website.",
         href: ROUTES.ADMIN.CONFIG_BRANDING,
       },
-      {
-        title: "Notifications",
-        description: "Manage site-wide notifications shared across the user experience.",
-        href: ROUTES.ADMIN.NOTIFICATIONS,
-      },
     ],
   },
   {
@@ -42,50 +37,9 @@ const CONFIG_SECTIONS = [
     icon: "link" as const,
     items: [
       {
-        title: "Breadcrumbs",
-        description: "Configure breadcrumb UI and breadcrumb schema across the website.",
-        href: ROUTES.ADMIN.CONFIG_BREADCRUMBS,
-      },
-      {
-        title: "Open Graph",
-        description: "Manage social preview metadata and default images for shared links.",
-        href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
-      },
-      {
-        title: "Sitemap Index",
-        description: "View the live sitemap.xml, child sitemaps, and the number of exported URLs.",
-        href: ROUTES.ADMIN.CONFIG_SITEMAP_INDEX,
-      },
-      {
-        title: "Sitemap Settings",
-        description: "Configure sitemap groups, robots.txt, and website indexing rules.",
-        href: ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS,
-      },
-      {
-        title: "SEO Redirects",
-        description: "Manage intentional SEO redirects independently from source-code routes and slugs.",
-        href: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS,
-      },
-    ],
-  },
-  {
-    title: "SEO Documentation",
-    icon: "docs" as const,
-    items: [
-      {
-        title: "Page SEO",
-        description: "Guidance for entering titles, descriptions, canonicals, OG images, and metadata for each page.",
-        href: ROUTES.ADMIN.SEO_PAGES,
-      },
-      {
-        title: "SEO Schema",
-        description: "Documentation for structured data, breadcrumb schema, and page-type data mapping.",
-        href: ROUTES.ADMIN.SEO_SCHEMA,
-      },
-      {
-        title: "SEO Rules",
-        description: "SEO content operating rules that reduce intent overlap and keep indexing stable.",
-        href: ROUTES.ADMIN.SEO_RULES,
+        title: "SEO Management",
+        description: "Manage page metadata, schema, breadcrumbs, Open Graph, sitemaps, robots, and SEO redirects.",
+        href: ROUTES.ADMIN.CONFIG_SEO,
       },
     ],
   },
@@ -138,7 +92,7 @@ const CONFIG_SECTIONS = [
       {
         title: "Hooks",
         description: "Review all available website hook points for external synchronization and integrations.",
-        href: ROUTES.ADMIN.HOOKS,
+        href: ROUTES.ADMIN.CONFIG_HOOKS,
       },
       {
         title: "Security Management",
@@ -173,7 +127,7 @@ export default async function AdminSettingsPage() {
       <ConfigSectionsHub
         sections={sectionsWithPermissions(CONFIG_SECTIONS)}
         permissionKeys={permissionKeys}
-        scopeLabel="Configuration center for site settings and security management."
+        scopeLabel="Configuration center for site settings, SEO, and security management."
       />
     </section>
   );

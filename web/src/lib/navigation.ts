@@ -1,11 +1,15 @@
 export type RouteActiveOptions = {
   exact?: boolean;
-  matchPrefixes?: string[];
-  excludePaths?: string[];
-  excludePrefixes?: string[];
+  matchPrefixes?: Array<string | undefined>;
+  excludePaths?: Array<string | undefined>;
+  excludePrefixes?: Array<string | undefined>;
 };
 
-function normalizeRoute(value: string) {
+function normalizeRoute(value: string | undefined) {
+  if (!value) {
+    return "";
+  }
+
   if (value === "/") {
     return value;
   }
@@ -13,7 +17,7 @@ function normalizeRoute(value: string) {
   return value.replace(/\/+$/, "");
 }
 
-function isSameOrChildPath(pathname: string, prefix: string) {
+function isSameOrChildPath(pathname: string, prefix: string | undefined) {
   const currentPath = normalizeRoute(pathname);
   const routePrefix = normalizeRoute(prefix);
 

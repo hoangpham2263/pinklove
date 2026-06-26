@@ -165,3 +165,14 @@ Auth/login/register security checklist cần làm tiếp:
     17.8. [x] Có banner/cảnh báo trong admin nếu production đang tắt rule quan trọng.
     17.9. [x] Có migration/audit schema kiểm tra đủ bảng security_settings, security_events, blocked_ips, audit logs nếu các module được bật.
     17.10. [x] Cập nhật documentation ngắn trong admin để người vận hành hiểu từng option ảnh hưởng gì.
+
+18. [x] Tách nhỏ cấu hình bảo mật ra các trang con dưới /admin/config/security để quản lý rõ từng nhóm security setting.
+    18.1. [x] Dùng /admin/config/security làm hub/overview quản lý bảo mật.
+    18.2. [x] Tách Auth rate limits sang /admin/config/security/auth-rate-limits.
+    18.3. [x] Tách CSRF protection sang /admin/config/security/csrf.
+    18.4. [x] Tách Security headers/CSP/HSTS sang /admin/config/security/headers.
+    18.5. [x] Tách Proxy/IP detection/trusted headers sang /admin/config/security/proxy.
+    18.6. [x] Tách cleanup/dry-run/warn-only/default reset nếu đang chung quá nhiều vào page con phù hợp.
+    18.7. [x] Cập nhật ROUTES, breadcrumb, route-meta, navigation, permission checks theo cấu trúc mới, không dùng legacy redirect.
+    18.8. [x] Đảm bảo mỗi page con chỉ quản lý một nhóm setting, vẫn ghi audit log before/after khi lưu.
+    18.9. [x] Test tsc, lint, build và scan không còn hardcode path cũ sau khi tách.

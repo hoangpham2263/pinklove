@@ -8,9 +8,9 @@ import { isRouteActive } from "@/lib/navigation";
 type AdminNavLinkProps = {
   href: string;
   exact?: boolean;
-  matchPrefixes?: string[];
-  excludePaths?: string[];
-  excludePrefixes?: string[];
+  matchPrefixes?: Array<string | undefined>;
+  excludePaths?: Array<string | undefined>;
+  excludePrefixes?: Array<string | undefined>;
   className?: string;
   activeClassName?: string;
   inactiveClassName?: string;

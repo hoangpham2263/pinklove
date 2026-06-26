@@ -345,10 +345,6 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
       ROUTES.ADMIN.DOMAIN_EVENTS,
       ROUTES.ADMIN.GLOBAL_FIELDS,
       ROUTES.ADMIN.MEDIA,
-      ROUTES.ADMIN.HOOKS,
-      ROUTES.ADMIN.SEO_PAGES,
-      ROUTES.ADMIN.SEO_SCHEMA,
-      ROUTES.ADMIN.SEO_RULES,
     ],
     sections: [
       {
@@ -362,17 +358,6 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
         ],
       },
       {
-        key: "seo",
-        title: "SEO",
-        description: "SEO từng trang, schema, rule và hướng dẫn tối ưu.",
-        permissions: ["content.view"],
-        items: [
-          item("seo-pages", "Page SEO", "Quản lý SEO cho từng trang.", ROUTES.ADMIN.SEO_PAGES, "search"),
-          item("seo-rules", "SEO Rules", "Quản lý rule SEO và index.", ROUTES.ADMIN.SEO_RULES, "search"),
-          item("seo-schema", "SEO Schema", "Quản lý structured data.", ROUTES.ADMIN.SEO_SCHEMA, "file-code-2"),
-        ],
-      },
-      {
         key: "platform",
         title: "Media & dữ liệu dùng chung",
         description: "Media library, collection, global field, audit và domain event.",
@@ -383,7 +368,6 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
           item("media-collections", "Media Collections", "Quản lý bộ sưu tập media.", ROUTES.ADMIN.MEDIA_COLLECTIONS, "image"),
           item("audit-logs", "Audit Logs", "Theo dõi lịch sử thay đổi.", ROUTES.ADMIN.AUDIT_LOGS, "radio"),
           item("domain-events", "Domain Events", "Kiểm tra sự kiện nghiệp vụ.", ROUTES.ADMIN.DOMAIN_EVENTS, "radio"),
-          item("hooks", "Hooks", "Kiểm tra hook và tích hợp runtime.", ROUTES.ADMIN.HOOKS, "radio"),
         ],
       },
     ],
@@ -412,39 +396,12 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
   {
     key: "configuration",
     label: "Configuration",
-    description: "Configure branding, SEO, ecommerce, integrations, and site-level settings.",
+    description: "Configure branding, SEO, ecommerce, integrations, hooks, and site-level settings.",
     href: ROUTES.ADMIN.CONFIG,
     iconName: "settings",
     permissions: ["configuration.view"],
     matchPrefixes: [ROUTES.ADMIN.CONFIG],
-    excludePrefixes: [ROUTES.ADMIN.SECURITY],
     sections: [],
-  },
-  {
-    key: "security",
-    label: "Security Management",
-    description: "Manage security settings, logs, blocked IPs, upload rules, endpoint protection, and backup safety.",
-    href: ROUTES.ADMIN.SECURITY,
-    iconName: "settings",
-    permissions: ["security.view"],
-    matchPrefixes: [ROUTES.ADMIN.SECURITY],
-    sections: [
-      {
-        key: "security-management",
-        title: "Security tools",
-        description: "Security configuration and operational controls.",
-        hideHeader: true,
-        items: [
-          item("security-settings", "Security Settings", "Configure auth rate limits, CSRF, headers, proxy trust, cleanup, and IP detection.", ROUTES.ADMIN.SECURITY_SETTINGS, "settings", "security.view"),
-          item("security-logs", "Security Logs", "Investigate login failures, rate-limit hits, CSRF failures, and suspicious traffic.", ROUTES.ADMIN.SECURITY_LOGS, "radio", "security.logs.view"),
-          item("blocked-ips", "Blocked IPs", "Block, unblock, import, and extend temporary IP/subnet blocks.", ROUTES.ADMIN.SECURITY_BLOCKED_IPS, "radio", "security.ip_blocks.manage"),
-          item("security-audit-logs", "Security Audit Logs", "Review append-only audit history for security-sensitive admin actions.", ROUTES.ADMIN.SECURITY_AUDIT_LOGS, "radio", "security.logs.view"),
-          item("upload-security", "Upload Security", "Manage centralized file, media, and avatar upload safety rules.", ROUTES.ADMIN.SECURITY_UPLOAD, "image", "security.view"),
-          item("endpoint-protection", "Endpoint Protection", "Manage heavy endpoint protection, cache behavior, rate limits, and false-positive controls.", ROUTES.ADMIN.SECURITY_ENDPOINT_PROTECTION, "settings", "security.view"),
-          item("backup-security", "Backup/Restore Security", "Monitor backup packages, retention, encryption, checksums, and safe restore checks.", ROUTES.ADMIN.SECURITY_BACKUPS, "package", "security.backups.view"),
-        ],
-      },
-    ],
   },
 ];
 

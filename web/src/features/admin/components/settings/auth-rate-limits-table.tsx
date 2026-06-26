@@ -37,6 +37,7 @@ type AuthRateLimitsTableProps = {
   status: string;
   rawKey: string;
   scopeOptions: readonly string[];
+  href?: string;
 };
 
 function formatDateTime(value: string) {
@@ -49,6 +50,7 @@ export function AuthRateLimitsTable({
   status,
   rawKey,
   scopeOptions,
+  href = ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS,
 }: AuthRateLimitsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -143,7 +145,7 @@ export function AuthRateLimitsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <NativeForm action={ROUTES.ADMIN.SECURITY_SETTINGS} method="GET" className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <NativeForm action={href} method="GET" className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <AdminTableToolbar>
             <select name="rateLimitScope" defaultValue={scope} className="h-9 min-w-45 rounded-lg border border-input bg-background px-3 text-sm outline-none">
               {scopeOptions.map((option) => (
@@ -165,7 +167,7 @@ export function AuthRateLimitsTable({
             />
             <AdminSubmitButton>Lọc</AdminSubmitButton>
             {hasFilters ? (
-              <Link href={`${ROUTES.ADMIN.SECURITY_SETTINGS}#auth-rate-limits`}>
+              <Link href={href}>
                 <AdminTableActionButton action="clear" label="Clear filters" />
               </Link>
             ) : null}

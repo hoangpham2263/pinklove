@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     return respondSuccess(request, {
       message: `Đã cleanup ${deletedCount} auth rate-limit record hết hạn.`,
-      location: ROUTES.ADMIN.SECURITY_SETTINGS,
+      location: ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS,
     });
   } catch (error) {
     console.error("Failed to cleanup auth rate limits:", error);
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       status: 500,
       error: "cleanup_failed",
       message: "Không thể cleanup auth rate limits.",
-      location: ROUTES.ADMIN.SECURITY_SETTINGS,
+      location: ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS,
     });
   }
 }

@@ -14,7 +14,7 @@ import { recordSecurityAuditLog } from "@/lib/security-audit-logs";
 export const runtime = "nodejs";
 
 function redirectLocation() {
-  return `${ROUTES.ADMIN.SECURITY_SETTINGS}#auth-rate-limits`;
+  return ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS;
 }
 
 export async function POST(request: Request) {

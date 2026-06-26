@@ -47,6 +47,18 @@ const SECURITY_SECTIONS = new Set([
 
 const SECURITY_RESET_SECTIONS = new Set(Array.from(SECURITY_SECTIONS).map((item) => `${item}_reset`));
 
+function securitySectionLocation(section: string) {
+  const normalized = section.replace(/_reset$/, "");
+  if (normalized === "security" || normalized === "security_cleanup") {
+    return ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS;
+  }
+  if (normalized === "security_detection") return ROUTES.ADMIN.SECURITY_SETTINGS_PROXY;
+  if (normalized === "security_headers") return ROUTES.ADMIN.SECURITY_SETTINGS_HEADERS;
+  if (normalized === "upload_security") return ROUTES.ADMIN.SECURITY_UPLOAD;
+  if (normalized === "endpoint_protection") return ROUTES.ADMIN.SECURITY_ENDPOINT_PROTECTION;
+  return ROUTES.ADMIN.SECURITY;
+}
+
 function containsDangerousWildcard(value: string) {
   return /(^|\s)\*(\s|$)/.test(value) || value.includes("://*") || value.includes("://*.");
 }
@@ -75,7 +87,7 @@ async function requireSecurityEditPermission(request: Request, adminId: string) 
     status: 403,
     error: "FORBIDDEN",
     message: "Bạn cần quyền security.settings.edit để đổi cấu hình bảo mật.",
-    location: ROUTES.ADMIN.SECURITY_SETTINGS,
+    location: ROUTES.ADMIN.SECURITY,
   });
 }
 
@@ -173,7 +185,7 @@ export async function POST(request: Request) {
         reason: "Reset security config section to safe defaults",
       });
 
-      return respondSuccess(request, { message: resetConfig.message });
+      return respondSuccess(request, { message: resetConfig.message, location: securitySectionLocation(section) });
     }
 
     if (section === "breadcrumb") {
@@ -450,7 +462,7 @@ export async function POST(request: Request) {
         reason: "Update auth rate-limit settings",
       });
 
-      return respondSuccess(request, { message: "Đã lưu cấu hình bảo mật đăng nhập." });
+      return respondSuccess(request, { message: "Đã lưu cấu hình bảo mật đăng nhập.", location: securitySectionLocation(section) });
     }
 
     if (section === "security_cleanup") {
@@ -470,7 +482,7 @@ export async function POST(request: Request) {
         reason: "Update auth rate-limit cleanup settings",
       });
 
-      return respondSuccess(request, { message: "Đã lưu cấu hình cleanup auth rate-limit." });
+      return respondSuccess(request, { message: "Đã lưu cấu hình cleanup auth rate-limit.", location: securitySectionLocation(section) });
     }
 
     if (section === "security_detection") {
@@ -513,7 +525,7 @@ export async function POST(request: Request) {
         reason: "Update IP detection settings",
       });
 
-      return respondSuccess(request, { message: "Đã lưu cấu hình phát hiện IP bất thường." });
+      return respondSuccess(request, { message: "Đã lưu cấu hình phát hiện IP bất thường.", location: securitySectionLocation(section) });
     }
 
     if (section === "security_headers") {
@@ -523,7 +535,7 @@ export async function POST(request: Request) {
           status: 400,
           error: "invalid_security_headers",
           message: validationError,
-          location: ROUTES.ADMIN.SECURITY_SETTINGS,
+          location: securitySectionLocation(section),
         });
       }
       const current = (await getSystemSettings()).security;
@@ -574,7 +586,7 @@ export async function POST(request: Request) {
         reason: "Update security headers settings",
       });
 
-      return respondSuccess(request, { message: "Đã lưu cấu hình security headers." });
+      return respondSuccess(request, { message: "Đã lưu cấu hình security headers.", location: securitySectionLocation(section) });
     }
 
     if (section === "upload_security") {

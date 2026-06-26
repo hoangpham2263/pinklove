@@ -47,7 +47,16 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.SEO_PAGES)) return "Page SEO";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_SCHEMA)) return "SEO Schema";
   if (pathname.startsWith(ROUTES.ADMIN.SEO_RULES)) return "SEO Rules";
-  if (pathname.startsWith(ROUTES.ADMIN.SECURITY_SETTINGS)) return "Security Settings";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_BREADCRUMBS)) return "Breadcrumbs";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_OPENGRAPH)) return "Open Graph";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS)) return "Sitemap Settings";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_INDEX)) return "Sitemap Index";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO)) return "SEO Management";
+  if (pathname.startsWith(ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS)) return "Auth Rate Limits";
+  if (pathname.startsWith(ROUTES.ADMIN.SECURITY_SETTINGS_CSRF)) return "CSRF Protection";
+  if (pathname.startsWith(ROUTES.ADMIN.SECURITY_SETTINGS_HEADERS)) return "Security Headers";
+  if (pathname.startsWith(ROUTES.ADMIN.SECURITY_SETTINGS_PROXY)) return "Proxy / IP Detection";
   if (pathname.startsWith(ROUTES.ADMIN.SECURITY_LOGS)) return "Security Logs";
   if (pathname.startsWith(ROUTES.ADMIN.SECURITY_BLOCKED_IPS)) return "Blocked IPs";
   if (pathname.startsWith(ROUTES.ADMIN.SECURITY_AUDIT_LOGS)) return "Security Audit Logs";
@@ -59,14 +68,11 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SHIPPING)) return "Shipping";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_ECOMMERCE)) return "Ecommerce Connections";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_THIRD_PARTY)) return "Third-party Sign-in";
-  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS)) return "Sitemap Settings";
-  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SITEMAP_INDEX)) return "Sitemap Index";
-  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEO_REDIRECTS)) return "SEO Redirects";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_SEARCH_DOCUMENTS)) return "Search Documents";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_TEMPLATE_ATTRIBUTES)) return "Template Attributes";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_API_OFFERINGS)) return "Product API Import";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG_INTERNAL_APIS)) return "Internal APIs";
-  if (pathname.startsWith(ROUTES.ADMIN.HOOKS)) return "Hooks";
+  if (pathname.startsWith(ROUTES.ADMIN.CONFIG_HOOKS)) return "Hooks";
   if (pathname.startsWith(ROUTES.ADMIN.CONFIG)) return "Configuration";
   return "Admin";
 }

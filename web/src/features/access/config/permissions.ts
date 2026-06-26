@@ -29,7 +29,7 @@ const rules: PermissionRule[] = [
   { prefixes: [ROUTES.ADMIN.SECURITY_BACKUPS, ROUTES.API.ADMIN.SECURITY.BACKUPS_CREATE.replace(/\/create$/, "")], permission: "security.backups.view" },
   { prefixes: [ROUTES.ADMIN.SECURITY], permission: "security.view" },
   { prefixes: [ROUTES.ADMIN.CONFIG, ROUTES.API.ADMIN.CONFIG.UPDATE.replace(/\/update$/, "")], permission: "configuration.view" },
-  { prefixes: ["/admin/audit-logs", "/admin/global-fields", "/admin/media", "/admin/domain-events", "/admin/notifications", "/admin/hooks", "/admin/seo", "/api/admin/media", "/api/admin/global-fields", "/api/admin/notifications"], permission: "system.view" },
+  { prefixes: ["/admin/audit-logs", "/admin/global-fields", "/admin/media", "/admin/domain-events", "/admin/notifications", "/api/admin/media", "/api/admin/global-fields", "/api/admin/notifications"], permission: "system.view" },
   { prefixes: ["/api/admin/realtime"], permission: "marketplace.view" },
 ];
 

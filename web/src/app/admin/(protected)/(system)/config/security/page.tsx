@@ -8,10 +8,34 @@ import { ROUTES } from "@/lib/routes";
 
 const SECURITY_ITEMS = [
   {
-    key: "security-settings",
-    title: "Security Settings",
-    description: "Configure auth rate limits, CSRF, headers, proxy trust, cleanup, and IP detection.",
-    href: ROUTES.ADMIN.SECURITY_SETTINGS,
+    key: "auth-rate-limits",
+    title: "Auth Rate Limits",
+    description: "Configure login thresholds, view limit records, unlock users, and manage cleanup.",
+    href: ROUTES.ADMIN.SECURITY_SETTINGS_AUTH_RATE_LIMITS,
+    iconName: "radio",
+    permission: "security.view",
+  },
+  {
+    key: "csrf-protection",
+    title: "CSRF Protection",
+    description: "Review auth CSRF status and production enforcement for sensitive forms.",
+    href: ROUTES.ADMIN.SECURITY_SETTINGS_CSRF,
+    iconName: "settings",
+    permission: "security.view",
+  },
+  {
+    key: "security-headers",
+    title: "Security Headers",
+    description: "Configure CSP, HSTS, frame protection, nosniff, referrer, and permissions headers.",
+    href: ROUTES.ADMIN.SECURITY_SETTINGS_HEADERS,
+    iconName: "settings",
+    permission: "security.view",
+  },
+  {
+    key: "proxy-ip-detection",
+    title: "Proxy / IP Detection",
+    description: "Review trusted IP headers and configure suspicious IP detection rules.",
+    href: ROUTES.ADMIN.SECURITY_SETTINGS_PROXY,
     iconName: "settings",
     permission: "security.view",
   },

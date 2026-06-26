@@ -444,7 +444,7 @@ async function ensureAdminRbacMigration() {
    ('messages.view','Xem Messages','Truy cập tin nhắn.','messages',150),
    ('comments.view','Xem Comments','Truy cập bình luận.','comments',160),
    ('security.view','Xem Security','Truy cập nhóm cấu hình bảo mật trong admin/config.','security',170),
-   ('security.settings.edit','Sửa Security Settings','Chỉnh rate-limit, headers, upload security và endpoint protection.','security',180),
+   ('security.settings.edit','Sửa cấu hình bảo mật','Chỉnh rate-limit, headers, upload security và endpoint protection.','security',180),
    ('security.logs.view','Xem Security Logs','Xem security events và security audit logs.','security',190),
    ('security.logs.export','Export Security Logs','Xuất CSV security events và audit logs.','security',200),
    ('security.rate_limits.manage','Quản lý Rate-limit','Mở khóa rate-limit và cleanup auth rate limits.','security',210),
