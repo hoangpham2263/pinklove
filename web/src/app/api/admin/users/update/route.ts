@@ -3,6 +3,7 @@ import { parseUserRole, type UserRole } from "@/lib/roles";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { assignAdminRole } from "@/features/access/server/service";
+import { recordSecurityAuditLog } from "@/lib/security-audit-logs";
 
 export const runtime ="nodejs";
 
@@ -47,8 +48,9 @@ export async function POST(request: Request) {
  }
 
  try {
+ const beforeAccount = await getUserAccount(userId);
  if (actor.id !== userId) {
-  const nextRole = data.role ?? (await getUserAccount(userId))?.role;
+  const nextRole = data.role ?? beforeAccount?.role;
   await assignAdminRole(userId, nextRole === "ADMIN" ? adminRoleId : null, actor.id);
  }
  // Update account basic info after RBAC guards protect the final Super Admin.
@@ -70,6 +72,47 @@ export async function POST(request: Request) {
   if (existing && (existing.accountStatus !== nextStatusInput || (existing.accountStatusReason ?? "") !== statusReason)) {
    await adminSetProviderAccountStatus(actor.id, userId, nextStatusInput, statusReason);
   }
+ }
+
+ const afterAccount = await getUserAccount(userId);
+
+ if (beforeAccount && afterAccount && beforeAccount.role !== afterAccount.role) {
+  await recordSecurityAuditLog({
+   request,
+   adminUserId: actor.id,
+   action: "user.role_change",
+   targetType: "user",
+   targetId: userId,
+   before: { role: beforeAccount.role, adminRoleId: beforeAccount.adminRoleId },
+   after: { role: afterAccount.role, adminRoleId: afterAccount.adminRoleId },
+   reason: statusReason,
+  });
+ }
+
+ if (beforeAccount && afterAccount && beforeAccount.accountStatus !== afterAccount.accountStatus) {
+  await recordSecurityAuditLog({
+   request,
+   adminUserId: actor.id,
+   action: afterAccount.accountStatus === "active" ? "user.unblock" : "user.block",
+   targetType: "user",
+   targetId: userId,
+   before: { accountStatus: beforeAccount.accountStatus, accountStatusReason: beforeAccount.accountStatusReason },
+   after: { accountStatus: afterAccount.accountStatus, accountStatusReason: afterAccount.accountStatusReason },
+   reason: statusReason,
+  });
+ }
+
+ if (password) {
+  await recordSecurityAuditLog({
+   request,
+   adminUserId: actor.id,
+   action: "user.reset_password",
+   targetType: "user",
+   targetId: userId,
+   before: { passwordHash: "redacted" },
+   after: { passwordHash: "redacted" },
+   reason: statusReason || "Admin reset password",
+  });
  }
  
  return respondSuccess(request, { message: "Đã cập nhật tài khoản.", location: returnLocation });

@@ -2,6 +2,7 @@ import { NextResponse } from"next/server";
 import { ROUTES } from "@/lib/routes";
 import { AuthCsrfError, verifyAuthCsrfToken } from "@/lib/auth-csrf";
 import { AuthRateLimitError, checkAuthRateLimit, getRequestIp, recordAuthRateLimit, resetAuthRateLimit } from "@/lib/auth-rate-limit";
+import { recordSecurityEvent } from "@/lib/security-events";
 
 import {
  authenticateUserByEmail,
@@ -36,6 +37,13 @@ export async function POST(request: Request) {
  const returnTo = returnToInput ? sanitizeReturnTo(returnToInput) : ROUTES.CUSTOMER.DASHBOARD;
 
  if (!email || !password) {
+ await recordSecurityEvent({
+  request,
+  eventType: "login_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { scope: "public", reason: "missing_fields" },
+ });
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("missing_fields", returnToInput || undefined) } });
  }
 
@@ -50,17 +58,39 @@ export async function POST(request: Request) {
  if (!user) {
  await recordAuthRateLimit("login:ip", requestIp);
  await recordAuthRateLimit("login:email", email);
+ await recordSecurityEvent({
+  request,
+  eventType: "login_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { scope: "public", reason: "invalid_credentials" },
+ });
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  if (!canAccessUserPortal(user.role)) {
  await recordAuthRateLimit("login:ip", requestIp);
  await recordAuthRateLimit("login:email", email);
+ await recordSecurityEvent({
+  request,
+  eventType: "login_failed",
+  severity: "warn",
+  status: 303,
+  userId: user.id,
+  metadata: { scope: "public", reason: "role_denied" },
+ });
  return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  await resetAuthRateLimit("login:email", email);
  await resetAuthRateLimit("login:ip", requestIp);
+ await recordSecurityEvent({
+  request,
+  eventType: "login_success",
+  status: 303,
+  userId: user.id,
+  metadata: { scope: "public" },
+ });
 
  const token = await createSession(user.id);
  const target = returnTo;
@@ -69,10 +99,24 @@ export async function POST(request: Request) {
  return response;
  } catch (error) {
  if (error instanceof AuthCsrfError) {
+  await recordSecurityEvent({
+   request,
+   eventType: "csrf_failed",
+   severity: "warn",
+   status: 303,
+   metadata: { scope: "login" },
+  });
   return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("invalid_credentials", returnToInput || undefined) } });
  }
 
  if (error instanceof AuthRateLimitError) {
+  await recordSecurityEvent({
+   request,
+   eventType: "rate_limited",
+   severity: "warn",
+   status: 303,
+   metadata: { scope: "public_login" },
+  });
   return new NextResponse(null, { status: 303, headers: { Location: buildLoginLocation("rate_limited", returnToInput || undefined) } });
  }
 

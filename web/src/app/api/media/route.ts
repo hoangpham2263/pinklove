@@ -8,6 +8,14 @@ import {
  saveUploadedMedia,
 } from"@/features/media/server/media-store";
 import { getCurrentUserFromRequest } from"@/lib/auth";
+import {
+ endpointProtectionResponse,
+ enforceEndpointProtection,
+ getEndpointPageSizeLimit,
+ recordSlowEndpoint,
+} from "@/lib/endpoint-protection";
+import { recordSecurityEvent } from "@/lib/security-events";
+import { assertUploadBatchAllowed, UploadSecurityError } from "@/lib/upload-security";
 
 export const runtime ="nodejs";
 export const dynamic ="force-dynamic";
@@ -21,20 +29,31 @@ function normalizePositiveInteger(value:string | null, fallback:number) {
 }
 
 export async function GET(request: Request) {
+ const startedAt = Date.now();
  const user = await getCurrentUserFromRequest(request);
  if (!user) {
  return NextResponse.json({ message:"Unauthorized" }, { status: 401 });
  }
 
+ const decision = await enforceEndpointProtection({
+  request,
+  endpointKey: "media:list",
+  userId: user.id,
+ });
+ if (!decision.allowed) return endpointProtectionResponse(decision);
+
  const { searchParams } = new URL(request.url);
  const url = searchParams.get("url");
  const page = normalizePositiveInteger(searchParams.get("page"), 1);
  const requestedLimit = normalizePositiveInteger(searchParams.get("limit"), DEFAULT_MEDIA_LIMIT);
- const limit = Math.min(requestedLimit, MAX_MEDIA_LIMIT);
+ const configuredLimit = await getEndpointPageSizeLimit();
+ const limit = Math.min(requestedLimit, MAX_MEDIA_LIMIT, configuredLimit);
 
  if (url) {
  const item = await findMediaAssetByUrl(url);
- return NextResponse.json({ item });
+ const response = NextResponse.json({ item });
+ await recordSlowEndpoint({ request, endpointKey: "media:list", durationMs: Date.now() - startedAt, status: response.status, userId: user.id });
+ return response;
  }
 
  const total = await countMediaAssets();
@@ -42,14 +61,24 @@ export async function GET(request: Request) {
  const normalizedPage = Math.min(page, totalPages);
  const pagedItems = await listMediaAssets({ page:normalizedPage, limit });
 
- return NextResponse.json({ items: pagedItems, total, page: normalizedPage, limit });
+ const response = NextResponse.json({ items: pagedItems, total, page: normalizedPage, limit });
+ await recordSlowEndpoint({ request, endpointKey: "media:list", durationMs: Date.now() - startedAt, status: response.status, userId: user.id });
+ return response;
 }
 
 export async function POST(request: Request) {
+ const startedAt = Date.now();
  const user = await getCurrentUserFromRequest(request);
  if (!user) {
  return NextResponse.json({ message:"Unauthorized" }, { status: 401 });
  }
+
+ const decision = await enforceEndpointProtection({
+  request,
+  endpointKey: "media:upload",
+  userId: user.id,
+ });
+ if (!decision.allowed) return endpointProtectionResponse(decision);
 
  const formData = await request.formData();
  const file = formData.get("file");
@@ -59,12 +88,37 @@ export async function POST(request: Request) {
  }
 
  try {
+ const files = [file];
+ await assertUploadBatchAllowed(files);
  const item = await saveUploadedMedia(file);
- return NextResponse.json({ item }, { status: 201 });
+ const response = NextResponse.json({ item }, { status: 201 });
+ await recordSlowEndpoint({ request, endpointKey: "media:upload", durationMs: Date.now() - startedAt, status: response.status, userId: user.id });
+ return response;
  } catch (error) {
- const message =
-  error instanceof Error ? error.message :"Failed to upload media.";
- return NextResponse.json({ message }, { status: 400 });
+ if (error instanceof UploadSecurityError) {
+  await recordSecurityEvent({
+   request,
+   eventType: "upload_rejected",
+   severity: "warn",
+   status: 400,
+   userId: user.id,
+   metadata: {
+    reason: error.reason,
+    fileNameLength: file.name.length,
+    fileSize: file.size,
+    fileType: file.type,
+    ...error.metadata,
+   },
+  }).catch(() => undefined);
+
+  const response = NextResponse.json({ message: error.message, reason: error.reason }, { status: 400 });
+  await recordSlowEndpoint({ request, endpointKey: "media:upload", durationMs: Date.now() - startedAt, status: response.status, userId: user.id });
+  return response;
+ }
+
+ const response = NextResponse.json({ message:"Failed to upload media." }, { status: 400 });
+ await recordSlowEndpoint({ request, endpointKey: "media:upload", durationMs: Date.now() - startedAt, status: response.status, userId: user.id });
+ return response;
  }
 }
 

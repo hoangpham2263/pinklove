@@ -73,6 +73,16 @@ Development note:
 - `./web/setup logs`: stream database logs
 - `./web/setup help`: show all supported commands
 
+## Backup / Restore
+
+- Admin backup status lives at `/admin/config/backups`.
+- Backup packages include a PostgreSQL custom dump, `public/uploads`, a manifest, and a `.sha256` checksum.
+- Set `BACKUP_ENCRYPTION_KEY` in production to store application-encrypted `.tar.gz.enc` packages, or use encrypted-at-rest storage and set `BACKUP_STORAGE_ENCRYPTION_AT_REST=true`.
+- To run scheduled backups, enable `BACKUP_CRON_ENABLED=true` and have an external scheduler POST `/api/admin/config/backups/cron` with the `x-internal-api-key` header.
+- Before restore, use the admin integrity check; restore requires a valid checksum and explicit `RESTORE` confirmation.
+- Restore process: restore DB package, restore uploads, run migrations/build checks, then verify login, admin access, checkout/order and media display.
+- Do not put backup credentials, bucket paths, long-lived signed URLs, or raw secrets in admin-visible labels or logs.
+
 ## Repo Layout
 
 - `web/`: Next.js application

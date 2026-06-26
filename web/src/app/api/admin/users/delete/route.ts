@@ -1,6 +1,7 @@
-import { adminDeleteAccount, getCurrentUserFromRequest, isAdminRole } from"@/lib/auth";
+import { adminDeleteAccount, getCurrentUserFromRequest, getUserAccount, isAdminRole } from"@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { recordSecurityAuditLog } from "@/lib/security-audit-logs";
 
 export const runtime ="nodejs";
 
@@ -22,7 +23,18 @@ export async function POST(request: Request) {
  }
 
  try {
+ const beforeAccount = await getUserAccount(userId);
  await adminDeleteAccount(actor.id, userId);
+ await recordSecurityAuditLog({
+  request,
+  adminUserId: actor.id,
+  action: "user.delete",
+  targetType: "user",
+  targetId: userId,
+  before: beforeAccount,
+  after: null,
+  reason: "Admin delete account",
+ });
  return respondSuccess(request, { location: returnTo, message: "Đã xóa tài khoản." });
  } catch (error) {
  const message = error instanceof Error ? error.message :"";

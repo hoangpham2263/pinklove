@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "audit:schema": "node scripts/audit-schema.mjs",
+    "smoke:security": "node scripts/smoke-security.mjs",
     "seed:data": "npm run seed:offerings && npm run seed:website:no-users && npm run seed:comments",
     "seed:offerings": "node scripts/seed-offering-catalog.mjs",
     "seed:comments": "node scripts/seed-comments-demo.mjs",

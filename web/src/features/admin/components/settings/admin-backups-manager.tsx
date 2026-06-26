@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArchiveRestore, Loader2, Trash2, Upload } from "lucide-react";
+import { ArchiveRestore, CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AdminCancelButton, AdminCreateButton, AdminDeleteButton, AdminOutlineButton } from "@/features/admin/components/admin-buttons";
 import { AdminTableActionButton, AdminTableActions } from "@/features/admin/components/admin-table-actions";
@@ -15,7 +15,6 @@ import { ROUTES } from "@/lib/routes";
 
 type AdminBackupsManagerProps = {
   packages: AdminBackupPackage[];
-  directory: string;
 };
 
 type ProcessState = {
@@ -40,6 +39,10 @@ const processCopy: Record<string, Omit<ProcessState, "action">> = {
   delete: {
     title: "Deleting backup",
     description: "Đang xoá package khỏi thư viện backup.",
+  },
+  check: {
+    title: "Checking backup",
+    description: "Đang kiểm tra checksum package trước khi restore.",
   },
 };
 
@@ -78,7 +81,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-export function AdminBackupsManager({ packages, directory }: AdminBackupsManagerProps) {
+export function AdminBackupsManager({ packages }: AdminBackupsManagerProps) {
   const router = useRouter();
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const actionLockRef = useRef(false);
@@ -164,7 +167,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
     await runAction(
       "upload",
       () =>
-        fetch(ROUTES.API.ADMIN.CONFIG.BACKUPS_UPLOAD, {
+        fetch(ROUTES.API.ADMIN.SECURITY.BACKUPS_UPLOAD, {
           method: "POST",
           body: formData,
         }),
@@ -182,7 +185,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
     await runAction(
       "restore",
       () =>
-        fetch(ROUTES.API.ADMIN.CONFIG.BACKUPS_RESTORE, {
+        fetch(ROUTES.API.ADMIN.SECURITY.BACKUPS_RESTORE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: restorePackage.name, confirmation: restoreConfirm }),
@@ -202,7 +205,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
     await runAction(
       `delete:${packageName}`,
       () =>
-        fetch(ROUTES.API.ADMIN.CONFIG.BACKUPS_DELETE, {
+        fetch(ROUTES.API.ADMIN.SECURITY.BACKUPS_DELETE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: packageName }),
@@ -211,6 +214,19 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
     );
 
     setDeletePackage(null);
+  }
+
+  async function handleCheck(item: AdminBackupPackage) {
+    await runAction(
+      `check:${item.name}`,
+      () =>
+        fetch(ROUTES.API.ADMIN.SECURITY.BACKUPS_CHECK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: item.name }),
+        }),
+      "Backup checksum hợp lệ."
+    );
   }
 
   return (
@@ -222,7 +238,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
             <Input
               ref={uploadInputRef}
               type="file"
-              accept=".tar.gz,application/gzip,application/x-gzip"
+              accept=".tar.gz,.tar.gz.enc,application/gzip,application/x-gzip"
               className="hidden"
               onChange={(event) => void handleUpload(event.target.files?.[0])}
             />
@@ -238,7 +254,7 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
               onClick={() =>
                 void runAction(
                   "create",
-                  () => fetch(ROUTES.API.ADMIN.CONFIG.BACKUPS_CREATE, { method: "POST" }),
+                  () => fetch(ROUTES.API.ADMIN.SECURITY.BACKUPS_CREATE, { method: "POST" }),
                   "Đã tạo backup."
                 )
               }
@@ -251,11 +267,11 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
           {packages.length > 0 ? (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Package</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableRow>
+                    <TableHead>Package</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -264,20 +280,32 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
                   <TableRow key={item.name}>
                     <TableCell>
                       <div className="font-medium text-foreground">{item.name}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">{directory}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {item.encrypted ? "Application encrypted package" : "Local backup package"}
+                      </div>
                     </TableCell>
                     <TableCell>{formatDate(item.createdAt)}</TableCell>
                     <TableCell>{formatBytes(item.size)}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-2 rounded-lg border bg-white px-2.5 py-1 text-xs">
-                        {item.checksum ? "Checksum ready" : "No checksum"}
+                        {item.integrityStatus === "ready"
+                          ? "Checksum ready"
+                          : item.integrityStatus === "failed"
+                            ? "Checksum failed"
+                            : "No checksum"}
                       </span>
                     </TableCell>
                     <TableCell>
                       <AdminTableActions>
                         <AdminTableActionButton
+                          action="view"
+                          label={`Check ${item.name}`}
+                          disabled={isBusy || pendingAction === `check:${item.name}`}
+                          onClick={() => void handleCheck(item)}
+                        />
+                        <AdminTableActionButton
                           action="download"
-                          href={ROUTES.API.ADMIN.CONFIG.BACKUPS_DOWNLOAD(item.name)}
+                          href={ROUTES.API.ADMIN.SECURITY.BACKUPS_DOWNLOAD(item.name)}
                           label={`Download ${item.name}`}
                         />
                         <AdminTableActionButton
@@ -299,9 +327,22 @@ export function AdminBackupsManager({ packages, directory }: AdminBackupsManager
             </Table>
           ) : (
             <div className="rounded-b-lg border-dashed px-4 py-10 text-center text-muted-foreground">
-              Chưa có backup package. Tạo backup mới hoặc upload file `.tar.gz` đã tải về trước đó.
+              Chưa có backup package. Tạo backup mới hoặc upload file `.tar.gz` / `.tar.gz.enc` đã tải về trước đó.
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <CheckCircle2 className="h-4 w-4" />
+            Safe Metadata
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Backup UI chỉ hiển thị tên package, thời gian, dung lượng, trạng thái checksum và trạng thái mã hóa. Full server
+          path, secret, credential, signed URL dài hạn và nội dung backup không được render trong admin.
         </CardContent>
       </Card>
 

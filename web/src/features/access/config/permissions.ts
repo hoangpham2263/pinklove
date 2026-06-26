@@ -1,3 +1,5 @@
+import { ROUTES } from "@/lib/routes";
+
 type PermissionRule = {
   prefixes: string[];
   permission: string;
@@ -19,7 +21,14 @@ const rules: PermissionRule[] = [
   { prefixes: ["/admin/comments", "/api/admin/comments"], permission: "comments.view" },
   { prefixes: ["/admin/communication"], permission: "dashboard.view" },
   { prefixes: ["/admin/analytics"], permission: "analytics.view" },
-  { prefixes: ["/admin/config", "/api/admin/config"], permission: "configuration.view" },
+  { prefixes: [ROUTES.API.ADMIN.SECURITY.EVENTS_EXPORT, ROUTES.API.ADMIN.SECURITY.AUDIT_LOGS_EXPORT], permission: "security.logs.export" },
+  { prefixes: [ROUTES.ADMIN.SECURITY_LOGS, ROUTES.API.ADMIN.SECURITY.EVENTS_EXPORT.replace(/\/export$/, "")], permission: "security.logs.view" },
+  { prefixes: [ROUTES.ADMIN.SECURITY_AUDIT_LOGS, ROUTES.API.ADMIN.SECURITY.AUDIT_LOGS_EXPORT.replace(/\/export$/, "")], permission: "security.logs.view" },
+  { prefixes: [ROUTES.ADMIN.SECURITY_BLOCKED_IPS, ROUTES.API.ADMIN.SECURITY.BLOCKED_IPS_ACTION.replace(/\/action$/, "")], permission: "security.ip_blocks.manage" },
+  { prefixes: [ROUTES.API.ADMIN.SECURITY.AUTH_RATE_LIMIT_ACTION.replace(/\/action$/, "")], permission: "security.rate_limits.manage" },
+  { prefixes: [ROUTES.ADMIN.SECURITY_BACKUPS, ROUTES.API.ADMIN.SECURITY.BACKUPS_CREATE.replace(/\/create$/, "")], permission: "security.backups.view" },
+  { prefixes: [ROUTES.ADMIN.SECURITY], permission: "security.view" },
+  { prefixes: [ROUTES.ADMIN.CONFIG, ROUTES.API.ADMIN.CONFIG.UPDATE.replace(/\/update$/, "")], permission: "configuration.view" },
   { prefixes: ["/admin/audit-logs", "/admin/global-fields", "/admin/media", "/admin/domain-events", "/admin/notifications", "/admin/hooks", "/admin/seo", "/api/admin/media", "/api/admin/global-fields", "/api/admin/notifications"], permission: "system.view" },
   { prefixes: ["/api/admin/realtime"], permission: "marketplace.view" },
 ];

@@ -40,6 +40,9 @@ const globalForDb = globalThis as unknown as {
   adsTablesMigrationDone?: boolean;
   contentCommentsMigrationDone?: boolean;
   authRateLimitsMigrationDone?: boolean;
+  securityEventsMigrationDone?: boolean;
+  blockedIpsMigrationDone?: boolean;
+  securityAuditLogsMigrationDone?: boolean;
 	  mediaTablesMigrationDone?: boolean;
 	  managedPagesMigrationDone?: boolean;
 	  managedPagesMigrationPromise?: Promise<void>;
@@ -439,7 +442,14 @@ async function ensureAdminRbacMigration() {
    ('analytics.view','Xem Analytics','Truy cập Analytics.','analytics',130),
    ('configuration.view','Xem Configuration','Truy cập cấu hình hệ thống.','configuration',140),
    ('messages.view','Xem Messages','Truy cập tin nhắn.','messages',150),
-   ('comments.view','Xem Comments','Truy cập bình luận.','comments',160)
+   ('comments.view','Xem Comments','Truy cập bình luận.','comments',160),
+   ('security.view','Xem Security','Truy cập nhóm cấu hình bảo mật trong admin/config.','security',170),
+   ('security.settings.edit','Sửa Security Settings','Chỉnh rate-limit, headers, upload security và endpoint protection.','security',180),
+   ('security.logs.view','Xem Security Logs','Xem security events và security audit logs.','security',190),
+   ('security.logs.export','Export Security Logs','Xuất CSV security events và audit logs.','security',200),
+   ('security.rate_limits.manage','Quản lý Rate-limit','Mở khóa rate-limit và cleanup auth rate limits.','security',210),
+   ('security.ip_blocks.manage','Quản lý Blocked IPs','Block, unblock, import và gia hạn IP/subnet.','security',220),
+   ('security.backups.view','Xem Backup Security','Xem trạng thái backup/restore và integrity metadata an toàn.','security',230)
   ON CONFLICT (key) DO UPDATE
   SET label=EXCLUDED.label,description=EXCLUDED.description,module=EXCLUDED.module,sort_order=EXCLUDED.sort_order;
 
@@ -650,6 +660,121 @@ async function ensureAuthRateLimitsMigration() {
  await pool.query(`
  CREATE INDEX IF NOT EXISTS auth_rate_limits_expires_at_idx
  ON auth_rate_limits(expires_at);
+ `);
+}
+
+async function ensureSecurityEventsMigration() {
+ const pool = getPool();
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS security_events (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  event_type TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'info',
+  ip TEXT NOT NULL DEFAULT 'unknown',
+  user_agent TEXT,
+  path TEXT NOT NULL,
+  method TEXT NOT NULL,
+  status INT,
+  referer TEXT,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_events_created_at_idx
+ ON security_events(created_at DESC);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_events_ip_idx
+ ON security_events(ip);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_events_event_type_idx
+ ON security_events(event_type);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_events_user_id_idx
+ ON security_events(user_id);
+ `);
+}
+
+async function ensureBlockedIpsMigration() {
+ const pool = getPool();
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS blocked_ips (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  ip_or_cidr TEXT NOT NULL,
+  reason TEXT NOT NULL DEFAULT '',
+  expires_at TIMESTAMPTZ,
+  created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  revoked_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  revoked_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS blocked_ips_ip_or_cidr_idx
+ ON blocked_ips(ip_or_cidr);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS blocked_ips_expires_at_idx
+ ON blocked_ips(expires_at);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS blocked_ips_active_idx
+ ON blocked_ips(created_at DESC)
+ WHERE revoked_at IS NULL;
+ `);
+}
+
+async function ensureSecurityAuditLogsMigration() {
+ const pool = getPool();
+
+ await pool.query(`
+ CREATE TABLE IF NOT EXISTS security_audit_logs (
+  id TEXT PRIMARY KEY DEFAULT app_random_id(),
+  admin_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  before_value JSONB,
+  after_value JSONB,
+  reason TEXT NOT NULL DEFAULT '',
+  ip TEXT NOT NULL DEFAULT 'unknown',
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ );
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_audit_logs_created_at_idx
+ ON security_audit_logs(created_at DESC);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_audit_logs_admin_user_id_idx
+ ON security_audit_logs(admin_user_id);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_audit_logs_action_idx
+ ON security_audit_logs(action);
+ `);
+
+ await pool.query(`
+ CREATE INDEX IF NOT EXISTS security_audit_logs_target_idx
+ ON security_audit_logs(target_type, target_id);
  `);
 }
 
@@ -5529,6 +5654,21 @@ export async function ensureDb() {
       if (!globalForDb.authRateLimitsMigrationDone) {
         await ensureAuthRateLimitsMigration();
         globalForDb.authRateLimitsMigrationDone = true;
+      }
+
+      if (!globalForDb.securityEventsMigrationDone) {
+        await ensureSecurityEventsMigration();
+        globalForDb.securityEventsMigrationDone = true;
+      }
+
+      if (!globalForDb.blockedIpsMigrationDone) {
+        await ensureBlockedIpsMigration();
+        globalForDb.blockedIpsMigrationDone = true;
+      }
+
+      if (!globalForDb.securityAuditLogsMigrationDone) {
+        await ensureSecurityAuditLogsMigration();
+        globalForDb.securityAuditLogsMigrationDone = true;
       }
 
       if (!globalForDb.userAddressesMigrationDone) {

@@ -17,17 +17,19 @@ type ConfigHubItem = {
   title: string;
   description: string;
   href: string;
+  permission?: string;
 };
 
 type ConfigHubSection = {
   title: string;
-  icon: "settings" | "link" | "globe" | "docs";
+  icon: "settings" | "link" | "globe" | "docs" | "shield";
   items: readonly ConfigHubItem[];
 };
 
 type ConfigSectionsHubProps = {
   sections: readonly ConfigHubSection[];
   scopeLabel?: string;
+  permissionKeys?: string[];
 };
 
 const iconMap: Record<ConfigHubSection["icon"], LucideIcon> = {
@@ -35,29 +37,31 @@ const iconMap: Record<ConfigHubSection["icon"], LucideIcon> = {
   link: Link2,
   globe: Globe,
   docs: BookOpenText,
+  shield: ShieldCheck,
 };
 
 export function ConfigSectionsHub({
   sections,
-  scopeLabel = "Quản lý tập trung cho toàn bộ cấu hình hệ thống",
+  scopeLabel = "Centralized management for all system configuration",
+  permissionKeys,
 }: ConfigSectionsHubProps) {
   const [keyword, setKeyword] = useState("");
 
   const filteredSections = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
-    if (!normalizedKeyword) {
-      return sections;
-    }
+    const canAccess = (item: ConfigHubItem) => !permissionKeys || !item.permission || permissionKeys.includes(item.permission);
 
     return sections
       .map((section) => ({
         ...section,
-        items: section.items.filter((item) =>
-          [item.title, item.description].some((value) => value.toLowerCase().includes(normalizedKeyword))
-        ),
+        items: section.items.filter((item) => {
+          if (!canAccess(item)) return false;
+          if (!normalizedKeyword) return true;
+          return [item.title, item.description].some((value) => value.toLowerCase().includes(normalizedKeyword));
+        }),
       }))
       .filter((section) => section.items.length > 0);
-  }, [keyword, sections]);
+  }, [keyword, permissionKeys, sections]);
 
   return (
     <div className="space-y-5">
@@ -67,7 +71,7 @@ export function ConfigSectionsHub({
           <Input
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            placeholder="Tìm kiếm cấu hình hoặc tài liệu..."
+            placeholder="Search configuration or documentation..."
             className="h-9 bg-white pl-9"
           />
         </div>
@@ -111,7 +115,7 @@ export function ConfigSectionsHub({
         {filteredSections.length === 0 ? (
           <div className="lg:col-span-3">
             <div className="rounded-lg border border-dashed px-4 py-10 text-center text-muted-foreground">
-              Không tìm thấy mục cấu hình hoặc tài liệu phù hợp.
+              No matching configuration or documentation items found.
             </div>
           </div>
         ) : null}

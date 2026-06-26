@@ -4,6 +4,7 @@ import type { BlogPost } from "@/features/blog/types";
 import { listPublishedBlogPosts } from "@/features/blog/server/service";
 import type { Offering } from "@/features/offerings/types";
 import { listPublishedOfferings } from "@/features/offerings/server/service";
+import { getEndpointCacheTtlSeconds, getEndpointSearchResultLimit } from "@/lib/endpoint-protection";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { listManagedPages } from "@/lib/managed-pages";
 
@@ -29,6 +30,17 @@ function matchesSearchTerm(term: string, candidates: Array<string | undefined>) 
   return candidates.some((candidate) => normalizeSearchValue(candidate ?? "").includes(term));
 }
 
+const globalForGuestSearch = globalThis as typeof globalThis & {
+  guestSearchCache?: Map<string, { expiresAt: number; value: GuestSearchResult }>;
+};
+
+function getGuestSearchCache() {
+  if (!globalForGuestSearch.guestSearchCache) {
+    globalForGuestSearch.guestSearchCache = new Map();
+  }
+  return globalForGuestSearch.guestSearchCache;
+}
+
 export async function searchGuestContent(rawQuery: string): Promise<GuestSearchResult> {
   const query = normalizeSearchValue(rawQuery);
 
@@ -40,13 +52,24 @@ export async function searchGuestContent(rawQuery: string): Promise<GuestSearchR
     };
   }
 
+  const [cacheTtlSeconds, maxResultsPerGroup] = await Promise.all([
+    getEndpointCacheTtlSeconds("search"),
+    getEndpointSearchResultLimit(),
+  ]);
+  const cache = getGuestSearchCache();
+  const cacheKey = query;
+  const cached = cache.get(cacheKey);
+  if (cacheTtlSeconds > 0 && cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
   const [offerings, posts, pages] = await Promise.all([
     listPublishedOfferings(),
     listPublishedBlogPosts(),
     listManagedPages(),
   ]);
 
-  return {
+  const result = {
     offerings: offerings.filter((offering) =>
       matchesSearchTerm(query, [
         offering.name,
@@ -55,7 +78,7 @@ export async function searchGuestContent(rawQuery: string): Promise<GuestSearchR
         offering.templateKey,
         offering.offeringType,
       ])
-    ),
+    ).slice(0, maxResultsPerGroup),
     posts: posts.filter((post) =>
       matchesSearchTerm(query, [
         post.title,
@@ -63,7 +86,7 @@ export async function searchGuestContent(rawQuery: string): Promise<GuestSearchR
         post.content,
         post.categoryName,
       ])
-    ),
+    ).slice(0, maxResultsPerGroup),
     pages: pages
       .filter((page) => page.status === "published" && !["home", "login", "register"].includes(page.slug))
       .filter((page) =>
@@ -73,6 +96,16 @@ export async function searchGuestContent(rawQuery: string): Promise<GuestSearchR
           page.excerpt,
           page.body,
         ])
-      ),
+      )
+      .slice(0, maxResultsPerGroup),
   };
+
+  if (cacheTtlSeconds > 0) {
+    cache.set(cacheKey, {
+      expiresAt: Date.now() + cacheTtlSeconds * 1000,
+      value: result,
+    });
+  }
+
+  return result;
 }

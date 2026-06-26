@@ -1,42 +1,39 @@
 import { ConfigSectionsHub } from "@/features/admin/components/settings/config-sections-hub";
+import { getAdminPathPermission } from "@/features/access/config/permissions";
+import { getAdminAccessContext } from "@/features/access/server/service";
 import { requireAdmin } from "@/lib/auth";
 import { ROUTES } from "@/lib/routes";
 
 const CONFIG_SECTIONS = [
   {
-    title: "Nhận diện & giao diện",
+    title: "Branding & Appearance",
     icon: "settings" as const,
     items: [
       {
         title: "Branding",
-        description: "Quản lý tên site, logo và các icon nhận diện hiển thị trên toàn website.",
+        description: "Manage the site name, logo, and identity icons shown across the website.",
         href: ROUTES.ADMIN.CONFIG_BRANDING,
       },
       {
-        title: "Thông báo",
-        description: "Quản lý thông báo toàn site hiển thị dùng chung cho người dùng.",
+        title: "Notifications",
+        description: "Manage site-wide notifications shared across the user experience.",
         href: ROUTES.ADMIN.NOTIFICATIONS,
       },
     ],
   },
   {
-    title: "Giao tiếp & đăng nhập",
+    title: "Communication & Sign-in",
     icon: "globe" as const,
     items: [
       {
         title: "Email",
-        description: "Cấu hình sender, SMTP transport và card gửi demo cho email dùng chung toàn hệ thống.",
+        description: "Configure sender details, SMTP transport, and demo email cards for system-wide email.",
         href: ROUTES.ADMIN.CONFIG_EMAIL,
       },
       {
-        title: "Đăng nhập bên thứ 3",
-        description: "Cấu hình OAuth và các nhà cung cấp đăng nhập ngoài như Google.",
+        title: "Third-party Sign-in",
+        description: "Configure OAuth and external sign-in providers such as Google.",
         href: ROUTES.ADMIN.CONFIG_THIRD_PARTY,
-      },
-      {
-        title: "Bảo mật đăng nhập",
-        description: "Cấu hình rate-limit cho public login để chặn brute-force trước khi verify mật khẩu.",
-        href: ROUTES.ADMIN.CONFIG_SECURITY,
       },
     ],
   },
@@ -46,69 +43,69 @@ const CONFIG_SECTIONS = [
     items: [
       {
         title: "Breadcrumbs",
-        description: "Thiết lập breadcrumb UI và breadcrumb schema cho toàn website.",
+        description: "Configure breadcrumb UI and breadcrumb schema across the website.",
         href: ROUTES.ADMIN.CONFIG_BREADCRUMBS,
       },
       {
         title: "Open Graph",
-        description: "Quản lý metadata social preview và ảnh mặc định khi share link.",
+        description: "Manage social preview metadata and default images for shared links.",
         href: ROUTES.ADMIN.CONFIG_OPENGRAPH,
       },
       {
         title: "Sitemap Index",
-        description: "Xem realtime sitemap.xml, các sitemap con và số URL đang được xuất.",
+        description: "View the live sitemap.xml, child sitemaps, and the number of exported URLs.",
         href: ROUTES.ADMIN.CONFIG_SITEMAP_INDEX,
       },
       {
         title: "Sitemap Settings",
-        description: "Cấu hình sitemap groups, robots.txt và quyền index của website.",
+        description: "Configure sitemap groups, robots.txt, and website indexing rules.",
         href: ROUTES.ADMIN.CONFIG_SITEMAP_SETTINGS,
       },
       {
         title: "SEO Redirects",
-        description: "Quản lý chuyển hướng SEO có chủ đích, độc lập với route và slug trong source code.",
+        description: "Manage intentional SEO redirects independently from source-code routes and slugs.",
         href: ROUTES.ADMIN.CONFIG_SEO_REDIRECTS,
       },
     ],
   },
   {
-    title: "Tài liệu SEO",
+    title: "SEO Documentation",
     icon: "docs" as const,
     items: [
       {
         title: "Page SEO",
-        description: "Hướng dẫn nhập title, description, canonical, OG image và metadata cho từng page.",
+        description: "Guidance for entering titles, descriptions, canonicals, OG images, and metadata for each page.",
         href: ROUTES.ADMIN.SEO_PAGES,
       },
       {
         title: "SEO Schema",
-        description: "Tài liệu về structured data, breadcrumb schema và cách map dữ liệu theo page type.",
+        description: "Documentation for structured data, breadcrumb schema, and page-type data mapping.",
         href: ROUTES.ADMIN.SEO_SCHEMA,
       },
       {
         title: "SEO Rules",
-        description: "Quy tắc vận hành nội dung SEO để hạn chế trùng intent và giữ index ổn định.",
+        description: "SEO content operating rules that reduce intent overlap and keep indexing stable.",
         href: ROUTES.ADMIN.SEO_RULES,
       },
     ],
   },
   {
-    title: "Bán hàng & thanh toán",
+    title: "Sales & Payments",
     icon: "settings" as const,
     items: [
       {
         title: "Ecommerce",
-        description: "Cấu hình checkout, tiền tệ và vận chuyển dùng chung cho đơn hàng.",
+        description: "Configure checkout, currency, and shared shipping behavior for orders.",
         href: ROUTES.ADMIN.CONFIG_ECOMMERCE,
       },
       {
         title: "Shipping",
-        description: "Kết nối nhiều bên vận chuyển, cấu hình phí ship và mapping địa chỉ lấy hàng.",
+        description: "Connect shipping providers, configure shipping fees, and map pickup addresses.",
         href: ROUTES.ADMIN.CONFIG_SHIPPING,
       },
       {
         title: "Payment Methods",
-        description: "Quản lý phương thức thanh toán, provider, hướng dẫn và thông tin nhận thanh toán.",
+        description: "Manage payment methods, providers, instructions, and receiving account details.",
         href: ROUTES.ADMIN.CONFIG_PAYMENT_METHODS,
       },
     ],
@@ -119,45 +116,65 @@ const CONFIG_SECTIONS = [
     items: [
       {
         title: "Search Documents",
-        description: "Kiểm tra dữ liệu index tìm kiếm đã sinh cho offering khi cần debug search.",
+        description: "Inspect generated search-index documents for offerings when debugging search.",
         href: ROUTES.ADMIN.CONFIG_SEARCH_DOCUMENTS,
       },
       {
         title: "Template Attributes",
-        description: "Kiểm tra attribute phục vụ discovery/SEO cho template và offering.",
+        description: "Inspect attributes used for template and offering discovery/SEO.",
         href: ROUTES.ADMIN.CONFIG_TEMPLATE_ATTRIBUTES,
       },
     ],
   },
   {
-    title: "Tích hợp & vận hành",
+    title: "Integrations & Operations",
     icon: "globe" as const,
     items: [
       {
-        title: "API nội bộ",
-        description: "Trung tâm quản lý các API nội bộ dùng để import, đồng bộ và mở rộng kết nối dữ liệu hệ thống.",
+        title: "Internal APIs",
+        description: "Manage internal APIs used for imports, synchronization, and extended system data integrations.",
         href: ROUTES.ADMIN.CONFIG_INTERNAL_APIS,
       },
       {
         title: "Hooks",
-        description: "Thống kê toàn bộ hook point hiện có của website để nối đồng bộ với hệ thống ngoài.",
+        description: "Review all available website hook points for external synchronization and integrations.",
         href: ROUTES.ADMIN.HOOKS,
       },
       {
-        title: "Backups",
-        description: "Theo dõi backup database, uploads và hướng dẫn restore dữ liệu production.",
-        href: ROUTES.ADMIN.CONFIG_BACKUPS,
+        title: "Security Management",
+        description: "Manage rate limits, logs, blocked IPs, upload rules, endpoint protection, and backups.",
+        href: ROUTES.ADMIN.SECURITY,
       },
     ],
   },
 ] as const;
 
+function pathForPermission(href: string) {
+  return href.split("#")[0]?.split("?")[0] || href;
+}
+
+function sectionsWithPermissions(sections: typeof CONFIG_SECTIONS) {
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      permission: getAdminPathPermission(pathForPermission(item.href)),
+    })),
+  }));
+}
+
 export default async function AdminSettingsPage() {
-  await requireAdmin();
+  const user = await requireAdmin();
+  const access = await getAdminAccessContext(user.id);
+  const permissionKeys = access?.isSuperAdmin ? undefined : access?.permissionKeys ?? [];
 
   return (
     <section className="flex w-full flex-1 flex-col gap-5 p-5 md:p-7.5">
-      <ConfigSectionsHub sections={[...CONFIG_SECTIONS]} />
+      <ConfigSectionsHub
+        sections={sectionsWithPermissions(CONFIG_SECTIONS)}
+        permissionKeys={permissionKeys}
+        scopeLabel="Configuration center for site settings and security management."
+      />
     </section>
   );
 }

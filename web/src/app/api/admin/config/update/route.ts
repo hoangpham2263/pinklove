@@ -2,6 +2,8 @@ import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
 import { ROUTES } from "@/lib/routes";
 import {
+  getDefaultSecuritySettings,
+  getSystemSettings,
   updateBrandingSettings,
   updateIndexingSettings,
   updateBreadcrumbSettings,
@@ -15,6 +17,8 @@ import {
   updateSecuritySettings,
 } from "@/lib/system-settings";
 import type { BreadcrumbSettings, IndexingSettings, SecuritySettings, ShippingAccountSettings, SitemapSettings } from "@/lib/system-settings";
+import { hasAdminPermission } from "@/features/access/server/service";
+import { recordSecurityAuditLog } from "@/lib/security-audit-logs";
 
 export const runtime = "nodejs";
 
@@ -32,6 +36,73 @@ function parsePositiveInt(formData: FormData, key: string, fallback: number) {
   return Math.max(1, Math.floor(value));
 }
 
+const SECURITY_SECTIONS = new Set([
+  "security",
+  "security_cleanup",
+  "security_detection",
+  "security_headers",
+  "upload_security",
+  "endpoint_protection",
+]);
+
+const SECURITY_RESET_SECTIONS = new Set(Array.from(SECURITY_SECTIONS).map((item) => `${item}_reset`));
+
+function containsDangerousWildcard(value: string) {
+  return /(^|\s)\*(\s|$)/.test(value) || value.includes("://*") || value.includes("://*.");
+}
+
+function validateSecurityHeaderInput(formData: FormData) {
+  const cspFields = [
+    "cspDefaultSrc",
+    "cspScriptSrc",
+    "cspStyleSrc",
+    "cspImgSrc",
+    "cspConnectSrc",
+    "cspFontSrc",
+    "cspFrameSrc",
+    "cspFrameAncestors",
+  ];
+  const hasWildcard = cspFields.some((key) => containsDangerousWildcard(String(formData.get(key) ?? "")));
+  if (hasWildcard && !isChecked(formData, "confirmDangerousWildcard")) {
+    return "CSP có wildcard nguy hiểm. Hãy bật xác nhận wildcard nguy hiểm nếu thật sự cần.";
+  }
+  return null;
+}
+
+async function requireSecurityEditPermission(request: Request, adminId: string) {
+  if (await hasAdminPermission(adminId, "security.settings.edit")) return null;
+  return respondError(request, {
+    status: 403,
+    error: "FORBIDDEN",
+    message: "Bạn cần quyền security.settings.edit để đổi cấu hình bảo mật.",
+    location: ROUTES.ADMIN.SECURITY_SETTINGS,
+  });
+}
+
+async function updateSecuritySettingsWithAudit(input: {
+  request: Request;
+  adminId: string;
+  section: string;
+  targetId: string;
+  before: unknown;
+  patch: Partial<SecuritySettings>;
+  reason: string;
+}) {
+  const next = await updateSecuritySettings(input.patch);
+  const after = (next as unknown as Record<string, unknown>)[input.targetId] ?? next;
+  await recordSecurityAuditLog({
+    request: input.request,
+    adminUserId: input.adminId,
+    action: `security_config.${input.section}`,
+    targetType: "security_config",
+    targetId: input.targetId,
+    before: input.before,
+    after,
+    reason: input.reason,
+  });
+  return next;
+}
+
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) {
@@ -42,6 +113,69 @@ export async function POST(request: Request) {
   const section = String(formData.get("section") ?? "").trim();
 
   try {
+    if (SECURITY_SECTIONS.has(section) || SECURITY_RESET_SECTIONS.has(section)) {
+      const forbidden = await requireSecurityEditPermission(request, admin.id);
+      if (forbidden) return forbidden;
+    }
+
+    if (SECURITY_RESET_SECTIONS.has(section)) {
+      const current = (await getSystemSettings()).security;
+      const defaults = getDefaultSecuritySettings();
+      const resetSection = section.replace(/_reset$/, "");
+      const resetMap: Record<string, { targetId: keyof SecuritySettings; patch: Partial<SecuritySettings>; message: string }> = {
+        security: {
+          targetId: "authRateLimits",
+          patch: { authRateLimits: defaults.authRateLimits },
+          message: "Đã reset cấu hình bảo mật đăng nhập về default an toàn.",
+        },
+        security_cleanup: {
+          targetId: "authRateLimitCleanup",
+          patch: { authRateLimitCleanup: defaults.authRateLimitCleanup },
+          message: "Đã reset cleanup auth rate-limit về default an toàn.",
+        },
+        security_detection: {
+          targetId: "detection",
+          patch: { detection: defaults.detection },
+          message: "Đã reset detection rules về default an toàn.",
+        },
+        security_headers: {
+          targetId: "headers",
+          patch: { headers: defaults.headers },
+          message: "Đã reset security headers về default an toàn.",
+        },
+        upload_security: {
+          targetId: "uploadSecurity",
+          patch: { uploadSecurity: defaults.uploadSecurity },
+          message: "Đã reset upload security về default an toàn.",
+        },
+        endpoint_protection: {
+          targetId: "endpointProtection",
+          patch: { endpointProtection: defaults.endpointProtection },
+          message: "Đã reset endpoint protection về default an toàn.",
+        },
+      };
+      const resetConfig = resetMap[resetSection];
+      if (!resetConfig) {
+        return respondError(request, {
+          error: "invalid_section",
+          message: "Section reset không hợp lệ.",
+          location: ROUTES.ADMIN.CONFIG,
+        });
+      }
+
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: resetConfig.targetId,
+        before: current[resetConfig.targetId],
+        patch: resetConfig.patch,
+        reason: "Reset security config section to safe defaults",
+      });
+
+      return respondSuccess(request, { message: resetConfig.message });
+    }
+
     if (section === "breadcrumb") {
       const breadcrumbInput: Partial<BreadcrumbSettings> = {};
 
@@ -276,6 +410,7 @@ export async function POST(request: Request) {
     }
 
     if (section === "security") {
+      const current = (await getSystemSettings()).security;
       const securityInput: Partial<SecuritySettings> = {
         authRateLimits: {
           publicLoginIp: {
@@ -305,23 +440,93 @@ export async function POST(request: Request) {
         },
       };
 
-      await updateSecuritySettings(securityInput);
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "authRateLimits",
+        before: current.authRateLimits,
+        patch: securityInput,
+        reason: "Update auth rate-limit settings",
+      });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình bảo mật đăng nhập." });
     }
 
     if (section === "security_cleanup") {
-      await updateSecuritySettings({
+      const current = (await getSystemSettings()).security;
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "authRateLimitCleanup",
+        before: current.authRateLimitCleanup,
+        patch: {
         authRateLimitCleanup: {
           enabled: isChecked(formData, "authRateLimitCleanupEnabled"),
           retentionDays: parsePositiveInt(formData, "authRateLimitCleanupRetentionDays", 7),
         } as SecuritySettings["authRateLimitCleanup"],
+        },
+        reason: "Update auth rate-limit cleanup settings",
       });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình cleanup auth rate-limit." });
     }
 
+    if (section === "security_detection") {
+      const current = (await getSystemSettings()).security;
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "detection",
+        before: current.detection,
+        patch: {
+        detection: {
+          enabled: isChecked(formData, "detectionEnabled"),
+          dryRun: isChecked(formData, "detectionDryRun"),
+          autoBlock: isChecked(formData, "detectionAutoBlock"),
+          requestWindowMinutes: parsePositiveInt(formData, "requestWindowMinutes", 1),
+          requestWarnLimit: parsePositiveInt(formData, "requestWarnLimit", 120),
+          requestSuspiciousLimit: parsePositiveInt(formData, "requestSuspiciousLimit", 240),
+          requestBlockLimit: parsePositiveInt(formData, "requestBlockLimit", 600),
+          statusWindowMinutes: parsePositiveInt(formData, "statusWindowMinutes", 1),
+          statusWarnLimit: parsePositiveInt(formData, "statusWarnLimit", 30),
+          statusSuspiciousLimit: parsePositiveInt(formData, "statusSuspiciousLimit", 80),
+          statusBlockLimit: parsePositiveInt(formData, "statusBlockLimit", 200),
+          loginFailWindowMinutes: parsePositiveInt(formData, "loginFailWindowMinutes", 15),
+          loginFailWarnLimit: parsePositiveInt(formData, "loginFailWarnLimit", 10),
+          loginFailSuspiciousLimit: parsePositiveInt(formData, "loginFailSuspiciousLimit", 25),
+          loginFailBlockLimit: parsePositiveInt(formData, "loginFailBlockLimit", 60),
+          registerFailWindowMinutes: parsePositiveInt(formData, "registerFailWindowMinutes", 60),
+          registerFailWarnLimit: parsePositiveInt(formData, "registerFailWarnLimit", 8),
+          registerFailSuspiciousLimit: parsePositiveInt(formData, "registerFailSuspiciousLimit", 20),
+          registerFailBlockLimit: parsePositiveInt(formData, "registerFailBlockLimit", 50),
+          scanPathWindowMinutes: parsePositiveInt(formData, "scanPathWindowMinutes", 5),
+          scanPathWarnLimit: parsePositiveInt(formData, "scanPathWarnLimit", 12),
+          scanPathSuspiciousLimit: parsePositiveInt(formData, "scanPathSuspiciousLimit", 30),
+          scanPathBlockLimit: parsePositiveInt(formData, "scanPathBlockLimit", 80),
+          blockDurationMinutes: parsePositiveInt(formData, "blockDurationMinutes", 15),
+          whitelistIps: String(formData.get("whitelistIps") ?? "").trim(),
+        } as SecuritySettings["detection"],
+        },
+        reason: "Update IP detection settings",
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình phát hiện IP bất thường." });
+    }
+
     if (section === "security_headers") {
+      const validationError = validateSecurityHeaderInput(formData);
+      if (validationError) {
+        return respondError(request, {
+          status: 400,
+          error: "invalid_security_headers",
+          message: validationError,
+          location: ROUTES.ADMIN.SECURITY_SETTINGS,
+        });
+      }
+      const current = (await getSystemSettings()).security;
       const securityInput: Partial<SecuritySettings> = {
         headers: {
           enabled: isChecked(formData, "headersEnabled"),
@@ -359,9 +564,75 @@ export async function POST(request: Request) {
         },
       };
 
-      await updateSecuritySettings(securityInput);
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "headers",
+        before: current.headers,
+        patch: securityInput,
+        reason: "Update security headers settings",
+      });
 
       return respondSuccess(request, { message: "Đã lưu cấu hình security headers." });
+    }
+
+    if (section === "upload_security") {
+      const current = (await getSystemSettings()).security;
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "uploadSecurity",
+        before: current.uploadSecurity,
+        patch: {
+        uploadSecurity: {
+          enabled: isChecked(formData, "uploadSecurityEnabled"),
+          allowedMimeTypes: String(formData.get("allowedMimeTypes") ?? "").trim(),
+          maxFileSizeMb: parsePositiveInt(formData, "maxFileSizeMb", 20),
+          maxFilesPerUpload: parsePositiveInt(formData, "maxFilesPerUpload", 10),
+          maxTotalUploadSizeMb: parsePositiveInt(formData, "maxTotalUploadSizeMb", 50),
+          blockSvg: isChecked(formData, "blockSvg"),
+          blockHtml: isChecked(formData, "blockHtml"),
+          requireMagicBytes: isChecked(formData, "requireMagicBytes"),
+        } as SecuritySettings["uploadSecurity"],
+        },
+        reason: "Update upload security settings",
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình upload security." });
+    }
+
+    if (section === "endpoint_protection") {
+      const current = (await getSystemSettings()).security;
+      await updateSecuritySettingsWithAudit({
+        request,
+        adminId: admin.id,
+        section,
+        targetId: "endpointProtection",
+        before: current.endpointProtection,
+        patch: {
+        endpointProtection: {
+          enabled: isChecked(formData, "endpointProtectionEnabled"),
+          dryRun: isChecked(formData, "endpointProtectionDryRun"),
+          rateLimitEnabled: isChecked(formData, "endpointRateLimitEnabled"),
+          windowMinutes: parsePositiveInt(formData, "endpointWindowMinutes", 1),
+          warnLimit: parsePositiveInt(formData, "endpointWarnLimit", 90),
+          blockLimit: parsePositiveInt(formData, "endpointBlockLimit", 240),
+          blockDurationMinutes: parsePositiveInt(formData, "endpointBlockDurationMinutes", 10),
+          maxPageSize: parsePositiveInt(formData, "endpointMaxPageSize", 100),
+          maxSearchResultsPerGroup: parsePositiveInt(formData, "endpointMaxSearchResultsPerGroup", 40),
+          slowThresholdMs: parsePositiveInt(formData, "endpointSlowThresholdMs", 1500),
+          searchCacheTtlSeconds: parsePositiveInt(formData, "searchCacheTtlSeconds", 60),
+          publicDataCacheTtlSeconds: parsePositiveInt(formData, "publicDataCacheTtlSeconds", 300),
+          whitelistIps: String(formData.get("endpointWhitelistIps") ?? "").trim(),
+          bypassUserIds: String(formData.get("endpointBypassUserIds") ?? "").trim(),
+        } as SecuritySettings["endpointProtection"],
+        },
+        reason: "Update endpoint protection settings",
+      });
+
+      return respondSuccess(request, { message: "Đã lưu cấu hình endpoint protection." });
     }
 
     if (section === "internal_api_offerings") {

@@ -185,6 +185,59 @@ export type SecuritySettings = {
     lastRunAt: string;
     lastDeletedCount: number;
   };
+  detection: {
+    enabled: boolean;
+    dryRun: boolean;
+    autoBlock: boolean;
+    requestWindowMinutes: number;
+    requestWarnLimit: number;
+    requestSuspiciousLimit: number;
+    requestBlockLimit: number;
+    statusWindowMinutes: number;
+    statusWarnLimit: number;
+    statusSuspiciousLimit: number;
+    statusBlockLimit: number;
+    loginFailWindowMinutes: number;
+    loginFailWarnLimit: number;
+    loginFailSuspiciousLimit: number;
+    loginFailBlockLimit: number;
+    registerFailWindowMinutes: number;
+    registerFailWarnLimit: number;
+    registerFailSuspiciousLimit: number;
+    registerFailBlockLimit: number;
+    scanPathWindowMinutes: number;
+    scanPathWarnLimit: number;
+    scanPathSuspiciousLimit: number;
+    scanPathBlockLimit: number;
+    blockDurationMinutes: number;
+    whitelistIps: string;
+  };
+  uploadSecurity: {
+    enabled: boolean;
+    allowedMimeTypes: string;
+    maxFileSizeMb: number;
+    maxFilesPerUpload: number;
+    maxTotalUploadSizeMb: number;
+    blockSvg: boolean;
+    blockHtml: boolean;
+    requireMagicBytes: boolean;
+  };
+  endpointProtection: {
+    enabled: boolean;
+    dryRun: boolean;
+    rateLimitEnabled: boolean;
+    windowMinutes: number;
+    warnLimit: number;
+    blockLimit: number;
+    blockDurationMinutes: number;
+    maxPageSize: number;
+    maxSearchResultsPerGroup: number;
+    slowThresholdMs: number;
+    searchCacheTtlSeconds: number;
+    publicDataCacheTtlSeconds: number;
+    whitelistIps: string;
+    bypassUserIds: string;
+  };
   headers: SecurityHeadersSettings;
 };
 
@@ -412,6 +465,59 @@ const DEFAULT_SETTINGS: SystemSettings = {
       retentionDays: 7,
       lastRunAt: "",
       lastDeletedCount: 0,
+    },
+    detection: {
+      enabled: true,
+      dryRun: true,
+      autoBlock: false,
+      requestWindowMinutes: 1,
+      requestWarnLimit: 120,
+      requestSuspiciousLimit: 240,
+      requestBlockLimit: 600,
+      statusWindowMinutes: 1,
+      statusWarnLimit: 30,
+      statusSuspiciousLimit: 80,
+      statusBlockLimit: 200,
+      loginFailWindowMinutes: 15,
+      loginFailWarnLimit: 10,
+      loginFailSuspiciousLimit: 25,
+      loginFailBlockLimit: 60,
+      registerFailWindowMinutes: 60,
+      registerFailWarnLimit: 8,
+      registerFailSuspiciousLimit: 20,
+      registerFailBlockLimit: 50,
+      scanPathWindowMinutes: 5,
+      scanPathWarnLimit: 12,
+      scanPathSuspiciousLimit: 30,
+      scanPathBlockLimit: 80,
+      blockDurationMinutes: 15,
+      whitelistIps: "",
+    },
+    uploadSecurity: {
+      enabled: true,
+      allowedMimeTypes: "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,audio/mpeg,audio/mp4",
+      maxFileSizeMb: 20,
+      maxFilesPerUpload: 10,
+      maxTotalUploadSizeMb: 50,
+      blockSvg: true,
+      blockHtml: true,
+      requireMagicBytes: true,
+    },
+    endpointProtection: {
+      enabled: true,
+      dryRun: true,
+      rateLimitEnabled: true,
+      windowMinutes: 1,
+      warnLimit: 90,
+      blockLimit: 240,
+      blockDurationMinutes: 10,
+      maxPageSize: 100,
+      maxSearchResultsPerGroup: 40,
+      slowThresholdMs: 1500,
+      searchCacheTtlSeconds: 60,
+      publicDataCacheTtlSeconds: 300,
+      whitelistIps: "",
+      bypassUserIds: "",
     },
     headers: DEFAULT_SECURITY_HEADERS,
   },
@@ -760,6 +866,77 @@ function parseAuthRateLimitRuleSettings(
   };
 }
 
+function parseSecurityDetectionSettings(value: unknown): SecuritySettings["detection"] {
+  const fallback = DEFAULT_SETTINGS.security.detection;
+  const input = typeof value === "object" && value ? (value as Record<string, unknown>) : {};
+
+  return {
+    enabled: input.enabled === undefined ? fallback.enabled : Boolean(input.enabled),
+    dryRun: input.dryRun === undefined ? fallback.dryRun : Boolean(input.dryRun),
+    autoBlock: input.autoBlock === undefined ? fallback.autoBlock : Boolean(input.autoBlock),
+    requestWindowMinutes: parsePositiveInteger(input.requestWindowMinutes, fallback.requestWindowMinutes, 1, 60),
+    requestWarnLimit: parsePositiveInteger(input.requestWarnLimit, fallback.requestWarnLimit, 1, 100_000),
+    requestSuspiciousLimit: parsePositiveInteger(input.requestSuspiciousLimit, fallback.requestSuspiciousLimit, 1, 100_000),
+    requestBlockLimit: parsePositiveInteger(input.requestBlockLimit, fallback.requestBlockLimit, 1, 100_000),
+    statusWindowMinutes: parsePositiveInteger(input.statusWindowMinutes, fallback.statusWindowMinutes, 1, 60),
+    statusWarnLimit: parsePositiveInteger(input.statusWarnLimit, fallback.statusWarnLimit, 1, 100_000),
+    statusSuspiciousLimit: parsePositiveInteger(input.statusSuspiciousLimit, fallback.statusSuspiciousLimit, 1, 100_000),
+    statusBlockLimit: parsePositiveInteger(input.statusBlockLimit, fallback.statusBlockLimit, 1, 100_000),
+    loginFailWindowMinutes: parsePositiveInteger(input.loginFailWindowMinutes, fallback.loginFailWindowMinutes, 1, 24 * 60),
+    loginFailWarnLimit: parsePositiveInteger(input.loginFailWarnLimit, fallback.loginFailWarnLimit, 1, 100_000),
+    loginFailSuspiciousLimit: parsePositiveInteger(input.loginFailSuspiciousLimit, fallback.loginFailSuspiciousLimit, 1, 100_000),
+    loginFailBlockLimit: parsePositiveInteger(input.loginFailBlockLimit, fallback.loginFailBlockLimit, 1, 100_000),
+    registerFailWindowMinutes: parsePositiveInteger(input.registerFailWindowMinutes, fallback.registerFailWindowMinutes, 1, 24 * 60),
+    registerFailWarnLimit: parsePositiveInteger(input.registerFailWarnLimit, fallback.registerFailWarnLimit, 1, 100_000),
+    registerFailSuspiciousLimit: parsePositiveInteger(input.registerFailSuspiciousLimit, fallback.registerFailSuspiciousLimit, 1, 100_000),
+    registerFailBlockLimit: parsePositiveInteger(input.registerFailBlockLimit, fallback.registerFailBlockLimit, 1, 100_000),
+    scanPathWindowMinutes: parsePositiveInteger(input.scanPathWindowMinutes, fallback.scanPathWindowMinutes, 1, 24 * 60),
+    scanPathWarnLimit: parsePositiveInteger(input.scanPathWarnLimit, fallback.scanPathWarnLimit, 1, 100_000),
+    scanPathSuspiciousLimit: parsePositiveInteger(input.scanPathSuspiciousLimit, fallback.scanPathSuspiciousLimit, 1, 100_000),
+    scanPathBlockLimit: parsePositiveInteger(input.scanPathBlockLimit, fallback.scanPathBlockLimit, 1, 100_000),
+    blockDurationMinutes: parsePositiveInteger(input.blockDurationMinutes, fallback.blockDurationMinutes, 5, 24 * 60),
+    whitelistIps: String(input.whitelistIps ?? fallback.whitelistIps),
+  };
+}
+
+function parseUploadSecuritySettings(value: unknown): SecuritySettings["uploadSecurity"] {
+  const fallback = DEFAULT_SETTINGS.security.uploadSecurity;
+  const input = typeof value === "object" && value ? (value as Record<string, unknown>) : {};
+
+  return {
+    enabled: input.enabled === undefined ? fallback.enabled : Boolean(input.enabled),
+    allowedMimeTypes: String(input.allowedMimeTypes ?? fallback.allowedMimeTypes),
+    maxFileSizeMb: parsePositiveInteger(input.maxFileSizeMb, fallback.maxFileSizeMb, 1, 200),
+    maxFilesPerUpload: parsePositiveInteger(input.maxFilesPerUpload, fallback.maxFilesPerUpload, 1, 100),
+    maxTotalUploadSizeMb: parsePositiveInteger(input.maxTotalUploadSizeMb, fallback.maxTotalUploadSizeMb, 1, 1000),
+    blockSvg: input.blockSvg === undefined ? fallback.blockSvg : Boolean(input.blockSvg),
+    blockHtml: input.blockHtml === undefined ? fallback.blockHtml : Boolean(input.blockHtml),
+    requireMagicBytes: input.requireMagicBytes === undefined ? fallback.requireMagicBytes : Boolean(input.requireMagicBytes),
+  };
+}
+
+function parseEndpointProtectionSettings(value: unknown): SecuritySettings["endpointProtection"] {
+  const fallback = DEFAULT_SETTINGS.security.endpointProtection;
+  const input = typeof value === "object" && value ? (value as Record<string, unknown>) : {};
+
+  return {
+    enabled: input.enabled === undefined ? fallback.enabled : Boolean(input.enabled),
+    dryRun: input.dryRun === undefined ? fallback.dryRun : Boolean(input.dryRun),
+    rateLimitEnabled: input.rateLimitEnabled === undefined ? fallback.rateLimitEnabled : Boolean(input.rateLimitEnabled),
+    windowMinutes: parsePositiveInteger(input.windowMinutes, fallback.windowMinutes, 1, 60),
+    warnLimit: parsePositiveInteger(input.warnLimit, fallback.warnLimit, 1, 100_000),
+    blockLimit: parsePositiveInteger(input.blockLimit, fallback.blockLimit, 1, 100_000),
+    blockDurationMinutes: parsePositiveInteger(input.blockDurationMinutes, fallback.blockDurationMinutes, 1, 24 * 60),
+    maxPageSize: parsePositiveInteger(input.maxPageSize, fallback.maxPageSize, 1, 500),
+    maxSearchResultsPerGroup: parsePositiveInteger(input.maxSearchResultsPerGroup, fallback.maxSearchResultsPerGroup, 1, 200),
+    slowThresholdMs: parsePositiveInteger(input.slowThresholdMs, fallback.slowThresholdMs, 100, 60_000),
+    searchCacheTtlSeconds: parsePositiveInteger(input.searchCacheTtlSeconds, fallback.searchCacheTtlSeconds, 0, 24 * 60 * 60),
+    publicDataCacheTtlSeconds: parsePositiveInteger(input.publicDataCacheTtlSeconds, fallback.publicDataCacheTtlSeconds, 0, 24 * 60 * 60),
+    whitelistIps: String(input.whitelistIps ?? fallback.whitelistIps),
+    bypassUserIds: String(input.bypassUserIds ?? fallback.bypassUserIds),
+  };
+}
+
 function parseSecuritySettings(value: Record<string, unknown> | null | undefined): SecuritySettings {
   const merged = mergeRecord(DEFAULT_SETTINGS.security as unknown as Record<string, unknown>, value);
   const authRateLimitsInput =
@@ -773,6 +950,18 @@ function parseSecuritySettings(value: Record<string, unknown> | null | undefined
   const cleanupInput =
     typeof merged.authRateLimitCleanup === "object" && merged.authRateLimitCleanup
       ? (merged.authRateLimitCleanup as Record<string, unknown>)
+      : {};
+  const detectionInput =
+    typeof merged.detection === "object" && merged.detection
+      ? (merged.detection as Record<string, unknown>)
+      : {};
+  const uploadSecurityInput =
+    typeof merged.uploadSecurity === "object" && merged.uploadSecurity
+      ? (merged.uploadSecurity as Record<string, unknown>)
+      : {};
+  const endpointProtectionInput =
+    typeof merged.endpointProtection === "object" && merged.endpointProtection
+      ? (merged.endpointProtection as Record<string, unknown>)
       : {};
 
   return {
@@ -816,8 +1005,15 @@ function parseSecuritySettings(value: Record<string, unknown> | null | undefined
       lastRunAt: String(cleanupInput.lastRunAt ?? ""),
       lastDeletedCount: parsePositiveInteger(cleanupInput.lastDeletedCount, 0, 0, 1_000_000),
     },
+    detection: parseSecurityDetectionSettings(detectionInput),
+    uploadSecurity: parseUploadSecuritySettings(uploadSecurityInput),
+    endpointProtection: parseEndpointProtectionSettings(endpointProtectionInput),
     headers: normalizeSecurityHeadersSettings(headersInput),
   };
+}
+
+export function getDefaultSecuritySettings(): SecuritySettings {
+  return parseSecuritySettings(DEFAULT_SETTINGS.security as unknown as Record<string, unknown>);
 }
 
 export async function getSystemSettings(): Promise<SystemSettings> {
@@ -1089,6 +1285,18 @@ export async function updateSecuritySettings(input: Partial<SecuritySettings>) {
     authRateLimitCleanup: {
       ...current.security.authRateLimitCleanup,
       ...input.authRateLimitCleanup,
+    },
+    detection: {
+      ...current.security.detection,
+      ...input.detection,
+    },
+    uploadSecurity: {
+      ...current.security.uploadSecurity,
+      ...input.uploadSecurity,
+    },
+    endpointProtection: {
+      ...current.security.endpointProtection,
+      ...input.endpointProtection,
     },
     headers: normalizeSecurityHeadersSettings({
       ...current.security.headers,

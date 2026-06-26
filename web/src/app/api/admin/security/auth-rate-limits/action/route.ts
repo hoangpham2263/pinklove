@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { respondError, respondSuccess } from "@/lib/action-response";
+import { hasAdminPermission } from "@/features/access/server/service";
 import {
   clearExpiredAuthRateLimits,
   deleteAuthRateLimit,
@@ -7,15 +8,25 @@ import {
 } from "@/lib/auth-rate-limit";
 import { ROUTES } from "@/lib/routes";
 import { recordFieldChanges } from "@/features/platform/server/field-change-logs";
+import { recordSecurityEvent } from "@/lib/security-events";
+import { recordSecurityAuditLog } from "@/lib/security-audit-logs";
 
 export const runtime = "nodejs";
 
 function redirectLocation() {
-  return `${ROUTES.ADMIN.CONFIG_SECURITY}#auth-rate-limits`;
+  return `${ROUTES.ADMIN.SECURITY_SETTINGS}#auth-rate-limits`;
 }
 
 export async function POST(request: Request) {
   const admin = await requireAdmin();
+  if (!(await hasAdminPermission(admin.id, "security.rate_limits.manage"))) {
+    return respondError(request, {
+      status: 403,
+      error: "FORBIDDEN",
+      message: "Bạn cần quyền security.rate_limits.manage.",
+      location: redirectLocation(),
+    });
+  }
   const formData = await request.formData();
   const intent = String(formData.get("intent") ?? "").trim();
   const scope = String(formData.get("scope") ?? "").trim();
@@ -43,6 +54,23 @@ export async function POST(request: Request) {
           metadata: { action: "unlock_row", scope, rateKeyShort: `${rateKey.slice(0, 12)}...${rateKey.slice(-8)}` },
         },
       ]);
+      await recordSecurityEvent({
+        request,
+        eventType: "admin_action",
+        status: 303,
+        userId: admin.id,
+        metadata: { action: "auth_rate_limit_unlock_row", scope, deletedCount: deleted.length },
+      });
+      await recordSecurityAuditLog({
+        request,
+        adminUserId: admin.id,
+        action: "auth_rate_limit.unlock_row",
+        targetType: "auth_rate_limit",
+        targetId: `${scope}:${rateKey}`,
+        before: deleted,
+        after: null,
+        reason: "Manual unlock rate-limit row",
+      });
 
       return respondSuccess(request, {
         message: `Đã mở khóa ${deleted.length} rate-limit record.`,
@@ -71,6 +99,23 @@ export async function POST(request: Request) {
           metadata: { action: "unlock_scope", scope },
         },
       ]);
+      await recordSecurityEvent({
+        request,
+        eventType: "admin_action",
+        status: 303,
+        userId: admin.id,
+        metadata: { action: "auth_rate_limit_unlock_scope", scope, deletedCount: deleted.length },
+      });
+      await recordSecurityAuditLog({
+        request,
+        adminUserId: admin.id,
+        action: "auth_rate_limit.unlock_scope",
+        targetType: "auth_rate_limit_scope",
+        targetId: scope,
+        before: { deletedCount: deleted.length },
+        after: null,
+        reason: "Manual unlock rate-limit scope",
+      });
 
       return respondSuccess(request, {
         message: `Đã mở khóa ${deleted.length} record trong scope ${scope}.`,
@@ -91,6 +136,23 @@ export async function POST(request: Request) {
           metadata: { action: "clear_expired" },
         },
       ]);
+      await recordSecurityEvent({
+        request,
+        eventType: "admin_action",
+        status: 303,
+        userId: admin.id,
+        metadata: { action: "auth_rate_limit_clear_expired", deletedCount: deleted.length },
+      });
+      await recordSecurityAuditLog({
+        request,
+        adminUserId: admin.id,
+        action: "auth_rate_limit.clear_expired",
+        targetType: "auth_rate_limit",
+        targetId: "expired",
+        before: { deletedCount: deleted.length },
+        after: null,
+        reason: "Manual clear expired auth rate-limits",
+      });
 
       return respondSuccess(request, {
         message: `Đã xóa ${deleted.length} record hết hạn.`,

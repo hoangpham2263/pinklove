@@ -77,6 +77,7 @@ const expectedPublicTables = [
   "auth_rate_limits",
   "blog_categories",
   "blog_posts",
+  "blocked_ips",
   "booking_calendars",
   "booking_items",
   "booking_payments",
@@ -138,6 +139,7 @@ const expectedPublicTables = [
   "organizations",
   "page_sections",
   "pages",
+  "password_reset_tokens",
   "physical_offerings",
   "provider_applications",
   "provider_availability",
@@ -161,6 +163,8 @@ const expectedPublicTables = [
   "providers",
   "regions",
   "seo_redirects",
+  "security_events",
+  "security_audit_logs",
   "service_offerings",
   "service_regions",
   "shipping_regions",
@@ -285,6 +289,36 @@ async function main() {
     const existingTableSet = new Set(existingTables.rows.map((row) => row.table_name));
     const missingTables = requiredTables.filter((tableName) => !existingTableSet.has(tableName));
     assert(missingTables.length === 0, `Missing required architecture tables: ${missingTables.join(", ")}`);
+
+    const requiredSecurityColumns = [
+      ["app_settings", "security_config", "jsonb"],
+      ["security_events", "event_type", "text"],
+      ["security_events", "metadata", "jsonb"],
+      ["security_events", "created_at", "timestamp with time zone"],
+      ["blocked_ips", "ip_or_cidr", "text"],
+      ["blocked_ips", "expires_at", "timestamp with time zone"],
+      ["blocked_ips", "revoked_at", "timestamp with time zone"],
+      ["security_audit_logs", "before_value", "jsonb"],
+      ["security_audit_logs", "after_value", "jsonb"],
+      ["security_audit_logs", "created_at", "timestamp with time zone"],
+    ];
+    const securityColumns = await client.query(
+      `
+      SELECT table_name,column_name,data_type
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = ANY($1)
+      `,
+      [[...new Set(requiredSecurityColumns.map(([tableName]) => tableName))]]
+    );
+    const securityColumnSet = new Set(securityColumns.rows.map((row) => `${row.table_name}.${row.column_name}:${row.data_type}`));
+    const missingSecurityColumns = requiredSecurityColumns.filter(
+      ([tableName, columnName, dataType]) => !securityColumnSet.has(`${tableName}.${columnName}:${dataType}`)
+    );
+    assert(
+      missingSecurityColumns.length === 0,
+      `Missing security schema columns: ${missingSecurityColumns.map((entry) => entry.join(".")).join(", ")}`
+    );
 
     const forbiddenTables = [
       "catalog_items",

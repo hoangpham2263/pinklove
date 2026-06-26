@@ -115,7 +115,7 @@ export function AuthRateLimitsTable({
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => (
           <AdminTableActions>
-            <NativeForm action={ROUTES.API.ADMIN.CONFIG.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
+            <NativeForm action={ROUTES.API.ADMIN.SECURITY.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
               <input type="hidden" name="intent" value="unlock_row" />
               <input type="hidden" name="scope" value={row.original.scope} />
               <input type="hidden" name="rateKey" value={row.original.rateKey} />
@@ -143,7 +143,7 @@ export function AuthRateLimitsTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <NativeForm action={ROUTES.ADMIN.CONFIG_SECURITY} method="GET" className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <NativeForm action={ROUTES.ADMIN.SECURITY_SETTINGS} method="GET" className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <AdminTableToolbar>
             <select name="rateLimitScope" defaultValue={scope} className="h-9 min-w-45 rounded-lg border border-input bg-background px-3 text-sm outline-none">
               {scopeOptions.map((option) => (
@@ -165,7 +165,7 @@ export function AuthRateLimitsTable({
             />
             <AdminSubmitButton>Lọc</AdminSubmitButton>
             {hasFilters ? (
-              <Link href={`${ROUTES.ADMIN.CONFIG_SECURITY}#auth-rate-limits`}>
+              <Link href={`${ROUTES.ADMIN.SECURITY_SETTINGS}#auth-rate-limits`}>
                 <AdminTableActionButton action="clear" label="Clear filters" />
               </Link>
             ) : null}
@@ -173,12 +173,12 @@ export function AuthRateLimitsTable({
         </NativeForm>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <NativeForm action={ROUTES.API.ADMIN.CONFIG.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
+          <NativeForm action={ROUTES.API.ADMIN.SECURITY.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
             <input type="hidden" name="intent" value="clear_expired" />
             <AdminSubmitButton>Clear expired</AdminSubmitButton>
           </NativeForm>
           {scope !== "all" ? (
-            <NativeForm action={ROUTES.API.ADMIN.CONFIG.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
+            <NativeForm action={ROUTES.API.ADMIN.SECURITY.AUTH_RATE_LIMIT_ACTION} method="POST" className="inline-block">
               <input type="hidden" name="intent" value="unlock_scope" />
               <input type="hidden" name="scope" value={scope} />
               <AdminSubmitButton>Unlock scope</AdminSubmitButton>

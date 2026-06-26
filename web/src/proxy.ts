@@ -10,12 +10,15 @@ import {
 
 const API_PREFIX = "/api/";
 const SECURITY_HEADERS_CONFIG_PATH = "/api/internal/security-headers";
+const SECURITY_IP_DECISION_PATH = "/api/internal/security-ip-decision";
 const SECURITY_HEADERS_CACHE_TTL_MS = 30_000;
+const SECURITY_IP_DECISION_CACHE_TTL_MS = 15_000;
 const globalForSecurityHeaders = globalThis as unknown as {
   securityHeadersCache?: {
     value: SecurityHeadersSettings;
     expiresAt: number;
   };
+  securityIpDecisionCache?: Map<string, { blocked: boolean; expiresAt: number }>;
 };
 
 function getInternalApiSecret() {
@@ -37,6 +40,71 @@ function hasInternalSecret(request: NextRequest) {
 function isSecureRequest(request: NextRequest) {
   const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   return forwardedProto === "https" || request.nextUrl.protocol === "https:";
+}
+
+function getProxyTrustedIp(request: NextRequest) {
+  const mode = process.env.AUTH_TRUSTED_PROXY_MODE?.trim().toLowerCase();
+  if (mode === "cloudflare") {
+    return request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+  }
+
+  if (mode === "reverse_proxy") {
+    return (
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip")?.trim() ||
+      "unknown"
+    );
+  }
+
+  return "unknown";
+}
+
+function getIpDecisionCache() {
+  if (!globalForSecurityHeaders.securityIpDecisionCache) {
+    globalForSecurityHeaders.securityIpDecisionCache = new Map();
+  }
+  return globalForSecurityHeaders.securityIpDecisionCache;
+}
+
+async function isTemporarilyBlockedBySecurityDetection(request: NextRequest) {
+  const secret = getInternalApiSecret();
+  const ip = getProxyTrustedIp(request);
+
+  if (!secret || !ip || ip === "unknown" || request.nextUrl.pathname === SECURITY_IP_DECISION_PATH) {
+    return false;
+  }
+
+  const cache = getIpDecisionCache();
+  const cached = cache.get(ip);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.blocked;
+  }
+
+  try {
+    const decisionUrl = new URL(SECURITY_IP_DECISION_PATH, request.url);
+    decisionUrl.searchParams.set("ip", ip);
+    const response = await fetch(decisionUrl, {
+      headers: {
+        [INTERNAL_API_KEY_HEADER]: secret,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const payload = (await response.json()) as { blocked?: boolean };
+    const blocked = Boolean(payload.blocked);
+    if (blocked) {
+      cache.set(ip, { blocked, expiresAt: Date.now() + SECURITY_IP_DECISION_CACHE_TTL_MS });
+    } else {
+      cache.delete(ip);
+    }
+    return blocked;
+  } catch {
+    return false;
+  }
 }
 
 async function unauthorized(request: NextRequest) {
@@ -103,7 +171,14 @@ async function applyRuntimeSecurityHeaders(request: NextRequest, response: NextR
   return response;
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  if (await isTemporarilyBlockedBySecurityDetection(request)) {
+    return applyRuntimeSecurityHeaders(request, NextResponse.json(
+      { error: "rate_limited", message: "Request temporarily blocked." },
+      { status: 429 }
+    ));
+  }
+
   if (!request.nextUrl.pathname.startsWith(API_PREFIX)) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-admin-pathname", request.nextUrl.pathname);

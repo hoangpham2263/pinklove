@@ -412,12 +412,39 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
   {
     key: "configuration",
     label: "Configuration",
-    description: "Cấu hình nhận diện, SEO, ecommerce, tích hợp và backup.",
+    description: "Configure branding, SEO, ecommerce, integrations, and site-level settings.",
     href: ROUTES.ADMIN.CONFIG,
     iconName: "settings",
     permissions: ["configuration.view"],
     matchPrefixes: [ROUTES.ADMIN.CONFIG],
+    excludePrefixes: [ROUTES.ADMIN.SECURITY],
     sections: [],
+  },
+  {
+    key: "security",
+    label: "Security Management",
+    description: "Manage security settings, logs, blocked IPs, upload rules, endpoint protection, and backup safety.",
+    href: ROUTES.ADMIN.SECURITY,
+    iconName: "settings",
+    permissions: ["security.view"],
+    matchPrefixes: [ROUTES.ADMIN.SECURITY],
+    sections: [
+      {
+        key: "security-management",
+        title: "Security tools",
+        description: "Security configuration and operational controls.",
+        hideHeader: true,
+        items: [
+          item("security-settings", "Security Settings", "Configure auth rate limits, CSRF, headers, proxy trust, cleanup, and IP detection.", ROUTES.ADMIN.SECURITY_SETTINGS, "settings", "security.view"),
+          item("security-logs", "Security Logs", "Investigate login failures, rate-limit hits, CSRF failures, and suspicious traffic.", ROUTES.ADMIN.SECURITY_LOGS, "radio", "security.logs.view"),
+          item("blocked-ips", "Blocked IPs", "Block, unblock, import, and extend temporary IP/subnet blocks.", ROUTES.ADMIN.SECURITY_BLOCKED_IPS, "radio", "security.ip_blocks.manage"),
+          item("security-audit-logs", "Security Audit Logs", "Review append-only audit history for security-sensitive admin actions.", ROUTES.ADMIN.SECURITY_AUDIT_LOGS, "radio", "security.logs.view"),
+          item("upload-security", "Upload Security", "Manage centralized file, media, and avatar upload safety rules.", ROUTES.ADMIN.SECURITY_UPLOAD, "image", "security.view"),
+          item("endpoint-protection", "Endpoint Protection", "Manage heavy endpoint protection, cache behavior, rate limits, and false-positive controls.", ROUTES.ADMIN.SECURITY_ENDPOINT_PROTECTION, "settings", "security.view"),
+          item("backup-security", "Backup/Restore Security", "Monitor backup packages, retention, encryption, checksums, and safe restore checks.", ROUTES.ADMIN.SECURITY_BACKUPS, "package", "security.backups.view"),
+        ],
+      },
+    ],
   },
 ];
 

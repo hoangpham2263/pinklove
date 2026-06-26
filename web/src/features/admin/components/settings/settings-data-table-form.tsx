@@ -30,7 +30,7 @@ import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { MediaSelector } from "@/features/media/components/media-selector";
 import { AdminTableClearButton, AdminTableSearch, AdminTableToolbar, AdminTableSortButton } from "@/features/admin/components/admin-table-controls";
-import { AdminSubmitButton } from "@/features/admin/components/admin-buttons";
+import { AdminOutlineButton, AdminSubmitButton } from "@/features/admin/components/admin-buttons";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,10 +52,11 @@ type SettingsRow = {
 };
 
 type SettingsDataTableFormProps = {
-  section: "breadcrumb" | "sitemap" | "indexing" | "branding" | "opengraph" | "favicon" | "ecommerce" | "email" | "security" | "security_cleanup" | "security_headers";
+  section: "breadcrumb" | "sitemap" | "indexing" | "branding" | "opengraph" | "favicon" | "ecommerce" | "email" | "security" | "security_cleanup" | "security_detection" | "security_headers" | "upload_security" | "endpoint_protection";
   title: string;
   rows: SettingsRow[];
   saveMessage: string;
+  resetSection?: string;
   compactDescription?: boolean;
   columnWidths?: {
     label?: string;
@@ -69,6 +70,7 @@ export function SettingsDataTableForm({
   title,
   rows: initialRows,
   saveMessage,
+  resetSection,
   compactDescription = false,
   columnWidths,
 }: SettingsDataTableFormProps) {
@@ -255,7 +257,8 @@ export function SettingsDataTableForm({
     setIsSaving(true);
 
     try {
-      const formData = new FormData(event.currentTarget);
+      const submitter = event.nativeEvent instanceof SubmitEvent ? event.nativeEvent.submitter : null;
+      const formData = new FormData(event.currentTarget, submitter);
       for (const row of rows) {
         if (row.type === "boolean") {
           formData.set(row.id, Boolean(row.value) ? "on" : "");
@@ -264,7 +267,7 @@ export function SettingsDataTableForm({
 
         formData.set(row.id, String(row.value));
       }
-      formData.append("section", section);
+      if (!formData.has("section")) formData.append("section", section);
       const result = await adminApi.updateConfig(formData);
       toast.success(result.message ?? saveMessage);
       finishMutation(router, result, { redirect: false, refresh: true });
@@ -291,6 +294,11 @@ export function SettingsDataTableForm({
           <AdminSubmitButton disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu cài đặt"}
           </AdminSubmitButton>
+          {resetSection ? (
+            <AdminOutlineButton type="submit" name="section" value={resetSection} disabled={isSaving}>
+              Reset default an toàn
+            </AdminOutlineButton>
+          ) : null}
         </div>
       </div>
 

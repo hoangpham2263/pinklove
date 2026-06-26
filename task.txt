@@ -57,111 +57,111 @@ Auth/login/register security checklist cần làm tiếp:
    7.5. [x] Action mở khóa từng dòng, mở khóa theo scope, clear expired.
    7.6. [x] Mọi action phải ghi audit log admin.
 
-8. [ ] Làm trang admin security logs để theo dõi dấu hiệu tấn công: IP, user agent, path, method, status, số lần request, login fail, register fail, rate-limit hit, thời gian đầu/cuối, quốc gia/ASN nếu có nguồn dữ liệu.
-   8.1. [ ] Tạo bảng security_events hoặc request_security_events.
-   8.2. [ ] Ghi các event quan trọng: login_failed, login_success, register_failed, register_success, rate_limited, csrf_failed, forbidden_api, suspicious_path, admin_action.
-   8.3. [ ] Lưu IP dạng raw hoặc hash tùy quyết định; nếu cần block IP thì phải có IP hoặc dạng có thể map lại.
-   8.4. [ ] Lưu user_agent, path, method, status, referer rút gọn, user_id nếu có, created_at.
-   8.5. [ ] Có index theo created_at, ip, event_type, user_id.
-   8.6. [ ] UI có bộ lọc: thời gian, event type, IP, user, path, status, chỉ xem suspicious/rate_limited.
-   8.7. [ ] Có thống kê: top IP request nhiều, top IP login fail, top path 404/403, rate-limit hit theo giờ.
-   8.8. [ ] Có export CSV cho điều tra khi cần.
+8. [x] Làm trang admin security logs để theo dõi dấu hiệu tấn công: IP, user agent, path, method, status, số lần request, login fail, register fail, rate-limit hit, thời gian đầu/cuối, quốc gia/ASN nếu có nguồn dữ liệu.
+   8.1. [x] Tạo bảng security_events hoặc request_security_events.
+   8.2. [x] Ghi các event quan trọng: login_failed, login_success, register_failed, register_success, rate_limited, csrf_failed, forbidden_api, suspicious_path, admin_action.
+   8.3. [x] Lưu IP dạng raw hoặc hash tùy quyết định; nếu cần block IP thì phải có IP hoặc dạng có thể map lại.
+   8.4. [x] Lưu user_agent, path, method, status, referer rút gọn, user_id nếu có, created_at.
+   8.5. [x] Có index theo created_at, ip, event_type, user_id.
+   8.6. [x] UI có bộ lọc: thời gian, event type, IP, user, path, status, chỉ xem suspicious/rate_limited.
+   8.7. [x] Có thống kê: top IP request nhiều, top IP login fail, top path 404/403, rate-limit hit theo giờ.
+   8.8. [x] Có export CSV cho điều tra khi cần.
 
-9. [ ] Thêm cơ chế phát hiện IP bất thường/DDoS nhẹ: gom request theo IP trong cửa sổ thời gian, đánh dấu IP request quá nhiều, login fail quá nhiều, scan path lạ, 404/403 quá nhiều.
-   9.1. [ ] Đặt rule theo nhiều mức: warn, suspicious, blocked.
-   9.2. [ ] Theo dõi request/minute, 404/minute, 403/minute, login fail/15 phút, register fail/1 giờ.
-   9.3. [ ] Whitelist IP nội bộ, payment gateway, uptime monitor, search crawler hợp lệ nếu cần.
-   9.4. [ ] Không tự block quá mạnh lúc đầu; ưu tiên cảnh báo và admin review.
-   9.5. [ ] Có thể tự block tạm thời 5-15 phút với IP vượt ngưỡng rất cao.
-   9.6. [ ] DDoS lớn vẫn cần CDN/WAF như Cloudflare; app chỉ xử lý lớp nhẹ và log/quan sát.
-   9.7. [ ] Làm tab/trang dưới admin/config cho detection rules: chỉnh ngưỡng warn/suspicious/block, thời gian cửa sổ, tự động block on/off.
-   9.8. [ ] Trang config phải có chế độ dry-run/warn-only để quan sát trước khi bật block thật.
+9. [x] Thêm cơ chế phát hiện IP bất thường/DDoS nhẹ: gom request theo IP trong cửa sổ thời gian, đánh dấu IP request quá nhiều, login fail quá nhiều, scan path lạ, 404/403 quá nhiều.
+   9.1. [x] Đặt rule theo nhiều mức: warn, suspicious, blocked.
+   9.2. [x] Theo dõi request/minute, 404/minute, 403/minute, login fail/15 phút, register fail/1 giờ.
+   9.3. [x] Whitelist IP nội bộ, payment gateway, uptime monitor, search crawler hợp lệ nếu cần.
+   9.4. [x] Không tự block quá mạnh lúc đầu; ưu tiên cảnh báo và admin review.
+   9.5. [x] Có thể tự block tạm thời 5-15 phút với IP vượt ngưỡng rất cao.
+   9.6. [x] DDoS lớn vẫn cần CDN/WAF như Cloudflare; app chỉ xử lý lớp nhẹ và log/quan sát.
+   9.7. [x] Làm tab/trang dưới admin/config cho detection rules: chỉnh ngưỡng warn/suspicious/block, thời gian cửa sổ, tự động block on/off.
+   9.8. [x] Trang config phải có chế độ dry-run/warn-only để quan sát trước khi bật block thật.
 
-10. [ ] Thêm chức năng admin block/unblock IP hoặc subnet tạm thời, có lý do, thời hạn hết block, và audit log ai đã block/unblock.
-    10.1. [ ] Bảng blocked_ips gồm ip_or_cidr, reason, expires_at, created_by, created_at, revoked_by, revoked_at.
-    10.2. [ ] Middleware/proxy kiểm tra block list trước khi vào API/action nhạy cảm.
-    10.3. [ ] Hỗ trợ block tạm 15 phút, 1 giờ, 24 giờ, custom.
-    10.4. [ ] Không cho tự block IP admin hiện tại nếu không có xác nhận đặc biệt.
-    10.5. [ ] UI hiển thị active/expired/revoked và cho unblock.
-    10.6. [ ] Làm trang admin riêng cho Blocked IPs/Subnets: thêm block, import danh sách, tìm kiếm, gia hạn, revoke, xem lý do và lịch sử.
+10. [x] Thêm chức năng admin block/unblock IP hoặc subnet tạm thời, có lý do, thời hạn hết block, và audit log ai đã block/unblock.
+    10.1. [x] Bảng blocked_ips gồm ip_or_cidr, reason, expires_at, created_by, created_at, revoked_by, revoked_at.
+    10.2. [x] Middleware/proxy kiểm tra block list trước khi vào API/action nhạy cảm.
+    10.3. [x] Hỗ trợ block tạm 15 phút, 1 giờ, 24 giờ, custom.
+    10.4. [x] Không cho tự block IP admin hiện tại nếu không có xác nhận đặc biệt.
+    10.5. [x] UI hiển thị active/expired/revoked và cho unblock.
+    10.6. [x] Làm trang admin riêng cho Blocked IPs/Subnets: thêm block, import danh sách, tìm kiếm, gia hạn, revoke, xem lý do và lịch sử.
 
-11. [ ] Thêm audit log bảo mật cho admin action: mở khóa rate-limit, block/unblock IP, đổi quyền user, block/unblock user, reset password.
-    11.1. [ ] Ghi admin_user_id, action, target_type, target_id, before/after JSON nếu phù hợp, reason, ip, user_agent, created_at.
-    11.2. [ ] Audit log chỉ append, không sửa/xóa bằng UI thường.
-    11.3. [ ] Trang admin xem audit log có filter theo admin, action, target, thời gian.
-    11.4. [ ] Trang audit log có export CSV và phân quyền xem riêng cho admin đủ quyền.
+11. [x] Thêm audit log bảo mật cho admin action: mở khóa rate-limit, block/unblock IP, đổi quyền user, block/unblock user, reset password.
+    11.1. [x] Ghi admin_user_id, action, target_type, target_id, before/after JSON nếu phù hợp, reason, ip, user_agent, created_at.
+    11.2. [x] Audit log chỉ append, không sửa/xóa bằng UI thường.
+    11.3. [x] Trang admin xem audit log có filter theo admin, action, target, thời gian.
+    11.4. [x] Trang audit log có export CSV và phân quyền xem riêng cho admin đủ quyền.
 
-12. [ ] Thêm test/smoke cho các case: duplicate register trả account_exists, lỗi register clear session, login sai bị rate-limit, login đúng reset email rate-limit.
-    12.1. [ ] Test public register duplicate email/phone không tiết lộ trường nào trùng.
-    12.2. [ ] Test lỗi register xóa pinklove_session.
-    12.3. [ ] Test login fail đủ số lần thì rate_limited.
-    12.4. [ ] Test login success reset email rate-limit.
-    12.5. [ ] Test admin/provider login cũng bị rate-limit sau khi bổ sung.
-    12.6. [ ] Test CSRF thiếu/sai token bị chặn.
-    12.7. [ ] Test security headers xuất hiện ở production build.
-    12.8. [ ] Test admin unlock rate-limit ghi audit log.
-    12.9. [ ] Test block IP chặn request và unblock cho phép lại.
+12. [x] Thêm test/smoke cho các case: duplicate register trả account_exists, lỗi register clear session, login sai bị rate-limit, login đúng reset email rate-limit.
+    12.1. [x] Test public register duplicate email/phone không tiết lộ trường nào trùng.
+    12.2. [x] Test lỗi register xóa pinklove_session.
+    12.3. [x] Test login fail đủ số lần thì rate_limited.
+    12.4. [x] Test login success reset email rate-limit.
+    12.5. [x] Test admin/provider login cũng bị rate-limit sau khi bổ sung.
+    12.6. [x] Test CSRF thiếu/sai token bị chặn.
+    12.7. [x] Test security headers xuất hiện ở production build.
+    12.8. [x] Test admin unlock rate-limit ghi audit log.
+    12.9. [x] Test block IP chặn request và unblock cho phép lại.
 
-13. [ ] Cập nhật admin/config navigation để tiện quản lý các trang bảo mật trong khu cấu hình website hiện có.
-    13.1. [ ] Thêm nhóm/tabs Security hoặc Bảo mật bên trong admin/config, không tách rời khỏi khu cấu hình website.
-    13.2. [ ] Thêm link Auth rate limits.
-    13.3. [ ] Thêm link Security logs.
-    13.4. [ ] Thêm link Blocked IPs.
-    13.5. [ ] Thêm link Audit logs.
-    13.6. [ ] Thêm link Security settings/config tổng trong admin/config để quản lý rate-limit, CSRF, headers, proxy, detection rules.
-    13.7. [ ] Thêm link Upload security.
-    13.8. [ ] Thêm link Endpoint protection/cache.
-    13.9. [ ] Thêm link Backup/restore status trong admin/config.
-    13.10. [ ] Chỉ hiển thị các menu này cho admin có quyền phù hợp.
+13. [x] Cập nhật admin/config navigation để tiện quản lý các trang bảo mật trong khu cấu hình website hiện có.
+    13.1. [x] Thêm nhóm/tabs Security hoặc Bảo mật bên trong admin/config, không tách rời khỏi khu cấu hình website.
+    13.2. [x] Thêm link Auth rate limits.
+    13.3. [x] Thêm link Security logs.
+    13.4. [x] Thêm link Blocked IPs.
+    13.5. [x] Thêm link Audit logs.
+    13.6. [x] Thêm link Security settings/config tổng trong admin/config để quản lý rate-limit, CSRF, headers, proxy, detection rules.
+    13.7. [x] Thêm link Upload security.
+    13.8. [x] Thêm link Endpoint protection/cache.
+    13.9. [x] Thêm link Backup/restore status trong admin/config.
+    13.10. [x] Chỉ hiển thị các menu này cho admin có quyền phù hợp.
 
-14. [ ] Backup/restore security cho database và dữ liệu quan trọng.
-    14.1. [ ] Xác định dữ liệu cần backup: PostgreSQL database, uploads/media, env/config quan trọng nhưng không lưu secret raw vào nơi không mã hóa.
-    14.2. [ ] Thiết lập backup định kỳ theo lịch: daily cho DB, media theo tần suất thay đổi.
-    14.3. [ ] Mã hóa backup trước khi lưu hoặc dùng storage có encryption-at-rest.
-    14.4. [ ] Lưu backup ở vị trí tách biệt với server chính để tránh mất cả server là mất luôn backup.
-    14.5. [ ] Thiết lập retention policy: ví dụ giữ daily 7-14 ngày, weekly 4-8 tuần, monthly vài tháng tùy chi phí.
-    14.6. [ ] Hạn chế quyền truy cập backup, chỉ admin/devops cần thiết được đọc/xóa.
-    14.7. [ ] Test restore định kỳ vào môi trường staging/dev để chắc backup dùng được thật.
-    14.8. [ ] Ghi lại quy trình restore: restore DB, restore uploads, kiểm tra migration, kiểm tra login/admin/order.
-    14.9. [ ] Có cảnh báo nếu backup fail hoặc quá lâu không có backup mới.
-    14.10. [ ] Không log/hiển thị public đường dẫn backup, credential backup, signed URL dài hạn.
-    14.11. [ ] Làm tab/trang Backup/restore status dưới admin/config: xem lịch backup, trạng thái lần backup gần nhất, dung lượng, retention, cảnh báo fail, nút test restore/check integrity nếu an toàn.
-    14.12. [ ] Trang backup chỉ hiển thị metadata an toàn, không hiển thị secret, credential, full path nhạy cảm hoặc signed URL dài hạn.
+14. [x] Backup/restore security cho database và dữ liệu quan trọng.
+    14.1. [x] Xác định dữ liệu cần backup: PostgreSQL database, uploads/media, env/config quan trọng nhưng không lưu secret raw vào nơi không mã hóa.
+    14.2. [x] Thiết lập backup định kỳ theo lịch: daily cho DB, media theo tần suất thay đổi.
+    14.3. [x] Mã hóa backup trước khi lưu hoặc dùng storage có encryption-at-rest.
+    14.4. [x] Lưu backup ở vị trí tách biệt với server chính để tránh mất cả server là mất luôn backup.
+    14.5. [x] Thiết lập retention policy: ví dụ giữ daily 7-14 ngày, weekly 4-8 tuần, monthly vài tháng tùy chi phí.
+    14.6. [x] Hạn chế quyền truy cập backup, chỉ admin/devops cần thiết được đọc/xóa.
+    14.7. [x] Test restore định kỳ vào môi trường staging/dev để chắc backup dùng được thật.
+    14.8. [x] Ghi lại quy trình restore: restore DB, restore uploads, kiểm tra migration, kiểm tra login/admin/order.
+    14.9. [x] Có cảnh báo nếu backup fail hoặc quá lâu không có backup mới.
+    14.10. [x] Không log/hiển thị public đường dẫn backup, credential backup, signed URL dài hạn.
+    14.11. [x] Làm tab/trang Backup/restore status dưới admin/config: xem lịch backup, trạng thái lần backup gần nhất, dung lượng, retention, cảnh báo fail, nút test restore/check integrity nếu an toàn.
+    14.12. [x] Trang backup chỉ hiển thị metadata an toàn, không hiển thị secret, credential, full path nhạy cảm hoặc signed URL dài hạn.
 
-15. [ ] Upload/file security cho ảnh sản phẩm, media, avatar, file cưới.
-    15.1. [ ] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule upload security.
-    15.2. [ ] Config được các option: allowed file types, max file size, max files per upload, max total upload size.
-    15.3. [ ] Kiểm tra MIME type và magic bytes server-side, không chỉ tin file extension từ client.
-    15.4. [ ] Rename file khi lưu để tránh path traversal, tên file độc hại, trùng tên, lộ thông tin người upload.
-    15.5. [ ] Chặn SVG/script/HTML hoặc chỉ cho phép SVG sau khi sanitize thật kỹ.
-    15.6. [ ] Serve uploads như static file, không execute code, không cho chạy script từ thư mục upload.
-    15.7. [ ] Tách rule theo loại upload nếu cần: avatar, sản phẩm, bài viết, wedding media.
-    15.8. [ ] Log upload bị từ chối vào security logs với lý do: size, type, magic bytes, extension, scan fail.
-    15.9. [ ] UI admin hiển thị trạng thái rule hiện tại và cảnh báo nếu bật option nguy hiểm.
-    15.10. [ ] Test upload file hợp lệ vẫn hoạt động bình thường, chỉ chặn file nguy hiểm hoặc vượt ngưỡng rõ ràng.
+15. [x] Upload/file security cho ảnh sản phẩm, media, avatar, file cưới.
+    15.1. [x] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule upload security.
+    15.2. [x] Config được các option: allowed file types, max file size, max files per upload, max total upload size.
+    15.3. [x] Kiểm tra MIME type và magic bytes server-side, không chỉ tin file extension từ client.
+    15.4. [x] Rename file khi lưu để tránh path traversal, tên file độc hại, trùng tên, lộ thông tin người upload.
+    15.5. [x] Chặn SVG/script/HTML hoặc chỉ cho phép SVG sau khi sanitize thật kỹ.
+    15.6. [x] Serve uploads như static file, không execute code, không cho chạy script từ thư mục upload.
+    15.7. [x] Tách rule theo loại upload nếu cần: avatar, sản phẩm, bài viết, wedding media.
+    15.8. [x] Log upload bị từ chối vào security logs với lý do: size, type, magic bytes, extension, scan fail.
+    15.9. [x] UI admin hiển thị trạng thái rule hiện tại và cảnh báo nếu bật option nguy hiểm.
+    15.10. [x] Test upload file hợp lệ vẫn hoạt động bình thường, chỉ chặn file nguy hiểm hoặc vượt ngưỡng rõ ràng.
 
-16. [ ] Endpoint nặng/cache protection để giảm DDoS nhẹ nhưng tránh ảnh hưởng người dùng thật.
-    16.1. [ ] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule bảo vệ endpoint nặng.
-    16.2. [ ] Nguyên tắc mặc định: ưu tiên warn/log trước, chỉ block/rate-limit mạnh khi hành vi vượt ngưỡng bất thường rõ ràng.
-    16.3. [ ] Cache sitemap/public pages/public data nếu phù hợp để giảm tải server và DB.
-    16.4. [ ] Rate-limit riêng cho search/filter/API nặng theo IP + endpoint + user nếu có, đặt ngưỡng cao đủ cho người dùng thật.
-    16.5. [ ] Giới hạn pagination/page size ở mức hợp lý, ví dụ không cho query pageSize quá lớn nhưng vẫn đủ dùng cho UI.
-    16.6. [ ] Giới hạn upload body size theo loại upload, trả lỗi rõ ràng khi file quá lớn.
-    16.7. [ ] Thêm timeout hoặc guard cho query nặng, tránh một request kéo DB quá lâu.
-    16.8. [ ] Log endpoint chậm: path, duration, status, user_id nếu có, IP, user_agent rút gọn.
-    16.9. [ ] Có whitelist cho admin nội bộ, payment gateway, uptime monitor, crawler hợp lệ nếu cần.
-    16.10. [ ] Có chế độ bypass/unlock tạm thời cho người quen/tester trong admin.
-    16.11. [ ] Theo dõi false positive: nếu người dùng thật bị chặn thì admin thấy được lý do và chỉnh ngưỡng.
-    16.12. [ ] Test các luồng người dùng thật: xem sản phẩm, tìm kiếm, lọc, upload, checkout không bị giới hạn vô lý.
+16. [x] Endpoint nặng/cache protection để giảm DDoS nhẹ nhưng tránh ảnh hưởng người dùng thật.
+    16.1. [x] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule bảo vệ endpoint nặng.
+    16.2. [x] Nguyên tắc mặc định: ưu tiên warn/log trước, chỉ block/rate-limit mạnh khi hành vi vượt ngưỡng bất thường rõ ràng.
+    16.3. [x] Cache sitemap/public pages/public data nếu phù hợp để giảm tải server và DB.
+    16.4. [x] Rate-limit riêng cho search/filter/API nặng theo IP + endpoint + user nếu có, đặt ngưỡng cao đủ cho người dùng thật.
+    16.5. [x] Giới hạn pagination/page size ở mức hợp lý, ví dụ không cho query pageSize quá lớn nhưng vẫn đủ dùng cho UI.
+    16.6. [x] Giới hạn upload body size theo loại upload, trả lỗi rõ ràng khi file quá lớn.
+    16.7. [x] Thêm timeout hoặc guard cho query nặng, tránh một request kéo DB quá lâu.
+    16.8. [x] Log endpoint chậm: path, duration, status, user_id nếu có, IP, user_agent rút gọn.
+    16.9. [x] Có whitelist cho admin nội bộ, payment gateway, uptime monitor, crawler hợp lệ nếu cần.
+    16.10. [x] Có chế độ bypass/unlock tạm thời cho người quen/tester trong admin.
+    16.11. [x] Theo dõi false positive: nếu người dùng thật bị chặn thì admin thấy được lý do và chỉnh ngưỡng.
+    16.12. [x] Test các luồng người dùng thật: xem sản phẩm, tìm kiếm, lọc, upload, checkout không bị giới hạn vô lý.
 
-17. [ ] Nền tảng security settings/permissions để các trang trong admin/config hoạt động chuẩn, không hard-code rải rác.
-    17.1. [ ] Tạo nơi lưu cấu hình security tập trung, ví dụ security_settings hoặc dùng app_settings có namespace rõ ràng.
-    17.2. [ ] Cấu hình phải có default an toàn khi DB chưa có record hoặc config bị lỗi.
-    17.3. [ ] Validate mọi config trước khi lưu: số phải trong range hợp lý, domain allowlist không được wildcard nguy hiểm nếu chưa xác nhận.
-    17.4. [ ] Mọi thay đổi config security phải ghi audit log before/after.
-    17.5. [ ] Phân quyền riêng cho nhóm Security/Bảo mật: view logs, edit settings, unblock rate-limit, block IP, export logs, view backup status.
-    17.6. [ ] Có nút reset về default an toàn cho từng nhóm config.
-    17.7. [ ] Có trạng thái dry-run/warn-only cho các rule dễ ảnh hưởng người dùng thật trước khi bật block thật.
-    17.8. [ ] Có banner/cảnh báo trong admin nếu production đang tắt rule quan trọng.
-    17.9. [ ] Có migration/audit schema kiểm tra đủ bảng security_settings, security_events, blocked_ips, audit logs nếu các module được bật.
-    17.10. [ ] Cập nhật documentation ngắn trong admin để người vận hành hiểu từng option ảnh hưởng gì.
+17. [x] Nền tảng security settings/permissions để các trang trong admin/config hoạt động chuẩn, không hard-code rải rác.
+    17.1. [x] Tạo nơi lưu cấu hình security tập trung, ví dụ security_settings hoặc dùng app_settings có namespace rõ ràng.
+    17.2. [x] Cấu hình phải có default an toàn khi DB chưa có record hoặc config bị lỗi.
+    17.3. [x] Validate mọi config trước khi lưu: số phải trong range hợp lý, domain allowlist không được wildcard nguy hiểm nếu chưa xác nhận.
+    17.4. [x] Mọi thay đổi config security phải ghi audit log before/after.
+    17.5. [x] Phân quyền riêng cho nhóm Security/Bảo mật: view logs, edit settings, unblock rate-limit, block IP, export logs, view backup status.
+    17.6. [x] Có nút reset về default an toàn cho từng nhóm config.
+    17.7. [x] Có trạng thái dry-run/warn-only cho các rule dễ ảnh hưởng người dùng thật trước khi bật block thật.
+    17.8. [x] Có banner/cảnh báo trong admin nếu production đang tắt rule quan trọng.
+    17.9. [x] Có migration/audit schema kiểm tra đủ bảng security_settings, security_events, blocked_ips, audit logs nếu các module được bật.
+    17.10. [x] Cập nhật documentation ngắn trong admin để người vận hành hiểu từng option ảnh hưởng gì.

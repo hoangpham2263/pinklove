@@ -3,10 +3,10 @@ import { promises as fs } from"node:fs";
 import path from"node:path";
 
 import { query, type DbExecutor } from"@/lib/database";
+import { validateUploadFile } from "@/lib/upload-security";
 import type { MediaAsset } from"../types";
 
 const UPLOAD_ROOT_DIR = path.join(process.cwd(),"public","uploads");
-const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 const MEDIA_ASSET_SELECT = "id, url, file_name, original_name, mime_type, size_bytes, created_at";
 
 type MediaAssetRow = {
@@ -57,15 +57,9 @@ function getUploadPathFromUrl(url:string): string | null {
  return absolutePath;
 }
 
-function getFileExtension(file:File): string {
- const fromName = path.extname(file.name).toLowerCase();
- if (fromName) return fromName;
-
- if (file.type ==="image/jpeg") return".jpg";
- if (file.type ==="image/png") return".png";
- if (file.type ==="image/webp") return".webp";
- if (file.type ==="image/gif") return".gif";
- return"";
+function sanitizeOriginalFileName(fileName:string) {
+ const baseName = path.basename(fileName).replace(/[\u0000-\u001f\u007f]/g,"").trim();
+ return (baseName || "upload").slice(0, 180);
 }
 
 export async function listMediaAssets(options:{ page?:number; limit?:number } = {}): Promise<MediaAsset[]> {
@@ -116,9 +110,7 @@ export async function findMediaAssetByIdOrFileName(value:string): Promise<MediaA
 }
 
 export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
- if (file.size > MAX_FILE_SIZE_BYTES) {
- throw new Error("File is too large. Maximum size is 20MB.");
- }
+ const validated = await validateUploadFile(file);
 
  await ensureUploadDir();
 
@@ -128,22 +120,19 @@ export async function saveUploadedMedia(file:File): Promise<MediaAsset> {
  const targetDir = path.join(UPLOAD_ROOT_DIR, year, month);
  await fs.mkdir(targetDir, { recursive:true });
 
- const extension = getFileExtension(file);
- const safeFileName = `${Date.now()}-${randomUUID()}${extension}`;
+ const safeFileName = `${Date.now()}-${randomUUID()}${validated.extension}`;
  const absoluteTargetPath = path.join(targetDir, safeFileName);
 
- const arrayBuffer = await file.arrayBuffer();
- const buffer = Buffer.from(arrayBuffer);
- await fs.writeFile(absoluteTargetPath, buffer);
+ await fs.writeFile(absoluteTargetPath, validated.buffer);
 
  const url = `/uploads/${year}/${month}/${safeFileName}`;
  const item:MediaAsset = {
  id:randomUUID(),
  url,
  fileName:safeFileName,
- originalName:file.name,
- mimeType:file.type,
- sizeBytes:file.size,
+ originalName:sanitizeOriginalFileName(file.name),
+ mimeType:validated.mimeType,
+ sizeBytes:validated.buffer.byteLength,
  createdAt:now.toISOString(),
  };
 

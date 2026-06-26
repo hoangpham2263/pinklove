@@ -9,6 +9,7 @@ import {
 import { normalizePhoneNumber } from "@/features/auth/phone-number";
 import { AuthCsrfError, verifyAuthCsrfToken } from "@/lib/auth-csrf";
 import { AuthRateLimitError, getRequestIp, recordAuthRateLimit } from "@/lib/auth-rate-limit";
+import { recordSecurityEvent } from "@/lib/security-events";
 
 import {
  createSession,
@@ -51,22 +52,57 @@ export async function POST(request: Request) {
  const normalizedPhone = normalizePhoneNumber(phone, phoneCountry.code, phoneCountry.dialCode);
 
  if (!accountName || !password || !phone || !email) {
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "missing_fields" },
+ });
  return redirectRegisterError("missing_fields");
  }
 
  if (!EMAIL_PATTERN.test(email)) {
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "invalid_email" },
+ });
  return redirectRegisterError("invalid_email");
  }
 
  if (!normalizedPhone) {
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "invalid_phone" },
+ });
  return redirectRegisterError("invalid_phone");
  }
 
  if (password.length < MIN_PASSWORD_LENGTH) {
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "weak_password" },
+ });
  return redirectRegisterError("weak_password");
  }
 
  if (!termsAccepted) {
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "terms_required" },
+ });
  return redirectRegisterError("terms_required");
  }
 
@@ -101,6 +137,13 @@ export async function POST(request: Request) {
 
   return created;
  });
+ await recordSecurityEvent({
+  request,
+  eventType: "register_success",
+  status: 303,
+  userId: user.id,
+  metadata: { role: user.role },
+ });
  const token = await createSession(user.id);
  const target = user.role === USER_ROLES.ADMIN ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
@@ -108,18 +151,46 @@ export async function POST(request: Request) {
  return response;
  } catch (error) {
  if (error instanceof AuthCsrfError) {
+  await recordSecurityEvent({
+   request,
+   eventType: "csrf_failed",
+   severity: "warn",
+   status: 303,
+   metadata: { scope: "register" },
+  });
   return redirectRegisterError("register_failed");
  }
 
  if (error instanceof AuthRateLimitError) {
+  await recordSecurityEvent({
+   request,
+   eventType: "rate_limited",
+   severity: "warn",
+   status: 303,
+   metadata: { scope: "register" },
+  });
   return redirectRegisterError("rate_limited");
  }
 
  const message = error instanceof Error ? error.message :"";
  if (isAccountUniquenessError(message)) {
+  await recordSecurityEvent({
+   request,
+   eventType: "register_failed",
+   severity: "warn",
+   status: 303,
+   metadata: { reason: "account_exists" },
+  });
   return redirectRegisterError("account_exists");
  }
 
+ await recordSecurityEvent({
+  request,
+  eventType: "register_failed",
+  severity: "warn",
+  status: 303,
+  metadata: { reason: "register_failed" },
+ });
  return redirectRegisterError("register_failed");
 }
 }

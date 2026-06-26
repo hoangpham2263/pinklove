@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { NativeForm } from "@/components/common/native-form";
 import {
@@ -13,6 +14,7 @@ import { BlogCard } from "@/features/blog/components/blog-card";
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
 import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";
 import { searchGuestContent } from "@/features/search/server/service";
+import { enforceEndpointProtection, getEndpointTimerMs, recordSlowEndpoint } from "@/lib/endpoint-protection";
 import { getManagedPagePath } from "@/lib/page-paths";
 import { getBlogCategoryPath, getBlogPostPath } from "@/lib/public-paths";
 import { ROUTES } from "@/lib/routes";
@@ -42,9 +44,47 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const startedAt = getEndpointTimerMs();
   const query = getSearchQuery((await searchParams)?.q);
+  const request = new Request(`http://local${ROUTES.SEARCH}${query ? `?q=${encodeURIComponent(query)}` : ""}`, {
+    headers: await headers(),
+  });
+  const decision = query
+    ? await enforceEndpointProtection({
+        request,
+        endpointKey: "public:search",
+        metadata: {
+          queryLength: query.length,
+        },
+      })
+    : { allowed: true };
+  if (!decision.allowed) {
+    return (
+      <GuestShell className="gap-10 pb-16 pt-32 lg:pt-36">
+        <GuestPanel>
+          <GuestPanelBody className="space-y-4">
+            <h1 className="text-2xl font-semibold text-stone-950 sm:text-3xl">Tim kiem dang duoc gioi han tam thoi</h1>
+            <p className="text-sm leading-7 text-stone-600 md:text-base">
+              He thong dang bao ve endpoint tim kiem do tan suat truy cap cao. Vui long thu lai sau it phut.
+            </p>
+            <GuestLinkButton href={ROUTES.HOME}>Ve trang chu</GuestLinkButton>
+          </GuestPanelBody>
+        </GuestPanel>
+      </GuestShell>
+    );
+  }
   const results = query ? await searchGuestContent(query) : { offerings: [], posts: [], pages: [] };
   const totalResults = results.offerings.length + results.posts.length + results.pages.length;
+  await recordSlowEndpoint({
+    request,
+    endpointKey: "public:search",
+    durationMs: getEndpointTimerMs() - startedAt,
+    status: 200,
+    metadata: {
+      queryLength: query.length,
+      totalResults,
+    },
+  });
 
   return (
     <GuestShell className="gap-10 pb-16 pt-32 lg:pt-36">
