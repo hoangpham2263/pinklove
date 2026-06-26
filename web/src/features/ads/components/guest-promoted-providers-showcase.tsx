@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BadgePercent, Sparkles, Star } from "lucide-react";
 
 import { PagedCarousel } from "@/components/common/paged-carousel";
-import { GuestMarketingSoftGlow } from "@/app/(guest)/_components/guest-marketing-background";
+import { GuestMarketingSoftGlow } from "@/app/user-site/_components/guest-marketing-background";
 import { AdEventTracker } from "@/features/ads/components/ad-event-tracker";
 import { ROUTES } from "@/lib/routes";
 

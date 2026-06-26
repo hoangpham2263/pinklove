@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   const allowProviderSupply = supportsProviderSupply && formData.get("allowProviderSupply") === "on";
   const returnTo = String(formData.get("returnTo") ?? "").trim();
   const createBaseLocation =
-    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER ? ROUTES.ADMIN.OFFERING_BUILDER_CREATE : ROUTES.ADMIN.OFFERINGS;
+    templateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER ? ROUTES.ADMIN.OFFERING_BUILDER_CREATE : ROUTES.ADMIN.OFFERING_NEW;
   const createQuery = new URLSearchParams({
     ...(templateEngine !== SYSTEM_TEMPLATE_ENGINES.BUILDER ? { type: offeringType } : {}),
     ...(returnTo ? { returnTo } : {}),

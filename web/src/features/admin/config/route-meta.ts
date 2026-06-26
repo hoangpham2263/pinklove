@@ -17,7 +17,7 @@ export function getAdminPageTitle(pathname: string): string {
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_BUILDER)) return "Offering Builder";
   if (pathname.startsWith(ROUTES.ADMIN.PROVIDER_OFFERINGS)) return "Duyệt yêu cầu dịch vụ/sản phẩm provider";
   if (pathname.startsWith(ROUTES.ADMIN.OFFERING_CATEGORIES)) return "Offering Categories";
-  if (pathname === ROUTES.ADMIN.OFFERINGS) return "Create Offering";
+  if (pathname === ROUTES.ADMIN.OFFERING_NEW) return "Create Offering";
   if (pathname === ROUTES.ADMIN.OFFERING_LIST) return "Offerings Overview";
   if (pathname.startsWith(ROUTES.ADMIN.ORDERS)) return "Orders";
   if (pathname.startsWith(ROUTES.ADMIN.BOOKINGS)) return "Bookings";

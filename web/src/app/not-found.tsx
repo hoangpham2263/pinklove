@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Heart, Search } from "lucide-react";
-import { GuestLinkButton, GuestPanel, GuestPanelBody, GuestShell } from "@/app/(guest)/_components/guest-ui";
+import { GuestLinkButton, GuestPanel, GuestPanelBody, GuestShell } from "@/app/user-site/_components/guest-ui";
 import { getCurrentUser, isAdminRole } from "@/lib/auth";
 import { getPageBySlug } from "@/lib/managed-pages";
 import { getPageFields } from "@/lib/page-fields";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GuestButton, GuestLinkButton } from "@/app/(guest)/_components/guest-ui";
+import { GuestButton, GuestLinkButton } from "@/app/user-site/_components/guest-ui";
 import { NativeForm } from "@/components/common/native-form";
 import type { FieldSchema, TextFieldSchema } from "@/features/pages/schema";
 import type { Offering } from "@/features/offerings/types";

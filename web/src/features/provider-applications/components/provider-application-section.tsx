@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Boxes, CheckCircle2, Factory, ReceiptText, ShieldCheck, Truck } from "lucide-react";
 
-import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/(guest)/_components/guest-marketing-background";
+import { GuestMarketingHeroDecor, GuestMarketingPageShell } from "@/app/user-site/_components/guest-marketing-background";
 import type { ManagedPage } from "@/lib/managed-pages";
 import { createRichTextMarkup, RICH_TEXT_CONTENT_CLASSNAME } from "@/lib/rich-text";
 import { ROUTES } from "@/lib/routes";

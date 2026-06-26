@@ -132,7 +132,17 @@ export async function POST(request: Request) {
 }
 
 function getSafeAdminReturnTo(value: string) {
-  return value.startsWith("/admin/") ? value : ROUTES.ADMIN.OFFERING_TYPES;
+  if (
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.startsWith("/api/") &&
+    !value.startsWith("/admin-site") &&
+    !value.startsWith("/user-site")
+  ) {
+    return value;
+  }
+
+  return ROUTES.ADMIN.OFFERING_TYPES;
 }
 
 function withQuery(path: string, key: string, value: string) {

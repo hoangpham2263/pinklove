@@ -4,6 +4,7 @@ import { AdminCreateLinkButton, AdminLinkButton } from "@/features/admin/compone
 import { AdminOverviewCard, AdminOverviewGrid } from "@/features/admin/components/admin-overview-card";
 import type { AccountUser, AuthUser } from "@/lib/auth";
 import { getRoleDescription, getRoleLabel, type UserRole } from "@/lib/roles";
+import { ROUTES } from "@/lib/routes";
 import { UserManagement } from "@/features/admin/components/users/user-management";
 
 type RoleAccountManagementPageProps = {
@@ -38,7 +39,7 @@ export function RoleAccountManagementPage({
         <AdminOverviewCard title={getRoleLabel(role)} value={users.length} description={getRoleDescription(role)} icon={Users} />
         <AdminOverviewCard title="Tỷ trọng trong hệ thống" value={`${roleShare}%`} description={`${users.length}/${totalAccounts} tài khoản`} icon={Percent} />
         <AdminOverviewCard title="Thao tác nhanh" icon={Plus} contentClassName="flex flex-wrap gap-3">
-            <AdminLinkButton href="/admin/users">Mở danh sách tổng</AdminLinkButton>
+            <AdminLinkButton href={ROUTES.ADMIN.USERS}>Mở danh sách tổng</AdminLinkButton>
             <AdminCreateLinkButton href={createHref}>{createLabel}</AdminCreateLinkButton>
         </AdminOverviewCard>
       </AdminOverviewGrid>

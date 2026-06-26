@@ -2,14 +2,20 @@ import "server-only";
 
 import type { SystemSettings } from "@/lib/system-settings";
 
-export function buildRobotsContent(siteUrl: string, settings: SystemSettings) {
+export function buildRobotsContent(
+  siteUrl: string,
+  settings: SystemSettings,
+  options: { adminSite?: boolean } = {}
+) {
   const lines = ["User-agent: *"];
 
-  if (!settings.indexing.siteIndexingEnabled) {
+  if (options.adminSite) {
+    lines.push("Disallow: /");
+  } else if (!settings.indexing.siteIndexingEnabled) {
     lines.push("Disallow: /");
   } else {
     lines.push("Allow: /");
-    if (settings.indexing.disallowAdmin) lines.push("Disallow: /admin/");
+    if (settings.indexing.disallowAdmin) lines.push("Disallow: /admin-site/");
     if (settings.indexing.disallowUser) lines.push("Disallow: /customer/");
     if (settings.indexing.disallowApi) lines.push("Disallow: /api/");
   }
@@ -24,7 +30,7 @@ export function buildRobotsContent(siteUrl: string, settings: SystemSettings) {
     lines.push(...customRules);
   }
 
-  if (settings.indexing.includeSitemapInRobots && settings.sitemap.enabled) {
+  if (!options.adminSite && settings.indexing.includeSitemapInRobots && settings.sitemap.enabled) {
     lines.push("");
     lines.push(`Sitemap: ${siteUrl}/sitemap.xml`);
   }

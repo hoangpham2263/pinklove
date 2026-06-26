@@ -14,9 +14,10 @@ const FIXED_PAGE_PATHS: Record<string, string> = {
   affiliates: ROUTES.AFFILIATE_APPLY,
 };
 const RESERVED_EXACT_PATHS = new Set([
-  "/admin",
   "/customer",
   "/provider",
+  "/admin-site",
+  "/user-site",
   "/search",
   "/wishlist",
   "/checkout",
@@ -25,7 +26,8 @@ const RESERVED_EXACT_PATHS = new Set([
 ]);
 const RESERVED_PREFIXES = [
   "/api",
-  "/admin",
+  "/admin-site",
+  "/user-site",
   "/customer",
   "/user",
   "/provider",

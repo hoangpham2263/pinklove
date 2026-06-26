@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Section, SectionContainer } from "@/components/common/section";
-import { GuestMarketingPageDecor } from "@/app/(guest)/_components/guest-marketing-background";
+import { GuestMarketingPageDecor } from "@/app/user-site/_components/guest-marketing-background";
 import { ROUTES } from "@/lib/routes";
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/constants";
 import { PHONE_COUNTRY_FLAG_SVGS } from "@/features/auth/phone-country-flags";

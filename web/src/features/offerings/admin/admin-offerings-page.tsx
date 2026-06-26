@@ -59,7 +59,7 @@ export async function AdminOfferingsPageView({
   const createHref =
     fixedTemplateEngine === SYSTEM_TEMPLATE_ENGINES.BUILDER
       ? `${ROUTES.ADMIN.OFFERING_BUILDER_CREATE}?returnTo=${encodeURIComponent(returnTo)}`
-      : `${ROUTES.ADMIN.OFFERINGS}?type=${fixedOfferingType ?? SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}&returnTo=${encodeURIComponent(returnTo)}`;
+      : `${ROUTES.ADMIN.OFFERING_NEW}?type=${fixedOfferingType ?? SYSTEM_OFFERING_TYPES.PHYSICAL_PRODUCT}&returnTo=${encodeURIComponent(returnTo)}`;
   const hasHeaderContent = title.trim().length > 0 || description.trim().length > 0 || canCreateOffering;
 
   return (

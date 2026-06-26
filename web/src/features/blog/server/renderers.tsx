@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { GuestPanel, GuestPanelBody, GuestPanelHeader, GuestPanelTitle, GuestShell } from "@/app/(guest)/_components/guest-ui";
+import { GuestPanel, GuestPanelBody, GuestPanelHeader, GuestPanelTitle, GuestShell } from "@/app/user-site/_components/guest-ui";
 import { JsonLd } from "@/components/common/json-ld";
 import { BlogCard } from "@/features/blog/components/blog-card";
 import type { BlogCategory, BlogPost } from "@/features/blog/types";

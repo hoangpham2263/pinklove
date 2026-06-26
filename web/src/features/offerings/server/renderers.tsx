@@ -11,7 +11,7 @@ import {
   GuestPanelBody,
   GuestPanelHeader,
   GuestPanelTitle,
-} from "@/app/(guest)/_components/guest-ui";
+} from "@/app/user-site/_components/guest-ui";
 import { WishlistToggleButton } from "@/features/offerings/components/wishlist-toggle-button";
 import { LoopOnlineInvitationCard } from "@/features/offerings/components/LoopOnlineInvitationCard";
 import { LoopOfferingCard } from "@/features/offerings/components/LoopOfferingCard";

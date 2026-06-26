@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { INTERNAL_API_KEY_HEADER, INTERNAL_API_SECRET_COOKIE_NAME } from "./lib/api";
+import { isAdminHost } from "./lib/domains";
 import {
   buildSecurityHeaders,
   DEFAULT_SECURITY_HEADERS,
@@ -9,6 +10,8 @@ import {
 } from "./lib/security-headers";
 
 const API_PREFIX = "/api/";
+const ADMIN_SITE_PREFIX = "/admin-site";
+const USER_SITE_PREFIX = "/user-site";
 const SECURITY_HEADERS_CONFIG_PATH = "/api/internal/security-headers";
 const SECURITY_IP_DECISION_PATH = "/api/internal/security-ip-decision";
 const SECURITY_HEADERS_CACHE_TTL_MS = 30_000;
@@ -171,6 +174,56 @@ async function applyRuntimeSecurityHeaders(request: NextRequest, response: NextR
   return response;
 }
 
+function isBypassedPath(pathname: string) {
+  return (
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith(API_PREFIX) ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/uploads/") ||
+    /\/[^/]+\.[^/]+$/.test(pathname)
+  );
+}
+
+function stripImplementationPrefix(pathname: string, prefix: string) {
+  if (pathname === prefix) {
+    return "/";
+  }
+
+  if (pathname.startsWith(`${prefix}/`)) {
+    return pathname.slice(prefix.length) || "/";
+  }
+
+  return null;
+}
+
+function getSiteRewritePath(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const adminPublicPath = stripImplementationPrefix(pathname, ADMIN_SITE_PREFIX);
+  const userPublicPath = stripImplementationPrefix(pathname, USER_SITE_PREFIX);
+
+  if (adminPublicPath || userPublicPath) {
+    return null;
+  }
+
+  const sitePrefix = isAdminHost(request.headers.get("host")) ? ADMIN_SITE_PREFIX : USER_SITE_PREFIX;
+  return pathname === "/" ? sitePrefix : `${sitePrefix}${pathname}`;
+}
+
+function redirectImplementationPath(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const publicPath =
+    stripImplementationPrefix(pathname, ADMIN_SITE_PREFIX) ??
+    stripImplementationPrefix(pathname, USER_SITE_PREFIX);
+
+  if (!publicPath) {
+    return null;
+  }
+
+  const url = request.nextUrl.clone();
+  url.pathname = publicPath;
+  return NextResponse.redirect(url);
+}
+
 export async function proxy(request: NextRequest) {
   if (await isTemporarilyBlockedBySecurityDetection(request)) {
     return applyRuntimeSecurityHeaders(request, NextResponse.json(
@@ -180,9 +233,21 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!request.nextUrl.pathname.startsWith(API_PREFIX)) {
+    if (isBypassedPath(request.nextUrl.pathname)) {
+      return applyRuntimeSecurityHeaders(request, NextResponse.next());
+    }
+
+    const implementationRedirect = redirectImplementationPath(request);
+    if (implementationRedirect) {
+      return applyRuntimeSecurityHeaders(request, implementationRedirect);
+    }
+
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-admin-pathname", request.nextUrl.pathname);
-    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    const rewritePath = getSiteRewritePath(request);
+    const response = rewritePath
+      ? NextResponse.rewrite(new URL(rewritePath, request.url), { request: { headers: requestHeaders } })
+      : NextResponse.next({ request: { headers: requestHeaders } });
     const secret = getInternalApiSecret();
 
     if (secret) {

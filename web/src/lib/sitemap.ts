@@ -82,7 +82,17 @@ export function renderSitemapIndex(items: SitemapIndexItem[]) {
 }
 
 async function discoverClientStaticRoutes(): Promise<string[]> {
-  const clientRoot = path.join(process.cwd(), "src", "app", "(guest)");
+  const clientRoot = path.join(process.cwd(), "src", "app", "user-site");
+  const excludedTopLevelSegments = new Set([
+    "checkout",
+    "customer",
+    "forgot-password",
+    "login",
+    "payment",
+    "provider",
+    "register",
+    "reset-password",
+  ]);
   const discovered = new Set<string>();
 
   async function walk(currentDir: string, segments: string[]) {
@@ -96,6 +106,10 @@ async function discoverClientStaticRoutes(): Promise<string[]> {
       const fullPath = path.join(currentDir, entry.name);
 
       if (entry.isDirectory()) {
+        if (segments.length === 0 && excludedTopLevelSegments.has(entry.name)) {
+          continue;
+        }
+
         if (entry.name.startsWith("(") && entry.name.endsWith(")")) {
           await walk(fullPath, segments);
           continue;

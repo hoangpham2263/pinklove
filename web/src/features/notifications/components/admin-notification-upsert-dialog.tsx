@@ -160,7 +160,7 @@ export function AdminNotificationUpsertDialog({
               <Input
                 id={notification ? `linkUrl-${notification.id}` : "linkUrl"}
                 name="linkUrl"
-                placeholder="/customer/orders hoặc /admin/orders/..."
+                placeholder="/customer/orders hoặc /orders/..."
                 defaultValue={notification?.linkUrl ?? ""}
                 className="bg-white"
               />

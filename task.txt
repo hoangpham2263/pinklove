@@ -1,178 +1,332 @@
-quên mật khẩu, luồng account
+Yeu cau tai cau truc route/domain PinkLove
+=========================================
 
-Auth/login/register security checklist cần làm tiếp:
+Muc tieu
+--------
+- To chuc lai routing/domain cua ung dung PinkLove thanh 2 site surface ro rang:
+  - `admin-site`: admin backoffice, chay theo domain/subdomain admin cau hinh bang env.
+  - `user-site`: public website + customer portal + provider portal, chay theo public domain.
+- API dung chung tiep tuc nam trong `web/src/app/api`.
+- Domain admin tam thoi la `system.pinklove.vn`, cau hinh bang env de sau nay co the doi.
+- Customer va Provider portal nam chung public domain de flow auth, checkout, payment, affiliate, email link va SEO lien mach.
 
-1. [x] Thêm pre-check rate-limit trước khi verify password ở login để chặn sớm brute-force, tránh tốn chi phí hash mật khẩu.
-   1.1. [x] Tách hàm checkAuthRateLimit(scope, key) để kiểm tra attempts trước khi chạy authenticateUserByEmail.
-   1.2. [x] Nếu đã quá limit thì redirect rate_limited ngay, không chạy password hash.
-   1.3. [x] Vẫn record attempt khi login sai.
-   1.4. [x] Login thành công thì reset email rate-limit, cân nhắc reset IP rate-limit nếu IP không còn bị spam.
-   1.5. [x] Cho phép chỉnh ngưỡng public login rate-limit trong trang admin security config, không hard-code cố định.
+Boi canh du an
+--------------
+- Next.js app nam trong thu muc `web/`.
+- Proxy layer hien co nam tai `web/src/proxy.ts`.
+- Route constants nam tai `web/src/lib/routes.ts`.
+- API routes nam tai `web/src/app/api`.
 
-2. [x] Áp dụng rate-limit cho các route login riêng: /api/admin/auth/login và /api/provider/auth/login.
-   2.1. [x] Dùng cùng bảng auth_rate_limits để deploy nhiều instance vẫn đồng bộ.
-   2.2. [x] Thêm scope riêng nếu cần: admin_login:ip, admin_login:email, provider_login:ip, provider_login:email.
-   2.3. [x] Admin/provider login nên limit chặt hơn public login.
-   2.4. [x] UI lỗi vẫn trả thông báo chung, không tiết lộ email tồn tại hay quyền sai.
-   2.5. [x] Cho phép chỉnh riêng ngưỡng admin/provider login rate-limit trong trang admin security config.
+Cau truc thu muc target
+-----------------------
 
-3. [x] Kiểm tra cấu hình reverse proxy/CDN khi deploy để x-forwarded-for/x-real-ip chỉ đến từ proxy tin cậy, tránh client spoof IP rate-limit.
-   3.1. [x] Chỉ tin cf-connecting-ip nếu thật sự chạy sau Cloudflare.
-   3.2. [x] Chỉ tin x-forwarded-for/x-real-ip nếu request đi qua reverse proxy do mình kiểm soát.
-   3.3. [x] Nếu không có trusted proxy thì dùng remote address ở tầng server/proxy.
-   3.4. [x] Ghi rõ cấu hình deploy vào docs/env example.
-   3.5. [x] Làm tab/trang dưới admin/config hiển thị cấu hình IP/proxy hiện tại: trusted headers, Cloudflare on/off, trusted proxy mode, cảnh báo nếu cấu hình chưa an toàn.
+```txt
+web/src/
+├── app/
+│   ├── admin-site/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── login/page.tsx
+│   │   ├── dashboard/page.tsx
+│   │   ├── config/
+│   │   ├── orders/
+│   │   ├── customers/
+│   │   ├── providers/
+│   │   ├── offerings/
+│   │   ├── marketing/
+│   │   ├── analytics/
+│   │   └── ...
+│   │
+│   ├── user-site/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── blog/
+│   │   ├── checkout/
+│   │   ├── payment/
+│   │   ├── affiliates/
+│   │   ├── providers/
+│   │   │
+│   │   ├── customer/
+│   │   │   ├── layout.tsx
+│   │   │   ├── dashboard/page.tsx
+│   │   │   ├── orders/
+│   │   │   ├── messages/
+│   │   │   └── config/
+│   │   │
+│   │   └── provider/
+│   │       ├── layout.tsx
+│   │       ├── dashboard/page.tsx
+│   │       ├── orders/
+│   │       ├── offerings/
+│   │       ├── leads/
+│   │       └── config/
+│   │
+│   └── api/
+│       ├── admin/
+│       ├── auth/
+│       ├── customer/
+│       ├── provider/
+│       └── ...
+│
+├── proxy.ts
+└── lib/
+    ├── domains.ts
+    ├── routes.ts
+    └── auth.ts
+```
 
-4. [x] Thêm CSRF token riêng cho các auth form nhạy cảm: login, register, admin login, provider login.
-   4.1. [x] Sinh CSRF token server-side, lưu hash hoặc token trong cookie/session tạm.
-   4.2. [x] Form POST phải gửi hidden csrfToken.
-   4.3. [x] API POST verify token bằng timing-safe compare.
-   4.4. [x] Token hết hạn ngắn và rotate sau khi dùng thành công.
-   4.5. [x] Lỗi CSRF trả thông báo chung, không lộ chi tiết kỹ thuật.
-   4.6. [x] Làm tab/trang dưới admin/config xem trạng thái CSRF protection và bật/tắt theo môi trường nếu cần, mặc định production phải bật.
+Quy uoc `providers` va `provider`
+---------------------------------
 
-5. [x] Thêm security headers production: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options/frame-ancestors, X-Content-Type-Options, Referrer-Policy, Permissions-Policy.
-   5.1. [x] Content-Security-Policy giới hạn script/style/img/connect/font/frame theo domain thật đang dùng.
-   5.2. [x] CSP cần hỗ trợ Next.js, ảnh upload, payment gateway, analytics nếu có.
-   5.3. [x] Strict-Transport-Security chỉ bật production HTTPS: max-age cao, includeSubDomains sau khi chắc domain/subdomain đều HTTPS.
-   5.4. [x] frame-ancestors 'none' hoặc chỉ cho domain cần nhúng; tránh clickjacking.
-   5.5. [x] X-Content-Type-Options: nosniff.
-   5.6. [x] Referrer-Policy: strict-origin-when-cross-origin hoặc stricter nếu không ảnh hưởng tracking.
-   5.7. [x] Permissions-Policy: tắt camera/microphone/geolocation/payment nếu không dùng.
-   5.8. [x] Test kỹ checkout/payment/OAuth sau khi bật headers.
-   5.9. [x] Làm tab/trang dưới admin/config quản lý security headers: bật/tắt từng header, chỉnh domain allowlist CSP, preview header sẽ trả về.
-   5.10. [x] Trang config phải cảnh báo khi tắt header quan trọng hoặc thêm domain wildcard nguy hiểm.
+```txt
+/providers          -> trang public gioi thieu/dang ky lam provider
+/provider/...       -> portal provider sau dang nhap
+/affiliates         -> trang public gioi thieu/dang ky affiliate
+/customer/...       -> portal customer sau dang nhap
+```
 
-6. [x] Xem xét cleanup định kỳ bảng auth_rate_limits theo expires_at để DB không phình lâu dài.
-   6.1. [x] Thêm job hoặc endpoint admin cron xóa record expires_at < NOW() - interval an toàn.
-   6.2. [x] Có index expires_at để xóa nhanh.
-   6.3. [x] Không xóa record đang active.
-   6.4. [x] Làm tab/trang dưới admin/config cho cleanup auth_rate_limits: bật/tắt cleanup, retention days, nút chạy cleanup thủ công, hiển thị lần chạy gần nhất.
+URL contract target
+-------------------
 
-7. [x] Làm tab/trang dưới admin/config để quản lý auth rate-limit: xem danh sách scope/key bị limit, lọc theo login/register/IP/email/phone, xem attempts/expires_at, và mở khóa thủ công cho người quen/tester khi cần.
-   7.1. [x] Trang nằm trong admin/config/security hoặc nhóm Bảo mật của admin/config hiện có.
-   7.2. [x] Bảng gồm scope, attempts, window_start, expires_at, updated_at, trạng thái active/expired.
-   7.3. [x] Vì rate_key đang hash, cần hiển thị hash rút gọn và metadata an toàn nếu có.
-   7.4. [x] Cho tìm theo email/phone/IP bằng cách hash input rồi đối chiếu, không lưu raw key.
-   7.5. [x] Action mở khóa từng dòng, mở khóa theo scope, clear expired.
-   7.6. [x] Mọi action phải ghi audit log admin.
+Public domain:
 
-8. [x] Làm trang admin security logs để theo dõi dấu hiệu tấn công: IP, user agent, path, method, status, số lần request, login fail, register fail, rate-limit hit, thời gian đầu/cuối, quốc gia/ASN nếu có nguồn dữ liệu.
-   8.1. [x] Tạo bảng security_events hoặc request_security_events.
-   8.2. [x] Ghi các event quan trọng: login_failed, login_success, register_failed, register_success, rate_limited, csrf_failed, forbidden_api, suspicious_path, admin_action.
-   8.3. [x] Lưu IP dạng raw hoặc hash tùy quyết định; nếu cần block IP thì phải có IP hoặc dạng có thể map lại.
-   8.4. [x] Lưu user_agent, path, method, status, referer rút gọn, user_id nếu có, created_at.
-   8.5. [x] Có index theo created_at, ip, event_type, user_id.
-   8.6. [x] UI có bộ lọc: thời gian, event type, IP, user, path, status, chỉ xem suspicious/rate_limited.
-   8.7. [x] Có thống kê: top IP request nhiều, top IP login fail, top path 404/403, rate-limit hit theo giờ.
-   8.8. [x] Có export CSV cho điều tra khi cần.
+```txt
+pinklove.vn/
+pinklove.vn/blog
+pinklove.vn/checkout
+pinklove.vn/payment/...
+pinklove.vn/affiliates
+pinklove.vn/providers
+pinklove.vn/customer/dashboard
+pinklove.vn/customer/orders
+pinklove.vn/customer/messages
+pinklove.vn/provider/dashboard
+pinklove.vn/provider/orders
+pinklove.vn/provider/offerings
+```
 
-9. [x] Thêm cơ chế phát hiện IP bất thường/DDoS nhẹ: gom request theo IP trong cửa sổ thời gian, đánh dấu IP request quá nhiều, login fail quá nhiều, scan path lạ, 404/403 quá nhiều.
-   9.1. [x] Đặt rule theo nhiều mức: warn, suspicious, blocked.
-   9.2. [x] Theo dõi request/minute, 404/minute, 403/minute, login fail/15 phút, register fail/1 giờ.
-   9.3. [x] Whitelist IP nội bộ, payment gateway, uptime monitor, search crawler hợp lệ nếu cần.
-   9.4. [x] Không tự block quá mạnh lúc đầu; ưu tiên cảnh báo và admin review.
-   9.5. [x] Có thể tự block tạm thời 5-15 phút với IP vượt ngưỡng rất cao.
-   9.6. [x] DDoS lớn vẫn cần CDN/WAF như Cloudflare; app chỉ xử lý lớp nhẹ và log/quan sát.
-   9.7. [x] Làm tab/trang dưới admin/config cho detection rules: chỉnh ngưỡng warn/suspicious/block, thời gian cửa sổ, tự động block on/off.
-   9.8. [x] Trang config phải có chế độ dry-run/warn-only để quan sát trước khi bật block thật.
+Admin domain:
 
-10. [x] Thêm chức năng admin block/unblock IP hoặc subnet tạm thời, có lý do, thời hạn hết block, và audit log ai đã block/unblock.
-    10.1. [x] Bảng blocked_ips gồm ip_or_cidr, reason, expires_at, created_by, created_at, revoked_by, revoked_at.
-    10.2. [x] Middleware/proxy kiểm tra block list trước khi vào API/action nhạy cảm.
-    10.3. [x] Hỗ trợ block tạm 15 phút, 1 giờ, 24 giờ, custom.
-    10.4. [x] Không cho tự block IP admin hiện tại nếu không có xác nhận đặc biệt.
-    10.5. [x] UI hiển thị active/expired/revoked và cho unblock.
-    10.6. [x] Làm trang admin riêng cho Blocked IPs/Subnets: thêm block, import danh sách, tìm kiếm, gia hạn, revoke, xem lý do và lịch sử.
+```txt
+system.pinklove.vn/
+system.pinklove.vn/login
+system.pinklove.vn/dashboard
+system.pinklove.vn/config
+system.pinklove.vn/orders
+system.pinklove.vn/customers
+system.pinklove.vn/providers
+system.pinklove.vn/offerings
+system.pinklove.vn/marketing
+system.pinklove.vn/analytics
+```
 
-11. [x] Thêm audit log bảo mật cho admin action: mở khóa rate-limit, block/unblock IP, đổi quyền user, block/unblock user, reset password.
-    11.1. [x] Ghi admin_user_id, action, target_type, target_id, before/after JSON nếu phù hợp, reason, ip, user_agent, created_at.
-    11.2. [x] Audit log chỉ append, không sửa/xóa bằng UI thường.
-    11.3. [x] Trang admin xem audit log có filter theo admin, action, target, thời gian.
-    11.4. [x] Trang audit log có export CSV và phân quyền xem riêng cho admin đủ quyền.
+Bien moi truong
+---------------
 
-12. [x] Thêm test/smoke cho các case: duplicate register trả account_exists, lỗi register clear session, login sai bị rate-limit, login đúng reset email rate-limit.
-    12.1. [x] Test public register duplicate email/phone không tiết lộ trường nào trùng.
-    12.2. [x] Test lỗi register xóa pinklove_session.
-    12.3. [x] Test login fail đủ số lần thì rate_limited.
-    12.4. [x] Test login success reset email rate-limit.
-    12.5. [x] Test admin/provider login cũng bị rate-limit sau khi bổ sung.
-    12.6. [x] Test CSRF thiếu/sai token bị chặn.
-    12.7. [x] Test security headers xuất hiện ở production build.
-    12.8. [x] Test admin unlock rate-limit ghi audit log.
-    12.9. [x] Test block IP chặn request và unblock cho phép lại.
+Local:
 
-13. [x] Cập nhật admin/config navigation để tiện quản lý các trang bảo mật trong khu cấu hình website hiện có.
-    13.1. [x] Thêm nhóm/tabs Security hoặc Bảo mật bên trong admin/config, không tách rời khỏi khu cấu hình website.
-    13.2. [x] Thêm link Auth rate limits.
-    13.3. [x] Thêm link Security logs.
-    13.4. [x] Thêm link Blocked IPs.
-    13.5. [x] Thêm link Audit logs.
-    13.6. [x] Thêm link Security settings/config tổng trong admin/config để quản lý rate-limit, CSRF, headers, proxy, detection rules.
-    13.7. [x] Thêm link Upload security.
-    13.8. [x] Thêm link Endpoint protection/cache.
-    13.9. [x] Thêm link Backup/restore status trong admin/config.
-    13.10. [x] Chỉ hiển thị các menu này cho admin có quyền phù hợp.
+```env
+PUBLIC_DOMAINS=localhost:3000
+ADMIN_DOMAINS=system.localhost:3000
+```
 
-14. [x] Backup/restore security cho database và dữ liệu quan trọng.
-    14.1. [x] Xác định dữ liệu cần backup: PostgreSQL database, uploads/media, env/config quan trọng nhưng không lưu secret raw vào nơi không mã hóa.
-    14.2. [x] Thiết lập backup định kỳ theo lịch: daily cho DB, media theo tần suất thay đổi.
-    14.3. [x] Mã hóa backup trước khi lưu hoặc dùng storage có encryption-at-rest.
-    14.4. [x] Lưu backup ở vị trí tách biệt với server chính để tránh mất cả server là mất luôn backup.
-    14.5. [x] Thiết lập retention policy: ví dụ giữ daily 7-14 ngày, weekly 4-8 tuần, monthly vài tháng tùy chi phí.
-    14.6. [x] Hạn chế quyền truy cập backup, chỉ admin/devops cần thiết được đọc/xóa.
-    14.7. [x] Test restore định kỳ vào môi trường staging/dev để chắc backup dùng được thật.
-    14.8. [x] Ghi lại quy trình restore: restore DB, restore uploads, kiểm tra migration, kiểm tra login/admin/order.
-    14.9. [x] Có cảnh báo nếu backup fail hoặc quá lâu không có backup mới.
-    14.10. [x] Không log/hiển thị public đường dẫn backup, credential backup, signed URL dài hạn.
-    14.11. [x] Làm tab/trang Backup/restore status dưới admin/config: xem lịch backup, trạng thái lần backup gần nhất, dung lượng, retention, cảnh báo fail, nút test restore/check integrity nếu an toàn.
-    14.12. [x] Trang backup chỉ hiển thị metadata an toàn, không hiển thị secret, credential, full path nhạy cảm hoặc signed URL dài hạn.
+Production:
 
-15. [x] Upload/file security cho ảnh sản phẩm, media, avatar, file cưới.
-    15.1. [x] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule upload security.
-    15.2. [x] Config được các option: allowed file types, max file size, max files per upload, max total upload size.
-    15.3. [x] Kiểm tra MIME type và magic bytes server-side, không chỉ tin file extension từ client.
-    15.4. [x] Rename file khi lưu để tránh path traversal, tên file độc hại, trùng tên, lộ thông tin người upload.
-    15.5. [x] Chặn SVG/script/HTML hoặc chỉ cho phép SVG sau khi sanitize thật kỹ.
-    15.6. [x] Serve uploads như static file, không execute code, không cho chạy script từ thư mục upload.
-    15.7. [x] Tách rule theo loại upload nếu cần: avatar, sản phẩm, bài viết, wedding media.
-    15.8. [x] Log upload bị từ chối vào security logs với lý do: size, type, magic bytes, extension, scan fail.
-    15.9. [x] UI admin hiển thị trạng thái rule hiện tại và cảnh báo nếu bật option nguy hiểm.
-    15.10. [x] Test upload file hợp lệ vẫn hoạt động bình thường, chỉ chặn file nguy hiểm hoặc vượt ngưỡng rõ ràng.
+```env
+PUBLIC_DOMAINS=pinklove.vn,www.pinklove.vn
+ADMIN_DOMAINS=system.pinklove.vn
+```
 
-16. [x] Endpoint nặng/cache protection để giảm DDoS nhẹ nhưng tránh ảnh hưởng người dùng thật.
-    16.1. [x] Làm tab/trang dưới admin/config để bật/tắt và chỉnh rule bảo vệ endpoint nặng.
-    16.2. [x] Nguyên tắc mặc định: ưu tiên warn/log trước, chỉ block/rate-limit mạnh khi hành vi vượt ngưỡng bất thường rõ ràng.
-    16.3. [x] Cache sitemap/public pages/public data nếu phù hợp để giảm tải server và DB.
-    16.4. [x] Rate-limit riêng cho search/filter/API nặng theo IP + endpoint + user nếu có, đặt ngưỡng cao đủ cho người dùng thật.
-    16.5. [x] Giới hạn pagination/page size ở mức hợp lý, ví dụ không cho query pageSize quá lớn nhưng vẫn đủ dùng cho UI.
-    16.6. [x] Giới hạn upload body size theo loại upload, trả lỗi rõ ràng khi file quá lớn.
-    16.7. [x] Thêm timeout hoặc guard cho query nặng, tránh một request kéo DB quá lâu.
-    16.8. [x] Log endpoint chậm: path, duration, status, user_id nếu có, IP, user_agent rút gọn.
-    16.9. [x] Có whitelist cho admin nội bộ, payment gateway, uptime monitor, crawler hợp lệ nếu cần.
-    16.10. [x] Có chế độ bypass/unlock tạm thời cho người quen/tester trong admin.
-    16.11. [x] Theo dõi false positive: nếu người dùng thật bị chặn thì admin thấy được lý do và chỉnh ngưỡng.
-    16.12. [x] Test các luồng người dùng thật: xem sản phẩm, tìm kiếm, lọc, upload, checkout không bị giới hạn vô lý.
+Nhieu admin domain:
 
-17. [x] Nền tảng security settings/permissions để các trang trong admin/config hoạt động chuẩn, không hard-code rải rác.
-    17.1. [x] Tạo nơi lưu cấu hình security tập trung, ví dụ security_settings hoặc dùng app_settings có namespace rõ ràng.
-    17.2. [x] Cấu hình phải có default an toàn khi DB chưa có record hoặc config bị lỗi.
-    17.3. [x] Validate mọi config trước khi lưu: số phải trong range hợp lý, domain allowlist không được wildcard nguy hiểm nếu chưa xác nhận.
-    17.4. [x] Mọi thay đổi config security phải ghi audit log before/after.
-    17.5. [x] Phân quyền riêng cho nhóm Security/Bảo mật: view logs, edit settings, unblock rate-limit, block IP, export logs, view backup status.
-    17.6. [x] Có nút reset về default an toàn cho từng nhóm config.
-    17.7. [x] Có trạng thái dry-run/warn-only cho các rule dễ ảnh hưởng người dùng thật trước khi bật block thật.
-    17.8. [x] Có banner/cảnh báo trong admin nếu production đang tắt rule quan trọng.
-    17.9. [x] Có migration/audit schema kiểm tra đủ bảng security_settings, security_events, blocked_ips, audit logs nếu các module được bật.
-    17.10. [x] Cập nhật documentation ngắn trong admin để người vận hành hiểu từng option ảnh hưởng gì.
+```env
+ADMIN_DOMAINS=system.pinklove.vn,office.pinklove.vn,internal.pinklove.vn
+```
 
-18. [x] Tách nhỏ cấu hình bảo mật ra các trang con dưới /admin/config/security để quản lý rõ từng nhóm security setting.
-    18.1. [x] Dùng /admin/config/security làm hub/overview quản lý bảo mật.
-    18.2. [x] Tách Auth rate limits sang /admin/config/security/auth-rate-limits.
-    18.3. [x] Tách CSRF protection sang /admin/config/security/csrf.
-    18.4. [x] Tách Security headers/CSP/HSTS sang /admin/config/security/headers.
-    18.5. [x] Tách Proxy/IP detection/trusted headers sang /admin/config/security/proxy.
-    18.6. [x] Tách cleanup/dry-run/warn-only/default reset nếu đang chung quá nhiều vào page con phù hợp.
-    18.7. [x] Cập nhật ROUTES, breadcrumb, route-meta, navigation, permission checks theo cấu trúc mới, không dùng legacy redirect.
-    18.8. [x] Đảm bảo mỗi page con chỉ quản lý một nhóm setting, vẫn ghi audit log before/after khi lưu.
-    18.9. [x] Test tsc, lint, build và scan không còn hardcode path cũ sau khi tách.
+Env value la host, khong gom protocol.
+
+Domain helper
+-------------
+
+Tao `web/src/lib/domains.ts` de parse va normalize:
+
+```ts
+PUBLIC_DOMAINS
+ADMIN_DOMAINS
+```
+
+Yeu cau helper:
+- Tach danh sach theo dau phay.
+- Trim whitespace.
+- Normalize lowercase.
+- Ho tro host co port cho local dev.
+- Cung cap ham kiem tra host thuoc admin/public domain.
+
+Luat rewrite trong proxy.ts
+---------------------------
+
+Bypass:
+
+```txt
+/_next/...
+/api/...
+static asset paths co extension
+```
+
+Admin domain:
+
+```txt
+/                  -> /admin-site
+/login             -> /admin-site/login
+/dashboard         -> /admin-site/dashboard
+/config            -> /admin-site/config
+/orders            -> /admin-site/orders
+/customers         -> /admin-site/customers
+/providers         -> /admin-site/providers
+/offerings         -> /admin-site/offerings
+/marketing         -> /admin-site/marketing
+/analytics         -> /admin-site/analytics
+```
+
+Public domain:
+
+```txt
+/                  -> /user-site
+/blog              -> /user-site/blog
+/checkout          -> /user-site/checkout
+/payment/...       -> /user-site/payment/...
+/affiliates        -> /user-site/affiliates
+/providers         -> /user-site/providers
+/customer/...      -> /user-site/customer/...
+/provider/...      -> /user-site/provider/...
+```
+
+Internal implementation paths:
+
+```txt
+/admin-site/...
+/user-site/...
+```
+
+Xu ly cac path implementation nay tai proxy layer de chung khong tro thanh URL public.
+
+Route constants target
+----------------------
+
+Admin:
+
+```ts
+ROUTES.ADMIN = {
+  ROOT: "/",
+  LOGIN: "/login",
+  DASHBOARD: "/dashboard",
+  CONFIG: "/config",
+  ORDERS: "/orders",
+  CUSTOMERS: "/customers",
+  PROVIDERS: "/providers",
+  OFFERINGS: "/offerings",
+  MARKETING: "/marketing",
+  ANALYTICS: "/analytics",
+};
+```
+
+Customer:
+
+```ts
+ROUTES.CUSTOMER = {
+  ROOT: "/customer",
+  DASHBOARD: "/customer/dashboard",
+  ORDERS: "/customer/orders",
+  MESSAGES: "/customer/messages",
+  CONFIG: "/customer/config",
+};
+```
+
+Provider:
+
+```ts
+ROUTES.PROVIDER = {
+  ROOT: "/provider",
+  DASHBOARD: "/provider/dashboard",
+  ORDERS: "/provider/orders",
+  OFFERINGS: "/provider/offerings",
+  LEADS: "/provider/leads",
+  CONFIG: "/provider/config",
+};
+```
+
+API routes
+----------
+
+```txt
+/api/admin/...
+/api/auth/...
+/api/customer/...
+/api/provider/...
+```
+
+API response `location` tro ve admin UI su dung `ROUTES.ADMIN.*` target.
+
+Khu vuc can ra soat khi implement
+---------------------------------
+
+- `web/src/proxy.ts`
+- `web/src/lib/domains.ts`
+- `web/src/lib/routes.ts`
+- `web/src/lib/breadcrumbs.ts`
+- `web/src/features/access/config/permissions.ts`
+- `web/src/lib/auth.ts`
+- `web/src/lib/page-paths.ts`
+- `web/src/lib/robots.ts`
+- Admin navigation/header/menu components
+- Admin API routes co `location`
+- Form `action`
+- Link `href`
+- Server redirect
+- Breadcrumb pattern
+- Permission path rule
+- Sitemap/robots behavior
+
+Checklist trien khai
+--------------------
+
+1. Tao `web/src/lib/domains.ts`.
+2. Cap nhat `web/src/proxy.ts` de rewrite theo host.
+3. Chuyen public website routes vao `web/src/app/user-site`.
+4. Chuyen customer routes vao `web/src/app/user-site/customer`.
+5. Chuyen provider routes vao `web/src/app/user-site/provider`.
+6. Chuyen admin routes vao `web/src/app/admin-site`.
+7. Cap nhat `ROUTES.ADMIN`, `ROUTES.CUSTOMER`, `ROUTES.PROVIDER`.
+8. Cap nhat navigation, breadcrumbs, permission rules, redirects, form actions va API response locations.
+9. Cap nhat robots/sitemap/page path logic theo structure moi.
+10. Chay typecheck/build.
+11. Test local bang `localhost:3000` va `system.localhost:3000`.
+
+Luong can test
+--------------
+
+- Public homepage
+- Public blog
+- Checkout
+- Payment callback
+- Affiliate landing/apply
+- Provider landing/apply
+- Customer dashboard
+- Customer orders/messages/config
+- Provider dashboard
+- Provider orders/offerings/leads/config
+- Admin login
+- Admin dashboard
+- Admin config/orders/customers/providers/offerings
+- Admin form submit co redirect/location
+
+Tieu chi hoan thanh
+-------------------
+
+- Public domain load `user-site`.
+- Admin domain load `admin-site`.
+- Customer/provider portal chay duoi public domain.
+- API dung chung tiep tuc hoat dong.
+- Internal implementation paths duoc xu ly tai proxy.
+- Build/typecheck pass.
+- Cac luong test chinh hoat dong dung URL contract target.

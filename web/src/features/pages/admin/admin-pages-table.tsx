@@ -22,6 +22,7 @@ import { AdminBulkSubmitButton } from "@/features/admin/components/admin-buttons
 import { adminApi, adminApiActions } from "@/lib/api-client.admin";
 import { finishMutation } from "@/lib/client-mutation";
 import { getManagedPagePath } from "@/lib/page-paths";
+import { ROUTES } from "@/lib/routes";
 import {
   Table,
   TableBody,
@@ -167,7 +168,7 @@ export function AdminPagesTable({ pages, emptyMessage }: AdminPagesTableProps) {
           return (
             <AdminTableActions>
               <AdminTableActionButton action="external" label="Xem trang" href={targetUrl} target="_blank" />
-              <AdminTableActionButton action="edit" label="Sửa trang" href={`/admin/pages/${page.slug}`} />
+              <AdminTableActionButton action="edit" label="Sửa trang" href={`${ROUTES.ADMIN.PAGES}/${page.slug}`} />
             </AdminTableActions>
           );
         },
