@@ -1,103 +1,98 @@
-# PinkLove Next.js Project
+# PinkLove
 
-PinkLove is a Next.js application with Docker-managed local services:
+**An online wedding invitation platform** — couples pick a ready-made template or design their own invitation in a visual editor, publish it as a personal wedding website, and share it with guests.
 
-- Next.js `16.2.2` using the App Router
-- React `19.2.4`
-- PostgreSQL
-- Cookie-based local auth plus optional Google OAuth
-- A small CMS for public pages, menus, and media
+> Portfolio project by [Hoang Pham](https://hoangpham2263.github.io). Built as a full-stack Next.js monolith with role-based portals for customers, admins, service providers and affiliates.
 
-Current notable behavior:
+## Features
 
-- `home`, `login`, and `register` are system CMS pages and are seeded by `database.ts` if missing
-- `login` and `register` use dedicated auth page components, but their editable content still comes from CMS custom fields
-- Admin users can access public pages and customer pages for management and preview flows
-- ACF/custom fields are read through shared CMS helpers and media fields are resolved through a shared media URL helper
-- Managed content-page config lives in `web/src/features/pages/registry.ts`
-- Auth-page config and shared loading logic live in:
-  - `web/src/features/auth/page-registry.ts`
-  - `web/src/features/auth/auth-page-loader.ts`
-- Wedding offering catalog and invitation-site flow live in:
-  - `web/src/features/offerings/`
-  - `web/src/features/invitations/`
-  - `web/src/features/landing-pages/`
-- Domain server services now live with their features:
-  - `web/src/features/offerings/server/service.ts`
-  - `web/src/features/invitations/server/service.ts`
-  - `web/src/features/landing-pages/server/service.ts`
-  - `web/src/features/affiliate/server/service.ts`
-- Public content pages are code-managed routes, not admin-created CMS routes:
-  - `web/src/app/(guest)/page.tsx`
-  - `web/src/app/(guest)/(marketing)/about/page.tsx`
-  - `web/src/app/(guest)/(marketing)/contact/page.tsx`
-- Public page UI now lives directly alongside those routes inside `web/src/app/(guest)`.
-- Admin `Pages` edits only managed content/system pages already registered in code.
-- Account roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER`; the first registered account becomes `ADMIN`
-- Affiliate foundation is implemented: customers can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
-- Wedding invitation offering foundation is implemented:
-  - `Thiếp mẫu sẵn` for coded templates
-  - `Tự tạo thiệp` for builder starters
-  - per-customer `wedding_sites` drafts/published sites
-- Managed content pages now use page-specific route-local UI plus slug-based field config.
-- Admin offering management now includes basic create/edit/delete flow.
-- Builder now uses `konva` + `react-konva` for direct visual editing of `builder_template` sites.
-- Builder-template sites are edited in a dedicated design route at `/customer/design/[id]` with:
-  - top builder property controls
-  - left asset library
-  - center live editor
-  - right publish/settings sidebar
-- Checkout, orders, payment records, provider assignments, affiliate tracking, and invitation workflows are implemented in the monolith and documented under `docs/`.
+**Customers**
+- Browse the invitation catalog: ready-made templates and design-it-yourself starters
+- Visual invitation builder with drag-and-drop editing (Konva), asset library, live preview and publish settings
+- Personal wedding sites with draft / published states and a shareable public link
+- Wishlist, checkout, orders and payment history
 
-## Getting Started
+**Admins**
+- Dashboard to manage offerings, orders, payments, users and roles
+- Built-in CMS for managed pages, menus, media and custom fields
+- Affiliate approval and provider assignment
+- Database + media backup with checksum verification and guarded restore
 
-1. Ensure Docker Desktop is running.
-2. Run `./web/setup up` to start PostgreSQL.
-3. Run `cd web && npm run dev` to start Next.js locally.
-4. Open the app in your browser at `http://localhost:3000`.
+**Service providers**
+- Provider portal to receive and process assigned orders, with realtime updates
 
-If `.env` does not exist, `./web/setup` creates it from `.env.example`.
+**Affiliates**
+- Application flow, referral links, and click / referral-cookie tracking
 
-Development note:
+**Accounts & security**
+- Roles: `ADMIN`, `CUSTOMER`, `PROVIDER`, `AFFILIATE` (the first registered account becomes `ADMIN`)
+- Cookie-based authentication with optional Google OAuth
 
-- `docker/compose.yml` is for local PostgreSQL only.
-- Next.js runs on the host through the default `npm run dev` in `web/`.
-- `web/.env.local` points `DATABASE_URL` at the Docker database on `localhost:5433`.
-- `./web/setup up` stops the production compose stack first if it is running, then starts the dev database services.
+## Tech stack
 
-## Main Commands
+- **Next.js 16** (App Router), **React 19**, **TypeScript**
+- **Tailwind CSS 4**
+- **PostgreSQL** (`pg`)
+- **Konva / react-konva** for the visual builder
+- **Docker Compose** for local and production services
 
-- `./web/setup up`: start database containers in detached mode
-- `cd web && npm run dev`: start the local Next.js dev server
-- `./web/setup down`: stop containers
-- `./web/setup logs`: stream database logs
-- `./web/setup help`: show all supported commands
+## Project structure
 
-## Backup / Restore
+```text
+web/        Next.js application (routes, features, server services)
+docker/     Docker Compose files for development and production
+docs/       Architecture, conventions, roles, schema and feature docs
+scripts/    Backup and restore helpers
+```
 
-- Admin backup status lives at `/admin/config/backups`.
-- Backup packages include a PostgreSQL custom dump, `public/uploads`, a manifest, and a `.sha256` checksum.
-- Set `BACKUP_ENCRYPTION_KEY` in production to store application-encrypted `.tar.gz.enc` packages, or use encrypted-at-rest storage and set `BACKUP_STORAGE_ENCRYPTION_AT_REST=true`.
-- To run scheduled backups, enable `BACKUP_CRON_ENABLED=true` and have an external scheduler POST `/api/admin/config/backups/cron` with the `x-internal-api-key` header.
-- Before restore, use the admin integrity check; restore requires a valid checksum and explicit `RESTORE` confirmation.
-- Restore process: restore DB package, restore uploads, run migrations/build checks, then verify login, admin access, checkout/order and media display.
-- Do not put backup credentials, bucket paths, long-lived signed URLs, or raw secrets in admin-visible labels or logs.
+Code is organised by feature (`web/src/features/*`), each owning its UI, server service and data access.
 
-## Repo Layout
+## Getting started
 
-- `web/`: Next.js application
-- `docker/`: Docker compose files and helper script
-- `docs/`: project documentation
+Requirements: Node.js 20+, Docker Desktop.
+
+```bash
+cp .env.example .env
+./web/setup up          # start PostgreSQL in Docker
+cd web
+npm install
+npm run dev             # http://localhost:3000
+```
+
+Load demo data (offerings, sample sites, comments):
+
+```bash
+cd web
+npm run seed:data
+```
+
+The first account you register becomes the administrator.
+
+### Useful commands
+
+| Command | Description |
+|---|---|
+| `./web/setup up` / `down` | Start / stop the database containers |
+| `./web/setup logs` | Stream database logs |
+| `cd web && npm run dev` | Start the development server |
+| `cd web && npm run build` | Production build |
+| `cd web && npm run lint` | Lint the codebase |
 
 ## Documentation
 
-- [index](./docs/index.md)
-- [conventions](./docs/conventions.md)
-- [architecture](./docs/architecture.md)
-- [guest](./docs/guest.md)
-- [customer](./docs/customer.md)
-- [admin](./docs/admin.md)
-- [provider](./docs/provider.md)
-- [ecommerce](./docs/ecommerce.md)
-- [structure](./docs/structure.md)
-- [database schema / ER diagram](./docs/schema.md)
+Detailed docs live in [`docs/`](./docs/index.md):
+
+- [Architecture](./docs/architecture.md) · [Structure](./docs/structure.md) · [Conventions](./docs/conventions.md)
+- Portals: [Guest](./docs/guest.md) · [Customer](./docs/customer.md) · [Admin](./docs/admin.md) · [Provider](./docs/provider.md)
+- [E-commerce](./docs/ecommerce.md) · [Database schema](./docs/schema.md) · [Realtime](./docs/realtime.md)
+- [Security](./docs/security.md) · [Backup & restore](./docs/backup.md)
+- [Development notes](./docs/development-notes.md)
+
+## Author
+
+**Hoang Pham** — Full-Stack Developer
+[Portfolio](https://hoangpham2263.github.io) · [LinkedIn](https://www.linkedin.com/in/hoangpham2263/) · [GitHub](https://github.com/hoangpham2263)
+
+## License
+
+© 2026 Hoang Pham. All rights reserved. Shared publicly as a portfolio project; please contact the author before reusing the code.

@@ -1,0 +1,103 @@
+# Development notes
+
+PinkLove is a Next.js application with Docker-managed local services:
+
+- Next.js `16.2.2` using the App Router
+- React `19.2.4`
+- PostgreSQL
+- Cookie-based local auth plus optional Google OAuth
+- A small CMS for public pages, menus, and media
+
+Current notable behavior:
+
+- `home`, `login`, and `register` are system CMS pages and are seeded by `database.ts` if missing
+- `login` and `register` use dedicated auth page components, but their editable content still comes from CMS custom fields
+- Admin users can access public pages and customer pages for management and preview flows
+- ACF/custom fields are read through shared CMS helpers and media fields are resolved through a shared media URL helper
+- Managed content-page config lives in `web/src/features/pages/registry.ts`
+- Auth-page config and shared loading logic live in:
+  - `web/src/features/auth/page-registry.ts`
+  - `web/src/features/auth/auth-page-loader.ts`
+- Wedding offering catalog and invitation-site flow live in:
+  - `web/src/features/offerings/`
+  - `web/src/features/invitations/`
+  - `web/src/features/landing-pages/`
+- Domain server services now live with their features:
+  - `web/src/features/offerings/server/service.ts`
+  - `web/src/features/invitations/server/service.ts`
+  - `web/src/features/landing-pages/server/service.ts`
+  - `web/src/features/affiliate/server/service.ts`
+- Public content pages are code-managed routes, not admin-created CMS routes:
+  - `web/src/app/(guest)/page.tsx`
+  - `web/src/app/(guest)/(marketing)/about/page.tsx`
+  - `web/src/app/(guest)/(marketing)/contact/page.tsx`
+- Public page UI now lives directly alongside those routes inside `web/src/app/(guest)`.
+- Admin `Pages` edits only managed content/system pages already registered in code.
+- Account roles are `ADMIN`, `CUSTOMER`, `AFFILIATE`, and `PROVIDER`; the first registered account becomes `ADMIN`
+- Affiliate foundation is implemented: customers can apply, admins can approve, referral links are generated, and click/ref-cookie tracking is in place
+- Wedding invitation offering foundation is implemented:
+  - `Thiếp mẫu sẵn` for coded templates
+  - `Tự tạo thiệp` for builder starters
+  - per-customer `wedding_sites` drafts/published sites
+- Managed content pages now use page-specific route-local UI plus slug-based field config.
+- Admin offering management now includes basic create/edit/delete flow.
+- Builder now uses `konva` + `react-konva` for direct visual editing of `builder_template` sites.
+- Builder-template sites are edited in a dedicated design route at `/customer/design/[id]` with:
+  - top builder property controls
+  - left asset library
+  - center live editor
+  - right publish/settings sidebar
+- Checkout, orders, payment records, provider assignments, affiliate tracking, and invitation workflows are implemented in the monolith and documented under `docs/`.
+
+## Getting Started
+
+1. Ensure Docker Desktop is running.
+2. Run `./web/setup up` to start PostgreSQL.
+3. Run `cd web && npm run dev` to start Next.js locally.
+4. Open the app in your browser at `http://localhost:3000`.
+
+If `.env` does not exist, `./web/setup` creates it from `.env.example`.
+
+Development note:
+
+- `docker/compose.yml` is for local PostgreSQL only.
+- Next.js runs on the host through the default `npm run dev` in `web/`.
+- `web/.env.local` points `DATABASE_URL` at the Docker database on `localhost:5433`.
+- `./web/setup up` stops the production compose stack first if it is running, then starts the dev database services.
+
+## Main Commands
+
+- `./web/setup up`: start database containers in detached mode
+- `cd web && npm run dev`: start the local Next.js dev server
+- `./web/setup down`: stop containers
+- `./web/setup logs`: stream database logs
+- `./web/setup help`: show all supported commands
+
+## Backup / Restore
+
+- Admin backup status lives at `/admin/config/backups`.
+- Backup packages include a PostgreSQL custom dump, `public/uploads`, a manifest, and a `.sha256` checksum.
+- Set `BACKUP_ENCRYPTION_KEY` in production to store application-encrypted `.tar.gz.enc` packages, or use encrypted-at-rest storage and set `BACKUP_STORAGE_ENCRYPTION_AT_REST=true`.
+- To run scheduled backups, enable `BACKUP_CRON_ENABLED=true` and have an external scheduler POST `/api/admin/config/backups/cron` with the `x-internal-api-key` header.
+- Before restore, use the admin integrity check; restore requires a valid checksum and explicit `RESTORE` confirmation.
+- Restore process: restore DB package, restore uploads, run migrations/build checks, then verify login, admin access, checkout/order and media display.
+- Do not put backup credentials, bucket paths, long-lived signed URLs, or raw secrets in admin-visible labels or logs.
+
+## Repo Layout
+
+- `web/`: Next.js application
+- `docker/`: Docker compose files and helper script
+- `docs/`: project documentation
+
+## Documentation
+
+- [index](./docs/index.md)
+- [conventions](./docs/conventions.md)
+- [architecture](./docs/architecture.md)
+- [guest](./docs/guest.md)
+- [customer](./docs/customer.md)
+- [admin](./docs/admin.md)
+- [provider](./docs/provider.md)
+- [ecommerce](./docs/ecommerce.md)
+- [structure](./docs/structure.md)
+- [database schema / ER diagram](./docs/schema.md)
