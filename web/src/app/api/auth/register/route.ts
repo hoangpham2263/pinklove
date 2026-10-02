@@ -24,6 +24,13 @@ export const runtime ="nodejs";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function sanitizeRegisterReturnTo(value: string) {
+ if (!value.startsWith("/")) return "";
+ if (value.startsWith("//")) return "";
+ if (value.startsWith("/api/")) return "";
+ return value;
+}
+
 function redirectRegisterError(error: string) {
  const response = new NextResponse(null, { status: 303, headers: { Location: `${ROUTES.AUTH.REGISTER}?error=${error}` } });
  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
@@ -44,6 +51,7 @@ export async function POST(request: Request) {
  const password = String(formData.get("password") ??"");
  const phone = String(formData.get("phone") ??"").trim();
  const csrfToken = String(formData.get("csrfToken") ?? "");
+ const returnToInput = String(formData.get("returnTo") ?? "").trim();
  const phoneCountry =
   getPhoneCountryByCode(String(formData.get("phoneCountry") ??"")) ??
   DEFAULT_PHONE_COUNTRY;
@@ -145,7 +153,8 @@ export async function POST(request: Request) {
   metadata: { role: user.role },
  });
  const token = await createSession(user.id);
- const target = user.role === USER_ROLES.ADMIN ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD;
+ const returnTo = sanitizeRegisterReturnTo(returnToInput);
+ const target = returnTo || (user.role === USER_ROLES.ADMIN ? ROUTES.ADMIN.DASHBOARD : ROUTES.CUSTOMER.DASHBOARD);
  const response = new NextResponse(null, { status: 303, headers: { Location: target } });
  response.cookies.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions());
  return response;

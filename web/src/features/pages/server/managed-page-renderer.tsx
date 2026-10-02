@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AboutContent } from "@/app/user-site/(marketing)/about/_components/about-content";
-import { ServicesContent } from "@/app/user-site/(marketing)/services/_components/services-content";
+import { AboutContent } from "@/app/user-site/(site)/(marketing)/about/_components/about-content";
+import { ServicesContent } from "@/app/user-site/(site)/(marketing)/services/_components/services-content";
 import {
   GuestLinkButton,
   GuestPanel,
   GuestPanelBody,
   GuestShell,
 } from "@/app/user-site/_components/guest-ui";
-import { ContactContent } from "@/app/user-site/(marketing)/contact/_components/contact-content";
+import { ContactContent } from "@/app/user-site/(site)/(marketing)/contact/_components/contact-content";
 import { HomeContent } from "@/app/user-site/_components/home-content";
 import { ManagedPageBreadcrumb } from "@/components/common/managed-page-breadcrumb";
 import { PageStructuredData } from "@/components/common/page-structured-data";

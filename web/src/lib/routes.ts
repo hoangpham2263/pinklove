@@ -89,6 +89,7 @@ export const ROUTES = {
     AFFILIATE: "/customer/affiliate",
     AFFILIATE_LINKS: "/customer/affiliate/links",
     PROVIDER: "/customer/provider",
+    PROVIDER_APPLY: "/customer/provider/apply",
     WEDDING_PLANNING: "/customer/wedding-planning",
     VENDOR_LEADS: "/customer/vendor-leads",
     BOOKINGS: "/customer/bookings",
@@ -213,6 +214,7 @@ export const ROUTES = {
     PROVIDER_ACCOUNTS: "/providers/accounts",
     PROVIDERS: "/providers",
     PROVIDER_AVAILABILITY: "/providers/availability",
+    PROVIDER_APPLICATIONS: "/providers/applications",
     PROVIDER_ACCOUNTS_CREATE: "/providers/accounts/create",
     PROVIDER_ACCOUNT: (id: string) => `/providers/accounts/${id}`,
     PROVIDER_OFFERINGS: "/providers/offerings",
@@ -442,6 +444,9 @@ export const ROUTES = {
       },
       PROVIDER_ACCOUNTS: {
         STATUS: "/api/admin/providers/accounts/status",
+      },
+      PROVIDER_APPLICATIONS: {
+        UPDATE: "/api/admin/providers/applications/update",
       },
       PROVIDER_REVIEWS: {
         STATUS: "/api/admin/providers/reviews/status",

@@ -209,21 +209,6 @@ function getSiteRewritePath(request: NextRequest) {
   return pathname === "/" ? sitePrefix : `${sitePrefix}${pathname}`;
 }
 
-function redirectImplementationPath(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-  const publicPath =
-    stripImplementationPrefix(pathname, ADMIN_SITE_PREFIX) ??
-    stripImplementationPrefix(pathname, USER_SITE_PREFIX);
-
-  if (!publicPath) {
-    return null;
-  }
-
-  const url = request.nextUrl.clone();
-  url.pathname = publicPath;
-  return NextResponse.redirect(url);
-}
-
 export async function proxy(request: NextRequest) {
   if (await isTemporarilyBlockedBySecurityDetection(request)) {
     return applyRuntimeSecurityHeaders(request, NextResponse.json(
@@ -235,11 +220,6 @@ export async function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith(API_PREFIX)) {
     if (isBypassedPath(request.nextUrl.pathname)) {
       return applyRuntimeSecurityHeaders(request, NextResponse.next());
-    }
-
-    const implementationRedirect = redirectImplementationPath(request);
-    if (implementationRedirect) {
-      return applyRuntimeSecurityHeaders(request, implementationRedirect);
     }
 
     const requestHeaders = new Headers(request.headers);

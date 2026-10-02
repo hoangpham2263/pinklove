@@ -12,7 +12,6 @@ import { PasswordInput } from "@/components/common/password-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Section, SectionContainer } from "@/components/common/section";
 import { GuestMarketingPageDecor } from "@/app/user-site/_components/guest-marketing-background";
 import { ROUTES } from "@/lib/routes";
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/constants";
@@ -35,6 +34,9 @@ export type AuthFormProps = {
   sideImage?: string;
   loginCsrfToken?: string;
   registerCsrfToken?: string;
+  returnTo?: string;
+  loginHref?: string;
+  registerHref?: string;
 };
 
 type CustomerAuthShellProps = AuthFormProps & {
@@ -245,17 +247,19 @@ function CustomerAuthShell({
 function CustomerAuthSwitchLink({
   children,
   mode,
+  href,
   onSwitch,
 }: {
   children: React.ReactNode;
   mode: CustomerAuthMode;
+  href?: string;
   onSwitch: (mode: CustomerAuthMode) => void;
 }) {
-  const href = mode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER;
+  const targetHref = href ?? (mode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER);
 
   return (
     <a
-      href={href}
+      href={targetHref}
       className="text-guest-primary hover:underline"
       onClick={(event) => {
         event.preventDefault();
@@ -471,12 +475,16 @@ function CustomerAuthView({
   sideImage,
   loginCsrfToken,
   registerCsrfToken,
+  returnTo,
+  loginHref,
+  registerHref,
 }: AuthFormProps & { initialMode: CustomerAuthMode }) {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<CustomerAuthMode>(initialMode);
   const error = mode === initialMode ? getErrorMessage(searchParams.get("error")) : null;
   const status = mode === initialMode ? getStatusMessage(searchParams.get("status")) : null;
-  const returnTo = searchParams.get("returnTo");
+  const queryReturnTo = searchParams.get("returnTo");
+  const effectiveReturnTo = returnTo ?? queryReturnTo;
   const isLogin = mode === "login";
   const activeHeading = mode === initialMode ? heading : undefined;
   const activeSubheading = mode === initialMode ? subheading : undefined;
@@ -487,7 +495,7 @@ function CustomerAuthView({
     setMode(nextMode);
 
     const url = new URL(window.location.href);
-    url.pathname = nextMode === "login" ? ROUTES.AUTH.LOGIN : ROUTES.AUTH.REGISTER;
+    url.pathname = nextMode === "login" ? loginHref ?? ROUTES.AUTH.LOGIN : registerHref ?? ROUTES.AUTH.REGISTER;
     url.searchParams.delete("error");
     window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }
@@ -553,7 +561,7 @@ function CustomerAuthView({
             className="space-y-3.5 2xl:space-y-4"
           >
             <input type="hidden" name="csrfToken" value={loginCsrf.token} />
-            {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
+            {effectiveReturnTo ? <input type="hidden" name="returnTo" value={effectiveReturnTo} /> : null}
             <div className="space-y-2">
               <label htmlFor="customer-login-email" className="text-sm 2xl:text-base font-medium">
                 Email
@@ -604,6 +612,7 @@ function CustomerAuthView({
             onSubmit={handleRegisterSubmit}
           >
             <input type="hidden" name="csrfToken" value={registerCsrf.token} />
+            {effectiveReturnTo ? <input type="hidden" name="returnTo" value={effectiveReturnTo} /> : null}
             <div className="space-y-2">
               <label htmlFor="customer-register-accountName" className="text-sm 2xl:text-base font-medium">Tên tài khoản</label>
               <input id="customer-register-accountName" name="accountName" placeholder="Tên hiển thị của bạn" autoComplete="nickname" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
@@ -662,7 +671,7 @@ function CustomerAuthView({
           {error ? <p className="mt-4 text-center text-sm text-destructive">{error}</p> : null}
           <p className="mt-5 2xl:mt-7.5 text-center text-sm 2xl:text-base">
             Đã có tài khoản?{" "}
-            <CustomerAuthSwitchLink mode="login" onSwitch={switchMode}>
+            <CustomerAuthSwitchLink mode="login" href={loginHref} onSwitch={switchMode}>
               Đăng nhập
             </CustomerAuthSwitchLink>
           </p>
@@ -733,6 +742,9 @@ export function LoginForm({
   sideImage,
   loginCsrfToken,
   registerCsrfToken,
+  returnTo,
+  loginHref,
+  registerHref,
 }: AuthFormProps = {}) {
   return (
     <CustomerAuthView
@@ -742,6 +754,9 @@ export function LoginForm({
       sideImage={sideImage}
       loginCsrfToken={loginCsrfToken}
       registerCsrfToken={registerCsrfToken}
+      returnTo={returnTo}
+      loginHref={loginHref}
+      registerHref={registerHref}
     />
   );
 }
@@ -765,14 +780,14 @@ export function ProviderLoginForm({
   const error = getErrorMessage(searchParams.get("error"));
   const csrf = useAuthCsrfToken("provider_login", csrfToken);
 
-  const loginCard = (
-    <div className={embedded ? "w-full space-y-5" : "mx-auto w-full max-w-md space-y-5"}>
+  const formContent = (
+    <div className={embedded ? "w-full space-y-5" : "space-y-5"}>
       <div className={`space-y-2 ${embedded ? "" : "text-center"}`}>
         <h1 className={`font-semibold tracking-tight ${embedded ? "text-3xl md:text-4xl" : "text-4xl md:text-5xl"}`}>{title}</h1>
         <p className="text-muted-foreground">{description}</p>
       </div>
 
-      <Card className={`w-full rounded-lg ${embedded ? "border bg-background shadow-sm" : "border-0 md:border"}`}>
+      <Card className="w-full rounded-lg border bg-background shadow-sm">
         <CardHeader>
           <CardTitle>Provider Login</CardTitle>
         </CardHeader>
@@ -788,9 +803,12 @@ export function ProviderLoginForm({
           </NativeForm>
           {error ? <p className="text-center text-sm text-destructive">{error}</p> : null}
           <p className="pt-2 text-center text-sm text-muted-foreground">
-            Nếu đây là tài khoản khách hàng thông thường, hãy dùng{" "}
-            <Link href={ROUTES.AUTH.LOGIN} className="text-primary hover:underline">
-              customer login
+            Chưa có tài khoản PinkLove?{" "}
+            <Link
+              href={`${ROUTES.AUTH.REGISTER}?returnTo=${encodeURIComponent(ROUTES.CUSTOMER.PROVIDER_APPLY)}`}
+              className="text-primary hover:underline"
+            >
+              Đăng ký tài khoản
             </Link>
             .
           </p>
@@ -800,26 +818,52 @@ export function ProviderLoginForm({
   );
 
   if (embedded) {
-    return loginCard;
+    return formContent;
   }
 
   return (
-    <Section>
-      <SectionContainer>
-        <div className="grid min-h-[calc(100vh-200px)] items-center gap-8 lg:grid-cols-2">
-          {loginCard}
-
-          <div className="relative hidden min-h-125 overflow-hidden rounded-lg bg-muted/30 p-8 lg:flex lg:items-center lg:justify-center">
-            <div className="relative z-10 max-w-md space-y-4">
-              <h2 className="text-3xl font-semibold">Workspace riêng cho đối tác</h2>
-              <p className="text-muted-foreground">
-                Theo dõi đơn được giao, cập nhật trạng thái và để lại ghi chú tiến độ theo cùng một timeline vận hành.
-              </p>
-            </div>
-          </div>
+    <CustomerAuthShell
+      eyebrow="Provider Portal · Đơn hàng · Dịch vụ — Đồng hành bởi PinkLove"
+      heading={title}
+      subheading={description}
+      panelTitle="Đăng nhập nhà cung cấp"
+      panelDescription="Sử dụng tài khoản đã được duyệt để vào workspace provider."
+      visualAlt="PinkLove Provider"
+    >
+      <NativeForm action={ROUTES.API.PROVIDER.AUTH.LOGIN} method="POST" className="mt-7.5 2xl:mt-10 space-y-3.5 2xl:space-y-4">
+        <input type="hidden" name="csrfToken" value={csrf.token} />
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
+        <div className="space-y-2">
+          <label htmlFor="provider-login-email" className="text-sm 2xl:text-base font-medium">Email provider</label>
+          <input id="provider-login-email" name="email" type="email" placeholder="your@example.com" autoComplete="email" required className="h-11 w-full rounded border border-guest-border bg-white px-4 shadow-none outline-none placeholder:text-guest-placeholder focus:border-guest-primary" />
         </div>
-      </SectionContainer>
-    </Section>
+        <div className="space-y-2">
+          <label htmlFor="provider-login-password" className="text-sm 2xl:text-base font-medium">Mật khẩu</label>
+          <PasswordInput
+            id="provider-login-password"
+            name="password"
+            placeholder="Mật khẩu"
+            autoComplete="current-password"
+            required
+            className="h-11 rounded border-guest-border bg-white px-4 shadow-none placeholder:text-guest-placeholder focus-visible:border-guest-primary focus-visible:ring-0"
+          />
+        </div>
+        <button type="submit" disabled={!csrf.ready} className="inline-flex h-11 w-full items-center justify-center rounded bg-guest-primary text-sm 2xl:text-base font-medium text-white shadow-default transition hover:bg-guest-primary/80 disabled:cursor-not-allowed disabled:opacity-60">
+          Vào provider portal
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </button>
+      </NativeForm>
+      {error ? <p className="mt-4 text-center text-sm text-destructive">{error}</p> : null}
+      <p className="mt-5 2xl:mt-7.5 text-center text-sm 2xl:text-base">
+        Chưa có tài khoản PinkLove?{" "}
+        <Link
+          href={`${ROUTES.AUTH.REGISTER}?returnTo=${encodeURIComponent(ROUTES.CUSTOMER.PROVIDER_APPLY)}`}
+          className="text-guest-primary hover:underline"
+        >
+          Đăng ký rồi xin quyền provider
+        </Link>
+      </p>
+    </CustomerAuthShell>
   );
 }
 
@@ -829,6 +873,9 @@ export function RegisterForm({
   sideImage,
   loginCsrfToken,
   registerCsrfToken,
+  returnTo,
+  loginHref,
+  registerHref,
 }: AuthFormProps = {}) {
   return (
     <CustomerAuthView
@@ -838,6 +885,9 @@ export function RegisterForm({
       sideImage={sideImage}
       loginCsrfToken={loginCsrfToken}
       registerCsrfToken={registerCsrfToken}
+      returnTo={returnTo}
+      loginHref={loginHref}
+      registerHref={registerHref}
     />
   );
 }

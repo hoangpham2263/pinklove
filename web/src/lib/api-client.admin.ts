@@ -105,6 +105,10 @@ async function updateAffiliateApplication(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.AFFILIATES.APPLICATIONS_UPDATE, formData);
 }
 
+async function updateProviderApplication(formData: FormData) {
+  return submitForm(ROUTES.API.ADMIN.PROVIDER_APPLICATIONS.UPDATE, formData);
+}
+
 async function updateAffiliate(formData: FormData) {
   return submitForm(ROUTES.API.ADMIN.AFFILIATES.UPDATE, formData);
 }
@@ -453,6 +457,7 @@ export const adminApi = {
   deleteBlogPost,
   updateMenu,
   updateAffiliateApplication,
+  updateProviderApplication,
   updateAffiliate,
   updateAffiliateConversion,
   bulkUpdateAffiliates,
@@ -517,6 +522,7 @@ export const adminApiActions = {
   deleteBlogPost: ROUTES.API.ADMIN.BLOG.DELETE,
   updateMenu: ROUTES.API.ADMIN.MENUS.UPDATE,
   updateAffiliateApplication: ROUTES.API.ADMIN.AFFILIATES.APPLICATIONS_UPDATE,
+  updateProviderApplication: ROUTES.API.ADMIN.PROVIDER_APPLICATIONS.UPDATE,
   updateAffiliate: ROUTES.API.ADMIN.AFFILIATES.UPDATE,
   updateAffiliateConversion: ROUTES.API.ADMIN.AFFILIATES.CONVERSIONS_UPDATE,
   bulkUpdateAffiliates: ROUTES.API.ADMIN.AFFILIATES.BULK,

@@ -10,6 +10,7 @@ export type ProviderNavIconName =
   | "package-search"
   | "settings"
   | "shopping-bag"
+  | "store"
   | "user"
   | "external-link";
 
@@ -258,6 +259,14 @@ export const PROVIDER_NAV_SECONDARY_ITEMS: ProviderNavLinkEntry[] = [
 ];
 
 export const PROVIDER_NAV_AUXILIARY_ITEMS: ProviderNavLinkEntry[] = [
+  {
+    type: "link",
+    key: "customer-dashboard",
+    label: "Khu khách hàng",
+    description: "Quay về dashboard customer của cùng tài khoản.",
+    href: ROUTES.CUSTOMER.DASHBOARD,
+    iconName: "store",
+  },
   {
     type: "link",
     key: "website",

@@ -4406,6 +4406,7 @@ async function ensureProviderApplicationsMigration() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS provider_applications (
       id TEXT PRIMARY KEY DEFAULT app_random_id(),
+      user_id TEXT,
       company_name TEXT NOT NULL,
       contact_name TEXT NOT NULL,
       phone TEXT NOT NULL,
@@ -4425,9 +4426,16 @@ async function ensureProviderApplicationsMigration() {
     );
   `);
 
+  await pool.query(`ALTER TABLE provider_applications ADD COLUMN IF NOT EXISTS user_id TEXT;`);
+
   await pool.query(`
     CREATE INDEX IF NOT EXISTS provider_applications_review_status_idx
     ON provider_applications(review_status, created_at DESC);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS provider_applications_user_id_idx
+    ON provider_applications(user_id);
   `);
 
   await pool.query(`

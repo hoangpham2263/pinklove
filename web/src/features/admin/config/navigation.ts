@@ -175,6 +175,7 @@ export const ADMIN_FEATURES: AdminFeatureDefinition[] = [
         permissions: ["accounts.view"],
         items: [
           item("provider-accounts", "Provider Accounts", "Quản lý account đăng nhập của nhà cung cấp.", ROUTES.ADMIN.PROVIDER_ACCOUNTS, "users"),
+          item("provider-applications", "Hồ sơ đăng ký", "Duyệt customer xin quyền nhà cung cấp.", ROUTES.ADMIN.PROVIDER_APPLICATIONS, "users"),
         ],
       },
       {

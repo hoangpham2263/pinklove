@@ -56,11 +56,15 @@ export default async function CustomerProviderPage() {
       {!isProvider ? (
         <Card className="rounded-lg border-dashed">
           <CardHeader>
-            <CardTitle>Vai trò hiện tại chưa phải provider</CardTitle>
+            <CardTitle>Trở thành nhà cung cấp trên PinkLove</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Tài khoản này vẫn có thể truy cập khu customer chung, nhưng chưa được gắn actor `PROVIDER`.</p>
-            <CustomerLinkButton href={ROUTES.CUSTOMER.DASHBOARD}>Quay lại dashboard</CustomerLinkButton>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tài khoản customer của bạn có thể xin thêm quyền provider. Việc gửi hồ sơ và quản lý vận hành sẽ diễn ra ở Provider Center riêng, không nằm trong dashboard khách hàng.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <CustomerLinkButton href={ROUTES.CUSTOMER.PROVIDER_APPLY}>Xin quyền nhà cung cấp</CustomerLinkButton>
+            </div>
           </CardContent>
         </Card>
       ) : null}
@@ -144,7 +148,7 @@ export default async function CustomerProviderPage() {
               <CardTitle>Truy cập nhanh</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <ActionLink href={ROUTES.PROVIDER.ROOT} label="Mở portal provider" disabled={!isProvider} />
+              {isProvider ? <ActionLink href={ROUTES.PROVIDER.ROOT} label="Mở Provider Center" /> : null}
               <ActionLink href={ROUTES.PROVIDER.OFFERINGS} label="Quản lý dịch vụ/sản phẩm" disabled={!isProvider} />
               <ActionLink href={ROUTES.PROVIDER.ORDERS} label="Danh sách đơn provider" disabled={!isProvider} />
               <ActionLink href={ROUTES.CUSTOMER.CONFIG} label="Configs tài khoản" />

@@ -103,13 +103,13 @@ export function ProviderApplicationSection({
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
-                href={ROUTES.AUTH.REGISTER}
+                href={`${ROUTES.AUTH.REGISTER}?returnTo=${encodeURIComponent(ROUTES.CUSTOMER.PROVIDER_APPLY)}`}
                 className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-6 text-sm font-medium text-background transition hover:opacity-90"
               >
-                {fields.registerButtonText || "Đăng ký tài khoản"}
+                {fields.registerButtonText || "Bắt đầu đăng ký nhà cung cấp"}
               </Link>
               <Link
-                href={ROUTES.AUTH.LOGIN}
+                href={ROUTES.PROVIDER.LOGIN}
                 className="inline-flex h-11 items-center justify-center rounded-full border border-guest-border bg-white px-6 text-sm font-medium text-stone-900 transition hover:border-guest-primary hover:text-guest-primary"
               >
                 {fields.loginButtonText || "Đăng nhập để tiếp tục"}

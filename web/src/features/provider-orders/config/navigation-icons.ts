@@ -9,6 +9,7 @@ import {
   PackageSearch,
   Settings,
   ShoppingBag,
+  Store,
   User as UserIcon,
 } from "lucide-react";
 import type React from "react";
@@ -25,6 +26,7 @@ export const PROVIDER_NAV_ICON_MAP = {
   "package-search": PackageSearch,
   settings: Settings,
   "shopping-bag": ShoppingBag,
+  store: Store,
   user: UserIcon,
   "external-link": ExternalLink,
 } satisfies Record<ProviderNavIconName, React.ComponentType<{ className?: string }>>;
